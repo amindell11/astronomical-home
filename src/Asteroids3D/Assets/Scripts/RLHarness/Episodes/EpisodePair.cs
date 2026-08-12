@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected brain, versus a fixed mid-band brawler baseline (<see cref="HoldRangeFireBrain"/>); both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
+    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected brain, versus a fixed mid-band brawler baseline (an Aggressor <see cref="ArchetypeBrain"/>); both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
     public sealed class EpisodePair : IDisposable
     {
         private const uint AgentSeedStream = 101;
@@ -45,8 +45,10 @@ namespace Game.RLHarness
             installAgentBrain(agent.GetComponentInChildren<AICommander>(), baseline);
 
             // Fixed mid-band Aggressor draw: the deterministic default opponent; roster episodes re-install per draw.
-            baseline.GetComponentInChildren<AICommander>().InstallBrain<HoldRangeFireBrain>()
-                .Configure(agent, desiredRange: 10f, speedFraction: 0.85f, arena.Offset, spec.arenaRadius);
+            baseline.GetComponentInChildren<AICommander>().InstallBrain<ArchetypeBrain>()
+                .Configure(agent, OpponentArchetype.Aggressor,
+                    new OpponentDraw { desiredRange = 10f, speedFraction = 0.85f },
+                    jukeSeed: 0, arena.Offset, spec.arenaRadius);
 
             units.WireShipDependencies(agent);
             units.WireShipDependencies(baseline);
