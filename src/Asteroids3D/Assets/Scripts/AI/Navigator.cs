@@ -36,6 +36,7 @@ namespace Movement.MPC
 
         protected PilotCommand currentCommand;
         public PilotCommand CurrentCommand => currentCommand;
+        private float lastSolveFixedTime = float.NaN;
 
         protected IShipStatus context;
 
@@ -69,6 +70,7 @@ namespace Movement.MPC
         {
             ResetNavigation();
             currentCommand = default;
+            lastSolveFixedTime = float.NaN;
             mpc?.Dispose();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
         }
@@ -82,10 +84,18 @@ namespace Movement.MPC
 
             var scan = scout.ObstacleScan;
 
+            // Idle gaps skip solves, so dt is measured from the last solve, capped at one horizon
+            // (beyond that the warm start is fully consumed either way).
+            var now = Time.fixedTime;
+            var sinceLastSolve = float.IsNaN(lastSolveFixedTime)
+                ? Time.fixedDeltaTime
+                : Mathf.Min(now - lastSolveFixedTime, mpcSettings.horizonSeconds);
+            lastSolveFixedTime = now;
+
             var inputs = new MpcInputs
             {
                 kinematics = kin,
-                dt = Time.fixedDeltaTime,
+                dt = sinceLastSolve,
                 velocityReference = velocityReference,
                 facingRad = facingOverride ? facingRadOverride : float.NaN,
                 enemyPos = enemyPos,

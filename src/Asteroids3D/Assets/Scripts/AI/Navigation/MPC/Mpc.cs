@@ -116,7 +116,9 @@ namespace Movement.MPC
         }
 
         // A dt-shifted slot spans (1−α) of old slot i plus α of slot i+1; the time-weighted
-        // average IS the exact resample of a zero-order-hold plan. Tail slot holds.
+        // average IS the exact resample of a zero-order-hold plan. Tail slot holds. Repeated
+        // application diffuses plan features (binomial blend, mean phase exact); measured
+        // immaterial vs a diffusion-free shift on the rig (2026-08-11, PR #389 P1 experiment).
         private void FractionalShift(float alpha)
         {
             if (alpha <= 0f) return;
