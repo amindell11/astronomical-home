@@ -68,7 +68,7 @@ namespace Game.Capture.GameView
             CaptureRecoveryJournal.Attempt(RestoreAnnotations, failures);
             CaptureRecoveryJournal.Attempt(RestoreSelection, failures);
             CaptureRecoveryJournal.Attempt(() => gameView.Restore(recovery.gameView), failures);
-            CaptureRecoveryJournal.Attempt(() => focusedWindow?.Focus(), failures);
+            CaptureRecoveryJournal.Attempt(RestoreFocus, failures);
             CaptureRecoveryJournal.Attempt(
                 () => UrpGizmoCaptureAdapter.Restore(recovery.renderGraphCompatibilityMode), failures);
             CaptureRecoveryJournal.Attempt(
@@ -111,6 +111,12 @@ namespace Game.Capture.GameView
         private void RestoreAnnotations()
         {
             CaptureRecoveryJournal.RestoreGizmos(recovery.gizmos);
+        }
+
+        // Lifetime-aware: a window closed during the capture is destroyed, not null.
+        private void RestoreFocus()
+        {
+            if (focusedWindow) focusedWindow.Focus();
         }
 
         private void RestoreSelection()
