@@ -13,7 +13,7 @@ namespace Ships.Damage
         private const float BaseOffset = 2f;
         private const float BarWidth = 3.5f;
         private const float BarHeight = 0.25f;
-        // Filled tracks abut at the painter-era spacing, reading as one two-tone block.
+        // Without the gap, filled tracks abut and read as one two-tone block.
         private const float BarSpacing = BarHeight * 1.6f;
         private const float ScanSpacing = 0.02f;
 
@@ -39,7 +39,7 @@ namespace Ships.Damage
                 $"Health: {Current(damage.Health, damage.maxHealth):F1}/{damage.maxHealth:F1}", Color.white);
         }
 
-        // The pools are built in Awake; before that the serialized maximum is the only truth and reads full.
+        // Pools are built in Awake; before that the serialized maximum is the only truth.
         private static float Pct(Resource pool, float max) => pool != null ? pool.Pct : max > 0f ? 1f : 0f;
 
         private static float Current(Resource pool, float max) => pool != null ? pool.CurrentValue : max;
