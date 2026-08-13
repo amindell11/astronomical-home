@@ -141,9 +141,9 @@ namespace Game.RLHarness
             if (drive == ArchetypeDrive.OpenLoopAnchored)
             {
                 var polar = VelocityRebase.ToAnchored(lawVelocity, planePos, target.Kinematics.pos);
-                radialSpeed = polar.radialSpeed;
-                tangentialSpeed = polar.tangentialSpeed;
-                builder = builder.Velocity(radialSpeed, tangentialSpeed, polar.velocityWeight);
+                radialSpeed = polar.vel.radialSpeed;
+                tangentialSpeed = polar.vel.tangentialSpeed;
+                builder = builder.Velocity(radialSpeed, tangentialSpeed, polar.vel.weight);
             }
             else
             {
@@ -156,10 +156,10 @@ namespace Game.RLHarness
 
             if (engages) builder = builder.Facing(0f, 1f);
 
-            var fire = engages && drive == ArchetypeDrive.Production ? FireControl.Auto : FireControl.Hold;
+            var engage = engages && drive == ArchetypeDrive.Production;
             totalDecisions++;
             lastCommand = new ScriptedVelocityCommand(worldVelocity, radialSpeed, tangentialSpeed);
-            return new BrainDecision(builder, fire, fire);
+            return new BrainDecision(builder, engage, engage);
         }
     }
 }

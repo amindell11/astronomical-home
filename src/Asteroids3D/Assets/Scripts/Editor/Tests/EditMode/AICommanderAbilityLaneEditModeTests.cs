@@ -112,11 +112,10 @@ namespace Tests.EditMode
         }
 
         private static BrainDecision Drifting(bool boost) =>
-            new(NavObjective.Planar(Vector2.zero), FireControl.Hold, FireControl.Hold, boost);
+            new(NavObjective.Planar(Vector2.zero), boost: boost);
 
         private static BrainDecision Anchored() =>
-            new(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f).Facing(0f, 1f),
-                FireControl.Hold, FireControl.Hold);
+            new(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f).Facing(0f, 1f));
 
         private float StepBoost(BrainDecision? decision)
         {

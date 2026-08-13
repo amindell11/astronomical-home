@@ -51,7 +51,7 @@ namespace Tests.EditMode
                     enemyYawRate = 0.2f,
                     projectileSpeed = 50f,
                     initialVel = new float2(2f, -1f),
-                    anchored = new AnchoredIntent { hasFacing = true, facingOffsetRad = 0f, facingWeight = 1f },
+                    sentence = new IntentSentence { aim = new AimSlot { armed = true, offsetRad = 0f, weight = 1f } },
                 });
             }
             finally
