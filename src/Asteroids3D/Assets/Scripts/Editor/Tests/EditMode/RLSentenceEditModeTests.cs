@@ -98,11 +98,11 @@ namespace Tests.EditMode
             Assert.AreEqual(target.Id, anchor);
             Assert.AreEqual(SentenceRows.Author(SentenceRow.DummyCloseout, target.Id).sentence,
                 decision.Value.nav.sentence, "the decision carries the row vector verbatim");
-            Assert.IsTrue(decision.Value.primary.IsAuto, "closeout hands the trigger to the gunner");
+            Assert.IsTrue(decision.Value.engagePrimary, "closeout hands the trigger to the gunner");
             Assert.IsFalse(decision.Value.boost);
 
             brain.Configure(target, SentenceRow.Orbit);
-            Assert.IsFalse(brain.Decide(null).Value.primary.IsAuto, "non-closeout rows hold fire");
+            Assert.IsFalse(brain.Decide(null).Value.engagePrimary, "non-closeout rows hold fire");
         }
 
         [Test]
