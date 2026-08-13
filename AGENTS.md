@@ -46,7 +46,8 @@ If the diff grows to a multiple of what the scope implies, stop and reclassify b
 
 Code is self-documenting; a comment is a last resort for a non-obvious *why* the code cannot express.
 One line means ≤ ~15 words. No `<summary>` on self-naming members. Never narrate *what*, never past-state framing, never commented-out code.
-Ratchet: apply the standing rule to the hunks you touch. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
+**Type-level exception.** The entry-point type of a module or seam — the one a reader lands on first — may carry a `<summary>` up to ~10 lines. It earns those lines only by carrying what the file cannot: the type's role in the larger flow, a non-obvious invariant, pointers to collaborators and governing docs. A summary that only expands the type's name means the type doesn't qualify. Everything below the type still obeys the rules above.
+Ratchet: apply the standing rule to the hunks you touch, and update a documented type's summary in the diff that changes its role — a summary contradicting the code is a bug, not a comment nit. Writing a summary for a type that lacks one is opportunistic, never owed. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
 Review/build narration belongs in the PR description, not the code.
 
 ## Vocabulary
