@@ -156,10 +156,10 @@ namespace Game.RLHarness
 
             if (engages) builder = builder.Facing(0f, 1f);
 
-            var fire = engages && drive == ArchetypeDrive.Production ? FireControl.Auto : FireControl.Hold;
+            var engage = engages && drive == ArchetypeDrive.Production;
             totalDecisions++;
             lastCommand = new ScriptedVelocityCommand(worldVelocity, radialSpeed, tangentialSpeed);
-            return new BrainDecision(builder, fire, fire);
+            return new BrainDecision(builder, engage, engage);
         }
     }
 }

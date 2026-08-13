@@ -128,28 +128,12 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void FireControl_DefaultIsHold_AndTheThreeStatesAreDistinct()
-        {
-            Assert.That(default(FireControl).IsAuto, Is.False);
-            Assert.That(default(FireControl).IsCommanded, Is.False);
-
-            Assert.That(FireControl.Auto.IsAuto, Is.True);
-            Assert.That(FireControl.Auto.IsCommanded, Is.False);
-
-            Assert.That(FireControl.Commanded(true).IsCommanded, Is.True);
-            Assert.That(FireControl.Commanded(true).Held, Is.True);
-            Assert.That(FireControl.Commanded(false).Held, Is.False);
-            Assert.That(FireControl.Commanded(false).IsCommanded, Is.True,
-                "a released commanded trigger is still commanded — silence is Hold, not Commanded(false)");
-        }
-
-        [Test]
-        public void BrainDecision_DefaultsBothSlotsToHold()
+        public void BrainDecision_DefaultsBothSlotsDisengaged()
         {
             var decision = new BrainDecision(NavObjective.Planar(Vector2.zero));
 
-            Assert.That(decision.primary.IsAuto, Is.False);
-            Assert.That(decision.secondary.IsAuto, Is.False);
+            Assert.That(decision.engagePrimary, Is.False);
+            Assert.That(decision.engageSecondary, Is.False);
             Assert.That(decision.boost, Is.False);
         }
     }
