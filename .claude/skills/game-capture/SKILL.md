@@ -24,10 +24,10 @@ reading a mid-clip PNG yourself and handing the user the clip path.
   comma indices), one seed (`RL_HARNESS_SEEDS`), and one opponent block
   (`RL_HARNESS_OPPONENT=aggressor|mirror|<ckpt>.onnx` — `roster` is refused: five
   archetype films are five sessions). `RL_HARNESS_ONNX` names the candidate
-  checkpoint (default: the smoke fixture); `RL_HARNESS_PAINTERS` picks the markup
-  (unset draws NOTHING — name painters or a preset explicitly, e.g.
-  `ship-diagnostics,policy` or `everything`). Full `RL_HARNESS_*`
-  grammar in `training/rl/README.md`. The session
+  checkpoint (default: the smoke fixture); `RL_HARNESS_GIZMOS` picks the markup as
+  one native gizmo capture profile (`steering`, `combat`, `everything`) filmed
+  through the Game View — unset draws NOTHING, and `RL_HARNESS_PAINTERS` is retired.
+  Full `RL_HARNESS_*` grammar in `training/rl/README.md`. The session
   needs a graphics device, so it runs **without** `-nographics` — never the merge
   gate. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
   `results/rl-capture/`). A one-command `eval_lane.py` capture preset is a later
@@ -59,10 +59,7 @@ public sealed class MyProbe : CaptureScenario
             subjects[0] = a.Kinematics.pos;
             subjects[1] = b.Kinematics.pos;
             recorder.Step(subjects, ctx =>
-            {
-                ShipDiagnosticsPainter.Draw(ctx, a, b, Session.Services.Projectiles);  // standard two-ship markup
-                ctx.Label(subjects[0], $"step {i}", Color.white);  // plus whatever this investigation needs
-            });
+                ctx.Label(subjects[0], $"step {i}", Color.white));  // whatever this investigation needs
         }
     }
 }
@@ -71,22 +68,23 @@ public sealed class MyProbe : CaptureScenario
 
 `CaptureDraw` gives you `Line / Vector / Ring / Trail / Label` in plane-space plus a
 `LineWidth` knob. Anything not redrawn in a captured step disappears — compose the
-overlay fresh per frame. Override `Config` to change clip name/size/cadence.
+overlay fresh per frame. Override `Config` to change clip name/size/cadence. This
+offscreen lane renders its own camera, so it never films native gizmos — standing
+diagnostics reach frames only through the harness Game View lane.
 
 ## Film a trained checkpoint (policy vs archetype)
 
 The harness capture lane (above) covers the standard case: `RL_HARNESS_LANE=capture`
 with `RL_HARNESS_ONNX=<ckpt>.onnx` and `RL_HARNESS_OPPONENT=<archetype|mirror|ckpt>`,
-`RL_HARNESS_PAINTERS=ship-diagnostics,policy` (unset draws no markup — always name
-painters or a preset). An absolute checkpoint path is imported
-into the fixture slot automatically. For compositions the lane can't express (bespoke
-overlays, non-archetype opponents), author a scratch scenario mirroring
+`RL_HARNESS_GIZMOS=combat` (unset draws no markup — always name a profile). An
+absolute checkpoint path is imported into the fixture slot automatically. For
+compositions the lane can't express (bespoke overlays, non-archetype opponents),
+author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
 → `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
-enumerator and calling `recorder.Step` per fixed step with the active painters. New
-diagnostics are **painters** (`Game.Diagnostics.IDiagnosticPainter`), written once over
-the `IDiagnosticCanvas` contract so they render in both clips and live editor gizmos —
-never a capture-only overlay.
+enumerator and calling `recorder.Step` per fixed step with a scenario-local overlay. New
+standing diagnostics are **native gizmos** — a `[DrawGizmo]` drawer on the Unity subject
+whose state they explain, never a capture-only overlay.
 
 ## Run + assemble (one command each)
 
@@ -121,6 +119,12 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
   only** (it requires PlayMode + an explicit `-TestFilter`, and fails on zero tests
   executed). Never the merge-gate suite — never record merge-gate proof from a
   graphics run.
+- **Frame pixels are sRGB; gizmo colors are linear.** The project renders linear
+  (`m_ActiveColorSpace: 1`), so a gizmo `Color(1, 0.55, 0.15)` lands in the PNG as
+  `(255, 196, 108)`, not `(255, 140, 38)`. Scanning a frame for the gamma-space bytes
+  finds zero hits and reads exactly like "the drawer never ran" — convert before you
+  assert, and instrument the drawer before believing a colour scan that says nothing
+  drew.
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
 - **Recorded runs lock frame pacing** (`Time.timeScale=1` +

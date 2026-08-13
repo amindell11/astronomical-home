@@ -20,22 +20,13 @@ namespace Game.Diagnostics
         }
     }
 
-    /// <summary>The painter name registry — the selection grammar behind RL_HARNESS_PAINTERS. Only this registry resolves today; the first painter-bearing probe adds probe-sourced painters beside it.</summary>
+    /// <summary>The painter name registry — the selection grammar behind RL_HARNESS_PAINTERS. Every diagnostic now draws as a native gizmo, so nothing registers here and every name fails at the boundary.</summary>
     public static class DiagnosticPainters
     {
-        public const string ShipDiagnostics = "ship-diagnostics";
-        public const string Everything = "everything";
-        public const string Combat = "combat";
-
-        private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new()
-        {
-            [ShipDiagnostics] = ctx => new ShipDiagnosticsPainter(ctx.a, ctx.b, ctx.projectiles),
-        };
+        private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new();
 
         // Presets share the atom namespace so one grammar selects both.
-        private static readonly Dictionary<string, string[]> Presets = BuildPresets(
-            (Everything, new List<string>(Factories.Keys).ToArray()),
-            (Combat, new[] { ShipDiagnostics }));
+        private static readonly Dictionary<string, string[]> Presets = BuildPresets();
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);
         public static string PresetNames => string.Join(", ", Presets.Keys);

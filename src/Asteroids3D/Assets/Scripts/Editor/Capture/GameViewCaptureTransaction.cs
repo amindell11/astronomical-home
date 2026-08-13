@@ -37,7 +37,6 @@ namespace Game.Capture.GameView
             try
             {
                 UrpGizmoCaptureAdapter.Prepare();
-                UngateNativeDrawers();
                 DisableAllAnnotations();
                 foreach (var type in profileTypes) GizmoUtility.SetGizmoEnabled(type, true, false);
                 SetSelection(subjects, activeSubject);
@@ -86,15 +85,6 @@ namespace Game.Capture.GameView
                 if (!GizmoUtility.TryGetGizmoInfo(type, out _))
                     throw new InvalidOperationException(
                         $"Native gizmo capture profile declares {type.FullName}, but Unity has no registered gizmo for it.");
-        }
-
-        /// <summary>Every native drawer still asks the painter-era <see cref="DiagnosticGate"/>, which defaults to nothing-on — unopened, a fresh CLI Editor films empty frames. Unity's per-type switch and the subject selection are the authority instead.</summary>
-        private static void UngateNativeDrawers()
-        {
-            if (!DiagnosticPainters.TryExpandPreset(DiagnosticPainters.Everything, out var atoms))
-                throw new InvalidOperationException(
-                    $"Native capture cannot un-gate its drawers: no '{DiagnosticPainters.Everything}' diagnostic preset.");
-            DiagnosticGate.Replace(atoms);
         }
 
         private void DisableAllAnnotations()

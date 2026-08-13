@@ -473,25 +473,21 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PainterSelection_ResolvesAtomsExpandsPresetsAndDedupes()
+        public void PainterRegistry_IsEmptyNowThatEveryDiagnosticIsANativeGizmo()
         {
-            Assert.AreEqual(new[] { DiagnosticPainters.ShipDiagnostics },
-                Parse("RL_HARNESS_PAINTERS", "ship-diagnostics").painters);
-
-            Assert.IsTrue(DiagnosticPainters.TryExpandPreset(DiagnosticPainters.Everything, out var everything));
-            Assert.AreEqual(everything, Parse("RL_HARNESS_PAINTERS", "everything").painters);
-
-            var mixed = Parse("RL_HARNESS_PAINTERS", "ship-diagnostics,everything,ship-diagnostics").painters;
-            CollectionAssert.AreEquivalent(everything, mixed, "a preset mixed with its own atoms dedupes");
+            Assert.IsEmpty(DiagnosticPainters.RegisteredNames, "no painter registers");
+            Assert.IsEmpty(DiagnosticPainters.PresetNames, "no preset survives its painters");
+            Assert.IsFalse(DiagnosticPainters.TryExpandPreset("everything", out _));
+            Assert.IsFalse(DiagnosticPainters.IsRegistered("ship-diagnostics"));
         }
 
         [Test]
-        public void PainterSelection_UnknownNameListsTheRegisteredSet()
+        public void PainterSelection_AnyNameFailsAtTheBoundaryNamingTheEmptySet()
         {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "heatmap"),
-                "an unknown painter must fail at the boundary naming the registered set");
-            StringAssert.Contains(DiagnosticPainters.ShipDiagnostics, thrown.Message);
-            StringAssert.Contains(DiagnosticPainters.Everything, thrown.Message);
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "ship-diagnostics"),
+                "against an empty registry every painter name must fail at the boundary");
+            StringAssert.Contains("ship-diagnostics", thrown.Message);
+            StringAssert.Contains("registered painter () or preset ()", thrown.Message);
         }
 
         [Test]
@@ -499,8 +495,9 @@ namespace Tests.EditMode
         {
             Assert.Throws<InvalidOperationException>(
                 () => DiagnosticPainters.BuildPresets(
-                    (DiagnosticPainters.ShipDiagnostics, new[] { DiagnosticPainters.ShipDiagnostics })),
-                "a preset name colliding with a registered atom must fail when registered");
+                    ("combat", new[] { "ship-diagnostics" }),
+                    ("combat", new[] { "ship-diagnostics" })),
+                "a duplicate preset name must fail when registered");
         }
 
         [Test]
@@ -523,13 +520,12 @@ namespace Tests.EditMode
             Assert.IsFalse(
                 Parse(prefix.Concat(new[] { "RL_HARNESS_GIZMOS", "steering" }).ToArray()).Presentation,
                 "native gizmo capture uses collider silhouettes without presentation meshes");
-            Assert.IsTrue(
-                Parse(prefix.Concat(new[] { "RL_HARNESS_PAINTERS", "everything" }).ToArray()).Presentation,
-                "the migration painter backend retains its presentation path");
+            Assert.IsTrue(Parse(prefix).Presentation,
+                "the offscreen recorder without a gizmo profile retains its presentation path");
         }
 
         [Test]
-        public void GizmoProfile_RejectsUnknownMixedOrUnrecordedUseAtTheBoundary()
+        public void GizmoProfile_RejectsUnknownOrUnrecordedUseAtTheBoundary()
         {
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_GIZMOS", "heatmap"));
             Assert.Throws<ArgumentException>(() => Parse(
@@ -540,13 +536,6 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentException>(() => Parse(
                 "RL_HARNESS_RECORD", "all",
                 "RL_HARNESS_GIZMOS", "steering"), "profile outside the capture lane");
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_LANE", "capture",
-                "RL_HARNESS_SEEDS", "2001",
-                "RL_HARNESS_OPPONENT", "mirror",
-                "RL_HARNESS_RECORD", "all",
-                "RL_HARNESS_GIZMOS", "steering",
-                "RL_HARNESS_PAINTERS", "everything"), "two capture backends cannot own one artifact path");
         }
     }
 }

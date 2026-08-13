@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using Game;
 using Game.Capture;
-using Game.Diagnostics;
 using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
@@ -280,7 +279,7 @@ namespace Tests.PlayMode
             fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
             opponentKind = OpponentKind.Mirror,
             probes = Array.Empty<ProbeSpec>(),
-            painters = new[] { DiagnosticPainters.ShipDiagnostics },
+            painters = Array.Empty<string>(),
             outDir = outDir,
             record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
         };
