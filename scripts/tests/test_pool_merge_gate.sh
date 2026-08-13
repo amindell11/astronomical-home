@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regression for the merge gate's proof chain: test and ReSharper proof bind to the landing tree, failed runs stop the PR path, and inert deltas avoid unnecessary full-suite runs, and the phase journal records the ladder for both outcomes.
+# Regression for the merge gate's proof chain: proof binds to the landing tree,
+# failed runs stop the PR path, inert deltas skip the full suite, and the phase
+# journal records the ladder for both outcomes.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"

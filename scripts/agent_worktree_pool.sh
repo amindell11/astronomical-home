@@ -983,7 +983,8 @@ merge_journal_open() {
   MERGE_RUN_START="$(date +%s)"
   MERGE_JOURNAL_PID="$BASHPID"
   mkdir -p "$MERGE_RUNS_DIR" 2>/dev/null || return 0
-  MERGE_JOURNAL="$MERGE_RUNS_DIR/$slot-$(date -u +"%Y%m%d-%H%M%S").jsonl"
+  # $$ disambiguates two runs opening in the same second; the truncation below would eat the earlier journal.
+  MERGE_JOURNAL="$MERGE_RUNS_DIR/$slot-$(date -u +"%Y%m%d-%H%M%S")-$$.jsonl"
   : > "$MERGE_JOURNAL" 2>/dev/null || { MERGE_JOURNAL=""; return 0; }
   # Readers follow this pointer; nothing outside cmd_merge reconstructs the path.
   ldir="$(lock_dir_for "$slot")"
