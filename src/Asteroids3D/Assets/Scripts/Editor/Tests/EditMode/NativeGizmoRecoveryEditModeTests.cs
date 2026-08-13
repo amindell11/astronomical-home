@@ -114,7 +114,7 @@ namespace Tests.EditMode
         {
             ApplyAnnotation(!priorGizmoEnabled, !priorIconEnabled);
             // The gate capture opens is EditorPrefs-backed, so a killed process leaks it.
-            DiagnosticGate.Replace(new[] { DiagnosticPainters.ShipDiagnostics });
+            DiagnosticGate.Replace(new[] { "leaked-atom" });
             Application.runInBackground = !priorRunInBackground;
             UrpGizmoCaptureAdapter.Restore(!priorCompatibilityMode);
         }

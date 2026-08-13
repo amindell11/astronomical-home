@@ -4,6 +4,7 @@ using Combat.Projectile;
 using Combat.Targeting;
 using Combat.Weapons;
 using Movement.MPC;
+using Ships;
 using Ships.Damage;
 using Ships.Movement;
 
@@ -21,6 +22,8 @@ namespace Game.Capture.GameView
 
         private static readonly Type[] Combat =
         {
+            typeof(Ship),
+            typeof(ProjectileBase),
             typeof(Gunner),
             typeof(LockOnSensor),
             typeof(Missile),
