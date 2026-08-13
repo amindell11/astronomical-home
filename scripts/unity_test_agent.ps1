@@ -19,6 +19,7 @@
     [int]$UnityTimeoutSec = 1800,
     [string]$ExcludeCategory = "RequiresGraphics",
     [switch]$WithGraphics,
+    [switch]$Windowed,
     [string]$CaptureScenario = "",
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
@@ -43,6 +44,9 @@ if ($WithGraphics.IsPresent) {
     if (-not $PSBoundParameters.ContainsKey('ExcludeCategory')) {
         $ExcludeCategory = ""
     }
+}
+if ($Windowed.IsPresent -and -not $WithGraphics.IsPresent) {
+    throw "-Windowed requires -WithGraphics: only Game View capture needs a windowed editor (Recorder's WaitForEndOfFrame never resumes in -batchmode)."
 }
 if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
     if (-not $WithGraphics.IsPresent) {
@@ -839,7 +843,10 @@ try {
         $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
         $logPath = Join-Path $outRoot "$stamp-$platform.log"
 
-        $args = @("-batchmode")
+        $args = @()
+        if (-not $Windowed.IsPresent) {
+            $args += "-batchmode"
+        }
         if (-not $WithGraphics.IsPresent) {
             $args += "-nographics"
         }

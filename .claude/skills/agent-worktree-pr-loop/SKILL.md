@@ -191,7 +191,11 @@ with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
 
 ## Step 3 — Pre-review quality pass
 
-Once tests are green and BEFORE the PR is presented for review, run ONE
+Once tests are green, run
+`./scripts/agent_worktree_pool.sh run-resharper <slot> origin/main`. The
+ratchet blocks Unity warning/error findings only when they overlap PR-changed
+lines; findings elsewhere in touched files remain visible without expanding
+the PR. Then, BEFORE the PR is presented for review, run ONE
 combined quality sub-agent over the diff with this charter:
 (a) simplification/reuse/efficiency fixes — flag only what affects correctness
 or the stated scope, no new abstractions, no bug-hunting, no speculative
@@ -254,8 +258,9 @@ raw `gh pr merge`, never force-push, never skip the gate's test run. The gate
 re-tests against current main when main moved after the branch's last test
 run; it skips only on full-suite proof for the exact landing tree; it extends
 proof over docs-only deltas with no run; it downgrades C#-comment-only deltas
-to an EditMode Smoke compile refresh. Scoped runs (`-ScopeType Auto`) are fine
-for iteration but record no merge proof.
+to an EditMode Smoke compile refresh. The same exact landing tree must pass the
+ReSharper ratchet. Scoped runs (`-ScopeType Auto`) are fine for iteration but
+record no merge proof.
 
 ## Step 7 — Finalize
 

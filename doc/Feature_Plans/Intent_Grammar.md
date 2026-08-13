@@ -1,9 +1,9 @@
 # Intent Grammar — policy-authored weighted relational objectives
 
-> STATUS: RATIFIED design (2026-08-11) — all forks ruled (§Forks); governs the intent-grammar
-> arc when it opens. Build is sequenced behind the solver limit-cycle fix (MPC_Retune_Pass
-> §Structural slice; Probe 2 = #388): multi-term costs on a non-converging solver are
-> unfalsifiable.
+> STATUS: RATIFIED design (2026-08-11) — all forks ruled (§Forks). Stage A briefed + carded
+> (§Stage A decision brief, frozen 2026-08-12): the solver limit-cycle sequencing gate is
+> SATISFIED (Probe 2 resolved, #389 merged with settled-loop pins green); slices on the
+> tracker #391–#395.
 
 The policy's action stops being a pre-blended movement answer and becomes an **intent sentence**:
 a small set of weighted relational cost terms the MPC re-solves at
@@ -170,3 +170,91 @@ Ruled at review (2026-08-11, same day):
 4. **Class-term cap = exactly 3** (hazards, hostile-fire, incoming-threats); a fourth is a
    design event — a rule-3 review, not a bigger cap. Bingo card as amended in §Staging
    (+Dummy closeout, +drift hold, −brawl, VEL-zeroed protocol note).
+
+## Stage A decision brief (frozen 2026-08-12)
+
+Slice breakdown lives on the tracker (the tracker owns it; this doc carries the decisions):
+umbrella #391 · A1 #392 (sentence carrier + terms) · A2 #393 (rig generalization) · A3 #394
+(session brain + lane) · #395 (bingo run, an investigation not a PR). Sequencing:
+A1 → (A2 ∥ A3) → #395 → closing docs commit landing the verdict table here. Entry gate:
+Probe 2's convergence gates passed (#389, settled-loop pins); the owed roster bench is not a
+Stage A dependency (policy-free), and #395's Dummy-closeout session row partially pays it.
+
+**Integration branch (user-directed 2026-08-12): Stage A lands on `mpc-trunk`, not main.**
+The trunk is cut from main `85b7b5e8`; A1 (#399) merged into it. Every remaining Stage A
+slice does the same: prepare the slot from `origin/mpc-trunk`, base the PR on `mpc-trunk`,
+and merge via the pool gate with the explicit base (`merge <slot> origin/mpc-trunk`).
+Readiness gates that read "A1 merged" verify content on `mpc-trunk`, not main. The trunk
+lands on main as one gate-tested merge at Stage A close, alongside the verdict-table docs
+commit. A1's bit-exactness evidence is unaffected (trunk tip = the main tip A1 was proven
+against).
+Vocabulary in this brief: "term" = intent/cost term (never the objectives system's activation
+term); "sentence slot" = a typed sentence position (never a worktree slot).
+
+Forks, as ruled:
+
+1. **Carrier: unify now (U).** The legacy anchored channel becomes the degenerate sentence at
+   the evaluation layer — one cost path; legacy-equivalence becomes a tested property. The
+   parallel additive block was rejected as the coordinator-bypass shape wiring rule #6
+   prohibits, deferring a known reconciliation into the Stage C schema-break window.
+   Bit-exactness (same-seed rig trace diff, base commit vs branch) is A1's merge evidence;
+   any exactness break = stop and reclassify (env-shift question), never threshold
+   negotiation. Sessions stay single-referent + FIELD; multi-referent resolution is deferred
+   (the rig resolves synthetically; the commander's one-anchor seam is untouched).
+2. **Term shapes.** VEL keeps radial/tangential (forced by bit-exactness under U; the schema
+   table's direction-θ form is a Stage C action-head question, ruled with fork 1 at Stage B).
+   POS = a point at polar offset (r, θ) in the referent's chosen frame; cost grows with
+   (distance-to-point − setpoint)², so setpoint 0 = be-at-point and r₀ = hold-ring
+   (radius-setpoint geometry as a continuous parameter); normalized by saturation
+   err²/(err² + posWidth²) with `posWidth` on the character axis (`facingWidth` precedent);
+   rides the terminal ramp. FIELD's policy weight scales the TurnAwayCost branch only;
+   `collisionPenalty` stays character-axis and un-zeroable (drift-hold = no hazard shaping,
+   still no suicide channel). Known consequence, accepted: FIELD-over-TurnAwayCost makes
+   negative-weight hazard *attraction* semantically dead — if cover-take reads "needs new
+   geometry" (a proximity potential), that is the card working, not a defect. AIM generalizes
+   the existing Aim()/FacingCost with signed weight × offset; maps bit-exactly.
+3. **Substrate: rig-first for all 13 rows; zero paper-only.** A rig referent is a kinematics
+   stream, so roadmap content (missiles, mines, allies, second hostiles) costs nothing to
+   stand up. Six rows get archetype-session confirmation (orbit, kite, cover-take, fire-lane
+   dodge, Dummy closeout, drift hold); multi-referent and non-ship-referent rows are rig-only.
+   Obstacles enter the rig through the production ConvertObstacles path (the conversion is the
+   producer's contract) with a real threat classifier for the sampler; referent motion =
+   closed-form scripted laws (stimulus, not opponent AI); sentences are authored in the
+   scenario rows.
+4. **Artifacts.** Rows are code-authored `[Explicit]` cases (MPC_RIG_EMIT precedent — no merge-
+   gate load); the permanent suite gains only the per-term normalization-contract tests and
+   the equivalence pins. Each row emits RigResult reads (recorded, not asserted), a per-tick
+   trace extended with per-term cost-breakdown columns (the "which term trapped it"
+   diagnostic), and a plot from one committed script (the rig CSVs previously had no reader).
+   Verdict = a human ruling per row (composes / needs new frame or geometry / red flag), live
+   in `results/mpc-rig/bingo/NOTES.md`, frozen into this doc at close. IntentPainter is OUT of
+   Stage A; its natural home is Stage C when live sentences flow in production.
+5. **Slicing** as carded above; A3 may fold into A2 at build time if it stays small.
+
+Blindsider resolutions:
+
+- **Absent sentence ≠ all-zero sentence.** The legacy mapping sets FIELD authority = 1
+  (today's character-ceiling shaping) with POS at 0; drift-hold *explicitly* authors all
+  weights ≈ 0 — that distinction is the row's point. `NavObjective.IsIdle` generalizes to "no
+  armed sentence slot" in A1 (POS-only/FIELD-only objectives must solve, not reset). Hand
+  vectors stay conventionally in [−1, 1]; learned bounds are Stage C's question.
+- **Referent kinematics:** enemy-bound slots keep the rolled prediction stream (bit-exactness);
+  synthetic referents are per-slot (pos, vel, yaw) snapshots linearly extrapolated in-rollout —
+  the existing fallback path, ≤3 distinct referents by construction. Rolled streams per
+  synthetic referent rejected as fidelity theater.
+- **posWidth per row:** rig rows clone MpcSettings in-memory (never the asset file); the asset
+  gets one default for sessions; persistent per-row disagreement is recorded Stage B evidence
+  (candidate: setpoint-relative normalization), not silently tuned around.
+
+Assumptions (user-ratified): new terms as `Cost/Terms/` files extending the fixed Burst menu;
+new inputs ride CostInput, `Cost.Evaluate`'s signature stays stable; weights are bounded raw
+signed per §Forks 2 and **ceiling-relative** (they multiply wFacing/wVelTrack/wObstacle; a new
+wPos ceiling is chosen for comparability — the rule-6 contract governs each term's 0–1
+envelope, ceilings stay the numéraire); zero/absent sentence ⇒ bit-identical current behavior;
+the production MpcSettings asset and every roster/trained surface stay untouched; hand-authored
+vectors live only in scenario/brain code; FIRE is inherited unchanged (Fire_Lane_Rework owns
+that lane in a parallel session); carrier structs follow the standing Burst hygiene
+(Sequential layout, fixed size); golden traces are emitted at the base commit and diffed in
+the PR, never committed; bingo artifacts under `results/mpc-rig/bingo/` with #303 deletion;
+the session lane mirrors the open-loop lane pattern; coinages get inline first-use definitions
+now and glossary rows at Stage B (earlier only if A1 code makes one load-bearing).
