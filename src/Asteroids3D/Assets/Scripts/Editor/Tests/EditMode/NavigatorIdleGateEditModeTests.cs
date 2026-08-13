@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Guards <see cref="Navigator.ShouldIdle"/>: the navigator idles iff no velocity reference is armed. A zero reference is a valid "stop" (the arm flag gates, not the value), and a drift objective disarms back to idle.</summary>
+    /// <summary>Guards <see cref="Navigator.ShouldIdle"/>: the navigator idles iff no velocity reference and no sentence slot is armed. A zero reference is a valid "stop" and an armed weight-0 slot a valid "nothing matters" (the arm flags gate, not the values); a drift objective disarms back to idle.</summary>
     [Category("MPC")]
     public class NavigatorIdleGateEditModeTests
     {
@@ -98,6 +98,24 @@ namespace Tests.EditMode
             nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f), default);
             Assert.That(nav.ShouldIdle(), Is.False,
                 "An enemy-polar move channel arms the navigator even with no world reference.");
+        }
+
+        [Test]
+        public void ApplyObjective_PositionOnly_ArmsTheNavigator()
+        {
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Position(0f, 0f, 12f, 1f), default);
+            Assert.That(nav.ShouldIdle(), Is.False,
+                "A POS-only objective must solve, not reset — idleness is 'no armed sentence slot'.");
+            Assert.That(float.IsNaN(nav.CostVelocityReference.x), Is.True,
+                "No move channel was authored, so the tracker must see NaN, not a commanded stop.");
+        }
+
+        [Test]
+        public void ApplyObjective_FieldOnly_ArmsTheNavigator()
+        {
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Field(0f), default);
+            Assert.That(nav.ShouldIdle(), Is.False,
+                "An armed weight-0 FIELD is a live 'no hazard shaping' command, not idleness.");
         }
     }
 }

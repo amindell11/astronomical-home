@@ -29,10 +29,9 @@ namespace AI
         protected ArenaContext arena;
         protected bool systemsInitialized;
 
-        // Per-slot trigger authority, latched from the last decision; the press edge derives from prevPrimaryHeld (PlayerCommander precedent).
-        private FireControl primary;
-        private FireControl secondary;
-        private bool prevPrimaryHeld;
+        // Per-slot engage gates, latched from the last decision; the Gunner owns trigger timing.
+        private bool engagePrimary;
+        private bool engageSecondary;
         // The ability lane, latched beside the triggers.
         private bool boost;
 
@@ -101,9 +100,8 @@ namespace AI
             Scout.ResetState();
             Navigator.ResetState();
             if (Gunner) Gunner.ResetState();
-            primary = default;
-            secondary = default;
-            prevPrimaryHeld = false;
+            engagePrimary = false;
+            engageSecondary = false;
             boost = false;
             context = new AIContext(control.Ship, Scout, combatExitDelay);
             if (Brain) Brain.ResetState();
@@ -122,8 +120,7 @@ namespace AI
             var command = Navigator.ComputeCommand();
             command.boost = boost ? 1f : 0f;
             control.Pilot.Drive(command);
-            if (primary.IsCommanded) FireCommandedPrimary();
-            if (Gunner) Gunner.Fire(primary, secondary);
+            if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }
 
         /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole. The anchor resolves once here so the nav and fire lanes cannot aim at different moments of the same tick.</summary>
@@ -132,28 +129,22 @@ namespace AI
             if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor))
             {
                 Navigator.ResetNavigation();
-                // No decision hands the triggers back to the gunner, which keeps its last aim.
-                primary = FireControl.Auto;
-                secondary = FireControl.Auto;
+                // No decision leaves the gunner engaged on its own judgment, keeping its last aim.
+                engagePrimary = true;
+                engageSecondary = true;
                 boost = false;
                 return;
             }
 
             var decided = decision.Value;
             Navigator.ApplyObjective(decided.nav, anchor);
-            primary = decided.primary;
-            secondary = decided.secondary;
+            engagePrimary = decided.engagePrimary;
+            engageSecondary = decided.engageSecondary;
             boost = decided.boost;
 
             if (!Gunner) return;
-            // A commanded trigger leaves the gunner's aim dormant rather than clearing it — nothing reads it while we own the slot.
-            if (primary.IsCommanded || secondary.IsCommanded) return;
-            if (primary.IsAuto || secondary.IsAuto)
-            {
-                if (decided.nav.hasAnchor) Gunner.Aim(anchor);
-                return;
-            }
-            Gunner.HoldFire();
+            if (decided.nav.hasAnchor) Gunner.Aim(anchor);
+            else Gunner.HoldFire();
         }
 
         /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
@@ -165,15 +156,6 @@ namespace AI
 
             anchor = new EnemyTarget { kinematics = ship.Kinematics, dynamics = ship.Dynamics };
             return true;
-        }
-
-        // Raw trigger facts, PlayerCommander.FireSlot precedent: the weapon interprets its own firing semantics.
-        private void FireCommandedPrimary()
-        {
-            var held = primary.Held;
-            control.WeaponActuator.Fire(WeaponSlot.Primary,
-                new WeaponCommand { held = held, pressed = held && !prevPrimaryHeld });
-            prevPrimaryHeld = held;
         }
     }
 }

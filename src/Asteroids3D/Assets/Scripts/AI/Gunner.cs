@@ -43,8 +43,8 @@ namespace AI
             ClearTarget();
         }
 
-        /// <summary>Evaluates each slot it holds authority over with that slot's own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots. Slots it does not own are skipped entirely rather than pushed a released trigger, which a charge weapon would fire on.</summary>
-        public void Fire(FireControl primary, FireControl secondary)
+        /// <summary>Evaluates each engaged slot with that slot's own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots. The brain gates, the gunner times: a disengaged slot pushes a released trigger.</summary>
+        public void Fire(bool engagePrimary, bool engageSecondary)
         {
             if (weapons == null || actuator == null) return;
 
@@ -52,14 +52,11 @@ namespace AI
             for (var i = 0; i < slots.Count; i++)
             {
                 var slot = slots[i];
-                if (!Authority(slot, primary, secondary).IsAuto) continue;
-                var fire = hasEnemy && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
+                var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
+                var fire = engage && hasEnemy && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
                 actuator.Fire(slot, new WeaponCommand { held = fire, pressed = fire });
             }
         }
-
-        private static FireControl Authority(WeaponSlot slot, FireControl primary, FireControl secondary) =>
-            slot == WeaponSlot.Primary ? primary : secondary;
 
         /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>

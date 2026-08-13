@@ -20,6 +20,7 @@ else
   SCRIPT_DIR="$(git rev-parse --show-toplevel)/scripts"
 fi
 UNITY_ACCESS_SCRIPT="$SCRIPT_DIR/unity_access.ps1"
+POOL_SCRIPT="$SCRIPT_DIR/agent_worktree_pool.sh"
 SHOW_PRS="${WORKTREE_DASHBOARD_PRS:-0}"
 DO_FETCH="${WORKTREE_DASHBOARD_FETCH:-0}"
 SHOW_STATUS="${WORKTREE_DASHBOARD_STATUS:-0}"
@@ -127,6 +128,12 @@ slot_info() {
     changed_summary="${DIM}skipped${NC}"
   fi
 
+  # The pool script owns the journal format; ask it, never parse it here.
+  local merge_info=""
+  if [[ -f "$POOL_SCRIPT" ]]; then
+    merge_info="$(bash "$POOL_SCRIPT" merge-progress "$slot" --oneline 2>/dev/null || true)"
+  fi
+
   local pr_info=""
   if [[ "$SHOW_PRS" == "1" ]] && command -v gh >/dev/null 2>&1; then
     local tb_check="${tb:-$slot}"
@@ -145,6 +152,7 @@ slot_info() {
   printf "    ${DIM}commits:${NC} +${GREEN}%s${NC} -${RED}%s${NC} vs main    ${DIM}changed:${NC} %b\n" "$ahead" "$behind" "$changed_summary"
   printf "    ${DIM}latest:${NC}  %s\n" "$commit_msg"
   [[ -n "$lease_info" ]] && printf "    ${DIM}lease:${NC}   %b\n" "$lease_info"
+  [[ -n "$merge_info" ]] && printf "    ${DIM}merge:${NC}   ${YELLOW}[merging] %s${NC}\n" "$merge_info"
   [[ -n "$pr_info" ]] && printf "    %b\n" "$pr_info"
 
   if [[ "$SHOW_STATUS" == "1" ]]; then

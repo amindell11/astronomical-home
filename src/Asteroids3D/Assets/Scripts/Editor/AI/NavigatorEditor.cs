@@ -60,9 +60,9 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 seq[i] = candidates[nav.selectedCandidateIndex * horizon + i];
 
-            var input = nav.solver.BuildCostInput(nav.velocityReference,
+            var input = nav.solver.BuildCostInput(nav.CostVelocityReference,
                 nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate,
-                nav.projectileSpeed, nav.lastInitialState.vel, nav.anchored);
+                nav.projectileSpeed, nav.lastInitialState.vel, nav.sentence);
             return Cost.EvaluateTrajectoryBreakdown(nav.lastInitialState, seq, input, nav.config, nav.dynamics, nav.lastControl);
         }
 
@@ -121,6 +121,7 @@ namespace Movement.MPC
             DrawCostBar("Velocity Track", breakdown.velocityTrack, s.wVelTrack, total, new Color(0.5f, 1f, 0.5f));
             DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
             DrawCostBar("Facing Prior", breakdown.facingPrior, s.wFacingPrior, total, new Color(0f, 0.7f, 0.9f));
+            DrawCostBar("Position", breakdown.pos, s.wPos, total, new Color(1f, 0.8f, 0.2f));
             DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
             DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));

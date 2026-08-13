@@ -225,13 +225,7 @@ namespace Game.RLHarness
                 new float2(measured.pos.x, measured.pos.y),
                 new float2(enemy.pos.x, enemy.pos.y),
                 new float2(enemy.vel.x, enemy.vel.y),
-                new AnchoredIntent
-                {
-                    hasVelocity = true,
-                    radialSpeed = command.radialSpeed,
-                    tangentialSpeed = command.tangentialSpeed,
-                    velocityWeight = 1f,
-                });
+                command.radialSpeed, command.tangentialSpeed);
             return new Vector2(resolved.x, resolved.y);
         }
 

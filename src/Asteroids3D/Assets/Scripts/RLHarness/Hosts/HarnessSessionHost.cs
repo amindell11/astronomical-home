@@ -78,6 +78,10 @@ namespace Game.RLHarness
         internal ISessionComposition NewOpenLoopComposition(in RewardSpec seedSpec, HarnessField field) =>
             new OpenLoopArchetypeComposition(units, Arena, Projectiles, assets, in seedSpec, field);
 
+        internal ISessionComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
+            SentenceRow row) =>
+            new SentenceComposition(units, Arena, Projectiles, assets, in seedSpec, field, row);
+
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
@@ -191,6 +195,7 @@ namespace Game.RLHarness
             SessionLane.Eval => new CheckpointEvaluator(),
             SessionLane.Capture => new CaptureClient(),
             SessionLane.OpenLoop => new VelRebaseLane(),
+            SessionLane.Sentence => new SentenceLane(),
             _ => throw new NotSupportedException($"No lane client for {lane}."),
         };
 

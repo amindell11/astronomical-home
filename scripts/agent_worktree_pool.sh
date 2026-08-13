@@ -61,6 +61,14 @@ Commands:
       -ScopeType Workspace, unfiltered) records merge-grade proof;
       scoped runs still open the PR but the merge gate will re-test.
 
+  merge-progress <slot> [--oneline]
+      Render that slot's merge gate journal: per-phase wall clock, which
+      phase is open and for how long, and any phase over its budget. Reads
+      the live run if one is in flight, else the slot's most recent. Safe
+      to call from any session, including one that did not start the merge.
+      --oneline prints one compact line for a merge still in flight and
+      nothing otherwise (what worktree_dashboard.sh consumes).
+
   merge <slot> [base_ref] [-- unity_test_agent.ps1 args...]
       Gated squash-merge of the slot's open PR. Merges base (default:
       origin/main) in if it moved, then re-runs the full suite unless
@@ -910,6 +918,260 @@ cmd_submit() {
   echo "use 'revise' for feedback, then 'finalize' once the PR is merged."
 }
 
+# ---- Merge gate journal ------------------------------------------------------
+# Stdout is bound to the launching session; the journal is not. Any agent can
+# render a merge it did not start, and the phase timings are the profiling data.
+MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}"
+
+# Wall-clock budgets in seconds. PROVISIONAL — placeholders until real gate runs
+# are collected; over-budget only ever warns, because a slow gate that still
+# passes must still land.
+merge_phase_budget() {
+  case "$1" in
+    preflight) echo 30 ;;
+    fetch) echo 60 ;;
+    base-merge) echo 60 ;;
+    proof-check) echo 15 ;;
+    tests) echo 1200 ;;
+    resharper) echo 300 ;;
+    push) echo 90 ;;
+    gh-merge) echo 90 ;;
+    *) echo 0 ;;
+  esac
+}
+
+MERGE_JOURNAL=""
+MERGE_JOURNAL_PID=""
+MERGE_RUN_START=0
+MERGE_PHASE=""
+MERGE_PHASE_START=0
+
+# Values are ours (phase names, hashes, PR numbers, short status words); drop the
+# two characters that would need escaping rather than emit invalid JSON.
+json_scrub() {
+  printf '%s' "$1" | tr -d '"\\' | tr -d '[:cntrl:]'
+}
+
+# Journalling must never be able to fail a merge.
+journal_line() {
+  [[ -n "$MERGE_JOURNAL" ]] || return 0
+  printf '%s\n' "$1" >> "$MERGE_JOURNAL" 2>/dev/null || true
+}
+
+journal_event() {
+  [[ -n "$MERGE_JOURNAL" ]] || return 0
+  local event="$1" phase="$2"
+  shift 2
+  local now frag="" kv key val
+  now="$(date +%s)"
+  for kv in "$@"; do
+    key="${kv%%=*}"
+    val="${kv#*=}"
+    if [[ "$val" =~ ^-?[0-9]+$ ]]; then
+      frag+="$(printf ',"%s":%s' "$(json_scrub "$key")" "$val")"
+    else
+      frag+="$(printf ',"%s":"%s"' "$(json_scrub "$key")" "$(json_scrub "$val")")"
+    fi
+  done
+  journal_line "$(printf '{"ts":"%s","t":%s,"event":"%s","phase":"%s"%s}' \
+    "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$((now - MERGE_RUN_START))" \
+    "$(json_scrub "$event")" "$(json_scrub "$phase")" "$frag")"
+}
+
+merge_journal_open() {
+  local slot="$1" base_ref="$2" ldir
+  MERGE_RUN_START="$(date +%s)"
+  MERGE_JOURNAL_PID="$BASHPID"
+  mkdir -p "$MERGE_RUNS_DIR" 2>/dev/null || return 0
+  # $$ disambiguates two runs opening in the same second; the truncation below would eat the earlier journal.
+  MERGE_JOURNAL="$MERGE_RUNS_DIR/$slot-$(date -u +"%Y%m%d-%H%M%S")-$$.jsonl"
+  : > "$MERGE_JOURNAL" 2>/dev/null || { MERGE_JOURNAL=""; return 0; }
+  # Readers follow this pointer; nothing outside cmd_merge reconstructs the path.
+  ldir="$(lock_dir_for "$slot")"
+  mkdir -p "$ldir" 2>/dev/null && printf '%s\n' "$MERGE_JOURNAL" > "$ldir/merge_run" 2>/dev/null || true
+  journal_event run-start "" "slot=$slot" "base=$base_ref" "pid=$$" "epoch=$MERGE_RUN_START"
+}
+
+# Reaching the next phase is itself proof the previous one succeeded, so a begin
+# closes the open phase and no call site has to pair them.
+merge_phase_begin() {
+  merge_phase_end ok
+  MERGE_PHASE="$1"
+  MERGE_PHASE_START="$(date +%s)"
+  journal_event phase-start "$MERGE_PHASE"
+}
+
+merge_phase_end() {
+  [[ -n "$MERGE_PHASE" ]] || return 0
+  local status="${1:-ok}" sec
+  sec=$(( $(date +%s) - MERGE_PHASE_START ))
+  journal_event phase-end "$MERGE_PHASE" "sec=$sec" "status=$status" "budget=$(merge_phase_budget "$MERGE_PHASE")"
+  MERGE_PHASE=""
+}
+
+merge_journal_note() {
+  journal_event note "$MERGE_PHASE" "msg=$1"
+}
+
+merge_journal_finish() {
+  local code="${1:-0}" status="merged"
+  [[ -n "$MERGE_JOURNAL" ]] || return 0
+  # Some bash builds run an inherited EXIT trap when a ( ) subshell exits; only
+  # the shell that opened the journal may close it.
+  [[ "$BASHPID" == "$MERGE_JOURNAL_PID" ]] || return 0
+  if [[ "$code" -eq 0 ]]; then
+    merge_phase_end ok
+  else
+    merge_phase_end failed
+    status="failed"
+  fi
+  journal_event run-end "" "sec=$(( $(date +%s) - MERGE_RUN_START ))" "status=$status" "exit=$code"
+  echo ""
+  merge_journal_render "$MERGE_JOURNAL"
+}
+
+# Parses only what this file's emitter writes: flat objects, scalar values, no
+# escapes (json_scrub guarantees it) — so awk suffices and the gate needs no JSON
+# interpreter to explain itself.
+MERGE_RENDER_AWK='
+function fld(line, key,   re, i, s) {
+  re = "\"" key "\":"
+  i = index(line, re)
+  if (i == 0) return ""
+  s = substr(line, i + length(re))
+  if (substr(s, 1, 1) == "\"") { s = substr(s, 2); return substr(s, 1, index(s, "\"") - 1) }
+  match(s, /^-?[0-9]+/)
+  return substr(s, 1, RLENGTH)
+}
+function fmt(s,   h, m) {
+  s = int(s + 0)
+  if (s < 60) return s "s"
+  m = int(s / 60); s = s % 60
+  if (m < 60) return m "m" sprintf("%02ds", s)
+  h = int(m / 60); m = m % 60
+  return h "h" sprintf("%02dm", m)
+}
+function pct(sec, budget) { return sprintf("%+d%%", int((sec - budget) * 100 / budget)) }
+/"event":"run-start"/ {
+  slot = fld($0, "slot"); base = fld($0, "base")
+  startTs = fld($0, "ts"); startEpoch = fld($0, "epoch") + 0
+}
+/"event":"phase-start"/ { openPhase = fld($0, "phase"); openAt = fld($0, "t") + 0 }
+/"event":"phase-end"/ {
+  p = fld($0, "phase")
+  if (!(p in sec)) order[++n] = p
+  sec[p] = fld($0, "sec") + 0; bud[p] = fld($0, "budget") + 0; stat[p] = fld($0, "status")
+  openPhase = ""
+}
+/"event":"note"/ {
+  p = fld($0, "phase"); m = fld($0, "msg")
+  note[p] = (p in note) ? note[p] "; " m : m
+}
+/"event":"run-end"/ {
+  ended = 1; runSec = fld($0, "sec") + 0; runStatus = fld($0, "status"); openPhase = ""
+}
+END {
+  if (startTs == "") {
+    if (!oneline) print "  (journal empty)"
+    exit
+  }
+  if (openPhase != "" && nowEpoch > 0 && startEpoch > 0) openElapsed = (nowEpoch - startEpoch) - openAt
+  # One line, live runs only: the dashboard wants "what is this slot doing now".
+  if (oneline) {
+    if (openPhase == "" || ended) exit
+    line = openPhase " " fmt(openElapsed) " OPEN"
+    if (openBudget > 0 && openElapsed > openBudget) line = line " (over budget " fmt(openBudget) ")"
+    print line
+    exit
+  }
+  hdr = slot " merge -> " base "   started " startTs
+  if (ended) hdr = hdr "   " runStatus " in " fmt(runSec)
+  else if (nowEpoch > 0 && startEpoch > 0) hdr = hdr "   RUNNING " fmt(nowEpoch - startEpoch)
+  print hdr
+  warned = 0
+  for (i = 1; i <= n; i++) {
+    p = order[i]
+    line = sprintf("  %s  %-12s %8s", (stat[p] == "failed") ? "XX" : "ok", p, fmt(sec[p]))
+    if (bud[p] > 0 && sec[p] > bud[p]) {
+      line = line sprintf("   OVER BUDGET %s (%s)", fmt(bud[p]), pct(sec[p], bud[p]))
+      warned++
+    }
+    if (p in note) line = line "   " note[p]
+    print line
+  }
+  if (openPhase != "" && nowEpoch > 0 && startEpoch > 0) {
+    elapsed = openElapsed
+    line = sprintf("  >>  %-12s %8s   OPEN", openPhase, fmt(elapsed))
+    if (openBudget > 0 && elapsed > openBudget) {
+      line = line sprintf(" - OVER BUDGET %s (%s)", fmt(openBudget), pct(elapsed, openBudget))
+      warned++
+    }
+    else if (openBudget > 0) line = line sprintf(" - budget %s", fmt(openBudget))
+    if (openPhase in note) line = line "   " note[openPhase]
+    print line
+  }
+  if (warned > 0) printf "  %d phase(s) over budget.\n", warned
+}
+'
+
+# Empty unless a phase-start is the last event — i.e. a phase is still open.
+merge_journal_open_phase() {
+  local last
+  last="$(grep -E '"event":"phase-(start|end)"|"event":"run-end"' "$1" 2>/dev/null | tail -n 1 || true)"
+  case "$last" in
+    *'"event":"phase-start"'*) printf '%s' "$last" | sed -n 's/.*"phase":"\([^"]*\)".*/\1/p' ;;
+    *) printf '' ;;
+  esac
+}
+
+merge_journal_render() {
+  local journal="$1" oneline="${2:-0}" open_phase open_budget
+  [[ -f "$journal" ]] || return 0
+  open_phase="$(merge_journal_open_phase "$journal")"
+  open_budget="$(merge_phase_budget "${open_phase:-none}")"
+  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline"     "$MERGE_RENDER_AWK" "$journal"
+}
+
+# Resolve a slot's journal: the live pointer first, else the newest run file (the
+# pointer dies with the lock dir at finalize, the run history does not).
+merge_journal_for_slot() {
+  local slot="$1" ldir journal
+  ldir="$(lock_dir_for "$slot")"
+  journal="$(cat "$ldir/merge_run" 2>/dev/null || true)"
+  if [[ -z "$journal" || ! -f "$journal" ]]; then
+    journal="$(ls -1t "$MERGE_RUNS_DIR/$slot-"*.jsonl 2>/dev/null | head -n 1 || true)"
+  fi
+  printf '%s' "$journal"
+}
+
+cmd_merge_progress() {
+  local slot="$1" mode="${2:-}" journal path open_phase log age
+  journal="$(merge_journal_for_slot "$slot")"
+  if [[ -z "$journal" || ! -f "$journal" ]]; then
+    [[ "$mode" == "--oneline" ]] || echo "merge-progress: no merge run recorded for $slot."
+    return 0
+  fi
+  if [[ "$mode" == "--oneline" ]]; then
+    merge_journal_render "$journal" 1
+    return 0
+  fi
+  merge_journal_render "$journal"
+  echo "  journal: $journal"
+
+  # Separates a hung editor from a slow suite far better than a pid check.
+  open_phase="$(merge_journal_open_phase "$journal")"
+  [[ "$open_phase" == "tests" ]] || return 0
+  path="$(slot_path "$slot" 2>/dev/null || true)"
+  [[ -n "$path" ]] || return 0
+  log="$(ls -1t "$path/results/unity-tests-agent/"*.log 2>/dev/null | head -n 1 || true)"
+  if [[ -z "$log" ]]; then
+    echo "  unity: no editor log yet under $path/results/unity-tests-agent/"
+    return 0
+  fi
+  age=$(( $(date +%s) - $(stat -c %Y "$log" 2>/dev/null || echo 0) ))
+  echo "  unity: $(basename "$log") last written ${age}s ago"
+}
+
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -921,6 +1183,12 @@ cmd_merge() {
   fi
   [[ ${1:-} != "--" ]] || shift
   local test_args=("$@")
+
+  merge_journal_open "$slot" "$base_ref"
+  # Fires on every exit path, including a set -e abort, so no failure leaves the
+  # journal with a phase open forever.
+  trap 'merge_journal_finish "$?"' EXIT
+  merge_phase_begin preflight
 
   command -v gh >/dev/null 2>&1 || {
     echo "gh CLI not found in PATH" >&2
@@ -942,7 +1210,9 @@ cmd_merge() {
     echo "merge: no open PR found for $task_branch -> $base_branch" >&2
     return 1
   fi
+  merge_journal_note "PR #$pr $task_branch -> $base_branch"
 
+  merge_phase_begin fetch
   git -C "$path" fetch origin "$base_branch"
   git -C "$path" checkout "$slot"
   require_clean_slot "$slot" "$path" "merge" || return 1
@@ -950,36 +1220,50 @@ cmd_merge() {
   base_ref="origin/$base_branch"
 
   # If base moved, integrate it first: two PRs each green on their own base can still break main together with no textual conflict.
+  merge_phase_begin base-merge
   if ! git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
     echo "$base_ref moved since $slot last synced: merging it in."
+    merge_journal_note "$base_ref moved - integrating"
     if ! git -C "$path" merge --no-edit "$base_ref"; then
       git -C "$path" merge --abort || true
       echo "merge: conflict merging $base_ref into $slot — resolve in the worktree," >&2
       echo "  'revise' to test+push, then re-run merge." >&2
+      merge_journal_note "conflict merging $base_ref"
       return 1
     fi
+  else
+    merge_journal_note "already current with $base_ref"
   fi
 
   # Skip the re-test only on provenance-corroborated FULL-suite proof for this exact tree: scoped runs never count, and ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
+  merge_phase_begin proof-check
   local current_tree proof_tree
   current_tree="$(git -C "$path" rev-parse "$slot^{tree}")"
   proof_tree="$(verified_proof_tree "$slot")"
   if [[ -n "$proof_tree" && "$proof_tree" == "$current_tree" ]]; then
     echo "Tree $current_tree already passed the full suite — skipping re-run."
+    merge_phase_begin tests
+    merge_journal_note "skipped - tree already fully proven"
   elif [[ -n "$proof_tree" ]]; then
     case "$(classify_diff_since_proof "$path" "$proof_tree" "$current_tree")" in
       doc)
         echo "Markdown-only delta since fully-tested tree $proof_tree — extending proof without a run."
+        merge_phase_begin tests
+        merge_journal_note "skipped - markdown-only delta, proof extended"
         extend_proof "$slot" "$current_tree" "inherit-doc" "$proof_tree"
         ;;
       comment)
         echo "C# comment/whitespace-only delta since fully-tested tree $proof_tree — compile-level smoke refresh."
+        merge_phase_begin tests
+        merge_journal_note "comment-only delta - EditMode smoke refresh"
         clear_run_summary "$path"
         cmd_run_tests_clean "$slot" -Mode EditMode -ScopeType Smoke
         extend_proof "$slot" "$current_tree" "inherit-smoke" "$proof_tree"
         ;;
       *)
         echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
+        merge_phase_begin tests
+        merge_journal_note "code delta since proof - full suite"
         clear_run_summary "$path"
         cmd_run_tests_clean "$slot" "${test_args[@]}"
         record_tested_tree "$slot" "$path"
@@ -987,6 +1271,8 @@ cmd_merge() {
     esac
   else
     echo "No full-suite proof for tree $current_tree — running the full suite before merge."
+    merge_phase_begin tests
+    merge_journal_note "no proof for landing tree - full suite"
     clear_run_summary "$path"
     cmd_run_tests_clean "$slot" "${test_args[@]}"
     record_tested_tree "$slot" "$path"
@@ -995,11 +1281,15 @@ cmd_merge() {
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
     return 1
   fi
+  merge_phase_begin resharper
   cmd_run_resharper "$slot" "$base_ref"
+
+  merge_phase_begin push
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
 
   # GitHub recomputes mergeability asynchronously after the gate's push; a merge call inside that window fails "not mergeable" — brief retries ride it out.
+  merge_phase_begin gh-merge
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
     if gh pr merge "$pr" --squash --delete-branch=false; then
@@ -1007,6 +1297,7 @@ cmd_merge() {
       break
     fi
     echo "merge: PR #$pr not mergeable yet (attempt $attempt/5) — retrying in 3s..."
+    merge_journal_note "not mergeable yet, attempt $attempt/5"
     sleep 3
   done
   if [[ "$merged" -ne 1 ]]; then
@@ -1180,6 +1471,10 @@ main() {
     merge)
       [[ $# -ge 1 ]] || { echo "merge requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
       cmd_merge "$@"
+      ;;
+    merge-progress)
+      [[ $# -ge 1 ]] || { echo "merge-progress requires <slot> [--oneline]" >&2; exit 1; }
+      cmd_merge_progress "$@"
       ;;
     finalize)
       [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref]" >&2; exit 1; }
