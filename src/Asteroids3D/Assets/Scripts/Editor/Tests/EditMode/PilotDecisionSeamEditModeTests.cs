@@ -68,8 +68,8 @@ namespace Tests.EditMode
 
             Assert.That(nav.ShouldIdle(), Is.False, "a zero reference is a commanded stop, not idle");
             Assert.That((Vector2)nav.velocityReference, Is.EqualTo(Vector2.zero));
-            Assert.That(nav.anchored.hasFacing, Is.False);
-            Assert.That(nav.anchored.hasVelocity, Is.False);
+            Assert.That(nav.sentence.aim.armed, Is.False);
+            Assert.That(nav.sentence.vel.armed, Is.False);
             Assert.That(float.IsNaN(nav.enemyYaw), Is.True);
         }
 
@@ -81,10 +81,10 @@ namespace Tests.EditMode
 
             Assert.That(nav.velocityReference.x, Is.EqualTo(3f), "exact-float: the world reference passes through");
             Assert.That(nav.velocityReference.y, Is.EqualTo(-4f));
-            Assert.That(nav.anchored.hasFacing, Is.True);
-            Assert.That(nav.anchored.facingOffsetRad, Is.EqualTo(0f));
-            Assert.That(nav.anchored.facingWeight, Is.EqualTo(1f));
-            Assert.That(nav.anchored.hasVelocity, Is.False, "the archetypes move in world frame, not enemy-polar");
+            Assert.That(nav.sentence.aim.armed, Is.True);
+            Assert.That(nav.sentence.aim.offsetRad, Is.EqualTo(0f));
+            Assert.That(nav.sentence.aim.weight, Is.EqualTo(1f));
+            Assert.That(nav.sentence.vel.armed, Is.False, "the archetypes move in world frame, not enemy-polar");
         }
 
         [Test]
@@ -94,14 +94,14 @@ namespace Tests.EditMode
                 .Velocity(4f, -2f, 0.6f)
                 .Facing(1.2f, 0.4f), Anchor());
 
-            Assert.That((Vector2)nav.velocityReference, Is.EqualTo(Vector2.zero),
-                "the polar channel carries the command; the world reference stays armed-but-unused");
+            Assert.That(float.IsNaN(nav.CostVelocityReference.x), Is.True,
+                "the polar channel carries the command; the disarmed world reference reads NaN at the cost layer");
             Assert.That(nav.ShouldIdle(), Is.False);
-            Assert.That(nav.anchored.radialSpeed, Is.EqualTo(4f));
-            Assert.That(nav.anchored.tangentialSpeed, Is.EqualTo(-2f));
-            Assert.That(nav.anchored.velocityWeight, Is.EqualTo(0.6f));
-            Assert.That(nav.anchored.facingOffsetRad, Is.EqualTo(1.2f));
-            Assert.That(nav.anchored.facingWeight, Is.EqualTo(0.4f));
+            Assert.That(nav.sentence.vel.radialSpeed, Is.EqualTo(4f));
+            Assert.That(nav.sentence.vel.tangentialSpeed, Is.EqualTo(-2f));
+            Assert.That(nav.sentence.vel.weight, Is.EqualTo(0.6f));
+            Assert.That(nav.sentence.aim.offsetRad, Is.EqualTo(1.2f));
+            Assert.That(nav.sentence.aim.weight, Is.EqualTo(0.4f));
         }
 
         [Test]

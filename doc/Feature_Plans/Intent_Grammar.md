@@ -1,9 +1,10 @@
 # Intent Grammar — policy-authored weighted relational objectives
 
-> STATUS: RATIFIED design (2026-08-11) — all forks ruled (§Forks). Stage A briefed + carded
-> (§Stage A decision brief, frozen 2026-08-12): the solver limit-cycle sequencing gate is
-> SATISFIED (Probe 2 resolved, #389 merged with settled-loop pins green); slices on the
-> tracker #391–#395.
+> STATUS: RATIFIED design (2026-08-11); Stage A COMPLETE (2026-08-13) — slices #392–#394
+> landed on `mpc-trunk`, the #395 bingo run is done and its verdicts are frozen in
+> §Stage A verdict table (11 composes · 1 needs-ray-geometry · 1 red flag). Next: Stage B
+> (freeze + glossary + fork 1's VEL ruling — the falsifier did NOT fire) after the
+> trunk→main merge.
 
 The policy's action stops being a pre-blended movement answer and becomes an **intent sentence**:
 a small set of weighted relational cost terms the MPC re-solves at
@@ -258,3 +259,61 @@ that lane in a parallel session); carrier structs follow the standing Burst hygi
 the PR, never committed; bingo artifacts under `results/mpc-rig/bingo/` with #303 deletion;
 the session lane mirrors the open-loop lane pattern; coinages get inline first-use definitions
 now and glossary rows at Stage B (earlier only if A1 code makes one load-bearing).
+
+## Stage A verdict table (frozen 2026-08-13)
+
+The #395 bingo run, executed on `mpc-trunk` head `9bd2c9d7` (rig: all 13 rows + 3 VEL-zeroed
+arms, seed 1234, 9/9 incl. the 16-variant same-seed replay proof; sessions: six rows via the
+A3 lane, controller probe, canonical eval env). Verdicts are the user's rulings, made on the
+trace/plot/session evidence; run detail lived in `results/mpc-rig/bingo/NOTES.md` (retained
+with the trajectory panel; per-variant traces deleted per #303).
+
+| # | Row | Evidence (one line) | Verdict |
+|---|-----|---------------------|---------|
+| 1 | orbit | +229° sweep holding 40±2 m with no POS ring; session 3× full-time draws, near-untouched | composes |
+| 2 | kite | backs 55→115 m facing a pursuer; session survives 42–64 s unarmed vs a firing Aggressor | composes |
+| 3 | cover-take | reaches the authored point (1.6 m) — but the author computed the cover projection; the single-referent session lane cannot say "cover" at all (2/3 out-of-bounds retreat) | **RED FLAG — intention-shaped** |
+| 4 | fire-lane dodge | point-repel exits the lane in ~2 s but can only say "flee this point", never "stay just off the ray"; in session the off-nose point rides a tracking shooter's live nose | **needs new geometry (ray)** |
+| 5 | missile-drag | flees a pursuing missile 389 m through the rock triplet at 2.0 m clearance | composes |
+| 6 | herd-toward-asteroid | station-holds the herding post on a moving enemy (world-frozen offset θ — frame evidence below) | composes |
+| 7 | mine-retreat | retreats 12→82 m from the mine while holding enemy facing at 7.1° mean | composes |
+| 8 | shoot-the-rock | non-ship AIM referent binds; settles on the 18 m ring facing the rock | composes |
+| 9 | two-hostile lanes | circulates hostile-1 while the repel term clears crossing hostile-2's sweeping lane | composes |
+| 10 | wingman-hold | rides a moving ally's wing 0.7 m off station for 136 m | composes |
+| 11 | minefield-transit | 90 m transit through 8 mines at 2.7 m clearance — required posWidth 60 vs asset 10 | composes |
+| 12 | Dummy closeout | rig closes 55→7.1 m; session **14W/1L/0D, 29.4 s mean, zero timeouts** | composes |
+| 13 | drift hold | armed-all-zero: zero motion, zero churn, solver live; session idles 120 s untouched | composes |
+
+**Fork 1 (VEL) falsifier: does NOT fire.** All three movement rows degrade hard VEL-zeroed —
+orbit produces no motion at all, kite is caught (range 55→0.1, churn 19.75 rev/s), missile-drag
+never flees. Stage B's ruling input is an unambiguous keep.
+
+**Red-flag disposition (cover-take).** Ruled intention-shaped: "take cover" is not reachable by
+slot-geometry growth alone — the cover *projection* (enemy×occluder→point) is the intention.
+Grammar consequence for Stage B: either a proximity/occlusion potential enters as a class-term
+question (rule 3 review against the hazards cap) or the tactic is accepted as living outside
+the movement grammar. Not silently patchable by authoring.
+
+**Ray geometry (fire-lane dodge).** The lane is a ray; a point stand-in cannot normalize to
+"just off the lane". Ray/line slot geometry is the structural growth Stage B should scope
+(the schema table already reserves geometry as fixed-per-slot — this adds a geometry kind,
+not a policy choice).
+
+**Stage B normalization evidence (recorded, per the brief's blindsider).** Three POS-led rows
+disagreed with the asset posWidth 10 (minefield-transit 60, cover-take 20, wingman-hold 5):
+saturation err²/(err²+w²) goes gradient-flat past ~3w, so far-field reach and tight settle
+cannot share one width. Candidate remains setpoint-relative normalization. Related note: the
+closing-VEL term biases the closeout equilibrium inside the POS setpoint (7.1 m vs 12) —
+composition arithmetic to keep in mind when authoring, not a defect.
+
+**FIELD channel unexercised.** Threat steps 0.0% and applied-step obstacle cost 0 in every rig
+row — rollout pruning kept applied paths clear, so FIELD's differential authority was never
+tested by this card. A Stage B/C observation, not a Stage A failure: the card's obstacle rows
+prove clearance behavior, not FIELD-weight sensitivity.
+
+**Probe-2 bench-debt partial payment (as briefed).** Bench-1's production couple scored Dummy
+6.5W/15, every non-win a timeout. The settled solver playing a clean hand sentence: 14W/1L/0D,
+mean 29.4 s, zero timeouts (sole loss an out-of-bounds exit at full HP). The closeout deficit
+is a property of what the policy asks for, not of the solver's ability to close. All six
+session rows also ran at hull-scale churn (strict 2.6–3.5 rev/s; drift-hold 0.06) vs the
+couple's 11.5 — the churn pathology does not reproduce under clean sentences.

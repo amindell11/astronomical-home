@@ -75,10 +75,10 @@ namespace Tests.EditMode
         {
             // Enemy dead ahead on +Y: a command straight at it is pure vr > 0.
             var anchored = VelocityRebase.ToAnchored(new Vector2(0f, 3f), Vector2.zero, new Vector2(0f, 10f));
-            Assert.IsTrue(anchored.hasVelocity);
-            Assert.AreEqual(1f, anchored.velocityWeight);
-            Assert.That(anchored.radialSpeed, Is.EqualTo(3f).Within(1e-5f), "vr > 0 closes along +losHat");
-            Assert.That(anchored.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
+            Assert.IsTrue(anchored.vel.armed);
+            Assert.AreEqual(1f, anchored.vel.weight);
+            Assert.That(anchored.vel.radialSpeed, Is.EqualTo(3f).Within(1e-5f), "vr > 0 closes along +losHat");
+            Assert.That(anchored.vel.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
         }
 
         [Test]
@@ -86,8 +86,8 @@ namespace Tests.EditMode
         {
             // Ship due south of the enemy: CCW around it moves +X there (the Cost.AnchoredVelocityRef pin, inverted).
             var anchored = VelocityRebase.ToAnchored(new Vector2(4f, 0f), Vector2.zero, new Vector2(0f, 10f));
-            Assert.That(anchored.tangentialSpeed, Is.EqualTo(4f).Within(1e-5f), "vt > 0 is CCW around the enemy");
-            Assert.That(anchored.radialSpeed, Is.EqualTo(0f).Within(1e-5f));
+            Assert.That(anchored.vel.tangentialSpeed, Is.EqualTo(4f).Within(1e-5f), "vt > 0 is CCW around the enemy");
+            Assert.That(anchored.vel.radialSpeed, Is.EqualTo(0f).Within(1e-5f));
         }
 
         [Test]
@@ -99,13 +99,15 @@ namespace Tests.EditMode
             var anchored = VelocityRebase.ToAnchored(law, selfPos, enemyPos);
 
             var still = Cost.AnchoredVelocityRef(new float2(selfPos.x, selfPos.y),
-                new float2(enemyPos.x, enemyPos.y), float2.zero, anchored);
+                new float2(enemyPos.x, enemyPos.y), float2.zero,
+                anchored.vel.radialSpeed, anchored.vel.tangentialSpeed);
             Assert.That(still.x, Is.EqualTo(law.x).Within(1e-4f),
                 "against a stationary enemy the rebased command resolves back to the law's world command");
             Assert.That(still.y, Is.EqualTo(law.y).Within(1e-4f));
 
             var moving = Cost.AnchoredVelocityRef(new float2(selfPos.x, selfPos.y),
-                new float2(enemyPos.x, enemyPos.y), new float2(2f, -1f), anchored);
+                new float2(enemyPos.x, enemyPos.y), new float2(2f, -1f),
+                anchored.vel.radialSpeed, anchored.vel.tangentialSpeed);
             Assert.That(moving.x, Is.EqualTo(law.x + 2f).Within(1e-4f),
                 "the same numbers under anchored semantics carry the enemy-velocity lead — deliberate (K1-2 brief)");
             Assert.That(moving.y, Is.EqualTo(law.y - 1f).Within(1e-4f));
@@ -163,7 +165,7 @@ namespace Tests.EditMode
 
             Assert.AreEqual(3f, decision.nav.planarVelocity.x, "exact-float: no border steer on the open-loop arms");
             Assert.AreEqual(-4f, decision.nav.planarVelocity.y);
-            Assert.IsFalse(decision.nav.anchored.hasVelocity);
+            Assert.IsFalse(decision.nav.sentence.vel.armed);
             Assert.IsFalse(decision.engagePrimary, "a hit would perturb the paired enemy path");
             Assert.IsTrue(decision.nav.TryGetAnchorId(out _), "both arms keep the anchor for the facing channel");
         }
@@ -176,10 +178,10 @@ namespace Tests.EditMode
             // Target ship sits at the origin (default kinematics); law command from (0,-10) straight at it.
             var decision = brain.Pack(new Vector2(0f, -10f), new Vector2(0f, 5f), engages: true);
 
-            Assert.IsTrue(decision.nav.anchored.hasVelocity);
-            Assert.That(decision.nav.anchored.radialSpeed, Is.EqualTo(5f).Within(1e-5f));
-            Assert.That(decision.nav.anchored.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
-            Assert.AreEqual(1f, decision.nav.anchored.velocityWeight);
+            Assert.IsTrue(decision.nav.sentence.vel.armed);
+            Assert.That(decision.nav.sentence.vel.radialSpeed, Is.EqualTo(5f).Within(1e-5f));
+            Assert.That(decision.nav.sentence.vel.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
+            Assert.AreEqual(1f, decision.nav.sentence.vel.weight);
             Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar channel replaces the world reference");
             Assert.IsFalse(decision.engagePrimary);
         }

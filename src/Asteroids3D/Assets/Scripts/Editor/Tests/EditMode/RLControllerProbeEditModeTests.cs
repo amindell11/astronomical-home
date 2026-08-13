@@ -144,7 +144,7 @@ namespace Tests.EditMode
                 obstacles[0] = new ObstacleData { position = obstaclePos, radius = 1f };
                 var input = new CostInput { obstacles = obstacles, obstacleCount = 1 };
 
-                Cost.ObstacleCosts(state, input, cfg, profileScale, out var collision, out var turnAway);
+                Cost.ObstacleCosts(state, input, cfg, profileScale, fieldScale: 1f, out var collision, out var turnAway);
                 var costsFired = collision > 0f || turnAway > 0f;
                 var classified = ControllerProbe.ObstacleThreat(state.pos, state.vel, obstacles, 1,
                     hullRadius, cfg.maxLatAccel);

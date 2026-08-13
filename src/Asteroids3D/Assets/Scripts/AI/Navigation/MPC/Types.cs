@@ -42,6 +42,9 @@ namespace Movement.MPC
         public float facingWidth;
         public float wFacingPrior;
 
+        public float wPos;
+        public float posWidth;
+
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
@@ -78,31 +81,17 @@ namespace Movement.MPC
         public float weight;
     }
 
-    /// <summary>Enemy-anchored intent channels: a facing offset around the intercept anchor and a polar velocity in the enemy frame, each with its own authority weight. The MPC re-resolves both against the predicted enemy every rollout step, so the command stays correct as the world moves (sign pins: doc/Glossary.md → anchored intent).</summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct AnchoredIntent
-    {
-        public bool hasFacing;
-        public float facingOffsetRad;    // CCW offset from the intercept yaw
-        public float facingWeight;       // [0,1] authority × the config's wFacing ceiling
-
-        public bool hasVelocity;
-        public float radialSpeed;        // m/s; > 0 closes along +losHat
-        public float tangentialSpeed;    // m/s; > 0 orbits CCW around the enemy
-        public float velocityWeight;     // [0,1] authority × the config's wVelTrack ceiling
-    }
-
     /// <summary>Read-only world data for cost evaluation; extend it to add inputs without changing Cost.Evaluate's signature or touching the Burst job.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CostInput
     {
-        /// <summary>Commanded world-plane velocity (objective ‖s.vel − velocityReference‖²).</summary>
+        /// <summary>Commanded world-plane velocity (objective ‖s.vel − velocityReference‖²); NaN.x = no world command, the tracker drops.</summary>
         public float2 velocityReference;
 
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 
-        /// <summary>Tracked enemy position/velocity (linear fallback when no rollout exists) — feeds intercept-facing.</summary>
+        /// <summary>Tracked enemy position/velocity (linear fallback when no rollout exists) — referent 0 for sentence slots.</summary>
         public float2 enemyPos;
         public float2 enemyVel;
 
@@ -120,8 +109,12 @@ namespace Movement.MPC
         /// <summary>Ship velocity at the start of the rollout, the momentum cost's reference direction.</summary>
         public float2 initialVel;
 
-        /// <summary>Enemy-anchored channels; default = both channels off (legacy world-frame path, bit-unchanged).</summary>
-        public AnchoredIntent anchored;
+        /// <summary>The decision's intent sentence; default = nothing armed (legacy path, bit-unchanged).</summary>
+        public IntentSentence sentence;
+
+        /// <summary>Synthetic referents 1–2 for slots binding past the enemy.</summary>
+        public ReferentSnapshot referent1;
+        public ReferentSnapshot referent2;
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable
@@ -148,6 +141,7 @@ namespace Movement.MPC
         public float velocityTrack;
         public float facing;
         public float facingPrior;
+        public float pos;
         public float yawRate;
         public float obstacle;
         public float collision;
@@ -161,6 +155,7 @@ namespace Movement.MPC
             velocityTrack += other.velocityTrack;
             facing += other.facing;
             facingPrior += other.facingPrior;
+            pos += other.pos;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
             collision += other.collision;
