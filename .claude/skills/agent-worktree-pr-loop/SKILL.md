@@ -122,8 +122,9 @@ running between owners.
 ## Chat title lifecycle
 
 Chat titles surface each session's phase in the sessions list, so the user
-sees "blocked on #234" without opening the chat. A session cannot retitle
-itself; a standing **Title concierge** chat does it on request.
+sees "blocked on #234" without opening the chat. The session tools refuse to
+act on the calling session, so a chat renames itself through a throwaway
+subagent — a subagent is a separate session and can rename its parent.
 
 Every lifecycle-tracked chat uses ONE template — same slots, same order:
 
@@ -162,14 +163,18 @@ a spawn chip, a handoff, a launch prompt you draft for the user — give it its
 lifecycle title from the start (`prep | <slot-label> | <word-id>`) instead of
 a freeform title plus a later retitle.
 
-Requesting a retitle:
-1. Your session id is the UUID in your scratchpad directory path, prefixed
-   `local_`.
-2. Find the concierge via `list_sessions` (title starts `Title concierge`).
-3. `send_message` it one line: `RETITLE local_<id> → <new title>`.
+Retitling yourself — you never learn your own session id, you have a subagent
+derive it:
+1. Call `list_sessions`; it returns every session EXCEPT yours.
+2. Spawn a cheap subagent, passing that id list verbatim and the new title.
+   It calls `list_sessions` itself, and the one id its list has that yours
+   lacks is you — it renames that one via `set_session_title`.
 
-No concierge found, or session tools unavailable (subagents, unattended runs)
-→ skip silently; titles never block or delay work.
+Never derive your id from the scratchpad path: that UUID is not the session id
+and changes across resume. A user-set title always wins over a rename.
+
+Session tools or subagents unavailable (unattended runs) → skip silently;
+titles never block or delay work.
 
 ## Step 1 — Scope
 

@@ -19,8 +19,8 @@ namespace Game.RLHarness
         public override BrainDecision? Decide(AIContext ctx)
         {
             if (!target || !target.gameObject.activeInHierarchy) return null;
-            var fire = SentenceRows.Engages(row) ? FireControl.Auto : FireControl.Hold;
-            return new BrainDecision(SentenceRows.Author(row, target.Id), fire, fire);
+            var engages = SentenceRows.Engages(row);
+            return new BrainDecision(SentenceRows.Author(row, target.Id), engages, engages);
         }
     }
 }
