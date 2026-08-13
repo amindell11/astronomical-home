@@ -475,13 +475,13 @@ namespace Tests.EditMode
         [Test]
         public void PainterSelection_ResolvesAtomsExpandsPresetsAndDedupes()
         {
-            Assert.AreEqual(new[] { DiagnosticPainters.ShipDiagnostics, DiagnosticPainters.MovementForces },
-                Parse("RL_HARNESS_PAINTERS", "ship-diagnostics,movement-forces").painters);
+            Assert.AreEqual(new[] { DiagnosticPainters.ShipDiagnostics },
+                Parse("RL_HARNESS_PAINTERS", "ship-diagnostics").painters);
 
             Assert.IsTrue(DiagnosticPainters.TryExpandPreset(DiagnosticPainters.Everything, out var everything));
             Assert.AreEqual(everything, Parse("RL_HARNESS_PAINTERS", "everything").painters);
 
-            var mixed = Parse("RL_HARNESS_PAINTERS", "movement-forces,everything,movement-forces").painters;
+            var mixed = Parse("RL_HARNESS_PAINTERS", "ship-diagnostics,everything,ship-diagnostics").painters;
             CollectionAssert.AreEquivalent(everything, mixed, "a preset mixed with its own atoms dedupes");
         }
 
@@ -499,7 +499,7 @@ namespace Tests.EditMode
         {
             Assert.Throws<InvalidOperationException>(
                 () => DiagnosticPainters.BuildPresets(
-                    (DiagnosticPainters.MovementForces, new[] { DiagnosticPainters.MovementForces })),
+                    (DiagnosticPainters.ShipDiagnostics, new[] { DiagnosticPainters.ShipDiagnostics })),
                 "a preset name colliding with a registered atom must fail when registered");
         }
 
