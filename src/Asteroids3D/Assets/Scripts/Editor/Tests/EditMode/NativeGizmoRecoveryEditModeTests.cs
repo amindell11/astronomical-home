@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using Game.Capture.GameView;
-using Game.Diagnostics;
 using Movement.MPC;
 using NUnit.Framework;
 using UnityEditor;
@@ -18,7 +17,6 @@ namespace Tests.EditMode
 
         private bool priorGizmoEnabled;
         private bool priorIconEnabled;
-        private string[] priorGateActive;
         private bool priorRunInBackground;
         private bool priorCompatibilityMode;
         private bool priorGlobalSettingsDirty;
@@ -31,7 +29,6 @@ namespace Tests.EditMode
                 $"{Journaled.Name} has no registered Unity annotation to journal.");
             priorGizmoEnabled = annotation.gizmoEnabled;
             priorIconEnabled = annotation.iconEnabled;
-            priorGateActive = DiagnosticGate.ActiveNames;
             priorRunInBackground = Application.runInBackground;
             priorCompatibilityMode = UrpGizmoCaptureAdapter.CompatibilityMode;
             priorGlobalSettingsDirty = UrpGizmoCaptureAdapter.GlobalSettingsDirty;
@@ -42,7 +39,6 @@ namespace Tests.EditMode
         {
             CaptureRecoveryJournal.Delete();
             ApplyAnnotation(priorGizmoEnabled, priorIconEnabled);
-            DiagnosticGate.Replace(priorGateActive);
             Application.runInBackground = priorRunInBackground;
             UrpGizmoCaptureAdapter.Restore(priorCompatibilityMode);
             UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(priorGlobalSettingsDirty);
@@ -105,16 +101,13 @@ namespace Tests.EditMode
 
         private static CaptureRecoveryState CurrentState() => CaptureRecoveryJournal.Create(
             GizmoUtility.GetGizmoInfo(), new UnityGameViewAdapter().Snapshot(),
-            UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty,
-            DiagnosticGate.ActiveNames);
+            UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
 
         private static void WriteJournalOfCurrentState() => CaptureRecoveryJournal.Write(CurrentState());
 
         private void MutateLikeALiveCapture()
         {
             ApplyAnnotation(!priorGizmoEnabled, !priorIconEnabled);
-            // The gate capture opens is EditorPrefs-backed, so a killed process leaks it.
-            DiagnosticGate.Replace(new[] { "leaked-atom" });
             Application.runInBackground = !priorRunInBackground;
             UrpGizmoCaptureAdapter.Restore(!priorCompatibilityMode);
         }
@@ -132,7 +125,6 @@ namespace Tests.EditMode
             Assert.IsTrue(GizmoUtility.TryGetGizmoInfo(Journaled, out var restored));
             Assert.AreEqual(priorGizmoEnabled, restored.gizmoEnabled, "annotation visibility");
             Assert.AreEqual(priorIconEnabled, restored.iconEnabled, "annotation icon");
-            CollectionAssert.AreEquivalent(priorGateActive, DiagnosticGate.ActiveNames, "diagnostic gate");
             Assert.AreEqual(priorRunInBackground, Application.runInBackground);
             Assert.AreEqual(priorCompatibilityMode, UrpGizmoCaptureAdapter.CompatibilityMode);
         }

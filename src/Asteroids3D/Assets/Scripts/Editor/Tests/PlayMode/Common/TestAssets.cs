@@ -1,4 +1,6 @@
+using System;
 using AI;
+using Game.Capture;
 using Ships;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -89,6 +91,11 @@ public static class TestAssets
         return null;
 #endif
     }
+
+    /// <summary>The Editor-owned capture module, resolved by name because the test assemblies do not reference its assembly.</summary>
+    public static IEpisodeCapture NewNativeCapture() => (IEpisodeCapture)ScriptableObject.CreateInstance(
+        Type.GetType("Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor",
+            throwOnError: true));
 }
 
 } // namespace Tests.PlayMode.Common

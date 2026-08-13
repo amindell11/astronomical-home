@@ -81,7 +81,6 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **arc** | multi-PR work arc · enemy arc exposure (`ExposureCost`) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
-| **canvas** | diagnostic canvas (`IDiagnosticCanvas`) · Unity UI `Canvas` | Always qualified "diagnostic canvas" in prose — the UI type collides. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
@@ -495,21 +494,13 @@ Format: **term** — definition. *(authority)*
   at the driver-owned `GameState.DeathRecap` hold, between death and the restart
   flow; presentation-gated, so headless drivers fall straight through to Restart.
   *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
-- **painter** — a named diagnostic view (velocity vectors, aim lines, scan
-  envelopes) written once as a drawing routine over a diagnostic canvas, then
-  rendered by whichever backend is active — offscreen capture or live editor
-  gizmos. Bound to its subjects at construction, selected by name — atoms or
-  observation environments — via `RL_HARNESS_PAINTERS` or the editor
-  `Diagnostics` menu. *(IDiagnosticPainter, DiagnosticPainters)*
-- **diagnostic canvas** — the drawing-surface contract a painter renders onto, in
-  GamePlane plane-space; two backends implement it (`CaptureDraw` for clips,
-  `GizmoCanvas` for the live scene view). Always qualified — Unity's UI `Canvas`
-  collides. *(IDiagnosticCanvas)*
-- **observation environment** — a named, code-defined preset of painters
-  selected as a unit — the lens a run is viewed through. Selecting one replaces
-  the active painter set; nothing is drawn by default. Resolves in both
-  frontends (`RL_HARNESS_PAINTERS`, `Diagnostics` menu).
-  *(doc/Feature_Plans/Gizmo_Painter_Migration.md)*
+- **gizmo capture profile** — the named set of Unity component types a capture
+  selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
+  no per-diagnostic selection grammar, because Unity's own per-component-type
+  Gizmos controls are the authority. Selecting any profile films with
+  presentation off — collider silhouettes and gizmo geometry are the footage;
+  selecting none films plain gameplay with presentation on.
+  *(GizmoCaptureProfile, GizmoCaptureProfiles)*
 
 ### Infra & tooling
 

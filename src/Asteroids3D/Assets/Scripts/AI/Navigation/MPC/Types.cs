@@ -135,7 +135,7 @@ namespace Movement.MPC
         }
     }
 
-    // Unguarded: the trajectory painter compiles into the player.
+    // Unguarded: it is the solver rig's trace-row payload, which compiles into the player.
     public struct CostBreakdown
     {
         public float velocityTrack;

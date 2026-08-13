@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Base class for capture scenarios driven by CaptureScenarioPlayModeTests: set up a situation inside the runner-composed headless session, then Step the recorder each fixed step with the subjects to frame and an optional diagnostic draw. Author scratch scenarios in repo-root scratch/capture/; promote by moving the file to Tests/PlayMode/Scenarios/.</summary>
+/// <summary>Base class for capture scenarios driven by CaptureScenarioPlayModeTests: set up a situation inside the runner-composed headless session, Film the ships to frame, then FilmStep each fixed step. Diagnostics are native gizmos selected by <see cref="Profile"/>. Author scratch scenarios in repo-root scratch/capture/; promote by moving the file to Tests/PlayMode/Scenarios/.</summary>
 public abstract class CaptureScenario
 {
     private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
@@ -24,7 +24,20 @@ public abstract class CaptureScenario
 
     public virtual CaptureConfig Config => new() { clipName = GetType().Name };
 
-    public abstract IEnumerator Run(CaptureRecorder recorder);
+    /// <summary>Which native gizmo types the footage carries. None films the game alone, with presentation visuals.</summary>
+    public virtual GizmoCaptureProfile Profile => GizmoCaptureProfile.Everything;
+
+    /// <summary>Set by the runner, which also ends the episode when Run returns or throws.</summary>
+    internal IEpisodeCapture Capture { get; set; }
+
+    public abstract IEnumerator Run();
+
+    /// <summary>Begins filming the given ships; they are the framed and gizmo-selected subjects.</summary>
+    protected void Film(params Ship[] subjects) =>
+        Capture.Begin(Config, Profile, subjects, Session.Services.Projectiles);
+
+    /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
+    protected void FilmStep() => Capture.Step();
 
     /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)

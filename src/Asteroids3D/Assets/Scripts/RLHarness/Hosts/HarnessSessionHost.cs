@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.IO;
 using Game.Capture;
-using Game.Diagnostics;
 using Game.Services;
 using UnityEngine;
 
@@ -86,40 +85,23 @@ namespace Game.RLHarness
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
-            var nativeCapture = spec.gizmoProfile != GizmoCaptureProfile.None;
-            if (nativeCapture && episodeCapture == null)
+            if (spec.record.enabled && episodeCapture == null)
                 throw new InvalidOperationException(
-                    "RL_HARNESS_GIZMOS selected native capture, but the Editor bootstrap attached no episode-capture module.");
-            var drawPainters = nativeCapture ? null : BuildPainterDraw(composition);
-            var subjects = new Vector2[2];
+                    "RL_HARNESS_RECORD selected capture, but the Editor bootstrap attached no episode-capture module.");
             for (var episode = 0; episode < episodes; episode++)
             {
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
-                var records = spec.record.Records(episode);
-                var filmsNative = records && nativeCapture;
-                using var recorder = records && !nativeCapture
-                    ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
-                    : null;
                 var pair = composition.Pair;
-                var captureConfig = filmsNative
+                var captureConfig = spec.record.Records(episode)
                     ? ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath)
                     : null;
                 Action onFixedStep = () =>
                 {
                     SampleProbes();
-                    if (filmsNative)
-                    {
-                        episodeCapture.Step();
-                    }
-                    else if (recorder != null)
-                    {
-                        subjects[0] = pair.Agent.Kinematics.pos;
-                        subjects[1] = pair.Baseline.Kinematics.pos;
-                        recorder.Step(subjects, drawPainters);
-                    }
+                    if (captureConfig != null) episodeCapture.Step();
                 };
                 try
                 {
@@ -128,8 +110,8 @@ namespace Game.RLHarness
                         {
                             BeginProbes(context);
                             if (captureConfig != null)
-                                episodeCapture.Begin(captureConfig, spec.gizmoProfile, pair.Agent, pair.Baseline,
-                                    Projectiles);
+                                episodeCapture.Begin(captureConfig, spec.gizmoProfile,
+                                    new[] { pair.Agent, pair.Baseline }, Projectiles);
                         },
                         onFixedStep: onFixedStep);
                 }
@@ -146,19 +128,6 @@ namespace Game.RLHarness
             }
         }
 
-        // Painters bind the pair's ships at construction; a null draw when recording is off costs nothing.
-        private Action<CaptureDraw> BuildPainterDraw(ISessionComposition composition)
-        {
-            if (!spec.record.enabled) return null;
-            var context = new PainterContext(composition.Pair.Agent, composition.Pair.Baseline, Projectiles);
-            var painters = new IDiagnosticPainter[spec.painters.Length];
-            for (var i = 0; i < painters.Length; i++)
-                painters[i] = DiagnosticPainters.Create(spec.painters[i], in context);
-            return canvas =>
-            {
-                foreach (var painter in painters) painter.Paint(canvas);
-            };
-        }
 
         private CaptureConfig ClipConfig(int seed, string label, int episode, string jsonlPath) => new()
         {

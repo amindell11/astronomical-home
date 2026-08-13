@@ -182,7 +182,7 @@ namespace Movement.MPC
             return angle;
         }
 
-        // Unguarded: the trajectory painter compiles into the player.
+// Unguarded: the MPC solver rig reads step-0 breakdowns into its trace rows in player builds.
         public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU,
             CostInput input, Config cfg, int step = 0)
         {

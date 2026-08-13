@@ -45,11 +45,11 @@
 
 ## Visual loop (spatial sim bugs)
 
-- game-capture skill: clips with per-investigation painters over the diagnostic
-  canvas — the loop when the symptom is spatial (nav, MPC, combat geometry). A
-  filmed defect is a legitimate red signal; re-film the same scenario for green.
-- Live alternative: the same painters render as scene-view gizmos via the
-  gizmo backend.
+- game-capture skill: clips of native gizmos filmed through the Game View — the
+  loop when the symptom is spatial (nav, MPC, combat geometry). A filmed defect
+  is a legitimate red signal; re-film the same scenario for green.
+- Live alternative: select the subject in the Editor and read the same gizmos in
+  the scene view.
 
 ## Eval / differential loop (RL & balance)
 

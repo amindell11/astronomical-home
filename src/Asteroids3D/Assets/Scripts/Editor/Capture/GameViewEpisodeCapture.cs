@@ -16,12 +16,11 @@ namespace Game.Capture.GameView
     {
         private static GameViewEpisodeCapture active;
 
-        private readonly Vector2[] framedSubjects = new Vector2[2];
         private readonly List<Object> selectedSubjects = new();
 
         private CaptureConfig config;
-        private Ship a;
-        private Ship b;
+        private Vector2[] framedSubjects;
+        private IReadOnlyList<Ship> subjects;
         private IProjectileService projectiles;
         private GameObject rig;
         private Camera captureCamera;
@@ -45,13 +44,18 @@ namespace Game.Capture.GameView
             EditorApplication.delayCall += RecoverJournal;
         }
 
-        public void Begin(CaptureConfig captureConfig, GizmoCaptureProfile profile, Ship shipA, Ship shipB,
+        public void Begin(CaptureConfig captureConfig, GizmoCaptureProfile profile, IReadOnlyList<Ship> captureSubjects,
             IProjectileService projectileService)
         {
             if (active) throw new InvalidOperationException("A native Game View capture transaction is already active.");
             config = captureConfig ?? throw new ArgumentNullException(nameof(captureConfig));
-            a = shipA ? shipA : throw new ArgumentNullException(nameof(shipA));
-            b = shipB ? shipB : throw new ArgumentNullException(nameof(shipB));
+            subjects = captureSubjects ?? throw new ArgumentNullException(nameof(captureSubjects));
+            if (subjects.Count == 0)
+                throw new ArgumentException("Native Game View capture needs at least one subject to film.");
+            for (var i = 0; i < subjects.Count; i++)
+                if (!subjects[i])
+                    throw new ArgumentException($"Native Game View capture subject {i} is missing.");
+            framedSubjects = new Vector2[subjects.Count];
             projectiles = projectileService ?? throw new ArgumentNullException(nameof(projectileService));
 
             active = this;
@@ -62,7 +66,7 @@ namespace Game.Capture.GameView
                 frameDir = artifacts.FrameDir;
                 BuildSelection();
                 transaction = new GameViewCaptureTransaction(GizmoCaptureProfiles.Resolve(profile), appliedSelection,
-                    a.gameObject, config.width, config.height);
+                    subjects[0].gameObject, config.width, config.height);
                 CreateRig();
                 FrameCamera();
                 activationFrame = Time.renderedFrameCount;
@@ -74,15 +78,19 @@ namespace Game.Capture.GameView
             }
         }
 
+        public string FrameDir => frameDir;
+
         public void Step()
         {
             if (transaction == null) throw new InvalidOperationException("Native Game View capture has not begun.");
-            if (!a || !b) throw new InvalidOperationException("Native Game View capture lost an episode ship.");
+            for (var i = 0; i < subjects.Count; i++)
+                if (!subjects[i])
+                    throw new InvalidOperationException("Native Game View capture lost a filmed subject.");
 
             cost.Sample();
             FrameCamera();
             BuildSelection();
-            transaction.SetSelection(appliedSelection, a.gameObject);
+            transaction.SetSelection(appliedSelection, subjects[0].gameObject);
             if (!gameViewPrimed)
             {
                 if (Time.renderedFrameCount <= activationFrame) return;
@@ -109,10 +117,9 @@ namespace Game.Capture.GameView
             cost = null;
             gameViewPrimed = false;
             recordingStarted = false;
-            a = null;
-            b = null;
+            subjects = null;
+            framedSubjects = null;
             projectiles = null;
-            frameDir = null;
             if (active == this) active = null;
             if (failures.Count > 0) throw new AggregateException("Native Game View capture cleanup failed.", failures);
         }
@@ -143,16 +150,14 @@ namespace Game.Capture.GameView
 
         private void FrameCamera()
         {
-            framedSubjects[0] = a.Kinematics.pos;
-            framedSubjects[1] = b.Kinematics.pos;
+            for (var i = 0; i < subjects.Count; i++) framedSubjects[i] = subjects[i].Kinematics.pos;
             CaptureFraming.Apply(captureCamera, config, framedSubjects);
         }
 
         private void BuildSelection()
         {
             selectedSubjects.Clear();
-            AddHierarchy(a.transform);
-            AddHierarchy(b.transform);
+            for (var i = 0; i < subjects.Count; i++) AddHierarchy(subjects[i].transform);
             projectiles.ForEachLive(projectile => AddHierarchy(projectile.transform));
             selectedSubjects.Sort((left, right) => left.GetInstanceID().CompareTo(right.GetInstanceID()));
             if (SameSelection()) return;

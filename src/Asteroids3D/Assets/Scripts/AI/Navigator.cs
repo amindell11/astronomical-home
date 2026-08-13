@@ -224,7 +224,7 @@ namespace Movement.MPC
             mpc?.Dispose();
         }
 
-        // Solve state the diagnostic painters read; unguarded because painters compile into the player.
+#if UNITY_EDITOR
         internal SolverBuffers solver => mpc?.Solver;
         internal Config config => mpc != null ? mpc.Config : default;
         internal Control[] bestSequence => mpc?.BestSequence;
@@ -233,11 +233,10 @@ namespace Movement.MPC
         internal Control lastControl => mpc != null ? mpc.LastControl : default;
 
         [NonSerialized] public int selectedCandidateIndex = -1;
-        // Shared scratch between the painter and the scene-view selection handles; sorted by cost ascending.
+        // Scene-view scratch shared with the candidate-selection handles; sorted by cost ascending.
         internal int[] visibleCandidateIndices;
         internal int visibleCount;
 
-#if UNITY_EDITOR
         [Header("Debug Visualization")]
         [Tooltip("Show cost breakdown in Inspector")]
         public bool showCostBreakdown = true;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Game.Capture;
-using Game.Diagnostics;
 using Unity.InferenceEngine;
 using UnityEngine;
 
@@ -112,7 +111,6 @@ namespace Game.RLHarness
         public string opponentOnnxSourcePath;
         public string opponentLabel;
         public ProbeSpec[] probes;
-        public string[] painters;
         public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
         public string outDir;
@@ -204,7 +202,6 @@ namespace Game.RLHarness
                 episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
                 fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
                 probes = ParseProbes(getEnv("RL_HARNESS_PROBES"), lane),
-                painters = ParsePainters(getEnv("RL_HARNESS_PAINTERS")),
                 gizmoProfile = ParseGizmoProfile(getEnv("RL_HARNESS_GIZMOS")),
                 outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
@@ -256,33 +253,6 @@ namespace Game.RLHarness
                     + "\"mirror\", or a checkpoint path (roster stratification is an eval concept).");
         }
 
-        /// <summary>Comma-separated painter or preset names resolved through <see cref="DiagnosticPainters"/>; presets expand and the result dedupes. Unset draws nothing.</summary>
-        private static string[] ParsePainters(string value)
-        {
-            if (value == null) return Array.Empty<string>();
-            var names = new List<string>();
-            foreach (var raw in value.Split(','))
-            {
-                var name = raw.Trim();
-                if (name.Length == 0) continue;
-                if (DiagnosticPainters.TryExpandPreset(name, out var atoms))
-                {
-                    foreach (var atom in atoms)
-                        if (!names.Contains(atom))
-                            names.Add(atom);
-                }
-                else if (!DiagnosticPainters.IsRegistered(name))
-                {
-                    throw new ArgumentException(
-                        $"RL_HARNESS_PAINTERS name '{name}' is not a registered painter ({DiagnosticPainters.RegisteredNames}) or preset ({DiagnosticPainters.PresetNames}).");
-                }
-                else if (!names.Contains(name))
-                {
-                    names.Add(name);
-                }
-            }
-            return names.ToArray();
-        }
 
         private static GizmoCaptureProfile ParseGizmoProfile(string value)
         {
@@ -297,9 +267,6 @@ namespace Game.RLHarness
         private void ValidateCaptureSelector()
         {
             if (gizmoProfile == GizmoCaptureProfile.None) return;
-            if (painters.Length > 0)
-                throw new ArgumentException(
-                    "RL_HARNESS_GIZMOS and RL_HARNESS_PAINTERS select different capture backends; set only one.");
             if (lane != SessionLane.Capture)
                 throw new ArgumentException("RL_HARNESS_GIZMOS is available only on RL_HARNESS_LANE=capture.");
             if (!record.enabled)
@@ -559,7 +526,7 @@ namespace Game.RLHarness
             if (token.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase))
             {
                 var stem = Path.GetFileNameWithoutExtension(token);
-                if (!CaptureRecorder.IsSafeName(stem))
+                if (!CaptureArtifacts.IsSafeName(stem))
                     throw new ArgumentException(
                         $"RL_HARNESS_OPPONENT checkpoint stem '{stem}' must be filesystem-safe [A-Za-z0-9_-] "
                         + "(it names clip dirs and artifact files) — rename the checkpoint.");

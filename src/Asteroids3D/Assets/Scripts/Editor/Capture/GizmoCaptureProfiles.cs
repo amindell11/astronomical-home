@@ -34,8 +34,10 @@ namespace Game.Capture.GameView
 
         private static readonly Type[] Everything = Combine(Steering, Combat);
 
+        /// <summary>None selects no types — the Game View then films the game alone, which is how plain gameplay footage is captured.</summary>
         public static Type[] Resolve(GizmoCaptureProfile profile) => profile switch
         {
+            GizmoCaptureProfile.None => Array.Empty<Type>(),
             GizmoCaptureProfile.Steering => Steering,
             GizmoCaptureProfile.Combat => Combat,
             GizmoCaptureProfile.Everything => Everything,

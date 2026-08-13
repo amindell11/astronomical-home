@@ -63,7 +63,6 @@ namespace Tests.PlayMode
                 episodesPerSeed = 2,
                 fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
                 probes = new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
-                painters = Array.Empty<string>(),
                 sentenceRows = new[] { SentenceRow.DriftHold },
                 outDir = outDir,
             };
