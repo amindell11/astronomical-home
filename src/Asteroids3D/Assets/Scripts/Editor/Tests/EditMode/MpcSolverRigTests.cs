@@ -6,6 +6,7 @@ using Movement;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -106,10 +107,119 @@ namespace Tests.EditMode
                 var lines = File.ReadAllLines(path);
                 Assert.That(lines.Length, Is.EqualTo(trace.Count + 1), "Header plus one line per tick.");
                 Assert.That(lines[0], Does.StartWith("t,posX"));
+                Assert.That(lines[0], Does.Contain("costPos").And.Contain("costObstacle").And.Contain("costTotal"),
+                    "The per-term breakdown columns are the trace's diagnostic payload.");
             }
             finally
             {
                 File.Delete(path);
+            }
+        }
+
+        [Test]
+        public void SyntheticObstacles_EnterThroughConvertObstacles()
+        {
+            var scenario = RigScenario.VersusDummy(40f);
+            scenario.obstacles = new[] { new RigCircle(new float2(0f, 0f), 5f) };
+            scenario.warmupSeconds = 0f;
+            scenario.durationSeconds = 0.1f;
+
+            var trace = new List<RigTraceRow>();
+            MpcSolverRig.Run(settings, dynamics, in scenario, 1234u, trace);
+
+            Assert.That(trace[0].costCollision, Is.GreaterThan(0f),
+                "An overlapped hull pays the collision penalty through the production obstacle path.");
+            Assert.That(trace[0].underThreat, Is.EqualTo(1),
+                "The threat classifier mirrors Cost.ObstacleCosts' branches.");
+        }
+
+        [Test]
+        public void BingoCard_AuthorsThirteenRows()
+        {
+            var rows = RigBingoCard.Rows();
+            Assert.That(rows.Length, Is.EqualTo(13));
+
+            var names = new HashSet<string>();
+            foreach (var row in rows)
+            {
+                Assert.That(names.Add(row.name), $"Duplicate row name '{row.name}'.");
+                Assert.That(row.scenario.intent.AnyArmed,
+                    $"Row '{row.name}' authors no armed slot — an absent sentence is not a row.");
+                Assert.That(row.scenario.durationSeconds, Is.GreaterThan(0f));
+            }
+
+            var movement = new HashSet<string>();
+            foreach (var row in rows)
+                if (row.movement) movement.Add(row.name);
+            Assert.That(movement, Is.EquivalentTo(new[] { "orbit", "kite", "missile-drag" }),
+                "The VEL-zeroed protocol covers exactly the card's movement rows (§Staging).");
+
+            var velZeroed = RigBingoCard.VelZeroed(rows[0].scenario);
+            Assert.That(velZeroed.intent.vel.armed, "VEL-zeroed keeps the slot armed; only authority drops.");
+            Assert.That(velZeroed.intent.vel.weight, Is.Zero);
+        }
+
+        // Bingo rows run off-gate (MPC_RIG_EMIT precedent): the acceptance's same-seed replay
+        // proof runs on shortened copies so the full emitter isn't doubled.
+        [Test]
+        public void Bingo_SameSeedReplayHolds()
+        {
+            if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
+                Assert.Ignore("Set MPC_RIG_EMIT=1 to run the bingo replay proof.");
+
+            foreach (var (name, scenario) in BingoVariants())
+            {
+                var shortened = scenario;
+                shortened.warmupSeconds = 1f;
+                shortened.durationSeconds = 4f;
+
+                var first = new List<RigTraceRow>();
+                var second = new List<RigTraceRow>();
+                MpcSolverRig.Run(settings, dynamics, in shortened, 1234u, first);
+                MpcSolverRig.Run(settings, dynamics, in shortened, 1234u, second);
+
+                Assert.That(second.Count, Is.EqualTo(first.Count), $"{name}: step counts diverged.");
+                for (var i = 0; i < first.Count; i++)
+                {
+                    Assert.That(second[i].yawTorque, Is.EqualTo(first[i].yawTorque),
+                        $"{name}: command diverged at step {i} — same-seed replay must hold on every row.");
+                    Assert.That(second[i].yawDeg, Is.EqualTo(first[i].yawDeg),
+                        $"{name}: plant state diverged at step {i}.");
+                }
+            }
+        }
+
+        [Test]
+        public void Bingo_EmitRowArtifacts()
+        {
+            if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
+                Assert.Ignore("Set MPC_RIG_EMIT=1 to emit the bingo trace artifacts.");
+
+            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/mpc-rig/bingo"));
+            Directory.CreateDirectory(outDir);
+
+            foreach (var (name, scenario) in BingoVariants())
+            {
+                var trace = new List<RigTraceRow>();
+                var result = MpcSolverRig.Run(settings, dynamics, in scenario, 1234u, trace);
+                RigTraceCsv.Write(Path.Combine(outDir, $"{name}.csv"), trace);
+                Debug.Log($"[Bingo] {name} | strict {result.torqueReversalsPerSec:F2}/s | " +
+                          $"deadband {result.torqueDeadbandReversalsPerSec:F2}/s | " +
+                          $"|yawRate| {result.meanAbsYawRateDegPerSec:F1} deg/s | " +
+                          $"facing err {result.meanFacingErrorDeg:F1} deg (p90 {result.p90FacingErrorDeg:F1}) | " +
+                          $"range {result.finalRange:F1} | threat {result.threatStepFraction:P1} | " +
+                          $"incumbent wins {result.incumbentWinFraction:P1}");
+            }
+        }
+
+        /// <summary>All 13 rows plus the movement rows' VEL-zeroed protocol arms.</summary>
+        private static IEnumerable<(string name, RigScenario scenario)> BingoVariants()
+        {
+            foreach (var row in RigBingoCard.Rows())
+            {
+                yield return (row.name, row.scenario);
+                if (row.movement)
+                    yield return (row.name + "-velzero", RigBingoCard.VelZeroed(row.scenario));
             }
         }
 

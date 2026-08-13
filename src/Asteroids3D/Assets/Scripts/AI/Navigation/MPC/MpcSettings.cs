@@ -58,6 +58,15 @@ namespace Movement.MPC
                  "only wins when the commanded facing abstains. 0 disables (production default).")]
         public float wFacingPrior = 0f;
 
+        [Header("Position")]
+        [Tooltip("POS ceiling: the sentence slot's signed authority multiplies this weight. The term is " +
+                 "normalized 0-1 (saturating), so the ceiling is what trades it off against wFacing/wVelTrack. " +
+                 "Inert until a decision arms a POS slot.")]
+        public float wPos = 1f;
+        [Tooltip("POS saturation half-width in meters: a position error of this size costs 0.5; the cost " +
+                 "saturates toward 1 beyond it (err² / (err² + posWidth²)), keeping far-away errors bounded.")]
+        public float posWidth = 10f;
+
         [Header("Obstacle Avoidance")]
         [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
                  "into an obstacle that the ship's lateral thrust can no longer sidestep before " +
@@ -99,6 +108,8 @@ namespace Movement.MPC
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,
                 wFacingPrior = wFacingPrior,
+                wPos = wPos,
+                posWidth = posWidth,
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,

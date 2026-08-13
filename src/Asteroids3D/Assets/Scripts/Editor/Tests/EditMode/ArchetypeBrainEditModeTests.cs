@@ -100,7 +100,7 @@ namespace Tests.EditMode
                 "exact-float: the dispatch must hand each archetype its own law and params");
             Assert.AreEqual(expected.y, decision.Value.nav.planarVelocity.y);
             Assert.IsTrue(decision.Value.nav.TryGetAnchorId(out _));
-            Assert.AreEqual(archetype != OpponentArchetype.Evader, decision.Value.primary.IsAuto,
+            Assert.AreEqual(archetype != OpponentArchetype.Evader, decision.Value.engagePrimary,
                 "only the Evader never fires");
         }
 
@@ -115,7 +115,7 @@ namespace Tests.EditMode
             Assert.IsTrue(decision.Value.nav.hasPlanarVelocity);
             Assert.AreEqual(Vector2.zero, decision.Value.nav.planarVelocity);
             Assert.IsFalse(decision.Value.nav.TryGetAnchorId(out _), "the Dummy never packs against a target");
-            Assert.IsFalse(decision.Value.primary.IsAuto);
+            Assert.IsFalse(decision.Value.engagePrimary);
         }
 
         [Test]

@@ -65,7 +65,8 @@ def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> di
 
 def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
-                  opponent=None, probes=None, open_loop=None, lease_wait: int = 1800) -> Path:
+                  opponent=None, probes=None, open_loop=None, sentence=None,
+                  lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
     Every parameter besides the plumbing maps 1:1 onto an RL_HARNESS_* variable; None means
@@ -83,6 +84,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_OPPONENT": opponent,
         "RL_HARNESS_PROBES": probes,
         "RL_HARNESS_OPENLOOP": open_loop,
+        "RL_HARNESS_SENTENCE": sentence,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
     code = run_batch(lease, project, HARNESS_CHILD, env, wait_seconds=lease_wait, log_path=log)
@@ -146,6 +148,9 @@ def main() -> None:
     parser.add_argument("--open-loop", default=None,
                         help="RL_HARNESS_OPENLOOP: run the K1-2 velrebase lane on this archetype (or \"all\") "
                              "instead of a checkpoint eval")
+    parser.add_argument("--sentence", default=None,
+                        help="RL_HARNESS_SENTENCE: run the Stage A sentence lane on these session bingo rows "
+                             "(comma-separated tokens, or \"all\") instead of a checkpoint eval")
     parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
                         help="editor: the calibrated reference protocol, sim in the leased batch child; "
                              "player: leased convert step, then the sim in the dedicated headless exe "
@@ -171,6 +176,8 @@ def main() -> None:
             parser.error("--exec player requires an explicit --onnx (a player has no smoke default)")
         if args.open_loop:
             parser.error("--open-loop is editor-only; the open-loop lane has no player")
+        if args.sentence:
+            parser.error("--sentence is editor-only; the sentence lane has no player")
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
         if not PLAYER_EXE.exists():
             sys.exit(f"FAIL: eval player exe missing at {PLAYER_EXE}; build it first "
@@ -179,6 +186,8 @@ def main() -> None:
     unity = args.unity or default_unity_exe(args.project)
     if args.open_loop:
         stem = f"velrebase-{args.open_loop.lower()}"
+    elif args.sentence:
+        stem = f"sentence-{args.sentence.lower().replace(',', '+')}"
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
     # Microseconds: two manual launches in the same second must not share a dir.
@@ -194,7 +203,7 @@ def main() -> None:
         summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
                                 onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
                                 density=args.density, opponent=args.opponent, probes=args.probes,
-                                open_loop=args.open_loop, lease_wait=args.lease_wait)
+                                open_loop=args.open_loop, sentence=args.sentence, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 

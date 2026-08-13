@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regression for the merge gate's proof chain: test and ReSharper proof bind to the landing tree, failed runs stop the PR path, and inert deltas avoid unnecessary full-suite runs.
+# Regression for the merge gate's proof chain: proof binds to the landing tree,
+# failed runs stop the PR path, inert deltas skip the full suite, and the phase
+# journal records the ladder for both outcomes.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -339,4 +341,50 @@ if pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/nu
   || fail "ReSharper-failing submit must not push the task branch"
 [[ "$(gh_merges)" == 11 ]] || fail "ReSharper-failing submit must not reach gh pr merge"
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path"
+# --- merge gate journal ------------------------------------------------------
+journal_for() { ls -1t "$TMP/primary/.worktree-pool/merge-runs/agent-1-"*.jsonl 2>/dev/null | head -n 1; }
+phase_order() { sed -n 's/.*"event":"phase-start","phase":"\([^"]*\)".*/\1/p' "$(journal_for)" | tr '\n' ' '; }
+run_status() { sed -n 's/.*"event":"run-end".*"status":"\([^"]*\)".*/\1/p' "$(journal_for)"; }
+
+# The failing-ReSharper submit above left the ratchet armed; disarm for a clean merge.
+echo 0 > "$RESHARPER_EXIT_FILE"
+pool merge agent-1 >/dev/null
+[[ -n "$(journal_for)" ]] || fail "merge must write a journal"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check tests resharper push gh-merge " ]] \
+  || fail "journal should record the full phase ladder (got '$(phase_order)')"
+[[ "$(run_status)" == "merged" ]] || fail "successful merge should close the journal as merged (got $(run_status))"
+
+# Every phase-end carries a duration and its budget — that pairing IS the profiling data.
+ends="$(grep -c '"event":"phase-end"' "$(journal_for)")"
+[[ "$ends" == 8 ]] || fail "every started phase should also end (got $ends)"
+grep -q '"phase":"tests","sec":[0-9]*,"status":"ok","budget":1200' "$(journal_for)" \
+  || fail "phase-end should carry sec + status + budget"
+
+# A failed merge must close the open phase rather than leave it dangling, and must
+# name the phase that died.
+echo journal-fail > "$TMP/agent-1/journal_fail.txt"
+git -C "$TMP/agent-1" add journal_fail.txt
+git -C "$TMP/agent-1" commit -qm "journal failure case"
+echo 1 > "$RUNNER_EXIT_FILE"
+pool merge agent-1 >/dev/null 2>&1 && fail "merge with a failing run must fail"
+echo 0 > "$RUNNER_EXIT_FILE"
+[[ "$(run_status)" == "failed" ]] || fail "failed merge should close the journal as failed (got $(run_status))"
+grep -q '"event":"phase-end","phase":"tests".*"status":"failed"' "$(journal_for)" \
+  || fail "the phase that died should be marked failed"
+
+# merge-progress reads a run it did not start, and --oneline stays silent once the
+# run is over (the dashboard shows in-flight merges only).
+progress="$(pool merge-progress agent-1)"
+[[ "$progress" == *"XX  tests"* ]] || fail "merge-progress should surface the failed phase (got: $progress)"
+[[ "$progress" == *"failed in"* ]] || fail "merge-progress should report the run outcome"
+[[ -z "$(pool merge-progress agent-1 --oneline)" ]] || fail "--oneline must print nothing for a finished run"
+
+# With the lock dir gone (post-finalize), the newest run file still resolves.
+rm -f "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/merge_run"
+[[ "$(pool merge-progress agent-1)" == *"XX  tests"* ]] || fail "merge-progress should fall back to the newest run file"
+
+# An unknown slot is a clean no-op, not an error.
+pool merge-progress agent-nonexistent | grep -q "no merge run recorded" \
+  || fail "merge-progress on a slot with no runs should say so"
+
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + phase journal"

@@ -1,8 +1,9 @@
 # Fire Lane Rework — engage bool, automated trigger authority
 
-> STATUS: live arc — governs the fire-lane collapse (tri-state → engage bool, Gunner as sole AI
-> trigger authority); supersedes the Fire row of the Pilot Decision Seam ruling. Delete with the
-> arc's closing PR.
+> STATUS: living — outlives its arc because `Intent_Grammar.md` inherits the FIRE lane from here
+> rather than restating it. PR-1 (the collapse) LANDED as #390 `fbc52bce`, 2026-08-13; what stands
+> is the engage-bool semantics and the trigger-authority ruling. Supersedes the Fire row of the
+> Pilot Decision Seam ruling. Not deletable while Stage A points at it.
 
 Design approved by the user 2026-08-11 (this session). Direction: **weapon aiming and fire
 strategy are automated** — the policy decides on the ~0.1 s intent cadence while the Gunner runs
@@ -94,14 +95,15 @@ signature.
 
 ## Landing sequence
 
-1. **PR-1 — the seam collapse.** Everything above, one PR: net-negative line count, Bench-1
-   gated (the policy-fire reinterpretation is the env-shifting slice; the archetype/ranger
-   mappings are value-identical by construction).
+1. **PR-1 — the seam collapse. LANDED #390 `fbc52bce` 2026-08-13.** Net-negative line count as
+   planned. **Bench-1 was WAIVED by the user at merge, not run** — the policy-fire
+   reinterpretation is on main unmeasured, stacked with #384 and #389; tracked as
+   [#408](https://github.com/amindell11/astronomical-home/issues/408).
    - **Bench-failure branch, pre-ruled:** if the Bench-1 arms fail the 63.00/±2.22 no-regress
      bar, do NOT iterate in place — the change is then a policy+environment couple break
      (shift-cadence precedent) and reclassifies as a **training-environment candidate**, riding
      `Intent_Grammar.md`'s Stage C retrain window as a co-rider instead of a standalone landing.
-2. **Marksmanship arc — separate, evidence-driven, own doc when opened.** Per-weapon trigger
+2. **Marksmanship arc — separate, evidence-driven, own doc when opened.** Carded as [#409](https://github.com/amindell11/astronomical-home/issues/409). Per-weapon trigger
    discipline in the Gunner: deliberate semi-auto launch policy (today the mash re-presses
    missiles every step — "one launch per press" is violated for AI, but a strict edge fix
    without a launch policy would nerf AI to one missile per engagement window, so the fix
