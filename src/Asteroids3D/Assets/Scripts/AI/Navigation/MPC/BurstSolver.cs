@@ -340,7 +340,8 @@ namespace Movement.MPC
         public CostInput BuildCostInput(float2 velocityReference,
             float2 enemyPos = default, float2 enemyVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
-            float2 initialVel = default, IntentSentence sentence = default)
+            float2 initialVel = default, IntentSentence sentence = default,
+            ReferentSnapshot referent1 = default, ReferentSnapshot referent2 = default)
         {
             return new CostInput
             {
@@ -356,6 +357,8 @@ namespace Movement.MPC
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
                 sentence = sentence,
+                referent1 = referent1,
+                referent2 = referent2,
             };
         }
 
