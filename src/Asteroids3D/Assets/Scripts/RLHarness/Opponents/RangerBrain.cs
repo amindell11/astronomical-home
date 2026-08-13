@@ -65,7 +65,7 @@ namespace Game.RLHarness
                 .Planar(vRef)
                 .Facing(0f, 1f);
 
-            return new BrainDecision(nav, FireControl.Auto, FireControl.Auto);
+            return new BrainDecision(nav, engagePrimary: true, engageSecondary: true);
         }
     }
 }
