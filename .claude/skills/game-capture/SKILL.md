@@ -119,6 +119,12 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
   only** (it requires PlayMode + an explicit `-TestFilter`, and fails on zero tests
   executed). Never the merge-gate suite — never record merge-gate proof from a
   graphics run.
+- **Frame pixels are sRGB; gizmo colors are linear.** The project renders linear
+  (`m_ActiveColorSpace: 1`), so a gizmo `Color(1, 0.55, 0.15)` lands in the PNG as
+  `(255, 196, 108)`, not `(255, 140, 38)`. Scanning a frame for the gamma-space bytes
+  finds zero hits and reads exactly like "the drawer never ran" — convert before you
+  assert, and instrument the drawer before believing a colour scan that says nothing
+  drew.
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
 - **Recorded runs lock frame pacing** (`Time.timeScale=1` +
