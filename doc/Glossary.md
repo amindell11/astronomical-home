@@ -62,7 +62,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — `Intent_Grammar.md`) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · instance pinning (MCP) · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -376,8 +377,11 @@ Format: **term** — definition. *(authority)*
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
-- **the trigger is a decision, not a permission** — the acting policy owns the
-  firing instant; no subsystem vetoes it. Sibling: **aim is a service, not a veto**.
+- **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
+  never trigger timing. The Gunner owns the firing instant (envelope + lead) at
+  physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
+  "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
+  2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -400,16 +404,31 @@ Format: **term** — definition. *(authority)*
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
   *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
-- **anchored intent** — an intent channel expressed as frame + relation +
-  authority instead of a world-frame value: a facing offset around the enemy
-  intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
-  weight. The MPC re-resolves both against the predicted enemy every rollout
-  step, so the command never goes stale. **Sign pins:** radial > 0 closes along
-  +losHat; tangential > 0 and positive facing offsets are CCW; the polar
-  velocity is *relative to the enemy's motion*; the action-side mapping is
-  [−1,1] × maxSpeed. Authored through `NavObjective.Anchored(...)`; the
-  `AnchoredIntent` struct is the solver-side carrier.
-  *(AnchoredBuilder, AnchoredIntent, Cost.EvalContext)*
+- **intent sentence** — the decision-varying slice of the MPC cost as a fixed
+  set of typed sentence slots (AIM/POS/VEL binding one referent each, FIELD a
+  class slot binding none), each with a signed authority weight against its
+  settings ceiling; the solver re-resolves every armed slot against live
+  referent state each rollout step. An armed weight-0 slot is a live command
+  ("nothing matters"); an absent sentence is idleness — the distinction is
+  structural (`IsIdle` = no armed slot). Design + staging:
+  `doc/Feature_Plans/Intent_Grammar.md`. *(IntentSentence, Cost.EvalContext)*
+- **intent grammar** — the closed design space intent sentences are written in:
+  a term is a point in space × sign × geometry × frame/referent; slots sort
+  instance-vs-class by the timescale rule (focused entities bind instance
+  referents, ambient populations are class terms the solver resolves); six
+  admission rules gate new vocabulary. "Closed" means syntax never grows, only
+  vocabulary. Frozen at Stage B (2026-08-13) with the normalization contract.
+  *(doc/Feature_Plans/Intent_Grammar.md §The grammar + §Stage B freeze)*
+- **anchored intent** — the enemy-bound AIM+VEL degenerate intent sentence,
+  today's production shape: a facing offset around the enemy intercept anchor,
+  and a polar velocity in the enemy frame, each with a [0,1] weight. The MPC
+  re-resolves both against the predicted enemy every rollout step, so the
+  command never goes stale. **Sign pins:** radial > 0 closes along +losHat;
+  tangential > 0 and positive facing offsets are CCW; the polar velocity is
+  *relative to the enemy's motion*; the action-side mapping is [−1,1] ×
+  maxSpeed. Authored through `NavObjective.Anchored(...)`; the `IntentSentence`
+  struct is the solver-side carrier.
+  *(AnchoredBuilder, IntentSentence, Cost.EvalContext)*
 - **delegation prior** — the low-weight, config-gated fallback that steers a
   channel when its anchored authority is 0: facing eases to the velocity-aligned
   pose (`wFacingPrior`), velocity keeps course (`wMomentum`). Weight-0 reads as
@@ -418,11 +437,11 @@ Format: **term** — definition. *(authority)*
   horizon end (reaching semantics); control terms and the velocity tracker
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
 - **nav objective** — the decision-varying slice of the MPC cost function, and
-  the only thing that crosses the seam's navigation lane: one move channel
-  (world-plane velocity, or an enemy-polar command) and one facing channel. Two
-  constraints are structural, not conventions: enemy-frame channels are reachable
-  only through `Anchored(...)`, so an anchorless one cannot be authored, and the
-  move channels overwrite each other, so only one survives. Idempotent per
+  the only thing that crosses the seam's navigation lane: an intent sentence
+  plus the legacy world-plane move channel. Two constraints are structural, not
+  conventions: referent-frame slots are reachable only through `Anchored(...)`,
+  so an anchorless one cannot be authored, and the move channels (world-plane
+  vs VEL slot) overwrite each other, so only one survives. Idempotent per
   decision — re-applying one is safe, which is what lets a 5 Hz decision be
   re-pushed every tick. *(NavObjective, AnchoredBuilder)*
 - **brain / decision lane** — the swappable-decision seam. A **brain** is the
@@ -431,12 +450,12 @@ Format: **term** — definition. *(authority)*
   interface-era name for the same thing — retired with `IIntentChooser`.) A
   `BrainDecision` is a transport, not a union: the commander opens it and routes
   each lane to a different consumer, keeping nothing. The nav lane is *solved*
-  into a `PilotCommand` by the MPC; the fire lane is per-slot authority
-  (`Hold | Auto | Commanded(held)`) where the commander — never the brain —
-  derives the press edge; the ability lane is a one-shot activation. On the nav
-  lane, objective and command are different altitudes rather than synonyms.
+  into a `PilotCommand` by the MPC; the fire lane is a per-slot **engage** bool
+  the Gunner converts into trigger commands; the ability lane is a one-shot
+  activation. On the nav lane, objective and command are different altitudes
+  rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
-  *(Brain, BrainDecision, FireControl)*
+  *(Brain, BrainDecision)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

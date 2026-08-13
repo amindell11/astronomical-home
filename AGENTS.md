@@ -46,7 +46,8 @@ If the diff grows to a multiple of what the scope implies, stop and reclassify b
 
 Code is self-documenting; a comment is a last resort for a non-obvious *why* the code cannot express.
 One line means ≤ ~15 words. No `<summary>` on self-naming members. Never narrate *what*, never past-state framing, never commented-out code.
-Ratchet: apply the standing rule to the hunks you touch. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
+**Type-level exception.** The entry-point type of a module or seam — the one a reader lands on first — may carry a `<summary>` up to ~10 lines. It earns those lines only by carrying what the file cannot: the type's role in the larger flow, a non-obvious invariant, pointers to collaborators and governing docs. A summary that only expands the type's name means the type doesn't qualify. Everything below the type still obeys the rules above.
+Ratchet: apply the standing rule to the hunks you touch, and update a documented type's summary in the diff that changes its role — a summary contradicting the code is a bug, not a comment nit. Writing a summary for a type that lacks one is opportunistic, never owed. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
 Review/build narration belongs in the PR description, not the code.
 
 ## Vocabulary
@@ -73,7 +74,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
-- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle via the Title concierge at every ledger-writing transition; a plain title marks a discussion chat.
+- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself at every ledger-writing transition; a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
 

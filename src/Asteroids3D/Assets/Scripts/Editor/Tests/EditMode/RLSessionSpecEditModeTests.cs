@@ -260,6 +260,66 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void SentenceGrammar_SelectsTheLaneAndItsRows()
+        {
+            var all = Parse("RL_HARNESS_SENTENCE", "all");
+            Assert.AreEqual(SessionLane.Sentence, all.lane);
+            Assert.AreEqual(SentenceRows.SessionRows, all.sentenceRows);
+            StringAssert.StartsWith("sentence-", all.tag, "sentence artifacts must never pass as an eval");
+
+            var subset = Parse("RL_HARNESS_SENTENCE", "orbit,drift-hold");
+            Assert.AreEqual(new[] { SentenceRow.Orbit, SentenceRow.DriftHold }, subset.sentenceRows);
+        }
+
+        [Test]
+        public void SentenceLane_DefaultsToTheControllerProbe()
+        {
+            Assert.AreEqual(new[] { ControllerProbe.ProbeName },
+                Names(Parse("RL_HARNESS_SENTENCE", "all").probes),
+                "the eval-lane default probes would throw on a composition with no policy agent");
+        }
+
+        [Test]
+        public void SentenceGrammar_RefusesUnknownsAndConflictingSelectors()
+        {
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", "brawl"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", ""));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", "orbit,orbit"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_ONNX", "ckpt.onnx"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_OPPONENT", "mirror"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_LANE", "capture"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_OPENLOOP", "all"));
+        }
+
+        [Test]
+        public void SentenceLane_RefusesTheProbesItsBrainCannotFeed()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", FacingProbe.ProbeName));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", VelRebaseProbe.ProbeName));
+            Assert.AreEqual(new[] { ControllerProbe.ProbeName, ContactProbe.ProbeName },
+                Names(Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", "controller,contact").probes),
+                "probes that read ships rather than the policy stay selectable");
+        }
+
+        [Test]
+        public void SentenceBlockLabels_CarryTheRowNotTheArchetype()
+        {
+            var block = SentenceRows.Block(SentenceRow.DriftHold);
+            Assert.AreEqual(OpponentKind.Archetype, block.kind);
+            Assert.AreEqual(OpponentArchetype.Dummy, block.archetype);
+            Assert.AreEqual("drift-hold", block.Label,
+                "two rows stage the Dummy — probe pools key on the row token");
+            Assert.AreEqual("Orbiter", OpponentSpec.Pinned(OpponentArchetype.Orbiter).Label,
+                "eval-lane labels are unchanged");
+        }
+
+        [Test]
         public void RetiredEnvName_ThrowsNamingItsReplacement()
         {
             var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),

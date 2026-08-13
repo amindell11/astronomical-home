@@ -6,9 +6,9 @@ namespace Movement.MPC
     // weaken them. Character-axis strength lives in MpcSettings, not in a decision.
     public static partial class Cost
     {
-        /// <summary>The hard collision penalty (fixed, un-ramped) and the gated turn-away cost (ramped) are mutually exclusive per step: an overlapping hull pays only the penalty, a clear hull only turn-away.</summary>
+        /// <summary>The hard collision penalty (fixed, un-ramped) and the gated turn-away cost (ramped) are mutually exclusive per step: an overlapping hull pays only the penalty, a clear hull only turn-away. The FIELD slot's authority scales only the turn-away branch — the penalty is never sentence-weakened.</summary>
         internal static void ObstacleCosts(State s, in CostInput input, in Config cfg,
-            float profileScale, out float collision, out float obstacle)
+            float profileScale, float fieldScale, out float collision, out float obstacle)
         {
             collision = 0f;
             obstacle = 0f;
@@ -19,7 +19,7 @@ namespace Movement.MPC
                 collision = cfg.collisionPenalty;
             else if (cfg.wObstacle > 0f)
                 obstacle = TurnAwayCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                    hullRadius, cfg.maxLatAccel) * cfg.wObstacle;
+                    hullRadius, cfg.maxLatAccel) * cfg.wObstacle * fieldScale;
         }
 
         /// <summary>Bank profile: cos(strafe * maxBank) is the fraction of the ship's cross-section visible in-plane — banking rolls the collider, narrowing the hull. Drives obstacle clearance.</summary>

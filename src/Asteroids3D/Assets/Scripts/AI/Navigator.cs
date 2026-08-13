@@ -32,7 +32,7 @@ namespace Movement.MPC
         protected internal float enemyYawRate;
         protected internal float projectileSpeed;
         protected Dynamics enemyDynamics;
-        protected internal AnchoredIntent anchored;
+        protected internal IntentSentence sentence;
 
         protected PilotCommand currentCommand;
         public PilotCommand CurrentCommand => currentCommand;
@@ -99,7 +99,7 @@ namespace Movement.MPC
             {
                 kinematics = kin,
                 dt = sinceLastSolve,
-                velocityReference = velocityReference,
+                velocityReference = CostVelocityReference,
                 facingRad = facingOverride ? facingRadOverride : float.NaN,
                 enemyPos = enemyPos,
                 enemyVel = enemyVel,
@@ -107,7 +107,7 @@ namespace Movement.MPC
                 enemyYawRate = enemyYawRate,
                 projectileSpeed = projectileSpeed,
                 enemyDynamics = enemyDynamics,
-                anchored = anchored,
+                sentence = sentence,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
             };
@@ -129,8 +129,12 @@ namespace Movement.MPC
             return currentCommand;
         }
 
-        /// <summary>A zero reference is a valid "stop", so the arm flag — not the reference value — gates activity.</summary>
-        internal bool ShouldIdle() => !hasVelocityReference;
+        /// <summary>A zero reference is a valid "stop", so the arm flags — not the values — gate activity: idle iff no world reference and no armed sentence slot.</summary>
+        internal bool ShouldIdle() => !hasVelocityReference && !sentence.AnyArmed;
+
+        /// <summary>What the cost layer sees as the world velocity command: NaN when disarmed, so a sentence-only objective never reads as a commanded stop.</summary>
+        internal float2 CostVelocityReference =>
+            hasVelocityReference ? velocityReference : new float2(float.NaN, float.NaN);
 
         internal void ApplyControl(in MpcResult r)
         {
@@ -148,12 +152,18 @@ namespace Movement.MPC
                 return;
             }
 
-            SetVelocityReference(objective.planarVelocity);
+            if (objective.hasPlanarVelocity)
+                SetVelocityReference(objective.planarVelocity);
+            else
+            {
+                hasVelocityReference = false;
+                velocityReference = default;
+            }
             ClearFacingOverride();
-            anchored = objective.anchored;
+            sentence = objective.sentence;
 
-            // The builder can only arm these channels through an anchor, so the anchor is live whenever they are.
-            if (anchored.hasFacing || anchored.hasVelocity)
+            // The builder can only arm instance slots through an anchor, so the anchor is live whenever one is.
+            if (sentence.aim.armed || sentence.pos.armed || sentence.vel.armed)
                 SetEnemyState(resolvedAnchor);
             else
                 ClearEnemyState();
@@ -164,7 +174,7 @@ namespace Movement.MPC
         {
             hasVelocityReference = false;
             velocityReference = default;
-            anchored = default;
+            sentence = default;
             ClearFacingOverride();
             ClearEnemyState();
         }
@@ -263,7 +273,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(velocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, anchored);
+            var input = solver.BuildCostInput(CostVelocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, sentence);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);

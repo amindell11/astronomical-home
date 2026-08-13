@@ -234,20 +234,18 @@ namespace Tests.EditMode
 
                 // B1 boundary pin: the facing command rides the anchored channel, and the world reference stays unarmed.
                 Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar move channel replaces the world reference");
-                Assert.IsTrue(decision.nav.anchored.hasFacing, "the anchored facing carries the command");
-                Assert.AreEqual(1.2f, decision.nav.anchored.facingOffsetRad, 1e-6f);
-                Assert.AreEqual(0.4f, decision.nav.anchored.facingWeight, 1e-6f, "authority weight rides the anchored channel");
+                Assert.IsTrue(decision.nav.sentence.aim.armed, "the AIM slot carries the command");
+                Assert.AreEqual(1.2f, decision.nav.sentence.aim.offsetRad, 1e-6f);
+                Assert.AreEqual(0.4f, decision.nav.sentence.aim.weight, 1e-6f, "authority weight rides the AIM slot");
 
-                Assert.IsTrue(decision.nav.anchored.hasVelocity);
-                Assert.AreEqual(4f, decision.nav.anchored.radialSpeed, 1e-6f);
-                Assert.AreEqual(-2f, decision.nav.anchored.tangentialSpeed, 1e-6f);
-                Assert.AreEqual(0.6f, decision.nav.anchored.velocityWeight, 1e-6f);
+                Assert.IsTrue(decision.nav.sentence.vel.armed);
+                Assert.AreEqual(4f, decision.nav.sentence.vel.radialSpeed, 1e-6f);
+                Assert.AreEqual(-2f, decision.nav.sentence.vel.tangentialSpeed, 1e-6f);
+                Assert.AreEqual(0.6f, decision.nav.sentence.vel.weight, 1e-6f);
 
-                Assert.IsTrue(decision.primary.IsCommanded, "the policy owns the primary trigger");
-                Assert.IsTrue(decision.primary.Held);
-                Assert.IsFalse(decision.primary.IsAuto, "the Gunner path must stay cold on the commanded path");
-                Assert.IsFalse(decision.secondary.IsAuto,
-                    "the secondary stays silent — today's manualFire path pushed it no command at all");
+                Assert.IsTrue(decision.engagePrimary, "the policy's fire action gates the primary engage");
+                Assert.IsFalse(decision.engageSecondary,
+                    "the secondary stays disengaged — arming it is Intent_Grammar Stage C work");
             }
             finally
             {
@@ -271,12 +269,12 @@ namespace Tests.EditMode
 
                 var first = brain.Decide(null).Value;
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
-                Assert.IsTrue(first.primary.Held);
-                Assert.AreEqual(4f, first.nav.anchored.radialSpeed, 1e-6f);
+                Assert.IsTrue(first.engagePrimary);
+                Assert.AreEqual(4f, first.nav.sentence.vel.radialSpeed, 1e-6f);
 
                 var second = brain.Decide(null).Value;
                 Assert.IsFalse(second.boost, "boost is one-shot per decision");
-                Assert.AreEqual(first.nav.anchored.radialSpeed, second.nav.anchored.radialSpeed,
+                Assert.AreEqual(first.nav.sentence.vel.radialSpeed, second.nav.sentence.vel.radialSpeed,
                     "the cached anchored command holds for the interval");
             }
             finally
