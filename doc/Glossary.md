@@ -62,7 +62,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — `Intent_Grammar.md`) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · instance pinning (MCP) · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -411,6 +412,13 @@ Format: **term** — definition. *(authority)*
   ("nothing matters"); an absent sentence is idleness — the distinction is
   structural (`IsIdle` = no armed slot). Design + staging:
   `doc/Feature_Plans/Intent_Grammar.md`. *(IntentSentence, Cost.EvalContext)*
+- **intent grammar** — the closed design space intent sentences are written in:
+  a term is a point in space × sign × geometry × frame/referent; slots sort
+  instance-vs-class by the timescale rule (focused entities bind instance
+  referents, ambient populations are class terms the solver resolves); six
+  admission rules gate new vocabulary. "Closed" means syntax never grows, only
+  vocabulary. Frozen at Stage B (2026-08-13) with the normalization contract.
+  *(doc/Feature_Plans/Intent_Grammar.md §The grammar + §Stage B freeze)*
 - **anchored intent** — the enemy-bound AIM+VEL degenerate intent sentence,
   today's production shape: a facing offset around the enemy intercept anchor,
   and a polar velocity in the enemy frame, each with a [0,1] weight. The MPC
