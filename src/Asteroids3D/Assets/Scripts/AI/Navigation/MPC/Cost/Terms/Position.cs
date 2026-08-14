@@ -19,5 +19,17 @@ namespace Movement.MPC
             var errSq = err * err;
             return errSq / math.max(errSq + posWidth * posWidth, 1e-6f);
         }
+
+        /// <summary>Error-relative POS width, fixed per solve: clamp(slope·err₀, posWidth, ∞) with err₀ the ring
+        /// error at the solve's initial state — reach gets a far-field gradient, settle keeps the posWidth floor.
+        /// cfg.posWidth unchanged when POS is unarmed, unresolved, or carries no authority.</summary>
+        internal static float EffectivePosWidth(State initial, in CostInput input, in Config cfg, float slope)
+        {
+            if (slope <= 0f || !input.sentence.pos.armed) return cfg.posWidth;
+            var ctx = EvalContext.Create(initial, input, cfg, 0);
+            if (ctx.posWeightScale == 0f) return cfg.posWidth;
+            var err0 = math.abs(math.distance(initial.pos, ctx.posPoint) - ctx.posSetpoint);
+            return math.max(slope * err0, cfg.posWidth);
+        }
     }
 }

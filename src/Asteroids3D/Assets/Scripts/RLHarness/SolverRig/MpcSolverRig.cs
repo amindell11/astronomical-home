@@ -62,7 +62,7 @@ namespace Game.RLHarness
             plantConfig.dt = scenario.simDt;
             plantConfig.invDt = 1f / scenario.simDt;
 
-            var state = new State { pos = scenario.startPos, yaw = scenario.startYawRad };
+            var state = new State { pos = scenario.startPos, vel = scenario.startVel, yaw = scenario.startYawRad };
             var sampler = new ControllerSampler(ControllerProbe.DefaultTorqueDeadband,
                 ControllerProbe.DefaultYawRateDeadbandDegPerSec);
             var facingErrorDeg = new List<float>();
@@ -182,6 +182,7 @@ namespace Game.RLHarness
                         costFacing = breakdown.facing,
                         costFacingPrior = breakdown.facingPrior,
                         costPos = breakdown.pos,
+                        costLane = breakdown.lane,
                         costYawRate = breakdown.yawRate,
                         costObstacle = breakdown.obstacle,
                         costCollision = breakdown.collision,

@@ -52,6 +52,14 @@ namespace Movement.MPC
         public float weight;
     }
 
+    /// <summary>LANE sentence slot: a ray-segment along the enemy's facing (referent pinned — rocks have no facing). Weight &gt; 0 holds the lane, &lt; 0 dodges it.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LaneSlot
+    {
+        public bool armed;
+        public float weight;   // Signed authority × the config's wLane ceiling
+    }
+
     /// <summary>An intent sentence: the decision-varying slice of the MPC cost as typed sentence slots, each re-resolved against live referent state every rollout step (doc/Feature_Plans/Intent_Grammar.md). Referent 0 = the bound enemy (rolled prediction stream); 1–3 = <see cref="CostInput"/>'s synthetic snapshots. Default (nothing armed) = the legacy world-frame path, bit-unchanged.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct IntentSentence
@@ -60,9 +68,10 @@ namespace Movement.MPC
         public PosSlot pos;
         public VelSlot vel;
         public FieldSlot field;
+        public LaneSlot lane;
 
         /// <summary>An armed slot at weight 0 still counts: "nothing matters" is a sentence, absence of one is not.</summary>
-        public bool AnyArmed => aim.armed || pos.armed || vel.armed || field.armed;
+        public bool AnyArmed => aim.armed || pos.armed || vel.armed || field.armed || lane.armed;
     }
 
     /// <summary>A synthetic referent: (pos, vel, yaw) snapshot extrapolated linearly in-rollout. Invalid = despawned — bound slots drop to weight 0 until the next decision.</summary>
