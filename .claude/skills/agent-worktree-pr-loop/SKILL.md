@@ -122,9 +122,14 @@ running between owners.
 ## Chat title lifecycle
 
 Chat titles surface each session's phase in the sessions list, so the user
-sees "blocked on #234" without opening the chat. The session tools refuse to
-act on the calling session, so a chat renames itself through a throwaway
-subagent — a subagent is a separate session and can rename its parent.
+sees "blocked on #234" without opening the chat. Titles are applied by the
+**title reconciler** — a standing one-shot scheduled task
+(`ledger-title-reconciler`) that transitioning agents re-arm; each firing is
+a fresh unattended session that reads the ledger's "## Title board" and
+applies every line. Renames work cross-session only: the session tools
+refuse the calling session, and an Agent-tool subagent shares your session
+identity, so it is refused too. Measured facts and dead ends: memory
+`reference_session_identity_and_subagents.md`.
 
 Every lifecycle-tracked chat uses ONE template — same slots, same order:
 
@@ -155,26 +160,45 @@ Stage examples:
   (an Arc chat's stage word is the arc's current overall stage)
 
 A title starting with none of the stage words is a design-discussion chat —
-those never retitle. Retitle at every transition that writes the ledger
-(claim, PR-open, block, merge/finalize).
+those never retitle.
 
 Fresh chats are born titled: when breaking out a new session for a slice —
 a spawn chip, a handoff, a launch prompt you draft for the user — give it its
 lifecycle title from the start (`prep | <slot-label> | <word-id>`) instead of
 a freeform title plus a later retitle.
 
-Retitling yourself — you never learn your own session id, you have a subagent
-derive it:
-1. Call `list_sessions`; it returns every session EXCEPT yours.
-2. Spawn a cheap subagent, passing that id list verbatim and the new title.
-   It calls `list_sessions` itself, and the one id its list has that yours
-   lacks is you — it renames that one via `set_session_title`.
+At every transition that writes the ledger (claim, PR-open, block,
+merge/finalize):
 
-Never derive your id from the scratchpad path: that UUID is not the session id
-and changes across resume. A user-set title always wins over a rename.
+1. Compose your title per the template and set your line on the ledger's
+   "## Title board": `<host-session-id> → <title>`. Your id is
+   `$CLAUDE_CODE_HOST_SESSION_ID` (Bash `echo`) — the only id the session
+   tools accept; the scratchpad/CLI UUID is a different namespace. On
+   merge, set your ✅ line while deleting your row; any later transition
+   prunes ✅ lines whose row is gone.
+2. Re-arm the reconciler: `update_scheduled_task` (mcp scheduled-tasks;
+   load via ToolSearch) on `ledger-title-reconciler` — new `fireAt` 30–60 s
+   out, `enabled: true`. The firing is a fresh unattended session; renames
+   land ~20–40 s after fireAt; the task auto-disables after firing, and an
+   armed task fires on next app launch when the app was closed. The sweep
+   is idempotent — concurrent re-arms are fine.
 
-Session tools or subagents unavailable (unattended runs) → skip silently;
-titles never block or delay work.
+If the task is missing, recreate it (`create_scheduled_task`, same id,
+ad-hoc — arming supplies fireAt) with exactly this prompt:
+
+> Read C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md.
+> In "## Title board", each line is `<session-id> → <title>`. For each line,
+> call mcp__ccd_session_mgmt__set_session_title (load via ToolSearch) with
+> that id and that exact title. Skip refusals (current-session, archived,
+> not-found) without retrying. Touch nothing else; change no files. Report
+> one line per rename.
+
+Tool approvals are stored per task id — the first firing asks the user to
+allow the rename tool; the stable id makes every later firing silent. A
+user-set title always wins over a rename.
+
+Scheduled-task tools unavailable → skip silently; titles never block or
+delay work.
 
 ## Step 1 — Scope
 
