@@ -33,6 +33,13 @@ make the environment RL-native. §4 is the dependency-ordered PR sequence.
 > audit (§1–2) still stands. An independent Codex consult (gpt-5.6, 2026-07-11) reached the
 > same recommendation unprompted.
 
+> **Terminal learned-cost experiment shelved (2026-08-13).** The later-upgrade
+> experiment—an executed-return model scored on MPC candidate terminal states—reached
+> transition capture, the terminal-candidate inference seam, and a trained baseline
+> (#364–#366; PRs #373, #354, #383). It is preserved on `archive/rl-value` and is not
+> queued for `main`. Shadow scoring, authority-readiness evaluation, and the behavioral
+> A/B (#367–#369) remain unbuilt; their issues stay closed until the experiment resumes.
+
 ---
 
 ## 3′. Committed direction v2 (2026-07-11) — learned goal-policy + MPC-as-tracker
