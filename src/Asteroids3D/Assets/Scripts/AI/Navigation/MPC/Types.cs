@@ -112,9 +112,10 @@ namespace Movement.MPC
         /// <summary>The decision's intent sentence; default = nothing armed (legacy path, bit-unchanged).</summary>
         public IntentSentence sentence;
 
-        /// <summary>Synthetic referents 1–2 for slots binding past the enemy.</summary>
+        /// <summary>Synthetic referents 1–3 for slots binding past the enemy — the sentence's own max (AIM/POS/VEL, one distinct rock each).</summary>
         public ReferentSnapshot referent1;
         public ReferentSnapshot referent2;
+        public ReferentSnapshot referent3;
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable

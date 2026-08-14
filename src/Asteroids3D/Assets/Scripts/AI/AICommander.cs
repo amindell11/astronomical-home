@@ -4,6 +4,7 @@ using Game.Services;
 using Movement;
 using Movement.MPC;
 using Ships.Command;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace AI
@@ -123,7 +124,7 @@ namespace AI
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }
 
-        /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole. The anchor resolves once here so the nav and fire lanes cannot aim at different moments of the same tick.</summary>
+        /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole. Every referent resolves once here — anchor and rock seats alike — so the nav and fire lanes cannot aim at different moments of the same tick, and a held decision re-resolves fresh each tick (extrapolation only ever bridges one tick).</summary>
         private void Route(BrainDecision? decision)
         {
             if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor))
@@ -137,13 +138,24 @@ namespace AI
             }
 
             var decided = decision.Value;
-            Navigator.ApplyObjective(decided.nav, anchor);
+            var nav = decided.nav;
+            Navigator.ApplyObjective(nav, anchor,
+                ResolveRock(nav.rockSeat1), ResolveRock(nav.rockSeat2), ResolveRock(nav.rockSeat3));
             engagePrimary = decided.engagePrimary;
             engageSecondary = decided.engageSecondary;
             boost = decided.boost;
 
             if (!Gunner) return;
-            if (decided.nav.hasAnchor) Gunner.Aim(anchor);
+            var aim = nav.sentence.aim;
+            if (aim.armed && aim.referent != 0)
+            {
+                // The fire lane follows the AIM referent; a dead rock holds fire until the next decision (its nav slot is already weight 0).
+                if (nav.RockSeat(aim.referent).TryResolve(out var rockPos, out var rockVel))
+                    Gunner.Aim(rockPos, rockVel);
+                else
+                    Gunner.HoldFire();
+            }
+            else if (nav.hasAnchor) Gunner.Aim(anchor);
             else Gunner.HoldFire();
         }
 
@@ -156,6 +168,18 @@ namespace AI
 
             anchor = new EnemyTarget { kinematics = ship.Kinematics, dynamics = ship.Dynamics };
             return true;
+        }
+
+        /// <summary>A rock seat as the solver will see it this tick; a dead or unbound rock is an invalid snapshot, dropping its slots to weight 0 until the next decision. Rocks have no facing, so yaw stays 0.</summary>
+        private static ReferentSnapshot ResolveRock(in AsteroidRef rock)
+        {
+            if (!rock.TryResolve(out var pos, out var vel)) return default;
+            return new ReferentSnapshot
+            {
+                valid = true,
+                pos = new float2(pos.x, pos.y),
+                vel = new float2(vel.x, vel.y),
+            };
         }
     }
 }

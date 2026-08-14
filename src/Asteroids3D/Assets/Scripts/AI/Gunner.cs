@@ -15,13 +15,13 @@ namespace AI
         private IWeapons actuator;
         private Func<Kinematics> pose;
 
-        private Vector2 enemyPos;
-        private Vector2 enemyVel;
-        private bool hasEnemy;
+        private Vector2 targetPos;
+        private Vector2 targetVel;
+        private bool hasTarget;
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
-        public bool HasTarget => hasEnemy;
+        public bool HasTarget => hasTarget;
 
         /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>
         public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;
@@ -34,12 +34,12 @@ namespace AI
             pose = poseFunc;
         }
 
-        /// <summary>Drops the tracked enemy and aim point, restoring the freshly-initialized gunner.</summary>
+        /// <summary>Drops the tracked target and aim point, restoring the freshly-initialized gunner.</summary>
         public void ResetState()
         {
-            hasEnemy = false;
-            enemyPos = default;
-            enemyVel = default;
+            hasTarget = false;
+            targetPos = default;
+            targetVel = default;
             ClearTarget();
         }
 
@@ -53,7 +53,7 @@ namespace AI
             {
                 var slot = slots[i];
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
-                var fire = engage && hasEnemy && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
+                var fire = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
                 actuator.Fire(slot, new WeaponCommand { held = fire, pressed = fire });
             }
         }
@@ -67,27 +67,30 @@ namespace AI
         internal Vector3 AimPointFor(WeaponSlot slot)
         {
             if (pose == null)
-                return GamePlane.PlanePointToWorld(enemyPos);
+                return GamePlane.PlanePointToWorld(targetPos);
 
             return GamePlane.PlanePointToWorld(
-                AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
+                AimPoint(pose(), targetPos, targetVel, weapons.ProjectileSpeed(slot)));
         }
 
         /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void Aim(in EnemyTarget anchor)
+        public void Aim(in EnemyTarget anchor) => Aim(anchor.kinematics.pos, anchor.kinematics.vel);
+
+        /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
+        public void Aim(Vector2 referentPos, Vector2 referentVel)
         {
             if (pose == null) return;
 
-            enemyPos = anchor.kinematics.pos;
-            enemyVel = anchor.kinematics.vel;
-            hasEnemy = true;
+            targetPos = referentPos;
+            targetVel = referentVel;
+            hasTarget = true;
             Target = AimPointFor(WeaponSlot.Primary);
         }
 
         /// <summary>Drops the aim without dropping the weapons: the slots stay the gunner's, it just has nothing to shoot at.</summary>
         public void HoldFire()
         {
-            hasEnemy = false;
+            hasTarget = false;
             ClearTarget();
         }
     }

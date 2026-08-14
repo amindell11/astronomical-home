@@ -151,7 +151,7 @@ namespace Movement.MPC
             float2 velocityReference,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed, in IntentSentence sentence,
-            in ReferentSnapshot referent1, in ReferentSnapshot referent2,
+            in ReferentSnapshot referent1, in ReferentSnapshot referent2, in ReferentSnapshot referent3,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float eliteFraction = 0.1f)
         {
@@ -208,6 +208,7 @@ namespace Movement.MPC
                 sentence = sentence,
                 referent1 = referent1,
                 referent2 = referent2,
+                referent3 = referent3,
             };
 
             // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
@@ -341,7 +342,8 @@ namespace Movement.MPC
             float2 enemyPos = default, float2 enemyVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
             float2 initialVel = default, IntentSentence sentence = default,
-            ReferentSnapshot referent1 = default, ReferentSnapshot referent2 = default)
+            ReferentSnapshot referent1 = default, ReferentSnapshot referent2 = default,
+            ReferentSnapshot referent3 = default)
         {
             return new CostInput
             {
@@ -359,6 +361,7 @@ namespace Movement.MPC
                 sentence = sentence,
                 referent1 = referent1,
                 referent2 = referent2,
+                referent3 = referent3,
             };
         }
 

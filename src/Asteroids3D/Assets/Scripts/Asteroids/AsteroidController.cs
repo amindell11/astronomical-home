@@ -32,6 +32,9 @@ namespace Asteroids
         /// <see cref="Radius"/> circle. Rides in from the shared <see cref="AsteroidSpawnSettings.MeshInfo"/>.</summary>
         public AsteroidSpawnSettings.MeshInfo.LobeSphere[] Lobes { get; private set; }
         public Rigidbody Rb { get; private set; }
+        /// <summary>Bumped each <see cref="Initialize"/>: pooled reuse hands this component to a new
+        /// rock, so a held reference is only the same rock while the epoch matches (see <see cref="AI.AsteroidRef"/>).</summary>
+        public int SpawnEpoch { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
@@ -74,6 +77,7 @@ namespace Asteroids
             var prevAutoSync = Physics.autoSyncTransforms;
             Physics.autoSyncTransforms = false;
 
+            SpawnEpoch++;
             meshFilter.mesh = meshInfo.mesh;
             AsteroidSpawner = asteroidSpawner;
             Fragger = fragger;
