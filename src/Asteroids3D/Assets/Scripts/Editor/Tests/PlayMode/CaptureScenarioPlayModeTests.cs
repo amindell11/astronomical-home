@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Game.Bootstrap;
@@ -21,6 +22,7 @@ namespace Tests.PlayMode
     public class CaptureScenarioPlayModeTests : PlayModeWorldFixture
     {
         private GameObject sessionRoot;
+        private IEpisodeCapture capture;
         private GameSession session;
         private bool savedPresentation;
 
@@ -38,7 +40,14 @@ namespace Tests.PlayMode
 
             session?.Services?.Projectiles.ReturnAllToPool();
             session = null;
-            CaptureRecorder.SweepStranded();
+
+            // Crash-path net: a scenario that died mid-episode never reached the runner's End.
+            if (capture != null)
+            {
+                capture.End();
+                UnityEngine.Object.DestroyImmediate(capture as ScriptableObject);
+                capture = null;
+            }
 
             // ComposeSession overrides this process-global and TeardownSession does not restore it.
             GameSettings.SetPresentationEnabled(savedPresentation);
@@ -71,13 +80,24 @@ namespace Tests.PlayMode
             scenario.Session = session;
 
             using var pacing = CapturePacing.Locked();
-            using (var recorder = new CaptureRecorder(scenario.Config))
+            capture = TestAssets.NewNativeCapture();
+            scenario.Capture = capture;
+            string frameDir = null;
+            try
             {
-                yield return scenario.Run(recorder);
-
-                Assert.Greater(recorder.FrameCount, 0, "Scenario completed without capturing a single frame — did it ever call recorder.Step?");
-                Debug.Log($"[Capture] {recorder.FrameCount} frames -> {recorder.FrameDir}");
+                yield return scenario.Run();
+                frameDir = capture.FrameDir;
             }
+            finally
+            {
+                capture.End();
+            }
+
+            Assert.IsNotNull(frameDir, "Scenario completed without filming — did it ever call Film?");
+            Assert.IsTrue(Directory.Exists(frameDir), $"Capture wrote no frame directory at {frameDir}");
+            var frames = Directory.GetFiles(frameDir, "*.png");
+            Assert.IsNotEmpty(frames, $"Scenario filmed no frames into {frameDir} — did it ever call FilmStep?");
+            Debug.Log($"[Capture] {frames.Length} frames -> {frameDir}");
 
             yield return host.TeardownSession(session);
         }

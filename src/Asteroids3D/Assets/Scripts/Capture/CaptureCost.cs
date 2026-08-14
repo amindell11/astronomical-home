@@ -26,7 +26,7 @@ namespace Game.Capture
             return (float)(total / stepMs.Count);
         }
 
-        /// <summary>Per-step shape, not a cross-backend number: the painter path works only on captured steps, so its median lands on a skipped one. Backends compare on <see cref="MeanMs"/>.</summary>
+        /// <summary>Per-step shape only: capture works on captured steps, so the median lands on a skipped one. Compare runs on <see cref="MeanMs"/>.</summary>
         public float MedianMs()
         {
             if (stepMs.Count == 0) return 0f;

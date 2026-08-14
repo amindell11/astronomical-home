@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -30,8 +29,7 @@ namespace Game.Capture.GameView
             activeSelection = Selection.activeObject;
             focusedWindow = EditorWindow.focusedWindow;
             recovery = CaptureRecoveryJournal.Create(gizmos, gameView.Snapshot(),
-                UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty,
-                DiagnosticGate.ActiveNames);
+                UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
             CaptureRecoveryJournal.Write(recovery);
 
             try
@@ -63,7 +61,6 @@ namespace Game.Capture.GameView
 
             var failures = new List<Exception>();
             CaptureRecoveryJournal.Attempt(() => Application.runInBackground = recovery.runInBackground, failures);
-            CaptureRecoveryJournal.Attempt(() => DiagnosticGate.Replace(recovery.gateActive), failures);
             CaptureRecoveryJournal.Attempt(RestoreAnnotations, failures);
             CaptureRecoveryJournal.Attempt(RestoreSelection, failures);
             CaptureRecoveryJournal.Attempt(() => gameView.Restore(recovery.gameView), failures);
@@ -79,8 +76,8 @@ namespace Game.Capture.GameView
 
         private static void ValidateTypes(Type[] profileTypes)
         {
-            if (profileTypes == null || profileTypes.Length == 0)
-                throw new ArgumentException("Native gizmo capture profile selects no component types.");
+            if (profileTypes == null)
+                throw new ArgumentException("Native gizmo capture resolved a null profile.");
             foreach (var type in profileTypes)
                 if (!GizmoUtility.TryGetGizmoInfo(type, out _))
                     throw new InvalidOperationException(

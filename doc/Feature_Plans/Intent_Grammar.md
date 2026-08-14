@@ -103,7 +103,7 @@ intent; encoding it as terms is exactly what rule 1 rejects.
 
 The blend happens outside the network, so every decision is a legible typed sentence:
 
-- **IntentPainter** (painter system): referent rings, frame-resolved POS points riding their
+- **Intent gizmos** (native drawers on the intent's own components): referent rings, frame-resolved POS points riding their
   referents live, weights as thickness/alpha — the 5 Hz strategy layer and 50 Hz tracking
   layer visually distinct in-world.
 - **Sentence probe** (`SessionProbes`): per-decision CSV → weight-vs-threat correlations,
@@ -232,8 +232,8 @@ Forks, as ruled:
    trace extended with per-term cost-breakdown columns (the "which term trapped it"
    diagnostic), and a plot from one committed script (the rig CSVs previously had no reader).
    Verdict = a human ruling per row (composes / needs new frame or geometry / red flag), live
-   in `results/mpc-rig/bingo/NOTES.md`, frozen into this doc at close. IntentPainter is OUT of
-   Stage A; its natural home is Stage C when live sentences flow in production.
+   in `results/mpc-rig/bingo/NOTES.md`, frozen into this doc at close. Intent gizmos are OUT of
+   Stage A; their natural home is Stage C when live sentences flow in production.
 5. **Slicing** as carded above; A3 may fold into A2 at build time if it stays small.
 
 Blindsider resolutions:

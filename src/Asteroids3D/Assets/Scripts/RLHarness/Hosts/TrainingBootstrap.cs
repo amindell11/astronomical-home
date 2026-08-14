@@ -49,7 +49,8 @@ namespace Game.RLHarness
             host.assets = AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             host.spec = spec;
             host.exitEditorWhenComplete = true;
-            if (spec.gizmoProfile != GizmoCaptureProfile.None) AttachGameViewCapture(host);
+            // Every filmed episode goes through the Game View, gizmo profile or not.
+            if (spec.record.enabled) AttachGameViewCapture(host);
             EditorApplication.EnterPlaymode();
         }
 

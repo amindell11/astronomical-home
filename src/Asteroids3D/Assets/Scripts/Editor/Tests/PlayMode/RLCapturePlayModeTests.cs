@@ -23,8 +23,6 @@ namespace Tests.PlayMode
     [Category("RequiresGraphics")]
     public class RLCapturePlayModeTests
     {
-        private const string GameViewCaptureType =
-            "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor";
         private GameObject arenaHost;
         private UnitService unitService;
         private ArenaContext arena;
@@ -40,7 +38,6 @@ namespace Tests.PlayMode
         private const string DisabledWindow = "gizmos-off";
         private const string EnabledWindowB = "gizmos-on-again";
         private const string GizmoSelector = "RL_HARNESS_GIZMOS";
-        private const string PainterSelector = "RL_HARNESS_PAINTERS";
 
         [SetUp]
         public void SetUp()
@@ -70,7 +67,6 @@ namespace Tests.PlayMode
             subjectB = null;
             projectiles?.ReturnAllToPool();
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            CaptureRecorder.SweepStranded();
             GameSettings.SetPresentationEnabled(true);
             if (ownsOutDir && Directory.Exists(outDir)) Directory.Delete(outDir, true);
             AudioListener.pause = false;
@@ -78,13 +74,15 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator CaptureLane_FilmsFramesManifestAndRows()
+        public IEnumerator CaptureLane_WithoutAGizmoProfileFilmsPlainFootage()
         {
             if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(ShipAgentFactory.SmokeFixturePath) == null)
                 Assert.Fail($"ONNX fixture missing at {ShipAgentFactory.SmokeFixturePath}");
 
-            var spec = SpecFor(PainterSelector, PinnedPainterSpec);
+            var spec = PinnedPlainSpec();
+            // No gizmo types selected, so the Game View films the game itself — presentation stays on.
             GameSettings.SetPresentationEnabled(spec.Presentation);
+            Assert.IsTrue(spec.Presentation, "a capture with no gizmo profile films with presentation enabled");
 
             var host = NewHost(spec);
             yield return new CaptureClient().Run(host, spec);
@@ -118,7 +116,7 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(spec.Presentation);
             Assert.IsFalse(spec.Presentation, "a native gizmo profile films with presentation disabled");
 
-            var host = NewHost(spec, nativeCapture: true);
+            var host = NewHost(spec);
             yield return new CaptureClient().Run(host, spec);
 
             Assert.AreEqual(spec.episodesPerSeed, File.ReadAllLines(EpisodeJsonlIn(spec)).Length);
@@ -161,12 +159,13 @@ namespace Tests.PlayMode
 
         private IEnumerator FilmToggleWindow(string clipName, bool profileEnabled)
         {
-            var capture = NewNativeCapture();
+            var capture = TestAssets.NewNativeCapture();
             try
             {
                 // Combat, not Steering: its damage-bar drawer needs only a live ship, while steering
                 // diagnostics stay empty for subjects no UnitService registered an opponent for.
-                capture.Begin(ToggleConfig(clipName), GizmoCaptureProfile.Combat, subjectA, subjectB, projectiles);
+                capture.Begin(ToggleConfig(clipName), GizmoCaptureProfile.Combat, new[] { subjectA, subjectB },
+                    projectiles);
                 var profileAnnotations = EnabledAnnotations();
                 Assert.IsNotEmpty(profileAnnotations, "Begin leaves exactly the profile's component types enabled");
                 if (!profileEnabled) SetAnnotations(profileAnnotations, false);
@@ -248,10 +247,7 @@ namespace Tests.PlayMode
             }
         }
 
-        private IEpisodeCapture NewNativeCapture() => (IEpisodeCapture)ScriptableObject.CreateInstance(
-            Type.GetType(GameViewCaptureType, throwOnError: true));
-
-        /// <summary>With this backend's selector set in the environment the windowed run IS the production capture lane, resolving through SessionSpec exactly as a batch session would; otherwise it films the pinned spec. The selectors are mutually exclusive at the parse boundary, so each test claims the environment only when its own backend is named.</summary>
+/// <summary>With the selector set in the environment the windowed run IS the production capture lane, resolving through SessionSpec exactly as a batch session would; otherwise it films the pinned spec.</summary>
         private SessionSpec SpecFor(string backendSelector, Func<SessionSpec> pinned)
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(backendSelector))) return pinned();
@@ -269,7 +265,7 @@ namespace Tests.PlayMode
             return spec;
         }
 
-        private SessionSpec PinnedPainterSpec() => new()
+        private SessionSpec PinnedPlainSpec() => new()
         {
             lane = SessionLane.Capture,
             model = LoadModel(ShipAgentFactory.SmokeFixturePath),
@@ -279,7 +275,6 @@ namespace Tests.PlayMode
             fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
             opponentKind = OpponentKind.Mirror,
             probes = Array.Empty<ProbeSpec>(),
-            painters = Array.Empty<string>(),
             outDir = outDir,
             record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
         };
@@ -294,7 +289,6 @@ namespace Tests.PlayMode
             fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
             opponentKind = OpponentKind.Mirror,
             probes = Array.Empty<ProbeSpec>(),
-            painters = Array.Empty<string>(),
             gizmoProfile = GizmoCaptureProfile.Steering,
             outDir = outDir,
             record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
@@ -321,7 +315,7 @@ namespace Tests.PlayMode
                 Assert.IsTrue(File.Exists(manifest), $"{dir}: manifest present");
                 Assert.Greater(Directory.GetFiles(dir, "f_*.png").Length, 0, $"{dir}: frames written");
                 StringAssert.Contains("\"medianStepMs\"", File.ReadAllText(manifest),
-                    $"{dir}: the sealed manifest carries the per-step cost the backend comparison reads");
+                    $"{dir}: the sealed manifest carries the per-step capture cost");
             }
         }
 
@@ -329,15 +323,14 @@ namespace Tests.PlayMode
             UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(assetPath);
 
         // Host on an inactive GameObject so its Start never fires — the test drives the client directly.
-        private HarnessSessionHost NewHost(SessionSpec spec, bool nativeCapture = false)
+        private HarnessSessionHost NewHost(SessionSpec spec)
         {
             var hostObject = new GameObject("[HarnessSessionHost]");
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
             var host = hostObject.AddComponent<HarnessSessionHost>();
-            var capture = nativeCapture ? NewNativeCapture() : null;
-            host.Initialize(spec, assets, unitService, arena, projectiles, capture);
-            if (nativeCapture) Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
+            host.Initialize(spec, assets, unitService, arena, projectiles, TestAssets.NewNativeCapture());
+            Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
             return host;
         }
     }

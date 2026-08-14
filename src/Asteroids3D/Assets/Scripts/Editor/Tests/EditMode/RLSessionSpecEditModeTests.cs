@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Capture;
-using Game.Diagnostics;
 using Game.RLHarness;
 using NUnit.Framework;
 
@@ -464,40 +463,6 @@ namespace Tests.EditMode
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_LANE", "capture"), "capture lane");
             Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_OPENLOOP", "all"), "open-loop lane");
-        }
-
-        [Test]
-        public void PainterSelection_DefaultsToNothingDrawn()
-        {
-            Assert.IsEmpty(Parse().painters, "unset RL_HARNESS_PAINTERS draws nothing");
-        }
-
-        [Test]
-        public void PainterRegistry_IsEmptyNowThatEveryDiagnosticIsANativeGizmo()
-        {
-            Assert.IsEmpty(DiagnosticPainters.RegisteredNames, "no painter registers");
-            Assert.IsEmpty(DiagnosticPainters.PresetNames, "no preset survives its painters");
-            Assert.IsFalse(DiagnosticPainters.TryExpandPreset("everything", out _));
-            Assert.IsFalse(DiagnosticPainters.IsRegistered("ship-diagnostics"));
-        }
-
-        [Test]
-        public void PainterSelection_AnyNameFailsAtTheBoundaryNamingTheEmptySet()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "ship-diagnostics"),
-                "against an empty registry every painter name must fail at the boundary");
-            StringAssert.Contains("ship-diagnostics", thrown.Message);
-            StringAssert.Contains("registered painter () or preset ()", thrown.Message);
-        }
-
-        [Test]
-        public void PainterPresets_DuplicateNameThrowsAtRegistration()
-        {
-            Assert.Throws<InvalidOperationException>(
-                () => DiagnosticPainters.BuildPresets(
-                    ("combat", new[] { "ship-diagnostics" }),
-                    ("combat", new[] { "ship-diagnostics" })),
-                "a duplicate preset name must fail when registered");
         }
 
         [Test]

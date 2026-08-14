@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Assemble capture frame dumps into mp4 (default) or gif clips.
 
-CaptureRecorder writes <outputRoot>/frames/<stamp>-<clip>/ holding f_%05d.png
+The capture module writes <outputRoot>/frames/<stamp>-<clip>/ holding f_%05d.png
 plus a manifest.json (dims, capture cadence, suggested fps). --fps defaults
 from that manifest so clips play back in real time; --step N drops to every
 Nth frame while keeping real-time playback.

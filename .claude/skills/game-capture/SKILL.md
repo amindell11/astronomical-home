@@ -1,15 +1,20 @@
 ---
 name: game-capture
-description: Record footage of any game situation with per-investigation diagnostic markup (lines, vectors, rings, labels) and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, or recording RL episodes.
+description: Record footage of any game situation, with native gizmo diagnostics drawn over it, and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, or recording RL episodes.
 metadata:
   project: astronomical-home
 ---
 
 # Game Capture
 
-Record PNG frame dumps of a game situation with an immediate-mode diagnostic overlay,
-then assemble them into mp4/gif. **The footage is the deliverable** — always end by
-reading a mid-clip PNG yourself and handing the user the clip path.
+Record PNG frame dumps of a game situation through the Editor's Game View, with
+native gizmos drawn over it, then assemble them into mp4/gif. **The footage is the
+deliverable** — always end by reading a mid-clip PNG yourself and handing the user
+the clip path.
+
+Capture runs in a **windowed Editor** launched by the test runner
+(`-WithGraphics -Windowed`). This is structural, not a preference: Unity never resumes
+Recorder's `WaitForEndOfFrame` under `-batchmode`, so there is no headless capture lane.
 
 ## Pick a lane
 
@@ -24,10 +29,10 @@ reading a mid-clip PNG yourself and handing the user the clip path.
   comma indices), one seed (`RL_HARNESS_SEEDS`), and one opponent block
   (`RL_HARNESS_OPPONENT=aggressor|mirror|<ckpt>.onnx` — `roster` is refused: five
   archetype films are five sessions). `RL_HARNESS_ONNX` names the candidate
-  checkpoint (default: the smoke fixture); `RL_HARNESS_GIZMOS` picks the markup as
-  one native gizmo capture profile (`steering`, `combat`, `everything`) filmed
-  through the Game View — unset draws NOTHING, and `RL_HARNESS_PAINTERS` is retired.
-  Full `RL_HARNESS_*` grammar in `training/rl/README.md`. The session
+  checkpoint (default: the smoke fixture); `RL_HARNESS_GIZMOS` picks one gizmo capture
+  profile (`steering`, `combat`, `everything`). A profile films with presentation off —
+  collider silhouettes plus gizmo geometry; **unset films plain gameplay with
+  presentation on**. Full `RL_HARNESS_*` grammar in `training/rl/README.md`. The session
   needs a graphics device, so it runs **without** `-nographics` — never the merge
   gate. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
   `results/rl-capture/`). A one-command `eval_lane.py` capture preset is a later
@@ -41,55 +46,56 @@ reading a mid-clip PNG yourself and handing the user the clip path.
 #if UNITY_EDITOR
 using System.Collections;
 using Game.Capture;
-using Game.Diagnostics;
 using Tests.PlayMode.Common;
 using UnityEngine;
 
 public sealed class MyProbe : CaptureScenario
 {
-    public override IEnumerator Run(CaptureRecorder recorder)
-    {
-        var (a, _) = SpawnUtilityShip(new Vector2(-12f, 0f), rotDeg: -90f, team: 0);
-        var (b, _) = SpawnUtilityShip(new Vector2(12f, 0f), rotDeg: 90f, team: 1);
+    // Which native gizmos the footage carries; None films the game alone.
+    public override GizmoCaptureProfile Profile => GizmoCaptureProfile.Combat;
 
-        var subjects = new Vector2[2];                    // reuse — never allocate per step
+    public override IEnumerator Run()
+    {
+        var (a, _) = SpawnCombatShip(new Vector2(-12f, 0f), rotDeg: -90f, team: 0);
+        var (b, _) = SpawnCombatShip(new Vector2(12f, 0f), rotDeg: 90f, team: 1);
+        Film(a, b);                                       // framed + gizmo-selected subjects
+
         for (var i = 0; i < 400 && a && b; i++)
         {
             yield return new WaitForFixedUpdate();
-            subjects[0] = a.Kinematics.pos;
-            subjects[1] = b.Kinematics.pos;
-            recorder.Step(subjects, ctx =>
-                ctx.Label(subjects[0], $"step {i}", Color.white));  // whatever this investigation needs
+            FilmStep();
         }
     }
 }
 #endif
 ```
 
-`CaptureDraw` gives you `Line / Vector / Ring / Trail / Label` in plane-space plus a
-`LineWidth` knob. Anything not redrawn in a captured step disappears — compose the
-overlay fresh per frame. Override `Config` to change clip name/size/cadence. This
-offscreen lane renders its own camera, so it never films native gizmos — standing
-diagnostics reach frames only through the harness Game View lane.
+`Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
+advances one captured step. The runner ends the episode when `Run` returns or throws.
+Override `Config` for clip name/size/cadence and `Profile` for the gizmo set.
+
+**There is no per-scenario drawing API.** A diagnostic you want on film is a native
+`[DrawGizmo]` drawer on the Unity component whose state it explains, added to the
+relevant profile in `GizmoCaptureProfiles` — never a capture-only overlay. That is the
+whole point of the painter removal (#376): one place to author a diagnostic, seen
+identically in the live Editor and on film.
 
 ## Film a trained checkpoint (policy vs archetype)
 
 The harness capture lane (above) covers the standard case: `RL_HARNESS_LANE=capture`
 with `RL_HARNESS_ONNX=<ckpt>.onnx` and `RL_HARNESS_OPPONENT=<archetype|mirror|ckpt>`,
-`RL_HARNESS_GIZMOS=combat` (unset draws no markup — always name a profile). An
+`RL_HARNESS_GIZMOS=combat` (unset films plain gameplay). An
 absolute checkpoint path is imported into the fixture slot automatically. For
 compositions the lane can't express (bespoke overlays, non-archetype opponents),
 author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
 → `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
-enumerator and calling `recorder.Step` per fixed step with a scenario-local overlay. New
-standing diagnostics are **native gizmos** — a `[DrawGizmo]` drawer on the Unity subject
-whose state they explain, never a capture-only overlay.
+enumerator and calling `FilmStep()` per fixed step.
 
 ## Run + assemble (one command each)
 
 ```powershell
-./scripts/agent_worktree_pool.sh run-tests agent-N -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -WithGraphics -CaptureScenario MyProbe
+./scripts/agent_worktree_pool.sh run-tests agent-N -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -WithGraphics -Windowed -CaptureScenario MyProbe
 python scripts/capture/assemble.py <slot-path>/results/capture/frames/<stamp>-MyProbe
 ```
 
@@ -112,9 +118,9 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 
 ## Hard-won constraints (violate = silent garbage)
 
-- **Gizmos/Handles never render into offscreen captures.** Only `CaptureDraw`
-  primitives show up — they're real renderers (LineRenderers); URP
-  `RenderPipelineManager` GL hooks are unreliable for manual `camera.Render()`.
+- **Capture needs a windowed Editor** (`-WithGraphics -Windowed`). Recorder starves
+  without a rendering Game View under `-batchmode`, and gizmos never render into a
+  manual offscreen `camera.Render()`. There is no headless capture lane.
 - **Batch runs are `-nographics` by default; `-WithGraphics` is for filtered runs
   only** (it requires PlayMode + an explicit `-TestFilter`, and fails on zero tests
   executed). Never the merge-gate suite — never record merge-gate proof from a

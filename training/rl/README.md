@@ -201,8 +201,7 @@ $env:RL_HARNESS_OPENLOOP = "all"   # K1-2 velrebase lane instead of a checkpoint
 $env:RL_HARNESS_RECORD = "all"   # omit/"" = off; "all" or comma indices (0-based, < episodes/seed) select which episodes film. Recording forces a graphics device — the batch child drops -nographics
 $env:RL_HARNESS_RECORD_SIZE = "960x540"   # clip WxH, positive + even (yuv420p); omit for 960x540
 $env:RL_HARNESS_RECORD_EVERY = "5"   # capture cadence in fixed steps; omit for 5
-$env:RL_HARNESS_PAINTERS = ""   # retired: every diagnostic is a native gizmo now, so the painter registry is empty and ANY name fails at the boundary. Use RL_HARNESS_GIZMOS
-$env:RL_HARNESS_GIZMOS = "combat"   # native gizmo capture profile filmed through the Game View: steering / combat / everything. Capture lane + RL_HARNESS_RECORD only; excludes RL_HARNESS_PAINTERS, and films collider silhouettes without presentation meshes
+$env:RL_HARNESS_GIZMOS = "combat"   # native gizmo capture profile filmed through the Game View: steering / combat / everything. Capture lane + RL_HARNESS_RECORD only; films collider silhouettes without presentation meshes. Omit to film plain gameplay with presentation on
 $env:RL_HARNESS_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/ (capture writes rl-capture/)
 ```
 
