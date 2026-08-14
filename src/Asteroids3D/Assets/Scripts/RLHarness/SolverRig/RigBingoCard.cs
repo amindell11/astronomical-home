@@ -94,8 +94,6 @@ namespace Game.RLHarness
             var s = Base();
             var enemyPos = new float2(0f, 50f);
             s.enemyLaw = RigLaw.Static(enemyPos, FacingYaw(enemyPos, float2.zero));
-            // Stage A's POS-point stand-in read "needs ray geometry" — this is that geometry: the
-            // real LANE segment down the enemy's facing, dodged by sign while AIM holds the target.
             s.intent = new IntentSentence
             {
                 aim = new AimSlot { armed = true, weight = 1f },
@@ -237,8 +235,8 @@ namespace Game.RLHarness
                 pos = new PosSlot { armed = true, referent = 1, weight = 1f },
                 field = new FieldSlot { armed = true, weight = 1f },
             };
-            // No posWidthOverride: the Stage B hand-tuned 60 is what error-relative width now
-            // produces from the 90 m leg (2/3 × 90) — the slope's calibration source.
+            // No posWidthOverride: error-relative width produces the hand-tuned 60 from the
+            // 90 m leg (2/3 × 90) — this leg is the slope's calibration source.
             s.durationSeconds = 25f;
             return new BingoRow { name = "minefield-transit", scenario = s };
         }

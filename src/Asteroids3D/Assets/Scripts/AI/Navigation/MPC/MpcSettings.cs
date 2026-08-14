@@ -29,7 +29,8 @@ namespace Movement.MPC
                  "Per-step (un-ramped) so tracking is uniform across the horizon rather than terminal-weighted.")]
         public float wVelTrack = 5f;
         [Tooltip("Reference speed in m/s for VEL decode scaling — the speed a full-authority direction head " +
-                 "commands. Near cruise speed; rig-tuned (the bingo card's authored speeds top out ~12).")]
+                 "commands. Near cruise speed; rig-tuned (the bingo card's authored speeds top out ~12). " +
+                 "No consumer until the Stage C3 decode lands (Intent_Grammar.md §Stage C).")]
         public float speedRef = 12f;
         [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
         public float wYawRate = 0.1f;
