@@ -98,10 +98,13 @@ namespace Tests.EditMode
             Assert.That(Rostered(roster, g), Is.False);
         }
 
+        // Hysteresis scenarios colocate the enemy with self so both sides pick the same rocks and
+        // membership reduces to nearest-6-by-self-distance — a far enemy would make the far rocks
+        // ITS nearest three and change which occupant is challengeable.
         [Test]
         public void Challenger_InsideTheMargin_DoesNotEvict()
         {
-            var enemyPos = new Vector2(1000f, 0f);
+            var enemyPos = SelfPos;
             var occupants = new[] { Rock(11f), Rock(12f), Rock(13f), Rock(14f), Rock(15f), Rock(16f) };
             var roster = new RockSlotRoster(Margin);
             roster.Update(SelfPos, enemyPos, Scan(occupants), default);
@@ -117,7 +120,7 @@ namespace Tests.EditMode
         [Test]
         public void Challenger_BeyondTheMargin_Evicts()
         {
-            var enemyPos = new Vector2(1000f, 0f);
+            var enemyPos = SelfPos;
             var occupants = new[] { Rock(11f), Rock(12f), Rock(13f), Rock(14f), Rock(15f), Rock(16f) };
             var roster = new RockSlotRoster(Margin);
             roster.Update(SelfPos, enemyPos, Scan(occupants), default);
@@ -133,7 +136,7 @@ namespace Tests.EditMode
         [Test]
         public void BoundOccupant_IsNeverChallengedOut()
         {
-            var enemyPos = new Vector2(1000f, 0f);
+            var enemyPos = SelfPos;
             var occupants = new[] { Rock(11f), Rock(12f), Rock(13f), Rock(14f), Rock(15f), Rock(16f) };
             var roster = new RockSlotRoster(Margin);
             roster.Update(SelfPos, enemyPos, Scan(occupants), default);

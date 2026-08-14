@@ -437,12 +437,29 @@ Format: **term** — definition. *(authority)*
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
 - **nav objective** — the decision-varying slice of the MPC cost function, and
   the only thing that crosses the seam's navigation lane: an intent sentence
-  plus the legacy world-plane move channel. Two constraints are structural, not
-  conventions: referent-frame slots are reachable only through `Anchored(...)`,
-  so an anchorless one cannot be authored, and the move channels (world-plane
-  vs VEL slot) overwrite each other, so only one survives. Idempotent per
-  decision — re-applying one is safe, which is what lets a 5 Hz decision be
-  re-pushed every tick. *(NavObjective, AnchoredBuilder)*
+  plus the legacy world-plane move channel, and (since Stage C2) the rock-seat
+  identities behind the sentence's non-anchor referents. Two constraints are
+  structural, not conventions: referent-frame slots are reachable only through
+  `Anchored(...)`, so an anchorless one cannot be authored, and the move
+  channels (world-plane vs VEL slot) overwrite each other, so only one
+  survives. Idempotent per decision — re-applying one is safe, which is what
+  lets a 5 Hz decision be re-pushed every tick. *(NavObjective, AnchoredBuilder)*
+- **rock seat** — one of the three synthetic-referent identity carriers (sentence
+  referent 1–3) riding a nav objective beside its sentence: the sentence's own
+  max, since only AIM/POS/VEL bind one referent each. Asteroids bind by
+  component-ref + spawn-epoch — an explicitly interim identity, replaced by an
+  AsteroidId registry on its carded trigger (#423); the host re-resolves every
+  seat into a fresh snapshot each tick, and a dead seat rides to the solver
+  invalid (its slots drop to weight 0 until the next decision).
+  *(AsteroidRef, NavObjective.RockSeat, CostInput.referent1–3)*
+- **rock slot** — one of the 6 sticky positions in the asteroid referent menu
+  the policy observes: the union of nearest-3-to-self and nearest-3-to-enemy,
+  deduped and backfilled by self-distance. Occupancy is hysteretic (a challenger
+  must beat the occupant's proximity score by a real margin) and binding-aware
+  (an occupant bound by the held sentence only leaves by despawn or range-exit).
+  Refreshed only at the decision boundary, so referent actions always bind
+  against the roster the policy observed. Distinct from the obstacle-token
+  attention buffer, which stays unindexed. *(RockSlotRoster)*
 - **brain / decision lane** — the swappable-decision seam. A **brain** is the
   component that decides: one `Brain` subclass per policy, installed through
   `AICommander.InstallBrain` or authored on the pilot prefab. ("Chooser" was the

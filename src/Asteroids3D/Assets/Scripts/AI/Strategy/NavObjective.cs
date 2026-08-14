@@ -101,7 +101,7 @@ namespace AI
                 tangentialSpeed = tangential,
                 weight = authority,
             };
-            return With(next);
+            return new AnchoredBuilder(anchor, false, default, next, rockSeat1, rockSeat2, rockSeat3);
         }
 
         /// <summary>The VEL slot bound to a rock: polar velocity relative to the rock's motion.</summary>
@@ -117,7 +117,8 @@ namespace AI
                 weight = authority,
                 referent = referent,
             };
-            return bound.With(next);
+            return new AnchoredBuilder(bound.anchor, false, default, next,
+                bound.rockSeat1, bound.rockSeat2, bound.rockSeat3);
         }
 
         /// <summary>A world-plane velocity reference while the other slots stay anchored.</summary>
