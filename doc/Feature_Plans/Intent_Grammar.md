@@ -3,7 +3,8 @@
 > STATUS: RATIFIED design (2026-08-11); grammar + normalization contract FROZEN at Stage B
 > (2026-08-13). Stage A verdicts: §Stage A verdict table (11 composes · 1 needs-ray-geometry
 > · 1 red flag); Stage B rulings (VEL keep + θ-head, LANE slot, cover-take out of grammar,
-> POS width amendment): §Stage B freeze. Next: Stage C — the schema-break window.
+> POS width amendment): §Stage B freeze. Stage C BRIEFED (2026-08-13): §Stage C decision
+> brief — the build authority for the schema-break window; slices on the tracker.
 
 The policy's action stops being a pre-blended movement answer and becomes an **intent sentence**:
 a small set of weighted relational cost terms the MPC re-solves at
@@ -78,10 +79,10 @@ term's weight to zero until the next decision. Defined behavior, not an error.
 
 | Slot | Kind | Type (fixed) | Continuous outputs | Discrete outputs |
 |---|---|---|---|---|
-| AIM | instance | facing | signed weight, angular offset φ | referent |
+| AIM | instance | facing | weight (effectively non-negative — §Stage C brief), angular offset φ | referent |
 | POS | instance | position point | signed weight, offset (r, θ), setpoint | referent, frame |
 | VEL | instance | velocity direction | weight (non-negative — §Stage B freeze), direction θ | referent, frame |
-| LANE (enters at Stage C — §Stage B freeze) | instance | position ray along referent's facing | signed weight | referent |
+| LANE (enters at Stage C — §Stage B freeze) | instance | position ray along referent's facing | signed weight | referent (pinned to enemy while the vocabulary is one ship — §Stage C brief) |
 | FIELD | class | hazard repulsion | weight | — |
 | FIRE | — | engage (Fire_Lane_Rework) | — | primary, secondary |
 
@@ -144,6 +145,7 @@ weight-entropy probes surface it; mild action regularization is the lever if leg
   standing rule. The action head inherits the §Stage B freeze rulings: LANE slot, VEL θ-head
   with the conversion warm start, the POS width form. Candidate co-riders for the same window: #377 (asteroid lobes),
   event-triggered decisions (only if trainer-runtime owns time-aware discounting by then).
+  **BRIEFED 2026-08-13 — §Stage C decision brief; both co-riders ruled OUT there.**
 
 ## Forks
 
@@ -375,3 +377,111 @@ trusting FIELD weights; the Position-frame offset θ is world-frozen at authorin
 Glossary rows landed with this freeze per §Forks 3: the "intent grammar" canonical row, the
 "term" collision row, and sentence slots joining the "slot" collision row ("intent sentence"
 landed with A1).
+
+## Stage C decision brief (frozen 2026-08-13)
+
+The build authority for the schema-break window. Scope: obs additions (asteroid referent
+menu), the sentence action head + decode, the LANE term, the POS width form, referent
+carrier wiring + the Gunner AIM-referent swap, curriculum, retrain, and the yardstick
+re-baseline that closes #408's era. Slice breakdown lives on the tracker. Non-goals, all
+ruled here: missiles and the secondary *arming* (marksmanship #409 precedes it), K-hostile
+slots (no teams content), #377 lobes (see fork 1), event-triggered decisions (trainer math
+is stock; nothing owns time-aware discounting — the trainer-runtime entry gate answers it),
+IntentPainter (its painter substrate is being deleted in #376; any revival is a native-gizmo
+follow-on), and pointer-head binding over the attention set (a design event requiring a
+custom actor via the trainer plugin seam — BufferSensor stays held in reserve).
+
+Forks, as ruled:
+
+1. **Referent vocabulary: enemy + a 6-rock menu; missiles and extra hostiles wait for
+   their own windows.** Indexed asteroid slots = union of nearest-3-to-self and
+   nearest-3-to-enemy (dedup, backfill by self-distance) — enemy-side rocks keep the herd
+   tactic sayable. Slot occupancy is **sticky** (binding-aware hysteresis: a challenger must
+   beat the occupant by a real margin, and an occupant bound by the held sentence is never
+   evicted — only despawn/range-exit removes it; the incumbent-preferring lesson from the
+   solver's Probe 2 applied one layer up). Menu size is decoupled from the carrier: the
+   sentence can bind at most 3 distinct rocks (AIM/POS/VEL), so CostInput grows to exactly
+   3 synthetic seats regardless of menu breadth. Missile obs without missiles in the
+   training distribution would be untrained channels deploying OOD against player missiles
+   (the empty-buffer occupancy-bias family) — real missile support means arming the
+   secondary, which Fire_Lane_Rework pre-ruled behind #409. #377 lobes: OUT — admission
+   rule 3 makes precise rock geometry the solver's job (perception delegation), and the
+   solver already consumes lobes; the policy's rock picture is strategic, where the primary
+   circle suffices. #377 gets a premise-update note.
+2. **Action head: 10 continuous + 8 discrete branches, everything clamped at the decode.**
+   AIM = direction vector (angle = offset φ, magnitude = weight; today's decode shape) ·
+   POS = in-frame Cartesian offset x,y + setpoint + signed weight · VEL = direction vector
+   (the frozen θ-head; magnitude = weight) · LANE = signed weight · FIELD = weight.
+   Branches: referent (7-choice: enemy + 6 rocks) for AIM/POS/VEL · frame (3) for POS/VEL ·
+   fire primary · fire secondary (in-schema, action-masked to disengage until #409 lands —
+   unmasking later is a training-run change, not a schema break) · boost. Consequence
+   ratified: AIM's weight becomes effectively non-negative (repel-from-φ is argmin-equivalent
+   to attract-to-φ+π), the same footnote logic Stage B applied to VEL; the schema table now
+   says so. LANE's referent is pinned to the enemy (rocks have no facing; a 1-choice branch
+   is noise). Offsets/setpoint normalize by arena radius; the decode clamps both training
+   and inference, retiring the documented unclamped-vs-clipped ONNX mismatch.
+3. **POS width: error-relative, per solve.** width = clamp(k·|err₀|, posWidth, ∞) with
+   err₀ = |distance(ship, resolved point) − setpoint| at the solve's initial state, held
+   fixed within each rollout; k (≈0.65, from the card's minefield 90→60 and cover 31→20
+   ratios) joins the character axis; the existing posWidth field becomes the near-field
+   floor. Chosen over authored-parameter scaling (refuted: minefield needed 60 at authored
+   offset **zero**) and over a policy-authored width channel (the weight/width authority
+   confound rule 2 just killed inside VEL). Covers be-at-point; reach and settle stop
+   sharing a width by construction; rule-6 contract test rides; minefield-transit and
+   wingman-hold rig rows must compose with no posWidthOverride.
+4. **Referent wiring: the anchor pattern generalized.** The agent layer resolves obs-slot
+   index → entity when the action arrives (it built the slots, so it owns the boundary
+   slot→entity capture; binding is always against the snapshot the policy saw). Identities
+   ride in NavObjective beside the sentence; AICommander re-resolves per tick (generalizing
+   TryResolveAnchor) into fresh ReferentSnapshots — extrapolation only ever bridges one
+   tick. Ships bind by ShipId; asteroids by component-ref + spawn-epoch stamp, an
+   **explicitly interim** identity (wiring rule 3): an AsteroidId registry is deferred on a
+   carded trigger — a second consumer of asteroid identity. Gunner targets the resolved AIM
+   referent when AIM is armed (pos/vel only — shoot-the-rock composes with zero new fire
+   machinery), else the nav anchor as today.
+5. **Curriculum: discrete action masks + env-param lessons; continuous never pinned.**
+   Pinned state (referents→enemy, frames→Position, secondary→disengage) is the
+   legacy-equivalence point, with VEL's normalize(r,t) conversion defining the legacy
+   behaviors under the new head. Release happens inside the scripted-curriculum phase; the
+   self-play league runs fully released (the graduation env never moves under the league).
+   Decode-side pinning rejected: the network would train on actions it didn't take. Exact
+   lesson thresholds are launch discipline, not brief content. No trainer-runtime
+   dependency: WriteDiscreteActionMask + environment_parameters are stock.
+6. **Gate + re-baseline (closes #408's era).** The gate bench is the exact Bench-1 protocol
+   on the current stack; the comparison to Bench-408's 46.50 is valid (same stack, same
+   opponents) and knowingly cross-schema (verify the sim/reward spec blocks match, not
+   observationSize). Pre-registered bars, amendable only before the bench runs: roster mean
+   ≥ 52 · Dummy ≥ 12W/15 with ≤ 2 timeouts · strict torque reversals ≤ 5/s roster-wide ·
+   no mover below its Bench-408 value (Evader 4, Orbiter 7). The 63-era number is
+   aspiration, not gate. On pass: promotion, then the yardstick is minted at **R=2**
+   replicates + mirror (SEM ~2× the 699941 precedent's — accepted for cost) and Bench-1
+   gating resumes against it. Failure branch pre-ruled: diagnosis via the sentence probe /
+   rig replay; iteration levers are curriculum/training parameters only; anything
+   schema-touching is a new design event, never a retry.
+7. **Landing: split.** The schema-neutral slices (LANE, POS width, wiring, Gunner swap)
+   land on main incrementally behind the equivalence pins — an unarmed sentence stays
+   bit-identical, so the old model neither sees nor exercises them. The schema break lives
+   in exactly one slice; it stays branch-only, the retrain runs from its build, and the
+   break + gated model land together in one PR. Main never carries a broken policy; no
+   dual decode path ever exists.
+8. **Blindsider rulings.** VEL carrier stays radial/tangential — the decode emits
+   speedRef-normalized (vr, vt); the confound dies in the learned action space, which is
+   where the Stage B ruling aimed, and the solver, rows, and pins stay untouched. The
+   **sentence probe** (per-decision CSV: weights, referents, switch rates, entropy) rides
+   the schema-break slice — fork 6's failure branch is unexecutable without it, and its
+   referent-switch column is the live check on residual slot thrash.
+
+Assumptions (user-ratified): indexed rock slots are 8 floats each (valid flag + the 7-float
+token layout), obs 28 → 76, schema single-sourced in ApplySchema; LANE = Cost/Terms/Lane.cs,
+ray = segment along the referent's facing with character-axis laneRange, own laneWidth +
+wLane ceiling, rule-6 contract test, fire-lane-dodge rig row re-authored on real ray
+geometry; speedRef = the character-axis speed constant the θ-head requires (default near
+cruise speed, rig-tuned); FIELD differential-authority rig row (forced threat states, FIELD
+0 vs 1 must measurably diverge) lands before the retrain, pre-registered failure rule: no
+demonstrable authority ⇒ design event, never a silent ship; episode contract bumps to v7;
+ShipAgent owns the WriteDiscreteActionMask override; reward spec unchanged (creativity is
+representable, not rewarded); glossary rows ride implementing PRs per the vocab ratchet;
+painter-removal #376 lands before the Navigator-touching slices; training flow = owned
+runtime entry, scripted curriculum → --initialize-from → self-play per the standing
+runbook; production MpcSettings asset untouched until slices land with their contract
+tests; hand vectors and bingo rows stay valid under the decode-side VEL ruling.
