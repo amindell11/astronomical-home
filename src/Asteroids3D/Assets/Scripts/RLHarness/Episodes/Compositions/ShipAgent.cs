@@ -30,6 +30,11 @@ namespace Game.RLHarness
         private readonly float[] observationBuffer = new float[AgentObservations.CombatChannels];
         private readonly float[] tokenScratch = new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
         private readonly float[] token = new float[AgentObservations.ObstacleTokenFloats];
+        // Refreshed only here at the decision boundary, so referent actions bind against the roster
+        // the policy observed. Stage C3 reads it into the obs slots and the action's referent branch.
+        private readonly RockSlotRoster rockSlots = new();
+
+        public RockSlotRoster RockSlots => rockSlots;
 
         public int DecisionsReceived { get; private set; }
 
@@ -61,12 +66,15 @@ namespace Game.RLHarness
         {
             runner = episodeRunner;
             DecisionsReceived = 0;
+            rockSlots.Reset();
         }
 
         public override void CollectObservations(VectorSensor sensor)
         {
             var snapshot = runner.BoundarySnapshot;
             var enemyKin = opponent.Kinematics;
+            // No sentence-bound rocks until Stage C3 arms the referent branch — the empty span is factual.
+            rockSlots.Update(self.Kinematics.pos, enemyKin.pos, scout.AsteroidScan, default);
             var target = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
                 opponent.HealthPct, opponent.ShieldPct);
 

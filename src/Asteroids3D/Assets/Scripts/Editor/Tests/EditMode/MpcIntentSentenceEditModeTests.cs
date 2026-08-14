@@ -185,6 +185,37 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void SyntheticReferent_ThirdSeat_ResolvesLikeTheFirstTwo()
+        {
+            // Seat 3 exists because AIM/POS/VEL can each bind a distinct rock — one seat per slot.
+            var input = new CostInput
+            {
+                enemyYaw = float.NaN,
+                referent3 = new ReferentSnapshot { valid = true, pos = new float2(0f, 10f), vel = new float2(2f, 0f) },
+                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 3),
+            };
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 5);
+            Assert.That(ctx.posPoint.x, Is.EqualTo(1f).Within(1e-5f));
+            Assert.That(ctx.posPoint.y, Is.EqualTo(10f).Within(1e-5f));
+            Assert.That(ctx.posWeightScale, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void SyntheticReferent_ThirdSeatInvalid_DropsItsSlot()
+        {
+            var input = new CostInput
+            {
+                enemyYaw = 0f,
+                enemyPos = new float2(0f, 10f),
+                referent3 = new ReferentSnapshot { valid = false },
+                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 3),
+            };
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
+            Assert.That(ctx.posWeightScale, Is.EqualTo(0f),
+                "a despawned referent silences its slot; the live enemy must not stand in for it");
+        }
+
+        [Test]
         public void Aim_CanBindASyntheticReferent()
         {
             // AIM on referent 1 with no enemy: instance slots generalize past the bound enemy (rig rows depend on this).

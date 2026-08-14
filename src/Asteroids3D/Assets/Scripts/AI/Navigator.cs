@@ -33,6 +33,9 @@ namespace Movement.MPC
         protected internal float projectileSpeed;
         protected Dynamics enemyDynamics;
         protected internal IntentSentence sentence;
+        protected internal ReferentSnapshot referent1;
+        protected internal ReferentSnapshot referent2;
+        protected internal ReferentSnapshot referent3;
 
         protected PilotCommand currentCommand;
         public PilotCommand CurrentCommand => currentCommand;
@@ -108,6 +111,9 @@ namespace Movement.MPC
                 projectileSpeed = projectileSpeed,
                 enemyDynamics = enemyDynamics,
                 sentence = sentence,
+                referent1 = referent1,
+                referent2 = referent2,
+                referent3 = referent3,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
             };
@@ -143,8 +149,10 @@ namespace Movement.MPC
             currentCommand.yawTorque = r.yawTorque;
         }
 
-        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the objective, never on prior state or call order. Composes the granular Set*/Clear* seam below (which tests also drive directly). The objective names its anchor by identity; <paramref name="resolvedAnchor"/> is that ship's kinematics as the host resolved them this tick, so re-applying a held decision tracks the live enemy.</summary>
-        public void ApplyObjective(in NavObjective objective, in EnemyTarget resolvedAnchor)
+        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the objective, never on prior state or call order. Composes the granular Set*/Clear* seam below (which tests also drive directly). The objective names its referents by identity; <paramref name="resolvedAnchor"/> and the seat snapshots are their kinematics as the host resolved them this tick, so re-applying a held decision tracks live referents and a dead rock rides in as an invalid snapshot (its slots drop to weight 0).</summary>
+        public void ApplyObjective(in NavObjective objective, in EnemyTarget resolvedAnchor,
+            in ReferentSnapshot rockSeat1 = default, in ReferentSnapshot rockSeat2 = default,
+            in ReferentSnapshot rockSeat3 = default)
         {
             if (objective.IsIdle)
             {
@@ -161,6 +169,9 @@ namespace Movement.MPC
             }
             ClearFacingOverride();
             sentence = objective.sentence;
+            referent1 = rockSeat1;
+            referent2 = rockSeat2;
+            referent3 = rockSeat3;
 
             // The builder can only arm instance slots through an anchor, so the anchor is live whenever one is.
             if (sentence.aim.armed || sentence.pos.armed || sentence.vel.armed)
@@ -175,6 +186,9 @@ namespace Movement.MPC
             hasVelocityReference = false;
             velocityReference = default;
             sentence = default;
+            referent1 = default;
+            referent2 = default;
+            referent3 = default;
             ClearFacingOverride();
             ClearEnemyState();
         }
@@ -272,7 +286,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(CostVelocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, sentence);
+            var input = solver.BuildCostInput(CostVelocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, sentence, referent1, referent2, referent3);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);

@@ -24,6 +24,11 @@ namespace AI.Scanning
         public readonly float radius;
         public readonly Collider collider;
 
+        /// <summary>The asteroid behind this entry, when the producer is the asteroid field; null for
+        /// ships and plain colliders. Carries the interim referent identity (component-ref + spawn
+        /// epoch, #423) so slot consumers never re-derive it through the collider.</summary>
+        public readonly Asteroids.AsteroidController source;
+
         // Plane-projected linear velocity (units/s); zero for static sources. MPC solver inputs never read it.
         public readonly Vector2 velocity;
 
@@ -45,6 +50,7 @@ namespace AI.Scanning
             radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
             velocity = Vector2.zero;
             healthPct = 1f;
+            source = null;
             lobe0 = default;
             lobe1 = default;
             lobe2 = default;
@@ -54,13 +60,15 @@ namespace AI.Scanning
         // Used for non-static obstacles (e.g. other ships) where the relevant world
         // position is the ship's transform, not necessarily a child collider's local origin,
         // and radius comes from ship settings rather than collider bounds.
-        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider, Vector2 velocity = default, float healthPct = 1f)
+        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider, Vector2 velocity = default, float healthPct = 1f,
+            Asteroids.AsteroidController source = null)
         {
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(worldPos);
             this.radius = radius;
             this.velocity = velocity;
             this.healthPct = healthPct;
+            this.source = source;
             lobe0 = default;
             lobe1 = default;
             lobe2 = default;
@@ -70,13 +78,15 @@ namespace AI.Scanning
         // Multi-lobe overload: primary circle (fallback / selection key) plus up to three
         // pre-projected plane lobes. lobeCount clamps to [0,3].
         public DetectedObstacle(Vector3 worldPos, float radius, Collider collider,
-            PlaneCircle lobe0, PlaneCircle lobe1, PlaneCircle lobe2, int lobeCount, Vector2 velocity = default, float healthPct = 1f)
+            PlaneCircle lobe0, PlaneCircle lobe1, PlaneCircle lobe2, int lobeCount, Vector2 velocity = default, float healthPct = 1f,
+            Asteroids.AsteroidController source = null)
         {
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(worldPos);
             this.radius = radius;
             this.velocity = velocity;
             this.healthPct = healthPct;
+            this.source = source;
             this.lobe0 = lobe0;
             this.lobe1 = lobe1;
             this.lobe2 = lobe2;

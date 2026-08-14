@@ -22,6 +22,7 @@ namespace Movement.MPC
         public IntentSentence sentence;
         public ReferentSnapshot referent1;
         public ReferentSnapshot referent2;
+        public ReferentSnapshot referent3;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
     }
@@ -87,7 +88,7 @@ namespace Movement.MPC
                     inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.sentence,
-                    inputs.referent1, inputs.referent2,
+                    inputs.referent1, inputs.referent2, inputs.referent3,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     settings.eliteFraction);
             }

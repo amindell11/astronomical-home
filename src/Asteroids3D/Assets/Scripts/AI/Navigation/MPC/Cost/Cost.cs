@@ -123,7 +123,7 @@ namespace Movement.MPC
                 };
             }
 
-            /// <summary>Step-resolved referent kinematics: 0 = the caller-resolved enemy, 1–2 = extrapolated snapshots; false = absent, the slot drops to weight 0.</summary>
+            /// <summary>Step-resolved referent kinematics: 0 = the caller-resolved enemy, 1–3 = extrapolated snapshots; false = absent, the slot drops to weight 0.</summary>
             private static bool ResolveReferent(int referent, in CostInput input, bool hasEnemy,
                 float2 enemyPos, float2 enemyVel, float enemyYaw, float stepTime,
                 out float2 pos, out float2 vel, out float yaw)
@@ -132,6 +132,7 @@ namespace Movement.MPC
                 {
                     case 1: return Extrapolate(input.referent1, stepTime, out pos, out vel, out yaw);
                     case 2: return Extrapolate(input.referent2, stepTime, out pos, out vel, out yaw);
+                    case 3: return Extrapolate(input.referent3, stepTime, out pos, out vel, out yaw);
                     default:
                         pos = enemyPos;
                         vel = enemyVel;
