@@ -122,6 +122,7 @@ namespace Movement.MPC
             DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
             DrawCostBar("Facing Prior", breakdown.facingPrior, s.wFacingPrior, total, new Color(0f, 0.7f, 0.9f));
             DrawCostBar("Position", breakdown.pos, s.wPos, total, new Color(1f, 0.8f, 0.2f));
+            DrawCostBar("Lane", breakdown.lane, s.wLane, total, new Color(1f, 0.55f, 0.1f));
             DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
             DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));

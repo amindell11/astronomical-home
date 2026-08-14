@@ -66,6 +66,7 @@ namespace Movement.MPC
         {
             var mpcState = ToMpcState(inputs.kinematics);
             RefreshConfig(in inputs);
+            ApplyErrorRelativePosWidth(in inputs, mpcState);
             lastInitialState = mpcState;
 
             // Slide the warm start's time origin forward by dt so its plan clock tracks sim
@@ -146,6 +147,23 @@ namespace Movement.MPC
                 current = Model.Step(current, bestSequence[i], config, dynamics);
                 predictedStates[i] = current;
             }
+        }
+
+        // POS width is error-relative per solve (Intent_Grammar.md §Stage C, fork 3): widened
+        // from the initial ring error so reach keeps a gradient; posWidth stays the settle floor.
+        private void ApplyErrorRelativePosWidth(in MpcInputs inputs, State state)
+        {
+            var probe = new CostInput
+            {
+                enemyPos = inputs.enemyPos,
+                enemyVel = inputs.enemyVel,
+                enemyYaw = inputs.enemyYaw,
+                enemyYawRate = inputs.enemyYawRate,
+                sentence = inputs.sentence,
+                referent1 = inputs.referent1,
+                referent2 = inputs.referent2,
+            };
+            config.posWidth = Cost.EffectivePosWidth(state, in probe, in config, settings.posWidthSlope);
         }
 
         private void RefreshConfig(in MpcInputs inputs)

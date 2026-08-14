@@ -55,6 +55,7 @@ namespace Game.RLHarness
     public struct RigScenario
     {
         public float2 startPos;
+        public float2 startVel;    // spawn already moving — a stimulus, like the laws
         public float startYawRad;
         public RigLaw enemyLaw;     // kind None = no hostile: referent-0 slots drop, no enemy rollout
         public RigLaw referent1Law;
