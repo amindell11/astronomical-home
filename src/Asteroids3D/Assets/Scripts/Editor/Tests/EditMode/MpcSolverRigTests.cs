@@ -134,10 +134,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void BingoCard_AuthorsThirteenRows()
+        public void BingoCard_AuthorsFourteenRows()
         {
             var rows = RigBingoCard.Rows();
-            Assert.That(rows.Length, Is.EqualTo(13));
+            Assert.That(rows.Length, Is.EqualTo(14));
 
             var names = new HashSet<string>();
             foreach (var row in rows)
@@ -157,6 +157,112 @@ namespace Tests.EditMode
             var velZeroed = RigBingoCard.VelZeroed(rows[0].scenario);
             Assert.That(velZeroed.intent.vel.armed, "VEL-zeroed keeps the slot armed; only authority drops.");
             Assert.That(velZeroed.intent.vel.weight, Is.Zero);
+
+            var fieldZeroed = RigBingoCard.FieldZeroed(FindRow("field-authority").scenario);
+            Assert.That(fieldZeroed.intent.field.armed, "FIELD-zeroed keeps the slot armed; only authority drops.");
+            Assert.That(fieldZeroed.intent.field.weight, Is.Zero);
+        }
+
+        private static BingoRow FindRow(string name)
+        {
+            foreach (var row in RigBingoCard.Rows())
+                if (row.name == name) return row;
+            throw new AssertionException($"No bingo row named '{name}'.");
+        }
+
+        // ---- Stage C1 composition proofs: the named rows compose on stock asset values ----
+
+        [Test]
+        public void Bingo_MinefieldTransit_ComposesWithoutPosWidthOverride()
+        {
+            var row = FindRow("minefield-transit");
+            Assert.That(row.scenario.posWidthOverride, Is.Zero,
+                "the hand-tuned override is retired: error-relative width must carry the 90 m reach");
+
+            // The from-rest transit is chaotically marginal under incumbent-elite selection — the
+            // Stage B constant-60 override lands 4/5 on these same seeds (measured 2026-08-13, PR
+            // #419 build), so a per-seed pin would gate on basin luck, not the width law. The bar
+            // is the measured majority; a regression below it is real.
+            var seeds = new uint[] { 1234u, 7u, 99u, 2001u, 2002u };
+            var transits = 0;
+            var report = "";
+            foreach (var seed in seeds)
+            {
+                var result = MpcSolverRig.Run(settings, dynamics, in row.scenario, seed);
+                if (result.finalRange < 20f) transits++;
+                report += $" seed {seed}: {result.finalRange:F1} m;";
+            }
+            Assert.That(transits, Is.GreaterThanOrEqualTo(3),
+                $"the transit must complete on stock asset values on most draws;{report}");
+        }
+
+        [Test]
+        public void Bingo_WingmanHold_ComposesWithoutPosWidthOverride()
+        {
+            var row = FindRow("wingman-hold");
+            Assert.That(row.scenario.posWidthOverride, Is.Zero,
+                "the hand-tuned override is retired: the asset posWidth is the settle floor");
+            var result = MpcSolverRig.Run(settings, dynamics, in row.scenario, 1234u);
+            Assert.That(result.finalRange, Is.InRange(6f, 18f),
+                $"on station means ~12 m off the ally's wing; final range {result.finalRange:F1} m.");
+        }
+
+        [Test]
+        public void Bingo_FireLaneDodge_ExitsTheLane()
+        {
+            var row = FindRow("fire-lane-dodge");
+            var trace = new List<RigTraceRow>();
+            MpcSolverRig.Run(settings, dynamics, in row.scenario, 1234u, trace);
+
+            // The enemy is static at (0,50) facing the spawn: its lane is the segment (0,50) → (0,50−laneRange).
+            var start = new float2(0f, 50f);
+            var end = new float2(0f, 50f - settings.laneRange);
+            var tail = trace.Count * 3 / 4;
+            var meanTailDistance = 0f;
+            for (var i = tail; i < trace.Count; i++)
+                meanTailDistance += SegmentDistance(new float2(trace[i].posX, trace[i].posY), start, end);
+            meanTailDistance /= trace.Count - tail;
+
+            Assert.That(meanTailDistance, Is.GreaterThan(settings.laneWidth),
+                $"a dodged lane means settling beyond laneWidth of it; mean tail distance {meanTailDistance:F1} m.");
+        }
+
+        [Test]
+        public void Bingo_FieldAuthority_ZeroVersusOne_MeasurablyDiverges()
+        {
+            var row = FindRow("field-authority");
+            var full = new List<RigTraceRow>();
+            var zeroed = new List<RigTraceRow>();
+            var fullResult = MpcSolverRig.Run(settings, dynamics, in row.scenario, 1234u, full);
+            var fieldZero = RigBingoCard.FieldZeroed(row.scenario);
+            var zeroedResult = MpcSolverRig.Run(settings, dynamics, in fieldZero, 1234u, zeroed);
+
+            Assert.That(fullResult.threatStepFraction, Is.GreaterThan(0f),
+                "fixture validity: the spawn-at-speed head-on rock must force threat states on the applied path");
+            Assert.That(zeroedResult.threatStepFraction, Is.GreaterThan(0f),
+                "fixture validity: the FIELD-zeroed arm must face the same forced approach");
+
+            var steps = Mathf.Min(full.Count, zeroed.Count);
+            var meanDivergence = 0f;
+            for (var i = 0; i < steps; i++)
+                meanDivergence += math.distance(new float2(full[i].posX, full[i].posY),
+                    new float2(zeroed[i].posX, zeroed[i].posY));
+            meanDivergence /= steps;
+
+            // Pre-registered failure rule (§Stage C): no demonstrable differential authority is a
+            // design event surfaced by this assert — never a silent ship. Measured 2026-08-13:
+            // divergence 0.9-2.3 m across seeds, but the clearance ordering F1-vs-F0 flips sign —
+            // trajectory divergence is demonstrable, a systematic wider-berth effect is not
+            // (recorded in PR #419 for the user's ruling).
+            Assert.That(meanDivergence, Is.GreaterThan(0.5f),
+                $"FIELD 0 vs 1 must measurably diverge; mean trajectory divergence {meanDivergence:F2} m.");
+        }
+
+        private static float SegmentDistance(float2 pos, float2 start, float2 end)
+        {
+            var seg = end - start;
+            var t = math.saturate(math.dot(pos - start, seg) / math.max(math.lengthsq(seg), 1e-6f));
+            return math.distance(pos, start + t * seg);
         }
 
         // Bingo rows run off-gate (MPC_RIG_EMIT precedent): the acceptance's same-seed replay

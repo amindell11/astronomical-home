@@ -2,7 +2,7 @@ using Unity.Mathematics;
 
 namespace Movement.MPC
 {
-    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do. Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
+    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>, <c>Terms/Lane</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do. Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
     public static partial class Cost
     {
         private const float TwoPi = 2f * math.PI;
@@ -19,6 +19,9 @@ namespace Movement.MPC
             public float posSetpoint;
             public float posWeightScale;
             public float fieldScale;
+            public float2 laneStart;
+            public float2 laneEnd;
+            public float laneWeightScale;
 
             internal static EvalContext Create(State s, CostInput input, Config cfg, int step)
             {
@@ -94,6 +97,16 @@ namespace Movement.MPC
                     posWeightScale = sentence.pos.weight;
                 }
 
+                // LANE binds the enemy only (rocks have no facing): the segment rides the rolled enemy pose per step.
+                float2 laneStart = default, laneEnd = default;
+                var laneWeightScale = 0f;
+                if (sentence.lane.armed && hasEnemy)
+                {
+                    laneStart = enemyPos;
+                    laneEnd = enemyPos + cfg.laneRange * Direction(enemyYaw);
+                    laneWeightScale = sentence.lane.weight;
+                }
+
                 return new EvalContext
                 {
                     facingTarget = facingTarget,
@@ -104,6 +117,9 @@ namespace Movement.MPC
                     posSetpoint = posSetpoint,
                     posWeightScale = posWeightScale,
                     fieldScale = sentence.field.armed ? sentence.field.weight : 1f,
+                    laneStart = laneStart,
+                    laneEnd = laneEnd,
+                    laneWeightScale = laneWeightScale,
                 };
             }
 
@@ -160,7 +176,8 @@ namespace Movement.MPC
             var stateCost = Aim(s, ctx, cfg)
                 + FacingPriorCost(s.yaw, s.vel, cfg)
                 + StateRegularizers(s, input, cfg, obstacleCost)
-                + Pos(s, ctx, cfg);
+                + Pos(s, ctx, cfg)
+                + Lane(s, ctx, cfg);
 
             var perStepCost = ControlCost(u, prevU, cfg)
                 + VelocityTrackCost(s.vel, ctx.velocityRef, cfg.maxSpeedSq) * cfg.wVelTrack * ctx.velTrackScale;
@@ -198,6 +215,7 @@ namespace Movement.MPC
                 facing = Aim(s, ctx, cfg),
                 facingPrior = FacingPriorCost(s.yaw, s.vel, cfg),
                 pos = Pos(s, ctx, cfg),
+                lane = Lane(s, ctx, cfg),
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = obstacle,
                 collision = collision,
@@ -209,7 +227,7 @@ namespace Movement.MPC
             };
 
             // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + prior + pos + regularizers); the tracker and control terms stay per-step.
-            var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum + breakdown.pos;
+            var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum + breakdown.pos + breakdown.lane;
             var total = stateCost + breakdown.effort + breakdown.smoothness + breakdown.velocityTrack;
 
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)

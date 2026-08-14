@@ -9,17 +9,20 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the intent-sentence additions (doc/Feature_Plans/Intent_Grammar.md): the POS term's normalization contract and frame/referent resolution, FIELD's turn-away-only authority, synthetic-referent extrapolation, the AIM (FacingCost) normalization contract, and the sentence-slot generalizations of idleness and the world velocity reference.</summary>
+    /// <summary>Pins the intent-sentence additions (doc/Feature_Plans/Intent_Grammar.md): the POS and LANE terms' normalization contracts, frame/referent resolution, the error-relative POS width law, FIELD's turn-away-only authority, synthetic-referent extrapolation, the AIM (FacingCost) normalization contract, and the sentence-slot generalizations of idleness and the world velocity reference.</summary>
     [Category("MPC")]
     public class MpcIntentSentenceEditModeTests
     {
         private const float PosWidth = 10f;
+        private const float LaneWidth = 8f;
+        private const float LaneRange = 60f;
 
         private static Config BareConfig() => new()
         {
             dt = 0.1f, invDt = 10f, horizon = 17,
             wFacing = 1f, facingWidth = 0.5f, facingTarget = float.NaN,
             wPos = 2f, posWidth = PosWidth,
+            wLane = 2f, laneRange = LaneRange, laneWidth = LaneWidth,
             maxSpeedSq = 100f,
             wVelTrack = 5f,
         };
@@ -234,6 +237,165 @@ namespace Tests.EditMode
             Assert.That(early, Is.GreaterThan(0f));
             Assert.That(late, Is.EqualTo(early * (1f + cfg.terminalMultiplier)).Within(1e-3f).Percent,
                 "POS is a state cost: it must scale with the terminal ramp like facing does");
+        }
+
+        // ---- LANE normalization contract (rule 6) and resolution ----
+
+        private static IntentSentence LaneSentence(float weight) =>
+            new() { lane = new LaneSlot { armed = true, weight = weight } };
+
+        // Enemy at (0,10), yaw 0 (fwd = +Y): the lane runs (0,10) → (0,10+LaneRange).
+        private static CostInput LaneInput(float weight) => new()
+        {
+            enemyPos = new float2(0f, 10f),
+            enemyYaw = 0f,
+            sentence = LaneSentence(weight),
+        };
+
+        [Test]
+        public void LaneCost_ZeroOnTheSegment()
+        {
+            var start = new float2(0f, 10f);
+            var end = new float2(0f, 70f);
+            Assert.That(Cost.LaneCost(start, start, end, LaneWidth), Is.EqualTo(0f));
+            Assert.That(Cost.LaneCost(new float2(0f, 40f), start, end, LaneWidth), Is.EqualTo(0f));
+            Assert.That(Cost.LaneCost(end, start, end, LaneWidth), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void LaneCost_HalfAtLaneWidth_SaturatesBelowOne()
+        {
+            var start = new float2(0f, 10f);
+            var end = new float2(0f, 70f);
+            Assert.That(Cost.LaneCost(new float2(LaneWidth, 40f), start, end, LaneWidth),
+                Is.EqualTo(0.5f).Within(1e-5f), "laneWidth is the half-cost lateral error by construction");
+            var far = Cost.LaneCost(new float2(100f * LaneWidth, 40f), start, end, LaneWidth);
+            Assert.That(far, Is.LessThan(1f), "the contract is a bounded 0-1 envelope");
+            Assert.That(far, Is.GreaterThan(0.99f), "…that saturates toward 1, not a hard clip");
+        }
+
+        [Test]
+        public void LaneCost_BeyondTheEnds_MeasuresToTheEndpoint()
+        {
+            // 10 m past the far end and 10 m lateral cost the same — the lane is a segment, not a line;
+            // behind the enemy is off-lane too.
+            var start = new float2(0f, 10f);
+            var end = new float2(0f, 70f);
+            var past = Cost.LaneCost(new float2(0f, 80f), start, end, LaneWidth);
+            var lateral = Cost.LaneCost(new float2(10f, 40f), start, end, LaneWidth);
+            var behind = Cost.LaneCost(new float2(0f, 0f), start, end, LaneWidth);
+            Assert.That(past, Is.EqualTo(lateral).Within(1e-6f));
+            Assert.That(behind, Is.EqualTo(lateral).Within(1e-6f));
+            Assert.That(past, Is.GreaterThan(0f));
+        }
+
+        [Test]
+        public void Lane_SegmentRidesTheEnemyFacing()
+        {
+            // Enemy yaw π/2 (CCW, nose toward −X): the lane runs down −X from the enemy.
+            var input = LaneInput(1f);
+            input.enemyYaw = 0.5f * math.PI;
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
+            Assert.That(ctx.laneStart.x, Is.EqualTo(0f).Within(1e-5f));
+            Assert.That(ctx.laneStart.y, Is.EqualTo(10f).Within(1e-5f));
+            Assert.That(ctx.laneEnd.x, Is.EqualTo(-LaneRange).Within(1e-4f));
+            Assert.That(ctx.laneEnd.y, Is.EqualTo(10f).Within(1e-4f));
+            Assert.That(ctx.laneWeightScale, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void Lane_PerStep_FollowsTheMovingEnemy()
+        {
+            // dt 0.1 × step 5 = 0.5 s: the enemy at (0,10) moving +X at 2 m/s carries its lane to (1,10).
+            var input = LaneInput(1f);
+            input.enemyVel = new float2(2f, 0f);
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 5);
+            Assert.That(ctx.laneStart.x, Is.EqualTo(1f).Within(1e-5f));
+            Assert.That(ctx.laneStart.y, Is.EqualTo(10f).Within(1e-5f));
+        }
+
+        [Test]
+        public void Lane_SignedWeight_FlipsToRepulsion()
+        {
+            var cfg = BareConfig();
+            var s = new State { pos = new float2(10f, 40f) };
+            var attractCost = Cost.Lane(s, Cost.EvalContext.Create(s, LaneInput(1f), cfg, 0), cfg);
+            var repelCost = Cost.Lane(s, Cost.EvalContext.Create(s, LaneInput(-1f), cfg, 0), cfg);
+            Assert.That(attractCost, Is.GreaterThan(0f));
+            Assert.That(repelCost, Is.EqualTo(-attractCost).Within(1e-6f),
+                "hold/dodge is the weight's sign, not a discrete branch");
+        }
+
+        [Test]
+        public void Lane_NoEnemy_DropsToWeightZero()
+        {
+            var input = LaneInput(1f);
+            input.enemyYaw = float.NaN;
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
+            Assert.That(ctx.laneWeightScale, Is.EqualTo(0f), "referent invalidation is defined behavior, not an error");
+            Assert.That(Cost.Lane(default, ctx, BareConfig()), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void Lane_RidesTheTerminalRamp()
+        {
+            var cfg = BareConfig();
+            cfg.terminalMultiplier = 10f;
+            cfg.terminalCurve = 1f;
+            var input = LaneInput(1f);
+            input.velocityReference = new float2(float.NaN, float.NaN);   // no tracker, no priors: LANE is the only live term
+            var s = new State { pos = new float2(20f, 40f) };
+
+            var early = Cost.Evaluate(s, default, default, input, cfg, step: 0);
+            var late = Cost.Evaluate(s, default, default, input, cfg, step: cfg.horizon - 1);
+            Assert.That(early, Is.GreaterThan(0f));
+            Assert.That(late, Is.EqualTo(early * (1f + cfg.terminalMultiplier)).Within(1e-3f).Percent,
+                "LANE is a state cost: it must scale with the terminal ramp like POS does");
+        }
+
+        // ---- Error-relative POS width (per-solve law; the floor is the asset posWidth) ----
+
+        [Test]
+        public void EffectivePosWidth_FloorsAtPosWidth_NearThePoint()
+        {
+            var input = new CostInput { enemyPos = new float2(0f, 10f), enemyYaw = 0f, sentence = PosSentence(0f, 0f, 0f, 1f) };
+            var initial = new State { pos = new float2(0f, 8f) };   // err₀ = 2 → slope·err₀ under the floor
+            Assert.That(Cost.EffectivePosWidth(initial, input, BareConfig(), slope: 0.65f), Is.EqualTo(PosWidth));
+        }
+
+        [Test]
+        public void EffectivePosWidth_ScalesWithInitialError()
+        {
+            var input = new CostInput { enemyPos = new float2(0f, 90f), enemyYaw = 0f, sentence = PosSentence(0f, 0f, 0f, 1f) };
+            Assert.That(Cost.EffectivePosWidth(default, input, BareConfig(), slope: 2f / 3f),
+                Is.EqualTo(60f).Within(1e-4f), "the 90 m minefield leg gets the hand-tuned 60 — the ratio that set the slope");
+        }
+
+        [Test]
+        public void EffectivePosWidth_ErrorIsSetpointRelative()
+        {
+            // 52 m from the point with a 12 m hold-ring: the ring error 40, not the raw distance, drives the width.
+            var input = new CostInput { enemyPos = new float2(0f, 52f), enemyYaw = 0f, sentence = PosSentence(0f, 0f, 12f, 1f) };
+            Assert.That(Cost.EffectivePosWidth(default, input, BareConfig(), slope: 0.65f),
+                Is.EqualTo(26f).Within(1e-4f));
+        }
+
+        [Test]
+        public void EffectivePosWidth_UnarmedUnresolvedOrDisabled_KeepsTheFloor()
+        {
+            var cfg = BareConfig();
+            var far = new CostInput { enemyPos = new float2(0f, 100f), enemyYaw = 0f, sentence = PosSentence(0f, 0f, 0f, 1f) };
+
+            Assert.That(Cost.EffectivePosWidth(default, new CostInput { enemyYaw = 0f }, cfg, 0.65f),
+                Is.EqualTo(PosWidth), "POS unarmed → the width law never runs");
+
+            var unresolved = far;
+            unresolved.enemyYaw = float.NaN;
+            Assert.That(Cost.EffectivePosWidth(default, unresolved, cfg, 0.65f),
+                Is.EqualTo(PosWidth), "no referent → the slot is silent, the width stays the floor");
+
+            Assert.That(Cost.EffectivePosWidth(default, far, cfg, slope: 0f),
+                Is.EqualTo(PosWidth), "slope 0 disables — fixed width is still expressible");
         }
 
         // ---- FIELD: turn-away authority, un-zeroable collision penalty ----

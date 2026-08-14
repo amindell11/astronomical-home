@@ -11,14 +11,14 @@ namespace Game.RLHarness
         public RigScenario scenario;
     }
 
-    /// <summary>The 13-row Stage A tactic-bingo catalog (Intent_Grammar.md §Staging, as amended §Forks 4). Hand-authored sentences over scripted stimuli; geometry values are the authoring, not tuned constants.</summary>
+    /// <summary>The 14-row tactic-bingo catalog: the 13 Stage A rows (Intent_Grammar.md §Staging, as amended §Forks 4) plus Stage C's field-authority row. Hand-authored sentences over scripted stimuli; geometry values are the authoring, not tuned constants.</summary>
     public static class RigBingoCard
     {
         public static BingoRow[] Rows() => new[]
         {
             Orbit(), Kite(), CoverTake(), FireLaneDodge(), MissileDrag(), HerdTowardAsteroid(),
             MineRetreat(), ShootTheRock(), TwoHostileLanes(), WingmanHold(), MinefieldTransit(),
-            DummyCloseout(), DriftHold(),
+            DummyCloseout(), DriftHold(), FieldAuthority(),
         };
 
         /// <summary>Fork 1's falsifier arm: authority to zero, slot left armed — the sentence still says VEL, it just carries no weight.</summary>
@@ -26,6 +26,14 @@ namespace Game.RLHarness
         {
             var copy = scenario;
             copy.intent.vel.weight = 0f;
+            return copy;
+        }
+
+        /// <summary>The differential-authority arm: FIELD authority to zero, slot left armed — turn-away shaping off, collision penalty untouched.</summary>
+        public static RigScenario FieldZeroed(in RigScenario scenario)
+        {
+            var copy = scenario;
+            copy.intent.field.weight = 0f;
             return copy;
         }
 
@@ -86,17 +94,12 @@ namespace Game.RLHarness
             var s = Base();
             var enemyPos = new float2(0f, 50f);
             s.enemyLaw = RigLaw.Static(enemyPos, FacingYaw(enemyPos, float2.zero));
-            // Repel from the lane point at the ship's own depth (50 m down the enemy's facing = the
-            // spawn) — a point standing in for the lane, deliberately: whether POS-point composes or
-            // the row demands ray geometry is the ruling to make.
+            // Stage A's POS-point stand-in read "needs ray geometry" — this is that geometry: the
+            // real LANE segment down the enemy's facing, dodged by sign while AIM holds the target.
             s.intent = new IntentSentence
             {
                 aim = new AimSlot { armed = true, weight = 1f },
-                pos = new PosSlot
-                {
-                    armed = true, referent = 0, frame = ReferentFrame.Facing,
-                    offsetR = 50f, weight = -1f,
-                },
+                lane = new LaneSlot { armed = true, weight = -1f },
             };
             return new BingoRow { name = "fire-lane-dodge", scenario = s };
         }
@@ -210,7 +213,7 @@ namespace Game.RLHarness
                 },
                 vel = new VelSlot { armed = true, referent = 1, weight = 0.5f },
             };
-            s.posWidthOverride = 5f;
+            // No posWidthOverride: error-relative width covers the reach; the asset posWidth is the settle floor.
             return new BingoRow { name = "wingman-hold", scenario = s };
         }
 
@@ -234,9 +237,8 @@ namespace Game.RLHarness
                 pos = new PosSlot { armed = true, referent = 1, weight = 1f },
                 field = new FieldSlot { armed = true, weight = 1f },
             };
-            // The 90 m transit needs a posWidth on the order of the leg or the saturated term goes
-            // gradient-flat and the ship parks — recorded Stage B normalization evidence.
-            s.posWidthOverride = 60f;
+            // No posWidthOverride: the Stage B hand-tuned 60 is what error-relative width now
+            // produces from the 90 m leg (2/3 × 90) — the slope's calibration source.
             s.durationSeconds = 25f;
             return new BingoRow { name = "minefield-transit", scenario = s };
         }
@@ -271,6 +273,30 @@ namespace Game.RLHarness
                 field = new FieldSlot { armed = true },
             };
             return new BingoRow { name = "drift-hold", scenario = s };
+        }
+
+        private static BingoRow FieldAuthority()
+        {
+            var s = Base();
+            s.referent1Law = RigLaw.Static(new float2(0f, 80f)); // the far waypoint
+            // Spawned already flying at a rock on the drive line, inside the band where the
+            // strafe-only sidestep is deficient (threat at t=0 by construction: 2.5·(26/16)² ≈ 6.6 m
+            // < the 7.7 needed) but brake+strafe still clears (~11 m by the rock plane) — forced
+            // threat states on an escapable approach, regardless of solver mood. Warmup 0 keeps
+            // those opening steps in the metric window. FIELD 0 vs 1 must measurably diverge (early
+            // shaped swerve vs the bare collision fence) — the differential-authority proof
+            // (§Stage C). VEL is identical in both arms, keeping the divergence attributable to the
+            // turn-away term alone.
+            s.startVel = new float2(0f, 16f);
+            s.warmupSeconds = 0f;
+            s.obstacles = new[] { new RigCircle(new float2(1f, 26f), 7f) };
+            s.intent = new IntentSentence
+            {
+                pos = new PosSlot { armed = true, referent = 1, weight = 1f },
+                vel = new VelSlot { armed = true, referent = 1, radialSpeed = 16f, weight = 0.5f },
+                field = new FieldSlot { armed = true, weight = 1f },
+            };
+            return new BingoRow { name = "field-authority", scenario = s };
         }
 
         private static RigScenario Base() => new()

@@ -28,6 +28,9 @@ namespace Movement.MPC
         [Tooltip("Weight on the velocity-tracking objective: cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². " +
                  "Per-step (un-ramped) so tracking is uniform across the horizon rather than terminal-weighted.")]
         public float wVelTrack = 5f;
+        [Tooltip("Reference speed in m/s for VEL decode scaling — the speed a full-authority direction head " +
+                 "commands. Near cruise speed; rig-tuned (the bingo card's authored speeds top out ~12).")]
+        public float speedRef = 12f;
         [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
         public float wYawRate = 0.1f;
         [Tooltip("Peak multiplier for state costs at the end of the horizon. " +
@@ -66,6 +69,21 @@ namespace Movement.MPC
         [Tooltip("POS saturation half-width in meters: a position error of this size costs 0.5; the cost " +
                  "saturates toward 1 beyond it (err² / (err² + posWidth²)), keeping far-away errors bounded.")]
         public float posWidth = 10f;
+        [Tooltip("Error-relative POS width slope: each solve widens the saturation to " +
+                 "max(posWidthSlope × initial ring error, posWidth), so a distant point keeps a usable " +
+                 "gradient while posWidth stays the near-field settle floor. 0 disables (fixed width). " +
+                 "2/3 is the bingo card's minefield 90→60 ratio, verified as the transit threshold on the rig.")]
+        public float posWidthSlope = 2f / 3f;
+
+        [Header("Lane")]
+        [Tooltip("LANE ceiling: the sentence slot's signed authority multiplies this weight. Positive " +
+                 "authority holds the enemy's fire lane, negative dodges it. Inert until a decision arms LANE.")]
+        public float wLane = 1f;
+        [Tooltip("Lane segment length in meters along the enemy's facing — how far downrange the fire lane reaches.")]
+        public float laneRange = 60f;
+        [Tooltip("LANE saturation half-width in meters: a lateral error of this size costs 0.5; the cost " +
+                 "saturates toward 1 beyond it, keeping far-off-lane errors bounded.")]
+        public float laneWidth = 8f;
 
         [Header("Obstacle Avoidance")]
         [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
@@ -110,6 +128,9 @@ namespace Movement.MPC
                 wFacingPrior = wFacingPrior,
                 wPos = wPos,
                 posWidth = posWidth,
+                wLane = wLane,
+                laneRange = laneRange,
+                laneWidth = laneWidth,
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,

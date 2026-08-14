@@ -45,6 +45,10 @@ namespace Movement.MPC
         public float wPos;
         public float posWidth;
 
+        public float wLane;
+        public float laneRange;
+        public float laneWidth;
+
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
@@ -142,6 +146,7 @@ namespace Movement.MPC
         public float facing;
         public float facingPrior;
         public float pos;
+        public float lane;
         public float yawRate;
         public float obstacle;
         public float collision;
@@ -156,6 +161,7 @@ namespace Movement.MPC
             facing += other.facing;
             facingPrior += other.facingPrior;
             pos += other.pos;
+            lane += other.lane;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
             collision += other.collision;

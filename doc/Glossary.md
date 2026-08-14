@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) | Always qualified. |
+| **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — `Intent_Grammar.md`) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
@@ -404,13 +404,26 @@ Format: **term** — definition. *(authority)*
   sidecar's `threat`/`clear` field names are context-bound and stay.
   *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
 - **intent sentence** — the decision-varying slice of the MPC cost as a fixed
-  set of typed sentence slots (AIM/POS/VEL binding one referent each, FIELD a
-  class slot binding none), each with a signed authority weight against its
-  settings ceiling; the solver re-resolves every armed slot against live
-  referent state each rollout step. An armed weight-0 slot is a live command
-  ("nothing matters"); an absent sentence is idleness — the distinction is
-  structural (`IsIdle` = no armed slot). Design + staging:
+  set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
+  pinned to the enemy, FIELD a class slot binding none), each with a signed
+  authority weight against its settings ceiling; the solver re-resolves every
+  armed slot against live referent state each rollout step. An armed weight-0
+  slot is a live command ("nothing matters"); an absent sentence is idleness —
+  the distinction is structural (`IsIdle` = no armed slot). Design + staging:
   `doc/Feature_Plans/Intent_Grammar.md`. *(IntentSentence, Cost.EvalContext)*
+- **LANE slot** — the sentence term over the enemy's fire-lane geometry: a
+  ray-segment down the enemy's facing, held (+) or dodged (−) by the weight's
+  sign. Referent pinned to the enemy — rocks have no facing, so a referent
+  branch would be noise (§Stage C fork 2). Always caps, always "LANE slot" or
+  "LANE term" — bare "lane" stays collision-table qualified. *(LaneSlot,
+  Cost.Lane)*
+- **error-relative POS width** — the per-solve POS saturation law:
+  width = max(posWidthSlope × err₀, posWidth), with err₀ the ring error at the
+  solve's initial state, frozen for that solve's rollouts. Reach and settle
+  stop sharing a width by construction; the asset `posWidth` is the near-field
+  settle floor, and per-row width overrides are retired. Ruled §Stage C fork 3
+  over authored-parameter scaling and a policy width channel.
+  *(Cost.EffectivePosWidth, Mpc.ApplyErrorRelativePosWidth)*
 - **intent grammar** — the closed design space intent sentences are written in:
   a term is a point in space × sign × geometry × frame/referent; slots sort
   instance-vs-class by the timescale rule (focused entities bind instance

@@ -30,6 +30,7 @@ namespace Game.RLHarness
         public float costFacing;
         public float costFacingPrior;
         public float costPos;
+        public float costLane;
         public float costYawRate;
         public float costObstacle;
         public float costCollision;
@@ -44,7 +45,7 @@ namespace Game.RLHarness
         private const string Header =
             "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg," +
             "range,underThreat,solveCost,incumbentRank,incumbentCost,emitYawDeltaFromIncumbent," +
-            "costVelocityTrack,costFacing,costFacingPrior,costPos,costYawRate,costObstacle,costCollision," +
+            "costVelocityTrack,costFacing,costFacingPrior,costPos,costLane,costYawRate,costObstacle,costCollision," +
             "costMomentum,costEffort,costSmoothness,costTotal";
 
         public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
@@ -60,7 +61,7 @@ namespace Game.RLHarness
                     F(r.range), r.underThreat.ToString(CultureInfo.InvariantCulture), F(r.solveCost),
                     r.incumbentRank.ToString(CultureInfo.InvariantCulture), F(r.incumbentCost),
                     F(r.emitYawDeltaFromIncumbent),
-                    F(r.costVelocityTrack), F(r.costFacing), F(r.costFacingPrior), F(r.costPos),
+                    F(r.costVelocityTrack), F(r.costFacing), F(r.costFacingPrior), F(r.costPos), F(r.costLane),
                     F(r.costYawRate), F(r.costObstacle), F(r.costCollision),
                     F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal)));
             File.WriteAllText(path, sb.ToString());
