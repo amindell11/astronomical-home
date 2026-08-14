@@ -149,7 +149,7 @@ namespace AI
             var aim = nav.sentence.aim;
             if (aim.armed && aim.referent != 0)
             {
-                // The fire lane follows the AIM referent; a dead rock holds fire until the next decision (its nav slot is already weight 0).
+                // A dead rock holds fire until the next decision; its nav slot is already weight 0.
                 if (nav.RockSeat(aim.referent).TryResolve(out var rockPos, out var rockVel))
                     Gunner.Aim(rockPos, rockVel);
                 else

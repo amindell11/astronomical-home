@@ -44,13 +44,8 @@ namespace Tests.EditMode
             return new ObstacleScan(buffer, buffer.Length);
         }
 
-        private static bool Rostered(RockSlotRoster roster, AsteroidController rock)
-        {
-            for (var s = 0; s < RockSlotRoster.SlotCount; s++)
-                if (roster.TryGetSlot(s, out var occupant) && occupant.Equals(AsteroidRef.Of(rock)))
-                    return true;
-            return false;
-        }
+        private static bool Rostered(RockSlotRoster roster, AsteroidController rock) =>
+            SlotOf(roster, rock) >= 0;
 
         private static int SlotOf(RockSlotRoster roster, AsteroidController rock)
         {

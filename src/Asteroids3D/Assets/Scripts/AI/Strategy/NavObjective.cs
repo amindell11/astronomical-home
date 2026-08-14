@@ -13,7 +13,7 @@ namespace AI
         internal readonly bool hasPlanarVelocity;
         internal readonly Vector2 planarVelocity;
         internal readonly IntentSentence sentence;
-        // Rock-seat identities behind the sentence slots' referent 1–3; ships only ever ride referent 0 via the anchor.
+        // Ships only ever ride referent 0 via the anchor; seats 1–3 carry rocks alone.
         internal readonly AsteroidRef rockSeat1;
         internal readonly AsteroidRef rockSeat2;
         internal readonly AsteroidRef rockSeat3;
