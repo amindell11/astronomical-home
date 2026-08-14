@@ -74,7 +74,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
-- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself at every ledger-writing transition; a plain title marks a discussion chat.
+- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): update the ledger Title board and re-arm the title reconciler at every ledger-writing transition; a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
 
