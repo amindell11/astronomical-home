@@ -229,6 +229,78 @@ namespace Tests.EditMode
             Assert.That(ctx.facingTarget, Is.EqualTo(0f).Within(1e-4f), "bearing to the snapshot dead ahead on +Y");
         }
 
+        // ---- VEL frames: the basis forward swaps per frame, the LOS basis stays the Position default ----
+
+        private static IntentSentence VelSentence(float radial, float tangential, float weight,
+            ReferentFrame frame = ReferentFrame.Position, int referent = 0) =>
+            new()
+            {
+                vel = new VelSlot
+                {
+                    armed = true,
+                    radialSpeed = radial,
+                    tangentialSpeed = tangential,
+                    weight = weight,
+                    referent = referent,
+                    frame = frame,
+                },
+            };
+
+        [Test]
+        public void VelocityRef_PositionFrame_IsTheLiveLosBasis()
+        {
+            // Ship at origin, referent at (0,10) moving +X: losHat (0,1), tangentHat (1,0) — vr closes, vt orbits CCW.
+            var input = new CostInput
+            {
+                enemyPos = new float2(0f, 10f),
+                enemyVel = new float2(1f, 0f),
+                enemyYaw = 0f,
+                sentence = VelSentence(2f, 3f, 1f),
+            };
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
+            Assert.That(ctx.velocityRef.x, Is.EqualTo(4f).Within(1e-4f));
+            Assert.That(ctx.velocityRef.y, Is.EqualTo(2f).Within(1e-4f));
+            Assert.That(ctx.velTrackScale, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void VelocityRef_FacingFrame_RidesTheReferentNose_NotTheLos()
+        {
+            // Referent yaw π/2 (nose toward −X): radial rides the nose, tangential keeps the LOS handedness.
+            var input = new CostInput
+            {
+                enemyPos = new float2(0f, 10f),
+                enemyVel = new float2(1f, 0f),
+                enemyYaw = 0.5f * math.PI,
+                sentence = VelSentence(2f, 3f, 1f, ReferentFrame.Facing),
+            };
+            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
+            Assert.That(ctx.velocityRef.x, Is.EqualTo(-1f).Within(1e-4f), "refVel (1,0) + 2·forward (−1,0) + 3·side (0,1)");
+            Assert.That(ctx.velocityRef.y, Is.EqualTo(3f).Within(1e-4f));
+        }
+
+        [Test]
+        public void VelocityRef_VelocityFrame_FollowsTheReferentMotion_WorldFallbackAtRest()
+        {
+            var moving = new CostInput
+            {
+                enemyPos = new float2(10f, 0f),   // LOS deliberately ⊥ the motion: the frame, not the LOS, must win
+                enemyVel = new float2(0f, 2f),
+                enemyYaw = 0f,
+                sentence = VelSentence(4f, 0f, 1f, ReferentFrame.Velocity),
+            };
+            var ctx = Cost.EvalContext.Create(default, moving, BareConfig(), 0);
+            Assert.That(ctx.velocityRef.x, Is.EqualTo(0f).Within(1e-4f), "radial rides down-track of the motion");
+            Assert.That(ctx.velocityRef.y, Is.EqualTo(6f).Within(1e-4f), "refVel (0,2) + 4·forward (0,1)");
+
+            var atRest = moving;
+            atRest.enemyVel = default;
+            var restCtx = Cost.EvalContext.Create(default, atRest, BareConfig(), 0);
+            Assert.That(restCtx.velocityRef.x, Is.EqualTo(0f).Within(1e-4f));
+            Assert.That(restCtx.velocityRef.y, Is.EqualTo(4f).Within(1e-4f),
+                "near rest the velocity direction is meaningless — the frame falls back to world axes");
+        }
+
         // ---- POS in the evaluated cost: signed weight, terminal ramp ----
 
         [Test]

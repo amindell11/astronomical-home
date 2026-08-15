@@ -1,4 +1,5 @@
 using System;
+using AI;
 using AI.Observation;
 using Combat.Conditions;
 using Ships;
@@ -24,18 +25,22 @@ namespace Game.RLHarness
         private IHeatReadout enemyHeat;
         private float primaryProjectileSpeed;
         private bool loadoutResolved;
+        private float speedRef;
         private readonly float[] observationBuffer = new float[AgentObservations.CombatChannels];
         private readonly float[] tokenScratch =
             new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
         private readonly float[] token = new float[AgentObservations.ObstacleTokenFloats];
+        private readonly RockSlotRoster rockSlots = new();
+        private readonly AsteroidRef[] boundScratch = new AsteroidRef[3];
 
         public int DecisionsReceived { get; private set; }
 
-        public void Bind(PolicyBrain mailbox, AI.Scout scout, BufferSensorComponent obstacleBuffer)
+        public void Bind(PolicyBrain mailbox, AI.Scout scout, BufferSensorComponent obstacleBuffer, float speedRef)
         {
             this.mailbox = mailbox;
             this.scout = scout;
             this.obstacleBuffer = obstacleBuffer;
+            this.speedRef = speedRef;
 
             if (!obstacleBuffer)
                 throw new InvalidOperationException(
@@ -74,6 +79,9 @@ namespace Game.RLHarness
         public override void CollectObservations(VectorSensor sensor)
         {
             var enemyKin = target.Kinematics;
+            var boundCount = mailbox.GetBoundRocks(boundScratch);
+            rockSlots.Update(self.Kinematics.pos, enemyKin.pos, scout.AsteroidScan,
+                boundScratch.AsSpan(0, boundCount));
             var view = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
                 target.HealthPct, target.ShieldPct);
 
@@ -82,7 +90,8 @@ namespace Game.RLHarness
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
                 leashCenter, leashRadius,
-                target.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f);
+                target.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f,
+                rockSlots);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
@@ -97,13 +106,13 @@ namespace Game.RLHarness
             }
         }
 
+        // Gameplay always runs the released vocabulary — the curriculum pin is a trainer-only state.
+        public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask) =>
+            AgentActions.WriteMask(actionMask, rockSlots, released: true);
+
         public override void OnActionReceived(ActionBuffers actions)
         {
-            var continuous = actions.ContinuousActions;
-            var discrete = actions.DiscreteActions;
-            var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
-                continuous[3], continuous[4], discrete[0], discrete[1], self.MaxSpeed);
-
+            var action = AgentActions.Map(in actions, rockSlots, speedRef, leashRadius);
             mailbox.SetAction(in action, self.BoostAvailable);
             DecisionsReceived++;
         }

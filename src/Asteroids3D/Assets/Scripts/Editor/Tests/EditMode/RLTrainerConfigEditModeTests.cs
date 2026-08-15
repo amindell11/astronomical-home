@@ -147,6 +147,10 @@ namespace Tests.EditMode
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
             Assert.AreEqual(defaults.weightKiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightKiter), 1e-6f);
+            Assert.AreEqual(0f, LessonZeroValue(block, EnvParamOverlay.SentenceRelease), 1e-6f,
+                "the sentence vocabulary starts pinned (the legacy-equivalence point)");
+            Assert.AreEqual(1f, LessonFinalValue(block, EnvParamOverlay.SentenceRelease), 1e-6f,
+                "release lands inside the scripted phase — the terminal lesson trains released, matching the absent-key default eval runs under");
         }
 
         [Test]

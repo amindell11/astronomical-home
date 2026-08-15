@@ -5,6 +5,25 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
+    /// <summary>One rock slot's scan snapshot at the last decision boundary, for the obs writer.</summary>
+    public readonly struct RockSlotView
+    {
+        public readonly bool valid;
+        public readonly Vector2 pos;
+        public readonly Vector2 vel;
+        public readonly float radius;
+        public readonly float healthPct;
+
+        public RockSlotView(Vector2 pos, Vector2 vel, float radius, float healthPct)
+        {
+            valid = true;
+            this.pos = pos;
+            this.vel = vel;
+            this.radius = radius;
+            this.healthPct = healthPct;
+        }
+    }
+
     /// <summary>The sticky rock-slot selection service (doc/Feature_Plans/Intent_Grammar.md §Stage C
     /// decision brief, fork 1): owns the 6-slot asteroid referent menu the policy observes and the
     /// boundary slot→entity capture. Roster rule: nearest-<see cref="NearestPerSide"/>-to-self ∪
@@ -27,12 +46,17 @@ namespace Game.RLHarness
             public AsteroidRef rock;
             public float dSelf;
             public float dEnemy;
+            public Vector2 pos;
+            public Vector2 vel;
+            public float radius;
+            public float healthPct;
             public bool ideal;
             public bool rostered;
         }
 
         private readonly float margin;
         private readonly AsteroidRef[] slots = new AsteroidRef[SlotCount];
+        private readonly RockSlotView[] views = new RockSlotView[SlotCount];
         private Candidate[] candidates = new Candidate[64];
         private int candidateCount;
 
@@ -47,8 +71,15 @@ namespace Game.RLHarness
             return rock.IsBound;
         }
 
+        /// <summary>The occupant's scan snapshot from the last Update — the obs writer's read; invalid when the slot is empty.</summary>
+        public RockSlotView SlotView(int index) => views[index];
+
         /// <summary>Back to the pre-first-update state; stale refs must not outlive an episode boundary.</summary>
-        public void Reset() => Array.Clear(slots, 0, slots.Length);
+        public void Reset()
+        {
+            Array.Clear(slots, 0, slots.Length);
+            Array.Clear(views, 0, views.Length);
+        }
 
         /// <summary>One decision-boundary refresh. <paramref name="bound"/> names the rocks the held
         /// sentence binds — those occupants only leave by despawn or range-exit.</summary>
@@ -59,6 +90,7 @@ namespace Game.RLHarness
             MarkIdeal();
             EvictDeadAndDeparted();
             FillAndChallenge(bound);
+            RefreshViews();
         }
 
         private void Gather(Vector2 selfPlanePos, Vector2 enemyPlanePos, in ObstacleScan rocks)
@@ -77,6 +109,10 @@ namespace Game.RLHarness
                     rock = AsteroidRef.Of(source),
                     dSelf = (buffer[i].position - selfPlanePos).magnitude,
                     dEnemy = (buffer[i].position - enemyPlanePos).magnitude,
+                    pos = buffer[i].position,
+                    vel = buffer[i].velocity,
+                    radius = buffer[i].radius,
+                    healthPct = buffer[i].healthPct,
                 };
             }
         }
@@ -166,6 +202,21 @@ namespace Game.RLHarness
         {
             slots[slot] = candidates[candidate].rock;
             candidates[candidate].rostered = true;
+        }
+
+        // Every seated occupant survived EvictDeadAndDeparted, so it is in the current scan by construction.
+        private void RefreshViews()
+        {
+            for (var s = 0; s < SlotCount; s++)
+            {
+                if (!slots[s].IsBound)
+                {
+                    views[s] = default;
+                    continue;
+                }
+                var c = candidates[IndexOf(slots[s])];
+                views[s] = new RockSlotView(c.pos, c.vel, c.radius, c.healthPct);
+            }
         }
 
         private int BestUnrosteredIdeal()
