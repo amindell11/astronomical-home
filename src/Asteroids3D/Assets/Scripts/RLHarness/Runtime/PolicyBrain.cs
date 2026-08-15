@@ -9,6 +9,9 @@ namespace Game.RLHarness
     {
         private const int RingCapacity = 16;
 
+        // GetBoundRocks capacity contract: one rock per referent-bearing slot (AIM/POS/VEL).
+        public const int MaxBoundRocks = 3;
+
         private Ship opponent;
 
         private bool hasAction;
@@ -51,7 +54,7 @@ namespace Game.RLHarness
 
         public PolicyAction ActionFromNewest(int index) => ring[(ringHead - 1 - index + RingCapacity) % RingCapacity];
 
-        /// <summary>The held sentence's rock bindings, for the roster's never-evict rule; returns the count written (≤ 3, dedup left to the roster's identity compare).</summary>
+        /// <summary>The held sentence's rock bindings, for the roster's never-evict rule; returns the count written (≤ <see cref="MaxBoundRocks"/>, dedup left to the roster's identity compare).</summary>
         public int GetBoundRocks(AsteroidRef[] dest)
         {
             if (!hasAction) return 0;

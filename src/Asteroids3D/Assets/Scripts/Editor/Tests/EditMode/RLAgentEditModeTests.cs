@@ -526,7 +526,7 @@ namespace Tests.EditMode
                     Discrete((AgentActions.PosReferentBranch, 1)));
                 brain.SetAction(in action, boostAvailable: false);
 
-                var bound = new AI.AsteroidRef[3];
+                var bound = new AI.AsteroidRef[PolicyBrain.MaxBoundRocks];
                 Assert.AreEqual(1, brain.GetBoundRocks(bound), "one distinct rock is bound");
                 Assert.IsTrue(bound[0].Equals(AI.AsteroidRef.Of(rock)));
 

@@ -31,7 +31,7 @@ namespace Game.RLHarness
             new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
         private readonly float[] token = new float[AgentObservations.ObstacleTokenFloats];
         private readonly RockSlotRoster rockSlots = new();
-        private readonly AsteroidRef[] boundScratch = new AsteroidRef[3];
+        private readonly AsteroidRef[] boundScratch = new AsteroidRef[PolicyBrain.MaxBoundRocks];
 
         public int DecisionsReceived { get; private set; }
 
