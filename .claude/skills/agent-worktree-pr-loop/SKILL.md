@@ -122,13 +122,13 @@ running between owners.
 ## Chat title lifecycle
 
 Chat titles surface each session's phase in the sessions list, so the user
-sees "blocked on #234" without opening the chat. Titles are applied by the
-**title reconciler** — a standing one-shot scheduled task
-(`ledger-title-reconciler`) that transitioning agents re-arm; each firing is
-a fresh unattended session that reads the ledger's "## Title board" and
-applies every line. Renames work cross-session only: the session tools
-refuse the calling session, and an Agent-tool subagent shares your session
-identity, so it is refused too. Measured facts and dead ends: memory
+sees "blocked on #234" without opening the chat. Renames work cross-session
+only: the session tools refuse the calling session, and an Agent-tool
+subagent shares your session identity, so it is refused too. So titles flow
+through the ledger's "## Title board": transitioning agents sweep each
+other's lines inline, and the standing **title reconciler** — a recurring
+scheduled task (`ledger-title-reconciler`) whose runs apply every board
+line — backstops quiet periods. Measured facts and dead ends: memory
 `reference_session_identity_and_subagents.md`.
 
 Every lifecycle-tracked chat uses ONE template — same slots, same order:
@@ -176,15 +176,19 @@ merge/finalize):
    tools accept; the scratchpad/CLI UUID is a different namespace. On
    merge, set your ✅ line while deleting your row; any later transition
    prunes ✅ lines whose row is gone.
-2. Re-arm the reconciler: `update_scheduled_task` (mcp scheduled-tasks;
-   load via ToolSearch) on `ledger-title-reconciler` — new `fireAt` 30–60 s
-   out, `enabled: true`. The firing is a fresh unattended session; renames
-   land ~20–40 s after fireAt; the task auto-disables after firing, and an
-   armed task fires on next app launch when the app was closed. The sweep
-   is idempotent — concurrent re-arms are fine.
+2. Sweep the board: for every OTHER line, call
+   `mcp__ccd_session_mgmt__set_session_title` (load via ToolSearch) with
+   that id and that exact title. Renames are idempotent and allowlisted in
+   user settings, so the sweep is silent. Your own line is refused
+   ("current session") — the next peer's sweep or the reconciler's run
+   catches it.
 
-If the task is missing, recreate it (`create_scheduled_task`, same id,
-ad-hoc — arming supplies fireAt) with exactly this prompt:
+Leave the scheduled task alone at transitions: `create_scheduled_task` /
+`update_scheduled_task` are hard-gated (they prompt the user regardless of
+permission mode or allowlists), so the reconciler is created ONCE as a
+recurring task and never re-armed. Only if it is missing entirely, recreate
+it (expect one approval prompt; recurring, ~2/hour, off-minute cron) with
+exactly this prompt:
 
 > Read C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md.
 > In "## Title board", each line is `<session-id> → <title>`. For each line,
@@ -193,9 +197,7 @@ ad-hoc — arming supplies fireAt) with exactly this prompt:
 > not-found) without retrying. Touch nothing else; change no files. Report
 > one line per rename.
 
-Tool approvals are stored per task id — the first firing asks the user to
-allow the rename tool; the stable id makes every later firing silent. A
-user-set title always wins over a rename.
+A user-set title always wins over a rename.
 
 Scheduled-task tools unavailable → skip silently; titles never block or
 delay work.
