@@ -205,7 +205,7 @@ namespace AI
             }
 
             if (speed <= 0.05f) return;
-            var heading = new Vector2(states[0].vel.x, states[0].vel.y) / speed;
+            var heading = Plane(states[0].vel) / speed;
             var biteIndices = new int[BiteRingCount];
             var biteCount = SelectBiteObstacles(scan, shipPos, heading, biteIndices);
 
@@ -219,7 +219,7 @@ namespace AI
             }
         }
 
-        // A bite ring per scanned rock washes out at combat speed; only the nearest few the ship is closing on keep theirs.
+        // Bite rings on every rock wash out at combat speed; only the nearest few ahead keep theirs.
         private static int SelectBiteObstacles(ObstacleScan scan, Vector2 shipPos, Vector2 heading, int[] indices)
         {
             var dists = new float[indices.Length];
