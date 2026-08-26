@@ -13,7 +13,6 @@ namespace Combat.Weapons
         private const float FlankOffset = 1.5f;
         private const float BarLength = 1f;
         private const float BarWidth = 0.3f;
-        private const float ScanSpacing = 0.02f;
 
         private static readonly Color Track = new(0.5f, 0.5f, 0.5f, 0.5f);
 
@@ -40,15 +39,14 @@ namespace Combat.Weapons
         private static void DrawColumn(Vector2 foot, float length, Color color)
         {
             if (length <= 0f) return;
-            Gizmos.color = color;
-            // Gizmos has no filled quad; approximate with in-plane scan lines.
-            var steps = Mathf.Max(2, Mathf.CeilToInt(BarWidth / ScanSpacing));
-            for (var i = 0; i <= steps; i++)
+            var halfWidth = BarWidth * 0.5f;
+            Handles.DrawSolidRectangleWithOutline(new[]
             {
-                var x = foot.x - BarWidth * 0.5f + i / (float)steps * BarWidth;
-                Gizmos.DrawLine(GamePlane.PlanePointToWorld(new Vector2(x, foot.y)),
-                    GamePlane.PlanePointToWorld(new Vector2(x, foot.y + length)));
-            }
+                GamePlane.PlanePointToWorld(new Vector2(foot.x - halfWidth, foot.y)),
+                GamePlane.PlanePointToWorld(new Vector2(foot.x - halfWidth, foot.y + length)),
+                GamePlane.PlanePointToWorld(new Vector2(foot.x + halfWidth, foot.y + length)),
+                GamePlane.PlanePointToWorld(new Vector2(foot.x + halfWidth, foot.y)),
+            }, color, Color.clear);
         }
     }
 }

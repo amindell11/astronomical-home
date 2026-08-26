@@ -10,6 +10,7 @@ namespace Tests.EditMode
     public class ShipReadoutEditModeTests
     {
         [TestCase(ShipReadoutRow.Speed, 1)]
+        [TestCase(ShipReadoutRow.Controls, 3)]
         [TestCase(ShipReadoutRow.Shield, 1)]
         [TestCase(ShipReadoutRow.Health, 1)]
         [TestCase(ShipReadoutRow.Heat, 1)]

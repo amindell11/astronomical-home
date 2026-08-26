@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Ships.Damage
 {
-    /// <summary>Filled shield/health bars plus their numeric readout, in plane space. The serialized maxima carry the bars in edit mode, where <see cref="DamageController"/>'s pools do not exist yet.</summary>
+    /// <summary>Filled shield/health bars in plane space, plus their numeric readout. The serialized maxima carry the bars in edit mode, where <see cref="DamageController"/>'s pools do not exist yet.</summary>
     internal static class DamageControllerGizmos
     {
         private const float BaseOffset = 2f;
@@ -15,7 +15,6 @@ namespace Ships.Damage
         private const float BarHeight = 0.25f;
         // Without the gap, filled tracks abut and read as one two-tone block.
         private const float BarSpacing = BarHeight * 1.6f;
-        private const float ScanSpacing = 0.02f;
 
         private static readonly ConditionalWeakTable<DamageController, Ship> ParentShips = new();
 
@@ -54,15 +53,14 @@ namespace Ships.Damage
 
         private static void DrawFilledRect(Vector2 center, float width, Color color)
         {
-            Gizmos.color = color;
-            // Gizmos has no filled quad; approximate with in-plane scan lines.
-            var steps = Mathf.Max(2, Mathf.CeilToInt(BarHeight / ScanSpacing));
-            for (var i = 0; i <= steps; i++)
+            var half = new Vector2(width * 0.5f, BarHeight * 0.5f);
+            Handles.DrawSolidRectangleWithOutline(new[]
             {
-                var y = center.y - BarHeight * 0.5f + i / (float)steps * BarHeight;
-                Gizmos.DrawLine(GamePlane.PlanePointToWorld(new Vector2(center.x - width * 0.5f, y)),
-                    GamePlane.PlanePointToWorld(new Vector2(center.x + width * 0.5f, y)));
-            }
+                GamePlane.PlanePointToWorld(center - half),
+                GamePlane.PlanePointToWorld(center + new Vector2(-half.x, half.y)),
+                GamePlane.PlanePointToWorld(center + half),
+                GamePlane.PlanePointToWorld(center + new Vector2(half.x, -half.y)),
+            }, color, Color.clear);
         }
     }
 }

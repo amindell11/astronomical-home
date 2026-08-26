@@ -275,8 +275,6 @@ namespace Movement.MPC
         [Min(1)]
         [Tooltip("Label every Nth predicted node")]
         public int labelStep = 5;
-        [Tooltip("Where the control-bar panel sits relative to the ship")]
-        public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
 
         private float nextLogTime;
         public CostBreakdown lastCostBreakdown;
