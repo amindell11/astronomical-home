@@ -27,7 +27,7 @@ def start_editor(lease: str, project: Path, editor_args, unity: Path, env) -> in
     # -projectPath is the coordinator's to inject; it composes these args after it.
     args_literal = ",".join(_ps_literal(a) for a in editor_args)
     inner = (f"& {_ps_literal(COORDINATOR)} -Action StartEditor -Lease {_ps_literal(lease)} "
-             f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
+             f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -WaitSeconds 15 -Json "
              f"-EditorArgs @({args_literal})")
     proc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
                           capture_output=True, text=True, env=env)

@@ -1,16 +1,17 @@
 ﻿<#
 .SYNOPSIS
-  Preflight for the Unity-MCP + batch-test workflow.
+  Preflight for the Unity CLI + batch-test workflow.
 
 .DESCRIPTION
   Reports the live environment state that agents otherwise reconstruct (often
-  wrongly) from memory before doing Unity-MCP or batch-test work:
+  wrongly) from memory before doing live-editor (unity CLI) or batch-test work:
 
-    - CoplayDev UnityMCP HTTP server (default port 8081) reachable or not
-    - mcp-for-unity server process present or not
+    - Whether a live editor answers `unity command editor_status` for this
+      project (the only reliable readiness gate — `unity status` discovery
+      is broken both directions).
     - Which interactive Unity editor (if any) holds the project. A non-batch
       editor on the project makes the batch runner infra_error, and is the
-      instance the MCP tools attach to.
+      instance CLI commands route to via the per-project lockfile.
     - EnterPlayModeOptions: the domain-reload trap. In-Editor PlayMode test
       runs need domain reload ON; the DisableDomainReload bit leaks statics
       (GamePlane "already configured", ships won't move).
@@ -27,7 +28,7 @@
 #>
 param(
     [string]$ProjectPath = "src/Asteroids3D",
-    [int]$McpPort = 8081,
+    [string]$UnityCliPath = "$env:LOCALAPPDATA\Unity\bin\unity.exe",
     [switch]$Json,
     [switch]$FailOnWarn
 )
@@ -40,19 +41,6 @@ function Resolve-FullPath {
     if ([string]::IsNullOrWhiteSpace($Path)) { return "" }
     if ([System.IO.Path]::IsPathRooted($Path)) { return [System.IO.Path]::GetFullPath($Path) }
     return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
-}
-
-function Test-TcpPort {
-    param([string]$TargetHost = "127.0.0.1", [int]$Port, [int]$TimeoutMs = 800)
-    $client = New-Object System.Net.Sockets.TcpClient
-    try {
-        $async = $client.BeginConnect($TargetHost, $Port, $null, $null)
-        if (-not $async.AsyncWaitHandle.WaitOne($TimeoutMs)) { return $false }
-        $client.EndConnect($async)
-        return $true
-    }
-    catch { return $false }
-    finally { $client.Close() }
 }
 
 function Find-InteractiveEditor {
@@ -138,20 +126,25 @@ if (Test-Path -LiteralPath $unityAccessScript) {
     }
 }
 
-$mcpUp = Test-TcpPort -Port $McpPort
-if ($mcpUp) {
-    Add-Check "mcp-http" "OK" "CoplayDev UnityMCP reachable at 127.0.0.1:$McpPort"
+$cliStatus = $null
+if (-not (Test-Path -LiteralPath $UnityCliPath)) {
+    Add-Check "cli-editor" "INFO" "unity CLI not found at $UnityCliPath; live-editor checks skipped."
 }
 else {
-    Add-Check "mcp-http" "WARN" "No listener on 127.0.0.1:$McpPort. Server down, on a different port, or bound to another editor instance. If it came up after session start, run /mcp to reconnect."
-}
-
-try { $mcpProcs = @(Get-Process -Name "mcp-for-unity" -ErrorAction SilentlyContinue) } catch { $mcpProcs = @() }
-if ($mcpProcs.Count -gt 0) {
-    Add-Check "mcp-server-proc" "INFO" "mcp-for-unity process running (pid $(( $mcpProcs | ForEach-Object { $_.Id }) -join ','))"
-}
-else {
-    Add-Check "mcp-server-proc" "INFO" "No mcp-for-unity process. Plugin-spawned server dies on domain reload; start it manually to survive reloads (uvx --offline --from mcpforunityserver==10.0.0 ...)."
+    try {
+        $raw = & $UnityCliPath command editor_status --project-path $project --format json --no-banner --quiet
+        $parsed = ($raw -join "`n") | ConvertFrom-Json
+        if ($parsed.success) {
+            $cliStatus = $parsed.data.result
+            Add-Check "cli-editor" "OK" "Live editor answers editor_status (status=$($cliStatus.status) playMode=$($cliStatus.playMode) compiling=$($cliStatus.compiling))"
+        }
+        else {
+            Add-Check "cli-editor" "INFO" "No live editor answers editor_status for this project (CLI reported failure)."
+        }
+    }
+    catch {
+        Add-Check "cli-editor" "INFO" "No live editor answers editor_status for this project."
+    }
 }
 
 $editor = Find-InteractiveEditor -ProjectFullPath $project
@@ -162,7 +155,7 @@ elseif ($editor.batch) {
     Add-Check "project-editor" "INFO" "A batch Unity is running on this project (pid $($editor.pid)) -- likely an in-progress test run."
 }
 else {
-    Add-Check "project-editor" "WARN" "Interactive Unity editor holds this project (pid $($editor.pid)). Batch runner will infra_error; close it before batch tests. MCP tools attach to this instance."
+    Add-Check "project-editor" "WARN" "Interactive Unity editor holds this project (pid $($editor.pid)). Batch runner will infra_error; close it before batch tests. CLI commands route to this instance."
 }
 
 $epm = Get-EnterPlayModeState -ProjectFullPath $project
@@ -187,8 +180,7 @@ else {
 if ($Json.IsPresent) {
     $out = [ordered]@{
         projectPath   = $project
-        mcpPort       = $McpPort
-        mcpReachable  = $mcpUp
+        cliEditor     = $cliStatus
         enterPlayMode = $epm
         unityAccess    = $unityAccess
         checks        = $checks

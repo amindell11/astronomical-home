@@ -574,9 +574,6 @@ Format: **term** — definition. *(authority)*
   archived. Standing rule: **probes that live only as patches do not exist.**
 - **staging** — copying checkpoints and exes into the primary tree so they
   survive slot recycling. Never leave eval artifacts only in a slot.
-- **stdio-vs-durable-server trap** — a session's Unity MCP tools may be a private
-  stdio instance blind to the durable 8081 server; diagnose with
-  `debug_request_context`.
 - **define churn** — Sentis re-adding its analytics define on interactive loads.
   Fixed at two registry values; never fix it by committing the define.
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
@@ -599,3 +596,4 @@ Format: **term** — definition. *(authority)*
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
+| stdio-vs-durable-server trap | *(died with the CoplayDev MCP decommission — `unity` CLI routes per project path)* |

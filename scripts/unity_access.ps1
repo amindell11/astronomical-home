@@ -16,10 +16,8 @@ param(
     [string]$StateRoot = "",
     [string]$ProcessSnapshotPath = "",
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
-    [int]$McpPort = 8081,
     [switch]$CloseEditor,
     [string[]]$EditorArgs = @(),
-    [switch]$SkipMcp,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
     [string]$BatchLogPath = "",
@@ -114,39 +112,6 @@ function Get-UnityProcesses {
         })
     }
     catch { return @() }
-}
-
-function Test-TcpPort {
-    param([int]$Port)
-    $client = New-Object System.Net.Sockets.TcpClient
-    try {
-        $connection = $client.BeginConnect("127.0.0.1", $Port, $null, $null)
-        if (-not $connection.AsyncWaitHandle.WaitOne(800)) { return $false }
-        $client.EndConnect($connection)
-        return $true
-    }
-    catch { return $false }
-    finally { $client.Close() }
-}
-
-function Ensure-McpServer {
-    if (Test-TcpPort $McpPort) { return }
-    $uvx = Get-Command uvx.exe -ErrorAction SilentlyContinue
-    if ($null -eq $uvx) { throw "uvx.exe is required to start the shared Unity MCP server." }
-    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $stdout = Join-Path $env:TEMP "unity-mcp-$stamp.out.log"
-    $stderr = Join-Path $env:TEMP "unity-mcp-$stamp.err.log"
-    $arguments = @(
-        "--offline", "--from", "mcpforunityserver==10.0.0", "mcp-for-unity",
-        "--transport", "http", "--http-url", "http://127.0.0.1:$McpPort", "--project-scoped-tools"
-    )
-    Start-Process -FilePath $uvx.Source -ArgumentList $arguments -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr | Out-Null
-    $deadline = [datetime]::UtcNow.AddSeconds(20)
-    while ([datetime]::UtcNow -lt $deadline) {
-        if (Test-TcpPort $McpPort) { return }
-        Start-Sleep -Milliseconds 500
-    }
-    throw "Unity MCP server did not bind port $McpPort. Inspect $stderr"
 }
 
 function Get-RelevantUnityProcesses {
@@ -669,19 +634,7 @@ function Start-TrackedEditor {
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
         # The editor must open the project whose lease it holds, so caller args compose after -projectPath.
         $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
-        if ($SkipMcp.IsPresent) {
-            $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
-        }
-        else {
-            Ensure-McpServer
-            $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
-            $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
-            try { $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru }
-            finally {
-                if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
-                else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
-            }
-        }
+        $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         # Editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
         $script:ProcessId = $process.Id
         return Attach-Process
