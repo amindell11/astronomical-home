@@ -18,6 +18,8 @@ Recorder's `WaitForEndOfFrame` under `-batchmode`, so there is no headless captu
 
 ## Pick a lane
 
+- **Live-editor still** → verify drawers/visuals in a running coordinated Editor over
+  the `unity` CLI — stills, not clips: §"Live-editor stills (CLI lane)".
 - **Ad-hoc probe** → author a scratch scenario in repo-root `scratch/capture/` (create
   the dir if needed; it's gitignored and outside Assets, so Unity never compiles it at
   rest). Delete the file when the investigation is done.
@@ -91,6 +93,37 @@ author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
 → `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
 enumerator and calling `FilmStep()` per fixed step.
+
+## Live-editor stills (CLI lane)
+
+Verify drawers/visuals in a live coordinated Editor over the `unity` CLI (route into a
+held editor per the unity-access skill; CLI contract: `doc/agents/unity-cli.md`).
+Proven end-to-end by the 2026-08-26 gizmo-eyeball pass (arc #357). Ready-made eval
+snippets live in this skill's `cli-eval/` — run them with `eval_file`.
+
+- **Gizmos composite only in the play-mode Game view.** Reflect the internal
+  `GameView.drawGizmos = true` (`cli-eval/gameview_gizmos_on.cs`; the same contract
+  `UnityGameViewAdapter` pins), then `unity command capture_game_view --source screen`.
+  `capture_scene_view` and `screenshot --view scene` re-render the camera and never
+  composite gizmos. Consequence: **edit-mode gizmo claims need human eyes** — the CLI
+  cannot verify them. (Untested: `screenshot --view game` with drawGizmos forced on —
+  would allow absolute `--output` and dodge the `save_path` Assets pollution; worth one
+  probe.)
+- **Check per-type gizmo checkboxes before calling a drawer broken** — AnnotationManager
+  state is per-Library and silently hides drawers (`cli-eval/read_annotations.cs`,
+  `enable_gizmo_annotations.cs`; the #401 flake family).
+- **Select via eval** (`cli-eval/select_ships.cs`) and bracket each capture with a
+  state-read eval so you know what was actually on screen when the frame was taken.
+- **Live-fire scene without playing the game:** boot InitScene, then
+  `cli-eval/launch_no_presentation.cs` (presentation off + reflect the hangar launch
+  button), `spawn_enemy.cs` (`UnitService.SpawnShip` with a Ship prefab + AgentPilot
+  Commander), `teleport_close.cs` for tight ObserverCam framing. A session restart
+  re-applies `GameDriver.sessionProfile.presentation` — flip the runtime profile field
+  too (`profile_off_and_kill.cs`), not just the static.
+- **Sub-second subjects are out of reach**: a select→capture round-trip is ~0.5–1 s, so
+  laser bolts and projectiles-in-flight cannot be stilled from outside — that needs an
+  editor-side atomic `[CliCommand]` (need recorded in the warm-capture arc, #414).
+  Meanwhile: pause with the subject in flight and select it manually.
 
 ## Run + assemble (one command each)
 
