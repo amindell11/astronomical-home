@@ -181,7 +181,15 @@ merge/finalize):
    that id and that exact title. Renames are idempotent and allowlisted in
    user settings, so the sweep is silent. Your own line is refused
    ("current session") — the next peer's sweep or the reconciler's run
-   catches it.
+   catches it. While sweeping, prune lifecycle lines whose word-id no
+   longer has a ledger row — that claim ended (merged, released,
+   abandoned); the chat keeps its last title and leaves the board's
+   control.
+
+Sweep on read, too: reading the ledger (session start, pre-claim) is also
+a sweep point — apply the board the same way. Any session that touches the
+ledger refreshes every title, which is what keeps a solo agent's own title
+from waiting on the 20-minute reconciler cadence.
 
 Leave the scheduled task alone at transitions: `create_scheduled_task` /
 `update_scheduled_task` are hard-gated (they prompt the user regardless of
