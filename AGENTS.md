@@ -12,6 +12,8 @@ the matching doc when its branch fires:
   lifetime-aware null checks, folder taxonomy, one-type-per-file).
 - Running Unity tests → `doc/agents/testing.md` (artifact dir, unity_access
   protocol, domain categories; suite guide: `TESTING.md`).
+- Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
+  (readiness gating, eval contract, capture paths, reload dead zones).
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (Obsidian
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
@@ -74,7 +76,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
-- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): update the ledger Title board and sweep peers' board titles at every ledger-writing transition; a plain title marks a discussion chat.
+- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every ledger-writing transition; a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
 

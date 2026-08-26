@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "unity-mcp": {
-      "command": "node",
-      "args": ["C:\\Users\\amind\\.unity\\relay\\unity-mcp-bridge.js"]
-    }
-  }
-}
