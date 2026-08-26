@@ -7,6 +7,8 @@ description: Coordinate access to this repository's shared Unity editors and MCP
 
 Use `scripts/unity_access.ps1` as the authority for Unity process coordination. Ownership is **per project**: runs on different worktree projects overlap freely, and only Unity **startup** serializes through a machine-wide boot lane (concurrent boots were the deadlock hazard — postmortem D6). Prefer batch tests, wait in FIFO order when your project is busy, and leave owners, the boot lane, and the queue clean.
 
+Every Unity boot — batch or editor — costs ~2.5–4 GB working set, and the machine sustains about two editors. Boot only when free physical RAM is ≥ ~10 GB (`(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB` → GB); below that, report the memory pressure and wait for an editor to exit.
+
 Run commands from the repository root with PowerShell.
 
 ## Choose the least disruptive path
@@ -27,7 +29,15 @@ Run commands from the repository root with PowerShell.
 
    Narrow the run with the appropriate `-TestCategory`, `-ScopeType`, or `-ScopeName`; consult `TESTING.md` for the suite's supported slices. Batch runs in different worktrees run in parallel; only a run on the **same** project queues.
 
-3. Use an interactive editor only for behavior batch mode cannot verify:
+3. Route work into an editor your work stream already holds — one editor per work stream. A live slot editor whose manifest carries `com.unity.pipeline` (any branch containing PR #432; older branches fold main first) answers the full Unity CLI surface with no second instance:
+
+   ```powershell
+   unity command <cmd> --project-path D:\amind\git\<slot>\src\Asteroids3D
+   ```
+
+   A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — `unity status` is blind to unfocused/background editors.
+
+4. Use an interactive editor only for behavior batch mode cannot verify:
 
    ```powershell
    .\scripts\unity_access.ps1 -Action StartEditor -Lease <unique-lease> -Slot <slot> -Mode editor -WaitSeconds 60 -Json
