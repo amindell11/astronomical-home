@@ -35,9 +35,9 @@ Run commands from the repository root with PowerShell.
 
    The coordinator starts or reuses the shared MCP server and records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before using MCP. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
-   Once attached, label the editor's window with your lease so it is
-   identifiable in the taskbar (every editor otherwise titles itself
-   identically; the [PRIMARY]/[AGENT-N] prefix is automatic):
+   Once attached, label the editor's window with your lease so the taskbar
+   shows which task holds it (the [PRIMARY]/[AGENT-N] slot prefix is
+   automatic; the label replaces the project-name segment):
 
    ```powershell
    unity command set_window_title --label <unique-lease> --project-path <worktree>\src\Asteroids3D
