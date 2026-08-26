@@ -35,7 +35,7 @@ Run commands from the repository root with PowerShell.
    unity command <cmd> --project-path D:\amind\git\<slot>\src\Asteroids3D
    ```
 
-   A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — `unity status` is blind to unfocused/background editors. CLI contract and gotchas (eval quirks, capture paths, reload dead zones): `doc/agents/unity-cli.md`.
+   A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — never `unity status` or `pipeline list` (both misreport live and dead editors). CLI contract and gotchas (eval quirks, capture paths, reload dead zones): `doc/agents/unity-cli.md`.
 
 4. Use an interactive editor only for behavior batch mode cannot verify:
 
@@ -45,7 +45,7 @@ Run commands from the repository root with PowerShell.
 
    The coordinator records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before driving the editor. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
-   Drive the editor through the `unity` CLI (`unity-cli` skill), **always passing `--project-path <your worktree's src/Asteroids3D>`** — routing is per-project via the editor's own lockfile, so multiple editors coexist and there is nothing to pin. Gate readiness with `unity command editor_status --project-path <proj>` — never `unity status` or `pipeline list` (both misreport live and dead editors). Entering Play Mode gives a ~2 s domain-reload window where commands transiently fail: retry once or poll `editor_status`.
+   Drive the editor through the `unity` CLI (`unity-cli` skill), **always passing `--project-path <your worktree's src/Asteroids3D>`** — routing is per-project via the editor's own lockfile, so multiple editors coexist and there is nothing to pin. Gate readiness as in rung 3; entering Play Mode gives a ~2 s domain-reload window where commands transiently fail — retry once or poll `editor_status`.
 
 ## Queue and blockers
 
