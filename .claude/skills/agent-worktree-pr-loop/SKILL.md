@@ -112,12 +112,11 @@ test runs in different worktrees run in parallel; only Unity **startup**
 serializes through a short machine-wide boot lane (concurrent boots were the
 D6 deadlock hazard). `unity_test_agent.ps1` drives the whole protocol
 automatically — you only queue when another run holds *your* project. Prefer
-batch tests; use `-Action StartEditor` only for graphics, interaction, or MCP
-verification that batch mode cannot cover, then `-Action Release -CloseEditor`
-as soon as the check finishes. An untracked editor on the primary worktree
-belongs to the user: report its PID and ask them to close it — never close it
-automatically. The durable MCP server on port 8081 is shared and remains
-running between owners.
+batch tests; use `-Action StartEditor` only for graphics, interaction, or
+live-editor (`unity` CLI) verification that batch mode cannot cover, then
+`-Action Release -CloseEditor` as soon as the check finishes. An untracked
+editor on the primary worktree belongs to the user: report its PID and ask
+them to close it — never close it automatically.
 
 ## Chat title lifecycle
 

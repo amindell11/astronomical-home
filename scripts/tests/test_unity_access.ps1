@@ -426,7 +426,7 @@ try {
     [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs @('-batchmode','-nographics')"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json

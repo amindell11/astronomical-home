@@ -1,6 +1,6 @@
 ---
 name: unity-access
-description: Coordinate access to this repository's shared Unity editors and MCP server. Use before running Unity tests, opening an interactive Unity editor, connecting through Unity MCP, or diagnosing why another agent cannot use Unity.
+description: Coordinate access to this repository's shared Unity editors. Use before running Unity tests, opening an interactive Unity editor, driving a live editor through the unity CLI, or diagnosing why another agent cannot use Unity.
 ---
 
 # Unity Access
@@ -35,7 +35,7 @@ Run commands from the repository root with PowerShell.
    unity command <cmd> --project-path D:\amind\git\<slot>\src\Asteroids3D
    ```
 
-   A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — `unity status` is blind to unfocused/background editors. CLI contract and gotchas (eval quirks, capture paths, reload dead zones): `doc/agents/unity-cli.md`.
+   A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — never `unity status` or `pipeline list` (both misreport live and dead editors). CLI contract and gotchas (eval quirks, capture paths, reload dead zones): `doc/agents/unity-cli.md`.
 
 4. Use an interactive editor only for behavior batch mode cannot verify:
 
@@ -43,11 +43,9 @@ Run commands from the repository root with PowerShell.
    .\scripts\unity_access.ps1 -Action StartEditor -Lease <unique-lease> -Slot <slot> -Mode editor -WaitSeconds 60 -Json
    ```
 
-   The coordinator starts or reuses the shared MCP server and records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before using MCP. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
+   The coordinator records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before driving the editor. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
-   If `StartEditor` throws "Unity MCP server did not bind port 8081", read the named `.err.log`: a `uvx`/`uv` "No solution found when resolving tool dependencies" line is an MCP-bringup/environment problem (offline or a registry hiccup), not a usage error — retry when connectivity is back.
-
-   **Instance pinning is mandatory whenever more than one editor may be connected to the MCP server** — `Status` shows a second editor-mode owner, or the user's untracked main editor is open beside yours. Batch test runs never register with MCP, but every connected editor does: list `mcpforunity://instances`, then pin with `set_active_instance` (or pass `unity_instance` per call) and verify the pinned instance's project path is your worktree before issuing any MCP command. Unpinned calls in a multi-editor situation route unpredictably.
+   Drive the editor through the `unity` CLI (`unity-cli` skill), **always passing `--project-path <your worktree's src/Asteroids3D>`** — routing is per-project via the editor's own lockfile, so multiple editors coexist and there is nothing to pin. Gate readiness as in rung 3; entering Play Mode gives a ~2 s domain-reload window where commands transiently fail — retry once or poll `editor_status`.
 
 ## Queue and blockers
 
@@ -62,9 +60,9 @@ Run commands from the repository root with PowerShell.
 - `blocked_user_editor` means an untracked editor on the main worktree belongs to the user. Report its PID and ask the user to close it. Never terminate or attach to it. Batch requests hit this only when they target the main project itself; editor-mode requests block on any untracked Unity process.
 - `blocked_unmanaged_unity` means an untracked Unity process contends: for batch requests, an untracked batch process on any project (it may be mid-boot) or an untracked editor on the requested project. Do not close it; wait for it to exit or identify its owner.
 - **Recovering from `blocked_unmanaged_unity` / `ownership_mismatch`:** the JSON names the blocker's `processId` and `projectPath`. Check whether it's alive (`Get-Process -Id <pid>`). If it's **dead**, the record is stale — re-run `Acquire` (dead owners self-prune on the next call); if it still blocks, report it. If it's **alive and it's an untracked editor that outlived its lease** (an orphaned RL batch process, or your own editor whose owner record aged out), seize it back with `Adopt -Lease <lease> -Slot <slot> -ProcessId <pid>`: it writes a fresh pid-backed owner (project derived from the process's own `-projectPath`). `Adopt` refuses a PID that is already tracked or is the user's hand-opened dev editor (`user_editor`); it does not refuse `-batchmode`. The `user_editor` heuristic (windowed editor on the primary tree) also catches coordinator-launched primary-tree editors whose owner aged out — there the recovery is: report the PID and get the user's explicit go-ahead to kill. Renew the owner (re-`Acquire` under the same lease) at natural breaks in a long interactive session so it never ages out under a live editor. Never hand-edit `owner.json`.
-- **The coordinator launches everything — do not `Popen`/`Start-Process` Unity beside it.** RL drivers (`run_training.py`, `run_smoke.py`) boot their batch editor through `StartEditor -EditorArgs @(...) -SkipMcp` so the owner is pid-backed from birth and the boot lane is honored; a live editor the coordinator did not launch is debt, not a supported category. If some launch genuinely lands outside the coordinator, `Adopt` is the recovery hatch (above).
+- **The coordinator launches everything — do not `Popen`/`Start-Process` Unity beside it.** RL drivers (`run_training.py`, `run_smoke.py`) boot their batch editor through `StartEditor -EditorArgs @(...)` so the owner is pid-backed from birth and the boot lane is honored; a live editor the coordinator did not launch is debt, not a supported category. If some launch genuinely lands outside the coordinator, `Adopt` is the recovery hatch (above).
 - `BootAcquire`/`BootRelease` exist for launchers (`unity_test_agent.ps1` drives them); you rarely call them directly. `BootAcquire` requires already holding a project owner lease.
-- Never bypass the coordinator, jump the FIFO queue, or use the Unity MCP window's **Stop Server** action. The MCP server on port 8081 is shared independently of any lease.
+- Never bypass the coordinator or jump the FIFO queue.
 
 ## Cleanup is mandatory
 
