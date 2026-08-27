@@ -14,21 +14,26 @@ namespace Game.Capture
     /// </summary>
     public static class CaptureDispatch
     {
-        private const string Key = "Game.Capture.CaptureDispatch.RequestedScenario";
+        private const string ProductionKey = "Game.Capture.CaptureDispatch.RequestedScenario";
 
-        public static void Request(string scenarioTypeName)
+        public static void Request(string scenarioTypeName) => Request(ProductionKey, scenarioTypeName);
+
+        // Key-injected overloads keep tests off the production request slot.
+        internal static void Request(string key, string scenarioTypeName)
         {
             if (string.IsNullOrWhiteSpace(scenarioTypeName))
                 throw new ArgumentException("A capture request names a CaptureScenario type.", nameof(scenarioTypeName));
-            SessionState.SetString(Key, scenarioTypeName);
+            SessionState.SetString(key, scenarioTypeName);
         }
 
         /// <summary>The pending scenario type name, cleared by this read; null when none is queued.</summary>
-        public static string ConsumeRequest()
+        public static string ConsumeRequest() => ConsumeRequest(ProductionKey);
+
+        internal static string ConsumeRequest(string key)
         {
-            var requested = SessionState.GetString(Key, "");
+            var requested = SessionState.GetString(key, "");
             if (string.IsNullOrEmpty(requested)) return null;
-            SessionState.EraseString(Key);
+            SessionState.EraseString(key);
             return requested;
         }
     }

@@ -8,34 +8,41 @@ using UnityEditor;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the warm-capture lane seams: the one-home presentation rule, the one-shot dispatch request, and the lane session's journaled Enter Play Mode Options flip — including recovery after a hard-killed lane.</summary>
+    /// <summary>Pins the warm-capture lane seams: the one-home presentation rule, the one-shot dispatch request, and the lane session's journaled Enter Play Mode Options flip — including recovery after a hard-killed lane. Runs against an injected store and request key, so a live lane in this editor is never touched.</summary>
     [Category("Camera")]
     public class CaptureLaneEditModeTests
     {
+        private const string TestRequestKey = "Tests.EditMode.CaptureLane.RequestedScenario";
+
         private bool savedEpoEnabled;
         private EnterPlayModeOptions savedEpoOptions;
+        private CaptureLaneSession.LaneStore store;
 
         [SetUp]
         public void SetUp()
         {
             savedEpoEnabled = EditorSettings.enterPlayModeOptionsEnabled;
             savedEpoOptions = EditorSettings.enterPlayModeOptions;
-            ClearLaneState();
+            store = new CaptureLaneSession.LaneStore(
+                "Tests.EditMode.CaptureLane.Active",
+                Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "Temp",
+                    "CaptureLaneEditModeTests", "lane_session.json")));
+            ClearTestLaneState();
         }
 
         [TearDown]
         public void TearDown()
         {
-            ClearLaneState();
+            ClearTestLaneState();
             EditorSettings.enterPlayModeOptionsEnabled = savedEpoEnabled;
             EditorSettings.enterPlayModeOptions = savedEpoOptions;
         }
 
-        private static void ClearLaneState()
+        private void ClearTestLaneState()
         {
-            SessionState.EraseBool(CaptureLaneSession.ActiveMarker);
-            if (File.Exists(CaptureLaneSession.JournalPath)) File.Delete(CaptureLaneSession.JournalPath);
-            CaptureDispatch.ConsumeRequest();
+            SessionState.EraseBool(store.activeMarker);
+            if (File.Exists(store.journalPath)) File.Delete(store.journalPath);
+            CaptureDispatch.ConsumeRequest(TestRequestKey);
         }
 
         [Test]
@@ -49,16 +56,17 @@ namespace Tests.EditMode
         [Test]
         public void Dispatch_RequestIsConsumedExactlyOnce()
         {
-            CaptureDispatch.Request("TwoShipSkirmishScenario");
-            Assert.AreEqual("TwoShipSkirmishScenario", CaptureDispatch.ConsumeRequest());
-            Assert.IsNull(CaptureDispatch.ConsumeRequest(), "a consumed request must never refire a stale scenario");
+            CaptureDispatch.Request(TestRequestKey, "TwoShipSkirmishScenario");
+            Assert.AreEqual("TwoShipSkirmishScenario", CaptureDispatch.ConsumeRequest(TestRequestKey));
+            Assert.IsNull(CaptureDispatch.ConsumeRequest(TestRequestKey),
+                "a consumed request must never refire a stale scenario");
         }
 
         [Test]
         public void Dispatch_BlankRequestFailsAtTheBoundary()
         {
-            Assert.Throws<ArgumentException>(() => CaptureDispatch.Request(" "));
-            Assert.IsNull(CaptureDispatch.ConsumeRequest());
+            Assert.Throws<ArgumentException>(() => CaptureDispatch.Request(TestRequestKey, " "));
+            Assert.IsNull(CaptureDispatch.ConsumeRequest(TestRequestKey));
         }
 
         [Test]
@@ -67,16 +75,16 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach();
+            CaptureLaneSession.Attach(store);
             Assert.IsTrue(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload,
                 EditorSettings.enterPlayModeOptions);
-            Assert.IsTrue(File.Exists(CaptureLaneSession.JournalPath), "attach journals the prior values");
+            Assert.IsTrue(File.Exists(store.journalPath), "attach journals the prior values");
 
-            CaptureLaneSession.Release();
+            CaptureLaneSession.Release(store);
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.None, EditorSettings.enterPlayModeOptions);
-            Assert.IsFalse(File.Exists(CaptureLaneSession.JournalPath), "release consumes the journal");
+            Assert.IsFalse(File.Exists(store.journalPath), "release consumes the journal");
         }
 
         [Test]
@@ -85,9 +93,9 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach();
-            CaptureLaneSession.Attach();
-            CaptureLaneSession.Release();
+            CaptureLaneSession.Attach(store);
+            CaptureLaneSession.Attach(store);
+            CaptureLaneSession.Release(store);
 
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled,
                 "re-attach must not journal the already-flipped values");
@@ -100,14 +108,14 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach();
+            CaptureLaneSession.Attach(store);
             // A hard-killed lane leaves the journal but no SessionState (it dies with the editor).
-            SessionState.EraseBool(CaptureLaneSession.ActiveMarker);
+            SessionState.EraseBool(store.activeMarker);
 
-            CaptureLaneSession.RecoverAbandoned();
+            CaptureLaneSession.RecoverAbandoned(store);
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.None, EditorSettings.enterPlayModeOptions);
-            Assert.IsFalse(File.Exists(CaptureLaneSession.JournalPath));
+            Assert.IsFalse(File.Exists(store.journalPath));
         }
 
         [Test]
@@ -116,12 +124,12 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach();
-            CaptureLaneSession.RecoverAbandoned();
+            CaptureLaneSession.Attach(store);
+            CaptureLaneSession.RecoverAbandoned(store);
 
             Assert.IsTrue(EditorSettings.enterPlayModeOptionsEnabled,
                 "a mid-lane domain reload re-runs recovery, which must not undo the live lane");
-            Assert.IsTrue(File.Exists(CaptureLaneSession.JournalPath));
+            Assert.IsTrue(File.Exists(store.journalPath));
         }
     }
 }

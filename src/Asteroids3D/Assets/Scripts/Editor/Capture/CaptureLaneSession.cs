@@ -14,15 +14,28 @@ namespace Game.Capture.GameView
     /// SessionState marker so mid-lane domain reloads never restore early. Sibling
     /// of the clip-scoped CaptureRecoveryJournal; this one is lane-session-scoped.
     /// Driven over the `unity` CLI: capture_lane_attach / capture_lane_release /
-    /// capture_request_scenario (relays to CaptureDispatch).
+    /// capture_request_scenario (relays to CaptureDispatch). State lives in an
+    /// injectable store so tests never touch the production lane.
     /// </summary>
     [InitializeOnLoad]
     internal static class CaptureLaneSession
     {
-        internal const string ActiveMarker = "Game.Capture.CaptureLaneSession.Active";
+        internal sealed class LaneStore
+        {
+            public readonly string activeMarker;
+            public readonly string journalPath;
 
-        internal static readonly string JournalPath = Path.GetFullPath(Path.Combine(
-            Application.dataPath, "..", "Library", "NativeGizmoCapture", "lane_session.json"));
+            public LaneStore(string activeMarker, string journalPath)
+            {
+                this.activeMarker = activeMarker;
+                this.journalPath = journalPath;
+            }
+        }
+
+        private static readonly LaneStore Production = new(
+            "Game.Capture.CaptureLaneSession.Active",
+            Path.GetFullPath(Path.Combine(
+                Application.dataPath, "..", "Library", "NativeGizmoCapture", "lane_session.json")));
 
         [Serializable]
         private sealed class Journal
@@ -33,26 +46,28 @@ namespace Game.Capture.GameView
 
         static CaptureLaneSession()
         {
-            EditorApplication.delayCall += RecoverAbandoned;
+            EditorApplication.delayCall += () => RecoverAbandoned(Production);
         }
 
         [CliCommand("capture_lane_attach",
             "Begin a warm-capture lane session: journal Enter Play Mode Options and switch to no-reload play. Restored by capture_lane_release; a hard-killed lane restores on the editor's next load.",
             Tags = new[] { "capture" })]
-        public static string Attach()
+        public static string Attach() => Attach(Production);
+
+        internal static string Attach(LaneStore store)
         {
-            if (SessionState.GetBool(ActiveMarker, false))
+            if (SessionState.GetBool(store.activeMarker, false))
                 return "lane already attached; Enter Play Mode Options unchanged.";
-            RecoverAbandoned();
+            RecoverAbandoned(store);
 
             var journal = new Journal
             {
                 epoEnabled = EditorSettings.enterPlayModeOptionsEnabled,
                 epoOptions = (int)EditorSettings.enterPlayModeOptions,
             };
-            Directory.CreateDirectory(Path.GetDirectoryName(JournalPath));
-            File.WriteAllText(JournalPath, JsonUtility.ToJson(journal, true));
-            SessionState.SetBool(ActiveMarker, true);
+            Directory.CreateDirectory(Path.GetDirectoryName(store.journalPath));
+            File.WriteAllText(store.journalPath, JsonUtility.ToJson(journal, true));
+            SessionState.SetBool(store.activeMarker, true);
 
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions =
@@ -63,16 +78,18 @@ namespace Game.Capture.GameView
         [CliCommand("capture_lane_release",
             "End the warm-capture lane session: restore the journaled Enter Play Mode Options.",
             Tags = new[] { "capture" })]
-        public static string Release()
+        public static string Release() => Release(Production);
+
+        internal static string Release(LaneStore store)
         {
-            if (!SessionState.GetBool(ActiveMarker, false))
+            if (!SessionState.GetBool(store.activeMarker, false))
             {
-                if (!File.Exists(JournalPath)) return "no lane attached.";
-                Restore();
+                if (!File.Exists(store.journalPath)) return "no lane attached.";
+                Restore(store);
                 return "abandoned lane journal found and restored.";
             }
-            Restore();
-            SessionState.SetBool(ActiveMarker, false);
+            Restore(store);
+            SessionState.SetBool(store.activeMarker, false);
             return "lane released: Enter Play Mode Options restored.";
         }
 
@@ -86,20 +103,20 @@ namespace Game.Capture.GameView
             return "capture request queued: " + scenario;
         }
 
-        internal static void RecoverAbandoned()
+        internal static void RecoverAbandoned(LaneStore store)
         {
-            if (SessionState.GetBool(ActiveMarker, false) || !File.Exists(JournalPath)) return;
-            try { Restore(); }
+            if (SessionState.GetBool(store.activeMarker, false) || !File.Exists(store.journalPath)) return;
+            try { Restore(store); }
             catch (Exception exception) { Debug.LogException(exception); }
         }
 
-        private static void Restore()
+        private static void Restore(LaneStore store)
         {
-            var journal = JsonUtility.FromJson<Journal>(File.ReadAllText(JournalPath));
-            if (journal == null) throw new InvalidDataException($"Unreadable capture-lane journal at {JournalPath}.");
+            var journal = JsonUtility.FromJson<Journal>(File.ReadAllText(store.journalPath));
+            if (journal == null) throw new InvalidDataException($"Unreadable capture-lane journal at {store.journalPath}.");
             EditorSettings.enterPlayModeOptionsEnabled = journal.epoEnabled;
             EditorSettings.enterPlayModeOptions = (EnterPlayModeOptions)journal.epoOptions;
-            File.Delete(JournalPath);
+            File.Delete(store.journalPath);
         }
     }
 }
