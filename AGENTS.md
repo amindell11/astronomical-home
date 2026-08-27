@@ -12,6 +12,8 @@ the matching doc when its branch fires:
   lifetime-aware null checks, folder taxonomy, one-type-per-file).
 - Running Unity tests → `doc/agents/testing.md` (artifact dir, unity_access
   protocol, domain categories; suite guide: `TESTING.md`).
+- Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
+  (readiness gating, eval contract, capture paths, reload dead zones).
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (Obsidian
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.

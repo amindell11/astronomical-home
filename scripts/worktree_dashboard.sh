@@ -222,9 +222,12 @@ run_dashboard() {
 }
 
 if [[ "${1:-}" == "--watch" ]]; then
+  # Buffer each frame and overwrite in place — clear-before-draw flashes blank.
+  clear
   while true; do
-    clear
-    run_dashboard
+    frame="$(run_dashboard)"
+    frame="${frame//$'\n'/$'\033[K\n'}"   # erase per-line residue when lines shrink
+    printf '\033[H%s\033[K\n\033[J' "$frame"
     sleep 5
   done
 else
