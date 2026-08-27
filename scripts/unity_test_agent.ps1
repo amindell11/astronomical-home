@@ -830,7 +830,7 @@ function Invoke-RoutedPlatformRun {
         Set-RoutedAutotick
 
         $durationSum += [double](Get-JsonProp $final 'duration')
-        foreach ($result in @(Get-JsonProp $final 'results')) {
+        foreach ($result in @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })) {
             $fullName = [string](Get-JsonProp $result 'FullName')
             if ($byName.Contains($fullName)) { $duplicates++ } else { $byName[$fullName] = $result }
         }
@@ -842,7 +842,6 @@ function Invoke-RoutedPlatformRun {
 
     $passed = 0; $failed = 0; $skipped = 0; $inconclusive = 0
     $failures = @()
-    $failedTotal = 0
     foreach ($result in $byName.Values) {
         switch ([string](Get-JsonProp $result 'Status')) {
             "Passed" { $passed++ }
@@ -850,7 +849,6 @@ function Invoke-RoutedPlatformRun {
             "Inconclusive" { $inconclusive++ }
             default {
                 $failed++
-                $failedTotal++
                 if ($failures.Count -lt $MaxFailures) {
                     $fullName = [string](Get-JsonProp $result 'FullName')
                     $stackRaw = [string](Get-JsonProp $result 'StackTrace')
@@ -895,7 +893,7 @@ function Invoke-RoutedPlatformRun {
         skipped = $skipped
         durationSec = [Math]::Round($durationSum, 3)
         failures = $failures
-        truncatedFailures = [Math]::Max(0, $failedTotal - $failures.Count)
+        truncatedFailures = [Math]::Max(0, $failed - $failures.Count)
         selection = $Selection
     }
     if ($notes.Count -gt 0) { $run.note = $notes -join " " }
@@ -1178,7 +1176,8 @@ try {
                    [string]::IsNullOrWhiteSpace($orderedListPath))
 
     if ($Routed.IsPresent) {
-        $runs = Invoke-RoutedSuite -Platforms $platforms -Selection $selection -ProjectFullPath $project
+        # @() re-wraps a single-platform result: PowerShell unrolls a one-element array on return, which would serialize runs as an object.
+        $runs = @(Invoke-RoutedSuite -Platforms $platforms -Selection $selection -ProjectFullPath $project)
     }
     elseif ($singleBoot) {
         $xmlEdit = Join-Path $outRoot "$stamp-EditMode.xml"

@@ -126,9 +126,10 @@ Contract:
   unfiltered PlayMode/Both Workspace run under the default
   `-ExcludeCategory RequiresGraphics`. Run those cold (also faster: batch
   `-nographics` beats a GUI editor ~2.5× per PlayMode test).
-- **PlayMode is always async** (`--async_tests` + `test_status` polling; a
-  sync PlayMode `run_tests` silently runs zero tests), and the wrapper
-  re-arms `set_autotick` around every domain reload.
+- **Every run is async** (`--async_tests` + `test_status` polling: a sync
+  PlayMode `run_tests` silently runs zero tests, and a long sync call risks
+  CLI client timeouts), and the wrapper re-arms `set_autotick` around every
+  domain reload.
 - Incompatible with `-WithGraphics`, `-Windowed`, `-CaptureScenario`,
   `-OrderedTestListFile`, `-RerunFailedFrom`, `-ValidateScope`,
   `-SkipUnityAccess`. `-TestFilter` is split on `|` into alternatives, each
