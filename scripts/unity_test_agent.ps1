@@ -70,7 +70,7 @@ if ($Routed.IsPresent) {
     }
     $routedBad = @($routedIncompatible.Keys | Where-Object { $routedIncompatible[$_] })
     if ($routedBad.Count -gt 0) {
-        throw "-Routed cannot be combined with $($routedBad -join ', '): a routed run attaches to a resident editor (no boot, no capture, no ordered lists) and always verifies through the unity_access coordinator."
+        throw "-Routed cannot be combined with $($routedBad -join ', '): a routed run attaches to a resident editor, so boot-frozen flags cannot reach it (dispatch capture scenarios via 'unity command capture_request_scenario' instead) and it always verifies through the unity_access coordinator."
     }
 }
 

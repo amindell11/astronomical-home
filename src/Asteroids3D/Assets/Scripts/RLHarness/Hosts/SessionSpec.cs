@@ -119,8 +119,8 @@ namespace Game.RLHarness
         /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
         public SentenceRow[] sentenceRows;
 
-        /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
-        public bool Presentation => record.enabled && gizmoProfile == GizmoCaptureProfile.None;
+        /// <summary>Visuals and audio exist for this session iff it records plain footage — the profile half of the rule has one home, GizmoCaptureProfiles.PresentationFor.</summary>
+        public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
 
         // Preserve the source stem because imported asset paths erase it.
         public string CandidateStem => Path.GetFileNameWithoutExtension(

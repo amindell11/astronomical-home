@@ -6,7 +6,8 @@
         "Game.Core.Editor",
         "Game.Capture.Editor",
         "Unity.Recorder.Editor",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.Pipeline"
     ],
     "includePlatforms": [
         "Editor"
