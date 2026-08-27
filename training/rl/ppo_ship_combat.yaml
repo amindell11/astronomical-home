@@ -195,6 +195,10 @@ environment_parameters:
   # ABSENT = RELEASED is the eval/self-play default, so 1.0 here matches those envs.
   sentence_release: 1.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
+# PPO updates + worker policy serving on the RTX 2000 Ada (user ruling 2026-08-27); the
+# shared venv carries torch cu121, and explicit beats mlagents' cuda-if-available default.
+torch_settings:
+  device: cuda
 engine_settings:
   width: 320
   height: 240
