@@ -66,6 +66,10 @@ environment_parameters:
   opponent_weight_kiter: 0.15
   opponent_weight_dummy: 0.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
+# device pin is load-bearing: the shared venv carries torch cu121 and mlagents defaults to
+# cuda-if-available, which measured 50-55 steps/s vs CPU 89 on this net (2026-08-27).
+torch_settings:
+  device: cpu
 engine_settings:
   width: 320
   height: 240
