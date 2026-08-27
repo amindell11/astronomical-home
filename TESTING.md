@@ -94,6 +94,48 @@ Drive the live editor through the `unity` CLI, always passing
 `--project-path`; gate readiness on `unity command editor_status` (see the
 unity-access skill).
 
+### Routed runs (resident editor)
+
+`-Routed` routes a run into a coordinator-tracked editor already open on the
+project instead of booting a batch Unity — the dev-loop iteration lane
+(scoped runs land in seconds instead of the ~80 s cold boot floor):
+
+```powershell
+# Prereq: your work stream holds an editor on this project (StartEditor above).
+.\scripts\unity_test_agent.ps1 -Routed -Mode EditMode -ScopeType Smoke
+.\scripts\unity_test_agent.ps1 -Routed -Mode Both -ScopeType Auto
+.\scripts\unity_test_agent.ps1 -Routed -Mode PlayMode -TestCategory Weapons
+```
+
+Contract:
+
+- **Attach-only.** It never boots an editor and never takes a lease; it
+  verifies via `unity_access.ps1 -Action Status` that a tracked *editor*-mode
+  owner serves the project, and fails with the `StartEditor` recipe otherwise.
+- **Same artifacts.** The summary JSON shape, `STATUS=` line, and exit codes
+  are identical to cold runs, plus `"transport": "routed"` and `editorPid` at
+  the summary root. `xmlPath`/`logPath` are empty (results come from the
+  pipeline, not NUnit XML).
+- **Never merge proof.** The pool's coverage check refuses routed summaries;
+  the merge gate always re-runs cold. Routing is for iteration only.
+- **Exact selection or refusal.** The pipeline's `run_tests` filter is a
+  single include-only selector, so the wrapper resolves the expected test set
+  from `list_tests` and refuses any selection it cannot reproduce exactly:
+  one selector axis per run (filter OR categories OR assemblies), and no
+  selection whose matched tests carry an excluded category — notably an
+  unfiltered PlayMode/Both Workspace run under the default
+  `-ExcludeCategory RequiresGraphics`. Run those cold (also faster: batch
+  `-nographics` beats a GUI editor ~2.5× per PlayMode test).
+- **PlayMode is always async** (`--async_tests` + `test_status` polling; a
+  sync PlayMode `run_tests` silently runs zero tests), and the wrapper
+  re-arms `set_autotick` around every domain reload.
+- Incompatible with `-WithGraphics`, `-Windowed`, `-CaptureScenario`,
+  `-OrderedTestListFile`, `-RerunFailedFrom`, `-ValidateScope`,
+  `-SkipUnityAccess`. `-TestFilter` is split on `|` into alternatives, each
+  matched as a case-insensitive substring (the pipeline's semantics) — plain
+  fixture-name alternations like the Smoke/Feature scope filters work; other
+  regex syntax does not.
+
 ### Parameters
 
 | Parameter          | Default                                    | Description                              |
@@ -109,6 +151,8 @@ unity-access skill).
 | `-ValidateScope`   | off                                        | Validate scope filter matches at least one test |
 | `-ScopeMapPath`    | `scripts/unity_test_scopes.json`           | Path to scope definition file            |
 | `-UnityTimeoutSec` | `1800`                                     | Kill batch Unity run after timeout (prevents indefinite hangs) |
+| `-Routed`          | off                                        | Route the run into a resident coordinator-tracked editor (§ Routed runs) |
+| `-UnityCliPath`    | `unity`                                    | unity CLI executable used by `-Routed`   |
 | `-MaxFailures`     | `25`                                       | Max failures to include in JSON          |
 | `-IncludeStackTrace` | off                                      | Include stack traces in JSON output      |
 

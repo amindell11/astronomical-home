@@ -210,6 +210,9 @@ def main():
         print("partial|summary unreadable")
         return
     expected_project = canon_path(sys.argv[2])
+    if str(summary.get("transport") or "").strip().lower() == "routed":
+        print("partial|transport=routed (warm-editor run; the merge gate requires a cold-process run)")
+        return
     sel = summary.get("selection")
     if not isinstance(sel, dict):
         print("partial|selection missing")
@@ -263,7 +266,8 @@ $expected = Canon $env:POOL_EXPECTED_PROJECT
 $sel = $s.selection
 $mustBeEmpty = @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")
 $why = $null
-if ($null -eq $sel) { $why = "selection missing" }
+if ("$($s.transport)".Trim().ToLower() -eq "routed") { $why = "transport=routed (warm-editor run; the merge gate requires a cold-process run)" }
+if ($null -eq $why -and $null -eq $sel) { $why = "selection missing" }
 if ($null -eq $why) {
   $selKeys = @($sel.PSObject.Properties.Name)
   foreach ($key in ($mustBeEmpty + @("scopeType", "excludeCategory"))) {
