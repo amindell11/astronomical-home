@@ -61,7 +61,8 @@ fi
 rssh "git -C $RREPO checkout -f --detach $SHA" >/dev/null
 cat > "$STAGE/launch.ps1" <<EOF
 Set-Location $RREPO
-.\\scripts\\unity_test_agent.ps1 -Mode $MODE -UnityPath '$RUNITY' *> C:\\dev\\$RUNID.log
+# *> wraps host-stream lines at console width, splitting long paths; Out-File -Width does not.
+.\\scripts\\unity_test_agent.ps1 -Mode $MODE -UnityPath '$RUNITY' *>&1 | Out-File C:\\dev\\$RUNID.log -Width 4096
 "LAUNCHER_EXIT:\$LASTEXITCODE" | Add-Content C:\\dev\\$RUNID.log
 EOF
 scp -q "$STAGE/launch.ps1" "$HOST:C:/dev/$RUNID.ps1"
