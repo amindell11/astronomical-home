@@ -158,9 +158,13 @@ environment_parameters:
   opponent_weight_kiter: 0.15
   opponent_weight_dummy:
     curriculum:
-      # Weights normalize by sum (OpponentRoster.Pick): 8.0 vs the armed 0.9 ≈ 90% Dummy.
-      # Ignition lesson for the manual-aim gradient chain — the 500k gate run fired 0 shots
-      # at a stationary Dummy; approach→aim→fire→hit must first pay against a harmless target.
+      # Weights normalize by sum (OpponentRoster.Pick). Bootstrap RESHAPED 2026-08-27 (was 8.0
+      # ≈ 90% Dummy): under the released sentence head, exploration is rock-anchored — ships
+      # held envelope potential ~0.35 vs a stationary Dummy for 264k steps with dense ≈ 0.002
+      # and zero wins (passivity equilibrium; potential shaping telescopes to ~0 on a hold, so
+      # only landed damage can collapse the AIM-referent branch). 0.1 makes the ignition mix
+      # Aggressor-plural (~40%): the opponent closes the range, so proximity/return-fire states
+      # occur without approach learning. Lane VALUES only — structure unchanged for resume.
       - name: dummy_bootstrap
         completion_criteria:
           measure: reward
@@ -168,7 +172,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 300
           threshold: 0.2
-        value: 8.0
+        value: 0.1
       - name: dummy_floor
         completion_criteria:
           measure: reward

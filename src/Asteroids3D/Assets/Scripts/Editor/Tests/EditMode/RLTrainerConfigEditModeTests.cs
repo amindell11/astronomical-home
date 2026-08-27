@@ -141,8 +141,8 @@ namespace Tests.EditMode
                 "the field flag is constant — composition is boot-frozen, so the early phase is low density (0.1-0.3), never a flag flip");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
-            Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
-                "dummy weight starts at the ignition lesson (~90% Dummy under sum-normalization; 8.0 → 0.1)");
+            Assert.AreEqual(0.1f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
+                "ignition is Aggressor-plural (2026-08-27): under the released head only landed damage collapses the AIM branch, so the opponent must close the range — not a 90% stationary Dummy");
             Assert.AreEqual(defaults.weightAggressor, LessonZeroValue(block, EnvParamOverlay.OpponentWeightAggressor), 1e-6f);
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
