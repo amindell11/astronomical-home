@@ -1,4 +1,6 @@
+using AI.Scanning;
 using Game;
+using Game.Diagnostics;
 using Movement.MPC;
 using Unity.Mathematics;
 using UnityEditor;
@@ -12,8 +14,12 @@ namespace AI
         private const float NodeRadius = 0.15f;
         private const float YawTickLength = 0.4f;
         private const float LabelSize = 3f;
-        private const float BarWidth = 1.2f;
-        private const float BarHeight = 0.12f;
+        private const int BiteRingCount = 4;
+        private const float BiteConeCos = 0.5f; // half-angle 60°
+        private const float BarLabelWidth = 34f;
+        private const float BarPad = 6f;
+        private const float BarWidth = 100f;
+        private const float BarHeight = 6f;
 
         private static readonly Color SelectedCandidate = new(1f, 0.9f, 0.2f, 0.95f);
         private static readonly Color YawTick = new(1f, 1f, 0.4f, 0.7f);
@@ -170,8 +176,9 @@ namespace AI
 
         private static void DrawObstacles(Navigator nav)
         {
+            var shipPos = GamePlane.WorldPointToPlane(nav.transform.position);
             if (nav.dynamics.shipRadius > 0f)
-                Ring(GamePlane.WorldPointToPlane(nav.transform.position), nav.dynamics.shipRadius, ShipRadius);
+                Ring(shipPos, nav.dynamics.shipRadius, ShipRadius);
             if (!nav.scout) return;
 
             var scan = nav.scout.ObstacleScan;
@@ -195,28 +202,59 @@ namespace AI
 
                 if (hullCurrent < hullUnbanked - 1e-4f)
                     Ring(obs.position, obs.radius + hullCurrent, HullBanked);
+            }
 
+            if (speed <= 0.05f) return;
+            var heading = Plane(states[0].vel) / speed;
+            var biteIndices = new int[BiteRingCount];
+            var biteCount = SelectBiteObstacles(scan, shipPos, heading, biteIndices);
+
+            for (var n = 0; n < biteCount; n++)
+            {
+                var obs = scan.buffer[biteIndices[n]];
                 // Turn-away bite range: head-on distance inside which lateral thrust can't sidestep a full corridor before impact (½·a_lat·t² == corridor at t = along/speed).
                 var corridor = obs.radius + hullCurrent;
-                var biteRange = speed > 0.05f ? speed * math.sqrt(corridor / halfLatAccel) : 0f;
+                var biteRange = speed * math.sqrt(corridor / halfLatAccel);
                 if (biteRange > 0.05f) Ring(obs.position, corridor + biteRange, BiteRange);
             }
         }
 
-        // Camera-facing billboard bars: no plane-space form, so they are drawn against the current camera basis.
+        // Bite rings on every rock wash out at combat speed; only the nearest few ahead keep theirs.
+        private static int SelectBiteObstacles(ObstacleScan scan, Vector2 shipPos, Vector2 heading, int[] indices)
+        {
+            var dists = new float[indices.Length];
+            var count = 0;
+
+            for (var i = 0; i < scan.count; i++)
+            {
+                var to = scan.buffer[i].position - shipPos;
+                var dist = to.magnitude;
+                if (dist < 1e-3f || Vector2.Dot(to, heading) < BiteConeCos * dist) continue;
+                if (count == indices.Length && dist >= dists[count - 1]) continue;
+
+                var p = Mathf.Min(count, indices.Length - 1);
+                while (p > 0 && dists[p - 1] > dist)
+                {
+                    dists[p] = dists[p - 1];
+                    indices[p] = indices[p - 1];
+                    p--;
+                }
+                dists[p] = dist;
+                indices[p] = i;
+                if (count < indices.Length) count++;
+            }
+
+            return count;
+        }
+
         private static void DrawControlInputs(Navigator nav)
         {
             var sequence = nav.bestSequence;
             if (sequence == null || sequence.Length == 0) return;
-
-            var cam = Camera.current;
-            if (!cam) return;
+            if (!ShipReadout.TryGetRowRect(GamePlane.WorldPointToPlane(nav.transform.position),
+                    ShipReadoutRow.Controls, out var panel)) return;
 
             var raw = sequence[0];
-            var origin = nav.transform.position + nav.controlPanelOffset;
-            var right = cam.transform.right;
-            var up = cam.transform.up;
-
             var labelStyle = new GUIStyle
             {
                 fontSize = 11,
@@ -231,48 +269,40 @@ namespace AI
                 alignment = TextAnchor.MiddleLeft,
             };
 
-            DrawControlBar(origin, right, up, 0, "THR", raw.thrust,
+            Handles.BeginGUI();
+            var rowHeight = panel.height / 3f;
+            DrawControlBar(panel, rowHeight, 0, "THR", raw.thrust,
                 new Color(0.2f, 0.9f, 0.3f), labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 1, "STR", raw.strafe,
+            DrawControlBar(panel, rowHeight, 1, "STR", raw.strafe,
                 new Color(0.3f, 0.6f, 1f), labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque,
+            DrawControlBar(panel, rowHeight, 2, "YAW", raw.yawTorque,
                 new Color(1f, 0.4f, 0.8f), labelStyle, valueStyle);
+            Handles.EndGUI();
         }
 
-        private static void DrawControlBar(Vector3 origin, Vector3 right, Vector3 up,
-            int row, string label, float value, Color color, GUIStyle labelStyle, GUIStyle valueStyle)
+        private static void DrawControlBar(Rect panel, float rowHeight, int row,
+            string label, float value, Color color, GUIStyle labelStyle, GUIStyle valueStyle)
         {
-            var halfBar = BarWidth * 0.5f;
-            var center = origin - up * (row * 0.22f);
-            var barLeft = center - right * halfBar;
+            var y = panel.y + row * rowHeight;
+            var barRect = new Rect(panel.x + BarLabelWidth + BarPad,
+                y + (rowHeight - BarHeight) * 0.5f, BarWidth, BarHeight);
 
-            DrawQuad(barLeft, right, up, BarWidth, BarHeight, new Color(0.15f, 0.15f, 0.15f, 0.6f));
+            GUI.Label(new Rect(panel.x, y, BarLabelWidth, rowHeight), label, labelStyle);
+            EditorGUI.DrawRect(barRect, new Color(0.15f, 0.15f, 0.15f, 0.6f));
 
-            Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
-            Gizmos.DrawLine(center - up * BarHeight * 0.5f, center + up * BarHeight * 0.5f);
+            var center = barRect.x + barRect.width * 0.5f;
+            EditorGUI.DrawRect(new Rect(center - 0.5f, barRect.y, 1f, barRect.height),
+                new Color(0.4f, 0.4f, 0.4f, 0.8f));
 
             var barColor = color;
             barColor.a = 0.85f;
-            var valueBarWidth = Mathf.Abs(value) * halfBar;
-            var valueBarOrigin = value >= 0 ? center : center - right * valueBarWidth;
-            DrawQuad(valueBarOrigin, right, up, valueBarWidth, BarHeight * 0.9f, barColor);
+            var fillWidth = Mathf.Abs(value) * barRect.width * 0.5f;
+            if (fillWidth >= 1f)
+                EditorGUI.DrawRect(new Rect(value >= 0f ? center : center - fillWidth,
+                    barRect.y + barRect.height * 0.05f, fillWidth, barRect.height * 0.9f), barColor);
 
-            Handles.Label(barLeft - right * 0.05f, label, labelStyle);
-            Handles.Label(barLeft + right * (BarWidth + 0.08f), $"{value:+0.00;-0.00}", valueStyle);
-        }
-
-        private static void DrawQuad(Vector3 bottomLeft, Vector3 right, Vector3 up,
-            float width, float height, Color color)
-        {
-            if (width < 0.001f) return;
-            Gizmos.color = color;
-            // Gizmos has no filled quad; approximate with scan lines.
-            var steps = Mathf.Max(2, Mathf.CeilToInt(height / 0.02f));
-            for (var i = 0; i <= steps; i++)
-            {
-                var y = up * (i / (float)steps * height - height * 0.5f);
-                Gizmos.DrawLine(bottomLeft + y, bottomLeft + right * width + y);
-            }
+            GUI.Label(new Rect(barRect.xMax + BarPad, y, panel.xMax - barRect.xMax - BarPad, rowHeight),
+                $"{value:+0.00;-0.00}", valueStyle);
         }
 
         private static void Label(Vector2 pos, string text, Color color) =>

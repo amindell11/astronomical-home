@@ -90,7 +90,6 @@ MonoBehaviour:
   showCandidateTrajectories: 0
   candidateSampleCount: 32
   candidateAlphaFalloff: 2
-  controlPanelOffset: {x: 0, y: 2.5, z: 0}
   lastSolveTimeMs: 0
 --- !u!114 &2056539076943524747
 MonoBehaviour:
