@@ -187,24 +187,13 @@ environment_parameters:
         value: 0.25
       - name: dummy_final
         value: 0.1
-  # Sentence-vocabulary release (Intent_Grammar.md §Stage C forks 2, 5). Read by the agent's
-  # action mask (EnvParamOverlay.SentenceRelease), never applied to the spec: 0 pins referents
-  # to the enemy and frames to Position (the legacy-equivalence point), 1 opens the full head.
-  # ABSENT = RELEASED — eval and gameplay run the full vocabulary, so the self-play/graduation
-  # configs deliberately omit the key. Release must land inside the scripted-curriculum phase
-  # (the league never trains pinned); exact thresholds are launch discipline (C4), amendable.
-  sentence_release:
-    curriculum:
-      - name: sentence_pinned
-        completion_criteria:
-          measure: reward
-          behavior: ShipCombat
-          signal_smoothing: false
-          min_lesson_length: 600
-          threshold: 0.3
-        value: 0.0
-      - name: sentence_released
-        value: 1.0
+  # Sentence vocabulary: RELEASED FROM STEP 0 (user ruling 2026-08-26, amending fork 5's
+  # pinned phase). A branch masked to one choice saturates its softmax and gets ZERO gradient,
+  # so the pinned phase left referent/frame heads at random init; releasing them at ~500k
+  # collapsed attempt 1 (wins/300eps 167→0 — the action-space twin of the empty-buffer
+  # occupancy-bias failure). The key stays present for the EnvParamOverlay key-equivalence pin;
+  # ABSENT = RELEASED is the eval/self-play default, so 1.0 here matches those envs.
+  sentence_release: 1.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
 engine_settings:
   width: 320
