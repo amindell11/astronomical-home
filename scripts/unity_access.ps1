@@ -18,6 +18,9 @@ param(
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
     [switch]$CloseEditor,
     [string[]]$EditorArgs = @(),
+    [ValidateSet("LowMemory", "HighFidelity")]
+    [string]$EditorProfile = "LowMemory",
+    [int]$ProfileWaitSeconds = 300,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
     [string]$BatchLogPath = "",
@@ -34,6 +37,7 @@ $ExitOwnership = 22
 $ExitIncomplete = 23
 $ExitAdoptRefused = 24
 $ExitBootWedged = 25
+$ExitProfile = 26
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # Boot ends once licensing + global package-cache work gives way to per-project Library work
 # (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
@@ -199,6 +203,56 @@ function Get-MemberValue {
     param([object]$Object, [string]$Name)
     if ($null -eq $Object -or $null -eq $Object.PSObject.Properties[$Name]) { return $null }
     return $Object.PSObject.Properties[$Name].Value
+}
+
+function Get-EditorProfileQuality {
+    param([string]$Profile)
+    switch ($Profile) {
+        "LowMemory" { return "Performant" }
+        "HighFidelity" { return "High Fidelity" }
+        default { throw "Unknown editor profile: $Profile" }
+    }
+}
+
+function New-EditorProfileReceiptPath {
+    New-Item -ItemType Directory -Force -Path $ProfileReceiptRoot | Out-Null
+    return Join-Path $ProfileReceiptRoot ("$Lease-" + [guid]::NewGuid().ToString("N") + ".json")
+}
+
+function Get-EditorProfileReceipt {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    try { return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json }
+    catch { return [pscustomobject]@{ error = "Profile receipt is malformed: $($_.Exception.Message)" } }
+}
+
+function Wait-EditorProfileReceipt {
+    param([string]$Path)
+    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(1, $ProfileWaitSeconds))
+    while ([datetime]::UtcNow -lt $deadline) {
+        $receipt = Get-EditorProfileReceipt $Path
+        if ($null -ne $receipt) { return $receipt }
+        Start-Sleep -Milliseconds 200
+    }
+    return $null
+}
+
+function Test-EditorProfileReceipt {
+    param([object]$Receipt, [string]$RequestedProfile)
+    $expectedQuality = Get-EditorProfileQuality $RequestedProfile
+    if ($null -eq $Receipt) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = "Timed out waiting for profile receipt." }
+    }
+    $error = [string](Get-MemberValue $Receipt "error")
+    if (-not [string]::IsNullOrWhiteSpace($error)) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = $error }
+    }
+    $receiptProfile = [string](Get-MemberValue $Receipt "requestedProfile")
+    $observedQuality = [string](Get-MemberValue $Receipt "observedQuality")
+    if ($receiptProfile -ne $RequestedProfile -or $observedQuality -ne $expectedQuality) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "Profile receipt expected $RequestedProfile/$expectedQuality but reported $receiptProfile/$observedQuality." }
+    }
+    return [ordered]@{ verified = $true; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "" }
 }
 
 function Test-OwnerStale {
@@ -632,12 +686,35 @@ function Start-TrackedEditor {
     try {
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
+        $receiptPath = New-EditorProfileReceiptPath
+        $previousProfile = [Environment]::GetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", "Process")
+        $previousReceipt = [Environment]::GetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", "Process")
         # The editor must open the project whose lease it holds, so caller args compose after -projectPath.
         $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
-        $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
-        # Editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
+        try {
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", $EditorProfile, "Process")
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", $receiptPath, "Process")
+            $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
+        }
+        finally {
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", $previousProfile, "Process")
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", $previousReceipt, "Process")
+        }
+        try {
+            $profile = Test-EditorProfileReceipt (Wait-EditorProfileReceipt $receiptPath) $EditorProfile
+        }
+        finally {
+            Remove-Item -LiteralPath $receiptPath -Force -ErrorAction SilentlyContinue
+        }
+        if (-not $profile.verified) {
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            [void](Release-Access)
+            return [ordered]@{ status = "editor_profile_failed"; profile = $profile }
+        }
         $script:ProcessId = $process.Id
-        return Attach-Process
+        $attached = Attach-Process
+        $attached.profile = $profile
+        return $attached
     }
     catch {
         [void](Release-Access)
@@ -698,6 +775,7 @@ function Write-Result {
 
 $PrimaryRoot = Get-PrimaryRoot
 $AccessRoot = if ([string]::IsNullOrWhiteSpace($StateRoot)) { Join-Path $PrimaryRoot ".worktree-pool/unity-access" } else { Resolve-FullPath $StateRoot }
+$ProfileReceiptRoot = Join-Path $AccessRoot "profile-receipts"
 $LegacyOwnerRoot = Join-Path $AccessRoot "owner"
 $OwnersRoot = Join-Path $AccessRoot "owners"
 $BootRoot = Join-Path $AccessRoot "boot"
@@ -736,6 +814,7 @@ $statusExitCodes = @{
     waiting = $ExitWaiting
     boot_waiting = $ExitWaiting
     boot_lane_wedged = $ExitBootWedged
+    editor_profile_failed = $ExitProfile
     blocked_user_editor = $ExitWaiting
     adopt_no_process = $ExitAdoptRefused
     adopt_already_tracked = $ExitAdoptRefused

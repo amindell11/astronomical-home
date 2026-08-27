@@ -423,15 +423,17 @@ try {
     $edSentinel = Join-Path $Root "editorargs-sentinel.txt"
     if (Test-Path -LiteralPath $edSentinel) { Remove-Item -LiteralPath $edSentinel -Force }
     $recorder = Join-Path $Root "launch-recorder.cmd"
-    [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`n", $Utf8NoBom)
+    [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`necho {`"requestedProfile`":`"%ASTRONOMICAL_EDITOR_PROFILE%`",`"observedQuality`":`"Performant`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs @('-batchmode','-nographics')"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -ProfileWaitSeconds 5 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
         Assert-Equal $startResult.status "attached" "StartEditor -EditorArgs attaches"
         Assert-True ([int]$startResult.owner.processId -gt 0) "StartEditor -EditorArgs records a pid"
+        Assert-Equal $startResult.profile.requestedProfile "LowMemory" "StartEditor defaults to LowMemory"
+        Assert-Equal $startResult.profile.observedQuality "Performant" "StartEditor verifies LowMemory quality"
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         while (-not (Test-Path -LiteralPath $edSentinel) -and $sw.Elapsed.TotalSeconds -lt 15) { Start-Sleep -Milliseconds 200 }
         Assert-True (Test-Path -LiteralPath $edSentinel) "StartEditor launches the exe with the passed EditorArgs"
@@ -444,6 +446,33 @@ try {
         Write-Snapshot @()
         [void](Invoke-Coordinator -Action Release -Lease edargs)
     }
+
+    $highReceiptRecorder = Join-Path $Root "high-profile-recorder.cmd"
+    [System.IO.File]::WriteAllText($highReceiptRecorder, "@echo off`r`necho {`"requestedProfile`":`"HighFidelity`",`"observedQuality`":`"High Fidelity`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
+    $highOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease highprofile -Slot agent-1 -ProjectPath $projA -UnityPath $highReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -EditorProfile HighFidelity -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 0 "StartEditor HighFidelity exit"
+    $highResult = [string](@($highOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $highResult.status "attached" "StartEditor accepts explicit HighFidelity"
+    Assert-Equal $highResult.profile.observedQuality "High Fidelity" "StartEditor verifies HighFidelity quality"
+    [void](Invoke-Coordinator -Action Release -Lease highprofile)
+
+    $badReceiptRecorder = Join-Path $Root "bad-profile-recorder.cmd"
+    [System.IO.File]::WriteAllText($badReceiptRecorder, "@echo off`r`necho {`"requestedProfile`":`"LowMemory`",`"observedQuality`":`"High Fidelity`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
+    $badOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease badprofile -Slot agent-1 -ProjectPath $projA -UnityPath $badReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 26 "StartEditor profile failure exit"
+    $badResult = [string](@($badOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $badResult.status "editor_profile_failed" "StartEditor rejects a mismatched profile receipt"
+    $badStatus = Invoke-Coordinator -Action Status
+    Assert-True ($null -eq (Get-OwnerByLease $badStatus "badprofile")) "profile failure releases the owner lease"
+
+    $missingReceiptRecorder = Join-Path $Root "missing-profile-recorder.cmd"
+    [System.IO.File]::WriteAllText($missingReceiptRecorder, "@echo off`r`n", $Utf8NoBom)
+    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 1 -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 26 "StartEditor profile timeout exit"
+    $missingResult = [string](@($missingOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $missingResult.profile.note "Timed out waiting for profile receipt." "StartEditor reports a missing profile receipt"
+    $missingStatus = Invoke-Coordinator -Action Status
+    Assert-True ($null -eq (Get-OwnerByLease $missingStatus "missingprofile")) "profile timeout releases the owner lease"
 
     # Release -CloseEditor kills a live, coordinator-relevant, windowless (batch) owner.
     $killProc = Start-Process powershell -ArgumentList @("-NoProfile", "-Command", "Start-Sleep -Seconds 120") -WindowStyle Hidden -PassThru
