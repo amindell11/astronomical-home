@@ -108,7 +108,7 @@ namespace Game.RLHarness
 
         // Gameplay always runs the released vocabulary — the curriculum pin is a trainer-only state.
         public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask) =>
-            AgentActions.WriteMask(actionMask, rockSlots, released: true);
+            AgentActions.WriteMask(actionMask, rockSlots, AgentActions.SentenceVocabulary.Released);
 
         public override void OnActionReceived(ActionBuffers actions)
         {

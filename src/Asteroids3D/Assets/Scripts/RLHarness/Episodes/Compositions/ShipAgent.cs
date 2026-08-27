@@ -108,7 +108,7 @@ namespace Game.RLHarness
         // reads the roster the policy is about to observe.
         public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask) =>
             AgentActions.WriteMask(actionMask, rockSlots,
-                released: envParams(EnvParamOverlay.SentenceRelease, 1f) > 0.5f);
+                AgentActions.VocabularyFromParam(envParams(EnvParamOverlay.SentenceRelease, 1f)));
 
         public override void OnActionReceived(ActionBuffers actions)
         {

@@ -215,7 +215,7 @@ namespace Tests.EditMode
             roster.Update(Vector2.zero, new Vector2(50f, 0f), Scan(rock), default);
 
             var mask = new RecordingMask();
-            AgentActions.WriteMask(mask, roster, released: false);
+            AgentActions.WriteMask(mask, roster, AgentActions.SentenceVocabulary.Pinned);
 
             foreach (var branch in new[] { AgentActions.AimReferentBranch, AgentActions.PosReferentBranch, AgentActions.VelReferentBranch })
             {
@@ -239,7 +239,7 @@ namespace Tests.EditMode
             roster.Update(Vector2.zero, new Vector2(50f, 0f), Scan(rock), default);
 
             var mask = new RecordingMask();
-            AgentActions.WriteMask(mask, roster, released: true);
+            AgentActions.WriteMask(mask, roster, AgentActions.SentenceVocabulary.Released);
 
             foreach (var branch in new[] { AgentActions.AimReferentBranch, AgentActions.PosReferentBranch, AgentActions.VelReferentBranch })
             {
@@ -255,6 +255,40 @@ namespace Tests.EditMode
             Assert.IsFalse(mask.Enabled(AgentActions.FireSecondaryBranch, 1),
                 "the secondary stays disengage-only until marksmanship (#409) arms it");
             Assert.IsTrue(mask.Enabled(AgentActions.BoostBranch, 1), "boost is never masked");
+        }
+
+        [Test]
+        public void WriteMask_Partial_LimitsReferentsToEnemyAndNearestRock_FramesOpen()
+        {
+            var near = Rock(5f, 0f);
+            var far = Rock(8f, 0f);
+            var roster = new RockSlotRoster();
+            roster.Update(Vector2.zero, new Vector2(50f, 0f), Scan(near, far), default);
+
+            var mask = new RecordingMask();
+            AgentActions.WriteMask(mask, roster, AgentActions.SentenceVocabulary.Partial);
+
+            foreach (var branch in new[] { AgentActions.AimReferentBranch, AgentActions.PosReferentBranch, AgentActions.VelReferentBranch })
+            {
+                Assert.IsTrue(mask.Enabled(branch, 0), $"branch {branch}: the enemy referent stays choosable");
+                Assert.IsTrue(mask.Enabled(branch, 1), $"branch {branch}: the nearest-rock slot stays choosable — two live choices keep the softmax unsaturated");
+                for (var choice = 2; choice < AgentActions.ReferentChoices; choice++)
+                    Assert.IsFalse(mask.Enabled(branch, choice), $"branch {branch}: partial masks choice {choice} even when occupied");
+            }
+            foreach (var branch in new[] { AgentActions.PosFrameBranch, AgentActions.VelFrameBranch })
+                for (var frame = 0; frame < AgentActions.FrameChoices; frame++)
+                    Assert.IsTrue(mask.Enabled(branch, frame), $"partial keeps every frame open on branch {branch}");
+            Assert.IsFalse(mask.Enabled(AgentActions.FireSecondaryBranch, 1),
+                "the secondary stays disengage-only at every vocabulary level");
+        }
+
+        [Test]
+        public void VocabularyFromParam_MapsCurriculumLevels()
+        {
+            Assert.AreEqual(AgentActions.SentenceVocabulary.Pinned, AgentActions.VocabularyFromParam(0f));
+            Assert.AreEqual(AgentActions.SentenceVocabulary.Partial, AgentActions.VocabularyFromParam(0.5f));
+            Assert.AreEqual(AgentActions.SentenceVocabulary.Released, AgentActions.VocabularyFromParam(1f),
+                "1.0 and the absent-key default both read as released — eval and self-play run the full vocabulary");
         }
 
         [Test]

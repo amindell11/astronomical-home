@@ -162,25 +162,41 @@ namespace Game.RLHarness
                 d[BoostBranch] == 1);
         }
 
+        /// <summary>Vocabulary levels for <see cref="WriteMask"/>, decoded from the
+        /// EnvParamOverlay.SentenceRelease float by <see cref="VocabularyFromParam"/>. Partial exists
+        /// because a single-choice masked branch saturates its softmax and gets zero gradient (the
+        /// 2026-08-26 release collapse): two live referent choices keep the branch trainable while
+        /// concentrating exploration on the enemy.</summary>
+        public enum SentenceVocabulary { Pinned, Partial, Released }
+
+        public static SentenceVocabulary VocabularyFromParam(float sentenceRelease) =>
+            sentenceRelease < 0.25f ? SentenceVocabulary.Pinned
+            : sentenceRelease < 0.75f ? SentenceVocabulary.Partial
+            : SentenceVocabulary.Released;
+
         /// <summary>The curriculum/vocabulary mask (§Stage C forks 2, 5): pinned = referents→enemy and
-        /// frames→Position (the legacy-equivalence point); released only opens choices whose rock slot is
-        /// occupied — an empty slot is never choosable, so the policy binds only what it observed. The
-        /// secondary stays disengage-only either way until marksmanship (#409) arms it — unmasking is a
+        /// frames→Position (the legacy-equivalence point); partial = referents limited to {enemy,
+        /// nearest-rock slot}, frames open; released opens every choice whose rock slot is occupied —
+        /// an empty slot is never choosable, so the policy binds only what it observed. The secondary
+        /// stays disengage-only at every level until marksmanship (#409) arms it — unmasking is a
         /// training-run change, not a schema break.</summary>
-        public static void WriteMask(IDiscreteActionMask mask, RockSlotRoster rockSlots, bool released)
+        public static void WriteMask(IDiscreteActionMask mask, RockSlotRoster rockSlots, SentenceVocabulary vocabulary)
         {
             for (var choice = 1; choice < ReferentChoices; choice++)
             {
-                var enabled = released && rockSlots.TryGetSlot(choice - 1, out _);
+                var open = vocabulary == SentenceVocabulary.Released
+                    || (vocabulary == SentenceVocabulary.Partial && choice == 1);
+                var enabled = open && rockSlots.TryGetSlot(choice - 1, out _);
                 mask.SetActionEnabled(AimReferentBranch, choice, enabled);
                 mask.SetActionEnabled(PosReferentBranch, choice, enabled);
                 mask.SetActionEnabled(VelReferentBranch, choice, enabled);
             }
 
+            var framesOpen = vocabulary != SentenceVocabulary.Pinned;
             for (var frame = 1; frame < FrameChoices; frame++)
             {
-                mask.SetActionEnabled(PosFrameBranch, frame, released);
-                mask.SetActionEnabled(VelFrameBranch, frame, released);
+                mask.SetActionEnabled(PosFrameBranch, frame, framesOpen);
+                mask.SetActionEnabled(VelFrameBranch, frame, framesOpen);
             }
 
             mask.SetActionEnabled(FireSecondaryBranch, 1, false);

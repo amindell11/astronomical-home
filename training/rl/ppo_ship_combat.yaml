@@ -158,13 +158,12 @@ environment_parameters:
   opponent_weight_kiter: 0.15
   opponent_weight_dummy:
     curriculum:
-      # Weights normalize by sum (OpponentRoster.Pick). Bootstrap RESHAPED 2026-08-27 (was 8.0
-      # ≈ 90% Dummy): under the released sentence head, exploration is rock-anchored — ships
-      # held envelope potential ~0.35 vs a stationary Dummy for 264k steps with dense ≈ 0.002
-      # and zero wins (passivity equilibrium; potential shaping telescopes to ~0 on a hold, so
-      # only landed damage can collapse the AIM-referent branch). 0.1 makes the ignition mix
-      # Aggressor-plural (~40%): the opponent closes the range, so proximity/return-fire states
-      # occur without approach learning. Lane VALUES only — structure unchanged for resume.
+      # Weights normalize by sum (OpponentRoster.Pick): 8.0 vs the armed 0.9 ≈ 90% Dummy.
+      # Ignition lesson for the manual-aim gradient chain — approach→aim→fire→hit must first
+      # pay against a harmless target. RESTORED to 8.0 with the partial vocabulary (2026-08-27):
+      # at ~50% enemy-aim the gentle env converts to hits without the damage-taken noise an
+      # Aggressor-plural mix adds (that mix was tried: contact without learning — flat 12%
+      # damage, 0 wins over 300k steps, because 7-way referent noise diluted the credit).
       - name: dummy_bootstrap
         completion_criteria:
           measure: reward
@@ -172,7 +171,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 300
           threshold: 0.2
-        value: 0.1
+        value: 8.0
       - name: dummy_floor
         completion_criteria:
           measure: reward
@@ -191,13 +190,28 @@ environment_parameters:
         value: 0.25
       - name: dummy_final
         value: 0.1
-  # Sentence vocabulary: RELEASED FROM STEP 0 (user ruling 2026-08-26, amending fork 5's
-  # pinned phase). A branch masked to one choice saturates its softmax and gets ZERO gradient,
-  # so the pinned phase left referent/frame heads at random init; releasing them at ~500k
-  # collapsed attempt 1 (wins/300eps 167→0 — the action-space twin of the empty-buffer
-  # occupancy-bias failure). The key stays present for the EnvParamOverlay key-equivalence pin;
-  # ABSENT = RELEASED is the eval/self-play default, so 1.0 here matches those envs.
-  sentence_release: 1.0
+  # Sentence vocabulary (levels read by AgentActions.VocabularyFromParam): 0 = pinned,
+  # 0.5 = PARTIAL (referents masked to {enemy, nearest-rock slot}, frames open), 1 = released.
+  # History: fork 5's pinned phase froze the referent heads (single-choice mask = saturated
+  # softmax = zero gradient) and release at 500k collapsed attempt 1; released-from-start
+  # (attempt 2) hit a passivity equilibrium — 7-way referent noise made landed damage, the only
+  # signal that collapses the AIM branch, a compound lottery (flat 12% damage / 0 wins over
+  # 300k steps even with an Aggressor-plural mix). Partial keeps the branch TRAINABLE (two
+  # live choices) while making enemy-aim ~50% of exploration; the widen gate requires an
+  # established incumbent (sustained reward), so the five newcomer logits meet a confident
+  # enemy preference instead of an agnostic one. ABSENT = RELEASED for eval/self-play.
+  sentence_release:
+    curriculum:
+      - name: sentence_partial
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: false
+          min_lesson_length: 600
+          threshold: 0.3
+        value: 0.5
+      - name: sentence_released
+        value: 1.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
 # device: cpu is MEASURED, not a default (2026-08-27, this head): GPU (RTX 2000 Ada) ran
 # 50-55 steps/s vs CPU 89 — per-minibatch transfers + serving round-trips swamp a 256x2 net.
