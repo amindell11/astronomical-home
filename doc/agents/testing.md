@@ -15,6 +15,14 @@
 - For PlayMode tests, prefer inheriting from
   `Tests.PlayMode.Common.PlayModeWorldFixture` when it makes sense (ensures
   GamePlane/test-arena setup and cleanup).
+- Dev-loop iteration can route a scoped run into a resident editor your work
+  stream already holds: add `-Routed` to `unity_test_agent.ps1` (attach-only —
+  it never boots; start the editor via unity-access rung 4 first). Same
+  artifact contract, marked `transport: "routed"`; the merge gate refuses
+  routed summaries as proof, so gate runs stay cold. It refuses any selection
+  the pipeline's include-only filter can't reproduce exactly (notably
+  unfiltered PlayMode under `-ExcludeCategory RequiresGraphics`) — run those
+  cold. Details: `TESTING.md` § Routed runs.
 - See `TESTING.md` for the test suite guide. Every fixture is tagged with one
   **domain** category (`Sectors`, `Weapons`, `MPC`, …) plus optional
   `Smoke`/`Slow`; run a feature slice with `-TestCategory <Domain>` instead of
