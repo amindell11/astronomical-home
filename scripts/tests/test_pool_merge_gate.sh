@@ -43,7 +43,7 @@ echo "run $*" >> "$RUNNER_LOG"
 if [[ "${RUNNER_MUTATE_TRACKED:-0}" == 1 ]]; then
   sed -i 's/UNITY_POST_PROCESSING_STACK_V2$/UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED/' src/Asteroids3D/ProjectSettings/ProjectSettings.asset
 fi
-mode=Both scope=Workspace filter="" category="" assemblies=""
+mode=Both scope=Workspace filter="" category="" assemblies="" transport_line=""
 args=("$@")
 for ((i = 0; i < ${#args[@]} - 1; i++)); do
   case "${args[i]}" in
@@ -54,6 +54,7 @@ for ((i = 0; i < ${#args[@]} - 1; i++)); do
     -AssemblyNames) assemblies="${args[i+1]}" ;;
   esac
 done
+if [[ " $* " == *" -Routed "* ]]; then transport_line='"transport": "routed",'; fi
 ec="$(cat "$RUNNER_EXIT_FILE")"
 status=passed
 [[ "$ec" == 0 ]] || status=failed
@@ -69,6 +70,7 @@ fi
 mkdir -p results/unity-tests-agent
 cat > results/unity-tests-agent/latest-summary.json <<JSON
 {
+  $transport_line
   "mode": "$mode",
   "status": "$status",
   "projectPath": "$project",
@@ -387,4 +389,19 @@ rm -f "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/merge_run"
 pool merge-progress agent-nonexistent | grep -q "no merge run recorded" \
   || fail "merge-progress on a slot with no runs should say so"
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + phase journal"
+# A routed (warm-editor) summary must not arm proof even when full-shaped; the gate re-runs cold.
+runs_before="$(runner_runs)"
+merges_before="$(gh_merges)"
+echo routed-change > "$TMP/agent-1/routed_feature.txt"
+git -C "$TMP/agent-1" add routed_feature.txt
+git -C "$TMP/agent-1" commit -qm "routed feature"
+pool submit agent-1 origin/main --title "test PR" --body "test body" -- -Routed >/dev/null
+[[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "routed submit should run tests once (got $(runner_runs), had $runs_before)"
+[[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "a transport=routed summary must not arm merge proof"
+pool merge agent-1 >/dev/null
+[[ "$(runner_runs)" == $((runs_before + 2)) ]] || fail "merge after routed submit must re-run the full suite (got $(runner_runs))"
+if last_run_line | grep -q -- '-Routed'; then fail "the gate re-run must be cold (no -Routed)"; fi
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "routed-recovery merge should complete (got $(gh_merges))"
+[[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "the gate cold run should arm proof after a routed summary"
+
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal"

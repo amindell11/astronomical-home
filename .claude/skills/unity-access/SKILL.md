@@ -37,6 +37,8 @@ Run commands from the repository root with PowerShell.
 
    A session collaborating on the same work stream attaches here too, instead of running its own `StartEditor`. Gate readiness with `unity command editor_status --project-path <proj>` — never `unity status` or `pipeline list` (both misreport live and dead editors). CLI contract and gotchas (eval quirks, capture paths, reload dead zones): `doc/agents/unity-cli.md`.
 
+   Scoped test runs route into this editor too: `.\scripts\unity_test_agent.ps1 -Routed ...` (attach-only; contract in `TESTING.md` § Routed runs). Merge-gate runs stay cold — routed summaries never count as merge proof.
+
 4. Use an interactive editor only for behavior batch mode cannot verify:
 
    ```powershell
