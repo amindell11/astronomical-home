@@ -42,7 +42,7 @@ namespace Game.Capture
 
         private static readonly Type[] Everything = Combine(Steering, Combat);
 
-        /// <summary>None films plain gameplay with presentation on; any profile films with presentation off — collider silhouettes plus gizmo geometry are the footage.</summary>
+        /// <summary>None films plain gameplay; any gizmo profile films presentation-off — silhouettes plus gizmos are the footage.</summary>
         public static bool PresentationFor(GizmoCaptureProfile profile) => profile == GizmoCaptureProfile.None;
 
         /// <summary>None selects no types — the Game View then films the game alone, which is how plain gameplay footage is captured.</summary>
