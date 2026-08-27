@@ -65,4 +65,12 @@ firing follow-ups.
 Plain commands ≈100 ms; `eval` 0.5–1.5 s (server-side Roslyn compile per snippet), so a
 select→capture round-trip is ~0.5–1 s. Sub-second subjects (laser bolts) cannot be
 caught from outside the editor — that needs an editor-side `[CliCommand]` primitive
-(need recorded in the warm-capture arc, #414).
+(`capture.gizmo_still`, carded #446).
+
+## Warm-capture lane
+
+`capture_lane_attach` / `capture_lane_release` (journaled no-reload play for a
+lane session) and `capture_request_scenario` (one-shot scenario dispatch to the
+routed capture runner) are this repo's `[CliCommand]`s on `CaptureLaneSession`.
+Recipe and constraints: game-capture skill §"Warm lane (attach to a resident
+editor)".

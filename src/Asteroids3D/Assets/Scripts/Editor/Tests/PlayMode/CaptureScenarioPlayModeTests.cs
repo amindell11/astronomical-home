@@ -15,7 +15,7 @@ using Utils;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Generic runner for capture scenarios: -captureScenario &lt;TypeName&gt; on Unity's command line (forwarded by unity_test_agent.ps1 -CaptureScenario) picks the CaptureScenario to run; without it the test ignores, so the suite stays green. Composes a headless GameSession through the SessionHost primitives — scenarios get the real service container, arena, and UnitService spawn path.</summary>
+    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a GameSession through the SessionHost primitives — scenarios get the real service container, arena, and UnitService spawn path — with presentation decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
     [TestFixture]
     [Category("Camera")]
     [Category("RequiresGraphics")]
@@ -59,9 +59,9 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator RunsRequestedScenario()
         {
-            var typeName = CommandLineArg("-captureScenario");
+            var typeName = CaptureDispatch.ConsumeRequest() ?? CommandLineArg("-captureScenario");
             if (string.IsNullOrEmpty(typeName))
-                Assert.Ignore("Run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName> to capture a scenario.");
+                Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
 
             var scenario = CreateScenario(typeName);
 
@@ -73,7 +73,7 @@ namespace Tests.PlayMode
                 {
                     sectorEntry = null,
                     buildPlayer = false,
-                    presentation = true,
+                    presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
                 }
             };
             yield return host.ComposeSession(session);
