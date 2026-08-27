@@ -1,6 +1,6 @@
 # Script Seam Hardening
 
-> STATUS: live arc — scripts/ interaction-pattern cleanup; phases 0–4 below, one PR each unless noted.
+> STATUS: live arc — scripts/ interaction-pattern cleanup; arc #451, phases 0–4 carded #452–#456 (blocked chain), one PR each unless noted.
 
 Provenance: 2026-08-27 four-lane full-read audit of `scripts/` (5,141 tool
 lines + 1,391 test lines). Findings are cited inline as `file:line` against
