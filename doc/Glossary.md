@@ -537,6 +537,12 @@ Format: **term** — definition. *(authority)*
 - **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
   new caller goes through the coordinator; generalize the primitive, never bypass
   it. *(AGENTS.md wiring §6)*
+- **editor profile** — a coordinator-selected, launch-scoped choice of an
+  existing Unity quality tier. `LowMemory` maps to `Performant`; `HighFidelity`
+  maps to `High Fidelity`. *(Editor_Memory_Low_Profile.md)*
+- **profile receipt** — the editor bootstrap's atomic record of requested and
+  observed profile values; the coordinator reads it before handing off the
+  editor. *(Editor_Memory_Low_Profile.md)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
   paths. *(AGENTS.md §6 corollary)*
