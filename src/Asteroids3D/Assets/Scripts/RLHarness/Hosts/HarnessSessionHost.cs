@@ -24,7 +24,26 @@ namespace Game.RLHarness
         private IEpisodeCapture episodeCapture;
         internal bool HasEpisodeCapture => episodeCapture != null;
 
-        private void Awake() => episodeCapture = captureModule as IEpisodeCapture;
+        // Resolved lazily: the bootstrap assigns captureModule AFTER AddComponent has already run
+        // Awake, and the play-mode domain reload destroys the edit-mode HideAndDontSave instance
+        // anyway — so a recording session recreates the module on the play-mode side.
+        private void Awake() => ResolveEpisodeCapture();
+
+        private void ResolveEpisodeCapture()
+        {
+            episodeCapture ??= captureModule as IEpisodeCapture;
+#if UNITY_EDITOR
+            if (episodeCapture == null && spec != null && spec.record.enabled)
+            {
+                var type = System.Type.GetType(
+                    "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor", throwOnError: true);
+                var module = ScriptableObject.CreateInstance(type);
+                module.hideFlags = HideFlags.HideAndDontSave;
+                captureModule = module;
+                episodeCapture = module as IEpisodeCapture;
+            }
+#endif
+        }
 
         private IEnumerator Start()
         {
@@ -85,6 +104,7 @@ namespace Game.RLHarness
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
+            ResolveEpisodeCapture();
             if (spec.record.enabled && episodeCapture == null)
                 throw new InvalidOperationException(
                     "RL_HARNESS_RECORD selected capture, but the Editor bootstrap attached no episode-capture module.");
