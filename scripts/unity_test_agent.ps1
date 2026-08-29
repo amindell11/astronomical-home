@@ -94,7 +94,6 @@ function Invoke-UnityAccess {
     param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
     if ($SkipUnityAccess.IsPresent) { return $null }
 
-    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $slot = Get-UnityAccessSlot $ProjectFullPath
     $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
     $waitSeconds = if ($WaitSecondsOverride -gt 0) { $WaitSecondsOverride } else { $UnityAccessWaitSec }
@@ -109,13 +108,13 @@ function Invoke-UnityAccess {
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $arguments += @("-StateRoot", $UnityAccessStateRoot) }
     if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
 
-    $call = Invoke-UnityAccessCoordinator -Coordinator $coordinator -CoordinatorArgs $arguments
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
     $result = $call.result
     if ($call.exitCode -ne 0) {
         if ($Action -in @("Acquire", "Wait")) {
             $cancelArguments = @("-Action", "Cancel", "-Lease", $lease)
             if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $cancelArguments += @("-StateRoot", $UnityAccessStateRoot) }
-            [void](Invoke-UnityAccessCoordinator -Coordinator $coordinator -CoordinatorArgs $cancelArguments)
+            [void](Invoke-UnityAccessCoordinator -CoordinatorArgs $cancelArguments)
         }
         if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
             $blocker = @($result.blockers | Select-Object -First 1)
@@ -608,10 +607,9 @@ function Invoke-PipelineCommand {
 function Assert-RoutedEditorOwner {
     param([string]$ProjectFullPath)
 
-    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $statusArgs = @("-Action", "Status")
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $statusArgs += @("-StateRoot", $UnityAccessStateRoot) }
-    $call = Invoke-UnityAccessCoordinator -Coordinator $coordinator -CoordinatorArgs $statusArgs
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $statusArgs
     if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "-Routed: unity_access Status failed (exit=$($call.exitCode)): $($call.stderr)" }
     $state = $call.result
 

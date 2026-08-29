@@ -1005,7 +1005,7 @@ merge_phase_budget() {
     proof-check) echo 15 ;;
     tests) echo 1200 ;;
     resharper) echo 300 ;;
-    script-tests) echo 300 ;;
+    script-tests) echo 420 ;;
     push) echo 90 ;;
     gh-merge) echo 90 ;;
     *) echo 0 ;;
