@@ -126,17 +126,21 @@ function Get-WorktreePath {
 }
 
 function Get-UnityProcesses {
+    # An enumeration that failed is not evidence of no Unity: answering @() here reaped live
+    # pid-backed owners and boot records on a WMI hiccup, so a failure is loud instead.
     if (-not [string]::IsNullOrWhiteSpace($ProcessSnapshotPath)) {
-        $snapshot = Read-JsonFile (Resolve-FullPath $ProcessSnapshotPath)
+        $snapshotPath = Resolve-FullPath $ProcessSnapshotPath
+        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Process snapshot not found: $snapshotPath" }
+        $snapshot = Read-JsonFile $snapshotPath
         if ($null -eq $snapshot) { return @() }
         return @($snapshot)
     }
     try {
-        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue | ForEach-Object {
+        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
             [pscustomobject]@{ processId = [int]$_.ProcessId; commandLine = [string]$_.CommandLine }
         })
     }
-    catch { return @() }
+    catch { throw "Unity process enumeration failed: $($_.Exception.Message)" }
 }
 
 function Get-RelevantUnityProcesses {

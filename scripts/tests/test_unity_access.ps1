@@ -563,6 +563,28 @@ try {
     $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
 
+    # A failed process enumeration must never read as "no Unity": it fails the call instead of
+    # reaping the live pid-backed owner it cannot see (#453).
+    [void](Invoke-Coordinator -Action Acquire -Lease cim-live -ProjectPath $projA)
+    Write-Snapshot @([ordered]@{ processId = 43001; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
+    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease cim-live -Slot agent-1 -ProcessId 43001 -ProjectPath $projA -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $hidden = Join-Path $Root "processes.hidden"
+    Move-Item -LiteralPath $Snapshot -Destination $hidden -Force
+    # The coordinator writes its failure to stderr; under EAP=Stop a bare 2>&1 would end the test here.
+    $blindErr = Join-Path $Root "blind.err"
+    $blindProc = Start-Process powershell -ArgumentList @(
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
+        "-Action", "Status", "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot, "-Json"
+    ) -WindowStyle Hidden -PassThru -Wait -RedirectStandardError $blindErr
+    $blind = @(Get-Content -LiteralPath $blindErr -ErrorAction SilentlyContinue)
+    Assert-True ($blindProc.ExitCode -ne 0) "an unreadable process snapshot fails the call"
+    Assert-True ([bool](($blind -join "`n") -match "Process snapshot not found")) "the enumeration failure names itself"
+    Move-Item -LiteralPath $hidden -Destination $Snapshot -Force
+    $survived = Invoke-Coordinator -Action Status
+    Assert-Equal (Get-OwnerByLease $survived "cim-live").processId 43001 "a blind call leaves the live owner intact"
+    [void](Invoke-Coordinator -Action Release -Lease cim-live -ProjectPath $projA)
+    Write-Snapshot @()
+
     # Concurrent acquires of one project yield a single owner: the owner dir is renamed into place
     # already holding its record, so no rival can reap a winner's record-less dir (#453).
     $projRace = Join-Path $Root "projRace\src\Asteroids3D"
