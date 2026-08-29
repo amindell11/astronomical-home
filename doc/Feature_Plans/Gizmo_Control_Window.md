@@ -1,10 +1,20 @@
 # Gizmo Control Window — scene-global gizmo visibility, decoupled from selection
 
-> STATUS: SHIPPED 2026-08-29. Arc #464 complete across three PRs: PR-A core (#470), PR-B sweep
-> (#472), PR-C environment (this PR, #467) — Colliders toggle + facing-chevron ship marker. Living
-> design record; kept, not deleted. Supersedes the selection-gated + per-instance-bool gizmo model
-> for interactive editing. The capture lane (`GizmoCaptureProfiles`) is untouched by this arc; it
-> only lends its category vocabulary as display grouping.
+> STATUS: SHIPPED 2026-08-29. Arc #464 complete across PRs: PR-A core (#470), PR-B sweep
+> (#472), PR-C environment (#467) — Colliders toggle + facing-chevron ship marker — and PR-D
+> capture reconciliation (#478). Living design record; kept, not deleted. Supersedes the
+> selection-gated + per-instance-bool gizmo model for interactive editing.
+>
+> PR-D reconciliation: once drawers gate on `GizmoView.IsOn` (EditorPrefs, default OFF) instead of
+> `GizmoType.Selected`, the capture lane's old "select the subjects" trick no longer lights gizmos
+> up. `GameViewCaptureTransaction` now snapshots → drives → restores GizmoView state around a run:
+> it turns on every registered subview matching the profile's types, applies a scope (new
+> `CaptureConfig.gizmoScope`/`gizmoScopeTeam`, default All), and sets `CollidersOn = true` —
+> **colliders, not unlit meshes, are the presentation-off silhouette source**. EditorPrefs is
+> machine-global, so the transaction restores all subview flags, scope, team, and the colliders
+> toggle after the run. Access is via `InternalsVisibleTo("Game.Capture.GameView.Editor")` on
+> `Game.Core.Editor`. Pixel proof:
+> `RLCapturePlayModeTests.NativeCapture_PresentationOff_FilmsGizmoAndColliderSilhouettePixels`.
 
 ## Problem
 
@@ -99,6 +109,9 @@ Split:
 - **PR-B — sweep.** Convert the remaining 15 drawers off `GizmoType.Selected`, mint one subview id +
   appearance string each. Mechanical, parallelizable across subagents.
 - **PR-C — environment.** Colliders toggle + chevron ship marker.
+- **PR-D — capture reconciliation.** Capture transaction drives GizmoView subviews + scope +
+  colliders (snapshot/restore); presentation-off CLI recipe flips the profile before compose.
+  Deeper static-vs-snapshot presentation unification stays deferred (#304).
 
 ## Deferrals (card on merge of PR-A)
 
