@@ -8,9 +8,22 @@ using UnityEngine;
 
 namespace AI
 {
-    /// <summary>What the MPC solved this step: the sampled candidate fan, the chosen path with its costs, the enemy rollout, the collision hulls it tested, and the applied control bars. Per-Navigator toggles choose which of those subviews are worth their cost.</summary>
+    /// <summary>What the MPC solved this step: the sampled candidate fan, the chosen path with its costs, the enemy rollout, the collision hulls it tested, and the applied control bars. Registers those subviews with the Gizmo View window; each row gates its draw at scene-global scope.</summary>
+    [InitializeOnLoad]
     internal static class NavigatorGizmos
     {
+        static NavigatorGizmos()
+        {
+            GizmoView.Register(typeof(Navigator), "candidates", "Candidate Fan",
+                "faded-blue sampled trajectory fan, best-cost opaque", "Steering");
+            GizmoView.Register(typeof(Navigator), "predicted", "Predicted Path & Costs",
+                "cyan→red cost-colored chosen path + red enemy rollout", "Steering");
+            GizmoView.Register(typeof(Navigator), "obstacles", "Obstacle Hulls",
+                "collision hull rings + yellow turn-away bite ranges", "Steering");
+            GizmoView.Register(typeof(Navigator), "controls", "Control Bars",
+                "THR/STR/YAW applied-control bars", "Steering");
+        }
+
         private const float NodeRadius = 0.15f;
         private const float YawTickLength = 0.4f;
         private const float LabelSize = 3f;
@@ -32,19 +45,22 @@ namespace AI
         private static readonly Vector2 LabelOffset = new(0f, 0.2f);
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
-        [DrawGizmo(GizmoType.Selected, typeof(Navigator))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Navigator))]
         private static void Draw(Navigator nav, GizmoType gizmoType)
         {
-            if (!Application.isPlaying || nav.mpc == null) return;
+            if (!Application.isPlaying || nav.mpc == null || !GizmoView.InScope(nav)) return;
 
             if (nav.solver != null)
             {
-                if (nav.showCandidateTrajectories) DrawCandidates(nav);
-                DrawPredicted(nav);
-                DrawEnemyRollout(nav);
+                if (GizmoView.IsOn(typeof(Navigator), "candidates")) DrawCandidates(nav);
+                if (GizmoView.IsOn(typeof(Navigator), "predicted"))
+                {
+                    DrawPredicted(nav);
+                    DrawEnemyRollout(nav);
+                }
             }
-            if (nav.showObstacleCosts) DrawObstacles(nav);
-            if (nav.showControlInputs) DrawControlInputs(nav);
+            if (GizmoView.IsOn(typeof(Navigator), "obstacles")) DrawObstacles(nav);
+            if (GizmoView.IsOn(typeof(Navigator), "controls")) DrawControlInputs(nav);
         }
 
         private static void DrawCandidates(Navigator nav)
@@ -116,12 +132,9 @@ namespace AI
             if (states == null || states.Length == 0 || sequence == null || sequence.Length == 0) return;
 
             var config = nav.config;
-            var withCosts = nav.showTrajectoryCosts;
-            var input = withCosts
-                ? nav.solver.BuildCostInput(nav.CostVelocityReference, nav.enemyPos, nav.enemyVel,
-                    nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, states[0].vel, nav.sentence,
-                    nav.referent1, nav.referent2, nav.referent3)
-                : default;
+            var input = nav.solver.BuildCostInput(nav.CostVelocityReference, nav.enemyPos, nav.enemyVel,
+                nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, states[0].vel, nav.sentence,
+                nav.referent1, nav.referent2, nav.referent3);
             var prevPos = Plane(states[0].pos);
             var prevU = sequence[0];
 
@@ -130,19 +143,15 @@ namespace AI
                 var state = states[i];
                 var u = sequence[i];
                 var pos = Plane(state.pos);
-                var color = Color.cyan;
 
-                if (withCosts)
-                {
-                    var breakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, i);
-                    var severity = breakdown.collision > 0f ? 5f
-                        : config.wObstacle > 0f ? breakdown.obstacle / config.wObstacle : 0f;
-                    color = CostColor(severity);
-                    if (i % nav.labelStep == 0)
-                        Label(pos + LabelOffset,
-                            $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1})",
-                            Color.white);
-                }
+                var breakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, i);
+                var severity = breakdown.collision > 0f ? 5f
+                    : config.wObstacle > 0f ? breakdown.obstacle / config.wObstacle : 0f;
+                var color = CostColor(severity);
+                if (i % nav.labelStep == 0)
+                    Label(pos + LabelOffset,
+                        $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1})",
+                        Color.white);
 
                 Line(prevPos, pos, color);
                 Ring(pos, NodeRadius, color);

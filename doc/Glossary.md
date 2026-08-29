@@ -531,6 +531,12 @@ Format: **term** — definition. *(authority)*
   presentation off — collider silhouettes and gizmo geometry are the footage;
   selecting none films plain gameplay with presentation on.
   *(GizmoCaptureProfile, GizmoCaptureProfiles)*
+- **gizmo subview** — one registered gizmo toggle row in the Gizmo View window,
+  keyed by `(component-type, key)`. A drawer self-registers its subviews and, at
+  draw time, gates each on the window's flag + scope predicate instead of
+  `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
+  RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
+  never committed. *(GizmoView, GizmoViewWindow)*
 
 ### Infra & tooling
 
