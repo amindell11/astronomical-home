@@ -1,4 +1,28 @@
-﻿param(
+﻿<#
+.SYNOPSIS
+    Runs the Unity test suite (cold batch, or -Routed against a resident editor) and writes the
+    run summary other tools read.
+
+.DESCRIPTION
+    Exit codes: 0 all green, 1 test failures, 2 infra_error (nothing executed - compile failure or
+    a launch problem), any other non-zero = the wrapper itself failed before a summary existed.
+
+    Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
+    content). Fields consumers depend on:
+      projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      transport      - present and "routed" only for a -Routed warm-editor run.
+      coverage       - { verdict = "full"|"partial"; reason = "<machine-readable why>" }. THE
+                       coverage verdict: "full" means this run covered the whole suite cold,
+                       unfiltered and green, and is therefore merge-grade. Readers trust this
+                       field; they do not re-derive it from selection/runs. A summary without it
+                       (older run, foreign producer) is partial by the reader's fail-closed rule.
+      The summary is a snapshot of the WORKING TREE at run time; pairing it with a commit is the
+      caller's job (agent_worktree_pool.sh records the tree hash alongside it).
+
+    Machine channel: KEY=value trailers on stdout - UNITY_TEST_SUMMARY_JSON=<path> and
+    STATUS=<status> total=... passed=... failed=... skipped=...
+#>
+param(
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/unity-tests-agent",
@@ -77,8 +101,7 @@ if ($Routed.IsPresent) {
 
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
-# Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
-$Script:BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
+$Script:BootCompletePattern = ""
 $Script:BootWatchTimeoutSec = 180
 $Script:BootAcquireWaitSec = 300
 
@@ -154,10 +177,22 @@ function Exit-UnityBootLane {
     catch { Write-Warning "Boot lane release failed (continuing): $($_.Exception.Message)" }
 }
 
+# The boot-complete marker has ONE home: the coordinator that owns the boot lane. This run drives that
+# lane itself, so it asks rather than keeping a copy that drifts out of step with the lane's own reading.
+function Get-BootCompletePattern {
+    if (-not [string]::IsNullOrWhiteSpace($Script:BootCompletePattern)) { return $Script:BootCompletePattern }
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "Contract")
+    if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "unity_access Contract failed (exit=$($call.exitCode)): $($call.stderr)" }
+    $pattern = [string]$call.result.bootCompletePattern
+    if ([string]::IsNullOrWhiteSpace($pattern)) { throw "unity_access Contract returned no bootCompletePattern." }
+    $Script:BootCompletePattern = $pattern
+    return $pattern
+}
+
 function Test-UnityBootComplete {
     param([string]$LogPath)
     if ([string]::IsNullOrWhiteSpace($LogPath) -or -not (Test-Path -LiteralPath $LogPath)) { return $false }
-    return [bool](Select-String -LiteralPath $LogPath -Pattern $Script:BootCompletePattern -Quiet -ErrorAction SilentlyContinue)
+    return [bool](Select-String -LiteralPath $LogPath -Pattern (Get-BootCompletePattern) -Quiet -ErrorAction SilentlyContinue)
 }
 
 function Get-ArgumentValue {
@@ -607,16 +642,15 @@ function Invoke-PipelineCommand {
 function Assert-RoutedEditorOwner {
     param([string]$ProjectFullPath)
 
-    $statusArgs = @("-Action", "Status")
+    # "Who owns this path" is the coordinator's question: -ProjectPath makes Status answer it with its
+    # own normalization, so no path-matching rule lives here.
+    $statusArgs = @("-Action", "Status", "-ProjectPath", $ProjectFullPath)
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $statusArgs += @("-StateRoot", $UnityAccessStateRoot) }
     $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $statusArgs
     if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "-Routed: unity_access Status failed (exit=$($call.exitCode)): $($call.stderr)" }
     $state = $call.result
 
-    $target = ($ProjectFullPath -replace '\\', '/').TrimEnd('/').ToLowerInvariant()
-    $owners = @(@(Get-JsonProp $state 'owners') | Where-Object {
-        $null -ne $_ -and (([string](Get-JsonProp $_ 'projectPath')) -replace '\\', '/').TrimEnd('/').ToLowerInvariant() -eq $target
-    })
+    $owners = @(Get-JsonProp $state 'projectOwner' | Where-Object { $null -ne $_ })
     if ($owners.Count -eq 0) {
         throw ("-Routed attaches only to an editor your work stream already holds, and the coordinator tracks none on $ProjectFullPath. " +
             "Start one first (unity-access skill): .\scripts\unity_access.ps1 -Action StartEditor -Lease <lease> -Slot <slot> -Mode editor -WaitSeconds 60 -Json " +
@@ -679,9 +713,13 @@ function Resolve-RoutedPlatformPlan {
     $calls = @()
     $matched = @{}
     if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
-        # Scope resolution emits '|'-alternations of fixture names (cold Unity reads them as regex);
-        # the pipeline filter is a single literal substring, so each alternative becomes its own call.
-        $filterParts = @($TestFilter -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+        # The scope lib owns the authored filter format; ask it for the literal names this transport
+        # needs. A selection it cannot represent is refused here, never approximated.
+        $nameSelection = ConvertTo-TestNameSelection -TestFilter $TestFilter
+        if (-not $nameSelection.representable) {
+            throw "-Routed cannot honor -TestFilter '$TestFilter': the pipeline's run_tests takes one literal substring per call, and this filter has $($nameSelection.reason). Run it cold (drop -Routed)."
+        }
+        $filterParts = @($nameSelection.names)
         foreach ($part in $filterParts) { $calls += , @{ filter = $part; filterType = "testname" } }
         foreach ($test in $candidates) {
             $fullName = [string](Get-JsonProp $test 'FullName')
@@ -1068,7 +1106,10 @@ try {
             }
         }
         else {
-            $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+            # One structured selection, two transports: the cold path takes its alternation, the
+            # routed path takes its literal names (Resolve-RoutedPlatformPlan).
+            $scopeSelection = Resolve-ScopeSelection -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+            $resolvedFilter = [string]$scopeSelection.testFilter
             if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
                 $scopeResolved = $true
                 Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
@@ -1343,6 +1384,60 @@ $overallStatus = if ($hasInfraError) {
     "passed"
 }
 
+# Merge-grade coverage is the RUNNER's verdict, not a reader's guess: only this script knows what it
+# was asked to run and what actually executed. The pool trusts coverage.verdict and checks only the
+# one thing it owns (that the summary describes the tree it is about to land) - script-contracts.md
+# sec.3. A summary carrying no stamp is partial by the reader's fail-closed rule.
+function Get-RunField {
+    param([object]$Run, [string]$Name)
+    if ($null -eq $Run) { return $null }
+    if ($Run -is [System.Collections.IDictionary]) {
+        if ($Run.Contains($Name)) { return $Run[$Name] }
+        return $null
+    }
+    $prop = $Run.PSObject.Properties[$Name]
+    if ($null -eq $prop) { return $null }
+    return $prop.Value
+}
+
+function Get-CoverageVerdict {
+    param([object[]]$Runs, [object]$Selection, [string]$OverallStatus)
+
+    if ($Routed.IsPresent) { return [ordered]@{ verdict = "partial"; reason = "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)" } }
+    if ($OverallStatus -ne "passed") { return [ordered]@{ verdict = "partial"; reason = "status=$OverallStatus" } }
+    if ($Mode -ne "Both") { return [ordered]@{ verdict = "partial"; reason = "mode=$Mode" } }
+    if ("$($Selection.scopeType)".ToLowerInvariant() -ne "workspace") { return [ordered]@{ verdict = "partial"; reason = "scopeType=$($Selection.scopeType)" } }
+
+    foreach ($key in @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$Selection[$key])) { return [ordered]@{ verdict = "partial"; reason = "$key set" } }
+    }
+
+    # RequiresGraphics is excluded from every gate run by design; any other exclusion narrows the suite.
+    $extraExclusions = @("$($Selection.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
+    if ($extraExclusions.Count -gt 0) { return [ordered]@{ verdict = "partial"; reason = "excludeCategory=$($Selection.excludeCategory)" } }
+
+    # A fully-green run containing ignored tests reports NUnit "Skipped:Ignored" -> per-run status
+    # "unknown", so per-platform greenness is failed==0/total>0, never the status label.
+    $platforms = @()
+    foreach ($run in @($Runs)) {
+        $platform = [string](Get-RunField $run 'platform')
+        $runStatus = [string](Get-RunField $run 'status')
+        if ($runStatus -eq "failed" -or $runStatus -eq "infra_error") { return [ordered]@{ verdict = "partial"; reason = "run $platform status=$runStatus" } }
+        $runFailed = -1
+        $runTotal = 0
+        if (-not [int]::TryParse([string](Get-RunField $run 'failed'), [ref]$runFailed) -or -not [int]::TryParse([string](Get-RunField $run 'total'), [ref]$runTotal)) {
+            return [ordered]@{ verdict = "partial"; reason = "run $platform has no countable totals" }
+        }
+        if ($runFailed -ne 0 -or $runTotal -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$runFailed total=$runTotal" } }
+        $platforms += $platform
+    }
+    if ($platforms -notcontains "EditMode" -or $platforms -notcontains "PlayMode") {
+        return [ordered]@{ verdict = "partial"; reason = "runs lack passed EditMode+PlayMode" }
+    }
+
+    return [ordered]@{ verdict = "full"; reason = "mode=Both scopeType=Workspace excludeCategory=$($Selection.excludeCategory)" }
+}
+
 $summary = [ordered]@{
     generatedAt = (Get-Date).ToString("o")
     projectPath = $project
@@ -1359,8 +1454,9 @@ $summary = [ordered]@{
     }
     runs = $runs
 }
+$summary.coverage = Get-CoverageVerdict -Runs $runs -Selection $selection -OverallStatus $overallStatus
 if ($Routed.IsPresent) {
-    # Warm-run marker: the pool's full-coverage parsers refuse transport=routed summaries as merge proof (the merge gate stays cold-process).
+    # Warm-run marker; the coverage stamp already reports routed runs as partial (the merge gate stays cold-process).
     $summary.transport = "routed"
     $summary.editorPid = [int]$Script:RoutedEditorPid
 }

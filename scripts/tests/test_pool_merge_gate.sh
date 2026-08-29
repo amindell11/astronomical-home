@@ -72,7 +72,20 @@ else
   runs="{\"platform\": \"$mode\", \"status\": \"$status\", \"total\": 10, \"failed\": $failed}"
 fi
 mkdir -p "$outdir"
-# Golden mode replays a real unity_test_agent.ps1 summary, so the gate's coverage predicate is tested against the runner's actual schema.
+# The runner owns the coverage verdict, so the stub stamps it the way unity_test_agent.ps1 does.
+coverage_verdict=full
+coverage_reason="mode=Both scopeType=Workspace excludeCategory=RequiresGraphics"
+if [[ -n "$transport_line" ]]; then coverage_verdict=partial; coverage_reason="transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+elif [[ "$status" != passed ]]; then coverage_verdict=partial; coverage_reason="status=$status"
+elif [[ "$mode" != Both ]]; then coverage_verdict=partial; coverage_reason="mode=$mode"
+elif [[ "$scope" != Workspace ]]; then coverage_verdict=partial; coverage_reason="scopeType=$scope"
+elif [[ -n "$filter" ]]; then coverage_verdict=partial; coverage_reason="testFilter set"
+elif [[ -n "$category" ]]; then coverage_verdict=partial; coverage_reason="testCategory set"
+elif [[ -n "$assemblies" ]]; then coverage_verdict=partial; coverage_reason="assemblyNames set"
+fi
+if [[ "${RUNNER_OMIT_COVERAGE:-0}" == 1 ]]; then coverage_block=""; else coverage_block=",
+  \"coverage\": { \"verdict\": \"$coverage_verdict\", \"reason\": \"$coverage_reason\" }"; fi
+# Golden mode replays a real unity_test_agent.ps1 summary, so the gate's coverage read is tested against the runner's actual schema.
 if [[ -n "${RUNNER_GOLDEN_SUMMARY:-}" ]]; then
   sed "s#__PROJECT_PATH__#$(printf '%s' "$project" | sed 's/\\/\\\\/g')#" "$GOLDEN_SUMMARY" > "$outdir/latest-summary.json"
   exit "$ec"
@@ -93,7 +106,7 @@ cat > "$outdir/latest-summary.json" <<JSON
     "assemblyNames": "$assemblies",
     "orderedTestListFile": "",
     "rerunFailedFrom": ""
-  }
+  }$coverage_block
 }
 JSON
 exit "$ec"
@@ -155,6 +168,14 @@ runs_before="$(runner_runs)"
 RUNNER_GOLDEN_SUMMARY=1 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "golden-summary submit should run tests once (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "the golden runner summary must arm merge-grade proof"
+
+# Fail-closed on the one trusted field: an otherwise full-shaped summary with no coverage stamp
+# (older run, foreign producer) is partial, and the gate re-tests.
+rm -rf "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_tree" "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_scope"
+RUNNER_OMIT_COVERAGE=1 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
+[[ -z "$(recorded_tree)" ]] || fail "an unstamped summary must not arm merge proof"
+pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
+[[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "a stamped full summary must arm proof after an unstamped one"
 
 echo tweak >> "$TMP/agent-1/feature.txt"
 git -C "$TMP/agent-1" add feature.txt

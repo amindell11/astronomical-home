@@ -14,8 +14,28 @@ usage() {
 Usage: scripts/agent_worktree_pool.sh <command> [args]
 
 Commands:
-  status
-      List agent-* worktree slots and lock status.
+  status [--porcelain]
+      List agent-* worktree slots and lock status. Plain output is human-only
+      and carries no contract.
+
+      --porcelain is THE pool's read interface - the only sanctioned way for
+      another script to learn slot state. One record per slot, KEY=value one
+      per line, records separated by a blank line (git's own --porcelain
+      shape; values may contain spaces, keys never do):
+
+        slot=agent-1            always
+        state=free|locked|stale always; stale = locked past the lock TTL
+        path=<abs-path>         always
+        lease=<lease-id>        locked/stale slots that have a lease
+        task_branch=task/<lease>  when one is recorded or derivable; this is
+                                the branch a PR for the slot is opened FROM
+        age_seconds=<int>       locked/stale only
+        locked_by_pid=<pid>     locked/stale only, informational: pool locks
+                                go stale by AGE, never by pid liveness
+        locked_at=<iso8601>     locked/stale only
+
+      Keys may be added; consumers must ignore unknown keys and tolerate any
+      optional key being absent.
 
   acquire [lease_id] [slot]
       Lock and return an available slot. Auto-pick prefers genuinely
@@ -205,129 +225,30 @@ clear_run_summary() {
   rm -f "$path/$SUMMARY_REL"
 }
 
-FULL_COVERAGE_PY='
-import json, sys
-
-def canon_path(p):
-    return str(p or "").replace("\\", "/").rstrip("/").lower()
-
-def main():
-    try:
-        with open(sys.argv[1], encoding="utf-8-sig") as f:
-            summary = json.load(f)
-    except Exception:
-        print("partial|summary unreadable")
-        return
-    expected_project = canon_path(sys.argv[2])
-    if str(summary.get("transport") or "").strip().lower() == "routed":
-        print("partial|transport=routed (warm-editor run; the merge gate requires a cold-process run)")
-        return
-    sel = summary.get("selection")
-    if not isinstance(sel, dict):
-        print("partial|selection missing")
-        return
-    must_be_empty = ["testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom"]
-    for key in must_be_empty + ["scopeType", "excludeCategory"]:
-        if key not in sel:
-            print("partial|selection.%s missing" % key)
-            return
-    # A fully-green run with ignored tests reports NUnit result "Skipped:Ignored" -> per-run status "unknown", so gate on failed==0/total>0 instead of the status label.
-    def green_run(run):
-        if not isinstance(run, dict) or run.get("status") in ("failed", "infra_error"):
-            return False
-        try:
-            return int(run.get("failed")) == 0 and int(run.get("total")) > 0
-        except (TypeError, ValueError):
-            return False
-    runs = summary.get("runs")
-    runs_ok = isinstance(runs, list) and len(runs) > 0
-    passed_platforms = set()
-    if runs_ok:
-        for run in runs:
-            if not green_run(run):
-                runs_ok = False
-                break
-            passed_platforms.add(run.get("platform"))
-    exclude = {c.strip().lower() for c in str(sel.get("excludeCategory") or "").split(";") if c.strip()}
-    checks = [
-        (summary.get("status") == "passed", "status=%s" % summary.get("status")),
-        (summary.get("mode") == "Both", "mode=%s" % summary.get("mode")),
-        (expected_project != "" and canon_path(summary.get("projectPath")) == expected_project,
-         "projectPath=%s (expected %s)" % (summary.get("projectPath"), expected_project)),
-        (runs_ok and {"EditMode", "PlayMode"} <= passed_platforms, "runs lack passed EditMode+PlayMode"),
-        (str(sel.get("scopeType") or "").lower() == "workspace", "scopeType=%s" % sel.get("scopeType")),
-        (exclude <= {"requiresgraphics"}, "excludeCategory=%s" % sel.get("excludeCategory")),
-    ] + [(not str(sel.get(k) or "").strip(), "%s set" % k) for k in must_be_empty]
-    for ok, why in checks:
-        if not ok:
-            print("partial|" + why)
-            return
-    print("full|mode=Both scopeType=Workspace excludeCategory=%s" % (sel.get("excludeCategory") or ""))
-
-main()
-'
-
-FULL_COVERAGE_PS='
+# The runner stamps the coverage verdict (unity_test_agent.ps1 -> summary.coverage); this reads that
+# one field and checks only the thing the pool owns - that the summary is about THIS slot's project.
+# No re-derivation of the runner's selection semantics lives here (script-contracts.md sec.3).
+COVERAGE_READER='
+$ErrorActionPreference = "Stop"
 function Canon($p) { return "$p".Replace("\", "/").TrimEnd("/").ToLower() }
-function Blank($v) { return [string]::IsNullOrWhiteSpace([string]$v) }
 try { $s = Get-Content -LiteralPath $env:POOL_SUMMARY_JSON -Raw | ConvertFrom-Json } catch { Write-Output "partial|summary unreadable"; exit 0 }
 $expected = Canon $env:POOL_EXPECTED_PROJECT
-$sel = $s.selection
-$mustBeEmpty = @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")
-$why = $null
-if ("$($s.transport)".Trim().ToLower() -eq "routed") { $why = "transport=routed (warm-editor run; the merge gate requires a cold-process run)" }
-if ($null -eq $why -and $null -eq $sel) { $why = "selection missing" }
-if ($null -eq $why) {
-  $selKeys = @($sel.PSObject.Properties.Name)
-  foreach ($key in ($mustBeEmpty + @("scopeType", "excludeCategory"))) {
-    if ($selKeys -notcontains $key) { $why = "selection.$key missing"; break }
-  }
-}
-if ($null -eq $why) {
-  $runs = @($s.runs)
-  $passedPlatforms = @()
-  $runsOk = $runs.Count -gt 0
-  foreach ($run in $runs) {
-    if ($null -eq $run) { $runsOk = $false; break }
-    $st = [string]$run.status
-    if ($st -eq "failed" -or $st -eq "infra_error") { $runsOk = $false; break }
-    $failedN = -1
-    $totalN = 0
-    if (-not [int]::TryParse([string]$run.failed, [ref]$failedN)) { $runsOk = $false; break }
-    if (-not [int]::TryParse([string]$run.total, [ref]$totalN)) { $runsOk = $false; break }
-    if ($failedN -ne 0 -or $totalN -le 0) { $runsOk = $false; break }
-    $passedPlatforms += [string]$run.platform
-  }
-  $bad = @("$($sel.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
-  if ($s.status -ne "passed") { $why = "status=" + $s.status }
-  elseif ($s.mode -cne "Both") { $why = "mode=" + $s.mode }
-  elseif ($expected -eq "" -or (Canon $s.projectPath) -ne $expected) { $why = "projectPath=" + $s.projectPath + " (expected " + $expected + ")" }
-  elseif (-not ($runsOk -and $passedPlatforms -ccontains "EditMode" -and $passedPlatforms -ccontains "PlayMode")) { $why = "runs lack passed EditMode+PlayMode" }
-  elseif ("$($sel.scopeType)".ToLower() -ne "workspace") { $why = "scopeType=" + $sel.scopeType }
-  elseif ($bad.Count -gt 0) { $why = "excludeCategory=" + $sel.excludeCategory }
-  else {
-    foreach ($key in $mustBeEmpty) {
-      if (-not (Blank $sel.$key)) { $why = "$key set"; break }
-    }
-  }
-}
-if ($null -ne $why) { Write-Output ("partial|" + $why) }
-else { Write-Output ("full|mode=Both scopeType=Workspace excludeCategory=" + $sel.excludeCategory) }
+if ($expected -eq "" -or (Canon $s.projectPath) -ne $expected) { Write-Output ("partial|projectPath=" + $s.projectPath + " (expected " + $expected + ")"); exit 0 }
+$coverage = $s.PSObject.Properties["coverage"]
+if ($null -eq $coverage -or $null -eq $coverage.Value) { Write-Output "partial|summary has no coverage field (pre-stamp run or foreign producer)"; exit 0 }
+$verdict = "$($coverage.Value.verdict)".Trim().ToLower()
+$reason = "$($coverage.Value.reason)"
+if ($verdict -ne "full" -and $verdict -ne "partial") { Write-Output ("partial|coverage.verdict=" + $verdict + " is not a verdict"); exit 0 }
+Write-Output ($verdict + "|" + $reason)
 '
 
-# Prints "full|<detail>" or "partial|<reason>"; missing/unparseable summaries and dead parsers are all partial (fail closed).
+# Prints "full|<detail>" or "partial|<reason>"; a missing, unreadable, unstamped or wrong-project summary is all partial (fail closed).
 summary_coverage() {
-  local summary="$1" expected_project="$2" out="" interp
+  local summary="$1" expected_project="$2" out=""
   [[ -f "$summary" ]] || { echo "partial|no summary at $summary"; return 0; }
-  # A Windows Store python3 stub satisfies command -v yet fails on invocation; only a well-formed verdict counts, else fall through.
-  for interp in python3 python; do
-    command -v "$interp" >/dev/null 2>&1 || continue
-    out="$("$interp" -c "$FULL_COVERAGE_PY" "$summary" "$expected_project" 2>/dev/null || true)"
-    case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
-  done
-  out="$(POOL_SUMMARY_JSON="$summary" POOL_EXPECTED_PROJECT="$expected_project" powershell.exe -NoProfile -Command "$FULL_COVERAGE_PS" 2>/dev/null || true)"
+  out="$(POOL_SUMMARY_JSON="$summary" POOL_EXPECTED_PROJECT="$expected_project" powershell.exe -NoProfile -Command "$COVERAGE_READER" 2>/dev/null || true)"
   case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
-  echo "partial|no working JSON parser (tried python3, python, powershell.exe)"
+  echo "partial|coverage field unreadable (powershell.exe gave no verdict)"
   return 0
 }
 
@@ -517,23 +438,70 @@ pr_number_for_slot() {
   gh pr list --head "$slot" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
 }
 
-cmd_status() {
-  local any=0
+# The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
+# --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
+# adapters over this - nothing else may read the lock dir or re-derive a lease.
+collect_slot_records() {
+  local slot path ldir lease tb pid ts age state
   while IFS=$'\t' read -r slot path; do
-    any=1
-    local ldir
     ldir="$(lock_dir_for "$slot")"
+    lease="$(lease_for "$slot")"
+    tb="$(task_branch_for "$slot")"
+    printf 'slot=%s\n' "$slot"
     if [[ -d "$ldir" ]]; then
-      local lease pid ts tb
-      lease="$(cat "$ldir/lease" 2>/dev/null || true)"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
-      tb="$(cat "$ldir/task_branch" 2>/dev/null || true)"
-      echo "$slot | LOCKED | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
+      age="$(lock_age_seconds "$ldir")"
+      state="locked"
+      [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] && state="stale"
+      printf 'state=%s\n' "$state"
+      printf 'path=%s\n' "$path"
+      [[ -n "$lease" ]] && printf 'lease=%s\n' "$lease"
+      [[ -n "$tb" ]] && printf 'task_branch=%s\n' "$tb"
+      printf 'age_seconds=%s\n' "$age"
+      [[ -n "$pid" ]] && printf 'locked_by_pid=%s\n' "$pid"
+      [[ -n "$ts" ]] && printf 'locked_at=%s\n' "$ts"
     else
-      echo "$slot | FREE   | $path"
+      printf 'state=free\n'
+      printf 'path=%s\n' "$path"
     fi
+    printf '\n'
   done < <(slots_tsv)
+}
+
+cmd_status_porcelain() {
+  collect_slot_records
+}
+
+cmd_status() {
+  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" line key value
+  # One collection pass feeds both renderings; a record ends at its blank line.
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -n "$line" ]]; then
+      key="${line%%=*}"
+      value="${line#*=}"
+      case "$key" in
+        slot) slot="$value" ;;
+        state) state="$value" ;;
+        path) path="$value" ;;
+        lease) lease="$value" ;;
+        task_branch) tb="$value" ;;
+        locked_by_pid) pid="$value" ;;
+        locked_at) ts="$value" ;;
+      esac
+      continue
+    fi
+    [[ -n "$slot" ]] || continue
+    any=1
+    if [[ "$state" == "free" ]]; then
+      echo "$slot | FREE   | $path"
+    else
+      local label="LOCKED"
+      [[ "$state" == "stale" ]] && label="STALE "
+      echo "$slot | $label | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
+    fi
+    slot=""; state=""; path=""; lease=""; tb=""; pid=""; ts=""
+  done < <(collect_slot_records)
 
   if [[ "$any" -eq 0 ]]; then
     echo "No agent-* worktrees found."
@@ -1521,7 +1489,9 @@ main() {
   shift || true
 
   case "$cmd" in
-    status) cmd_status ;;
+    status)
+      if [[ "${1:-}" == "--porcelain" ]]; then cmd_status_porcelain; else cmd_status; fi
+      ;;
     acquire) cmd_acquire "$@" ;;
     release)
       [[ $# -ge 1 ]] || { echo "release requires <slot>" >&2; exit 1; }
