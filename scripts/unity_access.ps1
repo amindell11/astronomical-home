@@ -222,7 +222,8 @@ function Get-ProjectOwner {
         return $null
     }
     if (Test-OwnerStale $owner) {
-        Remove-Item -LiteralPath $ownerDir -Recurse -Force
+        # Concurrent coordinators race this prune; a lost race left the dir already gone, which is the goal.
+        Remove-Item -LiteralPath $ownerDir -Recurse -Force -ErrorAction SilentlyContinue
         return $null
     }
     return $owner
@@ -252,7 +253,8 @@ function Get-LegacyOwner {
         return $null
     }
     if (Test-OwnerStale $owner) {
-        Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force
+        # Concurrent coordinators race this prune; a lost race left the dir already gone, which is the goal.
+        Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force -ErrorAction SilentlyContinue
         return $null
     }
     return $owner
@@ -615,7 +617,8 @@ function Release-Access {
         }
     }
 
-    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force
+    # After a CloseEditor kill our PID reads dead, so a concurrent reader may win this prune; already gone is the goal.
+    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force -ErrorAction SilentlyContinue
     [void](Release-Boot)
     [void](Cancel-Request)
     return [ordered]@{ status = "released"; alreadyFree = $false }
