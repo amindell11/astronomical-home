@@ -1,5 +1,6 @@
 using Combat;
 using Game;
+using Game.Diagnostics;
 using Ships.Command;
 using UnityEditor;
 using UnityEngine;
@@ -7,17 +8,23 @@ using UnityEngine;
 namespace AI
 {
     /// <summary>Where the gunner is aiming and whether the shot is clear: gunner-to-target line, target marker, aim ray, and fire-point line of sight.</summary>
+    [InitializeOnLoad]
     internal static class GunnerGizmos
     {
+        static GunnerGizmos() =>
+            GizmoView.Register(typeof(Gunner), "aim", "Gunner Aim",
+                "gunner-to-target line, target marker, aim ray + fire-point LOS", "Combat");
+
         private const float AimRayLength = 5f;
         private const float FirePointRadius = 0.5f;
 
         private static readonly Vector2 TargetMarkerSize = new(2f, 2f);
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
-        [DrawGizmo(GizmoType.Selected, typeof(Gunner))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Gunner))]
         private static void Draw(Gunner gunner, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(Gunner), "aim") || !GizmoView.InScope(gunner)) return;
             if (!Application.isPlaying || !gunner.HasTarget) return;
 
             var target = GamePlane.WorldPointToPlane(gunner.Target);
