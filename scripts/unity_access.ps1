@@ -28,6 +28,18 @@
 
       Status        (needs no -Lease) -> the state object, no "status" field, always exit 0.
                     Fields: stateRoot, owners[], legacyOwner, boot, bootWedged, queue[], blockers[].
+                    Every owner carries normalizedProjectPath - THE key for "is this owner on my
+                    project" (this script's own normalization; compare against it, never re-derive).
+                    With -ProjectPath, Status also answers "who owns this path":
+                      requestedProjectPath, requestedNormalizedProjectPath,
+                      projectOwner        - the owner record for that path, or null,
+                      projectProcesses[]  - live Unity processes on it, each with processId,
+                                            projectPath, normalizedProjectPath and batch (false =
+                                            an interactive editor, which makes a batch run
+                                            infra_error and is where CLI commands route).
+      Contract      (needs no -Lease) -> status "contract" plus the constants a caller must match
+                    exactly: bootCompletePattern, ticketTtlSeconds, ownerTtlSeconds,
+                    bootTtlSeconds. Hard-coding any of them keeps a copy that drifts.
       Request       -Lease [-Slot|-ProjectPath] [-Mode] -> queued.
       Acquire       -Lease [-Slot|-ProjectPath] [-Mode] [-WaitSeconds] ->
                     acquired | waiting | blocked_user_editor | blocked_unmanaged_unity.
@@ -92,7 +104,7 @@
     editor" and slot-to-project resolution machine-dependent; tests inject it to stay hermetic.
 #>
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Contract", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -136,7 +148,7 @@ $ExitRecordUnreadable = 27
 $RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # Boot ends once licensing + global package-cache work gives way to per-project Library work
-# (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
+# (postmortem D6). The single home: callers that drive the lane themselves read it via -Action Contract.
 $BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 
 function Resolve-FullPath {
@@ -523,8 +535,20 @@ function Get-BlockedStatus {
     return "blocked_unmanaged_unity"
 }
 
+# normalizedProjectPath is THE comparison key for "is this owner on my project": the coordinator's own
+# normalization, applied here so no consumer re-implements it (script-contracts.md sec.3). It is derived
+# per call, so owner records written before this existed answer too.
+function Add-NormalizedProjectPath {
+    param([object]$Owner)
+    if ($null -eq $Owner) { return $null }
+    $normalized = Normalize-Path ([string]$Owner.projectPath)
+    if ($Owner -is [System.Collections.IDictionary]) { $Owner["normalizedProjectPath"] = $normalized }
+    else { $Owner | Add-Member -NotePropertyName normalizedProjectPath -NotePropertyValue $normalized -Force }
+    return $Owner
+}
+
 function Get-StatusValue {
-    $owners = @(Get-AllOwners)
+    $owners = @(Get-AllOwners | ForEach-Object { Add-NormalizedProjectPath $_ })
     $tickets = @(Get-Tickets)
     $queue = @()
     for ($i = 0; $i -lt $tickets.Count; $i++) {
@@ -538,15 +562,40 @@ function Get-StatusValue {
         }
     }
     $boot = Get-BootOwner
-    return [ordered]@{
+    $state = [ordered]@{
         stateRoot = $AccessRoot
         owners = $owners
-        legacyOwner = Get-LegacyOwner
+        legacyOwner = Add-NormalizedProjectPath (Get-LegacyOwner)
         boot = $boot
         # Get-BootOwner just tried to reap any unowned boot dir; one that survives is wedged.
         bootWedged = ($null -eq $boot -and (Test-Path -LiteralPath $BootRoot))
         queue = $queue
         blockers = @(Get-Blockers)
+    }
+
+    # "Who owns this path, and what Unity processes sit on it" - asked of the coordinator rather than
+    # re-derived by each consumer from the process table.
+    if (-not [string]::IsNullOrWhiteSpace($ProjectPath)) {
+        $target = Normalize-Path $ResolvedProject
+        $state.requestedProjectPath = $ResolvedProject
+        $state.requestedNormalizedProjectPath = $target
+        $state.projectOwner = @($owners | Where-Object { [string]$_.normalizedProjectPath -eq $target }) | Select-Object -First 1
+        $state.projectProcesses = @(Get-RelevantUnityProcesses | Where-Object { $_.normalizedProjectPath -eq $target } | ForEach-Object {
+            [ordered]@{ processId = $_.processId; projectPath = $_.projectPath; normalizedProjectPath = $_.normalizedProjectPath; batch = $_.batch }
+        })
+    }
+    return $state
+}
+
+# The one home for constants a caller must match exactly. A caller that hard-codes any of these is
+# keeping a copy that silently drifts - ask for them.
+function Get-ContractValue {
+    return [ordered]@{
+        status = "contract"
+        bootCompletePattern = $BootCompletePattern
+        ticketTtlSeconds = $TicketTtlSeconds
+        ownerTtlSeconds = $OwnerTtlSeconds
+        bootTtlSeconds = $BootTtlSeconds
     }
 }
 
@@ -979,6 +1028,7 @@ $ProjectKey = Get-ProjectKey $ResolvedProject
 $result = try {
     switch ($Action) {
     "Status" { Get-StatusValue }
+    "Contract" { Get-ContractValue }
     "Request" { Require-Lease; Request-Access }
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }
