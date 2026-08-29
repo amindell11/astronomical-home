@@ -1,9 +1,10 @@
 # Gizmo Control Window — scene-global gizmo visibility, decoupled from selection
 
-> STATUS: design approved by the user 2026-08-29 (this session). Not yet built. Supersedes the
-> selection-gated + per-instance-bool gizmo model for interactive editing. The capture lane
-> (`GizmoCaptureProfiles`) is untouched by this arc; it only lends its category vocabulary as
-> display grouping.
+> STATUS: SHIPPED 2026-08-29. Arc #464 complete across three PRs: PR-A core (#470), PR-B sweep
+> (#472), PR-C environment (this PR, #467) — Colliders toggle + facing-chevron ship marker. Living
+> design record; kept, not deleted. Supersedes the selection-gated + per-instance-bool gizmo model
+> for interactive editing. The capture lane (`GizmoCaptureProfiles`) is untouched by this arc; it
+> only lends its category vocabulary as display grouping.
 
 ## Problem
 

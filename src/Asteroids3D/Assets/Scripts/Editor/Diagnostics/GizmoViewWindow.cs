@@ -22,7 +22,23 @@ namespace Game.Diagnostics
         {
             DrawScopeControls();
             EditorGUILayout.Space();
+            DrawEnvironmentControls();
+            EditorGUILayout.Space();
             DrawMatrix();
+        }
+
+        // Colliders is global (the documented scope exception) and drives Unity's native collider
+        // gizmos, so it sits apart from the scoped, registered-subview matrix.
+        private static void DrawEnvironmentControls()
+        {
+            EditorGUILayout.LabelField("Environment", EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            var on = EditorGUILayout.ToggleLeft(
+                new GUIContent("    Colliders", "native Box/Sphere/Capsule/Mesh collider gizmos (global)"),
+                GizmoView.CollidersOn);
+            if (!EditorGUI.EndChangeCheck()) return;
+            GizmoView.CollidersOn = on;
+            SceneView.RepaintAll();
         }
 
         private void DrawScopeControls()
