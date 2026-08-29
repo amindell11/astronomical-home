@@ -283,12 +283,32 @@ function Test-EditorProfileReceipt {
     return [ordered]@{ verified = $true; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "" }
 }
 
+function Get-ProcessStartTime {
+    param([int]$TargetProcessId)
+    $process = Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return "" }
+    return $process.StartTime.ToUniversalTime().ToString("o")
+}
+
+# A bare PID is not an identity: Windows recycles them, so a stranger wearing a dead holder's
+# number kept a dead lease alive. Identity is the pid plus the start time recorded with it.
+function Test-HolderAlive {
+    param([int]$HolderProcessId, [object]$RecordedStartTime)
+    $process = Get-Process -Id $HolderProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return $false }
+    $recorded = [string]$RecordedStartTime
+    # Records written before holderStartTime existed carry no identity to check; reading them as
+    # live keeps live leases safe across the migration, at the pid-recycling risk they already ran.
+    if ([string]::IsNullOrWhiteSpace($recorded)) { return $true }
+    return ([Math]::Abs(((Get-DateValue $recorded) - $process.StartTime.ToUniversalTime()).TotalSeconds) -lt 2)
+}
+
 function Test-OwnerStale {
     param([object]$Owner)
     # A lease whose holding coordinator still runs is busy, whatever its opaque child is doing —
     # checked first so a child that exits just before the release does not open a reap window.
     $holder = [int](Get-MemberValue $Owner "holderProcessId")
-    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
+    if ($holder -gt 0 -and (Test-HolderAlive $holder (Get-MemberValue $Owner "holderStartTime"))) { return $false }
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
@@ -470,6 +490,7 @@ function Try-AcquireAccess {
         projectKey = $ProjectKey
         processId = 0
         holderProcessId = $PID
+        holderStartTime = Get-ProcessStartTime $PID
         acquiredAt = $now
         updatedAt = $now
     }
@@ -496,6 +517,7 @@ function Write-OwnerHeartbeat {
     param([object]$Owner)
     # Renewing hands the lease to whoever renewed it; a dead holder falls back to the TTL.
     $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
+    $Owner | Add-Member -NotePropertyName holderStartTime -NotePropertyValue (Get-ProcessStartTime $PID) -Force
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
     Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
 }
@@ -670,7 +692,10 @@ function Release-Access {
         return [ordered]@{ status = "released"; alreadyFree = $true }
     }
 
-    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
+    # Close or kill only a coordinator-relevant Unity PID — never a bare/recycled one. Checked once,
+    # above both branches: CloseMainWindow on a stranger's window is as wrong as killing it.
+    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0 -and
+        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
             $closed = $false
@@ -680,13 +705,10 @@ function Release-Access {
                 while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
             }
-            # Kill only a still-live, coordinator-relevant Unity PID — never a bare/recycled one.
             if (-not $closed) {
-                if (@(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
-                    Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
-                    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-                    while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-                }
+                Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
+                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
                     return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
                 }

@@ -563,6 +563,30 @@ try {
     $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
 
+    # Holder liveness is pid + start time: a stranger that recycled a dead holder's PID must not
+    # keep the lease alive, and a record predating holderStartTime stays live (#453).
+    $projPid = Join-Path $Root "projPid\src\Asteroids3D"
+    $pidOwnerFile = ""
+    foreach ($case in @(
+        @{ name = "matching start time"; start = (Get-Process -Id $PID).StartTime.ToUniversalTime().ToString("o"); alive = $true },
+        @{ name = "legacy record"; start = ""; alive = $true },
+        @{ name = "recycled pid"; start = "2001-01-01T00:00:00.0000000Z"; alive = $false })) {
+        [void](Invoke-Coordinator -Action Acquire -Lease pid-identity -ProjectPath $projPid)
+        if ([string]::IsNullOrWhiteSpace($pidOwnerFile)) {
+            $pidOwnerFile = (Get-ChildItem -LiteralPath (Join-Path $State "owners") -Recurse -Filter owner.json |
+                Where-Object { ((Get-Content -LiteralPath $_.FullName -Raw) | ConvertFrom-Json).lease -eq "pid-identity" }).FullName
+        }
+        $record = (Get-Content -LiteralPath $pidOwnerFile -Raw) | ConvertFrom-Json
+        $record.holderProcessId = $PID
+        $record.holderStartTime = $case.start
+        [System.IO.File]::WriteAllText($pidOwnerFile, ($record | ConvertTo-Json -Depth 8), $Utf8NoBom)
+        # OwnerTtlSeconds 0 ages out any pid-less owner, so only holder identity can keep this lease.
+        $pidStatus = Invoke-Coordinator -Action Status -OwnerTtlSeconds 0
+        $seen = $null -ne (Get-OwnerByLease $pidStatus "pid-identity")
+        Assert-Equal $seen $case.alive "holder liveness for a $($case.name)"
+        [void](Invoke-Coordinator -Action Release -Lease pid-identity -ProjectPath $projPid)
+    }
+
     # A failed process enumeration must never read as "no Unity": it fails the call instead of
     # reaping the live pid-backed owner it cannot see (#453).
     [void](Invoke-Coordinator -Action Acquire -Lease cim-live -ProjectPath $projA)
