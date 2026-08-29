@@ -110,7 +110,18 @@ Shrink `unity_access.ps1`'s effective interface to its published one:
   review law: what counts as interface for a script module — exit codes,
   machine channel, state-file schemas, timing constants).
 
-### Phase 3 — verdict ownership (deepening the three producers)
+### Phase 3 — verdict ownership (deepening the three producers) — LANDED
+
+Landed: the runner's `coverage` stamp (`{verdict, reason}`) with the pool reading
+that one field plus the project it owns; `status --porcelain` as the pool's read
+interface, with human `status` and the dashboard as adapters over one collection
+pass; the coordinator's `normalizedProjectPath`, `Status -ProjectPath`
+(`projectOwner` / `projectProcesses`) and `-Action Contract` (the single home for
+`bootCompletePattern`); and `ConvertTo-TestNameSelection` / `Resolve-ScopeSelection`
+as the one reader of the authored filter format. Deferred out (still true): the
+pool re-derives the runner's log-dir layout when tailing a live run
+(`agent_worktree_pool.sh:~1139`) and `pr_number_for_slot` still looks PRs up by
+bare slot name.
 
 - **Runner stamps coverage.** `unity_test_agent.ps1` writes
   `coverage: full|partial` + reason into its summary; the pool
@@ -156,9 +167,9 @@ Shrink `unity_access.ps1`'s effective interface to its published one:
 2. **`check_test_naming.ps1`** (Phase 4): delete + fix TESTING.md's
    enforcement claim (default — never run, convention not load-bearing), or
    wire into the merge gate with JSON output.
-3. **Python coverage twin** (Phase 3): committing to PowerShell-only for the
-   merge-gate coverage check (default — powershell.exe is guaranteed on the
-   only supported platform).
+3. **Python coverage twin** (Phase 3): RULED — moot. The runner stamps the
+   verdict, so the merge gate no longer re-derives it in any language; the one
+   remaining field read is PowerShell-only.
 4. **Routed leaselessness** (Phase 2 or 3): RULED — accepted dev-loop
    behavior, documented in the coordinator's help `.NOTES`; no co-lease.
 

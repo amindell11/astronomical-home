@@ -55,5 +55,9 @@
       "failures": [],
       "truncatedFailures": 0
     }
-  ]
+  ],
+  "coverage": {
+    "verdict": "full",
+    "reason": "mode=Both scopeType=Workspace excludeCategory=RequiresGraphics"
+  }
 }
