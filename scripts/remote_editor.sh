@@ -43,8 +43,8 @@ require_host() {
     }
 }
 
-cli_cmd() { # run a unity CLI command remotely; args pre-quoted by caller
-    rssh "& $RCLI command $* --project-path $RPROJ_WIN"
+cli_cmd() { # caller pre-quotes any arg that can contain spaces (see psq)
+    rssh "& \"$RCLI\" command $* --project-path '$RPROJ_WIN'"
 }
 
 # Single-quote args for the remote PowerShell parse (embedded ' doubled).
@@ -54,13 +54,17 @@ psq() {
     printf '%s' "$out"
 }
 
+lease_paths() { # start and stop must agree on these remote artefact names
+    TASK="RemoteEditor-$1"
+    RLOG="C:/dev/remote_editor_$1.log"
+    RLAUNCH="C:/dev/remote_editor_$1.ps1"
+}
+
 case "$ACTION" in
 
 start)
     LEASE="${1:-remote-editor}"
-    TASK="RemoteEditor-$LEASE"
-    RLOG="C:/dev/remote_editor_$LEASE.log"
-    RLAUNCH="C:/dev/remote_editor_$LEASE.ps1"
+    lease_paths "$LEASE"
     require_host
 
     # Preflight: an interactive desktop session must exist for the /IT task.
@@ -70,8 +74,8 @@ start)
     fi
 
     # Preflight: unity CLI present remotely; install from the local copy if not.
-    if ! rssh "Test-Path $RCLI" | grep -qi true; then
-        local_cli="$(command -v unity || echo "$LOCALAPPDATA/Unity/bin/unity.exe")"
+    if ! rssh "Test-Path \"$RCLI\"" | grep -qi true; then
+        local_cli="$(command -v unity || echo "${LOCALAPPDATA:-}/Unity/bin/unity.exe")"
         [ -f "$local_cli" ] || { echo "[remote_editor] unity CLI missing on $HOST and no local copy to ship" >&2; exit 5; }
         echo "[remote_editor] installing unity CLI on $HOST"
         rssh "New-Item -ItemType Directory -Force \$env:LOCALAPPDATA\\Unity\\bin | Out-Null"
@@ -87,8 +91,8 @@ start)
 \$log = '${RLOG//\//\\}'
 "START \$(Get-Date -Format o) session=\$([System.Diagnostics.Process]::GetCurrentProcess().SessionId)" | Set-Content \$log
 try {
-    Set-Location ${RREPO//\//\\}
-    \$out = & .\\scripts\\unity_access.ps1 -Action StartEditor -Lease $LEASE -Slot main -Mode editor -WaitSeconds 240 -UnityPath '$RUNITY' -Json 2>&1
+    Set-Location '${RREPO//\//\\}'
+    \$out = & .\\scripts\\unity_access.ps1 -Action StartEditor -Lease '$LEASE' -Slot main -Mode editor -WaitSeconds 240 -UnityPath '$RUNITY' -Json 2>&1
     \$out | Out-String -Width 4096 | Add-Content \$log
     "LAUNCHER_EXIT:\$LASTEXITCODE" | Add-Content \$log
 } catch {
@@ -96,7 +100,8 @@ try {
 }
 EOF
     scp -q "$STAGE/launch.ps1" "$HOST:$RLAUNCH"
-    rssh "schtasks /Create /F /IT /TN $TASK /TR 'powershell -NoProfile -ExecutionPolicy Bypass -File ${RLAUNCH//\//\\}' /SC ONCE /ST 23:59 | Out-Null; schtasks /Run /TN $TASK | Out-Null; echo fired"
+    rssh "schtasks /Create /F /IT /TN '$TASK' /TR 'powershell -NoProfile -ExecutionPolicy Bypass -File \"${RLAUNCH//\//\\}\"' /SC ONCE /ST 23:59 | Out-Null; schtasks /Run /TN '$TASK' | Out-Null; exit \$LASTEXITCODE" \
+        || { echo "[remote_editor] schtasks could not create/run $TASK on $HOST" >&2; exit 7; }
 
     echo "[remote_editor] launch task fired; waiting for editor_status (timeout ${TIMEOUT_SEC}s)"
     deadline=$(( $(date +%s) + TIMEOUT_SEC ))
@@ -119,7 +124,7 @@ EOF
 
     # Unfocused editors need autotick or main-thread ops time out at 5 s.
     cli_cmd set_autotick --enable true >/dev/null
-    cli_cmd set_window_title --label "$LEASE" >/dev/null
+    cli_cmd "$(psq set_window_title --label "$LEASE")" >/dev/null
     echo "[remote_editor] ready — drive it with: $0 cmd <unity-command> [args]"
     cli_cmd editor_status
     ;;
@@ -137,10 +142,10 @@ cmd)
 
 stop)
     LEASE="${1:-remote-editor}"
-    TASK="RemoteEditor-$LEASE"
+    lease_paths "$LEASE"
     require_host
-    rssh "Set-Location ${RREPO//\//\\}; & .\\scripts\\unity_access.ps1 -Action Release -Lease $LEASE -Slot main -CloseEditor -Json"
-    rssh "schtasks /Delete /F /TN $TASK 2>\$null; Remove-Item C:\\dev\\remote_editor_$LEASE.ps1, C:\\dev\\remote_editor_$LEASE.log -ErrorAction SilentlyContinue; echo cleaned"
+    rssh "Set-Location '${RREPO//\//\\}'; & .\\scripts\\unity_access.ps1 -Action Release -Lease '$LEASE' -Slot main -CloseEditor -Json"
+    rssh "schtasks /Delete /F /TN '$TASK' 2>\$null; Remove-Item '${RLAUNCH//\//\\}', '${RLOG//\//\\}' -ErrorAction SilentlyContinue; echo cleaned"
     ;;
 
 *)
