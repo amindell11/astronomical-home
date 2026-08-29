@@ -35,6 +35,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
+. (Join-Path $PSScriptRoot "unity_access_client.ps1")
 
 if ($WithGraphics.IsPresent) {
     if ($Mode -ne "PlayMode") {
@@ -93,41 +94,33 @@ function Invoke-UnityAccess {
     param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
     if ($SkipUnityAccess.IsPresent) { return $null }
 
-    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $slot = Get-UnityAccessSlot $ProjectFullPath
     $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
     $waitSeconds = if ($WaitSecondsOverride -gt 0) { $WaitSecondsOverride } else { $UnityAccessWaitSec }
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", $Action,
         "-Lease", $lease,
         "-Slot", $slot,
         "-Mode", "batch",
         "-ProjectPath", $ProjectFullPath,
-        "-WaitSeconds", $waitSeconds,
-        "-Json"
+        "-WaitSeconds", $waitSeconds
     )
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $arguments += @("-StateRoot", $UnityAccessStateRoot) }
     if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
 
-    $output = @(& powershell @arguments 2>&1)
-    $exitCode = $LASTEXITCODE
-    $line = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
-    $result = if ($line.Count -gt 0) { [string]$line[0] | ConvertFrom-Json } else { $null }
-    if ($exitCode -ne 0) {
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
+    $result = $call.result
+    if ($call.exitCode -ne 0) {
         if ($Action -in @("Acquire", "Wait")) {
-            $cancelArguments = @(
-                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
-                "-Action", "Cancel", "-Lease", $lease, "-Json"
-            )
+            $cancelArguments = @("-Action", "Cancel", "-Lease", $lease)
             if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $cancelArguments += @("-StateRoot", $UnityAccessStateRoot) }
-            & powershell @cancelArguments 2>&1 | Out-Null
+            [void](Invoke-UnityAccessCoordinator -CoordinatorArgs $cancelArguments)
         }
         if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
             $blocker = @($result.blockers | Select-Object -First 1)
             throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
         }
-        throw "Unity access $Action failed (exit=$exitCode): $($output -join ' ')"
+        throw "Unity access $Action failed (exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
     return $result
 }
@@ -614,13 +607,11 @@ function Invoke-PipelineCommand {
 function Assert-RoutedEditorOwner {
     param([string]$ProjectFullPath)
 
-    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
-    $statusArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator, "-Action", "Status", "-Json")
+    $statusArgs = @("-Action", "Status")
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $statusArgs += @("-StateRoot", $UnityAccessStateRoot) }
-    $output = @(& powershell @statusArgs 2>&1)
-    $line = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
-    if ($line.Count -eq 0) { throw "-Routed: unity_access Status returned no JSON: $($output -join ' ')" }
-    $state = [string]$line[0] | ConvertFrom-Json
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $statusArgs
+    if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "-Routed: unity_access Status failed (exit=$($call.exitCode)): $($call.stderr)" }
+    $state = $call.result
 
     $target = ($ProjectFullPath -replace '\\', '/').TrimEnd('/').ToLowerInvariant()
     $owners = @(@(Get-JsonProp $state 'owners') | Where-Object {

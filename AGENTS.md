@@ -18,6 +18,8 @@ the matching doc when its branch fires:
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
 - Memory reads/writes from a worktree agent → `doc/agents/memory.md`.
+- Changing a script's outputs, or calling one script from another →
+  `doc/agents/script-contracts.md` (interface, machine channel, verdicts).
 
 ## Fix ladder
 

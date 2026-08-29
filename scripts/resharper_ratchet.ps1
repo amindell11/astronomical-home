@@ -11,6 +11,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+. (Join-Path $PSScriptRoot "unity_access_client.ps1")
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base)
@@ -147,7 +148,6 @@ function Sync-UnitySolution {
     $coordinator = Join-Path $RepoRoot "scripts/unity_access.ps1"
     $batch = Join-Path $RepoRoot "scripts/sync_unity_solution.ps1"
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", "RunBatch",
         "-Lease", $lease,
         "-Slot", $slot,
@@ -155,16 +155,14 @@ function Sync-UnitySolution {
         "-ProjectPath", $SolutionRoot,
         "-WaitSeconds", $WaitSeconds,
         "-BatchLogPath", $logPath,
-        "-Json",
         "-BatchScript", $batch,
         "-BatchArguments", $configPath
     )
-    $output = @(& powershell @arguments 2>&1)
-    $exitCode = $LASTEXITCODE
-    $jsonLine = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
-    $result = if ($jsonLine.Count -gt 0) { [string]$jsonLine[0] | ConvertFrom-Json } else { $null }
-    if ($exitCode -ne 0 -or $null -eq $result -or $result.status -ne "batch_complete" -or [int]$result.exitCode -ne 0) {
-        throw "Unity solution synchronization failed (coordinator exit=$exitCode): $($output -join ' ')"
+    $call = Invoke-UnityAccessCoordinator -Coordinator $coordinator -CoordinatorArgs $arguments
+    $result = $call.result
+    # batch_complete exits 0 even when the child failed, so the child's own exitCode is checked too.
+    if ($call.exitCode -ne 0 -or $null -eq $result -or $result.status -ne "batch_complete" -or [int]$result.exitCode -ne 0) {
+        throw "Unity solution synchronization failed (coordinator exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
 }
 

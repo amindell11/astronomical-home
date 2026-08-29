@@ -773,8 +773,9 @@ cmd_run_resharper() {
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
-  # Non-hermetic: touches machine-wide coordinator/boot-lane state, so another session's editors can turn it red.
-  local nonhermetic=" test_unity_access.ps1 "
+  # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
+  # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
+  local nonhermetic=" "
   if [[ ! -d "$tests_dir" ]]; then
     echo "run-script-tests: no $tests_dir — nothing to run." >&2
     return 0
@@ -783,7 +784,7 @@ cmd_run_script_tests() {
     [[ -f "$file" ]] || continue
     base="$(basename "$file")"
     if [[ "${SCRIPT_TESTS_INCLUDE_NONHERMETIC:-0}" != 1 && "$nonhermetic" == *" $base "* ]]; then
-      echo "SKIP: $base — non-hermetic (touches machine-wide coordinator state); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1; hermeticity owned by #454"
+      echo "SKIP: $base — non-hermetic (its state escapes a temp dir); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1"
       continue
     fi
     ran=1
@@ -1004,7 +1005,7 @@ merge_phase_budget() {
     proof-check) echo 15 ;;
     tests) echo 1200 ;;
     resharper) echo 300 ;;
-    script-tests) echo 300 ;;
+    script-tests) echo 420 ;;
     push) echo 90 ;;
     gh-merge) echo 90 ;;
     *) echo 0 ;;
