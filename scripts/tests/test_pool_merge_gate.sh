@@ -152,7 +152,6 @@ if pool submit agent-1 origin/main --title "test PR" --body "test body" --bogus 
 
 # The golden summary is a real unity_test_agent.ps1 payload: proof arming here IS the schema assertion.
 runs_before="$(runner_runs)"
-resharper_before="$(resharper_runs)"
 RUNNER_GOLDEN_SUMMARY=1 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "golden-summary submit should run tests once (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "the golden runner summary must arm merge-grade proof"

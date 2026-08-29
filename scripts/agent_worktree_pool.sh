@@ -757,8 +757,6 @@ cmd_run_resharper() {
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 
-# The script suite is its own gate: bash owns test_*.sh, Windows PowerShell owns
-# test_*.ps1, and the first red file stops the run.
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
