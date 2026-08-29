@@ -75,11 +75,6 @@ Commands:
       describe the change, not echo the last commit subject. If an open
       PR already exists for that head/base, prints URL.
 
-  create-pool-prs [base]
-      Create PRs for all agent-* slots that are ahead of base.
-      (Each PR needs its own --title/--body, so this fails per slot
-      until invoked via create-pr with explicit flags.)
-
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
       branch (task/<lease>), and create PR — but keep the lock so the agent
@@ -132,7 +127,6 @@ Examples:
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
   scripts/agent_worktree_pool.sh run-resharper agent-1 origin/main
   scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
-  scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
   scripts/agent_worktree_pool.sh revise agent-1 --no-test
@@ -217,7 +211,11 @@ ensure_task_branch() {
   echo "$task_branch"
 }
 
-SUMMARY_REL="results/unity-tests-agent/latest-summary.json"
+# The pool tells the runner where to write (-OutDir), so the pool may read that directory back.
+# Everything under it - summary name, editor logs - is the RUNNER's layout: derive paths from this
+# one variable, never re-spell the directory at a read site.
+RUN_OUTDIR_REL="results/unity-tests-agent"
+SUMMARY_REL="$RUN_OUTDIR_REL/latest-summary.json"
 
 # Stale-summary hazard: an older run's summary could vouch for a run that never wrote one; proof-recording callers clear it before the runner starts.
 clear_run_summary() {
@@ -432,10 +430,17 @@ repo_slug() {
   fi
 }
 
-pr_number_for_slot() {
-  local slot="$1"
+# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
+# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
+# task_branch_for's answer.
+pr_number_for_pushed_head() {
+  local head_branch="$1"
   local base="${2:-main}"
-  gh pr list --head "$slot" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
+  if [[ -z "$head_branch" ]]; then
+    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
+    return 1
+  fi
+  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
 }
 
 # The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
@@ -637,29 +642,33 @@ cmd_run_tests() {
     cd "$path"
     powershell.exe -NoProfile -ExecutionPolicy Bypass \
       -File "./scripts/unity_test_agent.ps1" \
-      -OutDir "results/unity-tests-agent" \
+      -OutDir "$RUN_OUTDIR_REL" \
       "$@"
   )
 }
 
 restore_tracked_unity_changes() {
-  local path="$1" action="$2" changes names numstat content known=0
+  local path="$1" action="$2" changes verdict diff
   changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
   [[ -n "$changes" ]] || return 0
-  names="$(git -C "$path" diff --name-only)"
-  numstat="$(git -C "$path" diff --numstat -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset)"
-  content="$(git -C "$path" diff --unified=0 -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset | grep -E '^[+-][[:space:]]+Standalone:' || true)"
-  if [[ "$names" == "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" ]] &&
-     [[ "$numstat" == $'1\t1\tsrc/Asteroids3D/ProjectSettings/ProjectSettings.asset' ]] &&
-     [[ "$(printf '%s\n' "$content" | grep -Ec '^[+-][[:space:]]+Standalone: UNITY_POST_PROCESSING_STACK_V2(;SENTIS_ANALYTICS_ENABLED)?$')" -eq 2 ]]; then
-    known=1
-  fi
+
+  # The analytics-churn allowlist has ONE owner (scripts/lib/unity_churn.ps1); a second copy of the
+  # regex here is exactly the drift the classifier exists to prevent. Both the verdict and the diff
+  # are captured BEFORE the restore - the restore is what destroys the evidence this error reports.
+  diff="$(git -C "$path" diff --unified=0 2>/dev/null || true)"
+  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass \
+    -File "$SCRIPT_DIR/lib/unity_churn.ps1" -WorktreePath "$path" 2>/dev/null || true)"
+
   git -C "$path" restore --worktree --source=HEAD -- .
-  if [[ "$known" -ne 1 ]]; then
-    echo "$action changed unexpected tracked files:" >&2
-    printf '%s\n' "$changes" | head -n 20 >&2
-    return 1
-  fi
+
+  case "$verdict" in
+    *'"knownChurn":true'*) return 0 ;;
+  esac
+  echo "$action changed unexpected tracked files:" >&2
+  printf '%s\n' "$changes" | head -n 20 >&2
+  echo "--- diff, captured before the restore ---" >&2
+  printf '%s\n' "$diff" | head -n 60 >&2
+  return 1
 }
 
 cmd_run_tests_clean() {
@@ -809,6 +818,75 @@ resolve_pr_body() {
   fi
 }
 
+require_gh() {
+  command -v gh >/dev/null 2>&1 || {
+    echo "gh CLI not found in PATH" >&2
+    return 1
+  }
+}
+
+# One flag grammar for every PR-opening command. Results land in PR_TITLE / PR_BODY /
+# PR_BODY_FILE / PR_TEST_ARGS rather than stdout: a command substitution could not carry the
+# test-arg array through intact.
+# $1 = command name (error prefix), $2 = 1 when trailing '-- <test args>' is accepted.
+parse_pr_flags() {
+  local cmd="$1" accept_test_args="$2"
+  shift 2
+  PR_TITLE=""; PR_BODY=""; PR_BODY_FILE=""; PR_TEST_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --title requires a value" >&2; return 1; }
+        PR_TITLE="$2"; shift 2 ;;
+      --body)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --body requires a value" >&2; return 1; }
+        PR_BODY="$2"; shift 2 ;;
+      --body-file)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --body-file requires a path" >&2; return 1; }
+        PR_BODY_FILE="$2"; shift 2 ;;
+      --)
+        if [[ "$accept_test_args" != 1 ]]; then
+          echo "$cmd: '--' is not accepted; $cmd takes no test-runner args." >&2
+          return 1
+        fi
+        shift
+        PR_TEST_ARGS=("$@")
+        break ;;
+      --*)
+        if [[ "$accept_test_args" == 1 ]]; then
+          echo "$cmd: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
+        else
+          echo "$cmd: unknown argument: $1" >&2
+        fi
+        return 1 ;;
+      *)
+        # A bare word is never a test arg: silently swallowing one hides a typo'd flag from the run.
+        echo "$cmd: unexpected argument '$1' — test-runner args go after '--'" >&2
+        return 1 ;;
+    esac
+  done
+  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE"
+}
+
+# Push the slot branch to its minted task branch and open the PR (or report the open one).
+push_and_open_pr() {
+  local repo_path="$1" slot="$2" base_branch="$3" task_branch="$4"
+
+  git -C "$repo_path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
+  git -C "$ROOT" fetch origin "$base_branch" >/dev/null 2>&1 || true
+
+  local existing
+  existing="$(gh pr list --head "$task_branch" --base "$base_branch" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
+  if [[ -n "$existing" ]]; then
+    echo "$slot PR already open: $existing"
+    return 0
+  fi
+
+  local url
+  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" --body "$(resolve_pr_body "$PR_BODY" "$PR_BODY_FILE")")"
+  echo "$slot PR created: $url"
+}
+
 cmd_create_pr() {
   local slot="$1"
   shift || true
@@ -819,29 +897,8 @@ cmd_create_pr() {
     shift
   fi
 
-  local title="" body="" body_file=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --title)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --title requires a value" >&2; return 1; }
-        title="$2"; shift 2 ;;
-      --body)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --body requires a value" >&2; return 1; }
-        body="$2"; shift 2 ;;
-      --body-file)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --body-file requires a path" >&2; return 1; }
-        body_file="$2"; shift 2 ;;
-      *)
-        echo "create-pr: unknown argument: $1" >&2
-        return 1 ;;
-    esac
-  done
-  require_pr_title_body "create-pr" "$title" "$body" "$body_file" || return 1
-
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  parse_pr_flags "create-pr" 0 "$@" || return 1
+  require_gh || return 1
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
 
@@ -854,26 +911,7 @@ cmd_create_pr() {
 
   local task_branch
   task_branch="$(ensure_task_branch "$slot")"
-
-  git -C "$ROOT" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
-
-  local existing
-  existing="$(gh pr list --head "$task_branch" --base "$base" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
-  if [[ -n "$existing" ]]; then
-    echo "$slot PR already open: $existing"
-    return 0
-  fi
-
-  local url
-  url="$(gh pr create --base "$base" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
-  echo "$slot PR created: $url"
-}
-
-cmd_create_pool_prs() {
-  local base="${1:-main}"
-  while IFS=$'\t' read -r slot _path; do
-    cmd_create_pr "$slot" "$base"
-  done < <(slots_tsv)
+  push_and_open_pr "$ROOT" "$slot" "$base" "$task_branch"
 }
 
 cmd_submit() {
@@ -886,32 +924,10 @@ cmd_submit() {
     shift
   fi
 
-  local title="" body="" body_file=""
-  local test_args=()
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --title)
-        [[ -n "${2:-}" ]] || { echo "submit: --title requires a value" >&2; return 1; }
-        title="$2"; shift 2 ;;
-      --body)
-        [[ -n "${2:-}" ]] || { echo "submit: --body requires a value" >&2; return 1; }
-        body="$2"; shift 2 ;;
-      --body-file)
-        [[ -n "${2:-}" ]] || { echo "submit: --body-file requires a path" >&2; return 1; }
-        body_file="$2"; shift 2 ;;
-      --)
-        shift
-        test_args=("$@")
-        break ;;
-      --*)
-        echo "submit: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
-        return 1 ;;
-      *)
-        test_args+=("$1"); shift ;;
-    esac
-  done
-  # Validate PR flags before the test run so a missing flag fails in seconds, not after a full suite.
-  require_pr_title_body "submit" "$title" "$body" "$body_file" || return 1
+  # Preflight: flags and tooling are checked before the test run so a missing one fails in
+  # seconds, not after a full suite.
+  parse_pr_flags "submit" 1 "$@" || return 1
+  require_gh || return 1
 
   local base_branch
   base_branch="${base_ref#origin/}"
@@ -923,31 +939,13 @@ cmd_submit() {
   require_clean_slot "$slot" "$path" "submit" || return 1
 
   clear_run_summary "$path"
-  cmd_run_tests_clean "$slot" "${test_args[@]}"
+  cmd_run_tests_clean "$slot" "${PR_TEST_ARGS[@]}"
   record_tested_tree "$slot" "$path"
   cmd_run_resharper "$slot" "$base_ref"
 
   local task_branch
   task_branch="$(ensure_task_branch "$slot")"
-
-  git -C "$path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
-
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
-
-  git -C "$ROOT" fetch origin "$base_branch" >/dev/null 2>&1 || true
-
-  local existing
-  existing="$(gh pr list --head "$task_branch" --base "$base_branch" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
-  if [[ -n "$existing" ]]; then
-    echo "$slot PR already open: $existing"
-  else
-    local url
-    url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
-    echo "$slot PR created: $url"
-  fi
+  push_and_open_pr "$path" "$slot" "$base_branch" "$task_branch"
 
   echo ""
   echo "PR submitted for $slot (branch: $task_branch). Lock kept —"
@@ -1200,9 +1198,9 @@ cmd_merge_progress() {
   [[ "$open_phase" == "tests" ]] || return 0
   path="$(slot_path "$slot" 2>/dev/null || true)"
   [[ -n "$path" ]] || return 0
-  log="$(ls -1t "$path/results/unity-tests-agent/"*.log 2>/dev/null | head -n 1 || true)"
+  log="$(ls -1t "$path/$RUN_OUTDIR_REL/"*.log 2>/dev/null | head -n 1 || true)"
   if [[ -z "$log" ]]; then
-    echo "  unity: no editor log yet under $path/results/unity-tests-agent/"
+    echo "  unity: no editor log yet under $path/$RUN_OUTDIR_REL/"
     return 0
   fi
   age=$(( $(date +%s) - $(stat -c %Y "$log" 2>/dev/null || echo 0) ))
@@ -1242,7 +1240,7 @@ cmd_merge() {
   fi
 
   local pr
-  pr="$(pr_number_for_slot "$task_branch" "$base_branch")"
+  pr="$(pr_number_for_pushed_head "$task_branch" "$base_branch")"
   if [[ -z "$pr" || "$pr" == "null" ]]; then
     echo "merge: no open PR found for $task_branch -> $base_branch" >&2
     return 1
@@ -1387,7 +1385,7 @@ cmd_review_comments() {
   [[ -n "$head_branch" ]] || head_branch="$slot"
 
   local pr
-  pr="$(pr_number_for_slot "$head_branch" "$base")"
+  pr="$(pr_number_for_pushed_head "$head_branch" "$base")"
   if [[ -z "$pr" || "$pr" == "null" ]]; then
     echo "No open PR found for slot=$slot base=$base"
     return 1
@@ -1513,9 +1511,6 @@ main() {
       [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
       cmd_create_pr "$@"
       ;;
-    create-pool-prs)
-      cmd_create_pool_prs "$@"
-      ;;
     submit)
       [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" >&2; exit 1; }
       cmd_submit "$@"
@@ -1549,4 +1544,8 @@ main() {
   esac
 }
 
-main "$@"
+# Executed: dispatch. Sourced (scripts/tests/): define the functions and stop, so a test can call
+# one directly - the bash twin of the `$MyInvocation.InvocationName -eq '.'` guard in the PS scripts.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

@@ -23,7 +23,8 @@
     STATUS=<status> total=... passed=... failed=... skipped=...
 #>
 param(
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
+    # Empty resolves from the project's own ProjectVersion.txt (scripts/lib/unity_editor.ps1).
+    [string]$UnityPath = "",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/unity-tests-agent",
     [ValidateSet("Both", "EditMode", "PlayMode")]
@@ -60,6 +61,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
 . (Join-Path $PSScriptRoot "unity_access_client.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
+. (Join-Path $PSScriptRoot "lib/process_tree.ps1")
 
 if ($WithGraphics.IsPresent) {
     if ($Mode -ne "PlayMode") {
@@ -99,7 +102,6 @@ if ($Routed.IsPresent) {
     }
 }
 
-$Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 $Script:BootCompletePattern = ""
 $Script:BootWatchTimeoutSec = 180
@@ -107,9 +109,13 @@ $Script:BootAcquireWaitSec = 300
 
 function Get-UnityAccessSlot {
     param([string]$ProjectFullPath)
-    $repo = Resolve-FullPath (Join-Path $ProjectFullPath "..\..")
+    $repo = Get-RepoRoot -ProbePath $ProjectFullPath
     $branch = (& git -C $repo branch --show-current 2>$null | Select-Object -First 1)
-    if ([string]::IsNullOrWhiteSpace($branch)) { return "main" }
+    # The slot names the coordinator lease. A git failure defaulting to "main" would file this run's
+    # lease against the primary tree - the wrong owner, silently.
+    if ([string]::IsNullOrWhiteSpace($branch)) {
+        throw "Could not read the current branch under '$repo'; the Unity access slot is unknown (detached HEAD, or git failed)."
+    }
     return [string]$branch
 }
 
@@ -415,12 +421,7 @@ function Invoke-UnityProcess {
                                  (Get-Date) -ge $completionSeenAt.AddSeconds($CompletionGraceSec))
 
             if ($hungAfterResults -or (Get-Date) -ge $deadline) {
-                if ($Script:IsWindowsPlatform -eq $true) {
-                    & taskkill /PID $proc.Id /T /F *> $null
-                }
-                else {
-                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                }
+                Stop-ProcessTree -ProcessId $proc.Id
 
                 Start-Sleep -Milliseconds 300
                 return [ordered]@{
@@ -489,6 +490,60 @@ function Get-FailedFullNamesFromSummary {
     return $fullNames.ToArray()
 }
 
+# The two transports (cold XML, routed pipeline) must produce byte-identical record shapes: the
+# summary schema, the coverage stamp and the pool all read one set of keys. These two constructors
+# are the only place either shape - and the truncation caps - is written down.
+function New-RunRecord {
+    param(
+        [string]$Platform,
+        [string]$XmlPath = "",
+        [string]$LogPath = "",
+        [int]$UnityExitCode = 0,
+        [string]$Status = "infra_error",
+        [object]$Selection
+    )
+
+    return [ordered]@{
+        platform = $Platform
+        xmlPath = $XmlPath
+        logPath = $LogPath
+        unityExitCode = $UnityExitCode
+        status = $Status
+        total = 0
+        passed = 0
+        failed = 0
+        skipped = 0
+        durationSec = 0.0
+        failures = @()
+        truncatedFailures = 0
+        selection = $Selection
+    }
+}
+
+function New-FailureEntry {
+    param(
+        [string]$Name,
+        [string]$FullName,
+        [double]$DurationSec,
+        [string]$Message,
+        [string]$StackTrace,
+        [int]$MessageLimit,
+        [switch]$WithStackTrace
+    )
+
+    $entry = [ordered]@{
+        name = $Name
+        fullName = $FullName
+        durationSec = $DurationSec
+        message = Normalize-Message -Message $Message -MaxLen $MessageLimit
+        topStack = Normalize-Message -Message (Get-TopStackFrame -StackTrace $StackTrace) -MaxLen 240
+    }
+    if ($WithStackTrace.IsPresent) {
+        $entry.stackTrace = Normalize-Message -Message $StackTrace -MaxLen 2000
+    }
+    return $entry
+}
+
 function Parse-UnityResultXml {
     param(
         [string]$XmlPath,
@@ -502,21 +557,8 @@ function Parse-UnityResultXml {
         [hashtable]$Selection
     )
 
-    $base = [ordered]@{
-        platform = $Platform
-        xmlPath = $XmlPath
-        logPath = $LogPath
-        unityExitCode = $UnityExitCode
-        status = "infra_error"
-        total = 0
-        passed = 0
-        failed = 0
-        skipped = 0
-        durationSec = 0.0
-        failures = @()
-        truncatedFailures = 0
-        selection = $Selection
-    }
+    $base = New-RunRecord -Platform $Platform -XmlPath $XmlPath -LogPath $LogPath `
+        -UnityExitCode $UnityExitCode -Selection $Selection
 
     if (-not (Test-Path -LiteralPath $XmlPath)) {
         $tail = ""
@@ -551,19 +593,14 @@ function Parse-UnityResultXml {
             $stackNode = $testNode.SelectSingleNode("failure/stack-trace")
             $stackRaw = Get-InnerText $stackNode
 
-            $entry = [ordered]@{
-                name = Get-Attr -Node $testNode -Name "name"
-                fullName = Get-Attr -Node $testNode -Name "fullname"
-                durationSec = To-Double (Get-Attr -Node $testNode -Name "duration")
-                message = Normalize-Message -Message (Get-InnerText $msgNode) -MaxLen $MessageLimit
-                topStack = Normalize-Message -Message (Get-TopStackFrame -StackTrace $stackRaw) -MaxLen 240
-            }
-
-            if ($WithStackTrace.IsPresent) {
-                $entry.stackTrace = Normalize-Message -Message $stackRaw -MaxLen 2000
-            }
-
-            $failures += $entry
+            $failures += New-FailureEntry `
+                -Name (Get-Attr -Node $testNode -Name "name") `
+                -FullName (Get-Attr -Node $testNode -Name "fullname") `
+                -DurationSec (To-Double (Get-Attr -Node $testNode -Name "duration")) `
+                -Message (Get-InnerText $msgNode) `
+                -StackTrace $stackRaw `
+                -MessageLimit $MessageLimit `
+                -WithStackTrace:$WithStackTrace
         }
     }
 
@@ -827,12 +864,9 @@ function Invoke-RoutedPlatformRun {
     $notes = @()
 
     if ($Plan.expected.Count -eq 0) {
-        $notes += "No tests matched on this platform."
-        return [ordered]@{
-            platform = $platform; xmlPath = ""; logPath = ""; unityExitCode = 0
-            status = "passed"; total = 0; passed = 0; failed = 0; skipped = 0; durationSec = 0.0
-            failures = @(); truncatedFailures = 0; selection = $Selection; note = ($notes -join " ")
-        }
+        $empty = New-RunRecord -Platform $platform -Status "passed" -Selection $Selection
+        $empty.note = "No tests matched on this platform."
+        return $empty
     }
 
     $byName = [ordered]@{}
@@ -881,17 +915,14 @@ function Invoke-RoutedPlatformRun {
                 if ($failures.Count -lt $MaxFailures) {
                     $fullName = [string](Get-JsonProp $result 'FullName')
                     $stackRaw = [string](Get-JsonProp $result 'StackTrace')
-                    $entry = [ordered]@{
-                        name = Get-ShortTestName -FullName $fullName
-                        fullName = $fullName
-                        durationSec = [double](Get-JsonProp $result 'Duration')
-                        message = Normalize-Message -Message ([string](Get-JsonProp $result 'Message')) -MaxLen $MaxMessageLength
-                        topStack = Normalize-Message -Message (Get-TopStackFrame -StackTrace $stackRaw) -MaxLen 240
-                    }
-                    if ($IncludeStackTrace.IsPresent) {
-                        $entry.stackTrace = Normalize-Message -Message $stackRaw -MaxLen 2000
-                    }
-                    $failures += , $entry
+                    $failures += , (New-FailureEntry `
+                        -Name (Get-ShortTestName -FullName $fullName) `
+                        -FullName $fullName `
+                        -DurationSec ([double](Get-JsonProp $result 'Duration')) `
+                        -Message ([string](Get-JsonProp $result 'Message')) `
+                        -StackTrace $stackRaw `
+                        -MessageLimit $MaxMessageLength `
+                        -WithStackTrace:$IncludeStackTrace)
                 }
             }
         }
@@ -910,23 +941,28 @@ function Invoke-RoutedPlatformRun {
         if ($extra.Count -gt 0) { $notes += "Executed set has $($extra.Count) unexpected test(s): $(@($extra | Select-Object -First 10) -join ', ')" }
     }
 
-    $run = [ordered]@{
-        platform = $platform
-        xmlPath = ""
-        logPath = ""
-        unityExitCode = 0
-        status = $status
-        total = $byName.Count
-        passed = $passed
-        failed = $failed
-        skipped = $skipped
-        durationSec = [Math]::Round($durationSum, 3)
-        failures = $failures
-        truncatedFailures = [Math]::Max(0, $failed - $failures.Count)
-        selection = $Selection
-    }
+    $run = New-RunRecord -Platform $platform -Status $status -Selection $Selection
+    $run.total = $byName.Count
+    $run.passed = $passed
+    $run.failed = $failed
+    $run.skipped = $skipped
+    $run.durationSec = [Math]::Round($durationSum, 3)
+    $run.failures = $failures
+    $run.truncatedFailures = [Math]::Max(0, $failed - $failures.Count)
     if ($notes.Count -gt 0) { $run.note = $notes -join " " }
     return $run
+}
+
+function New-RoutedRefusal {
+    param([string[]]$Platforms, [object]$Selection, [string]$Reason)
+
+    $records = @()
+    foreach ($platform in $Platforms) {
+        $record = New-RunRecord -Platform $platform -Status "infra_error" -Selection $Selection
+        $record.note = $Reason
+        $records += , $record
+    }
+    return $records
 }
 
 function Invoke-RoutedSuite {
@@ -962,19 +998,23 @@ function Invoke-RoutedSuite {
     $plans = @()
     foreach ($platform in $Platforms) { $plans += , (Resolve-RoutedPlatformPlan -Platform $platform) }
 
+    # A refusal is a real verdict, not a crash: it lands as infra_error runs so the caller gets the
+    # same summary + exit 2 it gets for every other "no tests ran" outcome, instead of a bare throw.
     $refusals = @($plans | Where-Object { @($_.excludedHits).Count -gt 0 })
     if ($refusals.Count -gt 0) {
         $lines = foreach ($plan in $refusals) {
-            "  [$($plan.platform)] $(@($plan.excludedHits | Select-Object -First 10) -join ', ')$(if (@($plan.excludedHits).Count -gt 10) { ", ... ($(@($plan.excludedHits).Count) total)" })"
+            "[$($plan.platform)] $(@($plan.excludedHits | Select-Object -First 10) -join ', ')$(if (@($plan.excludedHits).Count -gt 10) { ", ... ($(@($plan.excludedHits).Count) total)" })"
         }
-        throw ("-Routed cannot honor -ExcludeCategory '$ExcludeCategory': run_tests has no exclusion filter and the selection matches excluded-category tests:`n" +
-            ($lines -join "`n") + "`nRun this selection cold (drop -Routed), or pass -ExcludeCategory '' to run them deliberately in the resident editor.")
+        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+            "-Routed cannot honor -ExcludeCategory '$ExcludeCategory': run_tests has no exclusion filter and the selection matches excluded-category tests: " +
+            ($lines -join "; ") + ". Run this selection cold (drop -Routed), or pass -ExcludeCategory '' to run them deliberately in the resident editor.")
     }
 
     $expectedTotal = 0
     foreach ($plan in $plans) { $expectedTotal += $plan.expected.Count }
     if ($expectedTotal -eq 0) {
-        throw "-Routed: the selection matches no tests on any requested platform (list_tests ground truth). A zero-test run reports success it never earned; fix the selection."
+        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+            "-Routed: the selection matches no tests on any requested platform (list_tests ground truth). A zero-test run reports success it never earned; fix the selection.")
     }
 
     $routedRuns = @()
@@ -999,8 +1039,8 @@ if ($ScopeType -eq "Auto") {
     }
 }
 
-$unityExe = Resolve-FullPath $UnityPath
 $project = Resolve-FullPath $ProjectPath
+$unityExe = if ([string]::IsNullOrWhiteSpace($UnityPath)) { Resolve-UnityEditorPath -ProjectPath $project } else { Resolve-FullPath $UnityPath }
 $outRoot = Resolve-FullPath $OutDir
 $orderedListPath = Resolve-FullPath $OrderedTestListFile
 $rerunSummaryPath = Resolve-FullPath $RerunFailedFrom
@@ -1117,20 +1157,21 @@ try {
         }
     }
 
+    $platforms = switch ($Mode) {
+        "Both" { @("EditMode", "PlayMode") }
+        default { @($Mode) }
+    }
+
     if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
         Write-Host "Validating scope filter matches at least one test..."
 
-        $platformsToValidate = switch ($Mode) {
-            "Both" { @("EditMode", "PlayMode") }
-            default { @($Mode) }
-        }
-
         $anyMatches = $false
-        foreach ($platform in $platformsToValidate) {
+        foreach ($platform in $platforms) {
             Write-Host "  Checking $platform..."
-            $matches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
+            # Not $matches: that is the regex automatic variable, and assigning it breaks any -match in scope.
+            $filterMatches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
 
-            if ($matches) {
+            if ($filterMatches) {
                 Write-Host "  [OK] ${platform}: Filter matches tests"
                 $anyMatches = $true
             }
@@ -1160,11 +1201,6 @@ try {
     $categoryFilter = (@($includeCategories) + @($excludeCategories | ForEach-Object { "!$_" })) -join ";"
     if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
         Write-Host "Test category filter: $categoryFilter"
-    }
-
-    $platforms = switch ($Mode) {
-        "Both" { @("EditMode", "PlayMode") }
-        default { @($Mode) }
     }
 
     $stamp = Get-Date -Format "yyyyMMdd-HHmmss"

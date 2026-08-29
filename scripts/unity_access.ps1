@@ -56,7 +56,9 @@
       BootRelease   -Lease -> boot_released | ownership_mismatch | boot_lane_wedged.
       StartEditor   -Lease -Slot|-ProjectPath [-EditorArgs] [-EditorProfile] [-UnityPath] ->
                     attached (carrying a .profile receipt) | editor_profile_failed |
-                    any Acquire or BootAcquire status.
+                    any Acquire or BootAcquire status. -UnityPath overrides the
+                    editor resolved from the project's own ProjectVersion.txt
+                    (scripts/lib/unity_editor.ps1).
       RunBatch      -Lease -BatchScript [-BatchArguments] [-BatchLogPath] [-BatchBootSeconds] ->
                     batch_complete | any Acquire or BootAcquire status.
 
@@ -121,7 +123,7 @@ param(
     [string]$StateRoot = "",
     [string]$PrimaryRoot = "",
     [string]$ProcessSnapshotPath = "",
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
+    [string]$UnityPath = "",
     [switch]$CloseEditor,
     [string[]]$EditorArgs = @(),
     [ValidateSet("LowMemory", "HighFidelity")]
@@ -151,6 +153,10 @@ $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # (postmortem D6). The single home: callers that drive the lane themselves read it via -Action Contract.
 $BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 
+. (Join-Path $PSScriptRoot "lib/repo_root.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
+. (Join-Path $PSScriptRoot "lib/process_tree.ps1")
+
 function Resolve-FullPath {
     param([string]$Path, [string]$Base = (Get-Location).Path)
     if ([string]::IsNullOrWhiteSpace($Path)) { return "" }
@@ -160,7 +166,7 @@ function Resolve-FullPath {
 
 function Get-PrimaryRoot {
     if (-not [string]::IsNullOrWhiteSpace($PrimaryRoot)) { return Resolve-FullPath $PrimaryRoot }
-    $repo = Resolve-FullPath (Join-Path $PSScriptRoot "..")
+    $repo = Get-RepoRoot -ProbePath $PSScriptRoot
     $common = (& git -C $repo rev-parse --path-format=absolute --git-common-dir 2>$null | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($common)) { throw "Could not resolve the primary git directory." }
     return Split-Path -Parent (Resolve-FullPath $common)
@@ -870,7 +876,7 @@ function Release-Access {
                 $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
             }
             if (-not $closed) {
-                Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
+                Stop-ProcessTree -ProcessId ([int]$owner.processId)
                 $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
                 while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
@@ -896,7 +902,7 @@ function Start-TrackedEditor {
         return $boot
     }
     try {
-        $exe = Resolve-FullPath $UnityPath
+        $exe = if ([string]::IsNullOrWhiteSpace($UnityPath)) { Resolve-UnityEditorPath -ProjectPath $ResolvedProject } else { Resolve-FullPath $UnityPath }
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
         $receiptPath = New-EditorProfileReceiptPath
         $previousProfile = [Environment]::GetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", "Process")
@@ -919,7 +925,7 @@ function Start-TrackedEditor {
             Remove-Item -LiteralPath $receiptPath -Force -ErrorAction SilentlyContinue
         }
         if (-not $profile.verified) {
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            Stop-ProcessTree -ProcessId $process.Id
             [void](Release-Access)
             return [ordered]@{ status = "editor_profile_failed"; profile = $profile }
         }

@@ -1,6 +1,8 @@
 # Script Seam Hardening
 
-> STATUS: live arc — scripts/ interaction-pattern cleanup; arc #451, phases 0–4 carded #452–#456 (blocked chain), one PR each unless noted.
+> STATUS: living — the arc shipped (#451, phases #452–#456). Kept as the standing design record
+> for `scripts/`: the target interaction pattern, the monolith-split non-goal and the do-not-break
+> list are the *why* behind `doc/agents/script-contracts.md`, which carries only the review law.
 
 Provenance: 2026-08-27 four-lane full-read audit of `scripts/` (5,141 tool
 lines + 1,391 test lines). Findings are cited inline as `file:line` against
@@ -36,9 +38,11 @@ Four standing rules. Rules 1–2 become reviewable law in
    dependency rule 6), never a parallel re-derivation beside it.
 3. **Shared primitives live in `scripts/lib/`, entry only at two real
    callers.** Seeded exclusively with already-duplicated logic (each ≥2
-   divergent copies today): Unity exe resolution, repo root, kill-tree,
-   Unity-churn classifier, coordinator-invoke helper. Nothing enters the lib
-   with one caller — one adapter is a hypothetical seam.
+   divergent copies): Unity exe resolution, repo root, kill-tree, Unity-churn
+   classifier — the four the lib holds. Nothing enters the lib with one caller —
+   one adapter is a hypothetical seam. (The coordinator-invoke helper shipped
+   instead as the sanctioned client `scripts/unity_access_client.ps1`: it is the
+   coordinator's own front door, not a shared primitive.)
 4. **The merge gate runs the script tests.** A diff touching `scripts/**`
    triggers `scripts/tests/`; without enforcement the other rules erode
    silently (they already did — the suite currently has zero callers).
@@ -52,121 +56,27 @@ module behind a small honest interface is a deep module — the goal state.
 Splits buy maintainer locality only; they re-enter the backlog only via an
 observed maintenance failure, as their own hygiene arc.
 
-## Phases
+## Phases - LANDED
 
-Ordered so enforcement precedes safety precedes deepening; each phase is
-independently mergeable and lands with regression cover from Phase 0.
+Ordered so enforcement preceded safety preceded deepening. Each phase shipped as one PR with
+regression cover from Phase 0.
 
-### Phase 0 — enforcement substrate
+| Phase | What landed | Card | PR |
+| --- | --- | --- | --- |
+| 0 - enforcement substrate | `scripts/tests/` wired into the pool merge gate (diff-triggered on `scripts/**`); `test_pool_locking.sh`; merge-gate stub honors `-OutDir` with a golden summary | #452 | #468 |
+| 1 - safety (locking) | single-winner stale reclaim, atomic lock records, loud CIM-failure enumeration, `holderStartTime` PID identity | #453 | #474 |
+| 2 - coordinator interface law | `doc/agents/script-contracts.md`; sanctioned client `unity_access_client.ps1`; coordinator help block, `record_unreadable` / `coordinator_error`; hermetic `test_unity_access.ps1` (skiplist empty) | #454 | #475 |
+| 3 - verdict ownership | runner `coverage` stamp; pool `status --porcelain` as the read interface (human status + dashboard are adapters); coordinator answers ownership (`normalizedProjectPath`, `-Action Contract`); structured scope selection | #455 | #476 |
+| 4 - shared primitives + dedup | `scripts/lib/` seeded (`repo_root`, `unity_editor`, `process_tree`, `unity_churn`); runner run-record/failure-entry constructors; pool `parse_pr_flags` / `push_and_open_pr` / `require_gh`; `pr_number_for_pushed_head`; `create-pool-prs` and `check_test_naming.ps1` deleted | #456 | this PR |
 
-Wire `scripts/tests/` into the pool merge gate; add `test_pool_locking.sh`
-covering acquire ordering, named-slot strictness, TTL reclaim contention
-(the Phase 1 race), clobber-safety refusal, release, and the prepare
-unpushed-work refusal (use the existing `WORKTREE_POOL_LOCK_TTL` override).
-- Trigger scope and cost: OPEN FORK (below).
-- Test-hygiene ride-alongs: merge-gate stub honors `-OutDir` + one golden
-  summary from a real runner invocation (stub schema currently drifts free,
-  `test_pool_merge_gate.sh:31-91`); convert absolute run-counters to deltas
-  (the `:393` idiom).
-
-### Phase 1 — safety (locking correctness)
-
-Small diffs, highest stakes, now testable. Root causes, fix-ladder rung 2
-(earliest deterministic failure) or structural:
-- Pool reclaim double-acquire (`agent_worktree_pool.sh:544-560`): single
-  winner via atomic `mv` of the stale lock dir to a tombstone, then fresh
-  `mkdir`.
-- Coordinator record-less-dir reap defeats the mkdir mutex
-  (`unity_access.ps1:220-222, 379-395`; same shape in boot lane
-  `:263-274, 475-490`): record creation atomic with the lock (temp dir +
-  `Move-Item` of the dir), or age-gate the reap.
-- CIM failure reads as "no Unity" and reaps live leases
-  (`unity_access.ps1:109-115`): throw or sentinel that suppresses
-  stale-reaping for that call — never `@()`.
-- PID-recycling: bind holder liveness to `holderStartTime`
-  (`unity_access.ps1:208-209`); hoist the relevant-Unity guard above both
-  close branches (`:595-603`).
-
-### Phase 2 — coordinator interface law — LANDED
-
-Landed the contract doc `doc/agents/script-contracts.md`, the sanctioned client
-`scripts/unity_access_client.ps1` (3 callers), the coordinator's help block, the
-`record_unreadable` / `coordinator_error` statuses, and a hermetic
-`test_unity_access.ps1` (#454) — the merge gate's non-hermetic skiplist is empty.
-
-Shrink `unity_access.ps1`'s effective interface to its published one:
-- Comment-based help: actions × statuses × exit codes × required params;
-  owner/ticket/boot JSON schemas named as owned contracts.
-- Machine channel guarantee: `-Json` = exactly one JSON line on stdout
-  (or `-ResultPath`); kills all scrape sites (`unity_test_agent.ps1:113,
-  124, 621`, `resharper_ratchet.ps1:162-165`, the sidecar's self-scrape
-  `:441-443`) via one shared invoke helper.
-- Ticket/reap fixes riding the same seam: no-owner Release cancels its
-  ticket (`:587-592`); `Ensure-Ticket` reconciles all fields, position 0 =
-  loud invariant violation (`:179-183, 342-346, 377`); one reap helper with
-  one error policy replaces the four divergent blocks (`:225, 251, 274,
-  618`); unreadable record ≠ missing record (`:74-79`).
-- Author `doc/agents/script-contracts.md` (rules 1–2 above, stated as
-  review law: what counts as interface for a script module — exit codes,
-  machine channel, state-file schemas, timing constants).
-
-### Phase 3 — verdict ownership (deepening the three producers) — LANDED
-
-Landed: the runner's `coverage` stamp (`{verdict, reason}`) with the pool reading
-that one field plus the project it owns; `status --porcelain` as the pool's read
-interface, with human `status` and the dashboard as adapters over one collection
-pass; the coordinator's `normalizedProjectPath`, `Status -ProjectPath`
-(`projectOwner` / `projectProcesses`) and `-Action Contract` (the single home for
-`bootCompletePattern`); and `ConvertTo-TestNameSelection` / `Resolve-ScopeSelection`
-as the one reader of the authored filter format. Deferred out (still true): the
-pool re-derives the runner's log-dir layout when tailing a live run
-(`agent_worktree_pool.sh:~1139`) and `pr_number_for_slot` still looks PRs up by
-bare slot name.
-
-- **Runner stamps coverage.** `unity_test_agent.ps1` writes
-  `coverage: full|partial` + reason into its summary; the pool
-  trust-and-checks one field, deleting the dual-language predicate
-  (`agent_worktree_pool.sh:199-323`) and the re-derived summary filenames
-  (`:191, :1170`). Deletion test: no complexity reappears.
-- **Pool grows `status --porcelain`** — stable `key=value` per slot (slot,
-  state, lease, task_branch, path, PR). Porcelain is the pool's read
-  interface; human `status` and the dashboard become adapters over it. The
-  dashboard deletes its hand-parsed lock reads (`worktree_dashboard.sh:
-  100-113`, wrong today: no git-config lease fallback, `--head "$slot"` PR
-  lookup) and its `slots_tsv` copy (`:181-190`).
-- **Coordinator answers ownership questions.** Status emits
-  `normalizedProjectPath` / answers "who owns this path"; `unity_doctor.ps1`
-  (`:46-66`) and routed owner-matching (`unity_test_agent.ps1:625-627`)
-  become consumers; `$BootCompletePattern` gets one home.
-- **Scope lib emits a structured selection** both transports consume,
-  replacing routed's substring re-parse of the regex filter format
-  (`unity_test_agent.ps1:690-694`).
-
-### Phase 4 — shared primitives + dedup (mechanical, last)
-
-- Seed `scripts/lib/`: exe resolver (from `ProjectSettings/
-  ProjectVersion.txt`; the three hardcoded paths become overrides),
-  repo-root (converge on the scope lib's `Get-RepoRoot`), kill-tree (the
-  taskkill `/T /F` variant, replacing two root-only kills), churn classifier
-  (single PS owner; `agent_worktree_pool.sh:658-676` shells out to it, and
-  capture the diff before restoring).
-- In-file dedup: shared failure-entry/run-record constructors
-  (`unity_test_agent.ps1:526-537` ↔ `852-866`, `477-491` ↔ `884-898`);
-  merge `create-pr`/`submit` parse+push (`agent_worktree_pool.sh:780-838` ↔
-  `847-923`, submit rejects bare positionals); hoist submit's `gh` check to
-  preflight (`:903-906`); delete dead `create-pool-prs` (`:840-845`).
-- Hygiene rides only in touched hunks: bare `2>&1` under EAP=Stop,
-  `$args`/`$matches` shadowing, BOM'd rerun list, `prepare --force`
-  positional parse, `-CompletionFiles` on the per-platform cold path.
-
-## Open forks (block the phase named; propose-and-default listed)
+## Forks - all RULED
 
 1. **Merge-gate trigger for script tests** (blocks Phase 0): RULED —
    diff-triggered, only when the landing diff touches `scripts/**`
    (~1 min added to those merges); not unconditional.
-2. **`check_test_naming.ps1`** (Phase 4): delete + fix TESTING.md's
-   enforcement claim (default — never run, convention not load-bearing), or
-   wire into the merge gate with JSON output.
+2. **`check_test_naming.ps1`** (Phase 4): RULED — deleted. It was never run and
+   the convention is not load-bearing; TESTING.md now states the naming rules as
+   review law instead of claiming script enforcement.
 3. **Python coverage twin** (Phase 3): RULED — moot. The runner stamps the
    verdict, so the merge gate no longer re-derives it in any language; the one
    remaining field read is PowerShell-only.

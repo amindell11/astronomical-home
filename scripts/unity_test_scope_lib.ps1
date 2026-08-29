@@ -1,5 +1,7 @@
 Set-StrictMode -Version Latest
 
+. (Join-Path $PSScriptRoot "lib/repo_root.ps1")
+
 # Speed/selector overlays, never domains: they must not seed a scope, or a Slow/graphics tag would pull every such test across domains.
 $Script:AutoScopeOverlayCategories = @('Smoke', 'Slow', 'RequiresGraphics', 'ChaseBenchmark')
 
@@ -147,18 +149,6 @@ function Test-AutoScopeIgnoredFile {
 
     # -like '*' spans '/', so 'doc/*' deliberately covers the whole doc/ tree; these paths cannot affect Unity test outcomes.
     return ($Path -like '*.md' -or $Path -like 'doc/*' -or $Path -like '.claude/*' -or $Path -like '*.gitignore')
-}
-
-function Get-RepoRoot {
-    param([string]$ProbePath)
-
-    # Collect full output THEN take [0]: piping git into Select-Object -First 1 stops the pipeline early, which can kill git mid-exit and leave $LASTEXITCODE -1 despite good output.
-    $lines = @(& git -C $ProbePath rev-parse --show-toplevel)
-    $root = [string]$lines[0]
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($root)) {
-        throw "git rev-parse --show-toplevel failed under '$ProbePath'"
-    }
-    return $root
 }
 
 function Get-AutoChangedFiles {
