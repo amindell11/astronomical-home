@@ -75,7 +75,6 @@ Commands:
       describe the change, not echo the last commit subject. If an open
       PR already exists for that head/base, prints URL.
 
-
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
       branch (task/<lease>), and create PR — but keep the lock so the agent

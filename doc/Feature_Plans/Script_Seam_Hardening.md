@@ -61,13 +61,13 @@ observed maintenance failure, as their own hygiene arc.
 Ordered so enforcement preceded safety preceded deepening. Each phase shipped as one PR with
 regression cover from Phase 0.
 
-| Phase | What landed | PR |
-| --- | --- | --- |
-| 0 - enforcement substrate | `scripts/tests/` wired into the pool merge gate (diff-triggered on `scripts/**`); `test_pool_locking.sh`; merge-gate stub honors `-OutDir` with a golden summary | #452 |
-| 1 - safety (locking) | single-winner stale reclaim, atomic lock records, loud CIM-failure enumeration, `holderStartTime` PID identity | #474 |
-| 2 - coordinator interface law | `doc/agents/script-contracts.md`; sanctioned client `unity_access_client.ps1`; coordinator help block, `record_unreadable` / `coordinator_error`; hermetic `test_unity_access.ps1` (skiplist empty) | #475 |
-| 3 - verdict ownership | runner `coverage` stamp; pool `status --porcelain` as the read interface (human status + dashboard are adapters); coordinator answers ownership (`normalizedProjectPath`, `-Action Contract`); structured scope selection | #476 |
-| 4 - shared primitives + dedup | `scripts/lib/` seeded (`repo_root`, `unity_editor`, `process_tree`, `unity_churn`); runner run-record/failure-entry constructors; pool `parse_pr_flags` / `push_and_open_pr` / `require_gh`; `pr_number_for_pushed_head`; `create-pool-prs` and `check_test_naming.ps1` deleted | #456 |
+| Phase | What landed | Card | PR |
+| --- | --- | --- | --- |
+| 0 - enforcement substrate | `scripts/tests/` wired into the pool merge gate (diff-triggered on `scripts/**`); `test_pool_locking.sh`; merge-gate stub honors `-OutDir` with a golden summary | #452 | #468 |
+| 1 - safety (locking) | single-winner stale reclaim, atomic lock records, loud CIM-failure enumeration, `holderStartTime` PID identity | #453 | #474 |
+| 2 - coordinator interface law | `doc/agents/script-contracts.md`; sanctioned client `unity_access_client.ps1`; coordinator help block, `record_unreadable` / `coordinator_error`; hermetic `test_unity_access.ps1` (skiplist empty) | #454 | #475 |
+| 3 - verdict ownership | runner `coverage` stamp; pool `status --porcelain` as the read interface (human status + dashboard are adapters); coordinator answers ownership (`normalizedProjectPath`, `-Action Contract`); structured scope selection | #455 | #476 |
+| 4 - shared primitives + dedup | `scripts/lib/` seeded (`repo_root`, `unity_editor`, `process_tree`, `unity_churn`); runner run-record/failure-entry constructors; pool `parse_pr_flags` / `push_and_open_pr` / `require_gh`; `pr_number_for_pushed_head`; `create-pool-prs` and `check_test_naming.ps1` deleted | #456 | this PR |
 
 ## Forks - all RULED
 
