@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-08-27T12:00:00.0000000+03:00",
+  "projectPath": "__PROJECT_PATH__",
+  "unityPath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "Both",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": null,
+    "testFilter": "",
+    "testCategory": "",
+    "excludeCategory": "RequiresGraphics",
+    "categoryFilter": "!RequiresGraphics",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "passed",
+  "totals": {
+    "total": 1204,
+    "passed": 1201,
+    "failed": 0,
+    "skipped": 3,
+    "durationSec": 51.312
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "results/unity-tests-agent/20260827-120000-EditMode-results.xml",
+      "logPath": "results/unity-tests-agent/20260827-120000-EditMode.log",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 902,
+      "passed": 900,
+      "failed": 0,
+      "skipped": 2,
+      "durationSec": 28.104,
+      "failures": [],
+      "truncatedFailures": 0
+    },
+    {
+      "platform": "PlayMode",
+      "xmlPath": "results/unity-tests-agent/20260827-120000-PlayMode-results.xml",
+      "logPath": "results/unity-tests-agent/20260827-120000-PlayMode.log",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 302,
+      "passed": 301,
+      "failed": 0,
+      "skipped": 1,
+      "durationSec": 23.208,
+      "failures": [],
+      "truncatedFailures": 0
+    }
+  ]
+}
