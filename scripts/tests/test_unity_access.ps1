@@ -2,8 +2,14 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $Coordinator = Join-Path $PSScriptRoot "..\unity_access.ps1"
+. (Join-Path $PSScriptRoot "..\unity_access_client.ps1")
 $Root = Join-Path $env:TEMP ("unity-access-tests-" + [guid]::NewGuid().ToString("N"))
 $State = Join-Path $Root "state"
+# Hermeticity: the coordinator's two doors onto this machine are its state root and its notion of
+# the primary worktree (which decides what counts as "the user's main editor" and how a slot
+# resolves to a project). Both are injected, so nothing outside $Root can colour this run.
+$Primary = Join-Path $Root "primary"
+$Shared = Join-Path $Root "projShared\src\Asteroids3D"
 $Snapshot = Join-Path $Root "processes.json"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $Assertions = 0
@@ -27,23 +33,27 @@ function Invoke-Coordinator {
         [int]$OwnerTtlSeconds = 300
     )
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
         "-Action", $Action,
-        "-StateRoot", $State,
+        "-StateRoot", $State, "-PrimaryRoot", $Primary,
         "-ProcessSnapshotPath", $Snapshot,
         "-TicketTtlSeconds", $TicketTtlSeconds,
         "-BootTtlSeconds", $BootTtlSeconds,
-        "-OwnerTtlSeconds", $OwnerTtlSeconds,
-        "-Json"
+        "-OwnerTtlSeconds", $OwnerTtlSeconds
     )
     if (-not [string]::IsNullOrWhiteSpace($Lease)) { $arguments += @("-Lease", $Lease, "-Slot", $Slot, "-Mode", $Mode) }
-    if (-not [string]::IsNullOrWhiteSpace($ProjectPath)) { $arguments += @("-ProjectPath", $ProjectPath) }
+    # Never leave -ProjectPath blank: that path resolves the project from the slot's real worktree,
+    # which is exactly the machine coupling these tests exist without.
+    if ([string]::IsNullOrWhiteSpace($ProjectPath)) { $ProjectPath = $Shared }
+    $arguments += @("-ProjectPath", $ProjectPath)
     if ($WaitSeconds -gt 0) { $arguments += @("-WaitSeconds", $WaitSeconds) }
-    $output = @(& powershell @arguments 2>&1)
-    $code = $LASTEXITCODE
-    $jsonLine = @($output | Where-Object { [string]$_ -match '^\s*[\{\[]' } | Select-Object -Last 1)
-    if ($jsonLine.Count -eq 0) { throw "No JSON from coordinator: $($output -join [Environment]::NewLine)" }
-    return [pscustomobject]@{ code = $code; value = ([string]$jsonLine[0] | ConvertFrom-Json); output = $output }
+    # Every call goes through the sanctioned client, so the whole suite is also a standing proof of
+    # the machine channel: one JSON line on stdout, parsed whole, never sniffed for.
+    $call = Invoke-UnityAccessCoordinator -Coordinator $Coordinator -CoordinatorArgs $arguments
+    $script:Assertions++
+    if (@($call.stdout -split "`n").Count -ne 1) {
+        throw "-Json stdout must be exactly one line for $($Action): $($call.stdout)"
+    }
+    return [pscustomobject]@{ code = $call.exitCode; value = $call.result; stderr = $call.stderr; output = $call.stdout }
 }
 
 function Assert-Equal {
@@ -71,7 +81,7 @@ try {
     $projA = Join-Path $Root "projA\src\Asteroids3D"
     $projB = Join-Path $Root "projB\src\Asteroids3D"
 
-    # Leases with no -ProjectPath share the "unknown" project bucket, so they serialize FIFO.
+    # Leases with no explicit project share one bucket, so they serialize FIFO.
     $first = Invoke-Coordinator -Action Acquire -Lease first
     Assert-Equal $first.code 0 "first acquire exit"
     Assert-Equal $first.value.status "acquired" "first acquire status"
@@ -229,10 +239,8 @@ try {
     Assert-Equal $legacyCleared.value.status "acquired" "acquire proceeds once legacy owner clears"
     [void](Invoke-Coordinator -Action Release -Lease legacy-blocked)
 
-    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-    $commonGit = (& git -C $repoRoot rev-parse --path-format=absolute --git-common-dir | Select-Object -First 1)
-    $mainProject = Join-Path (Split-Path -Parent $commonGit) "src\Asteroids3D"
-    $agentProject = Join-Path $repoRoot "src\Asteroids3D"
+    $mainProject = Join-Path $Primary "src\Asteroids3D"
+    $agentProject = Join-Path $Root "agent-1\src\Asteroids3D"
 
     Write-Snapshot @([ordered]@{ processId = 41001; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
     $crossProject = Invoke-Coordinator -Action Acquire -Lease cross-project -ProjectPath $agentProject
@@ -314,7 +322,7 @@ try {
     $attachAcquire = Invoke-Coordinator -Action Acquire -Lease attach -ProjectPath $agentProject
     Assert-Equal $attachAcquire.value.status "acquired" "attach owner acquire"
     Write-Snapshot @([ordered]@{ processId = 41003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
-    $attachOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease attach -Slot agent-1 -Mode batch -ProcessId 41003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $attachOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease attach -Slot agent-1 -ProjectPath $Shared -Mode batch -ProcessId 41003 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 0 "attach exit"
     $attached = [string](@($attachOutput | Select-Object -Last 1)[0]) | ConvertFrom-Json
     Assert-Equal $attached.status "attached" "attach status"
@@ -327,7 +335,7 @@ try {
 
     $batchProbe = Join-Path $Root "batch-probe.ps1"
     [System.IO.File]::WriteAllText($batchProbe, "exit 7", $Utf8NoBom)
-    $batchOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action RunBatch -Lease batch-probe -Slot agent-1 -Mode batch -ProjectPath $agentProject -BatchScript $batchProbe -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $batchOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action RunBatch -Lease batch-probe -Slot agent-1 -Mode batch -ProjectPath $agentProject -BatchScript $batchProbe -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 0 "run batch coordinator exit"
     $batchResult = [string](@($batchOutput | Select-Object -Last 1)[0]) | ConvertFrom-Json
     Assert-Equal $batchResult.status "batch_complete" "run batch status"
@@ -357,14 +365,19 @@ try {
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
         "-Action", "RunBatch", "-Lease", "batch-live", "-Slot", "agent-1", "-Mode", "batch",
         "-ProjectPath", $projA, "-BatchScript", $sleepProbe,
-        "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot,
+        "-StateRoot", $State, "-PrimaryRoot", $Primary, "-ProcessSnapshotPath", $Snapshot,
         "-OwnerTtlSeconds", "5", "-BootTtlSeconds", "600", "-BatchBootSeconds", "2",
         "-PollSeconds", "1", "-Json")
     try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
-        while ($null -eq (Read-OwnerJson "batch-live") -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 200 }
-        Assert-True ($null -ne (Read-OwnerJson "batch-live")) "RunBatch takes a project owner lease"
-        Assert-True ([int](Read-OwnerJson "batch-live").holderProcessId -gt 0) "the batch owner records its holding coordinator"
+        # One read, then assert against it: a live record is rewritten by the heartbeat under us.
+        $liveOwner = $null
+        while ($null -eq $liveOwner -and $sw.Elapsed.TotalSeconds -lt 30) {
+            $liveOwner = Read-OwnerJson "batch-live"
+            if ($null -eq $liveOwner) { Start-Sleep -Milliseconds 200 }
+        }
+        Assert-True ($null -ne $liveOwner) "RunBatch takes a project owner lease"
+        Assert-True ([int]$liveOwner.holderProcessId -gt 0) "the batch owner records its holding coordinator"
 
         $sw.Restart()
         $laneFree = $false
@@ -399,7 +412,7 @@ try {
     # unmanaged process blocking every other project (codex P1 on #224).
     Write-Snapshot @()
     [void](Invoke-Coordinator -Action Acquire -Lease child-claim -ProjectPath $agentProject)
-    $absent = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $absent = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     $absentResult = [string](@($absent | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $absentResult.status "batch_child_absent" "no child yet is not an error"
 
@@ -408,7 +421,7 @@ try {
     Assert-Equal $blockedBefore.value.status "blocked_unmanaged_unity" "an unclaimed batch child blocks other projects"
     [void](Invoke-Coordinator -Action Cancel -Lease child-rival)
 
-    $claimed = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $claimed = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     $claimResult = [string](@($claimed | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $claimResult.status "attached" "AttachBatchChild claims the project's batch Unity"
     Assert-Equal $claimResult.owner.processId 43001 "the claimed pid lands on the owner record"
@@ -426,7 +439,7 @@ try {
     [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`necho {`"requestedProfile`":`"%ASTRONOMICAL_EDITOR_PROFILE%`",`"observedQuality`":`"Performant`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs:profile -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -ProfileWaitSeconds 5 -Json -EditorArgs @('-batchmode','-nographics')"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs:profile -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -PrimaryRoot '$Primary' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -ProfileWaitSeconds 5 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
@@ -449,7 +462,7 @@ try {
 
     $highReceiptRecorder = Join-Path $Root "high-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($highReceiptRecorder, "@echo off`r`necho {`"requestedProfile`":`"HighFidelity`",`"observedQuality`":`"High Fidelity`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
-    $highOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease highprofile -Slot agent-1 -ProjectPath $projA -UnityPath $highReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -EditorProfile HighFidelity -Json 2>&1)
+    $highOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease highprofile -Slot agent-1 -ProjectPath $projA -UnityPath $highReceiptRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -EditorProfile HighFidelity -Json 2>&1)
     Assert-Equal $LASTEXITCODE 0 "StartEditor HighFidelity exit"
     $highResult = [string](@($highOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $highResult.status "attached" "StartEditor accepts explicit HighFidelity"
@@ -458,7 +471,7 @@ try {
 
     $badReceiptRecorder = Join-Path $Root "bad-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($badReceiptRecorder, "@echo off`r`necho {`"requestedProfile`":`"LowMemory`",`"observedQuality`":`"High Fidelity`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
-    $badOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease badprofile -Slot agent-1 -ProjectPath $projA -UnityPath $badReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
+    $badOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease badprofile -Slot agent-1 -ProjectPath $projA -UnityPath $badReceiptRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
     Assert-Equal $LASTEXITCODE 26 "StartEditor profile failure exit"
     $badResult = [string](@($badOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $badResult.status "editor_profile_failed" "StartEditor rejects a mismatched profile receipt"
@@ -468,7 +481,7 @@ try {
     $missingReceiptRecorder = Join-Path $Root "missing-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($missingReceiptRecorder, "@echo off`r`n", $Utf8NoBom)
     $missingStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
+    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
     $missingStopwatch.Stop()
     Assert-Equal $LASTEXITCODE 26 "StartEditor profile timeout exit"
     $missingResult = [string](@($missingOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
@@ -482,10 +495,10 @@ try {
     try {
         $killAcq = Invoke-Coordinator -Action Acquire -Lease closekill -ProjectPath $projA
         Assert-Equal $killAcq.value.status "acquired" "closekill acquire"
-        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closekill -Slot agent-1 -Mode editor -ProcessId $killProc.Id -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closekill -Slot agent-1 -ProjectPath $Shared -Mode editor -ProcessId $killProc.Id -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
         Assert-Equal $LASTEXITCODE 0 "closekill attach exit"
         Write-Snapshot @([ordered]@{ processId = $killProc.Id; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
-        $killRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closekill -Slot agent-1 -CloseEditor -EditorCloseWaitSeconds 20 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        $killRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closekill -Slot agent-1 -ProjectPath $Shared -CloseEditor -EditorCloseWaitSeconds 20 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
         Assert-Equal $LASTEXITCODE 0 "closekill release exit"
         $killResult = [string](@($killRel | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
         Assert-Equal $killResult.status "released" "Release -CloseEditor releases the owner"
@@ -500,9 +513,9 @@ try {
     $safeProc = Start-Process powershell -ArgumentList @("-NoProfile", "-Command", "Start-Sleep -Seconds 120") -WindowStyle Hidden -PassThru
     try {
         [void](Invoke-Coordinator -Action Acquire -Lease closesafe -ProjectPath $projA)
-        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closesafe -Slot agent-1 -Mode editor -ProcessId $safeProc.Id -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closesafe -Slot agent-1 -ProjectPath $Shared -Mode editor -ProcessId $safeProc.Id -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
         Write-Snapshot @()
-        $safeRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closesafe -Slot agent-1 -CloseEditor -EditorCloseWaitSeconds 5 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        $safeRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closesafe -Slot agent-1 -ProjectPath $Shared -CloseEditor -EditorCloseWaitSeconds 5 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
         Assert-Equal $LASTEXITCODE 0 "closesafe release exit"
         $safeResult = [string](@($safeRel | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
         Assert-Equal $safeResult.status "released" "Release -CloseEditor releases a stale-owner lease"
@@ -515,7 +528,7 @@ try {
 
     # Adopt seizes an untracked live batch editor (the RL orphan) into pid-backed ownership; batch is NOT refused.
     Write-Snapshot @([ordered]@{ processId = 42001; commandLine = "Unity.exe -batchMode -projectPath `"$projB`"" })
-    $adopt = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-orphan -Slot agent-1 -ProcessId 42001 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adopt = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-orphan -Slot agent-1 -ProjectPath $Shared -ProcessId 42001 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 0 "adopt untracked batch exit"
     $adoptResult = [string](@($adopt | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptResult.status "adopted" "adopt untracked batch status"
@@ -528,7 +541,7 @@ try {
 
     # Adopt refuses the hand-opened dev editor (non-batch on the primary project).
     Write-Snapshot @([ordered]@{ processId = 42002; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
-    $adoptUser = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-user -Slot agent-1 -ProcessId 42002 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptUser = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-user -Slot agent-1 -ProjectPath $Shared -ProcessId 42002 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 24 "adopt user_editor refused exit"
     $adoptUserResult = [string](@($adoptUser | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptUserResult.status "adopt_refused_user_editor" "adopt refuses the user editor"
@@ -536,7 +549,7 @@ try {
     # Adopt refuses to clobber a project that already has a different owner (lease-theft guard).
     [void](Invoke-Coordinator -Action Acquire -Lease adopt-incumbent -ProjectPath $projA)
     Write-Snapshot @([ordered]@{ processId = 42010; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
-    $adoptOwned = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-thief -Slot agent-1 -ProcessId 42010 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptOwned = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-thief -Slot agent-1 -ProjectPath $Shared -ProcessId 42010 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 24 "adopt project-owned refused exit"
     $adoptOwnedResult = [string](@($adoptOwned | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptOwnedResult.status "adopt_project_owned" "adopt refuses to clobber an owned project"
@@ -549,8 +562,8 @@ try {
     # Adopt refuses a PID the coordinator already tracks.
     [void](Invoke-Coordinator -Action Acquire -Lease adopt-track-owner -ProjectPath $agentProject)
     Write-Snapshot @([ordered]@{ processId = 42003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
-    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease adopt-track-owner -Slot agent-1 -Mode batch -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
-    $adoptTracked = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-steal -Slot agent-1 -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease adopt-track-owner -Slot agent-1 -ProjectPath $Shared -Mode batch -ProcessId 42003 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptTracked = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-steal -Slot agent-1 -ProjectPath $Shared -ProcessId 42003 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 24 "adopt already-tracked refused exit"
     $adoptTrackedResult = [string](@($adoptTracked | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptTrackedResult.status "adopt_already_tracked" "adopt refuses a tracked pid"
@@ -558,7 +571,7 @@ try {
 
     # Adopt errors on a PID with no matching live Unity process.
     Write-Snapshot @()
-    $adoptGhost = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-ghost -Slot agent-1 -ProcessId 49999 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptGhost = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-ghost -Slot agent-1 -ProjectPath $Shared -ProcessId 49999 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     Assert-Equal $LASTEXITCODE 24 "adopt non-existent pid exit"
     $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
@@ -591,15 +604,15 @@ try {
     # reaping the live pid-backed owner it cannot see (#453).
     [void](Invoke-Coordinator -Action Acquire -Lease cim-live -ProjectPath $projA)
     Write-Snapshot @([ordered]@{ processId = 43001; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
-    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease cim-live -Slot agent-1 -ProcessId 43001 -ProjectPath $projA -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease cim-live -Slot agent-1 -ProcessId 43001 -ProjectPath $projA -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -Json 2>&1)
     $hidden = Join-Path $Root "processes.hidden"
     Move-Item -LiteralPath $Snapshot -Destination $hidden -Force
     # The coordinator writes its failure to stderr; under EAP=Stop a bare 2>&1 would end the test here.
     $blindErr = Join-Path $Root "blind.err"
     $blindProc = Start-Process powershell -ArgumentList @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
-        "-Action", "Status", "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot, "-Json"
-    ) -WindowStyle Hidden -PassThru -Wait -RedirectStandardError $blindErr
+        "-Action", "Status", "-StateRoot", $State, "-PrimaryRoot", $Primary, "-ProcessSnapshotPath", $Snapshot, "-Json"
+    ) -WindowStyle Hidden -PassThru -Wait -RedirectStandardError $blindErr -RedirectStandardOutput (Join-Path $Root "blind.out")
     $blind = @(Get-Content -LiteralPath $blindErr -ErrorAction SilentlyContinue)
     Assert-True ($blindProc.ExitCode -ne 0) "an unreadable process snapshot fails the call"
     Assert-True ([bool](($blind -join "`n") -match "Process snapshot not found")) "the enumeration failure names itself"
@@ -618,7 +631,7 @@ try {
             Start-Process powershell -ArgumentList @(
                 "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
                 "-Action", "Acquire", "-Lease", "race-$round-$_", "-Slot", "agent-1",
-                "-ProjectPath", $projRace, "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot, "-Json"
+                "-ProjectPath", $projRace, "-StateRoot", $State, "-PrimaryRoot", $Primary, "-ProcessSnapshotPath", $Snapshot, "-Json"
             ) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out
         })
         $racers | Wait-Process
@@ -630,6 +643,53 @@ try {
         # The losers queued behind the winner; leaving their tickets would seat the next round below position 1.
         1..4 | ForEach-Object { [void](Invoke-Coordinator -Action Cancel -Lease "race-$round-$_" -ProjectPath $projRace) }
     }
+
+    # A caller that gave up while queued must not strand its ticket at the head of the FIFO.
+    $projCancel = Join-Path $Root "projCancel\src\Asteroids3D"
+    [void](Invoke-Coordinator -Action Acquire -Lease strand-owner -ProjectPath $projCancel)
+    [void](Invoke-Coordinator -Action Request -Lease strand-quitter -ProjectPath $projCancel)
+    [void](Invoke-Coordinator -Action Release -Lease strand-quitter -ProjectPath $projCancel)
+    $strandQueue = Invoke-Coordinator -Action Status
+    Assert-Equal @($strandQueue.value.queue | Where-Object { $_.lease -eq "strand-quitter" }).Count 0 `
+        "releasing without an owner cancels that lease's queued ticket"
+    [void](Invoke-Coordinator -Action Release -Lease strand-owner -ProjectPath $projCancel)
+
+    # A refreshed ticket describes the request being made now, not the one that minted it.
+    $projReconcile = Join-Path $Root "projReconcile\src\Asteroids3D"
+    [void](Invoke-Coordinator -Action Request -Lease reconcile -ProjectPath $projA -Mode batch -Slot agent-1)
+    [void](Invoke-Coordinator -Action Request -Lease reconcile -ProjectPath $projReconcile -Mode editor -Slot agent-3)
+    $reconciled = @((Invoke-Coordinator -Action Status).value.queue | Where-Object { $_.lease -eq "reconcile" })
+    Assert-Equal $reconciled.Count 1 "a re-request refreshes one ticket"
+    Assert-Equal $reconciled[0].mode "editor" "ticket refresh reconciles mode"
+    Assert-Equal $reconciled[0].slot "agent-3" "ticket refresh reconciles slot"
+    Assert-Equal $reconciled[0].projectPath ([System.IO.Path]::GetFullPath($projReconcile)) "ticket refresh reconciles projectPath"
+    [void](Invoke-Coordinator -Action Cancel -Lease reconcile -ProjectPath $projReconcile)
+
+    # An owner record that exists but will not parse is not an absent one: reaping it would hand the
+    # project to a rival while its holder still runs, so the call fails by name and leaves it alone.
+    $projCorrupt = Join-Path $Root "projCorrupt\src\Asteroids3D"
+    [void](Invoke-Coordinator -Action Acquire -Lease corrupt -ProjectPath $projCorrupt)
+    $corruptFile = @(Get-ChildItem -LiteralPath (Join-Path $State "owners") -Recurse -Filter owner.json |
+        Where-Object { ((Get-Content -LiteralPath $_.FullName -Raw) | ConvertFrom-Json).lease -eq "corrupt" })[0].FullName
+    [System.IO.File]::WriteAllText($corruptFile, "{ this is not json", $Utf8NoBom)
+    $corrupt = Invoke-Coordinator -Action Acquire -Lease corrupt-rival -ProjectPath $projCorrupt
+    Assert-Equal $corrupt.code 27 "an unreadable record fails the call"
+    Assert-Equal $corrupt.value.status "record_unreadable" "an unreadable record is named, not reaped"
+    Assert-True ($corrupt.value.path -eq $corruptFile) "record_unreadable names the file"
+    Assert-True (Test-Path -LiteralPath $corruptFile) "an unreadable record survives the call that tripped over it"
+    Remove-Item -LiteralPath (Split-Path -Parent $corruptFile) -Recurse -Force
+
+    # RunBatch stdout stays the machine channel even when the child is chatty.
+    $noisyProbe = Join-Path $Root "batch-noisy.ps1"
+    [System.IO.File]::WriteAllText($noisyProbe, "Write-Output 'CHILD_STDOUT_NOISE'`r`nexit 5`r`n", $Utf8NoBom)
+    $noisy = Invoke-UnityAccessCoordinator -Coordinator $Coordinator -CoordinatorArgs @(
+        "-Action", "RunBatch", "-Lease", "batch-noisy", "-Slot", "agent-1", "-ProjectPath", $projA,
+        "-BatchScript", $noisyProbe, "-StateRoot", $State, "-PrimaryRoot", $Primary, "-ProcessSnapshotPath", $Snapshot)
+    Assert-Equal $noisy.result.status "batch_complete" "a noisy child still reports batch_complete"
+    Assert-Equal $noisy.result.exitCode 5 "the child's exit code rides in the JSON, not the process exit"
+    Assert-Equal $noisy.exitCode 0 "batch_complete exits 0 even when the child failed"
+    Assert-True (-not ($noisy.stdout -match "CHILD_STDOUT_NOISE")) "child chatter never reaches the machine channel"
+    Assert-True ([bool]($noisy.stderr -match "CHILD_STDOUT_NOISE")) "child chatter is forwarded to stderr"
 
     Write-Host "UNITY_ACCESS_TESTS_PASSED assertions=$Assertions"
 }

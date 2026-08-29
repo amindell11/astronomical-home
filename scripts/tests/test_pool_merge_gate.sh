@@ -479,16 +479,22 @@ pool merge agent-1 >/dev/null 2>&1 && fail "a red script suite must fail the mer
 grep -q '"phase":"script-tests".*"status":"failed"' "$(journal_for)" \
   || fail "the journal should name script-tests as the phase that died"
 
-# The non-hermetic skiplist is visible in gate output, so de-listing it is a deliberate act.
-cat > "$TMP/agent-1/scripts/tests/test_unity_access.ps1" <<'NONHERMETIC'
+# The skiplist is empty since #454: the coordinator suite is an ordinary suite member now, so a red
+# one fails the merge instead of printing a SKIP line and passing.
+cat > "$TMP/agent-1/scripts/tests/test_unity_access.ps1" <<'COORDINATOR'
 exit 1
-NONHERMETIC
+COORDINATOR
 git -C "$TMP/agent-1" add scripts/tests/test_unity_access.ps1
-git -C "$TMP/agent-1" commit -qm "add non-hermetic suite member"
+git -C "$TMP/agent-1" commit -qm "add red coordinator suite member"
 echo 0 > "$PROBE_EXIT_FILE"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 && fail "a red test_unity_access.ps1 must fail the merge"
+grep -q "SKIP: test_unity_access.ps1" "$TMP/merge.out" \
+  && fail "test_unity_access.ps1 must no longer be skipped"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "a red coordinator suite must not reach gh pr merge"
+
+git -C "$TMP/agent-1" rm -q scripts/tests/test_unity_access.ps1
+git -C "$TMP/agent-1" commit -qm "drop red coordinator suite member"
 pool merge agent-1 > "$TMP/merge.out"
-grep -q "SKIP: test_unity_access.ps1 — non-hermetic" "$TMP/merge.out" \
-  || fail "the gate must print the non-hermetic SKIP line"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green script suite should merge (got $(gh_merges))"
 
 echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger"
