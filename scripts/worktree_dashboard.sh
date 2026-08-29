@@ -13,7 +13,6 @@ set -euo pipefail
 # root read from inside an agent-N worktree misses the primary's locks and
 # shows occupied slots as FREE.
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-LOCK_ROOT="$ROOT/.worktree-pool/locks"
 if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -25,14 +24,18 @@ SHOW_PRS="${WORKTREE_DASHBOARD_PRS:-0}"
 DO_FETCH="${WORKTREE_DASHBOARD_FETCH:-0}"
 SHOW_STATUS="${WORKTREE_DASHBOARD_STATUS:-0}"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-DIM='\033[2m'
-BOLD='\033[1m'
-NC='\033[0m'
+if [[ -t 1 || "${1:-}" == "--watch" ]]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  CYAN='\033[0;36m'
+  DIM='\033[2m'
+  BOLD='\033[1m'
+  NC='\033[0m'
+else
+  RED='' GREEN='' YELLOW='' BLUE='' CYAN='' DIM='' BOLD='' NC=''
+fi
 
 to_shell_path() {
   local path="$1"
@@ -96,25 +99,30 @@ branch_status_files() {
 slot_info() {
   local slot="$1"
   local path="$2"
+  local state="$3"
+  local lease="$4"
+  local tb="$5"
 
-  local lock_dir="$LOCK_ROOT/$slot.lock"
-  local status_icon status_text lease_info="" task_branch_info="" tb=""
+  local status_icon status_text lease_info="" task_branch_info=""
 
-  if [[ -d "$lock_dir" ]]; then
-    local lease pid ts
-    lease="$(cat "$lock_dir/lease" 2>/dev/null || echo '?')"
-    pid="$(cat "$lock_dir/pid" 2>/dev/null || echo '?')"
-    ts="$(cat "$lock_dir/timestamp" 2>/dev/null || echo '?')"
-    tb="$(cat "$lock_dir/task_branch" 2>/dev/null || true)"
-
-    status_icon="${RED}o${NC}"
-    status_text="${RED}LOCKED${NC}"
-    lease_info="${YELLOW}$lease${NC}"
-    task_branch_info="${tb:+${BLUE}-> $tb${NC}}"
-  else
-    status_icon="${GREEN}o${NC}"
-    status_text="${GREEN}FREE${NC}"
-  fi
+  case "$state" in
+    free)
+      status_icon="${GREEN}o${NC}"
+      status_text="${GREEN}FREE${NC}"
+      ;;
+    stale)
+      status_icon="${YELLOW}o${NC}"
+      status_text="${YELLOW}STALE${NC}"
+      lease_info="${YELLOW}${lease:-?}${NC}"
+      task_branch_info="${tb:+${BLUE}-> $tb${NC}}"
+      ;;
+    *)
+      status_icon="${RED}o${NC}"
+      status_text="${RED}LOCKED${NC}"
+      lease_info="${YELLOW}${lease:-?}${NC}"
+      task_branch_info="${tb:+${BLUE}-> $tb${NC}}"
+      ;;
+  esac
 
   local commit_msg ahead behind changed_summary
   commit_msg="$(git -C "$ROOT" log --format='%s' -n 1 "$slot" 2>/dev/null || echo '(no commits)')"
@@ -135,8 +143,8 @@ slot_info() {
   fi
 
   local pr_info=""
-  if [[ "$SHOW_PRS" == "1" ]] && command -v gh >/dev/null 2>&1; then
-    local tb_check="${tb:-$slot}"
+  if [[ "$SHOW_PRS" == "1" && -n "$tb" ]] && command -v gh >/dev/null 2>&1; then
+    local tb_check="$tb"
     local pr_url
     pr_url="$(gh pr list --head "$tb_check" --base main --state open --json url --jq '.[0].url' 2>/dev/null || true)"
     if [[ -n "$pr_url" && "$pr_url" != "null" ]]; then
@@ -178,16 +186,21 @@ main_info() {
   printf "    ${DIM}latest:${NC}  %s\n" "$commit_msg"
 }
 
-worktree_rows() {
-  git -C "$ROOT" worktree list --porcelain | awk '
-    /^worktree / { path = substr($0, 10); next }
-    /^branch refs\/heads\/agent-[0-9]+$/ {
-      branch = $0
-      sub(/^branch refs\/heads\//, "", branch)
-      print branch "\t" path
-    }
-  ' | sort -V
-}
+# The coordinator owns its state; ask its JSON channel through the sanctioned client and render here.
+# Its human Status layout carries no contract, so no display may be scraped out of it.
+UNITY_ACCESS_RENDER='
+. (Join-Path $env:DASHBOARD_SCRIPT_DIR "unity_access_client.ps1")
+$call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "Status")
+$s = $call.result
+if ($null -eq $s) { "unity access: coordinator gave no answer"; exit 0 }
+$owners = @($s.owners)
+if ($owners.Count -eq 0) { "Unity projects: all free" }
+foreach ($o in $owners) { "Unity owner: $($o.slot) $($o.mode) lease=$($o.lease) pid=$($o.processId) project=$($o.projectPath)" }
+if ($null -ne $s.boot) { "Boot lane: held by lease=$($s.boot.lease)" } elseif ($s.bootWedged) { "Boot lane: WEDGED" } else { "Boot lane: free" }
+$q = @($s.queue)
+if ($q.Count -gt 0) { "Queue: " + (($q | ForEach-Object { "$($_.position):$($_.slot)" }) -join ", ") } else { "Queue: empty" }
+foreach ($b in @($s.blockers)) { "Blocker: $($b.kind) pid=$($b.processId) project=$($b.projectPath)" }
+'
 
 run_dashboard() {
   header
@@ -195,18 +208,33 @@ run_dashboard() {
 
   if [[ -f "$UNITY_ACCESS_SCRIPT" ]] && command -v powershell.exe >/dev/null 2>&1; then
     echo ""
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$UNITY_ACCESS_SCRIPT" -Action Status 2>/dev/null | sed 's/^/  /' || true
+    DASHBOARD_SCRIPT_DIR="$SCRIPT_DIR" powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$UNITY_ACCESS_RENDER" 2>/dev/null | sed 's/^/  /' || true
   fi
 
   if [[ "$DO_FETCH" == "1" ]]; then
     git -C "$ROOT" fetch origin --quiet 2>/dev/null || true
   fi
 
-  local any=0
-  while IFS=$'\t' read -r slot path; do
+  # Slot state comes from the pool's porcelain read interface; nothing here reads the lock dir.
+  local any=0 slot="" path="" state="" lease="" tb="" line key value
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -n "$line" ]]; then
+      key="${line%%=*}"
+      value="${line#*=}"
+      case "$key" in
+        slot) slot="$value" ;;
+        path) path="$value" ;;
+        state) state="$value" ;;
+        lease) lease="$value" ;;
+        task_branch) tb="$value" ;;
+      esac
+      continue
+    fi
+    [[ -n "$slot" ]] || continue
     any=1
-    slot_info "$slot" "$path"
-  done < <(worktree_rows)
+    slot_info "$slot" "$path" "$state" "$lease" "$tb"
+    slot=""; path=""; state=""; lease=""; tb=""
+  done < <(bash "$POOL_SCRIPT" status --porcelain 2>/dev/null || true)
 
   if [[ "$any" -eq 0 ]]; then
     printf "\n  ${DIM}No agent-* worktrees found.${NC}\n"
