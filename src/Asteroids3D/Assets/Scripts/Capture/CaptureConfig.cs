@@ -2,6 +2,18 @@ using System;
 
 namespace Game.Capture
 {
+    /// <summary>
+    /// Runtime-safe mirror of the editor-only Gizmo View scope: a scenario author picks which ships a
+    /// capture's gizmos draw over, without the runtime capture assembly referencing the editor enum.
+    /// The capture transaction maps this onto <c>Game.Diagnostics.GizmoScope</c>.
+    /// </summary>
+    public enum CaptureGizmoScope
+    {
+        All,
+        Selected,
+        Team,
+    }
+
     [Serializable]
     public sealed class CaptureConfig
     {
@@ -15,5 +27,9 @@ namespace Game.Capture
         public int everyFixedSteps = 5;
         public float minHalfHeight = 22f;
         public float padding = 12f;
+        /// <summary>Gizmo View scope the capture drives for its run. Default All films every ship's gizmos.</summary>
+        public CaptureGizmoScope gizmoScope = CaptureGizmoScope.All;
+        /// <summary>Team number scoped when <see cref="gizmoScope"/> is Team; ignored otherwise.</summary>
+        public int gizmoScopeTeam;
     }
 }
