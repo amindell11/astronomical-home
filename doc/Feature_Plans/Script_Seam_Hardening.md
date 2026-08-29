@@ -145,9 +145,9 @@ Shrink `unity_access.ps1`'s effective interface to its published one:
 
 ## Open forks (block the phase named; propose-and-default listed)
 
-1. **Merge-gate trigger for script tests** (blocks Phase 0): only when the
-   diff touches `scripts/**` (default — ~1 min added to those merges), or
-   unconditional.
+1. **Merge-gate trigger for script tests** (blocks Phase 0): RULED —
+   diff-triggered, only when the landing diff touches `scripts/**`
+   (~1 min added to those merges); not unconditional.
 2. **`check_test_naming.ps1`** (Phase 4): delete + fix TESTING.md's
    enforcement claim (default — never run, convention not load-bearing), or
    wire into the merge gate with JSON output.
