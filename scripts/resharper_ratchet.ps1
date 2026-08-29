@@ -187,7 +187,11 @@ $cachePath = Join-Path $solutionRoot "Library/ReSharperCaches"
 & git -C $repoRoot rev-parse --verify "$BaseRef^{commit}" 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "ReSharper ratchet base ref does not resolve: $BaseRef" }
 
-$changedLines = Get-ChangedLineMap $repoRoot $BaseRef
+# Diff from the merge base: a moved BaseRef must not attribute other branches' lines to this PR.
+$diffBase = (& git -C $repoRoot merge-base $BaseRef HEAD)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($diffBase)) { throw "Could not compute merge-base of $BaseRef and HEAD for the ReSharper ratchet." }
+
+$changedLines = Get-ChangedLineMap $repoRoot $diffBase
 if ($changedLines.Count -eq 0 -and -not $Audit.IsPresent) {
     New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
     Write-Summary $summaryPath ([ordered]@{ status = "skipped"; reason = "no changed C# under Assets/Scripts"; baseRef = $BaseRef })
