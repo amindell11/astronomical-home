@@ -445,10 +445,11 @@ collect_slot_records() {
   local slot path ldir lease tb pid ts age state
   while IFS=$'\t' read -r slot path; do
     ldir="$(lock_dir_for "$slot")"
-    lease="$(lease_for "$slot")"
-    tb="$(task_branch_for "$slot")"
     printf 'slot=%s\n' "$slot"
     if [[ -d "$ldir" ]]; then
+      # Lease/branch are locked-slot keys: a free slot's leftover worktree config is not a claim.
+      lease="$(lease_for "$slot")"
+      tb="$(task_branch_for "$slot")"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
       age="$(lock_age_seconds "$ldir")"
@@ -467,10 +468,6 @@ collect_slot_records() {
     fi
     printf '\n'
   done < <(slots_tsv)
-}
-
-cmd_status_porcelain() {
-  collect_slot_records
 }
 
 cmd_status() {
@@ -1490,7 +1487,7 @@ main() {
 
   case "$cmd" in
     status)
-      if [[ "${1:-}" == "--porcelain" ]]; then cmd_status_porcelain; else cmd_status; fi
+      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
       ;;
     acquire) cmd_acquire "$@" ;;
     release)

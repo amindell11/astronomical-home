@@ -1388,18 +1388,6 @@ $overallStatus = if ($hasInfraError) {
 # was asked to run and what actually executed. The pool trusts coverage.verdict and checks only the
 # one thing it owns (that the summary describes the tree it is about to land) - script-contracts.md
 # sec.3. A summary carrying no stamp is partial by the reader's fail-closed rule.
-function Get-RunField {
-    param([object]$Run, [string]$Name)
-    if ($null -eq $Run) { return $null }
-    if ($Run -is [System.Collections.IDictionary]) {
-        if ($Run.Contains($Name)) { return $Run[$Name] }
-        return $null
-    }
-    $prop = $Run.PSObject.Properties[$Name]
-    if ($null -eq $prop) { return $null }
-    return $prop.Value
-}
-
 function Get-CoverageVerdict {
     param([object[]]$Runs, [object]$Selection, [string]$OverallStatus)
 
@@ -1420,15 +1408,10 @@ function Get-CoverageVerdict {
     # "unknown", so per-platform greenness is failed==0/total>0, never the status label.
     $platforms = @()
     foreach ($run in @($Runs)) {
-        $platform = [string](Get-RunField $run 'platform')
-        $runStatus = [string](Get-RunField $run 'status')
+        $platform = [string]$run.platform
+        $runStatus = [string]$run.status
         if ($runStatus -eq "failed" -or $runStatus -eq "infra_error") { return [ordered]@{ verdict = "partial"; reason = "run $platform status=$runStatus" } }
-        $runFailed = -1
-        $runTotal = 0
-        if (-not [int]::TryParse([string](Get-RunField $run 'failed'), [ref]$runFailed) -or -not [int]::TryParse([string](Get-RunField $run 'total'), [ref]$runTotal)) {
-            return [ordered]@{ verdict = "partial"; reason = "run $platform has no countable totals" }
-        }
-        if ($runFailed -ne 0 -or $runTotal -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$runFailed total=$runTotal" } }
+        if ($run.failed -ne 0 -or $run.total -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$($run.failed) total=$($run.total)" } }
         $platforms += $platform
     }
     if ($platforms -notcontains "EditMode" -or $platforms -notcontains "PlayMode") {
