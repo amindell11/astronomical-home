@@ -85,10 +85,31 @@ function Read-JsonFile {
 function Write-JsonFile {
     param([string]$Path, [object]$Value)
     $parent = Split-Path -Parent $Path
-    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    # A lock dir is the mutex; recreating a missing parent here silently resurrected a lock a
+    # rival had already reaped, and both callers walked away believing they held it.
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) { throw "Refusing to write $($Path): its directory is gone." }
     $temp = Join-Path $parent (([System.IO.Path]::GetFileName($Path)) + "." + [guid]::NewGuid().ToString("N") + ".tmp")
     [System.IO.File]::WriteAllText($temp, ($Value | ConvertTo-Json -Depth 8), $Utf8NoBom)
     Move-Item -LiteralPath $temp -Destination $Path -Force
+}
+
+# A lock dir is the mutex, so it must never be observable without its record: the record is built in
+# a staging dir and that DIRECTORY is renamed into place. The rename is atomic, only one racer's can
+# land, and no reader ever sees a record-less dir to reap out from under the winner.
+function Move-RecordDirIntoPlace {
+    param([string]$Destination, [string]$FileName, [object]$Record)
+    New-Item -ItemType Directory -Force -Path $StagingRoot | Out-Null
+    $staging = Join-Path $StagingRoot ([guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $staging -ErrorAction Stop | Out-Null
+    try {
+        Write-JsonFile (Join-Path $staging $FileName) $Record
+        [System.IO.Directory]::Move($staging, $Destination)
+        return [pscustomobject]@{ moved = $true; error = "" }
+    }
+    catch {
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        return [pscustomobject]@{ moved = $false; error = $_.Exception.Message }
+    }
 }
 
 function Get-WorktreePath {
@@ -105,17 +126,21 @@ function Get-WorktreePath {
 }
 
 function Get-UnityProcesses {
+    # An enumeration that failed is not evidence of no Unity: answering @() here reaped live
+    # pid-backed owners and boot records on a WMI hiccup, so a failure is loud instead.
     if (-not [string]::IsNullOrWhiteSpace($ProcessSnapshotPath)) {
-        $snapshot = Read-JsonFile (Resolve-FullPath $ProcessSnapshotPath)
+        $snapshotPath = Resolve-FullPath $ProcessSnapshotPath
+        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Process snapshot not found: $snapshotPath" }
+        $snapshot = Read-JsonFile $snapshotPath
         if ($null -eq $snapshot) { return @() }
         return @($snapshot)
     }
     try {
-        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue | ForEach-Object {
+        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
             [pscustomobject]@{ processId = [int]$_.ProcessId; commandLine = [string]$_.CommandLine }
         })
     }
-    catch { return @() }
+    catch { throw "Unity process enumeration failed: $($_.Exception.Message)" }
 }
 
 function Get-RelevantUnityProcesses {
@@ -258,12 +283,32 @@ function Test-EditorProfileReceipt {
     return [ordered]@{ verified = $true; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "" }
 }
 
+function Get-ProcessStartTime {
+    param([int]$TargetProcessId)
+    $process = Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return "" }
+    return $process.StartTime.ToUniversalTime().ToString("o")
+}
+
+# A bare PID is not an identity: Windows recycles them, so a stranger wearing a dead holder's
+# number kept a dead lease alive. Identity is the pid plus the start time recorded with it.
+function Test-HolderAlive {
+    param([int]$HolderProcessId, [object]$RecordedStartTime)
+    $process = Get-Process -Id $HolderProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return $false }
+    $recorded = [string]$RecordedStartTime
+    # Records written before holderStartTime existed carry no identity to check; reading them as
+    # live keeps live leases safe across the migration, at the pid-recycling risk they already ran.
+    if ([string]::IsNullOrWhiteSpace($recorded)) { return $true }
+    return ([Math]::Abs(((Get-DateValue $recorded) - $process.StartTime.ToUniversalTime()).TotalSeconds) -lt 2)
+}
+
 function Test-OwnerStale {
     param([object]$Owner)
     # A lease whose holding coordinator still runs is busy, whatever its opaque child is doing —
     # checked first so a child that exits just before the release does not open a reap window.
     $holder = [int](Get-MemberValue $Owner "holderProcessId")
-    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
+    if ($holder -gt 0 -and (Test-HolderAlive $holder (Get-MemberValue $Owner "holderStartTime"))) { return $false }
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
@@ -436,9 +481,6 @@ function Try-AcquireAccess {
     if ($position -ne 1) { return [ordered]@{ status = "waiting"; position = $position; owner = $null } }
 
     $ownerDir = Join-Path $OwnersRoot $ProjectKey
-    try { New-Item -ItemType Directory -Path $ownerDir -ErrorAction Stop | Out-Null }
-    catch { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
-
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -448,10 +490,13 @@ function Try-AcquireAccess {
         projectKey = $ProjectKey
         processId = 0
         holderProcessId = $PID
+        holderStartTime = Get-ProcessStartTime $PID
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
+
     $ownTicket = Find-Ticket $Lease
     if ($null -ne $ownTicket) { Remove-TicketFile $ownTicket.file }
     return [ordered]@{ status = "acquired"; owner = [pscustomobject]$owner; renewed = $false }
@@ -472,6 +517,7 @@ function Write-OwnerHeartbeat {
     param([object]$Owner)
     # Renewing hands the lease to whoever renewed it; a dead holder falls back to the TTL.
     $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
+    $Owner | Add-Member -NotePropertyName holderStartTime -NotePropertyValue (Get-ProcessStartTime $PID) -Force
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
     Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
 }
@@ -531,30 +577,26 @@ function Try-AcquireBoot {
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 
-    try { New-Item -ItemType Directory -Path $BootRoot -ErrorAction Stop | Out-Null }
-    catch {
-        $reason = $_.Exception.Message
-        $boot = Get-BootOwner
-        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
-        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
-        return [ordered]@{ status = "boot_lane_wedged"; error = $reason; bootRoot = $BootRoot }
-    }
-
     $record = [ordered]@{
         lease = $Lease
         projectPath = [string]$owner.projectPath
         processId = 0
         acquiredAt = [datetime]::UtcNow.ToString("o")
     }
-    Write-JsonFile (Join-Path $BootRoot "boot.json") $record
+    $claim = Move-RecordDirIntoPlace $BootRoot "boot.json" $record
+    if (-not $claim.moved) {
+        $boot = Get-BootOwner
+        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
+        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
+        return [ordered]@{ status = "boot_lane_wedged"; error = $claim.error; bootRoot = $BootRoot }
+    }
     return [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
 }
 
 function Acquire-Boot {
     $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $WaitSeconds))
     do {
-        # boot_lane_wedged retries too: the empty-dir window between a winner's mkdir and its
-        # boot.json write reads as wedged for one poll; only a persistent wedge reaches the caller.
+        # boot_lane_wedged retries too: only a wedge that outlives the wait reaches the caller.
         $result = Try-AcquireBoot
         if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
@@ -621,7 +663,6 @@ function Adopt-Process {
         return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = $existing }
     }
     $ownerDir = Join-Path $OwnersRoot $adoptKey
-    New-Item -ItemType Directory -Force -Path $ownerDir | Out-Null
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -633,7 +674,8 @@ function Adopt-Process {
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = Get-ProjectOwner $adoptKey } }
     return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
 }
 
@@ -650,7 +692,10 @@ function Release-Access {
         return [ordered]@{ status = "released"; alreadyFree = $true }
     }
 
-    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
+    # Close or kill only a coordinator-relevant Unity PID — never a bare/recycled one. Checked once,
+    # above both branches: CloseMainWindow on a stranger's window is as wrong as killing it.
+    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0 -and
+        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
             $closed = $false
@@ -660,13 +705,10 @@ function Release-Access {
                 while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
             }
-            # Kill only a still-live, coordinator-relevant Unity PID — never a bare/recycled one.
             if (-not $closed) {
-                if (@(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
-                    Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
-                    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-                    while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-                }
+                Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
+                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
                     return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
                 }
@@ -786,6 +828,7 @@ $LegacyOwnerRoot = Join-Path $AccessRoot "owner"
 $OwnersRoot = Join-Path $AccessRoot "owners"
 $BootRoot = Join-Path $AccessRoot "boot"
 $QueueRoot = Join-Path $AccessRoot "queue"
+$StagingRoot = Join-Path $AccessRoot "staging"
 New-Item -ItemType Directory -Force -Path $QueueRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $OwnersRoot | Out-Null
 
