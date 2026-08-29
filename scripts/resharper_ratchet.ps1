@@ -2,7 +2,8 @@ param(
     [string]$BaseRef = "origin/main",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/resharper-ratchet",
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
+    # Empty resolves from the project's own ProjectVersion.txt (scripts/lib/unity_editor.ps1).
+    [string]$UnityPath = "",
     [int]$UnityAccessWaitSec = 900,
     [int]$UnitySyncTimeoutSec = 600,
     [switch]$Audit
@@ -12,6 +13,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 . (Join-Path $PSScriptRoot "unity_access_client.ps1")
+. (Join-Path $PSScriptRoot "lib/repo_root.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base)
@@ -173,8 +176,9 @@ function Write-Summary {
 
 if ($MyInvocation.InvocationName -eq '.') { return }
 
-$repoRoot = Resolve-FullPath (Join-Path $PSScriptRoot "..") (Get-Location).Path
+$repoRoot = Get-RepoRoot -ProbePath $PSScriptRoot
 $solutionRoot = Resolve-FullPath $ProjectPath $repoRoot
+if ([string]::IsNullOrWhiteSpace($UnityPath)) { $UnityPath = Resolve-UnityEditorPath -ProjectPath $solutionRoot }
 $outputRoot = Resolve-FullPath $OutDir $repoRoot
 $solution = Join-Path $solutionRoot "Asteroids3D.sln"
 $settings = Join-Path $repoRoot "scripts/resharper-unity.DotSettings"
