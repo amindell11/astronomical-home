@@ -46,7 +46,8 @@ namespace Asteroids.Fields
                 Gizmos.DrawWireSphere(field.transform.position, field.settings.fieldRadius);
             }
 
-            if (field is UpdatingAsteroidField updating) DrawStreaming(updating, chunks, heatmap);
+            var updating = field as UpdatingAsteroidField;
+            if (updating) DrawStreaming(updating, chunks, heatmap);
         }
 
         private static void DrawStreaming(UpdatingAsteroidField field, bool chunks, bool heatmap)
