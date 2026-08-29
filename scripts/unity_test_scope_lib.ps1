@@ -94,6 +94,44 @@ function Resolve-ScopeFilter {
     return ""
 }
 
+# The scope map authors one thing - a '|'-alternation of literal fixture-name substrings - and the two
+# transports need different readings of it: cold Unity takes the alternation verbatim as a -testFilter
+# regex, while the routed pipeline's run_tests takes ONE literal substring per call. This is the single
+# place that reads the authored format, so neither transport re-parses it.
+#   kind          "none" (no name selection) or "names"
+#   names         the literal substrings, one per routed call
+#   testFilter    the alternation, for the cold -testFilter argument
+#   representable $false when the filter is a regex the routed transport cannot reproduce exactly;
+#                 routed must REFUSE such a selection, never approximate it (reason says why).
+function ConvertTo-TestNameSelection {
+    param([string]$TestFilter)
+
+    if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+        return [pscustomobject]@{ kind = "none"; names = @(); testFilter = ""; representable = $true; reason = "" }
+    }
+
+    $names = @($TestFilter -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+    # Anything beyond '|' alternation of literals is regex the pipeline's substring filter cannot honor.
+    $regexMetacharacters = @($names | Where-Object { $_ -match '[\\\[\](){}.*+?^$]' })
+    if ($regexMetacharacters.Count -gt 0) {
+        return [pscustomobject]@{
+            kind = "names"
+            names = $names
+            testFilter = $TestFilter
+            representable = $false
+            reason = "regex construct(s) beyond '|'-alternation of literal names: $($regexMetacharacters -join ', ')"
+        }
+    }
+
+    return [pscustomobject]@{ kind = "names"; names = $names; testFilter = ($names -join '|'); representable = $true; reason = "" }
+}
+
+function Resolve-ScopeSelection {
+    param([object]$ScopeMap, [string]$ScopeType, [string]$ScopeName)
+
+    return ConvertTo-TestNameSelection -TestFilter (Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType $ScopeType -ScopeName $ScopeName)
+}
+
 function ConvertTo-RepoSlashPath {
     param([string]$Path)
 
