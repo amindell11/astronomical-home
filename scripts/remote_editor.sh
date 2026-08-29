@@ -47,6 +47,11 @@ cli_cmd() { # caller pre-quotes any arg that can contain spaces (see psq)
     rssh "& \"$RCLI\" command $* --project-path '$RPROJ_WIN'"
 }
 
+lease_is_owned() {
+    local lease="$1"
+    rssh "Set-Location '${RREPO//\//\\}'; \$state = & .\\scripts\\unity_access.ps1 -Action Status -Lease '$lease' -Slot main -Json | ConvertFrom-Json; @(@(\$state.owners | Where-Object { \$_.lease -eq '$lease' })).Count -eq 1" | grep -qi true
+}
+
 # Single-quote args for the remote PowerShell parse (embedded ' doubled).
 psq() {
     local out="" a
@@ -58,6 +63,10 @@ lease_paths() { # start and stop must agree on these remote artefact names
     TASK="RemoteEditor-$1"
     RLOG="C:/dev/remote_editor_$1.log"
     RLAUNCH="C:/dev/remote_editor_$1.ps1"
+}
+
+cleanup_lease() {
+    rssh "schtasks /End /TN '$TASK' 2>\$null | Out-Null; Set-Location '${RREPO//\//\\}'; & .\\scripts\\unity_access.ps1 -Action Release -Lease '$LEASE' -Slot main -CloseEditor -Json; & .\\scripts\\unity_access.ps1 -Action Cancel -Lease '$LEASE' -Slot main -Json; schtasks /Delete /F /TN '$TASK' 2>\$null; Remove-Item '${RLAUNCH//\//\\}', '${RLOG//\//\\}' -ErrorAction SilentlyContinue; echo cleaned"
 }
 
 case "$ACTION" in
@@ -110,13 +119,15 @@ EOF
         if grep -q "CAUGHT:\|LAUNCHER_EXIT:[1-9]" <<<"$log"; then
             echo "[remote_editor] launcher failed:" >&2
             echo "$log" >&2
+            cleanup_lease
             exit 6
         fi
-        if cli_cmd editor_status 2>/dev/null | grep -q '"status":"ready"'; then
+        if lease_is_owned "$LEASE" && cli_cmd editor_status 2>/dev/null | grep -q '"status":"ready"'; then
             break
         fi
         [ "$(date +%s)" -lt "$deadline" ] || {
             echo "[remote_editor] editor not ready after ${TIMEOUT_SEC}s (log: $HOST $RLOG)" >&2
+            cleanup_lease
             exit 2
         }
         sleep 10
@@ -144,8 +155,7 @@ stop)
     LEASE="${1:-remote-editor}"
     lease_paths "$LEASE"
     require_host
-    rssh "Set-Location '${RREPO//\//\\}'; & .\\scripts\\unity_access.ps1 -Action Release -Lease '$LEASE' -Slot main -CloseEditor -Json"
-    rssh "schtasks /Delete /F /TN '$TASK' 2>\$null; Remove-Item '${RLAUNCH//\//\\}', '${RLOG//\//\\}' -ErrorAction SilentlyContinue; echo cleaned"
+    cleanup_lease
     ;;
 
 *)
