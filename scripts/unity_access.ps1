@@ -216,7 +216,7 @@ function Get-EditorProfileQuality {
 
 function New-EditorProfileReceiptPath {
     New-Item -ItemType Directory -Force -Path $ProfileReceiptRoot | Out-Null
-    return Join-Path $ProfileReceiptRoot ("$Lease-" + [guid]::NewGuid().ToString("N") + ".json")
+    return Join-Path $ProfileReceiptRoot ([guid]::NewGuid().ToString("N") + ".json")
 }
 
 function Get-EditorProfileReceipt {
@@ -227,11 +227,14 @@ function Get-EditorProfileReceipt {
 }
 
 function Wait-EditorProfileReceipt {
-    param([string]$Path)
+    param([string]$Path, [System.Diagnostics.Process]$Process)
     $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(1, $ProfileWaitSeconds))
     while ([datetime]::UtcNow -lt $deadline) {
         $receipt = Get-EditorProfileReceipt $Path
         if ($null -ne $receipt) { return $receipt }
+        if ($Process.HasExited) {
+            return [pscustomobject]@{ error = "Editor exited before writing profile receipt." }
+        }
         Start-Sleep -Milliseconds 200
     }
     return $null
@@ -701,7 +704,7 @@ function Start-TrackedEditor {
             [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", $previousReceipt, "Process")
         }
         try {
-            $profile = Test-EditorProfileReceipt (Wait-EditorProfileReceipt $receiptPath) $EditorProfile
+            $profile = Test-EditorProfileReceipt (Wait-EditorProfileReceipt $receiptPath $process) $EditorProfile
         }
         finally {
             Remove-Item -LiteralPath $receiptPath -Force -ErrorAction SilentlyContinue

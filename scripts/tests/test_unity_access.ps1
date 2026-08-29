@@ -426,7 +426,7 @@ try {
     [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`necho {`"requestedProfile`":`"%ASTRONOMICAL_EDITOR_PROFILE%`",`"observedQuality`":`"Performant`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -ProfileWaitSeconds 5 -Json -EditorArgs @('-batchmode','-nographics')"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs:profile -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -ProfileWaitSeconds 5 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
@@ -444,7 +444,7 @@ try {
     finally {
         Remove-Item Env:\UA_TEST_SENTINEL -ErrorAction SilentlyContinue
         Write-Snapshot @()
-        [void](Invoke-Coordinator -Action Release -Lease edargs)
+        [void](Invoke-Coordinator -Action Release -Lease edargs:profile)
     }
 
     $highReceiptRecorder = Join-Path $Root "high-profile-recorder.cmd"
@@ -467,10 +467,13 @@ try {
 
     $missingReceiptRecorder = Join-Path $Root "missing-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($missingReceiptRecorder, "@echo off`r`n", $Utf8NoBom)
-    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 1 -Json 2>&1)
+    $missingStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
+    $missingStopwatch.Stop()
     Assert-Equal $LASTEXITCODE 26 "StartEditor profile timeout exit"
     $missingResult = [string](@($missingOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
-    Assert-Equal $missingResult.profile.note "Timed out waiting for profile receipt." "StartEditor reports a missing profile receipt"
+    Assert-Equal $missingResult.profile.note "Editor exited before writing profile receipt." "StartEditor reports an exited editor without a receipt"
+    Assert-True ($missingStopwatch.Elapsed.TotalSeconds -lt 2) "StartEditor fails before the profile receipt timeout when the editor exits"
     $missingStatus = Invoke-Coordinator -Action Status
     Assert-True ($null -eq (Get-OwnerByLease $missingStatus "missingprofile")) "profile timeout releases the owner lease"
 

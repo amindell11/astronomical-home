@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Testing")]
+    [Category("Bootstrap")]
     public class EditorLaunchProfileEditModeTests
     {
         private string receiptPath;
