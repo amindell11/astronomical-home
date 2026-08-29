@@ -84,24 +84,23 @@ if pool prepare agent-1 origin/main >/dev/null 2>&1; then fail "prepare must ref
 pool prepare agent-1 origin/main --force >/dev/null
 [[ ! -f "$TMP/agent-1/wip.txt" ]] || fail "prepare --force should reset the slot to base"
 
-# --- reclaim contention (SKIPPED: known TOCTOU, issue #453) -------------------
+# --- reclaim contention: two racers, exactly one winner (#453) ----------------
 pool release agent-1 >/dev/null
-if [[ "${POOL_LOCKING_TEST_CONTENTION:-0}" == 1 ]]; then
-  pool acquire lease-six agent-1 >/dev/null
+for iteration in 1 2 3 4 5; do
+  pool acquire "lease-six-$iteration" agent-1 >/dev/null
   age_lock agent-1 100
   out_a="$TMP/race-a.out"
   out_b="$TMP/race-b.out"
-  WORKTREE_POOL_LOCK_TTL=60 pool acquire race-a agent-1 > "$out_a" 2>/dev/null &
+  WORKTREE_POOL_LOCK_TTL=60 pool acquire "race-a-$iteration" agent-1 > "$out_a" 2>/dev/null &
   pid_a=$!
-  WORKTREE_POOL_LOCK_TTL=60 pool acquire race-b agent-1 > "$out_b" 2>/dev/null &
+  WORKTREE_POOL_LOCK_TTL=60 pool acquire "race-b-$iteration" agent-1 > "$out_b" 2>/dev/null &
   pid_b=$!
   wait "$pid_a" || true
   wait "$pid_b" || true
   winners="$(cat "$out_a" "$out_b" | grep -c '^SLOT=' || true)"
-  [[ "$winners" == 1 ]] || fail "exactly one racer may reclaim a stale lock (got $winners)"
-else
-  echo "SKIP: reclaim contention — try_reclaim_slot has a known TOCTOU double-acquire (issue #453);"
-  echo "SKIP: Phase 1 fixes it, then run with POOL_LOCKING_TEST_CONTENTION=1."
-fi
+  [[ "$winners" == 1 ]] || fail "exactly one racer may reclaim a stale lock (iteration $iteration, got $winners)"
+  [[ -d "$(lock_dir agent-1)" ]] || fail "the winning racer must leave agent-1 locked (iteration $iteration)"
+  pool release agent-1 >/dev/null
+done
 
-echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare refusal"
+echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare refusal + reclaim contention"

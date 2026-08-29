@@ -553,7 +553,7 @@ try_lock_slot() {
 # Reclaim only past-TTL locks whose slot holds no unpushed work (never clobber a dead lock's WIP — the CLOBBER HAZARD).
 try_reclaim_slot() {
   local slot="$1" lease="$2" path="$3"
-  local ldir age
+  local ldir age tomb stamp_before stamp_after
   ldir="$(lock_dir_for "$slot")"
   age="$(lock_age_seconds "$ldir")"
   [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] || return 1
@@ -561,7 +561,20 @@ try_reclaim_slot() {
     echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
     return 1
   fi
-  rm -rf "$ldir"
+  # Single winner: the stale dir is renamed aside and only one racer's rename can succeed.
+  # A rename that landed on a rival's already-fresh lock (stamp differs from the one age-checked)
+  # is put back — reclaim must never clobber a live lock.
+  # Tombstones are dead state; only sweep ones far too old to belong to an in-flight racer.
+  find "$(dirname "$ldir")" -maxdepth 1 -name "$(basename "$ldir").tomb.*" -mmin +60 -exec rm -rf {} + 2>/dev/null || true
+  stamp_before="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+  tomb="${ldir}.tomb.$$-$(date +%s%N)"
+  mv "$ldir" "$tomb" 2>/dev/null || return 1
+  stamp_after="$(cat "$tomb/timestamp" 2>/dev/null || true)"
+  if [[ "$stamp_after" != "$stamp_before" ]]; then
+    [[ -d "$ldir" ]] || mv "$tomb" "$ldir" 2>/dev/null || true
+    return 1
+  fi
+  rm -rf "$tomb"
   mkdir "$ldir" 2>/dev/null || return 1
   write_lock "$slot" "$lease" "$path"
   echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
