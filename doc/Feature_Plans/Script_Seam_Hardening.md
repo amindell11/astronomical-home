@@ -87,7 +87,12 @@ Small diffs, highest stakes, now testable. Root causes, fix-ladder rung 2
   (`unity_access.ps1:208-209`); hoist the relevant-Unity guard above both
   close branches (`:595-603`).
 
-### Phase 2 — coordinator interface law
+### Phase 2 — coordinator interface law — LANDED
+
+Landed the contract doc `doc/agents/script-contracts.md`, the sanctioned client
+`scripts/unity_access_client.ps1` (3 callers), the coordinator's help block, the
+`record_unreadable` / `coordinator_error` statuses, and a hermetic
+`test_unity_access.ps1` (#454) — the merge gate's non-hermetic skiplist is empty.
 
 Shrink `unity_access.ps1`'s effective interface to its published one:
 - Comment-based help: actions × statuses × exit codes × required params;
@@ -154,9 +159,8 @@ Shrink `unity_access.ps1`'s effective interface to its published one:
 3. **Python coverage twin** (Phase 3): committing to PowerShell-only for the
    merge-gate coverage check (default — powershell.exe is guaranteed on the
    only supported platform).
-4. **Routed leaselessness** (Phase 2 or 3): document as accepted dev-loop
-   behavior (default, smaller diff), or add a read-style co-lease to the
-   coordinator.
+4. **Routed leaselessness** (Phase 2 or 3): RULED — accepted dev-loop
+   behavior, documented in the coordinator's help `.NOTES`; no co-lease.
 
 ## Do-not-break (load-bearing design any phase must preserve)
 
