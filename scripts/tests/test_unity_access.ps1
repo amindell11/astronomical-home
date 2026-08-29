@@ -563,6 +563,28 @@ try {
     $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
 
+    # Concurrent acquires of one project yield a single owner: the owner dir is renamed into place
+    # already holding its record, so no rival can reap a winner's record-less dir (#453).
+    $projRace = Join-Path $Root "projRace\src\Asteroids3D"
+    foreach ($round in 1..3) {
+        $racers = @(1..4 | ForEach-Object {
+            $out = Join-Path $Root "race-$round-$_.out"
+            Start-Process powershell -ArgumentList @(
+                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
+                "-Action", "Acquire", "-Lease", "race-$round-$_", "-Slot", "agent-1",
+                "-ProjectPath", $projRace, "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot, "-Json"
+            ) -WindowStyle Hidden -PassThru -RedirectStandardOutput $out
+        })
+        $racers | Wait-Process
+        $raceStatus = Invoke-Coordinator -Action Status
+        $raceOwners = @($raceStatus.value.owners | Where-Object { [string]$_.projectPath -eq [System.IO.Path]::GetFullPath($projRace) })
+        Assert-Equal $raceOwners.Count 1 "exactly one owner survives four concurrent acquires (round $round)"
+        Assert-True ((Get-Content -LiteralPath (Join-Path (Join-Path (Join-Path $State "owners") ([string]$raceOwners[0].projectKey)) "owner.json") -Raw).Length -gt 0) "the winner's record landed with its dir (round $round)"
+        [void](Invoke-Coordinator -Action Release -Lease ([string]$raceOwners[0].lease) -ProjectPath $projRace)
+        # The losers queued behind the winner; leaving their tickets would seat the next round below position 1.
+        1..4 | ForEach-Object { [void](Invoke-Coordinator -Action Cancel -Lease "race-$round-$_" -ProjectPath $projRace) }
+    }
+
     Write-Host "UNITY_ACCESS_TESTS_PASSED assertions=$Assertions"
 }
 finally {

@@ -85,10 +85,31 @@ function Read-JsonFile {
 function Write-JsonFile {
     param([string]$Path, [object]$Value)
     $parent = Split-Path -Parent $Path
-    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    # A lock dir is the mutex; recreating a missing parent here silently resurrected a lock a
+    # rival had already reaped, and both callers walked away believing they held it.
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) { throw "Refusing to write $($Path): its directory is gone." }
     $temp = Join-Path $parent (([System.IO.Path]::GetFileName($Path)) + "." + [guid]::NewGuid().ToString("N") + ".tmp")
     [System.IO.File]::WriteAllText($temp, ($Value | ConvertTo-Json -Depth 8), $Utf8NoBom)
     Move-Item -LiteralPath $temp -Destination $Path -Force
+}
+
+# A lock dir is the mutex, so it must never be observable without its record: the record is built in
+# a staging dir and that DIRECTORY is renamed into place. The rename is atomic, only one racer's can
+# land, and no reader ever sees a record-less dir to reap out from under the winner.
+function Move-RecordDirIntoPlace {
+    param([string]$Destination, [string]$FileName, [object]$Record)
+    New-Item -ItemType Directory -Force -Path $StagingRoot | Out-Null
+    $staging = Join-Path $StagingRoot ([guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $staging -ErrorAction Stop | Out-Null
+    try {
+        Write-JsonFile (Join-Path $staging $FileName) $Record
+        [System.IO.Directory]::Move($staging, $Destination)
+        return [pscustomobject]@{ moved = $true; error = "" }
+    }
+    catch {
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        return [pscustomobject]@{ moved = $false; error = $_.Exception.Message }
+    }
 }
 
 function Get-WorktreePath {
@@ -436,9 +457,6 @@ function Try-AcquireAccess {
     if ($position -ne 1) { return [ordered]@{ status = "waiting"; position = $position; owner = $null } }
 
     $ownerDir = Join-Path $OwnersRoot $ProjectKey
-    try { New-Item -ItemType Directory -Path $ownerDir -ErrorAction Stop | Out-Null }
-    catch { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
-
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -451,7 +469,9 @@ function Try-AcquireAccess {
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
+
     $ownTicket = Find-Ticket $Lease
     if ($null -ne $ownTicket) { Remove-TicketFile $ownTicket.file }
     return [ordered]@{ status = "acquired"; owner = [pscustomobject]$owner; renewed = $false }
@@ -531,30 +551,26 @@ function Try-AcquireBoot {
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 
-    try { New-Item -ItemType Directory -Path $BootRoot -ErrorAction Stop | Out-Null }
-    catch {
-        $reason = $_.Exception.Message
-        $boot = Get-BootOwner
-        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
-        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
-        return [ordered]@{ status = "boot_lane_wedged"; error = $reason; bootRoot = $BootRoot }
-    }
-
     $record = [ordered]@{
         lease = $Lease
         projectPath = [string]$owner.projectPath
         processId = 0
         acquiredAt = [datetime]::UtcNow.ToString("o")
     }
-    Write-JsonFile (Join-Path $BootRoot "boot.json") $record
+    $claim = Move-RecordDirIntoPlace $BootRoot "boot.json" $record
+    if (-not $claim.moved) {
+        $boot = Get-BootOwner
+        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
+        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
+        return [ordered]@{ status = "boot_lane_wedged"; error = $claim.error; bootRoot = $BootRoot }
+    }
     return [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
 }
 
 function Acquire-Boot {
     $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $WaitSeconds))
     do {
-        # boot_lane_wedged retries too: the empty-dir window between a winner's mkdir and its
-        # boot.json write reads as wedged for one poll; only a persistent wedge reaches the caller.
+        # boot_lane_wedged retries too: only a wedge that outlives the wait reaches the caller.
         $result = Try-AcquireBoot
         if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
@@ -621,7 +637,6 @@ function Adopt-Process {
         return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = $existing }
     }
     $ownerDir = Join-Path $OwnersRoot $adoptKey
-    New-Item -ItemType Directory -Force -Path $ownerDir | Out-Null
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -633,7 +648,8 @@ function Adopt-Process {
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = Get-ProjectOwner $adoptKey } }
     return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
 }
 
@@ -786,6 +802,7 @@ $LegacyOwnerRoot = Join-Path $AccessRoot "owner"
 $OwnersRoot = Join-Path $AccessRoot "owners"
 $BootRoot = Join-Path $AccessRoot "boot"
 $QueueRoot = Join-Path $AccessRoot "queue"
+$StagingRoot = Join-Path $AccessRoot "staging"
 New-Item -ItemType Directory -Force -Path $QueueRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $OwnersRoot | Out-Null
 
