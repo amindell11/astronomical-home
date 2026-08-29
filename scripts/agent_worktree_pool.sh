@@ -39,6 +39,13 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
+  run-script-tests [dir]
+      Run every scripts/tests/test_*.sh (bash) and test_*.ps1
+      (powershell.exe) under dir (default: the primary worktree). Prints
+      one PASS/FAIL line per file and stops at the first failure.
+      Exit 0 = all green. The merge gate runs this when the landing diff
+      touches scripts/.
+
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push the slot's work to its task branch (task/<lease>, recorded
       for merge/revise like submit) and create a PR with gh (default
@@ -80,7 +87,8 @@ Commands:
       full suite. Runs test the working tree, so submit/revise/merge
       refuse to start a proof-bearing run on a dirty worktree. The ONLY
       sanctioned merge path; it also requires the exact landing tree to pass
-      the ReSharper ratchet. Do not call 'gh pr merge' directly.
+      the ReSharper ratchet, plus the scripts/tests suite when the landing
+      diff touches scripts/. Do not call 'gh pr merge' directly.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -748,6 +756,38 @@ cmd_run_resharper() {
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 
+# The script suite is its own gate: bash owns test_*.sh, Windows PowerShell owns
+# test_*.ps1, and the first red file stops the run.
+cmd_run_script_tests() {
+  local dir="${1:-$ROOT}"
+  local tests_dir="$dir/scripts/tests" file rc=0 ran=0
+  if [[ ! -d "$tests_dir" ]]; then
+    echo "run-script-tests: no $tests_dir — nothing to run." >&2
+    return 0
+  fi
+  for file in "$tests_dir"/test_*.sh "$tests_dir"/test_*.ps1; do
+    [[ -f "$file" ]] || continue
+    ran=1
+    rc=0
+    case "$file" in
+      *.sh) bash "$file" || rc=$? ;;
+      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
+    esac
+    if [[ "$rc" -eq 0 ]]; then
+      echo "PASS $(basename "$file")"
+    else
+      echo "FAIL $(basename "$file") (exit $rc)"
+      return 1
+    fi
+  done
+  [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
+}
+
+landing_diff_touches_scripts() {
+  local path="$1" base_ref="$2" head_ref="$3"
+  git -C "$path" diff --name-only "$base_ref" "$head_ref" -- scripts 2>/dev/null | grep -q .
+}
+
 require_pr_title_body() {
   local cmd="$1" title="$2" body="$3" body_file="$4"
   if [[ -z "$title" ]]; then
@@ -938,6 +978,7 @@ merge_phase_budget() {
     proof-check) echo 15 ;;
     tests) echo 1200 ;;
     resharper) echo 300 ;;
+    script-tests) echo 300 ;;
     push) echo 90 ;;
     gh-merge) echo 90 ;;
     *) echo 0 ;;
@@ -1288,6 +1329,13 @@ cmd_merge() {
   merge_phase_begin resharper
   cmd_run_resharper "$slot" "$base_ref"
 
+  # Depth is bounded: the suite runs the SLOT's scripts/tests, and a test fixture's slot carries none.
+  if landing_diff_touches_scripts "$path" "$base_ref" "$slot"; then
+    merge_phase_begin script-tests
+    merge_journal_note "landing diff touches scripts/ - running the script suite"
+    cmd_run_script_tests "$path"
+  fi
+
   merge_phase_begin push
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
@@ -1460,6 +1508,9 @@ main() {
     run-resharper)
       [[ $# -ge 1 ]] || { echo "run-resharper requires <slot> [base_ref]" >&2; exit 1; }
       cmd_run_resharper "$@"
+      ;;
+    run-script-tests)
+      cmd_run_script_tests "$@"
       ;;
     create-pr)
       [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
