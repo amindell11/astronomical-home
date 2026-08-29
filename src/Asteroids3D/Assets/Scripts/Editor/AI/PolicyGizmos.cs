@@ -6,8 +6,13 @@ using UnityEngine;
 namespace AI
 {
     /// <summary>The RL policy's commanded facing and velocity against the ship's actual nose — the facing-churn diagnostic. Anchored commands are drawn in the enemy frame: facing offsets around the bearing-to-enemy, velocity as its radial/tangential reconstruction.</summary>
+    [InitializeOnLoad]
     internal static class PolicyGizmos
     {
+        static PolicyGizmos() =>
+            GizmoView.Register(typeof(AICommander), "policy", "Policy Command",
+                "RL commanded facing/velocity vs nose + churn fan", "Steering");
+
         private const float VelocityScale = 0.4f;
         private const float FacingRayLength = 3f;
         // The readout ring holds 16; beyond that the fan reads as noise.
@@ -16,9 +21,10 @@ namespace AI
         private static readonly Color Velocity = new(0f, 1f, 1f, 0.8f);
         private static readonly Color Fan = new(1f, 0.55f, 0.1f);
 
-        [DrawGizmo(GizmoType.Selected, typeof(AICommander))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AICommander))]
         private static void Draw(AICommander commander, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(AICommander), "policy") || !GizmoView.InScope(commander)) return;
             if (!Application.isPlaying || commander.context == null || !commander.Brain) return;
             var readout = commander.Brain as IPolicyReadout;
             if (readout == null || readout.Count == 0) return;

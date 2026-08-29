@@ -8,8 +8,13 @@ using UnityEngine;
 namespace Combat.Weapons
 {
     /// <summary>Laser-bank heat as a filled bar off the ship's right flank, so it stays on the same side as the ship turns, plus the numeric readout.</summary>
+    [InitializeOnLoad]
     internal static class LasersGizmos
     {
+        static LasersGizmos() =>
+            GizmoView.Register(typeof(Lasers), "heat", "Laser Heat",
+                "cyan→red heat bar off the ship's flank + readout", "Combat");
+
         private const float FlankOffset = 1.5f;
         private const float BarLength = 1f;
         private const float BarWidth = 0.3f;
@@ -18,9 +23,10 @@ namespace Combat.Weapons
 
         private static readonly ConditionalWeakTable<Lasers, Ship> ParentShips = new();
 
-        [DrawGizmo(GizmoType.Selected, typeof(Lasers))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Lasers))]
         private static void DrawHeatBar(Lasers lasers, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(Lasers), "heat") || !GizmoView.InScope(lasers)) return;
             if (!Application.isPlaying || !lasers.Heat) return;
             var ship = ParentShips.GetValue(lasers, l => l.GetComponentInParent<Ship>());
             if (!ship) return;

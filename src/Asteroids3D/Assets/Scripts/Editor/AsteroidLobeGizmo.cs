@@ -1,20 +1,27 @@
 using Asteroids;
 using Asteroids.Spawning;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace AsteroidTools
 {
     /// <summary>
-    /// Editor-only Scene-view visualization of the baked lobe decomposition. For a
-    /// selected/active asteroid it recomputes the lobes from the same deterministic
-    /// baker (reads nothing at runtime) and draws each as a cyan wire sphere.
+    /// Editor-only Scene-view visualization of the baked lobe decomposition. It recomputes
+    /// the lobes from the same deterministic baker (reads nothing at runtime) and draws each
+    /// as a cyan wire sphere; visibility is gated by the Gizmo View window.
     /// </summary>
+    [InitializeOnLoad]
     public static class AsteroidLobeGizmo
     {
-        [DrawGizmo(GizmoType.Selected | GizmoType.Active, typeof(AsteroidController))]
+        static AsteroidLobeGizmo() =>
+            GizmoView.Register(typeof(AsteroidController), "lobes", "Lobe Decomposition",
+                "cyan wire-sphere lobe decomposition", "Environment");
+
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AsteroidController))]
         private static void DrawLobes(AsteroidController ctrl, GizmoType t)
         {
+            if (!GizmoView.IsOn(typeof(AsteroidController), "lobes") || !GizmoView.InScope(ctrl)) return;
             var mf = ctrl.GetComponent<MeshFilter>();
             var mesh = mf != null ? mf.sharedMesh : null;
             if (mesh == null) return;
