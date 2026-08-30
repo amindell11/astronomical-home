@@ -1,5 +1,30 @@
-﻿param(
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
+﻿<#
+.SYNOPSIS
+    Runs the Unity test suite (cold batch, or -Routed against a resident editor) and writes the
+    run summary other tools read.
+
+.DESCRIPTION
+    Exit codes: 0 all green, 1 test failures, 2 infra_error (nothing executed - compile failure or
+    a launch problem), any other non-zero = the wrapper itself failed before a summary existed.
+
+    Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
+    content). Fields consumers depend on:
+      projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      transport      - present and "routed" only for a -Routed warm-editor run.
+      coverage       - { verdict = "full"|"partial"; reason = "<machine-readable why>" }. THE
+                       coverage verdict: "full" means this run covered the whole suite cold,
+                       unfiltered and green, and is therefore merge-grade. Readers trust this
+                       field; they do not re-derive it from selection/runs. A summary without it
+                       (older run, foreign producer) is partial by the reader's fail-closed rule.
+      The summary is a snapshot of the WORKING TREE at run time; pairing it with a commit is the
+      caller's job (agent_worktree_pool.sh records the tree hash alongside it).
+
+    Machine channel: KEY=value trailers on stdout - UNITY_TEST_SUMMARY_JSON=<path> and
+    STATUS=<status> total=... passed=... failed=... skipped=...
+#>
+param(
+    # Empty resolves from the project's own ProjectVersion.txt (scripts/lib/unity_editor.ps1).
+    [string]$UnityPath = "",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/unity-tests-agent",
     [ValidateSet("Both", "EditMode", "PlayMode")]
@@ -27,12 +52,17 @@
     [switch]$SkipUnityAccess,
     [string]$UnityAccessLease = "",
     [int]$UnityAccessWaitSec = 60,
-    [string]$UnityAccessStateRoot = ""
+    [string]$UnityAccessStateRoot = "",
+    [switch]$Routed,
+    [string]$UnityCliPath = "unity"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
+. (Join-Path $PSScriptRoot "unity_access_client.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
+. (Join-Path $PSScriptRoot "lib/process_tree.ps1")
 
 if ($WithGraphics.IsPresent) {
     if ($Mode -ne "PlayMode") {
@@ -56,19 +86,36 @@ if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
         throw "-CaptureScenario must be a plain scenario type name (its .cs file name), got '$CaptureScenario'."
     }
 }
+if ($Routed.IsPresent) {
+    $routedIncompatible = [ordered]@{
+        "-WithGraphics" = $WithGraphics.IsPresent
+        "-Windowed" = $Windowed.IsPresent
+        "-CaptureScenario" = -not [string]::IsNullOrWhiteSpace($CaptureScenario)
+        "-OrderedTestListFile" = -not [string]::IsNullOrWhiteSpace($OrderedTestListFile)
+        "-RerunFailedFrom" = -not [string]::IsNullOrWhiteSpace($RerunFailedFrom)
+        "-ValidateScope" = $ValidateScope.IsPresent
+        "-SkipUnityAccess" = $SkipUnityAccess.IsPresent
+    }
+    $routedBad = @($routedIncompatible.Keys | Where-Object { $routedIncompatible[$_] })
+    if ($routedBad.Count -gt 0) {
+        throw "-Routed cannot be combined with $($routedBad -join ', '): a routed run attaches to a resident editor, so boot-frozen flags cannot reach it (dispatch capture scenarios via 'unity command capture_request_scenario' instead) and it always verifies through the unity_access coordinator."
+    }
+}
 
-$Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
-# Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
-$Script:BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
+$Script:BootCompletePattern = ""
 $Script:BootWatchTimeoutSec = 180
 $Script:BootAcquireWaitSec = 300
 
 function Get-UnityAccessSlot {
     param([string]$ProjectFullPath)
-    $repo = Resolve-FullPath (Join-Path $ProjectFullPath "..\..")
+    $repo = Get-RepoRoot -ProbePath $ProjectFullPath
     $branch = (& git -C $repo branch --show-current 2>$null | Select-Object -First 1)
-    if ([string]::IsNullOrWhiteSpace($branch)) { return "main" }
+    # The slot names the coordinator lease. A git failure defaulting to "main" would file this run's
+    # lease against the primary tree - the wrong owner, silently.
+    if ([string]::IsNullOrWhiteSpace($branch)) {
+        throw "Could not read the current branch under '$repo'; the Unity access slot is unknown (detached HEAD, or git failed)."
+    }
     return [string]$branch
 }
 
@@ -76,41 +123,33 @@ function Invoke-UnityAccess {
     param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
     if ($SkipUnityAccess.IsPresent) { return $null }
 
-    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $slot = Get-UnityAccessSlot $ProjectFullPath
     $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
     $waitSeconds = if ($WaitSecondsOverride -gt 0) { $WaitSecondsOverride } else { $UnityAccessWaitSec }
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", $Action,
         "-Lease", $lease,
         "-Slot", $slot,
         "-Mode", "batch",
         "-ProjectPath", $ProjectFullPath,
-        "-WaitSeconds", $waitSeconds,
-        "-Json"
+        "-WaitSeconds", $waitSeconds
     )
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $arguments += @("-StateRoot", $UnityAccessStateRoot) }
     if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
 
-    $output = @(& powershell @arguments 2>&1)
-    $exitCode = $LASTEXITCODE
-    $line = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
-    $result = if ($line.Count -gt 0) { [string]$line[0] | ConvertFrom-Json } else { $null }
-    if ($exitCode -ne 0) {
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
+    $result = $call.result
+    if ($call.exitCode -ne 0) {
         if ($Action -in @("Acquire", "Wait")) {
-            $cancelArguments = @(
-                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
-                "-Action", "Cancel", "-Lease", $lease, "-Json"
-            )
+            $cancelArguments = @("-Action", "Cancel", "-Lease", $lease)
             if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $cancelArguments += @("-StateRoot", $UnityAccessStateRoot) }
-            & powershell @cancelArguments 2>&1 | Out-Null
+            [void](Invoke-UnityAccessCoordinator -CoordinatorArgs $cancelArguments)
         }
         if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
             $blocker = @($result.blockers | Select-Object -First 1)
             throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
         }
-        throw "Unity access $Action failed (exit=$exitCode): $($output -join ' ')"
+        throw "Unity access $Action failed (exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
     return $result
 }
@@ -144,10 +183,22 @@ function Exit-UnityBootLane {
     catch { Write-Warning "Boot lane release failed (continuing): $($_.Exception.Message)" }
 }
 
+# The boot-complete marker has ONE home: the coordinator that owns the boot lane. This run drives that
+# lane itself, so it asks rather than keeping a copy that drifts out of step with the lane's own reading.
+function Get-BootCompletePattern {
+    if (-not [string]::IsNullOrWhiteSpace($Script:BootCompletePattern)) { return $Script:BootCompletePattern }
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "Contract")
+    if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "unity_access Contract failed (exit=$($call.exitCode)): $($call.stderr)" }
+    $pattern = [string]$call.result.bootCompletePattern
+    if ([string]::IsNullOrWhiteSpace($pattern)) { throw "unity_access Contract returned no bootCompletePattern." }
+    $Script:BootCompletePattern = $pattern
+    return $pattern
+}
+
 function Test-UnityBootComplete {
     param([string]$LogPath)
     if ([string]::IsNullOrWhiteSpace($LogPath) -or -not (Test-Path -LiteralPath $LogPath)) { return $false }
-    return [bool](Select-String -LiteralPath $LogPath -Pattern $Script:BootCompletePattern -Quiet -ErrorAction SilentlyContinue)
+    return [bool](Select-String -LiteralPath $LogPath -Pattern (Get-BootCompletePattern) -Quiet -ErrorAction SilentlyContinue)
 }
 
 function Get-ArgumentValue {
@@ -370,12 +421,7 @@ function Invoke-UnityProcess {
                                  (Get-Date) -ge $completionSeenAt.AddSeconds($CompletionGraceSec))
 
             if ($hungAfterResults -or (Get-Date) -ge $deadline) {
-                if ($Script:IsWindowsPlatform -eq $true) {
-                    & taskkill /PID $proc.Id /T /F *> $null
-                }
-                else {
-                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                }
+                Stop-ProcessTree -ProcessId $proc.Id
 
                 Start-Sleep -Milliseconds 300
                 return [ordered]@{
@@ -444,6 +490,60 @@ function Get-FailedFullNamesFromSummary {
     return $fullNames.ToArray()
 }
 
+# The two transports (cold XML, routed pipeline) must produce byte-identical record shapes: the
+# summary schema, the coverage stamp and the pool all read one set of keys. These two constructors
+# are the only place either shape - and the truncation caps - is written down.
+function New-RunRecord {
+    param(
+        [string]$Platform,
+        [string]$XmlPath = "",
+        [string]$LogPath = "",
+        [int]$UnityExitCode = 0,
+        [string]$Status = "infra_error",
+        [object]$Selection
+    )
+
+    return [ordered]@{
+        platform = $Platform
+        xmlPath = $XmlPath
+        logPath = $LogPath
+        unityExitCode = $UnityExitCode
+        status = $Status
+        total = 0
+        passed = 0
+        failed = 0
+        skipped = 0
+        durationSec = 0.0
+        failures = @()
+        truncatedFailures = 0
+        selection = $Selection
+    }
+}
+
+function New-FailureEntry {
+    param(
+        [string]$Name,
+        [string]$FullName,
+        [double]$DurationSec,
+        [string]$Message,
+        [string]$StackTrace,
+        [int]$MessageLimit,
+        [switch]$WithStackTrace
+    )
+
+    $entry = [ordered]@{
+        name = $Name
+        fullName = $FullName
+        durationSec = $DurationSec
+        message = Normalize-Message -Message $Message -MaxLen $MessageLimit
+        topStack = Normalize-Message -Message (Get-TopStackFrame -StackTrace $StackTrace) -MaxLen 240
+    }
+    if ($WithStackTrace.IsPresent) {
+        $entry.stackTrace = Normalize-Message -Message $StackTrace -MaxLen 2000
+    }
+    return $entry
+}
+
 function Parse-UnityResultXml {
     param(
         [string]$XmlPath,
@@ -457,21 +557,8 @@ function Parse-UnityResultXml {
         [hashtable]$Selection
     )
 
-    $base = [ordered]@{
-        platform = $Platform
-        xmlPath = $XmlPath
-        logPath = $LogPath
-        unityExitCode = $UnityExitCode
-        status = "infra_error"
-        total = 0
-        passed = 0
-        failed = 0
-        skipped = 0
-        durationSec = 0.0
-        failures = @()
-        truncatedFailures = 0
-        selection = $Selection
-    }
+    $base = New-RunRecord -Platform $Platform -XmlPath $XmlPath -LogPath $LogPath `
+        -UnityExitCode $UnityExitCode -Selection $Selection
 
     if (-not (Test-Path -LiteralPath $XmlPath)) {
         $tail = ""
@@ -506,19 +593,14 @@ function Parse-UnityResultXml {
             $stackNode = $testNode.SelectSingleNode("failure/stack-trace")
             $stackRaw = Get-InnerText $stackNode
 
-            $entry = [ordered]@{
-                name = Get-Attr -Node $testNode -Name "name"
-                fullName = Get-Attr -Node $testNode -Name "fullname"
-                durationSec = To-Double (Get-Attr -Node $testNode -Name "duration")
-                message = Normalize-Message -Message (Get-InnerText $msgNode) -MaxLen $MessageLimit
-                topStack = Normalize-Message -Message (Get-TopStackFrame -StackTrace $stackRaw) -MaxLen 240
-            }
-
-            if ($WithStackTrace.IsPresent) {
-                $entry.stackTrace = Normalize-Message -Message $stackRaw -MaxLen 2000
-            }
-
-            $failures += $entry
+            $failures += New-FailureEntry `
+                -Name (Get-Attr -Node $testNode -Name "name") `
+                -FullName (Get-Attr -Node $testNode -Name "fullname") `
+                -DurationSec (To-Double (Get-Attr -Node $testNode -Name "duration")) `
+                -Message (Get-InnerText $msgNode) `
+                -StackTrace $stackRaw `
+                -MessageLimit $MessageLimit `
+                -WithStackTrace:$WithStackTrace
         }
     }
 
@@ -550,6 +632,399 @@ function Parse-UnityResultXml {
     return $base
 }
 
+# --- Routed transport -------------------------------------------------------
+# Attaches to a resident com.unity.pipeline editor instead of booting one. The
+# pipeline's run_tests takes a single include-only filter (no '!' exclusion, no
+# ';' lists), so selection is resolved wrapper-side from list_tests ground truth
+# and any selection the routed calls cannot reproduce exactly is refused.
+
+function Get-JsonProp {
+    param([object]$Object, [string]$Name)
+
+    if ($null -eq $Object) { return $null }
+    $prop = $Object.PSObject.Properties[$Name]
+    if ($null -eq $prop) { return $null }
+    return $prop.Value
+}
+
+function Invoke-UnityCliJson {
+    param([string[]]$CliArgs, [string]$What)
+
+    # stderr merges into the capture (never 2>$null: that eats error envelopes and a failed call reads as success).
+    $raw = @(& { $ErrorActionPreference = 'Continue'; & $Script:UnityCli @CliArgs 2>&1 } | ForEach-Object { [string]$_ })
+    $exitCode = $LASTEXITCODE
+    $text = $raw -join "`n"
+    $envelope = $null
+    $start = $text.IndexOf('{')
+    if ($start -ge 0) {
+        try { $envelope = $text.Substring($start) | ConvertFrom-Json } catch { $envelope = $null }
+    }
+    return [ordered]@{ exitCode = $exitCode; envelope = $envelope; text = $text; what = $What }
+}
+
+function Invoke-PipelineCommand {
+    param([string]$CommandName, [string[]]$CommandParams = @(), [string]$What = "")
+
+    $cliArgs = @("command", $CommandName) + $CommandParams + @("--project-path", $Script:RoutedProject, "--format", "json")
+    $call = Invoke-UnityCliJson -CliArgs $cliArgs -What $(if ($What) { $What } else { $CommandName })
+    $result = Get-JsonProp (Get-JsonProp $call.envelope 'data') 'result'
+    if ($result -is [string] -and $result.TrimStart().StartsWith('{')) {
+        try { $result = $result | ConvertFrom-Json } catch { }
+    }
+    $call.result = $result
+    $call.ok = ($call.exitCode -eq 0 -and $null -ne $call.envelope -and [bool](Get-JsonProp $call.envelope 'success'))
+    return $call
+}
+
+function Assert-RoutedEditorOwner {
+    param([string]$ProjectFullPath)
+
+    # "Who owns this path" is the coordinator's question: -ProjectPath makes Status answer it with its
+    # own normalization, so no path-matching rule lives here.
+    $statusArgs = @("-Action", "Status", "-ProjectPath", $ProjectFullPath)
+    if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $statusArgs += @("-StateRoot", $UnityAccessStateRoot) }
+    $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $statusArgs
+    if ($call.exitCode -ne 0 -or $null -eq $call.result) { throw "-Routed: unity_access Status failed (exit=$($call.exitCode)): $($call.stderr)" }
+    $state = $call.result
+
+    $owners = @(Get-JsonProp $state 'projectOwner' | Where-Object { $null -ne $_ })
+    if ($owners.Count -eq 0) {
+        throw ("-Routed attaches only to an editor your work stream already holds, and the coordinator tracks none on $ProjectFullPath. " +
+            "Start one first (unity-access skill): .\scripts\unity_access.ps1 -Action StartEditor -Lease <lease> -Slot <slot> -Mode editor -WaitSeconds 60 -Json " +
+            "- or drop -Routed for a cold batch run.")
+    }
+    $owner = $owners[0]
+    $ownerPid = 0
+    [void][int]::TryParse([string](Get-JsonProp $owner 'processId'), [ref]$ownerPid)
+    if ([string](Get-JsonProp $owner 'mode') -ne "editor" -or $ownerPid -le 0) {
+        throw ("-Routed: the project is owned by lease '$(Get-JsonProp $owner 'lease')' in '$(Get-JsonProp $owner 'mode')' mode (pid=$ownerPid), not a live editor. " +
+            "Wait for that run to finish, or start an editor via StartEditor.")
+    }
+    return $ownerPid
+}
+
+function Wait-RoutedEditorReady {
+    param([int]$TimeoutSec = 60, [string]$What = "editor readiness")
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    $lastText = ""
+    while ($true) {
+        $call = Invoke-PipelineCommand -CommandName "editor_status" -What "editor_status"
+        if ($call.ok -and $null -ne $call.result) {
+            $compiling = [bool](Get-JsonProp $call.result 'compiling') -or [bool](Get-JsonProp $call.result 'isCompiling')
+            $reloading = [bool](Get-JsonProp $call.result 'domainReloadInProgress')
+            if (-not $compiling -and -not $reloading) { return $call.result }
+        }
+        $lastText = $call.text
+        if ((Get-Date) -ge $deadline) { break }
+        Start-Sleep -Seconds 2
+    }
+    throw "-Routed: $What not reached within ${TimeoutSec}s (editor_status must answer with no compile/domain-reload in progress). Last output: $(Normalize-Message -Message $lastText -MaxLen 400)"
+}
+
+function Set-RoutedAutotick {
+    # Autotick resets on every domain reload; an unticked idle editor starves command servicing into 30s timeouts.
+    $call = Invoke-PipelineCommand -CommandName "set_autotick" -CommandParams @("--enable", "true") -What "set_autotick"
+    if (-not $call.ok) {
+        Write-Warning "set_autotick failed (a starved editor will surface as poll timeouts): $(Normalize-Message -Message $call.text -MaxLen 240)"
+    }
+}
+
+function Get-RoutedTestCatalog {
+    param([string]$PipelineMode)
+
+    $call = Invoke-PipelineCommand -CommandName "list_tests" -CommandParams @("--mode", $PipelineMode) -What "list_tests"
+    if (-not $call.ok -or $null -eq $call.result) {
+        throw "-Routed: list_tests --mode $PipelineMode failed: $(Normalize-Message -Message $call.text -MaxLen 400)"
+    }
+    return @(Get-JsonProp $call.result 'Tests')
+}
+
+function Resolve-RoutedPlatformPlan {
+    param([string]$Platform)
+
+    $pipelineMode = if ($Platform -eq "EditMode") { "editor" } else { "playmode" }
+    $catalog = Get-RoutedTestCatalog -PipelineMode $pipelineMode
+    $candidates = @($catalog | Where-Object { $null -ne $_ -and -not [bool](Get-JsonProp $_ 'Explicit') })
+
+    $calls = @()
+    $matched = @{}
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
+        # The scope lib owns the authored filter format; ask it for the literal names this transport
+        # needs. A selection it cannot represent is refused here, never approximated.
+        $nameSelection = ConvertTo-TestNameSelection -TestFilter $TestFilter
+        if (-not $nameSelection.representable) {
+            throw "-Routed cannot honor -TestFilter '$TestFilter': the pipeline's run_tests takes one literal substring per call, and this filter has $($nameSelection.reason). Run it cold (drop -Routed)."
+        }
+        $filterParts = @($nameSelection.names)
+        foreach ($part in $filterParts) { $calls += , @{ filter = $part; filterType = "testname" } }
+        foreach ($test in $candidates) {
+            $fullName = [string](Get-JsonProp $test 'FullName')
+            foreach ($part in $filterParts) {
+                if ($fullName.IndexOf($part, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                    $matched[$fullName] = $test
+                    break
+                }
+            }
+        }
+    }
+    elseif ($includeCategories.Count -gt 0) {
+        foreach ($category in $includeCategories) { $calls += , @{ filter = $category; filterType = "category" } }
+        foreach ($test in $candidates) {
+            $categories = @(Get-JsonProp $test 'Categories')
+            foreach ($category in $includeCategories) {
+                if (@($categories | Where-Object { [string]$_ -ieq $category }).Count -gt 0) {
+                    $matched[[string](Get-JsonProp $test 'FullName')] = $test
+                    break
+                }
+            }
+        }
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
+        $assemblies = @($AssemblyNames -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+        foreach ($assembly in $assemblies) { $calls += , @{ filter = $assembly; filterType = "assembly" } }
+        foreach ($test in $candidates) {
+            $testAssembly = [string](Get-JsonProp $test 'Assembly')
+            foreach ($assembly in $assemblies) {
+                if ($testAssembly -and $testAssembly.IndexOf($assembly, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                    $matched[[string](Get-JsonProp $test 'FullName')] = $test
+                    break
+                }
+            }
+        }
+    }
+    else {
+        $calls += , @{ filter = ""; filterType = "" }
+        foreach ($test in $candidates) { $matched[[string](Get-JsonProp $test 'FullName')] = $test }
+    }
+
+    $excludedHits = @()
+    $expected = @{}
+    foreach ($fullName in $matched.Keys) {
+        $categories = @(Get-JsonProp $matched[$fullName] 'Categories')
+        $hit = @($categories | Where-Object { $candidate = [string]$_; @($excludeCategories | Where-Object { $_ -ieq $candidate }).Count -gt 0 })
+        if ($hit.Count -gt 0) { $excludedHits += $fullName } else { $expected[$fullName] = $true }
+    }
+
+    return [ordered]@{
+        platform = $Platform
+        pipelineMode = $pipelineMode
+        calls = $calls
+        expected = $expected
+        excludedHits = @($excludedHits | Sort-Object)
+    }
+}
+
+function Wait-RoutedTestCompletion {
+    param([int]$TimeoutSec, [string]$What)
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    $unreachablePolls = 0
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 2
+        $call = Invoke-PipelineCommand -CommandName "test_status" -What "test_status"
+        if (-not $call.ok -or $null -eq $call.result) {
+            # Domain reloads take the command server down transiently; only a long dead stretch is a failure.
+            $unreachablePolls++
+            if ($unreachablePolls -ge 30) { break }
+            continue
+        }
+        $unreachablePolls = 0
+        $status = [string](Get-JsonProp $call.result 'status')
+        switch ($status) {
+            "completed" { return $call.result }
+            "error" { throw "-Routed: $What reported error: $(Get-JsonProp $call.result 'message')" }
+            "cancelled" { throw "-Routed: $What was cancelled outside this run." }
+            default { }
+        }
+    }
+    [void](Invoke-PipelineCommand -CommandName "cancel_tests" -What "cancel_tests")
+    throw "-Routed: $What did not complete within ${TimeoutSec}s (cancel_tests sent to unwedge the editor)."
+}
+
+function Get-ShortTestName {
+    param([string]$FullName)
+
+    $head = $FullName
+    $tail = ""
+    $paren = $FullName.IndexOf('(')
+    if ($paren -ge 0) {
+        $head = $FullName.Substring(0, $paren)
+        $tail = $FullName.Substring($paren)
+    }
+    $dot = $head.LastIndexOf('.')
+    if ($dot -ge 0) { $head = $head.Substring($dot + 1) }
+    return $head + $tail
+}
+
+function Invoke-RoutedPlatformRun {
+    param([object]$Plan, [object]$Selection)
+
+    $platform = [string]$Plan.platform
+    $notes = @()
+
+    if ($Plan.expected.Count -eq 0) {
+        $empty = New-RunRecord -Platform $platform -Status "passed" -Selection $Selection
+        $empty.note = "No tests matched on this platform."
+        return $empty
+    }
+
+    $byName = [ordered]@{}
+    $duplicates = 0
+    $durationSum = 0.0
+    foreach ($callSpec in $Plan.calls) {
+        [void](Wait-RoutedEditorReady -TimeoutSec 120 -What "$platform pre-run readiness")
+        Set-RoutedAutotick
+
+        $runParams = @("--mode", $Plan.pipelineMode, "--async_tests", "true", "--timeout", [string]$UnityTimeoutSec)
+        if (-not [string]::IsNullOrWhiteSpace([string]$callSpec.filter)) {
+            $runParams += @("--filter", [string]$callSpec.filter, "--filter_type", [string]$callSpec.filterType)
+        }
+        Write-Host "Routed ${platform}: run_tests $(if ($callSpec.filter) { "$($callSpec.filterType)=$($callSpec.filter)" } else { '(unfiltered)' }) ..."
+        $launch = Invoke-PipelineCommand -CommandName "run_tests" -CommandParams $runParams -What "run_tests $platform"
+        $launchState = [string](Get-JsonProp $launch.result 'result')
+        if (-not $launch.ok -or $launchState -ne "running") {
+            $detail = [string](Get-JsonProp $launch.result 'error')
+            if ([string]::IsNullOrWhiteSpace($detail)) { $detail = Normalize-Message -Message $launch.text -MaxLen 400 }
+            throw "-Routed: run_tests launch for $platform failed: $detail"
+        }
+
+        $final = Wait-RoutedTestCompletion -TimeoutSec ($UnityTimeoutSec + 60) -What "run_tests $platform"
+        Set-RoutedAutotick
+
+        $durationSum += [double](Get-JsonProp $final 'duration')
+        foreach ($result in @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })) {
+            $fullName = [string](Get-JsonProp $result 'FullName')
+            if ($byName.Contains($fullName)) { $duplicates++ } else { $byName[$fullName] = $result }
+        }
+    }
+
+    if ($duplicates -gt 0) {
+        $notes += "$duplicates duplicate execution(s) across include-category calls collapsed in totals."
+    }
+
+    $passed = 0; $failed = 0; $skipped = 0; $inconclusive = 0
+    $failures = @()
+    foreach ($result in $byName.Values) {
+        switch ([string](Get-JsonProp $result 'Status')) {
+            "Passed" { $passed++ }
+            "Skipped" { $skipped++ }
+            "Inconclusive" { $inconclusive++ }
+            default {
+                $failed++
+                if ($failures.Count -lt $MaxFailures) {
+                    $fullName = [string](Get-JsonProp $result 'FullName')
+                    $stackRaw = [string](Get-JsonProp $result 'StackTrace')
+                    $failures += , (New-FailureEntry `
+                        -Name (Get-ShortTestName -FullName $fullName) `
+                        -FullName $fullName `
+                        -DurationSec ([double](Get-JsonProp $result 'Duration')) `
+                        -Message ([string](Get-JsonProp $result 'Message')) `
+                        -StackTrace $stackRaw `
+                        -MessageLimit $MaxMessageLength `
+                        -WithStackTrace:$IncludeStackTrace)
+                }
+            }
+        }
+    }
+
+    $status = if ($failed -gt 0 -or $inconclusive -gt 0) { "failed" } else { "passed" }
+    if ($inconclusive -gt 0) { $notes += "$inconclusive inconclusive test(s) counted as failing." }
+
+    # Parity against the list_tests ground truth: a drifted executed set is an infra problem, not a verdict.
+    $executedNames = @($byName.Keys)
+    $missing = @($Plan.expected.Keys | Where-Object { -not $byName.Contains($_) } | Sort-Object)
+    $extra = @($executedNames | Where-Object { -not $Plan.expected.Contains($_) } | Sort-Object)
+    if ($missing.Count -gt 0 -or $extra.Count -gt 0) {
+        $status = "infra_error"
+        if ($missing.Count -gt 0) { $notes += "Executed set is missing $($missing.Count) expected test(s): $(@($missing | Select-Object -First 10) -join ', ')" }
+        if ($extra.Count -gt 0) { $notes += "Executed set has $($extra.Count) unexpected test(s): $(@($extra | Select-Object -First 10) -join ', ')" }
+    }
+
+    $run = New-RunRecord -Platform $platform -Status $status -Selection $Selection
+    $run.total = $byName.Count
+    $run.passed = $passed
+    $run.failed = $failed
+    $run.skipped = $skipped
+    $run.durationSec = [Math]::Round($durationSum, 3)
+    $run.failures = $failures
+    $run.truncatedFailures = [Math]::Max(0, $failed - $failures.Count)
+    if ($notes.Count -gt 0) { $run.note = $notes -join " " }
+    return $run
+}
+
+function New-RoutedRefusal {
+    param([string[]]$Platforms, [object]$Selection, [string]$Reason)
+
+    $records = @()
+    foreach ($platform in $Platforms) {
+        $record = New-RunRecord -Platform $platform -Status "infra_error" -Selection $Selection
+        $record.note = $Reason
+        $records += , $record
+    }
+    return $records
+}
+
+function Invoke-RoutedSuite {
+    param([string[]]$Platforms, [object]$Selection, [string]$ProjectFullPath)
+
+    $cliCommand = Get-Command $UnityCliPath -ErrorAction SilentlyContinue
+    if ($null -eq $cliCommand) {
+        throw "-Routed requires the unity CLI ('$UnityCliPath' not found on PATH; install per doc/agents/unity-cli.md)."
+    }
+    $Script:UnityCli = $cliCommand.Source
+    $Script:RoutedProject = $ProjectFullPath
+
+    $selectorAxes = @()
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) { $selectorAxes += "-TestFilter" }
+    if ($includeCategories.Count -gt 0) { $selectorAxes += "category selection" }
+    if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) { $selectorAxes += "-AssemblyNames" }
+    if ($selectorAxes.Count -gt 1) {
+        throw "-Routed supports one selector axis per run and got: $($selectorAxes -join ' + '). The pipeline's run_tests takes a single filter; combine axes only on cold runs."
+    }
+
+    $Script:RoutedEditorPid = Assert-RoutedEditorOwner -ProjectFullPath $ProjectFullPath
+    Write-Host "Routed run attaching to resident editor pid=$Script:RoutedEditorPid ..."
+
+    $ready = Wait-RoutedEditorReady -TimeoutSec 90 -What "attach"
+    $playModeValue = Get-JsonProp $ready 'playMode'
+    $isPlaying = if ($playModeValue -is [bool]) { $playModeValue } else { [string]$playModeValue -match '^Play' }
+    if ($isPlaying) {
+        throw "-Routed: the resident editor is in Play Mode; stop it before routing tests (unity command editor_stop --project-path $ProjectFullPath)."
+    }
+    Set-RoutedAutotick
+
+    # Plan every platform before running any: a selection the routed transport cannot honor must refuse up front, not half-run.
+    $plans = @()
+    foreach ($platform in $Platforms) { $plans += , (Resolve-RoutedPlatformPlan -Platform $platform) }
+
+    # A refusal is a real verdict, not a crash: it lands as infra_error runs so the caller gets the
+    # same summary + exit 2 it gets for every other "no tests ran" outcome, instead of a bare throw.
+    $refusals = @($plans | Where-Object { @($_.excludedHits).Count -gt 0 })
+    if ($refusals.Count -gt 0) {
+        $lines = foreach ($plan in $refusals) {
+            "[$($plan.platform)] $(@($plan.excludedHits | Select-Object -First 10) -join ', ')$(if (@($plan.excludedHits).Count -gt 10) { ", ... ($(@($plan.excludedHits).Count) total)" })"
+        }
+        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+            "-Routed cannot honor -ExcludeCategory '$ExcludeCategory': run_tests has no exclusion filter and the selection matches excluded-category tests: " +
+            ($lines -join "; ") + ". Run this selection cold (drop -Routed), or pass -ExcludeCategory '' to run them deliberately in the resident editor.")
+    }
+
+    $expectedTotal = 0
+    foreach ($plan in $plans) { $expectedTotal += $plan.expected.Count }
+    if ($expectedTotal -eq 0) {
+        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+            "-Routed: the selection matches no tests on any requested platform (list_tests ground truth). A zero-test run reports success it never earned; fix the selection.")
+    }
+
+    $routedRuns = @()
+    foreach ($plan in $plans) {
+        Write-Host "Routed $($plan.platform): $($plan.expected.Count) test(s) expected."
+        $routedRuns += , (Invoke-RoutedPlatformRun -Plan $plan -Selection $Selection)
+    }
+    return $routedRuns
+}
+
 if ($ScopeType -eq "Auto") {
     $manualSelectionArgs = [ordered]@{
         "-TestFilter" = $TestFilter
@@ -564,13 +1039,13 @@ if ($ScopeType -eq "Auto") {
     }
 }
 
-$unityExe = Resolve-FullPath $UnityPath
 $project = Resolve-FullPath $ProjectPath
+$unityExe = if ([string]::IsNullOrWhiteSpace($UnityPath)) { Resolve-UnityEditorPath -ProjectPath $project } else { Resolve-FullPath $UnityPath }
 $outRoot = Resolve-FullPath $OutDir
 $orderedListPath = Resolve-FullPath $OrderedTestListFile
 $rerunSummaryPath = Resolve-FullPath $RerunFailedFrom
 
-if (-not (Test-Path -LiteralPath $unityExe)) {
+if (-not $Routed.IsPresent -and -not (Test-Path -LiteralPath $unityExe)) {
     throw "Unity executable not found: $unityExe"
 }
 
@@ -671,7 +1146,10 @@ try {
             }
         }
         else {
-            $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+            # One structured selection, two transports: the cold path takes its alternation, the
+            # routed path takes its literal names (Resolve-RoutedPlatformPlan).
+            $scopeSelection = Resolve-ScopeSelection -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+            $resolvedFilter = [string]$scopeSelection.testFilter
             if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
                 $scopeResolved = $true
                 Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
@@ -679,20 +1157,21 @@ try {
         }
     }
 
+    $platforms = switch ($Mode) {
+        "Both" { @("EditMode", "PlayMode") }
+        default { @($Mode) }
+    }
+
     if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
         Write-Host "Validating scope filter matches at least one test..."
 
-        $platformsToValidate = switch ($Mode) {
-            "Both" { @("EditMode", "PlayMode") }
-            default { @($Mode) }
-        }
-
         $anyMatches = $false
-        foreach ($platform in $platformsToValidate) {
+        foreach ($platform in $platforms) {
             Write-Host "  Checking $platform..."
-            $matches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
+            # Not $matches: that is the regex automatic variable, and assigning it breaks any -match in scope.
+            $filterMatches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
 
-            if ($matches) {
+            if ($filterMatches) {
                 Write-Host "  [OK] ${platform}: Filter matches tests"
                 $anyMatches = $true
             }
@@ -722,11 +1201,6 @@ try {
     $categoryFilter = (@($includeCategories) + @($excludeCategories | ForEach-Object { "!$_" })) -join ";"
     if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
         Write-Host "Test category filter: $categoryFilter"
-    }
-
-    $platforms = switch ($Mode) {
-        "Both" { @("EditMode", "PlayMode") }
-        default { @($Mode) }
     }
 
     $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -769,7 +1243,11 @@ try {
                    [string]::IsNullOrWhiteSpace($CaptureScenario) -and
                    [string]::IsNullOrWhiteSpace($orderedListPath))
 
-    if ($singleBoot) {
+    if ($Routed.IsPresent) {
+        # @() re-wraps a single-platform result: PowerShell unrolls a one-element array on return, which would serialize runs as an object.
+        $runs = @(Invoke-RoutedSuite -Platforms $platforms -Selection $selection -ProjectFullPath $project)
+    }
+    elseif ($singleBoot) {
         $xmlEdit = Join-Path $outRoot "$stamp-EditMode.xml"
         $xmlPlay = Join-Path $outRoot "$stamp-PlayMode.xml"
         $logPath = Join-Path $outRoot "$stamp-Both.log"
@@ -942,6 +1420,43 @@ $overallStatus = if ($hasInfraError) {
     "passed"
 }
 
+# Merge-grade coverage is the RUNNER's verdict, not a reader's guess: only this script knows what it
+# was asked to run and what actually executed. The pool trusts coverage.verdict and checks only the
+# one thing it owns (that the summary describes the tree it is about to land) - script-contracts.md
+# sec.3. A summary carrying no stamp is partial by the reader's fail-closed rule.
+function Get-CoverageVerdict {
+    param([object[]]$Runs, [object]$Selection, [string]$OverallStatus)
+
+    if ($Routed.IsPresent) { return [ordered]@{ verdict = "partial"; reason = "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)" } }
+    if ($OverallStatus -ne "passed") { return [ordered]@{ verdict = "partial"; reason = "status=$OverallStatus" } }
+    if ($Mode -ne "Both") { return [ordered]@{ verdict = "partial"; reason = "mode=$Mode" } }
+    if ("$($Selection.scopeType)".ToLowerInvariant() -ne "workspace") { return [ordered]@{ verdict = "partial"; reason = "scopeType=$($Selection.scopeType)" } }
+
+    foreach ($key in @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$Selection[$key])) { return [ordered]@{ verdict = "partial"; reason = "$key set" } }
+    }
+
+    # RequiresGraphics is excluded from every gate run by design; any other exclusion narrows the suite.
+    $extraExclusions = @("$($Selection.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
+    if ($extraExclusions.Count -gt 0) { return [ordered]@{ verdict = "partial"; reason = "excludeCategory=$($Selection.excludeCategory)" } }
+
+    # A fully-green run containing ignored tests reports NUnit "Skipped:Ignored" -> per-run status
+    # "unknown", so per-platform greenness is failed==0/total>0, never the status label.
+    $platforms = @()
+    foreach ($run in @($Runs)) {
+        $platform = [string]$run.platform
+        $runStatus = [string]$run.status
+        if ($runStatus -eq "failed" -or $runStatus -eq "infra_error") { return [ordered]@{ verdict = "partial"; reason = "run $platform status=$runStatus" } }
+        if ($run.failed -ne 0 -or $run.total -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$($run.failed) total=$($run.total)" } }
+        $platforms += $platform
+    }
+    if ($platforms -notcontains "EditMode" -or $platforms -notcontains "PlayMode") {
+        return [ordered]@{ verdict = "partial"; reason = "runs lack passed EditMode+PlayMode" }
+    }
+
+    return [ordered]@{ verdict = "full"; reason = "mode=Both scopeType=Workspace excludeCategory=$($Selection.excludeCategory)" }
+}
+
 $summary = [ordered]@{
     generatedAt = (Get-Date).ToString("o")
     projectPath = $project
@@ -957,6 +1472,12 @@ $summary = [ordered]@{
         durationSec = [Math]::Round($duration, 3)
     }
     runs = $runs
+}
+$summary.coverage = Get-CoverageVerdict -Runs $runs -Selection $selection -OverallStatus $overallStatus
+if ($Routed.IsPresent) {
+    # Warm-run marker; the coverage stamp already reports routed runs as partial (the merge gate stays cold-process).
+    $summary.transport = "routed"
+    $summary.editorPid = [int]$Script:RoutedEditorPid
 }
 
 $summaryPath = Join-Path $outRoot "$stamp-summary.json"

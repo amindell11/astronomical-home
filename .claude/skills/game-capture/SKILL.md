@@ -12,12 +12,18 @@ native gizmos drawn over it, then assemble them into mp4/gif. **The footage is t
 deliverable** — always end by reading a mid-clip PNG yourself and handing the user
 the clip path.
 
-Capture runs in a **windowed Editor** launched by the test runner
-(`-WithGraphics -Windowed`). This is structural, not a preference: Unity never resumes
-Recorder's `WaitForEndOfFrame` under `-batchmode`, so there is no headless capture lane.
+Capture needs a rendering Game View — a **windowed Editor** booted by the test runner
+(`-WithGraphics -Windowed`), or a **resident GUI editor** via the warm lane. This is
+structural, not a preference: Unity never resumes Recorder's `WaitForEndOfFrame` under
+`-batchmode`, so there is no headless capture lane.
 
 ## Pick a lane
 
+- **Repeat clips against a running Editor** → the **warm lane**: attach once, dispatch
+  scenarios without rebooting (~1 s play-enter instead of a boot per clip):
+  §"Warm lane (attach to a resident editor)".
+- **Live-editor still** → verify drawers/visuals in a running coordinated Editor over
+  the `unity` CLI — stills, not clips: §"Live-editor stills (CLI lane)".
 - **Ad-hoc probe** → author a scratch scenario in repo-root `scratch/capture/` (create
   the dir if needed; it's gitignored and outside Assets, so Unity never compiles it at
   rest). Delete the file when the investigation is done.
@@ -72,7 +78,14 @@ public sealed class MyProbe : CaptureScenario
 
 `Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
 advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name/size/cadence and `Profile` for the gizmo set.
+Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, and
+`Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose gizmos draw.
+
+**Define the gizmo set and scope from what the clip must show.** Pick the narrowest
+`Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
+firing solution scopes to that ship; a two-team engagement scopes by `Team`. `Everything` at
+scope `All` stacks every drawer's ink over every object and buries the subject — reach for it
+only when the whole board is the point.
 
 **There is no per-scenario drawing API.** A diagnostic you want on film is a native
 `[DrawGizmo]` drawer on the Unity component whose state it explains, added to the
@@ -91,6 +104,71 @@ author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
 → `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
 enumerator and calling `FilmStep()` per fixed step.
+
+## Warm lane (attach to a resident editor)
+
+Film repeat clips through an editor your work stream already holds (unity-access
+rung 3) instead of booting one per clip: `capture_lane_attach` switches the editor
+to no-reload play (Enter Play Mode Options), so play-enter drops from ~7–8 s to
+~1 s and a clip costs its real-time runtime. The user's own interactive editor is
+the default target — **ask first**: capture steals the Game View for the clip and
+flips EPO/presentation state (all restored on release; a hard-killed lane restores
+itself on the editor's next load via the lane journal). A leased slot editor
+(unity-access rung 4) serves AFK work.
+
+```powershell
+unity command capture_lane_attach --project-path <proj>   # once per session
+unity command capture_request_scenario --scenario TwoShipSkirmishScenario --project-path <proj>
+./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
+unity command capture_lane_release --project-path <proj>  # restores EPO
+```
+
+- `-ExcludeCategory ''` is required: the capture fixture is `RequiresGraphics`,
+  and `-Routed` makes running excluded categories in a resident editor a
+  deliberate act. The editor must not already be in Play Mode.
+- The request is one-shot — cleared when the runner reads it, dead with the
+  editor — so a stale scenario can never refilm. The run prints the frame dir;
+  assemble as below.
+- Scenario types must already be compiled in the resident editor: promoted
+  scenarios just work. A scratch scenario must be copied under `Assets/` (e.g.
+  `.../Editor/Tests/PlayMode/Scenarios/`) first — wait out the recompile, re-arm
+  `set_autotick --enable true`, delete the file (and `.meta`) after. The cold
+  runner's automatic scratch staging never runs here.
+
+## Live-editor stills (CLI lane)
+
+Verify drawers/visuals in a live coordinated Editor over the `unity` CLI (route into a
+held editor per the unity-access skill; CLI contract: `doc/agents/unity-cli.md`).
+Proven end-to-end by the 2026-08-26 gizmo-eyeball pass (arc #357). Ready-made eval
+snippets live in this skill's `cli-eval/` — run them with `eval_file`.
+
+- **Gizmos composite only in the play-mode Game view.** Reflect the internal
+  `GameView.drawGizmos = true` (`cli-eval/gameview_gizmos_on.cs`; the same contract
+  `UnityGameViewAdapter` pins), then `unity command capture_game_view --source screen`.
+  `capture_scene_view` and `screenshot --view scene` re-render the camera and never
+  composite gizmos. Consequence: **edit-mode gizmo claims need human eyes** — the CLI
+  cannot verify them. (`screenshot --view game` with drawGizmos forced on was probed
+  2026-08-27 and REFUTED — it re-renders the camera, no gizmos; `capture_game_view
+  --source screen` is the only composited still. Delete its `save_path` output from
+  `Assets/` after.)
+- **Check per-type gizmo checkboxes before calling a drawer broken** — AnnotationManager
+  state is per-Library and silently hides drawers (`cli-eval/read_annotations.cs`,
+  `enable_gizmo_annotations.cs`; the #401 flake family).
+- **Select via eval** (`cli-eval/select_ships.cs`) and bracket each capture with a
+  state-read eval so you know what was actually on screen when the frame was taken.
+- **Live-fire scene without playing the game:** boot InitScene, then
+  `cli-eval/launch_no_presentation.cs`, `spawn_enemy.cs` (`UnitService.SpawnShip` with a
+  Ship prefab + AgentPilot Commander), `teleport_close.cs` for tight ObserverCam framing.
+  `launch_no_presentation.cs` flips `GameDriver.sessionProfile.presentation = false`
+  **before** clicking hangar launch, so the pre-spawn compose suppresses the asteroid
+  field's renderers too — poking only the `GameSettings` static after compose leaves the
+  field lit (the "magenta asteroid" leak). With presentation off, the environment
+  silhouette comes from **collider gizmos** (the Gizmo View Colliders toggle / the capture
+  transaction's `CollidersOn`), not unlit meshes.
+- **Sub-second subjects are out of reach**: a select→capture round-trip is ~0.5–1 s, so
+  laser bolts and projectiles-in-flight cannot be stilled from outside — that needs an
+  editor-side atomic `[CliCommand]`, `capture.gizmo_still` (carded #446).
+  Meanwhile: pause with the subject in flight and select it manually.
 
 ## Run + assemble (one command each)
 

@@ -10,8 +10,13 @@ using Utils;
 namespace Ships
 {
     /// <summary>One selected ship's combat picture in plane space: velocity arrow, speed readout, the gunner's exact intercept aim colored by the primary weapon's envelope, and the primary fire-range ring. Selecting a second ship adds the pair's line of sight.</summary>
+    [InitializeOnLoad]
     internal static class ShipGizmos
     {
+        static ShipGizmos() =>
+            GizmoView.Register(typeof(Ship), "combat", "Combat Picture",
+                "velocity arrow, speed, envelope-colored aim + fire-range ring; LOS to 2nd selected", "Combat");
+
         private const float VelocitySecondsShown = 0.6f;
         private const float VelocityHeadSize = 0.4f;
         private const float RangeRingDim = 0.55f;
@@ -25,9 +30,10 @@ namespace Ships
 
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
-        [DrawGizmo(GizmoType.Selected, typeof(Ship))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Ship))]
         private static void Draw(Ship ship, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(Ship), "combat") || !GizmoView.InScope(ship)) return;
             // Velocity, weapons and the gunner's lead all come from Awake-built state.
             if (!Application.isPlaying) return;
 

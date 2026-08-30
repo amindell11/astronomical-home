@@ -2,7 +2,8 @@ param(
     [string]$BaseRef = "origin/main",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/resharper-ratchet",
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
+    # Empty resolves from the project's own ProjectVersion.txt (scripts/lib/unity_editor.ps1).
+    [string]$UnityPath = "",
     [int]$UnityAccessWaitSec = 900,
     [int]$UnitySyncTimeoutSec = 600,
     [switch]$Audit
@@ -11,6 +12,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+. (Join-Path $PSScriptRoot "unity_access_client.ps1")
+. (Join-Path $PSScriptRoot "lib/repo_root.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base)
@@ -147,7 +151,6 @@ function Sync-UnitySolution {
     $coordinator = Join-Path $RepoRoot "scripts/unity_access.ps1"
     $batch = Join-Path $RepoRoot "scripts/sync_unity_solution.ps1"
     $arguments = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", "RunBatch",
         "-Lease", $lease,
         "-Slot", $slot,
@@ -155,16 +158,14 @@ function Sync-UnitySolution {
         "-ProjectPath", $SolutionRoot,
         "-WaitSeconds", $WaitSeconds,
         "-BatchLogPath", $logPath,
-        "-Json",
         "-BatchScript", $batch,
         "-BatchArguments", $configPath
     )
-    $output = @(& powershell @arguments 2>&1)
-    $exitCode = $LASTEXITCODE
-    $jsonLine = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
-    $result = if ($jsonLine.Count -gt 0) { [string]$jsonLine[0] | ConvertFrom-Json } else { $null }
-    if ($exitCode -ne 0 -or $null -eq $result -or $result.status -ne "batch_complete" -or [int]$result.exitCode -ne 0) {
-        throw "Unity solution synchronization failed (coordinator exit=$exitCode): $($output -join ' ')"
+    $call = Invoke-UnityAccessCoordinator -Coordinator $coordinator -CoordinatorArgs $arguments
+    $result = $call.result
+    # batch_complete exits 0 even when the child failed, so the child's own exitCode is checked too.
+    if ($call.exitCode -ne 0 -or $null -eq $result -or $result.status -ne "batch_complete" -or [int]$result.exitCode -ne 0) {
+        throw "Unity solution synchronization failed (coordinator exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
 }
 
@@ -175,8 +176,9 @@ function Write-Summary {
 
 if ($MyInvocation.InvocationName -eq '.') { return }
 
-$repoRoot = Resolve-FullPath (Join-Path $PSScriptRoot "..") (Get-Location).Path
+$repoRoot = Get-RepoRoot -ProbePath $PSScriptRoot
 $solutionRoot = Resolve-FullPath $ProjectPath $repoRoot
+if ([string]::IsNullOrWhiteSpace($UnityPath)) { $UnityPath = Resolve-UnityEditorPath -ProjectPath $solutionRoot }
 $outputRoot = Resolve-FullPath $OutDir $repoRoot
 $solution = Join-Path $solutionRoot "Asteroids3D.sln"
 $settings = Join-Path $repoRoot "scripts/resharper-unity.DotSettings"
@@ -187,7 +189,11 @@ $cachePath = Join-Path $solutionRoot "Library/ReSharperCaches"
 & git -C $repoRoot rev-parse --verify "$BaseRef^{commit}" 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "ReSharper ratchet base ref does not resolve: $BaseRef" }
 
-$changedLines = Get-ChangedLineMap $repoRoot $BaseRef
+# Diff from the merge base: a moved BaseRef must not attribute other branches' lines to this PR.
+$diffBase = (& git -C $repoRoot merge-base $BaseRef HEAD)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($diffBase)) { throw "Could not compute merge-base of $BaseRef and HEAD for the ReSharper ratchet." }
+
+$changedLines = Get-ChangedLineMap $repoRoot $diffBase
 if ($changedLines.Count -eq 0 -and -not $Audit.IsPresent) {
     New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
     Write-Summary $summaryPath ([ordered]@{ status = "skipped"; reason = "no changed C# under Assets/Scripts"; baseRef = $BaseRef })

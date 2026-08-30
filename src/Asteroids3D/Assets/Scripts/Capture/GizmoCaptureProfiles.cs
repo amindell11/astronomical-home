@@ -8,9 +8,17 @@ using Ships;
 using Ships.Damage;
 using Ships.Movement;
 
-namespace Game.Capture.GameView
+namespace Game.Capture
 {
-    internal static class GizmoCaptureProfiles
+    /// <summary>
+    /// Single home for gizmo-capture-profile knowledge: which component types a
+    /// profile selects for drawing (<see cref="Resolve"/>) and whether footage
+    /// under it carries presentation (<see cref="PresentationFor"/>). Presentation
+    /// must be decided pre-spawn — visual/audio rigs self-gate at Awake — so both
+    /// capture lanes (SessionSpec.Presentation, the scenario runner's
+    /// SessionProfile) consult this rule before composing a session.
+    /// </summary>
+    public static class GizmoCaptureProfiles
     {
         private static readonly Type[] Steering =
         {
@@ -33,6 +41,9 @@ namespace Game.Capture.GameView
         };
 
         private static readonly Type[] Everything = Combine(Steering, Combat);
+
+        /// <summary>None films plain gameplay; any gizmo profile films presentation-off — silhouettes plus gizmos are the footage.</summary>
+        public static bool PresentationFor(GizmoCaptureProfile profile) => profile == GizmoCaptureProfile.None;
 
         /// <summary>None selects no types — the Game View then films the game alone, which is how plain gameplay footage is captured.</summary>
         public static Type[] Resolve(GizmoCaptureProfile profile) => profile switch

@@ -14,8 +14,28 @@ usage() {
 Usage: scripts/agent_worktree_pool.sh <command> [args]
 
 Commands:
-  status
-      List agent-* worktree slots and lock status.
+  status [--porcelain]
+      List agent-* worktree slots and lock status. Plain output is human-only
+      and carries no contract.
+
+      --porcelain is THE pool's read interface - the only sanctioned way for
+      another script to learn slot state. One record per slot, KEY=value one
+      per line, records separated by a blank line (git's own --porcelain
+      shape; values may contain spaces, keys never do):
+
+        slot=agent-1            always
+        state=free|locked|stale always; stale = locked past the lock TTL
+        path=<abs-path>         always
+        lease=<lease-id>        locked/stale slots that have a lease
+        task_branch=task/<lease>  when one is recorded or derivable; this is
+                                the branch a PR for the slot is opened FROM
+        age_seconds=<int>       locked/stale only
+        locked_by_pid=<pid>     locked/stale only, informational: pool locks
+                                go stale by AGE, never by pid liveness
+        locked_at=<iso8601>     locked/stale only
+
+      Keys may be added; consumers must ignore unknown keys and tolerate any
+      optional key being absent.
 
   acquire [lease_id] [slot]
       Lock and return an available slot. Auto-pick prefers genuinely
@@ -39,6 +59,14 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
+  run-script-tests [dir]
+      Run every scripts/tests/test_*.sh (bash) and test_*.ps1
+      (powershell.exe) under dir (default: the primary worktree). Prints
+      one PASS/FAIL line per file and stops at the first failure.
+      Non-hermetic files are SKIPped unless
+      SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. The merge
+      gate runs this when the landing diff touches scripts/.
+
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push the slot's work to its task branch (task/<lease>, recorded
       for merge/revise like submit) and create a PR with gh (default
@@ -46,11 +74,6 @@ Commands:
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
       PR already exists for that head/base, prints URL.
-
-  create-pool-prs [base]
-      Create PRs for all agent-* slots that are ahead of base.
-      (Each PR needs its own --title/--body, so this fails per slot
-      until invoked via create-pr with explicit flags.)
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
@@ -80,7 +103,8 @@ Commands:
       full suite. Runs test the working tree, so submit/revise/merge
       refuse to start a proof-bearing run on a dirty worktree. The ONLY
       sanctioned merge path; it also requires the exact landing tree to pass
-      the ReSharper ratchet. Do not call 'gh pr merge' directly.
+      the ReSharper ratchet, plus the scripts/tests suite when the landing
+      diff touches scripts/. Do not call 'gh pr merge' directly.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -103,7 +127,6 @@ Examples:
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
   scripts/agent_worktree_pool.sh run-resharper agent-1 origin/main
   scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
-  scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
   scripts/agent_worktree_pool.sh revise agent-1 --no-test
@@ -188,7 +211,11 @@ ensure_task_branch() {
   echo "$task_branch"
 }
 
-SUMMARY_REL="results/unity-tests-agent/latest-summary.json"
+# The pool tells the runner where to write (-OutDir), so the pool may read that directory back.
+# Everything under it - summary name, editor logs - is the RUNNER's layout: derive paths from this
+# one variable, never re-spell the directory at a read site.
+RUN_OUTDIR_REL="results/unity-tests-agent"
+SUMMARY_REL="$RUN_OUTDIR_REL/latest-summary.json"
 
 # Stale-summary hazard: an older run's summary could vouch for a run that never wrote one; proof-recording callers clear it before the runner starts.
 clear_run_summary() {
@@ -196,125 +223,30 @@ clear_run_summary() {
   rm -f "$path/$SUMMARY_REL"
 }
 
-FULL_COVERAGE_PY='
-import json, sys
-
-def canon_path(p):
-    return str(p or "").replace("\\", "/").rstrip("/").lower()
-
-def main():
-    try:
-        with open(sys.argv[1], encoding="utf-8-sig") as f:
-            summary = json.load(f)
-    except Exception:
-        print("partial|summary unreadable")
-        return
-    expected_project = canon_path(sys.argv[2])
-    sel = summary.get("selection")
-    if not isinstance(sel, dict):
-        print("partial|selection missing")
-        return
-    must_be_empty = ["testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom"]
-    for key in must_be_empty + ["scopeType", "excludeCategory"]:
-        if key not in sel:
-            print("partial|selection.%s missing" % key)
-            return
-    # A fully-green run with ignored tests reports NUnit result "Skipped:Ignored" -> per-run status "unknown", so gate on failed==0/total>0 instead of the status label.
-    def green_run(run):
-        if not isinstance(run, dict) or run.get("status") in ("failed", "infra_error"):
-            return False
-        try:
-            return int(run.get("failed")) == 0 and int(run.get("total")) > 0
-        except (TypeError, ValueError):
-            return False
-    runs = summary.get("runs")
-    runs_ok = isinstance(runs, list) and len(runs) > 0
-    passed_platforms = set()
-    if runs_ok:
-        for run in runs:
-            if not green_run(run):
-                runs_ok = False
-                break
-            passed_platforms.add(run.get("platform"))
-    exclude = {c.strip().lower() for c in str(sel.get("excludeCategory") or "").split(";") if c.strip()}
-    checks = [
-        (summary.get("status") == "passed", "status=%s" % summary.get("status")),
-        (summary.get("mode") == "Both", "mode=%s" % summary.get("mode")),
-        (expected_project != "" and canon_path(summary.get("projectPath")) == expected_project,
-         "projectPath=%s (expected %s)" % (summary.get("projectPath"), expected_project)),
-        (runs_ok and {"EditMode", "PlayMode"} <= passed_platforms, "runs lack passed EditMode+PlayMode"),
-        (str(sel.get("scopeType") or "").lower() == "workspace", "scopeType=%s" % sel.get("scopeType")),
-        (exclude <= {"requiresgraphics"}, "excludeCategory=%s" % sel.get("excludeCategory")),
-    ] + [(not str(sel.get(k) or "").strip(), "%s set" % k) for k in must_be_empty]
-    for ok, why in checks:
-        if not ok:
-            print("partial|" + why)
-            return
-    print("full|mode=Both scopeType=Workspace excludeCategory=%s" % (sel.get("excludeCategory") or ""))
-
-main()
-'
-
-FULL_COVERAGE_PS='
+# The runner stamps the coverage verdict (unity_test_agent.ps1 -> summary.coverage); this reads that
+# one field and checks only the thing the pool owns - that the summary is about THIS slot's project.
+# No re-derivation of the runner's selection semantics lives here (script-contracts.md sec.3).
+COVERAGE_READER='
+$ErrorActionPreference = "Stop"
 function Canon($p) { return "$p".Replace("\", "/").TrimEnd("/").ToLower() }
-function Blank($v) { return [string]::IsNullOrWhiteSpace([string]$v) }
 try { $s = Get-Content -LiteralPath $env:POOL_SUMMARY_JSON -Raw | ConvertFrom-Json } catch { Write-Output "partial|summary unreadable"; exit 0 }
 $expected = Canon $env:POOL_EXPECTED_PROJECT
-$sel = $s.selection
-$mustBeEmpty = @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")
-$why = $null
-if ($null -eq $sel) { $why = "selection missing" }
-if ($null -eq $why) {
-  $selKeys = @($sel.PSObject.Properties.Name)
-  foreach ($key in ($mustBeEmpty + @("scopeType", "excludeCategory"))) {
-    if ($selKeys -notcontains $key) { $why = "selection.$key missing"; break }
-  }
-}
-if ($null -eq $why) {
-  $runs = @($s.runs)
-  $passedPlatforms = @()
-  $runsOk = $runs.Count -gt 0
-  foreach ($run in $runs) {
-    if ($null -eq $run) { $runsOk = $false; break }
-    $st = [string]$run.status
-    if ($st -eq "failed" -or $st -eq "infra_error") { $runsOk = $false; break }
-    $failedN = -1
-    $totalN = 0
-    if (-not [int]::TryParse([string]$run.failed, [ref]$failedN)) { $runsOk = $false; break }
-    if (-not [int]::TryParse([string]$run.total, [ref]$totalN)) { $runsOk = $false; break }
-    if ($failedN -ne 0 -or $totalN -le 0) { $runsOk = $false; break }
-    $passedPlatforms += [string]$run.platform
-  }
-  $bad = @("$($sel.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
-  if ($s.status -ne "passed") { $why = "status=" + $s.status }
-  elseif ($s.mode -cne "Both") { $why = "mode=" + $s.mode }
-  elseif ($expected -eq "" -or (Canon $s.projectPath) -ne $expected) { $why = "projectPath=" + $s.projectPath + " (expected " + $expected + ")" }
-  elseif (-not ($runsOk -and $passedPlatforms -ccontains "EditMode" -and $passedPlatforms -ccontains "PlayMode")) { $why = "runs lack passed EditMode+PlayMode" }
-  elseif ("$($sel.scopeType)".ToLower() -ne "workspace") { $why = "scopeType=" + $sel.scopeType }
-  elseif ($bad.Count -gt 0) { $why = "excludeCategory=" + $sel.excludeCategory }
-  else {
-    foreach ($key in $mustBeEmpty) {
-      if (-not (Blank $sel.$key)) { $why = "$key set"; break }
-    }
-  }
-}
-if ($null -ne $why) { Write-Output ("partial|" + $why) }
-else { Write-Output ("full|mode=Both scopeType=Workspace excludeCategory=" + $sel.excludeCategory) }
+if ($expected -eq "" -or (Canon $s.projectPath) -ne $expected) { Write-Output ("partial|projectPath=" + $s.projectPath + " (expected " + $expected + ")"); exit 0 }
+$coverage = $s.PSObject.Properties["coverage"]
+if ($null -eq $coverage -or $null -eq $coverage.Value) { Write-Output "partial|summary has no coverage field (pre-stamp run or foreign producer)"; exit 0 }
+$verdict = "$($coverage.Value.verdict)".Trim().ToLower()
+$reason = "$($coverage.Value.reason)"
+if ($verdict -ne "full" -and $verdict -ne "partial") { Write-Output ("partial|coverage.verdict=" + $verdict + " is not a verdict"); exit 0 }
+Write-Output ($verdict + "|" + $reason)
 '
 
-# Prints "full|<detail>" or "partial|<reason>"; missing/unparseable summaries and dead parsers are all partial (fail closed).
+# Prints "full|<detail>" or "partial|<reason>"; a missing, unreadable, unstamped or wrong-project summary is all partial (fail closed).
 summary_coverage() {
-  local summary="$1" expected_project="$2" out="" interp
+  local summary="$1" expected_project="$2" out=""
   [[ -f "$summary" ]] || { echo "partial|no summary at $summary"; return 0; }
-  # A Windows Store python3 stub satisfies command -v yet fails on invocation; only a well-formed verdict counts, else fall through.
-  for interp in python3 python; do
-    command -v "$interp" >/dev/null 2>&1 || continue
-    out="$("$interp" -c "$FULL_COVERAGE_PY" "$summary" "$expected_project" 2>/dev/null || true)"
-    case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
-  done
-  out="$(POOL_SUMMARY_JSON="$summary" POOL_EXPECTED_PROJECT="$expected_project" powershell.exe -NoProfile -Command "$FULL_COVERAGE_PS" 2>/dev/null || true)"
+  out="$(POOL_SUMMARY_JSON="$summary" POOL_EXPECTED_PROJECT="$expected_project" powershell.exe -NoProfile -Command "$COVERAGE_READER" 2>/dev/null || true)"
   case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
-  echo "partial|no working JSON parser (tried python3, python, powershell.exe)"
+  echo "partial|coverage field unreadable (powershell.exe gave no verdict)"
   return 0
 }
 
@@ -498,29 +430,80 @@ repo_slug() {
   fi
 }
 
-pr_number_for_slot() {
-  local slot="$1"
+# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
+# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
+# task_branch_for's answer.
+pr_number_for_pushed_head() {
+  local head_branch="$1"
   local base="${2:-main}"
-  gh pr list --head "$slot" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
+  if [[ -z "$head_branch" ]]; then
+    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
+    return 1
+  fi
+  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
+}
+
+# The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
+# --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
+# adapters over this - nothing else may read the lock dir or re-derive a lease.
+collect_slot_records() {
+  local slot path ldir lease tb pid ts age state
+  while IFS=$'\t' read -r slot path; do
+    ldir="$(lock_dir_for "$slot")"
+    printf 'slot=%s\n' "$slot"
+    if [[ -d "$ldir" ]]; then
+      # Lease/branch are locked-slot keys: a free slot's leftover worktree config is not a claim.
+      lease="$(lease_for "$slot")"
+      tb="$(task_branch_for "$slot")"
+      pid="$(cat "$ldir/pid" 2>/dev/null || true)"
+      ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+      age="$(lock_age_seconds "$ldir")"
+      state="locked"
+      [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] && state="stale"
+      printf 'state=%s\n' "$state"
+      printf 'path=%s\n' "$path"
+      [[ -n "$lease" ]] && printf 'lease=%s\n' "$lease"
+      [[ -n "$tb" ]] && printf 'task_branch=%s\n' "$tb"
+      printf 'age_seconds=%s\n' "$age"
+      [[ -n "$pid" ]] && printf 'locked_by_pid=%s\n' "$pid"
+      [[ -n "$ts" ]] && printf 'locked_at=%s\n' "$ts"
+    else
+      printf 'state=free\n'
+      printf 'path=%s\n' "$path"
+    fi
+    printf '\n'
+  done < <(slots_tsv)
 }
 
 cmd_status() {
-  local any=0
-  while IFS=$'\t' read -r slot path; do
-    any=1
-    local ldir
-    ldir="$(lock_dir_for "$slot")"
-    if [[ -d "$ldir" ]]; then
-      local lease pid ts tb
-      lease="$(cat "$ldir/lease" 2>/dev/null || true)"
-      pid="$(cat "$ldir/pid" 2>/dev/null || true)"
-      ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
-      tb="$(cat "$ldir/task_branch" 2>/dev/null || true)"
-      echo "$slot | LOCKED | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
-    else
-      echo "$slot | FREE   | $path"
+  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" line key value
+  # One collection pass feeds both renderings; a record ends at its blank line.
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -n "$line" ]]; then
+      key="${line%%=*}"
+      value="${line#*=}"
+      case "$key" in
+        slot) slot="$value" ;;
+        state) state="$value" ;;
+        path) path="$value" ;;
+        lease) lease="$value" ;;
+        task_branch) tb="$value" ;;
+        locked_by_pid) pid="$value" ;;
+        locked_at) ts="$value" ;;
+      esac
+      continue
     fi
-  done < <(slots_tsv)
+    [[ -n "$slot" ]] || continue
+    any=1
+    if [[ "$state" == "free" ]]; then
+      echo "$slot | FREE   | $path"
+    else
+      local label="LOCKED"
+      [[ "$state" == "stale" ]] && label="STALE "
+      echo "$slot | $label | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
+    fi
+    slot=""; state=""; path=""; lease=""; tb=""; pid=""; ts=""
+  done < <(collect_slot_records)
 
   if [[ "$any" -eq 0 ]]; then
     echo "No agent-* worktrees found."
@@ -540,7 +523,7 @@ try_lock_slot() {
 # Reclaim only past-TTL locks whose slot holds no unpushed work (never clobber a dead lock's WIP — the CLOBBER HAZARD).
 try_reclaim_slot() {
   local slot="$1" lease="$2" path="$3"
-  local ldir age
+  local ldir age tomb stamp_before stamp_after
   ldir="$(lock_dir_for "$slot")"
   age="$(lock_age_seconds "$ldir")"
   [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] || return 1
@@ -548,7 +531,20 @@ try_reclaim_slot() {
     echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
     return 1
   fi
-  rm -rf "$ldir"
+  # Single winner: the stale dir is renamed aside and only one racer's rename can succeed.
+  # A rename that landed on a rival's already-fresh lock (stamp differs from the one age-checked)
+  # is put back — reclaim must never clobber a live lock.
+  # Tombstones are dead state; only sweep ones far too old to belong to an in-flight racer.
+  find "$(dirname "$ldir")" -maxdepth 1 -name "$(basename "$ldir").tomb.*" -mmin +60 -exec rm -rf {} + 2>/dev/null || true
+  stamp_before="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+  tomb="${ldir}.tomb.$$-$(date +%s%N)"
+  mv "$ldir" "$tomb" 2>/dev/null || return 1
+  stamp_after="$(cat "$tomb/timestamp" 2>/dev/null || true)"
+  if [[ "$stamp_after" != "$stamp_before" ]]; then
+    [[ -d "$ldir" ]] || mv "$tomb" "$ldir" 2>/dev/null || true
+    return 1
+  fi
+  rm -rf "$tomb"
   mkdir "$ldir" 2>/dev/null || return 1
   write_lock "$slot" "$lease" "$path"
   echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
@@ -646,29 +642,33 @@ cmd_run_tests() {
     cd "$path"
     powershell.exe -NoProfile -ExecutionPolicy Bypass \
       -File "./scripts/unity_test_agent.ps1" \
-      -OutDir "results/unity-tests-agent" \
+      -OutDir "$RUN_OUTDIR_REL" \
       "$@"
   )
 }
 
 restore_tracked_unity_changes() {
-  local path="$1" action="$2" changes names numstat content known=0
+  local path="$1" action="$2" changes verdict diff
   changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
   [[ -n "$changes" ]] || return 0
-  names="$(git -C "$path" diff --name-only)"
-  numstat="$(git -C "$path" diff --numstat -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset)"
-  content="$(git -C "$path" diff --unified=0 -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset | grep -E '^[+-][[:space:]]+Standalone:' || true)"
-  if [[ "$names" == "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" ]] &&
-     [[ "$numstat" == $'1\t1\tsrc/Asteroids3D/ProjectSettings/ProjectSettings.asset' ]] &&
-     [[ "$(printf '%s\n' "$content" | grep -Ec '^[+-][[:space:]]+Standalone: UNITY_POST_PROCESSING_STACK_V2(;SENTIS_ANALYTICS_ENABLED)?$')" -eq 2 ]]; then
-    known=1
-  fi
+
+  # The analytics-churn allowlist has ONE owner (scripts/lib/unity_churn.ps1); a second copy of the
+  # regex here is exactly the drift the classifier exists to prevent. Both the verdict and the diff
+  # are captured BEFORE the restore - the restore is what destroys the evidence this error reports.
+  diff="$(git -C "$path" diff --unified=0 2>/dev/null || true)"
+  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass \
+    -File "$SCRIPT_DIR/lib/unity_churn.ps1" -WorktreePath "$path" 2>/dev/null || true)"
+
   git -C "$path" restore --worktree --source=HEAD -- .
-  if [[ "$known" -ne 1 ]]; then
-    echo "$action changed unexpected tracked files:" >&2
-    printf '%s\n' "$changes" | head -n 20 >&2
-    return 1
-  fi
+
+  case "$verdict" in
+    *'"knownChurn":true'*) return 0 ;;
+  esac
+  echo "$action changed unexpected tracked files:" >&2
+  printf '%s\n' "$changes" | head -n 20 >&2
+  echo "--- diff, captured before the restore ---" >&2
+  printf '%s\n' "$diff" | head -n 60 >&2
+  return 1
 }
 
 cmd_run_tests_clean() {
@@ -744,6 +744,51 @@ cmd_run_resharper() {
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 
+cmd_run_script_tests() {
+  local dir="${1:-$ROOT}"
+  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
+  # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
+  # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
+  local nonhermetic=" "
+  if [[ ! -d "$tests_dir" ]]; then
+    echo "run-script-tests: no $tests_dir — nothing to run." >&2
+    return 0
+  fi
+  for file in "$tests_dir"/test_*.sh "$tests_dir"/test_*.ps1; do
+    [[ -f "$file" ]] || continue
+    base="$(basename "$file")"
+    if [[ "${SCRIPT_TESTS_INCLUDE_NONHERMETIC:-0}" != 1 && "$nonhermetic" == *" $base "* ]]; then
+      echo "SKIP: $base — non-hermetic (its state escapes a temp dir); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1"
+      continue
+    fi
+    ran=1
+    rc=0
+    case "$file" in
+      *.sh) bash "$file" || rc=$? ;;
+      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
+    esac
+    if [[ "$rc" -eq 0 ]]; then
+      echo "PASS $base"
+    else
+      echo "FAIL $base (exit $rc)"
+      return 1
+    fi
+  done
+  [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
+}
+
+# 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
+# swallowed git error would read as "no scripts/ change" and skip the gate.
+landing_diff_touches_scripts() {
+  local path="$1" base_ref="$2" head_ref="$3" changed rc=0
+  changed="$(git -C "$path" diff --name-only "$base_ref" "$head_ref" -- scripts)" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    echo "merge: could not compute the landing diff $base_ref..$head_ref (git exit $rc)." >&2
+    return 2
+  fi
+  [[ -n "$changed" ]]
+}
+
 require_pr_title_body() {
   local cmd="$1" title="$2" body="$3" body_file="$4"
   if [[ -z "$title" ]]; then
@@ -773,6 +818,75 @@ resolve_pr_body() {
   fi
 }
 
+require_gh() {
+  command -v gh >/dev/null 2>&1 || {
+    echo "gh CLI not found in PATH" >&2
+    return 1
+  }
+}
+
+# One flag grammar for every PR-opening command. Results land in PR_TITLE / PR_BODY /
+# PR_BODY_FILE / PR_TEST_ARGS rather than stdout: a command substitution could not carry the
+# test-arg array through intact.
+# $1 = command name (error prefix), $2 = 1 when trailing '-- <test args>' is accepted.
+parse_pr_flags() {
+  local cmd="$1" accept_test_args="$2"
+  shift 2
+  PR_TITLE=""; PR_BODY=""; PR_BODY_FILE=""; PR_TEST_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --title requires a value" >&2; return 1; }
+        PR_TITLE="$2"; shift 2 ;;
+      --body)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --body requires a value" >&2; return 1; }
+        PR_BODY="$2"; shift 2 ;;
+      --body-file)
+        [[ -n "${2:-}" ]] || { echo "$cmd: --body-file requires a path" >&2; return 1; }
+        PR_BODY_FILE="$2"; shift 2 ;;
+      --)
+        if [[ "$accept_test_args" != 1 ]]; then
+          echo "$cmd: '--' is not accepted; $cmd takes no test-runner args." >&2
+          return 1
+        fi
+        shift
+        PR_TEST_ARGS=("$@")
+        break ;;
+      --*)
+        if [[ "$accept_test_args" == 1 ]]; then
+          echo "$cmd: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
+        else
+          echo "$cmd: unknown argument: $1" >&2
+        fi
+        return 1 ;;
+      *)
+        # A bare word is never a test arg: silently swallowing one hides a typo'd flag from the run.
+        echo "$cmd: unexpected argument '$1' — test-runner args go after '--'" >&2
+        return 1 ;;
+    esac
+  done
+  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE"
+}
+
+# Push the slot branch to its minted task branch and open the PR (or report the open one).
+push_and_open_pr() {
+  local repo_path="$1" slot="$2" base_branch="$3" task_branch="$4"
+
+  git -C "$repo_path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
+  git -C "$ROOT" fetch origin "$base_branch" >/dev/null 2>&1 || true
+
+  local existing
+  existing="$(gh pr list --head "$task_branch" --base "$base_branch" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
+  if [[ -n "$existing" ]]; then
+    echo "$slot PR already open: $existing"
+    return 0
+  fi
+
+  local url
+  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" --body "$(resolve_pr_body "$PR_BODY" "$PR_BODY_FILE")")"
+  echo "$slot PR created: $url"
+}
+
 cmd_create_pr() {
   local slot="$1"
   shift || true
@@ -783,29 +897,8 @@ cmd_create_pr() {
     shift
   fi
 
-  local title="" body="" body_file=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --title)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --title requires a value" >&2; return 1; }
-        title="$2"; shift 2 ;;
-      --body)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --body requires a value" >&2; return 1; }
-        body="$2"; shift 2 ;;
-      --body-file)
-        [[ -n "${2:-}" ]] || { echo "create-pr: --body-file requires a path" >&2; return 1; }
-        body_file="$2"; shift 2 ;;
-      *)
-        echo "create-pr: unknown argument: $1" >&2
-        return 1 ;;
-    esac
-  done
-  require_pr_title_body "create-pr" "$title" "$body" "$body_file" || return 1
-
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  parse_pr_flags "create-pr" 0 "$@" || return 1
+  require_gh || return 1
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
 
@@ -818,26 +911,7 @@ cmd_create_pr() {
 
   local task_branch
   task_branch="$(ensure_task_branch "$slot")"
-
-  git -C "$ROOT" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
-
-  local existing
-  existing="$(gh pr list --head "$task_branch" --base "$base" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
-  if [[ -n "$existing" ]]; then
-    echo "$slot PR already open: $existing"
-    return 0
-  fi
-
-  local url
-  url="$(gh pr create --base "$base" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
-  echo "$slot PR created: $url"
-}
-
-cmd_create_pool_prs() {
-  local base="${1:-main}"
-  while IFS=$'\t' read -r slot _path; do
-    cmd_create_pr "$slot" "$base"
-  done < <(slots_tsv)
+  push_and_open_pr "$ROOT" "$slot" "$base" "$task_branch"
 }
 
 cmd_submit() {
@@ -850,32 +924,10 @@ cmd_submit() {
     shift
   fi
 
-  local title="" body="" body_file=""
-  local test_args=()
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --title)
-        [[ -n "${2:-}" ]] || { echo "submit: --title requires a value" >&2; return 1; }
-        title="$2"; shift 2 ;;
-      --body)
-        [[ -n "${2:-}" ]] || { echo "submit: --body requires a value" >&2; return 1; }
-        body="$2"; shift 2 ;;
-      --body-file)
-        [[ -n "${2:-}" ]] || { echo "submit: --body-file requires a path" >&2; return 1; }
-        body_file="$2"; shift 2 ;;
-      --)
-        shift
-        test_args=("$@")
-        break ;;
-      --*)
-        echo "submit: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
-        return 1 ;;
-      *)
-        test_args+=("$1"); shift ;;
-    esac
-  done
-  # Validate PR flags before the test run so a missing flag fails in seconds, not after a full suite.
-  require_pr_title_body "submit" "$title" "$body" "$body_file" || return 1
+  # Preflight: flags and tooling are checked before the test run so a missing one fails in
+  # seconds, not after a full suite.
+  parse_pr_flags "submit" 1 "$@" || return 1
+  require_gh || return 1
 
   local base_branch
   base_branch="${base_ref#origin/}"
@@ -887,31 +939,13 @@ cmd_submit() {
   require_clean_slot "$slot" "$path" "submit" || return 1
 
   clear_run_summary "$path"
-  cmd_run_tests_clean "$slot" "${test_args[@]}"
+  cmd_run_tests_clean "$slot" "${PR_TEST_ARGS[@]}"
   record_tested_tree "$slot" "$path"
   cmd_run_resharper "$slot" "$base_ref"
 
   local task_branch
   task_branch="$(ensure_task_branch "$slot")"
-
-  git -C "$path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
-
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
-
-  git -C "$ROOT" fetch origin "$base_branch" >/dev/null 2>&1 || true
-
-  local existing
-  existing="$(gh pr list --head "$task_branch" --base "$base_branch" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
-  if [[ -n "$existing" ]]; then
-    echo "$slot PR already open: $existing"
-  else
-    local url
-    url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
-    echo "$slot PR created: $url"
-  fi
+  push_and_open_pr "$path" "$slot" "$base_branch" "$task_branch"
 
   echo ""
   echo "PR submitted for $slot (branch: $task_branch). Lock kept —"
@@ -934,6 +968,7 @@ merge_phase_budget() {
     proof-check) echo 15 ;;
     tests) echo 1200 ;;
     resharper) echo 300 ;;
+    script-tests) echo 420 ;;
     push) echo 90 ;;
     gh-merge) echo 90 ;;
     *) echo 0 ;;
@@ -1163,9 +1198,9 @@ cmd_merge_progress() {
   [[ "$open_phase" == "tests" ]] || return 0
   path="$(slot_path "$slot" 2>/dev/null || true)"
   [[ -n "$path" ]] || return 0
-  log="$(ls -1t "$path/results/unity-tests-agent/"*.log 2>/dev/null | head -n 1 || true)"
+  log="$(ls -1t "$path/$RUN_OUTDIR_REL/"*.log 2>/dev/null | head -n 1 || true)"
   if [[ -z "$log" ]]; then
-    echo "  unity: no editor log yet under $path/results/unity-tests-agent/"
+    echo "  unity: no editor log yet under $path/$RUN_OUTDIR_REL/"
     return 0
   fi
   age=$(( $(date +%s) - $(stat -c %Y "$log" 2>/dev/null || echo 0) ))
@@ -1205,7 +1240,7 @@ cmd_merge() {
   fi
 
   local pr
-  pr="$(pr_number_for_slot "$task_branch" "$base_branch")"
+  pr="$(pr_number_for_pushed_head "$task_branch" "$base_branch")"
   if [[ -z "$pr" || "$pr" == "null" ]]; then
     echo "merge: no open PR found for $task_branch -> $base_branch" >&2
     return 1
@@ -1284,6 +1319,16 @@ cmd_merge() {
   merge_phase_begin resharper
   cmd_run_resharper "$slot" "$base_ref"
 
+  local scripts_diff_rc=0
+  landing_diff_touches_scripts "$path" "$base_ref" "$slot" || scripts_diff_rc=$?
+  [[ "$scripts_diff_rc" -ne 2 ]] || return 1
+  # Depth is bounded: the suite runs the SLOT's scripts/tests, and a test fixture's slot carries none.
+  if [[ "$scripts_diff_rc" -eq 0 ]]; then
+    merge_phase_begin script-tests
+    merge_journal_note "landing diff touches scripts/ - running the script suite"
+    cmd_run_script_tests "$path"
+  fi
+
   merge_phase_begin push
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
@@ -1340,7 +1385,7 @@ cmd_review_comments() {
   [[ -n "$head_branch" ]] || head_branch="$slot"
 
   local pr
-  pr="$(pr_number_for_slot "$head_branch" "$base")"
+  pr="$(pr_number_for_pushed_head "$head_branch" "$base")"
   if [[ -z "$pr" || "$pr" == "null" ]]; then
     echo "No open PR found for slot=$slot base=$base"
     return 1
@@ -1439,7 +1484,9 @@ main() {
   shift || true
 
   case "$cmd" in
-    status) cmd_status ;;
+    status)
+      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
+      ;;
     acquire) cmd_acquire "$@" ;;
     release)
       [[ $# -ge 1 ]] || { echo "release requires <slot>" >&2; exit 1; }
@@ -1457,12 +1504,12 @@ main() {
       [[ $# -ge 1 ]] || { echo "run-resharper requires <slot> [base_ref]" >&2; exit 1; }
       cmd_run_resharper "$@"
       ;;
+    run-script-tests)
+      cmd_run_script_tests "$@"
+      ;;
     create-pr)
       [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
       cmd_create_pr "$@"
-      ;;
-    create-pool-prs)
-      cmd_create_pool_prs "$@"
       ;;
     submit)
       [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" >&2; exit 1; }
@@ -1497,4 +1544,8 @@ main() {
   esac
 }
 
-main "$@"
+# Executed: dispatch. Sourced (scripts/tests/): define the functions and stop, so a test can call
+# one directly - the bash twin of the `$MyInvocation.InvocationName -eq '.'` guard in the PS scripts.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

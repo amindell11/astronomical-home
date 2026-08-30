@@ -64,7 +64,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — `Intent_Grammar.md`) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
-| **pin** | pin test (freeze a value) · pinned seeds/hypers · instance pinning (MCP) · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
+| **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
 | **rung / tier** | fix-ladder rung · curriculum ladder · screening ladder (Tier 0–3) | "Rung" is fix-ladder-only. The curriculum has *lessons*; screening has *tiers*. |
@@ -547,12 +547,24 @@ Format: **term** — definition. *(authority)*
   presentation off — collider silhouettes and gizmo geometry are the footage;
   selecting none films plain gameplay with presentation on.
   *(GizmoCaptureProfile, GizmoCaptureProfiles)*
+- **gizmo subview** — one registered gizmo toggle row in the Gizmo View window,
+  keyed by `(component-type, key)`. A drawer self-registers its subviews and, at
+  draw time, gates each on the window's flag + scope predicate instead of
+  `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
+  RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
+  never committed. *(GizmoView, GizmoViewWindow)*
 
 ### Infra & tooling
 
 - **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
   new caller goes through the coordinator; generalize the primitive, never bypass
   it. *(AGENTS.md wiring §6)*
+- **editor profile** — a coordinator-selected, launch-scoped choice of an
+  existing Unity quality tier. `LowMemory` maps to `Performant`; `HighFidelity`
+  maps to `High Fidelity`. *(Editor_Memory_Low_Profile.md)*
+- **profile receipt** — the editor bootstrap's atomic record of requested and
+  observed profile values; the coordinator reads it before handing off the
+  editor. *(Editor_Memory_Low_Profile.md)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
   paths. *(AGENTS.md §6 corollary)*
@@ -590,9 +602,6 @@ Format: **term** — definition. *(authority)*
   archived. Standing rule: **probes that live only as patches do not exist.**
 - **staging** — copying checkpoints and exes into the primary tree so they
   survive slot recycling. Never leave eval artifacts only in a slot.
-- **stdio-vs-durable-server trap** — a session's Unity MCP tools may be a private
-  stdio instance blind to the durable 8081 server; diagnose with
-  `debug_request_context`.
 - **define churn** — Sentis re-adding its analytics define on interactive loads.
   Fixed at two registry values; never fix it by committing the define.
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
@@ -615,3 +624,4 @@ Format: **term** — definition. *(authority)*
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
+| stdio-vs-durable-server trap | *(died with the CoplayDev MCP decommission — `unity` CLI routes per project path)* |

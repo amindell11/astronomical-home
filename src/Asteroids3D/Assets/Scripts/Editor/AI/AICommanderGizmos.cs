@@ -2,14 +2,20 @@ using System.Runtime.CompilerServices;
 using AI.Observation;
 using AI.Scanning;
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace AI
 {
     /// <summary>Markers landing on the real entities proves the egocentric extraction round-trips.</summary>
+    [InitializeOnLoad]
     internal static class AICommanderGizmos
     {
+        static AICommanderGizmos() =>
+            GizmoView.Register(typeof(AICommander), "observation", "Tactical Observation",
+                "egocentric observation markers on self/target/threats/obstacles", "Steering");
+
         private const float ThreatScanRadius = 40f;
         private const float SelfForwardLength = 3f;
         private const float SelfVelocityScale = 0.5f;
@@ -26,9 +32,10 @@ namespace AI
         private static readonly ConditionalWeakTable<AICommander, ThreatScanner> Scanners = new();
         private static readonly TacticalObservation Snapshot = new();
 
-        [DrawGizmo(GizmoType.Selected, typeof(AICommander))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AICommander))]
         private static void Draw(AICommander commander, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(AICommander), "observation") || !GizmoView.InScope(commander)) return;
             if (!Application.isPlaying || commander.context == null || commander.Scout == null) return;
 
             var self = commander.context.Self;

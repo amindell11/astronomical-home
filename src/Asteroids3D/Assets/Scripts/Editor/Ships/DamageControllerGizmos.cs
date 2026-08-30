@@ -7,21 +7,26 @@ using UnityEngine;
 
 namespace Ships.Damage
 {
-    /// <summary>Filled shield/health bars plus their numeric readout, in plane space. The serialized maxima carry the bars in edit mode, where <see cref="DamageController"/>'s pools do not exist yet.</summary>
+    /// <summary>Filled shield/health bars in plane space, plus their numeric readout. The serialized maxima carry the bars in edit mode, where <see cref="DamageController"/>'s pools do not exist yet.</summary>
+    [InitializeOnLoad]
     internal static class DamageControllerGizmos
     {
+        static DamageControllerGizmos() =>
+            GizmoView.Register(typeof(DamageController), "health", "Shield & Health Bars",
+                "filled shield/health bars + numeric readout", "Combat");
+
         private const float BaseOffset = 2f;
         private const float BarWidth = 3.5f;
         private const float BarHeight = 0.25f;
         // Without the gap, filled tracks abut and read as one two-tone block.
         private const float BarSpacing = BarHeight * 1.6f;
-        private const float ScanSpacing = 0.02f;
 
         private static readonly ConditionalWeakTable<DamageController, Ship> ParentShips = new();
 
-        [DrawGizmo(GizmoType.Selected, typeof(DamageController))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(DamageController))]
         private static void DrawHealthBars(DamageController damage, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(DamageController), "health") || !GizmoView.InScope(damage)) return;
             var ship = ParentShips.GetValue(damage, d => d.GetComponentInParent<Ship>());
             if (!ship) return;
 
@@ -54,15 +59,14 @@ namespace Ships.Damage
 
         private static void DrawFilledRect(Vector2 center, float width, Color color)
         {
-            Gizmos.color = color;
-            // Gizmos has no filled quad; approximate with in-plane scan lines.
-            var steps = Mathf.Max(2, Mathf.CeilToInt(BarHeight / ScanSpacing));
-            for (var i = 0; i <= steps; i++)
+            var half = new Vector2(width * 0.5f, BarHeight * 0.5f);
+            Handles.DrawSolidRectangleWithOutline(new[]
             {
-                var y = center.y - BarHeight * 0.5f + i / (float)steps * BarHeight;
-                Gizmos.DrawLine(GamePlane.PlanePointToWorld(new Vector2(center.x - width * 0.5f, y)),
-                    GamePlane.PlanePointToWorld(new Vector2(center.x + width * 0.5f, y)));
-            }
+                GamePlane.PlanePointToWorld(center - half),
+                GamePlane.PlanePointToWorld(center + new Vector2(-half.x, half.y)),
+                GamePlane.PlanePointToWorld(center + half),
+                GamePlane.PlanePointToWorld(center + new Vector2(half.x, -half.y)),
+            }, color, Color.clear);
         }
     }
 }

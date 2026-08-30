@@ -84,7 +84,7 @@ def assemble(frame_dir, args):
     frames = sorted(glob.glob(os.path.join(frame_dir, "f_*.png")))[::args.step]
     if not frames:
         print(f"skip {frame_dir}: no frames", file=sys.stderr)
-        return
+        return False
 
     manifest = load_manifest(frame_dir)
     fps = args.fps or manifest.get("suggestedFps") or 10.0
@@ -103,6 +103,7 @@ def assemble(frame_dir, args):
     else:
         out_path = assemble_gif(frame_dir, frames, out_fps, scale, args.colors)
     print(f"{out_path}  {os.path.getsize(out_path) / 1e6:.1f} MB  {len(frames)} frames @ {out_fps:g} fps")
+    return True
 
 
 def main():
@@ -133,8 +134,14 @@ def main():
     if not expanded:
         sys.exit("no frame directories matched")
 
+    # Matching directories that all turn out to be frameless is a failed assembly, not a quiet
+    # success: the caller is waiting for a clip and would otherwise be handed exit 0 and nothing.
+    assembled = 0
     for frame_dir in expanded:
-        assemble(frame_dir, args)
+        if assemble(frame_dir, args):
+            assembled += 1
+    if assembled == 0:
+        sys.exit("no clips assembled: every matched directory was frameless")
 
 
 if __name__ == "__main__":

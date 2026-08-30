@@ -112,24 +112,20 @@ test runs in different worktrees run in parallel; only Unity **startup**
 serializes through a short machine-wide boot lane (concurrent boots were the
 D6 deadlock hazard). `unity_test_agent.ps1` drives the whole protocol
 automatically — you only queue when another run holds *your* project. Prefer
-batch tests; use `-Action StartEditor` only for graphics, interaction, or MCP
-verification that batch mode cannot cover, then `-Action Release -CloseEditor`
-as soon as the check finishes. An untracked editor on the primary worktree
-belongs to the user: report its PID and ask them to close it — never close it
-automatically. The durable MCP server on port 8081 is shared and remains
-running between owners.
+batch tests; use `-Action StartEditor` only for graphics, interaction, or
+live-editor (`unity` CLI) verification that batch mode cannot cover, then
+`-Action Release -CloseEditor` as soon as the check finishes. An untracked
+editor on the primary worktree belongs to the user: report its PID and ask
+them to close it — never close it automatically.
 
 ## Chat title lifecycle
 
 Chat titles surface each session's phase in the sessions list, so the user
-sees "blocked on #234" without opening the chat. Titles are applied by the
-**title reconciler** — a standing one-shot scheduled task
-(`ledger-title-reconciler`) that transitioning agents re-arm; each firing is
-a fresh unattended session that reads the ledger's "## Title board" and
-applies every line. Renames work cross-session only: the session tools
-refuse the calling session, and an Agent-tool subagent shares your session
-identity, so it is refused too. Measured facts and dead ends: memory
-`reference_session_identity_and_subagents.md`.
+sees "blocked on #234" without opening the chat. Rename yourself with
+`mcp__ccd_session_mgmt__set_session_title` (load via ToolSearch), passing
+`session_id: "self"` — the sanctioned self-rename form (passing your own
+explicit id is refused, and a subagent cannot rename you either; the allow
+rule in user settings makes the call silent).
 
 Every lifecycle-tracked chat uses ONE template — same slots, same order:
 
@@ -167,38 +163,14 @@ a spawn chip, a handoff, a launch prompt you draft for the user — give it its
 lifecycle title from the start (`prep | <slot-label> | <word-id>`) instead of
 a freeform title plus a later retitle.
 
-At every transition that writes the ledger (claim, PR-open, block,
-merge/finalize):
+Retitle yourself (`session_id: "self"`) at every transition that writes
+the ledger (claim, PR-open, block, merge/finalize). The rename overwrites
+a hand-set title, so a chat the user renamed stays theirs only until your
+next transition — compose the lifecycle title regardless; the grammar is
+the contract.
 
-1. Compose your title per the template and set your line on the ledger's
-   "## Title board": `<host-session-id> → <title>`. Your id is
-   `$CLAUDE_CODE_HOST_SESSION_ID` (Bash `echo`) — the only id the session
-   tools accept; the scratchpad/CLI UUID is a different namespace. On
-   merge, set your ✅ line while deleting your row; any later transition
-   prunes ✅ lines whose row is gone.
-2. Re-arm the reconciler: `update_scheduled_task` (mcp scheduled-tasks;
-   load via ToolSearch) on `ledger-title-reconciler` — new `fireAt` 30–60 s
-   out, `enabled: true`. The firing is a fresh unattended session; renames
-   land ~20–40 s after fireAt; the task auto-disables after firing, and an
-   armed task fires on next app launch when the app was closed. The sweep
-   is idempotent — concurrent re-arms are fine.
-
-If the task is missing, recreate it (`create_scheduled_task`, same id,
-ad-hoc — arming supplies fireAt) with exactly this prompt:
-
-> Read C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md.
-> In "## Title board", each line is `<session-id> → <title>`. For each line,
-> call mcp__ccd_session_mgmt__set_session_title (load via ToolSearch) with
-> that id and that exact title. Skip refusals (current-session, archived,
-> not-found) without retrying. Touch nothing else; change no files. Report
-> one line per rename.
-
-Tool approvals are stored per task id — the first firing asks the user to
-allow the rename tool; the stable id makes every later firing silent. A
-user-set title always wins over a rename.
-
-Scheduled-task tools unavailable → skip silently; titles never block or
-delay work.
+Session tools unavailable → skip silently; titles never block or delay
+work.
 
 ## Step 1 — Scope
 

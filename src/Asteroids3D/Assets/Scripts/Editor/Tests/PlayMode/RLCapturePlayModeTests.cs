@@ -34,6 +34,10 @@ namespace Tests.PlayMode
         private Ship subjectB;
 
         private const int ToggleWindowSteps = 14;
+        private static readonly Type[] ColliderGizmoTypes =
+        {
+            typeof(BoxCollider), typeof(SphereCollider), typeof(CapsuleCollider), typeof(MeshCollider),
+        };
         private const string EnabledWindowA = "gizmos-on-first";
         private const string DisabledWindow = "gizmos-off";
         private const string EnabledWindowB = "gizmos-on-again";
@@ -155,6 +159,96 @@ namespace Tests.PlayMode
                 "disabling those same types empties every frame: GizmoUtility governs Game View, not only the Scene View");
             Assert.Greater(DrawnFramesIn(EnabledWindowB), 0,
                 "re-enabling them refills the frames, so the Game View follows the toggle in both directions");
+        }
+
+        /// <summary>Pixel proof the merge gate cannot give (RequiresGraphics, offscreen). Guards the arc regression:
+        /// drawers moved from GizmoType.Selected to GizmoView.IsOn (default OFF), so the capture must relight them.
+        /// A presentation-off mid-clip frame must carry colored gizmo ink, green collider-silhouette pixels, and stay
+        /// mostly background (no unlit-mesh leak). Collider driving + restore is asserted through GizmoUtility.</summary>
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator NativeCapture_PresentationOff_FilmsGizmoAndColliderSilhouettePixels()
+        {
+            GameSettings.SetPresentationEnabled(false);
+            subjectA = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(-6f, 0f)),
+                GamePlane.Rotation, projectiles, team: 0);
+            subjectB = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(6f, 0f)),
+                GamePlane.Rotation, projectiles, team: 1);
+            Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
+
+            var priorColliderGizmos = ColliderGizmosEnabled();
+
+            var capture = TestAssets.NewNativeCapture();
+            string clipDir;
+            try
+            {
+                capture.Begin(ToggleConfig("silhouette"), GizmoCaptureProfile.Combat, new[] { subjectA, subjectB },
+                    projectiles);
+                Assert.IsTrue(ColliderGizmosEnabled(),
+                    "Begin drives collider gizmos on — colliders are the presentation-off silhouette source");
+                yield return StepFrames(capture, ToggleWindowSteps);
+                clipDir = Path.Combine(outDir, "frames", "toggle-silhouette");
+            }
+            finally
+            {
+                capture.End();
+                UnityEngine.Object.DestroyImmediate((UnityEngine.Object)capture);
+            }
+
+            Assert.AreEqual(priorColliderGizmos, ColliderGizmosEnabled(),
+                "End restores the collider gizmo enablement the capture drove — EditorPrefs is machine-global");
+
+            var frame = MidClipFrame(clipDir);
+            var texture = new Texture2D(2, 2);
+            try
+            {
+                Assert.IsTrue(ImageConversion.LoadImage(texture, File.ReadAllBytes(frame)), $"{frame} unreadable");
+                var pixels = texture.GetPixels32();
+                var total = pixels.Length;
+
+                var coloredInk = 0;
+                var greenSilhouette = 0;
+                var nonBackground = 0;
+                foreach (var p in pixels)
+                {
+                    var max = Mathf.Max(p.r, Mathf.Max(p.g, p.b));
+                    var min = Mathf.Min(p.r, Mathf.Min(p.g, p.b));
+                    if (max > 24) nonBackground++;
+                    var chroma = max - min;
+                    // Frame bytes are sRGB; a saturated non-gray byte is drawer ink, not the near-black clear color.
+                    if (chroma > 40 && max > 48) coloredInk++;
+                    // Unity's built-in collider gizmos draw green wireframes — green-dominant pixels are the silhouette.
+                    if (p.g > p.r + 30 && p.g > p.b + 30 && p.g > 48) greenSilhouette++;
+                }
+
+                Assert.Greater(coloredInk, 0,
+                    "presentation-off frame carries colored gizmo ink — the profile's drawers ran (GizmoView.IsOn set by Begin)");
+                Assert.Greater(greenSilhouette, 0,
+                    "presentation-off frame carries green collider-wireframe silhouette pixels");
+                Assert.Less(nonBackground, total / 2,
+                    "frame stays mostly background — no unlit-mesh field leak filling the frame (the magenta-asteroid symptom)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+        // Collider gizmo enablement is observable through GizmoUtility, so this proof needs no editor-internal access.
+        private static bool ColliderGizmosEnabled()
+        {
+            foreach (var type in ColliderGizmoTypes)
+                if (UnityEditor.GizmoUtility.TryGetGizmoInfo(type, out var info) && info.gizmoEnabled)
+                    return true;
+            return false;
+        }
+
+        private static string MidClipFrame(string clipDir)
+        {
+            var frames = Directory.GetFiles(clipDir, "f_*.png");
+            Assert.IsNotEmpty(frames, $"{clipDir}: the clip filmed frames");
+            Array.Sort(frames, StringComparer.Ordinal);
+            return frames[frames.Length / 2];
         }
 
         private IEnumerator FilmToggleWindow(string clipName, bool profileEnabled)

@@ -1,5 +1,112 @@
+<#
+.SYNOPSIS
+    Coordinates access to this machine's shared Unity editors: a per-project owner lease plus a
+    machine-wide boot lane, with a FIFO ticket queue per project.
+
+.DESCRIPTION
+    The published interface of this module is: -Action x its statuses x exit codes, the machine
+    channel, and the three state-file schemas below. Nothing else is contract. Consumers must not
+    parse this script's state files, output layout, or the process table - ask through an -Action.
+    Law: doc/agents/script-contracts.md.
+
+    MACHINE CHANNEL
+      With -Json: stdout carries EXACTLY one compressed JSON line and nothing else. The whole
+      stdout stream is parseable with ConvertFrom-Json; no line-sniffing. Every other emission
+      (prose, warnings, a RunBatch child's own output, error text) goes to stderr.
+      Without -Json: stdout is human prose, with no machine contract at all.
+      The sanctioned client is scripts/unity_access_client.ps1 (dot-source it, then call
+      Invoke-UnityAccessCoordinator). Do not re-implement the invoke.
+
+    ACTIONS, STATUSES, EXIT CODES
+      Every action returns a JSON object. Non-Status results always carry a "status" field, and the
+      exit code is a function of that status alone (0 for any status not listed here).
+        20 waiting / boot_waiting / blocked_user_editor   21 blocked_unmanaged_unity
+        22 ownership_mismatch                             23 editor_did_not_exit
+        24 adopt_* (all four refusals)                    25 boot_lane_wedged
+        26 editor_profile_failed                          27 record_unreadable
+         1 coordinator_error (see FAILURE below)
+
+      Status        (needs no -Lease) -> the state object, no "status" field, always exit 0.
+                    Fields: stateRoot, owners[], legacyOwner, boot, bootWedged, queue[], blockers[].
+                    Every owner carries normalizedProjectPath - THE key for "is this owner on my
+                    project" (this script's own normalization; compare against it, never re-derive).
+                    With -ProjectPath, Status also answers "who owns this path":
+                      requestedProjectPath, requestedNormalizedProjectPath,
+                      projectOwner        - the owner record for that path, or null,
+                      projectProcesses[]  - live Unity processes on it, each with processId,
+                                            projectPath, normalizedProjectPath and batch (false =
+                                            an interactive editor, which makes a batch run
+                                            infra_error and is where CLI commands route).
+      Contract      (needs no -Lease) -> status "contract" plus the constants a caller must match
+                    exactly: bootCompletePattern, ticketTtlSeconds, ownerTtlSeconds,
+                    bootTtlSeconds. Hard-coding any of them keeps a copy that drifts.
+      Request       -Lease [-Slot|-ProjectPath] [-Mode] -> queued.
+      Acquire       -Lease [-Slot|-ProjectPath] [-Mode] [-WaitSeconds] ->
+                    acquired | waiting | blocked_user_editor | blocked_unmanaged_unity.
+      Wait          as Acquire, but -WaitSeconds defaults to 60.
+      Attach        -Lease -ProcessId -> attached | ownership_mismatch.
+      AttachBatchChild -Lease -> attached | batch_child_absent | ownership_mismatch.
+      Adopt         -Lease -ProcessId -> adopted | adopt_no_process | adopt_already_tracked |
+                    adopt_refused_user_editor | adopt_project_owned.
+      Release       -Lease [-CloseEditor [-EditorCloseWaitSeconds]] -> released | editor_did_not_exit.
+                    Also frees this lease's boot lane and cancels its queued ticket.
+      Cancel        -Lease -> cancelled.
+      BootAcquire   -Lease [-WaitSeconds] -> boot_acquired | boot_waiting | boot_lane_wedged |
+                    ownership_mismatch | blocked_*. -WaitSeconds defaults to 300.
+      BootRelease   -Lease -> boot_released | ownership_mismatch | boot_lane_wedged.
+      StartEditor   -Lease -Slot|-ProjectPath [-EditorArgs] [-EditorProfile] [-UnityPath] ->
+                    attached (carrying a .profile receipt) | editor_profile_failed |
+                    any Acquire or BootAcquire status. -UnityPath overrides the
+                    editor resolved from the project's own ProjectVersion.txt
+                    (scripts/lib/unity_editor.ps1).
+      RunBatch      -Lease -BatchScript [-BatchArguments] [-BatchLogPath] [-BatchBootSeconds] ->
+                    batch_complete | any Acquire or BootAcquire status.
+
+      TRAP - batch_complete exits 0 even when the child failed. The child's exit code rides in the
+      JSON as "exitCode"; a caller that checks only the process exit code reads a failed Unity run
+      as success. Require status -eq "batch_complete" AND exitCode -eq 0.
+
+    FAILURE
+      Any unexpected failure is reported as status "coordinator_error" with the message in "error",
+      exit 1, and the same text on stderr. That includes Write-JsonFile refusing to write into a
+      directory a rival already reaped: the lock dir is the mutex, so it is never recreated.
+      A state record that exists but cannot be parsed is NEVER silently reaped - it surfaces as
+      status "record_unreadable" (exit 27) naming the file.
+
+    WAITSECONDS DEFAULTS
+      0 for Acquire/StartEditor/RunBatch (a single attempt), 60 for Wait, 300 for BootAcquire.
+      Polling between attempts is -PollSeconds (default 2). TTLs: -TicketTtlSeconds 900,
+      -OwnerTtlSeconds 300 (pid-less owners only; a live holder process keeps a lease regardless),
+      -BootTtlSeconds 180.
+
+    -BatchLogPath IS LOAD-BEARING
+      RunBatch frees the machine-wide boot lane as soon as the child's log shows startup is past
+      the contention window ("Application.AssetDatabase Initial Refresh Start"). Without
+      -BatchLogPath the lane stays held for -BatchBootSeconds (or -BootTtlSeconds), serializing
+      every other project for that long. Pass the log the child actually writes.
+
+    OWNED STATE SCHEMAS (this script writes them; nothing else may read them)
+      <StateRoot>/owners/<projectKey>/owner.json - lease, slot, mode, projectPath, projectKey,
+        processId (0 until Attach), holderProcessId + holderStartTime (the coordinator holding it),
+        acquiredAt, updatedAt. Read it back through Status.owners[].
+      <StateRoot>/queue/<timestamp>-<guid>.json - lease, slot, mode, projectPath, requestedAt,
+        updatedAt. Read it back through Status.queue[] (position is 1-based, per project).
+      <StateRoot>/boot/boot.json - lease, projectPath, processId, acquiredAt. Read it back through
+        Status.boot; an unowned dir that cannot be removed surfaces as Status.bootWedged.
+      <StateRoot>/owner/owner.json is the retired single-owner record, honored until it clears.
+
+.NOTES
+    Routed leaselessness (fork 4, RULED accepted): a -Routed unity_test_agent run attaches to an
+    editor someone else already leased and takes no lease of its own. It verifies through Status
+    that the project has a live editor owner, then runs beside it. Accepted as dev-loop behavior;
+    a read-style co-lease is not planned.
+
+    -ProcessSnapshotPath replaces live process enumeration with a JSON file (tests only).
+    -PrimaryRoot overrides the git-derived primary worktree - the thing that makes "the user's main
+    editor" and slot-to-project resolution machine-dependent; tests inject it to stay hermetic.
+#>
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Contract", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -14,12 +121,14 @@ param(
     [int]$BootTtlSeconds = 180,
     [int]$EditorCloseWaitSeconds = 30,
     [string]$StateRoot = "",
+    [string]$PrimaryRoot = "",
     [string]$ProcessSnapshotPath = "",
-    [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
-    [int]$McpPort = 8081,
+    [string]$UnityPath = "",
     [switch]$CloseEditor,
     [string[]]$EditorArgs = @(),
-    [switch]$SkipMcp,
+    [ValidateSet("LowMemory", "HighFidelity")]
+    [string]$EditorProfile = "LowMemory",
+    [int]$ProfileWaitSeconds = 300,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
     [string]$BatchLogPath = "",
@@ -36,10 +145,17 @@ $ExitOwnership = 22
 $ExitIncomplete = 23
 $ExitAdoptRefused = 24
 $ExitBootWedged = 25
+$ExitProfile = 26
+$ExitRecordUnreadable = 27
+$RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # Boot ends once licensing + global package-cache work gives way to per-project Library work
-# (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
+# (postmortem D6). The single home: callers that drive the lane themselves read it via -Action Contract.
 $BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
+
+. (Join-Path $PSScriptRoot "lib/repo_root.ps1")
+. (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
+. (Join-Path $PSScriptRoot "lib/process_tree.ps1")
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base = (Get-Location).Path)
@@ -49,7 +165,8 @@ function Resolve-FullPath {
 }
 
 function Get-PrimaryRoot {
-    $repo = Resolve-FullPath (Join-Path $PSScriptRoot "..")
+    if (-not [string]::IsNullOrWhiteSpace($PrimaryRoot)) { return Resolve-FullPath $PrimaryRoot }
+    $repo = Get-RepoRoot -ProbePath $PSScriptRoot
     $common = (& git -C $repo rev-parse --path-format=absolute --git-common-dir 2>$null | Select-Object -First 1)
     if ([string]::IsNullOrWhiteSpace($common)) { throw "Could not resolve the primary git directory." }
     return Split-Path -Parent (Resolve-FullPath $common)
@@ -73,20 +190,71 @@ function Get-ProjectKey {
     return "$tail-" + $digest.Replace("-", "").Substring(0, 8).ToLowerInvariant()
 }
 
-function Read-JsonFile {
+# An absent record and an unreadable one are different facts. Reading a corrupt record as absent
+# reaped live state, so a file that exists but will not parse fails the call by name instead.
+# A record swapped in by Move-Item is briefly unopenable to a concurrent reader, and that is
+# contention, not corruption: opening retries, and only the parse verdict is final.
+function Read-Record {
     param([string]$Path)
-    if (-not (Test-Path -LiteralPath $Path)) { return $null }
-    try { return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json }
-    catch { return $null }
+    $text = $null
+    foreach ($attempt in 1..5) {
+        if (-not (Test-Path -LiteralPath $Path)) { return $null }
+        try { $text = [System.IO.File]::ReadAllText($Path); break }
+        catch [System.IO.IOException] { Start-Sleep -Milliseconds 40 }
+        catch [System.UnauthorizedAccessException] { Start-Sleep -Milliseconds 40 }
+    }
+    if ($null -eq $text) { throw "Could not open $($Path) while another coordinator held it." }
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+    try { return $text | ConvertFrom-Json }
+    catch { throw "$($RecordUnreadableTag)|$Path|$($_.Exception.Message)" }
+}
+
+# The one read-and-reap policy for every lock record (project owner, legacy owner, boot lane).
+# Its error policy: a record-less dir is leftover garbage and is reaped; a stale record is reaped;
+# an unreadable one is never reaped. Concurrent coordinators race every prune here, and a lost race
+# leaves the dir already gone, which is the goal - so removal failure is not this call's problem.
+function Get-RecordOrReap {
+    param([string]$Dir, [string]$FileName, [scriptblock]$IsStale)
+    $record = Read-Record (Join-Path $Dir $FileName)
+    if ($null -eq $record) {
+        if (Test-Path -LiteralPath $Dir) { Remove-Item -LiteralPath $Dir -Recurse -Force -ErrorAction SilentlyContinue }
+        return $null
+    }
+    if (& $IsStale $record) {
+        Remove-Item -LiteralPath $Dir -Recurse -Force -ErrorAction SilentlyContinue
+        return $null
+    }
+    return $record
 }
 
 function Write-JsonFile {
     param([string]$Path, [object]$Value)
     $parent = Split-Path -Parent $Path
-    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    # A lock dir is the mutex; recreating a missing parent here silently resurrected a lock a
+    # rival had already reaped, and both callers walked away believing they held it.
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) { throw "Refusing to write $($Path): its directory is gone." }
     $temp = Join-Path $parent (([System.IO.Path]::GetFileName($Path)) + "." + [guid]::NewGuid().ToString("N") + ".tmp")
     [System.IO.File]::WriteAllText($temp, ($Value | ConvertTo-Json -Depth 8), $Utf8NoBom)
     Move-Item -LiteralPath $temp -Destination $Path -Force
+}
+
+# A lock dir is the mutex, so it must never be observable without its record: the record is built in
+# a staging dir and that DIRECTORY is renamed into place. The rename is atomic, only one racer's can
+# land, and no reader ever sees a record-less dir to reap out from under the winner.
+function Move-RecordDirIntoPlace {
+    param([string]$Destination, [string]$FileName, [object]$Record)
+    New-Item -ItemType Directory -Force -Path $StagingRoot | Out-Null
+    $staging = Join-Path $StagingRoot ([guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $staging -ErrorAction Stop | Out-Null
+    try {
+        Write-JsonFile (Join-Path $staging $FileName) $Record
+        [System.IO.Directory]::Move($staging, $Destination)
+        return [pscustomobject]@{ moved = $true; error = "" }
+    }
+    catch {
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        return [pscustomobject]@{ moved = $false; error = $_.Exception.Message }
+    }
 }
 
 function Get-WorktreePath {
@@ -103,50 +271,21 @@ function Get-WorktreePath {
 }
 
 function Get-UnityProcesses {
+    # An enumeration that failed is not evidence of no Unity: answering @() here reaped live
+    # pid-backed owners and boot records on a WMI hiccup, so a failure is loud instead.
     if (-not [string]::IsNullOrWhiteSpace($ProcessSnapshotPath)) {
-        $snapshot = Read-JsonFile (Resolve-FullPath $ProcessSnapshotPath)
+        $snapshotPath = Resolve-FullPath $ProcessSnapshotPath
+        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Process snapshot not found: $snapshotPath" }
+        $snapshot = Read-Record $snapshotPath
         if ($null -eq $snapshot) { return @() }
         return @($snapshot)
     }
     try {
-        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue | ForEach-Object {
+        return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
             [pscustomobject]@{ processId = [int]$_.ProcessId; commandLine = [string]$_.CommandLine }
         })
     }
-    catch { return @() }
-}
-
-function Test-TcpPort {
-    param([int]$Port)
-    $client = New-Object System.Net.Sockets.TcpClient
-    try {
-        $connection = $client.BeginConnect("127.0.0.1", $Port, $null, $null)
-        if (-not $connection.AsyncWaitHandle.WaitOne(800)) { return $false }
-        $client.EndConnect($connection)
-        return $true
-    }
-    catch { return $false }
-    finally { $client.Close() }
-}
-
-function Ensure-McpServer {
-    if (Test-TcpPort $McpPort) { return }
-    $uvx = Get-Command uvx.exe -ErrorAction SilentlyContinue
-    if ($null -eq $uvx) { throw "uvx.exe is required to start the shared Unity MCP server." }
-    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $stdout = Join-Path $env:TEMP "unity-mcp-$stamp.out.log"
-    $stderr = Join-Path $env:TEMP "unity-mcp-$stamp.err.log"
-    $arguments = @(
-        "--offline", "--from", "mcpforunityserver==10.0.0", "mcp-for-unity",
-        "--transport", "http", "--http-url", "http://127.0.0.1:$McpPort", "--project-scoped-tools"
-    )
-    Start-Process -FilePath $uvx.Source -ArgumentList $arguments -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr | Out-Null
-    $deadline = [datetime]::UtcNow.AddSeconds(20)
-    while ([datetime]::UtcNow -lt $deadline) {
-        if (Test-TcpPort $McpPort) { return }
-        Start-Sleep -Milliseconds 500
-    }
-    throw "Unity MCP server did not bind port $McpPort. Inspect $stderr"
+    catch { throw "Unity process enumeration failed: $($_.Exception.Message)" }
 }
 
 function Get-RelevantUnityProcesses {
@@ -175,16 +314,21 @@ function Get-DateValue {
     return $parsed.ToUniversalTime()
 }
 
+# Tickets are deleted by whoever gets there first - the owner that seated them, a rival reaping the
+# TTL, a release cancelling its own. Deletion is called after the owner dir is already claimed, so a
+# racer losing to a concurrent delete or an open handle must not exit nonzero holding a live lease.
 function Remove-TicketFile {
     param([string]$Path)
     if ([string]::IsNullOrWhiteSpace($Path)) { throw "Ticket file path is required." }
-    [System.IO.File]::Delete($Path)
+    try { [System.IO.File]::Delete($Path) }
+    catch [System.IO.IOException] { }
+    catch [System.UnauthorizedAccessException] { }
 }
 
 function Remove-StaleTickets {
     $now = [datetime]::UtcNow
     foreach ($file in @(Get-ChildItem -LiteralPath $QueueRoot -Filter "*.json" -File -ErrorAction SilentlyContinue)) {
-        $ticket = Read-JsonFile $file.FullName
+        $ticket = Read-Record $file.FullName
         $updated = if ($null -ne $ticket) { Get-DateValue $ticket.updatedAt } else { [datetime]::MinValue }
         if (($now - $updated).TotalSeconds -gt $TicketTtlSeconds) { Remove-TicketFile $file.FullName }
     }
@@ -194,7 +338,7 @@ function Get-Tickets {
     Remove-StaleTickets
     $items = @()
     foreach ($file in @(Get-ChildItem -LiteralPath $QueueRoot -Filter "*.json" -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
-        $ticket = Read-JsonFile $file.FullName
+        $ticket = Read-Record $file.FullName
         if ($null -ne $ticket) { $items += [pscustomobject]@{ file = $file.FullName; data = $ticket } }
     }
     return $items
@@ -212,7 +356,12 @@ function Ensure-Ticket {
     $existing = Find-Ticket $RequestedLease
     $now = [datetime]::UtcNow.ToString("o")
     if ($null -ne $existing) {
-        $existing.data.updatedAt = $now
+        # A refreshed ticket describes the request being made now, not the one that first minted it:
+        # a lease that re-requests with a different slot/mode/project must not queue under the old one.
+        $existing.data | Add-Member -NotePropertyName slot -NotePropertyValue $RequestedSlot -Force
+        $existing.data | Add-Member -NotePropertyName mode -NotePropertyValue $RequestedMode -Force
+        $existing.data | Add-Member -NotePropertyName projectPath -NotePropertyValue $RequestedProject -Force
+        $existing.data | Add-Member -NotePropertyName updatedAt -NotePropertyValue $now -Force
         Write-JsonFile $existing.file $existing.data
         return $existing
     }
@@ -236,12 +385,85 @@ function Get-MemberValue {
     return $Object.PSObject.Properties[$Name].Value
 }
 
+function Get-EditorProfileQuality {
+    param([string]$Profile)
+    switch ($Profile) {
+        "LowMemory" { return "Performant" }
+        "HighFidelity" { return "High Fidelity" }
+        default { throw "Unknown editor profile: $Profile" }
+    }
+}
+
+function New-EditorProfileReceiptPath {
+    New-Item -ItemType Directory -Force -Path $ProfileReceiptRoot | Out-Null
+    return Join-Path $ProfileReceiptRoot ([guid]::NewGuid().ToString("N") + ".json")
+}
+
+function Get-EditorProfileReceipt {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    try { return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json }
+    catch { return [pscustomobject]@{ error = "Profile receipt is malformed: $($_.Exception.Message)" } }
+}
+
+function Wait-EditorProfileReceipt {
+    param([string]$Path, [System.Diagnostics.Process]$Process)
+    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(1, $ProfileWaitSeconds))
+    while ([datetime]::UtcNow -lt $deadline) {
+        $receipt = Get-EditorProfileReceipt $Path
+        if ($null -ne $receipt) { return $receipt }
+        if ($Process.HasExited) {
+            return [pscustomobject]@{ error = "Editor exited before writing profile receipt." }
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    return $null
+}
+
+function Test-EditorProfileReceipt {
+    param([object]$Receipt, [string]$RequestedProfile)
+    $expectedQuality = Get-EditorProfileQuality $RequestedProfile
+    if ($null -eq $Receipt) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = "Timed out waiting for profile receipt." }
+    }
+    $error = [string](Get-MemberValue $Receipt "error")
+    if (-not [string]::IsNullOrWhiteSpace($error)) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = $error }
+    }
+    $receiptProfile = [string](Get-MemberValue $Receipt "requestedProfile")
+    $observedQuality = [string](Get-MemberValue $Receipt "observedQuality")
+    if ($receiptProfile -ne $RequestedProfile -or $observedQuality -ne $expectedQuality) {
+        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "Profile receipt expected $RequestedProfile/$expectedQuality but reported $receiptProfile/$observedQuality." }
+    }
+    return [ordered]@{ verified = $true; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "" }
+}
+
+function Get-ProcessStartTime {
+    param([int]$TargetProcessId)
+    $process = Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return "" }
+    return $process.StartTime.ToUniversalTime().ToString("o")
+}
+
+# A bare PID is not an identity: Windows recycles them, so a stranger wearing a dead holder's
+# number kept a dead lease alive. Identity is the pid plus the start time recorded with it.
+function Test-HolderAlive {
+    param([int]$HolderProcessId, [object]$RecordedStartTime)
+    $process = Get-Process -Id $HolderProcessId -ErrorAction SilentlyContinue
+    if ($null -eq $process) { return $false }
+    $recorded = [string]$RecordedStartTime
+    # Records written before holderStartTime existed carry no identity to check; reading them as
+    # live keeps live leases safe across the migration, at the pid-recycling risk they already ran.
+    if ([string]::IsNullOrWhiteSpace($recorded)) { return $true }
+    return ([Math]::Abs(((Get-DateValue $recorded) - $process.StartTime.ToUniversalTime()).TotalSeconds) -lt 2)
+}
+
 function Test-OwnerStale {
     param([object]$Owner)
     # A lease whose holding coordinator still runs is busy, whatever its opaque child is doing —
     # checked first so a child that exits just before the release does not open a reap window.
     $holder = [int](Get-MemberValue $Owner "holderProcessId")
-    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
+    if ($holder -gt 0 -and (Test-HolderAlive $holder (Get-MemberValue $Owner "holderStartTime"))) { return $false }
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
@@ -250,17 +472,7 @@ function Test-OwnerStale {
 
 function Get-ProjectOwner {
     param([string]$RequestedKey)
-    $ownerDir = Join-Path $OwnersRoot $RequestedKey
-    $owner = Read-JsonFile (Join-Path $ownerDir "owner.json")
-    if ($null -eq $owner) {
-        if (Test-Path -LiteralPath $ownerDir) { Remove-Item -LiteralPath $ownerDir -Recurse -Force -ErrorAction SilentlyContinue }
-        return $null
-    }
-    if (Test-OwnerStale $owner) {
-        Remove-Item -LiteralPath $ownerDir -Recurse -Force
-        return $null
-    }
-    return $owner
+    return Get-RecordOrReap (Join-Path $OwnersRoot $RequestedKey) "owner.json" { param($r) Test-OwnerStale $r }
 }
 
 function Get-AllOwners {
@@ -281,35 +493,17 @@ function Find-OwnerByLease {
 
 # Single-owner state written by pre-two-tier script copies still in live sessions; honored as machine-wide until it clears.
 function Get-LegacyOwner {
-    $owner = Read-JsonFile (Join-Path $LegacyOwnerRoot "owner.json")
-    if ($null -eq $owner) {
-        if (Test-Path -LiteralPath $LegacyOwnerRoot) { Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force -ErrorAction SilentlyContinue }
-        return $null
-    }
-    if (Test-OwnerStale $owner) {
-        Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force
-        return $null
-    }
-    return $owner
+    return Get-RecordOrReap $LegacyOwnerRoot "owner.json" { param($r) Test-OwnerStale $r }
 }
 
+# An undeletable leftover here surfaces as boot_lane_wedged at the next acquire, never as a throw.
 function Get-BootOwner {
-    $boot = Read-JsonFile (Join-Path $BootRoot "boot.json")
-    if ($null -eq $boot) {
-        if (Test-Path -LiteralPath $BootRoot) { Remove-Item -LiteralPath $BootRoot -Recurse -Force -ErrorAction SilentlyContinue }
-        return $null
+    return Get-RecordOrReap $BootRoot "boot.json" {
+        param($boot)
+        if (([datetime]::UtcNow - (Get-DateValue $boot.acquiredAt)).TotalSeconds -gt $BootTtlSeconds) { return $true }
+        if ([int]$boot.processId -le 0) { return $false }
+        return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$boot.processId }).Count -eq 0
     }
-    $stale = ([datetime]::UtcNow - (Get-DateValue $boot.acquiredAt)).TotalSeconds -gt $BootTtlSeconds
-    if (-not $stale -and [int]$boot.processId -gt 0) {
-        $stale = @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$boot.processId }).Count -eq 0
-    }
-    if ($stale) {
-        # A concurrent reader may reap the same stale record first; an undeletable leftover
-        # surfaces as boot_lane_wedged at the next acquire rather than killing this call.
-        Remove-Item -LiteralPath $BootRoot -Recurse -Force -ErrorAction SilentlyContinue
-        return $null
-    }
-    return $boot
 }
 
 function Get-TrackedPids {
@@ -347,8 +541,20 @@ function Get-BlockedStatus {
     return "blocked_unmanaged_unity"
 }
 
+# normalizedProjectPath is THE comparison key for "is this owner on my project": the coordinator's own
+# normalization, applied here so no consumer re-implements it (script-contracts.md sec.3). It is derived
+# per call, so owner records written before this existed answer too.
+function Add-NormalizedProjectPath {
+    param([object]$Owner)
+    if ($null -eq $Owner) { return $null }
+    $normalized = Normalize-Path ([string]$Owner.projectPath)
+    if ($Owner -is [System.Collections.IDictionary]) { $Owner["normalizedProjectPath"] = $normalized }
+    else { $Owner | Add-Member -NotePropertyName normalizedProjectPath -NotePropertyValue $normalized -Force }
+    return $Owner
+}
+
 function Get-StatusValue {
-    $owners = @(Get-AllOwners)
+    $owners = @(Get-AllOwners | ForEach-Object { Add-NormalizedProjectPath $_ })
     $tickets = @(Get-Tickets)
     $queue = @()
     for ($i = 0; $i -lt $tickets.Count; $i++) {
@@ -362,22 +568,51 @@ function Get-StatusValue {
         }
     }
     $boot = Get-BootOwner
-    return [ordered]@{
+    $state = [ordered]@{
         stateRoot = $AccessRoot
         owners = $owners
-        legacyOwner = Get-LegacyOwner
+        legacyOwner = Add-NormalizedProjectPath (Get-LegacyOwner)
         boot = $boot
         # Get-BootOwner just tried to reap any unowned boot dir; one that survives is wedged.
         bootWedged = ($null -eq $boot -and (Test-Path -LiteralPath $BootRoot))
         queue = $queue
         blockers = @(Get-Blockers)
     }
+
+    # "Who owns this path, and what Unity processes sit on it" - asked of the coordinator rather than
+    # re-derived by each consumer from the process table.
+    if (-not [string]::IsNullOrWhiteSpace($ProjectPath)) {
+        $target = Normalize-Path $ResolvedProject
+        $state.requestedProjectPath = $ResolvedProject
+        $state.requestedNormalizedProjectPath = $target
+        $state.projectOwner = @($owners | Where-Object { [string]$_.normalizedProjectPath -eq $target }) | Select-Object -First 1
+        $state.projectProcesses = @(Get-RelevantUnityProcesses | Where-Object { $_.normalizedProjectPath -eq $target } | ForEach-Object {
+            [ordered]@{ processId = $_.processId; projectPath = $_.projectPath; normalizedProjectPath = $_.normalizedProjectPath; batch = $_.batch }
+        })
+    }
+    return $state
+}
+
+# The one home for constants a caller must match exactly. A caller that hard-codes any of these is
+# keeping a copy that silently drifts - ask for them.
+function Get-ContractValue {
+    return [ordered]@{
+        status = "contract"
+        bootCompletePattern = $BootCompletePattern
+        ticketTtlSeconds = $TicketTtlSeconds
+        ownerTtlSeconds = $OwnerTtlSeconds
+        bootTtlSeconds = $BootTtlSeconds
+    }
 }
 
 function Get-QueuePosition {
     param([string]$RequestedLease, [string]$RequestedKey)
     $projectTickets = @(Get-Tickets | Where-Object { (Get-ProjectKey ([string]$_.data.projectPath)) -eq $RequestedKey })
-    return 1 + [array]::IndexOf(@($projectTickets | ForEach-Object { [string]$_.data.lease }), $RequestedLease)
+    $position = 1 + [array]::IndexOf(@($projectTickets | ForEach-Object { [string]$_.data.lease }), $RequestedLease)
+    # Callers only ask after seating their own ticket, so an absent one means the queue lost it
+    # under us. Position 0 is not a wait state - reporting it as one queues the lease forever.
+    if ($position -le 0) { throw "Queue invariant violated: lease '$RequestedLease' has no ticket for project $RequestedKey." }
+    return $position
 }
 
 function Request-Access {
@@ -412,9 +647,6 @@ function Try-AcquireAccess {
     if ($position -ne 1) { return [ordered]@{ status = "waiting"; position = $position; owner = $null } }
 
     $ownerDir = Join-Path $OwnersRoot $ProjectKey
-    try { New-Item -ItemType Directory -Path $ownerDir -ErrorAction Stop | Out-Null }
-    catch { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
-
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -424,10 +656,13 @@ function Try-AcquireAccess {
         projectKey = $ProjectKey
         processId = 0
         holderProcessId = $PID
+        holderStartTime = Get-ProcessStartTime $PID
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
+
     $ownTicket = Find-Ticket $Lease
     if ($null -ne $ownTicket) { Remove-TicketFile $ownTicket.file }
     return [ordered]@{ status = "acquired"; owner = [pscustomobject]$owner; renewed = $false }
@@ -448,6 +683,7 @@ function Write-OwnerHeartbeat {
     param([object]$Owner)
     # Renewing hands the lease to whoever renewed it; a dead holder falls back to the TTL.
     $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
+    $Owner | Add-Member -NotePropertyName holderStartTime -NotePropertyValue (Get-ProcessStartTime $PID) -Force
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
     Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
 }
@@ -458,6 +694,7 @@ function Write-OwnerHeartbeat {
 function Start-BootLaneSidecar {
     $settings = @{
         coordinator = $PSCommandPath
+        client = Join-Path $PSScriptRoot "unity_access_client.ps1"
         lease = $Lease
         stateRoot = $AccessRoot
         snapshot = $ProcessSnapshotPath
@@ -468,14 +705,14 @@ function Start-BootLaneSidecar {
     }
     return Start-Job -ScriptBlock {
         param($s)
-        $common = @("-Lease", $s.lease, "-StateRoot", $s.stateRoot, "-Json")
+        . $s.client
+        $common = @("-Lease", $s.lease, "-StateRoot", $s.stateRoot)
         if (-not [string]::IsNullOrWhiteSpace($s.snapshot)) { $common += @("-ProcessSnapshotPath", $s.snapshot) }
         $attached = $false
         while ($true) {
             if (-not $attached) {
-                $out = & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator `
-                    -Action AttachBatchChild @common 2>&1
-                $attached = [bool]([string]$out -match '"status":"attached"')
+                $call = Invoke-UnityAccessCoordinator -Coordinator $s.coordinator -CoordinatorArgs (@("-Action", "AttachBatchChild") + $common)
+                $attached = ($null -ne $call.result -and [string]$call.result.status -eq "attached")
             }
             $bootDone = [datetime]::UtcNow -ge [datetime]::Parse($s.deadline).ToUniversalTime()
             if (-not $bootDone -and -not [string]::IsNullOrWhiteSpace($s.logPath) -and (Test-Path -LiteralPath $s.logPath)) {
@@ -484,7 +721,7 @@ function Start-BootLaneSidecar {
             if ($bootDone) { break }
             Start-Sleep -Seconds $s.pollSeconds
         }
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator -Action BootRelease @common | Out-Null
+        [void](Invoke-UnityAccessCoordinator -Coordinator $s.coordinator -CoordinatorArgs (@("-Action", "BootRelease") + $common))
     } -ArgumentList $settings
 }
 
@@ -507,30 +744,26 @@ function Try-AcquireBoot {
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 
-    try { New-Item -ItemType Directory -Path $BootRoot -ErrorAction Stop | Out-Null }
-    catch {
-        $reason = $_.Exception.Message
-        $boot = Get-BootOwner
-        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
-        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
-        return [ordered]@{ status = "boot_lane_wedged"; error = $reason; bootRoot = $BootRoot }
-    }
-
     $record = [ordered]@{
         lease = $Lease
         projectPath = [string]$owner.projectPath
         processId = 0
         acquiredAt = [datetime]::UtcNow.ToString("o")
     }
-    Write-JsonFile (Join-Path $BootRoot "boot.json") $record
+    $claim = Move-RecordDirIntoPlace $BootRoot "boot.json" $record
+    if (-not $claim.moved) {
+        $boot = Get-BootOwner
+        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
+        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
+        return [ordered]@{ status = "boot_lane_wedged"; error = $claim.error; bootRoot = $BootRoot }
+    }
     return [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
 }
 
 function Acquire-Boot {
     $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $WaitSeconds))
     do {
-        # boot_lane_wedged retries too: the empty-dir window between a winner's mkdir and its
-        # boot.json write reads as wedged for one poll; only a persistent wedge reaches the caller.
+        # boot_lane_wedged retries too: only a wedge that outlives the wait reaches the caller.
         $result = Try-AcquireBoot
         if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
@@ -597,7 +830,6 @@ function Adopt-Process {
         return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = $existing }
     }
     $ownerDir = Join-Path $OwnersRoot $adoptKey
-    New-Item -ItemType Directory -Force -Path $ownerDir | Out-Null
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -609,7 +841,8 @@ function Adopt-Process {
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    $claim = Move-RecordDirIntoPlace $ownerDir "owner.json" $owner
+    if (-not $claim.moved) { return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = Get-ProjectOwner $adoptKey } }
     return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
 }
 
@@ -623,10 +856,16 @@ function Release-Access {
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) {
         [void](Release-Boot)
+        # A caller that gave up while still queued holds no owner but does hold a ticket; leaving it
+        # stranded the whole project's FIFO behind a dead lease until TicketTtlSeconds expired.
+        [void](Cancel-Request)
         return [ordered]@{ status = "released"; alreadyFree = $true }
     }
 
-    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
+    # Close or kill only a coordinator-relevant Unity PID — never a bare/recycled one. Checked once,
+    # above both branches: CloseMainWindow on a stranger's window is as wrong as killing it.
+    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0 -and
+        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
             $closed = $false
@@ -636,13 +875,10 @@ function Release-Access {
                 while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
             }
-            # Kill only a still-live, coordinator-relevant Unity PID — never a bare/recycled one.
             if (-not $closed) {
-                if (@(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
-                    Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
-                    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-                    while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-                }
+                Stop-ProcessTree -ProcessId ([int]$owner.processId)
+                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
                 if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
                     return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
                 }
@@ -650,7 +886,8 @@ function Release-Access {
         }
     }
 
-    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force
+    # After a CloseEditor kill our PID reads dead, so a concurrent reader may win this prune; already gone is the goal.
+    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force -ErrorAction SilentlyContinue
     [void](Release-Boot)
     [void](Cancel-Request)
     return [ordered]@{ status = "released"; alreadyFree = $false }
@@ -665,26 +902,37 @@ function Start-TrackedEditor {
         return $boot
     }
     try {
-        $exe = Resolve-FullPath $UnityPath
+        $exe = if ([string]::IsNullOrWhiteSpace($UnityPath)) { Resolve-UnityEditorPath -ProjectPath $ResolvedProject } else { Resolve-FullPath $UnityPath }
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
+        $receiptPath = New-EditorProfileReceiptPath
+        $previousProfile = [Environment]::GetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", "Process")
+        $previousReceipt = [Environment]::GetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", "Process")
         # The editor must open the project whose lease it holds, so caller args compose after -projectPath.
         $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
-        if ($SkipMcp.IsPresent) {
+        try {
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", $EditorProfile, "Process")
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", $receiptPath, "Process")
             $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         }
-        else {
-            Ensure-McpServer
-            $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
-            $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
-            try { $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru }
-            finally {
-                if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
-                else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
-            }
+        finally {
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE", $previousProfile, "Process")
+            [Environment]::SetEnvironmentVariable("ASTRONOMICAL_EDITOR_PROFILE_RECEIPT", $previousReceipt, "Process")
         }
-        # Editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
+        try {
+            $profile = Test-EditorProfileReceipt (Wait-EditorProfileReceipt $receiptPath $process) $EditorProfile
+        }
+        finally {
+            Remove-Item -LiteralPath $receiptPath -Force -ErrorAction SilentlyContinue
+        }
+        if (-not $profile.verified) {
+            Stop-ProcessTree -ProcessId $process.Id
+            [void](Release-Access)
+            return [ordered]@{ status = "editor_profile_failed"; profile = $profile }
+        }
         $script:ProcessId = $process.Id
-        return Attach-Process
+        $attached = Attach-Process
+        $attached.profile = $profile
+        return $attached
     }
     catch {
         [void](Release-Access)
@@ -703,8 +951,23 @@ function Run-TrackedBatch {
         # so the child stays a blocking call and the lane is freed from beside it.
         $sidecar = Start-BootLaneSidecar
         try {
-            & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
-            $code = $LASTEXITCODE
+            # The child's own chatter is prose, and under -Json stdout is reserved for the one
+            # result line, so it is forwarded to stderr rather than corrupting the machine channel.
+            # 2>&1 ENVELOPE HAZARD: under EAP=Stop a native command's stderr arrives as an
+            # ErrorRecord and throws, so the merge only ever happens with EAP relaxed.
+            $previousEap = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            try {
+                if ($Json.IsPresent) {
+                    & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments 2>&1 |
+                        ForEach-Object { [Console]::Error.WriteLine([string]$_) }
+                }
+                else {
+                    & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
+                }
+                $code = $LASTEXITCODE
+            }
+            finally { $ErrorActionPreference = $previousEap }
         }
         finally {
             if ($null -ne $sidecar) {
@@ -725,7 +988,7 @@ function Require-Lease {
 function Write-Result {
     param([object]$Result)
     if ($Json.IsPresent) { Write-Output ($Result | ConvertTo-Json -Depth 8 -Compress); return }
-    if ($Action -eq "Status") {
+    if ($Action -eq "Status" -and [string]$Result["status"] -eq "") {
         $owners = @($Result.owners)
         if ($owners.Count -gt 0) {
             foreach ($owner in $owners) { Write-Host "Unity owner: $($owner.slot) $($owner.mode) lease=$($owner.lease) pid=$($owner.processId) project=$($owner.projectPath)" }
@@ -740,15 +1003,23 @@ function Write-Result {
         foreach ($blocker in @($Result.blockers)) { Write-Host "Blocker: $($blocker.kind) pid=$($blocker.processId) project=$($blocker.projectPath)" }
         return
     }
-    Write-Host ($Result | ConvertTo-Json -Depth 8)
+    Write-Host "$($Action): $([string]$Result.status)"
+    foreach ($entry in $Result.GetEnumerator()) {
+        if ($entry.Key -eq "status" -or $null -eq $entry.Value) { continue }
+        $rendered = if ($entry.Value -is [string] -or $entry.Value -is [int] -or $entry.Value -is [bool]) { [string]$entry.Value }
+                    else { $entry.Value | ConvertTo-Json -Depth 8 -Compress }
+        Write-Host "  $($entry.Key): $rendered"
+    }
 }
 
 $PrimaryRoot = Get-PrimaryRoot
 $AccessRoot = if ([string]::IsNullOrWhiteSpace($StateRoot)) { Join-Path $PrimaryRoot ".worktree-pool/unity-access" } else { Resolve-FullPath $StateRoot }
+$ProfileReceiptRoot = Join-Path $AccessRoot "profile-receipts"
 $LegacyOwnerRoot = Join-Path $AccessRoot "owner"
 $OwnersRoot = Join-Path $AccessRoot "owners"
 $BootRoot = Join-Path $AccessRoot "boot"
 $QueueRoot = Join-Path $AccessRoot "queue"
+$StagingRoot = Join-Path $AccessRoot "staging"
 New-Item -ItemType Directory -Force -Path $QueueRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $OwnersRoot | Out-Null
 
@@ -758,8 +1029,12 @@ if ([string]::IsNullOrWhiteSpace($ProjectPath) -and -not [string]::IsNullOrWhite
 $ResolvedProject = Resolve-FullPath $ProjectPath
 $ProjectKey = Get-ProjectKey $ResolvedProject
 
-$result = switch ($Action) {
+# Every failure leaves through the same door: one result on the machine channel, its text on stderr.
+# A caller that gets no parseable line got no answer at all, which is worse than a named failure.
+$result = try {
+    switch ($Action) {
     "Status" { Get-StatusValue }
+    "Contract" { Get-ContractValue }
     "Request" { Require-Lease; Request-Access }
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }
@@ -772,10 +1047,20 @@ $result = switch ($Action) {
     "BootRelease" { Require-Lease; Release-Boot }
     "StartEditor" { Require-Lease; $Mode = "editor"; Start-TrackedEditor }
     "RunBatch" { Require-Lease; $Mode = "batch"; Run-TrackedBatch }
+    }
+}
+catch {
+    $message = [string]$_.Exception.Message
+    [Console]::Error.WriteLine("unity_access $($Action): $message")
+    $parts = $message -split '\|', 3
+    if ($parts[0] -eq $RecordUnreadableTag) {
+        [ordered]@{ status = "record_unreadable"; path = $parts[1]; error = $parts[2] }
+    }
+    else { [ordered]@{ status = "coordinator_error"; error = $message } }
 }
 
 Write-Result $result
-$resultStatus = if ($Action -eq "Status") { "" } else { [string]$result.status }
+$resultStatus = if ($result -is [System.Collections.IDictionary]) { [string]$result["status"] } else { [string]$result.status }
 $statusExitCodes = @{
     ownership_mismatch = $ExitOwnership
     editor_did_not_exit = $ExitIncomplete
@@ -783,10 +1068,13 @@ $statusExitCodes = @{
     waiting = $ExitWaiting
     boot_waiting = $ExitWaiting
     boot_lane_wedged = $ExitBootWedged
+    editor_profile_failed = $ExitProfile
     blocked_user_editor = $ExitWaiting
     adopt_no_process = $ExitAdoptRefused
     adopt_already_tracked = $ExitAdoptRefused
     adopt_refused_user_editor = $ExitAdoptRefused
     adopt_project_owned = $ExitAdoptRefused
+    record_unreadable = $ExitRecordUnreadable
+    coordinator_error = 1
 }
 exit ($(if ($statusExitCodes.ContainsKey($resultStatus)) { $statusExitCodes[$resultStatus] } else { 0 }))

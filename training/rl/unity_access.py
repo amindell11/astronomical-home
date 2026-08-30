@@ -23,16 +23,20 @@ def _coordinator_json(proc: subprocess.CompletedProcess) -> dict:
     sys.exit(f"FAIL: no JSON from unity-access coordinator (exit {proc.returncode})\n{proc.stdout}\n{proc.stderr}")
 
 
-def start_editor(lease: str, project: Path, editor_args, unity: Path, env) -> int:
+def start_editor(lease: str, project: Path, editor_args, unity: Path, env, editor_profile: str = "LowMemory") -> int:
     # -projectPath is the coordinator's to inject; it composes these args after it.
     args_literal = ",".join(_ps_literal(a) for a in editor_args)
     inner = (f"& {_ps_literal(COORDINATOR)} -Action StartEditor -Lease {_ps_literal(lease)} "
-             f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
+             f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -WaitSeconds 15 "
+             f"-EditorProfile {_ps_literal(editor_profile)} -Json "
              f"-EditorArgs @({args_literal})")
     proc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
                           capture_output=True, text=True, env=env)
     result = _coordinator_json(proc)
     if result.get("status") != "attached":
+        if result.get("status") == "editor_profile_failed":
+            profile = result.get("profile", {})
+            sys.exit("FAIL: editor profile verification failed: " + profile.get("note", "unknown failure"))
         sys.exit(f"FAIL: project busy: {result.get('status', 'unknown')} (unity-access coordinator; see skills/unity-access)")
     return int(result["owner"]["processId"])
 

@@ -259,14 +259,6 @@ namespace Movement.MPC
         [Tooltip("Log solver performance once per second")]
         public bool logSolverPerformance = false;
 
-        [Tooltip("Draw the sampled candidate trajectory fan, and admit candidate-selection handles in the scene view")]
-        public bool showCandidateTrajectories = true;
-        [Tooltip("Color the predicted path by cost and label it periodically")]
-        public bool showTrajectoryCosts = true;
-        [Tooltip("Draw the collision hulls and turn-away bite ranges the solver tests")]
-        public bool showObstacleCosts = true;
-        [Tooltip("Draw the THR/STR/YAW applied-control bars")]
-        public bool showControlInputs = true;
         [Min(1)]
         [Tooltip("How many of the sampled candidates to draw, best-cost first")]
         public int candidateSampleCount = 32;
@@ -275,8 +267,6 @@ namespace Movement.MPC
         [Min(1)]
         [Tooltip("Label every Nth predicted node")]
         public int labelStep = 5;
-        [Tooltip("Where the control-bar panel sits relative to the ship")]
-        public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
 
         private float nextLogTime;
         public CostBreakdown lastCostBreakdown;

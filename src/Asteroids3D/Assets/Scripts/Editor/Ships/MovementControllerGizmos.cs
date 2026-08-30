@@ -1,4 +1,5 @@
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Utils;
@@ -6,16 +7,22 @@ using Utils;
 namespace Ships.Movement
 {
     /// <summary>Applied translational forces as arrows scaled by their settings maximum, and yaw torque as a nose ray plus swept arc. Head shape separates thrust from strafe where color alone would not.</summary>
+    [InitializeOnLoad]
     internal static class MovementControllerGizmos
     {
+        static MovementControllerGizmos() =>
+            GizmoView.Register(typeof(MovementController), "forces", "Applied Forces",
+                "thrust/strafe/boost force arrows + yaw torque arc", "Steering");
+
         private const float MinForce = 0.01f;
         private const float MaxSweepDeg = 45f;
         private const float ArcRadiusFactor = 0.5f;
         private const float HeadSize = 0.18f;
 
-        [DrawGizmo(GizmoType.Selected, typeof(MovementController))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(MovementController))]
         private static void DrawForces(MovementController mover, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(MovementController), "forces") || !GizmoView.InScope(mover)) return;
             if (!Application.isPlaying) return;
 
             var origin = mover.transform.position;

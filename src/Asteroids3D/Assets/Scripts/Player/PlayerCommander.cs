@@ -18,7 +18,6 @@ namespace Player
         [SerializeField] internal bool useMouseDirection = false;
 
         [Header("Gizmo Settings")]
-        [SerializeField] internal bool showMouseGizmos = true;
         [SerializeField] internal float mouseGizmoScale = 3f;
 
         private IShipStatus context;
