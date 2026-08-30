@@ -230,7 +230,7 @@ namespace Game.RLHarness
     public sealed class SentenceProbe : ISessionProbe
     {
         public const string ProbeName = "sentence";
-        public const string DecisionsCsvName = "sentence-decisions.csv";
+        private const string DecisionsCsvSuffix = "-decisions.csv";
 
         private const string CsvHeader = "opponent,episodeIndex,decision,aimWeight,aimOffsetRad,aimReferent," +
             "posWeight,posOffsetR,posOffsetThetaRad,posSetpoint,posReferent,posFrame," +
@@ -289,12 +289,13 @@ namespace Game.RLHarness
 
         public void Summarize(string summaryPath)
         {
-            var csvPath = Path.Combine(Path.GetDirectoryName(summaryPath) ?? "", DecisionsCsvName);
+            var csvName = Path.GetFileNameWithoutExtension(summaryPath) + DecisionsCsvSuffix;
+            var csvPath = Path.Combine(Path.GetDirectoryName(summaryPath) ?? "", csvName);
             File.WriteAllText(csvPath, csv.ToString());
 
             var sidecar = new Sidecar
             {
-                decisionsCsv = DecisionsCsvName,
+                decisionsCsv = csvName,
                 opponents = new SentenceProbeSummary[order.Count],
             };
             for (var i = 0; i < order.Count; i++)
