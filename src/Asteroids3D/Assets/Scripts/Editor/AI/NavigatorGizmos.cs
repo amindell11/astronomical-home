@@ -134,7 +134,7 @@ namespace AI
                     color = CostColor(severity);
                     if (i % nav.labelStep == 0)
                         Label(pos + LabelOffset,
-                            $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1}{SentenceTerms(breakdown)})",
+                            $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1})",
                             Color.white);
                 }
 
@@ -148,17 +148,6 @@ namespace AI
                 prevPos = pos;
                 prevU = u;
             }
-        }
-
-        // Sentence terms print only when live, so the label stays legacy-shaped under an unarmed sentence.
-        private static string SentenceTerms(in CostBreakdown breakdown)
-        {
-            var terms = "";
-            if (breakdown.facing > 0.05f) terms += $" F:{breakdown.facing:F1}";
-            if (breakdown.pos > 0.05f) terms += $" P:{breakdown.pos:F1}";
-            if (breakdown.lane > 0.05f) terms += $" L:{breakdown.lane:F1}";
-            if (breakdown.velocityTrack > 0.05f) terms += $" V:{breakdown.velocityTrack:F1}";
-            return terms;
         }
 
         private static void DrawEnemyRollout(Navigator nav)
