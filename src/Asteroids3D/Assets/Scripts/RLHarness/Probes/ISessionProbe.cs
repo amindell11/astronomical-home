@@ -61,6 +61,7 @@ namespace Game.RLHarness
                 new[] { ControllerProbe.YawRateDeadbandKey, ControllerProbe.TorqueDeadbandKey }),
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
+            [SentenceProbe.ProbeName] = (_ => new SentenceProbe(), Array.Empty<string>()),
             [VelRebaseProbe.ProbeName] = (_ => new VelRebaseProbe(), Array.Empty<string>()),
         };
 

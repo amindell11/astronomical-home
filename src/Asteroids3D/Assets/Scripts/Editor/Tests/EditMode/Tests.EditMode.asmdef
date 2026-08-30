@@ -13,7 +13,8 @@
         "Game.RLHarness.Runtime",
         "Game.Capture.Editor",
         "Game.Capture.GameView.Editor",
-        "Unity.InferenceEngine"
+        "Unity.InferenceEngine",
+        "Unity.ML-Agents"
     ],
     "includePlatforms": [
         "Editor"

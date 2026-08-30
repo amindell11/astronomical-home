@@ -142,11 +142,15 @@ namespace Tests.EditMode
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
             Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
-                "dummy weight starts at the ignition lesson (~90% Dummy under sum-normalization; 8.0 → 0.1)");
+                "dummy weight starts at the ignition lesson (~90% Dummy; viable again under the partial vocabulary's ~50% enemy-aim)");
             Assert.AreEqual(defaults.weightAggressor, LessonZeroValue(block, EnvParamOverlay.OpponentWeightAggressor), 1e-6f);
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
             Assert.AreEqual(defaults.weightKiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightKiter), 1e-6f);
+            Assert.AreEqual(0.5f, LessonZeroValue(block, EnvParamOverlay.SentenceRelease), 1e-6f,
+                "ignition runs the PARTIAL vocabulary — two live referent choices keep the branch trainable while concentrating exploration on the enemy");
+            Assert.AreEqual(1f, LessonFinalValue(block, EnvParamOverlay.SentenceRelease), 1e-6f,
+                "the terminal lesson is fully released, matching the absent-key default eval and self-play run under");
         }
 
         [Test]

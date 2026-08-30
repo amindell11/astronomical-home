@@ -102,7 +102,8 @@ namespace Game.RLHarness
             AgentObservations.ApplySchema(behavior, obstacleBuffer);
 
             agent = host.AddComponent<LivePilotAgent>();
-            agent.Bind(this, ctx.Scout, obstacleBuffer);
+            agent.Bind(this, ctx.Scout, obstacleBuffer,
+                ((AICommander)self.Commander).Navigator.mpcSettings.speedRef);
             host.SetActive(true);
 
             leashCenter = self.Kinematics.pos;

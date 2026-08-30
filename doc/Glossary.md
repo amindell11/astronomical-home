@@ -437,9 +437,10 @@ Format: **term** — definition. *(authority)*
   re-resolves both against the predicted enemy every rollout step, so the
   command never goes stale. **Sign pins:** radial > 0 closes along +losHat;
   tangential > 0 and positive facing offsets are CCW; the polar velocity is
-  *relative to the enemy's motion*; the action-side mapping is [−1,1] ×
-  maxSpeed. Authored through `NavObjective.Anchored(...)`; the `IntentSentence`
-  struct is the solver-side carrier.
+  *relative to the enemy's motion*. Since Stage C3 the action-side VEL mapping
+  is the θ-head — unit direction × the character-axis `speedRef`, vector
+  magnitude = the slot weight. Authored through `NavObjective.Anchored(...)`;
+  the `IntentSentence` struct is the solver-side carrier.
   *(AnchoredBuilder, IntentSentence, Cost.EvalContext)*
 - **delegation prior** — the low-weight, config-gated fallback that steers a
   channel when its anchored authority is 0: facing eases to the velocity-aligned
@@ -473,6 +474,21 @@ Format: **term** — definition. *(authority)*
   Refreshed only at the decision boundary, so referent actions always bind
   against the roster the policy observed. Distinct from the obstacle-token
   attention buffer, which stays unindexed. *(RockSlotRoster)*
+- **sentence release** — the curriculum pin state on the sentence action head,
+  carried by the `sentence_release` environment parameter and enforced by the
+  discrete action mask: pinned (0) = referents→enemy, frames→Position — the
+  legacy-equivalence point — while released (1) opens every occupied rock slot
+  and frame. An ABSENT key reads released, so eval and gameplay always run the
+  full vocabulary; the secondary trigger stays disengage-only under both states
+  until marksmanship (#409). Continuous channels are never pinned (§Stage C
+  fork 5). *(EnvParamOverlay.SentenceRelease, AgentActions.WriteMask)*
+- **sentence probe** — the session probe over the policy's decoded sentences:
+  per-episode JSONL aggregates (per-slot referent switch rates, mean weights,
+  weight-entropy) plus a per-decision CSV sidecar of every weight, referent,
+  frame, and trigger branch — §Stage C fork 6's failure-branch diagnosis
+  surface, and the live check on residual slot thrash. Weight-entropy is
+  Shannon entropy over the five |weights| (0 = saturated on one slot).
+  *(SentenceProbe, SentenceSampler)*
 - **brain / decision lane** — the swappable-decision seam. A **brain** is the
   component that decides: one `Brain` subclass per policy, installed through
   `AICommander.InstallBrain` or authored on the pilot prefab. ("Chooser" was the

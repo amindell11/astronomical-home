@@ -90,8 +90,9 @@ namespace AI
         private AnchoredBuilder With(in IntentSentence next) =>
             new(anchor, hasPlanarVelocity, planarVelocity, next, rockSeat1, rockSeat2, rockSeat3);
 
-        /// <summary>Polar velocity in the anchor frame: radial > 0 closes along the LOS, tangential > 0 orbits CCW.</summary>
-        public AnchoredBuilder Velocity(float radial, float tangential, float authority)
+        /// <summary>Polar velocity in the anchor frame: radial > 0 closes along the LOS, tangential > 0 orbits CCW; non-Position frames swap the basis forward for the anchor's facing or motion direction.</summary>
+        public AnchoredBuilder Velocity(float radial, float tangential, float authority,
+            ReferentFrame frame = ReferentFrame.Position)
         {
             var next = sentence;
             next.vel = new VelSlot
@@ -100,12 +101,14 @@ namespace AI
                 radialSpeed = radial,
                 tangentialSpeed = tangential,
                 weight = authority,
+                frame = frame,
             };
             return new AnchoredBuilder(anchor, false, default, next, rockSeat1, rockSeat2, rockSeat3);
         }
 
-        /// <summary>The VEL slot bound to a rock: polar velocity relative to the rock's motion.</summary>
-        public AnchoredBuilder Velocity(in AsteroidRef rock, float radial, float tangential, float authority)
+        /// <summary>The VEL slot bound to a rock: polar velocity relative to the rock's motion. Rocks have no facing: the Facing frame degrades to world axes (rock referents resolve with yaw 0).</summary>
+        public AnchoredBuilder Velocity(in AsteroidRef rock, float radial, float tangential, float authority,
+            ReferentFrame frame = ReferentFrame.Position)
         {
             var bound = Bind(rock, out var referent);
             var next = bound.sentence;
@@ -116,6 +119,7 @@ namespace AI
                 tangentialSpeed = tangential,
                 weight = authority,
                 referent = referent,
+                frame = frame,
             };
             return new AnchoredBuilder(bound.anchor, false, default, next,
                 bound.rockSeat1, bound.rockSeat2, bound.rockSeat3);
@@ -198,6 +202,14 @@ namespace AI
         {
             var next = sentence;
             next.field = new FieldSlot { armed = true, weight = authority };
+            return With(next);
+        }
+
+        /// <summary>Signed authority over the anchor's fire-lane ray: &gt; 0 holds the lane, &lt; 0 dodges it. Referent pinned to the anchor — rocks have no facing.</summary>
+        public AnchoredBuilder Lane(float authority)
+        {
+            var next = sentence;
+            next.lane = new LaneSlot { armed = true, weight = authority };
             return With(next);
         }
 

@@ -33,7 +33,7 @@ namespace Movement.MPC
         public ReferentFrame frame;
     }
 
-    /// <summary>VEL sentence slot: polar velocity relative to the referent's motion. vr &gt; 0 closes along +losHat, vt &gt; 0 orbits CCW.</summary>
+    /// <summary>VEL sentence slot: polar velocity relative to the referent's motion, decomposed in the referent's chosen frame — Position = the live LOS basis (vr &gt; 0 closes along +losHat, vt &gt; 0 orbits CCW), Facing/Velocity swap the basis forward for the referent's facing or motion direction.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct VelSlot
     {
@@ -42,6 +42,7 @@ namespace Movement.MPC
         public float tangentialSpeed;  // m/s
         public float weight;           // Signed authority × the config's wVelTrack ceiling
         public int referent;
+        public ReferentFrame frame;
     }
 
     /// <summary>FIELD sentence slot: hazard-repulsion authority over the turn-away branch only — the collision penalty is never sentence-weakened. Unarmed = ×1.</summary>
