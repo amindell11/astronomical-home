@@ -78,7 +78,14 @@ public sealed class MyProbe : CaptureScenario
 
 `Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
 advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name/size/cadence and `Profile` for the gizmo set.
+Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, and
+`Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose gizmos draw.
+
+**Define the gizmo set and scope from what the clip must show.** Pick the narrowest
+`Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
+firing solution scopes to that ship; a two-team engagement scopes by `Team`. `Everything` at
+scope `All` stacks every drawer's ink over every object and buries the subject — reach for it
+only when the whole board is the point.
 
 **There is no per-scenario drawing API.** A diagnostic you want on film is a native
 `[DrawGizmo]` drawer on the Unity component whose state it explains, added to the
