@@ -15,7 +15,7 @@ namespace Ships
             GizmoView.Register(typeof(Ship), "marker", "Facing Marker",
                 "solid orange chevron pointing along ship nose", "Ship", defaultOn: true);
 
-        private const float SizeFactor = 0.7f;
+        private const float SizeFactor = 0.28f;
         private const float HalfWidthFactor = 0.6f;
         private const float TailFactor = 0.5f;
 
