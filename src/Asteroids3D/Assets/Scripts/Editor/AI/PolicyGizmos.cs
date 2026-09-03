@@ -60,7 +60,7 @@ namespace AI
             }
         }
 
-        // Enemy-frame reconstruction: radial along the LOS, tangential CCW (the VelocityRebase basis), no enemy-velocity lead.
+        // Enemy-frame reconstruction: radial along the LOS, tangential CCW (the Cost.AnchoredVelocityRef basis), no enemy-velocity lead.
         private static void DrawVelocity(Vector2 pos, PolicyAction newest, Vector2 losHat)
         {
             var tangentHat = new Vector2(losHat.y, -losHat.x);

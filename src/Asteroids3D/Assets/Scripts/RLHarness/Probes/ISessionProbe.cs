@@ -62,7 +62,6 @@ namespace Game.RLHarness
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
             [SentenceProbe.ProbeName] = (_ => new SentenceProbe(), Array.Empty<string>()),
-            [VelRebaseProbe.ProbeName] = (_ => new VelRebaseProbe(), Array.Empty<string>()),
         };
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);

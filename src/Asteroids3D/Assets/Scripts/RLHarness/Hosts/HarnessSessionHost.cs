@@ -93,9 +93,6 @@ namespace Game.RLHarness
                     spec.model, field),
             };
 
-        internal ISessionComposition NewOpenLoopComposition(in RewardSpec seedSpec, HarnessField field) =>
-            new OpenLoopArchetypeComposition(units, Arena, Projectiles, assets, in seedSpec, field);
-
         internal ISessionComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
             SentenceRow row) =>
             new SentenceComposition(units, Arena, Projectiles, assets, in seedSpec, field, row);
@@ -183,7 +180,6 @@ namespace Game.RLHarness
         {
             SessionLane.Eval => new CheckpointEvaluator(),
             SessionLane.Capture => new CaptureClient(),
-            SessionLane.OpenLoop => new VelRebaseLane(),
             SessionLane.Sentence => new SentenceLane(),
             _ => throw new NotSupportedException($"No lane client for {lane}."),
         };
