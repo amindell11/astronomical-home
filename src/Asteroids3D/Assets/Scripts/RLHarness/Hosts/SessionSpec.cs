@@ -126,10 +126,17 @@ namespace Game.RLHarness
         public string CandidateStem => Path.GetFileNameWithoutExtension(
             string.IsNullOrEmpty(onnxSourcePath) ? ShipAgentFactory.SmokeFixturePath : onnxSourcePath);
 
-        private static readonly string[] RetiredNames =
+        // Each retired name carries its replacement, or null when it was removed with no successor.
+        private static readonly (string name, string replacement)[] RetiredNames =
         {
-            "RL_EVAL_ONNX", "RL_EVAL_SEEDS", "RL_EVAL_EPISODES_PER_SEED", "RL_EVAL_DENSITY",
-            "RL_EVAL_OPPONENT", "RL_EVAL_PROBES", "RL_EVAL_OUT_DIR",
+            ("RL_EVAL_ONNX", "RL_HARNESS_ONNX"),
+            ("RL_EVAL_SEEDS", "RL_HARNESS_SEEDS"),
+            ("RL_EVAL_EPISODES_PER_SEED", "RL_HARNESS_EPISODES_PER_SEED"),
+            ("RL_EVAL_DENSITY", "RL_HARNESS_DENSITY"),
+            ("RL_EVAL_OPPONENT", "RL_HARNESS_OPPONENT"),
+            ("RL_EVAL_PROBES", "RL_HARNESS_PROBES"),
+            ("RL_EVAL_OUT_DIR", "RL_HARNESS_OUT_DIR"),
+            ("RL_HARNESS_PAINTERS", null),
         };
 
         // A null source selects the smoke fixture; graphics detection is injected for tests.
@@ -390,13 +397,14 @@ namespace Game.RLHarness
             openLoopArchetypes = new[] { archetype };
         }
 
-        // A stale script setting a retired name would otherwise silently eval the smoke fixture.
+        // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).
         private static void ThrowOnRetiredNames(Func<string, string> getEnv)
         {
-            foreach (var retired in RetiredNames)
-                if (getEnv(retired) != null)
-                    throw new ArgumentException(
-                        $"{retired} is retired; set RL_HARNESS_{retired.Substring("RL_EVAL_".Length)} instead.");
+            foreach (var (name, replacement) in RetiredNames)
+                if (getEnv(name) != null)
+                    throw new ArgumentException(replacement != null
+                        ? $"{name} is retired; set {replacement} instead."
+                        : $"{name} is retired and removed with no replacement.");
         }
 
         private static int ParseEpisodes(string value)
