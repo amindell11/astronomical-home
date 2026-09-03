@@ -60,7 +60,6 @@ namespace Game.RLHarness
             var plantConfig = settings.ToConfig();
             plantConfig.ApplyDynamics(in dynamics);
             plantConfig.dt = scenario.simDt;
-            plantConfig.invDt = 1f / scenario.simDt;
 
             var state = new State { pos = scenario.startPos, vel = scenario.startVel, yaw = scenario.startYawRad };
             var sampler = new ControllerSampler(ControllerProbe.DefaultTorqueDeadband,

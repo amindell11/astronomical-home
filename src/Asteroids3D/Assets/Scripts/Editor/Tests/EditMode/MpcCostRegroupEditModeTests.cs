@@ -14,7 +14,7 @@ namespace Tests.EditMode
         // Every surviving cost group live (tracker, aim, regularizers, control terms, obstacles, terminal ramp) so the identity is exercised across all terms at once.
         private static Config RichConfig() => new()
         {
-            dt = 0.1f, invDt = 10f, horizon = 17,
+            dt = 0.1f, horizon = 17,
             wYawRate = 0.1f,
             terminalMultiplier = 10f, terminalCurve = 1f,
             wEffort = 0.05f, wSmoothnessThrust = 0.5f, wSmoothnessStrafe = 5f, wSmoothnessYaw = 0.2f,

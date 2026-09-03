@@ -113,7 +113,6 @@ namespace Movement.MPC
             return new Config
             {
                 dt = rolloutDt,
-                invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
                 horizon = Horizon,
                 wYawRate = wYawRate,
                 terminalMultiplier = terminalMultiplier,
