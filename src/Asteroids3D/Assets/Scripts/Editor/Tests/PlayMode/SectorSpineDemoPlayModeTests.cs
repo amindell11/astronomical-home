@@ -23,6 +23,7 @@ namespace Tests.PlayMode
         private static readonly Vector2 GatePlane = new(50f, 50f);
 
         private UnitService _unitService;
+        private WorldHandle _world;
         private GameServices _services;
         private ObjectiveService _objectives;
         private SectorSettings _config;
@@ -39,13 +40,12 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var arena = Tests.Common.TestArena.On(unitServiceGO, _unitService.Registry);
-            _unitService.SetArena(arena);
+            _world = Tests.Common.TestWorld.On(_unitService.Registry);
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
                 _unitService, projectiles, new EnvironmentService(), _objectives,
-                new CameraService(), new UIService(), arena);
+                new CameraService(), new UIService());
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
@@ -124,7 +124,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_services, _config, player);
+            sector.Initialize(_services, _config, _world, player);
             return (sector, key, zone, player, chaser);
         }
 
@@ -342,7 +342,7 @@ namespace Tests.PlayMode
             var module = moduleGO.AddComponent<SectorSpineModule>();
             module.Bind(key, zone);
 
-            var ctx = new SectorBuildContext(new StubServices(svc), null, null, new SectorEventBus());
+            var ctx = new SectorBuildContext(new StubServices(svc), null, null, null, new SectorEventBus());
             yield return module.Setup(ctx);
             Assert.AreEqual(key.transform, svc.SpineTarget, "Sanity: the live module reports the spine target.");
 
@@ -370,7 +370,6 @@ namespace Tests.PlayMode
             public IObjectiveService ObjectiveService => objectives;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-            public ArenaContext Arena => null;
             public bool PresentationEnabled => true;
         }
     }

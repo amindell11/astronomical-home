@@ -27,7 +27,7 @@ namespace AI
         [SerializeField] private float combatExitDelay = 3f;
 
         protected ShipControl control;
-        protected ArenaContext arena;
+        protected WorldHandle world;
         protected bool systemsInitialized;
 
         // Per-slot engage gates, latched from the last decision; the Gunner owns trigger timing.
@@ -64,9 +64,9 @@ namespace AI
             return Brain;
         }
 
-        public void SetArena(ArenaContext arenaContext)
+        public void SetWorld(WorldHandle worldHandle)
         {
-            arena = arenaContext;
+            world = worldHandle;
             TryInitializeSystems();
         }
 
@@ -78,13 +78,13 @@ namespace AI
 
         private void TryInitializeSystems()
         {
-            if (systemsInitialized || control.Ship == null || arena == null)  return;
+            if (systemsInitialized || control.Ship == null || world == null) return;
             var self = control.Ship;
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
+            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, world);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)

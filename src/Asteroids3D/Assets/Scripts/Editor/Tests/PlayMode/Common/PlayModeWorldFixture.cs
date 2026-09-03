@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Per-test world fixture: arena (registry), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
+/// <summary>Per-test world fixture: world handle (registry, swappable obstacle field), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
 public abstract class PlayModeWorldFixture
 {
     /// <summary>Override false if a test needs audio.</summary>
@@ -21,7 +21,10 @@ public abstract class PlayModeWorldFixture
     private float savedMaxDelta;
 
     /// <summary>The per-test world-frame handle wired into AI ships.</summary>
-    protected ArenaContext Arena { get; private set; }
+    protected WorldHandle World { get; private set; }
+
+    /// <summary>The world's obstacle source; set <c>Inner</c> to swap what the ships see mid-test.</summary>
+    protected TestWorld.SwappableField ObstacleField { get; private set; }
 
     /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
@@ -44,7 +47,8 @@ public abstract class PlayModeWorldFixture
         TestSceneBuilder.CreateTestArena();
 
         arenaHost = new GameObject("[TestArena]");
-        Arena = TestArena.On(arenaHost);
+        ObstacleField = new TestWorld.SwappableField();
+        World = TestWorld.On(field: ObstacleField);
         Projectiles = new ProjectileService(arenaHost.transform);
     }
 
@@ -53,7 +57,8 @@ public abstract class PlayModeWorldFixture
     public virtual void TearDown()
     {
         if (arenaHost) Object.DestroyImmediate(arenaHost);
-        Arena = null;
+        World = null;
+        ObstacleField = null;
         Projectiles = null;
 
         TestSceneBuilder.CleanupTestArena();

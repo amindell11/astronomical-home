@@ -8,15 +8,17 @@ namespace Game.Sectors.Utils
 {
     public class SectorUtils
     {
-        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2  playerSpawnPosition, IGameServices services)
+        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2 playerSpawnPosition,
+            IGameServices services, WorldHandle world)
         {
             // Player is team 0 by construction; only adopted enemies need a non-zero team.
             var player = services.UnitService.SpawnShip(
                 playerTemplate,
                 playerCommander,
                 0,
-                services.Arena.Place(playerSpawnPosition),
-                GamePlane.Rotation);
+                world.Place(playerSpawnPosition),
+                GamePlane.Rotation,
+                world);
             player.tag = "Player";
             // World deref is unguarded: every play-sector has one.
             services.EnvironmentService.World.Follower?.SetTarget(player.transform);

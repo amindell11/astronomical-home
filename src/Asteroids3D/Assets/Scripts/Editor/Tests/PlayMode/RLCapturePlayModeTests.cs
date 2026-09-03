@@ -25,7 +25,6 @@ namespace Tests.PlayMode
     {
         private GameObject arenaHost;
         private UnitService unitService;
-        private ArenaContext arena;
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private string outDir;
@@ -50,8 +49,6 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(true);
             arenaHost = new GameObject("[CaptureArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
-            unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
@@ -424,7 +421,7 @@ namespace Tests.PlayMode
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
             var host = hostObject.AddComponent<HarnessSessionHost>();
-            host.Initialize(spec, assets, unitService, arena, projectiles, TestAssets.NewNativeCapture());
+            host.Initialize(spec, assets, unitService, projectiles, TestAssets.NewNativeCapture());
             Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
             return host;
         }

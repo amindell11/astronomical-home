@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Asteroids.Fields;
 using Game.Sectors;
 using NUnit.Framework;
 using UnityEngine;
@@ -174,6 +175,20 @@ namespace Tests.EditMode
             var drift = SectorManifestSync.ComputeDrift(root.transform,
                 new AdoptEntry[0], new SectorSpawner[] { spawner }, new SectorModule[] { onNode });
             Assert.IsFalse(drift.HasDrift, "A synced on-node module must not read as drift.");
+        }
+
+        [Test]
+        public void Reconcile_ReportsObstacleFieldOnRecognizedNode()
+        {
+            var root = NewGO("Root");
+            var spawner = AddSpawner("Field", root.transform);
+            var field = spawner.gameObject.AddComponent<UpdatingAsteroidField>();
+
+            var result = SectorManifestSync.Reconcile(root.transform,
+                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+
+            Assert.AreSame(field, result.ObstacleField,
+                "The asteroid field carried by a recognised node must reach the manifest.");
         }
 
         [Test]

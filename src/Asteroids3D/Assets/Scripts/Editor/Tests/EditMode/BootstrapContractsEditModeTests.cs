@@ -29,11 +29,13 @@ namespace Tests.EditMode
             Assert.IsNotNull(method, "ISector must declare Initialize method");
 
             var parameters = method.GetParameters();
-            Assert.AreEqual(3, parameters.Length);
+            Assert.AreEqual(4, parameters.Length);
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(SectorSettings), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(Ship), parameters[2].ParameterType,
-                "Initialize must accept the injected session-rig player as its third parameter");
+            Assert.AreEqual(typeof(WorldHandle), parameters[2].ParameterType,
+                "Initialize must accept the composition-root world handle as its third parameter");
+            Assert.AreEqual(typeof(Ship), parameters[3].ParameterType,
+                "Initialize must accept the injected session-rig player as its fourth parameter");
         }
 
         [Test]
@@ -59,7 +61,7 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null, null, null),
+                new GameServices(null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
         }
 

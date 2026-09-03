@@ -41,8 +41,9 @@ namespace Game.Session
             // The session root doubles as the arena root: placed at the profile offset before anything composes against it.
             transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
 
-            var (arena, projectiles) = ShipServices.Compose(
-                unitService, transform, target.Profile.offset, target.Profile.presentation);
+            var projectiles = ShipServices.Compose(unitService, transform, target.Profile.presentation);
+            // Before any sector loads the session is a world with no rocks; the rig's player spawns into it.
+            target.World = NoRocksWorld(target);
 
             target.Services = new GameServices(
                 unitService: unitService,
@@ -51,7 +52,6 @@ namespace Game.Session
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
                 uiService: new UIService(),
-                arena: arena,
                 presentationEnabled: target.Profile.presentation
             );
 
@@ -59,7 +59,7 @@ namespace Game.Session
             {
                 target.Rig = playerRig;
                 // Consume the driver-set OnPlayerDeath hook; never overwrite it.
-                yield return playerRig.Build(target.Services, target.Profile.buildPlayer, target.OnPlayerDeath);
+                yield return playerRig.Build(target.Services, target.Profile.buildPlayer, target.World, target.OnPlayerDeath);
             }
         }
 
@@ -82,8 +82,9 @@ namespace Game.Session
 
             var sector = Instantiate(entry.prefab, holder.transform);
             target.ActiveSector = sector;
+            target.World = new WorldHandle(target.Profile.offset, unitService.Registry, sector.ObstacleField);
             // Inject the persistent rig's player — the sector references it, never builds/owns it.
-            sector.Initialize(target.Services, entry.config, target.Rig ? target.Rig.Player : null);
+            sector.Initialize(target.Services, entry.config, target.World, target.Rig ? target.Rig.Player : null);
 
             if (target.OnSectorComplete != null)
                 sector.OnSectorComplete += target.OnSectorComplete;
@@ -109,6 +110,7 @@ namespace Game.Session
             target.Services.Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(target, runTeardown: true);
+            target.World = NoRocksWorld(target);
         }
 
         /// <summary>Session exit: drop the sector (without running its teardown phase), tear down the persistent rig, and wipe every registry.</summary>
@@ -126,7 +128,11 @@ namespace Game.Session
 
             target.Services?.ClearAll();
             target.Services = null;
+            target.World = null;
         }
+
+        private WorldHandle NoRocksWorld(GameSession target) =>
+            new(target.Profile.offset, unitService.Registry, obstacleField: null);
 
         /// <summary>Install the session rig's standing loadout onto the persistent player.</summary>
         public void ApplyLoadout(GameSession session) => session.Rig?.ApplyLoadout();

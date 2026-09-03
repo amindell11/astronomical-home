@@ -50,6 +50,7 @@ namespace Tests.PlayMode
         }
 
         private UnitService _unitService;
+        private WorldHandle _world;
         private GameServices _services;
         private SectorSettings _config;
         private readonly List<GameObject> _created = new();
@@ -65,13 +66,12 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var arena = Tests.Common.TestArena.On(unitServiceGO, _unitService.Registry);
-            _unitService.SetArena(arena);
+            _world = Tests.Common.TestWorld.On(_unitService.Registry);
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
                 _unitService, projectiles, new EnvironmentService(), objectiveService,
-                new CameraService(), new UIService(), arena);
+                new CameraService(), new UIService());
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
 
@@ -106,7 +106,7 @@ namespace Tests.PlayMode
             // Author content under an INACTIVE sector — mirrors SessionHost's inactive holder so authored ships don't Awake before adoption.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.Initialize(_services, _config, null);
+            sector.Initialize(_services, _config, _world, null);
             return sector;
         }
 
@@ -116,7 +116,7 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
-            sector.Initialize(_services, _config, null);
+            sector.Initialize(_services, _config, _world, null);
             return sector;
         }
 
@@ -370,12 +370,12 @@ namespace Tests.PlayMode
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var s = _unitService.SpawnShip(ship, cmdr, 0,
-                GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
+                GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation, _world);
             Assert.IsNotNull(s);
 
             var point = new Vector2(17f, -9f);
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
-            Assert.IsTrue(Respawn.Wire(s, policy, _services), "FixedPoint policy must wire a respawn.");
+            Assert.IsTrue(Respawn.Wire(s, policy, _services, _world.Offset), "FixedPoint policy must wire a respawn.");
 
             TestDamage.Kill(s);
 
@@ -396,11 +396,11 @@ namespace Tests.PlayMode
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var spawnWorld = GamePlane.PlanePointToWorld(new Vector2(5f, 0f));
-            var s = _unitService.SpawnShip(ship, cmdr, 0, spawnWorld, GamePlane.Rotation);
+            var s = _unitService.SpawnShip(ship, cmdr, 0, spawnWorld, GamePlane.Rotation, _world);
             Assert.IsNotNull(s);
 
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
-            Assert.IsFalse(Respawn.Wire(s, policy, _services), "A None policy must wire nothing.");
+            Assert.IsFalse(Respawn.Wire(s, policy, _services, _world.Offset), "A None policy must wire nothing.");
 
             TestDamage.Kill(s);
 

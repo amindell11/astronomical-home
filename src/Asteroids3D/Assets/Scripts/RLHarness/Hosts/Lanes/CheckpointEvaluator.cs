@@ -80,7 +80,7 @@ namespace Game.RLHarness
             var blocks = Blocks(sessionSpec);
             var outcomes = new List<(string opponent, string outcome)>();
             var field = baseSpec.useAsteroidField
-                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale,
+                ? HarnessField.Spawn(host.Offset, host.Assets, baseSpec.fieldDensityScale,
                     presentationEnabled: sessionSpec.Presentation)
                 : null;
 

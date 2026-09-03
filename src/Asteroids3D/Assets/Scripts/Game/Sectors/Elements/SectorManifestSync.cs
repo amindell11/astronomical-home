@@ -15,6 +15,8 @@ namespace Game.Sectors
             public readonly AdoptEntry[] Adopted;
             public readonly SectorSpawner[] Spawners;
             public readonly SectorModule[] Modules;
+            /// <summary>The single authored asteroid field, or null; a second one is an authoring error and throws at bake.</summary>
+            public readonly UpdatingAsteroidField ObstacleField;
             public readonly int AppendedAdopt;
             public readonly int AppendedSpawner;
             public readonly int AppendedModule;
@@ -23,12 +25,14 @@ namespace Game.Sectors
             public readonly int OrphanedModule;
 
             public ReconcileResult(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
+                UpdatingAsteroidField obstacleField,
                 int appendedAdopt, int appendedSpawner, int appendedModule,
                 int orphanedAdopt, int orphanedSpawner, int orphanedModule)
             {
                 Adopted = adopted;
                 Spawners = spawners;
                 Modules = modules;
+                ObstacleField = obstacleField;
                 AppendedAdopt = appendedAdopt;
                 AppendedSpawner = appendedSpawner;
                 AppendedModule = appendedModule;
@@ -181,8 +185,24 @@ namespace Game.Sectors
 
             return new ReconcileResult(
                 keptAdopt.ToArray(), keptSpawners.ToArray(), keptModules.ToArray(),
+                SingleObstacleField(collected),
                 appendedAdopt, appendedSpawner, appendedModule,
                 orphanedAdopt, orphanedSpawner, orphanedModule);
+        }
+
+        /// <summary>The field ON a recognised node (the field prefab's spawner wins recognition, so the crawl never yields the field itself).</summary>
+        private static UpdatingAsteroidField SingleObstacleField(List<Component> collected)
+        {
+            UpdatingAsteroidField found = null;
+            foreach (var c in collected)
+            {
+                if (!c.TryGetComponent<UpdatingAsteroidField>(out var field)) continue;
+                if (found)
+                    throw new System.InvalidOperationException(
+                        $"Sector authors two asteroid fields ('{found.name}', '{field.name}'); a world has one obstacle field.");
+                found = field;
+            }
+            return found;
         }
 
         /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnToken on an adopted ship) are collected, its subtree is not.</summary>

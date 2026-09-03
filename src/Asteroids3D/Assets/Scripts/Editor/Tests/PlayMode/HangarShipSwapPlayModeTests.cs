@@ -52,8 +52,7 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
-            unitService.SetArena(arena);
+            var world = Tests.Common.TestWorld.On(unitService.Registry);
             var projectiles = new ProjectileService(servicesGo.transform);
             unitService.SetProjectiles(projectiles);
             services = new GameServices(
@@ -62,13 +61,12 @@ namespace Tests.PlayMode
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
-                uiService: new UIService(),
-                arena: arena);
+                uiService: new UIService());
 
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, onPlayerDeath: onPlayerDeath);
+            yield return rig.Build(services, buildPlayer: true, world, onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

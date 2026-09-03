@@ -1,5 +1,4 @@
 using Game;
-using Game.Services;
 using UnityEngine;
 
 namespace AI.Scanning
@@ -120,7 +119,7 @@ namespace AI.Scanning
     public class ObstacleScanner
     {
         private readonly Transform origin;
-        private readonly ArenaContext arena;
+        private readonly IObstacleField field;
 
         public DetectedObstacle[] DetectedBuffer { get; }
         public int DetectedCount { get; private set; }
@@ -135,25 +134,21 @@ namespace AI.Scanning
         /// <param name="maxSpeed">Ship max speed (plane units/s).</param>
         /// <param name="maxAccel">Max acceleration magnitude (units/s²); extends the envelope.</param>
         /// <param name="lookaheadTime">Planning horizon the envelope must cover, seconds.</param>
+        /// <param name="field">The world's obstacle source; null senses zero static obstacles.</param>
         public ObstacleScanner(Transform origin, float maxSpeed, float maxAccel,
-            float lookaheadTime, ArenaContext arena, int bufferSize = 64)
+            float lookaheadTime, IObstacleField field, int bufferSize = 64)
         {
             this.origin = origin;
-            this.arena = arena;
+            this.field = field;
             HalfExtent = maxSpeed * lookaheadTime + 0.5f * maxAccel * lookaheadTime * lookaheadTime;
             DetectedBuffer = new DetectedObstacle[bufferSize];
             DetectedCount = 0;
         }
 
-        /// <summary>
-        /// Query the arena's obstacle field (read per-scan off the handle) for live asteroids inside
-        /// the fixed box around the ship. A null field (no sector, or a sector without asteroids)
-        /// clears the buffer.
-        /// </summary>
+        /// <summary>Query the world's obstacle field for live asteroids inside the fixed box around the ship; a null field (a world without asteroids) clears the buffer.</summary>
         public void Scan()
         {
             DetectedCount = 0;
-            var field = arena.ObstacleField;
             if (field == null) return;
             var centerPlane = GamePlane.WorldPointToPlane(origin.position);
             DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);

@@ -23,6 +23,9 @@ namespace Game.Sectors
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
         [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
 
+        [Tooltip("The authored asteroid field AI ships sense in this sector (none = a world with no rocks).")]
+        [SerializeField] private Asteroids.Fields.UpdatingAsteroidField obstacleField;
+
         protected IGameServices Services { get; private set; }
         protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
@@ -37,6 +40,9 @@ namespace Game.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
+        /// <summary>The baked obstacle field the session host builds this sector's <see cref="WorldHandle"/> from; null for a sector without rocks.</summary>
+        public AI.Scanning.IObstacleField ObstacleField => obstacleField ? obstacleField : null;
+
         /// <summary>Plane-space player start from an optional PlayerStartMarker child (sector root otherwise), recomputed each entry — the sector only declares it, the session tier does the reset.</summary>
         public Vector2 PlayerStart
         {
@@ -47,17 +53,18 @@ namespace Game.Sectors
             }
         }
 
-        public void Initialize(IGameServices services, SectorSettings config, Ship player)
+        public void Initialize(IGameServices services, SectorSettings config, WorldHandle world, Ship player)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            Context = new SectorBuildContext(Services, this, player);
+            if (world == null) throw new ArgumentNullException(nameof(world));
+            Context = new SectorBuildContext(Services, this, world, player);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
-            Context = new SectorBuildContext(Services, this, Context.Player, new SectorEventBus());
+            Context = new SectorBuildContext(Services, this, Context.World, Context.Player, new SectorEventBus());
 
             yield return OnBeforeContent();
 
@@ -127,9 +134,9 @@ namespace Game.Sectors
         private void AdoptShip(Ship ship, AdoptEntry entry)
         {
             ship.teamNumber = entry.team;
-            var adoptedShip = Services.UnitService.AdoptShip(ship);
+            var adoptedShip = Services.UnitService.AdoptShip(ship, Context.World);
             if (!adoptedShip) return;
-            Respawn.Wire(adoptedShip, entry.respawn, Services);
+            Respawn.Wire(adoptedShip, entry.respawn, Services, Context.World.Offset);
             if (!entry.startActive) adoptedShip.gameObject.SetActive(false);
         }
 
@@ -141,6 +148,7 @@ namespace Game.Sectors
             adopted = result.Adopted;
             spawners = result.Spawners;
             modules = result.Modules;
+            obstacleField = result.ObstacleField;
             return result;
         }
 
@@ -149,11 +157,13 @@ namespace Game.Sectors
             SectorManifestSync.ComputeDrift(transform, adopted, spawners, modules);
 
         /// <summary>Test/editor seam mirroring what the inspector Sync writes; null arguments leave that slice untouched.</summary>
-        internal void SetManifest(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules)
+        internal void SetManifest(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
+            Asteroids.Fields.UpdatingAsteroidField obstacleField = null)
         {
             if (adopted != null) this.adopted = adopted;
             if (spawners != null) this.spawners = spawners;
             if (modules != null) this.modules = modules;
+            if (obstacleField) this.obstacleField = obstacleField;
         }
 #endif
 

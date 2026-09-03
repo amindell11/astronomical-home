@@ -31,10 +31,10 @@ namespace Game.RLHarness
         }
 
         /// <summary>Spawns the pair at the (runSeed, episode 0) poses; the brain factory installs on the agent's commander and sees the baseline ship, so it can configure the injected opponent before the commanders initialize.</summary>
-        public static EpisodePair Spawn(UnitService units, ArenaContext arena, IProjectileService projectiles,
+        public static EpisodePair Spawn(UnitService units, WorldHandle world, IProjectileService projectiles,
             in RewardSpec spec, Func<AICommander, Ship, Brain> installAgentBrain, HarnessAssets assets)
         {
-            var poses = EpisodePoses.Derive(in spec, 0, arena.Offset);
+            var poses = EpisodePoses.Derive(in spec, 0, world.Offset);
             var rootScope = new SeedScope(spec.runSeed);
 
             var agent = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
@@ -48,20 +48,20 @@ namespace Game.RLHarness
             baseline.GetComponentInChildren<AICommander>().InstallBrain<ArchetypeBrain>()
                 .Configure(agent, OpponentArchetype.Aggressor,
                     new OpponentDraw { desiredRange = 10f, speedFraction = 0.85f },
-                    jukeSeed: 0, arena.Offset, spec.arenaRadius);
+                    jukeSeed: 0, world.Offset, spec.arenaRadius);
 
-            units.WireShipDependencies(agent);
-            units.WireShipDependencies(baseline);
+            units.WireShipDependencies(agent, world);
+            units.WireShipDependencies(baseline, world);
 
-            return new EpisodePair(units, projectiles, arena.Offset, agent, baseline);
+            return new EpisodePair(units, projectiles, world.Offset, agent, baseline);
         }
 
         /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="PolicyBrain"/> (injected opponent) — the single recipe every agent host (training, eval, tests) shares.</summary>
-        public static EpisodePair SpawnWithAgentBrain(UnitService units, ArenaContext arena,
+        public static EpisodePair SpawnWithAgentBrain(UnitService units, WorldHandle world,
             IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets, out PolicyBrain brain)
         {
             PolicyBrain created = null;
-            var pair = Spawn(units, arena, projectiles, in spec, (commander, baselineShip) =>
+            var pair = Spawn(units, world, projectiles, in spec, (commander, baselineShip) =>
             {
                 created = commander.InstallBrain<PolicyBrain>();
                 created.Configure(baselineShip);
@@ -72,11 +72,11 @@ namespace Game.RLHarness
         }
 
         /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="PolicyBrain"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No scripted baseline — both ships are agent-driven.</summary>
-        public static EpisodePair SpawnSelfPlayPair(UnitService units, ArenaContext arena,
+        public static EpisodePair SpawnSelfPlayPair(UnitService units, WorldHandle world,
             IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
             out PolicyBrain brainA, out PolicyBrain brainB)
         {
-            var poses = EpisodePoses.Derive(in spec, 0, arena.Offset);
+            var poses = EpisodePoses.Derive(in spec, 0, world.Offset);
             var rootScope = new SeedScope(spec.runSeed);
 
             var shipA = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
@@ -87,9 +87,9 @@ namespace Game.RLHarness
             brainA = InstallAgentBrain(shipA, opponent: shipB);
             brainB = InstallAgentBrain(shipB, opponent: shipA);
 
-            units.WireShipDependencies(shipA);
-            units.WireShipDependencies(shipB);
-            return new EpisodePair(units, projectiles, arena.Offset, shipA, shipB);
+            units.WireShipDependencies(shipA, world);
+            units.WireShipDependencies(shipB, world);
+            return new EpisodePair(units, projectiles, world.Offset, shipA, shipB);
         }
 
         private static PolicyBrain InstallAgentBrain(Ship ship, Ship opponent)

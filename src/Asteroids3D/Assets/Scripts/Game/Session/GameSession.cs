@@ -22,6 +22,9 @@ namespace Game.Session
         /// <summary>Service registries owned by this session; cleared on session teardown.</summary>
         public GameServices Services { get; internal set; }
 
+        /// <summary>The world ships currently spawn into: the loaded sector's handle, or the no-rocks handle between sectors; null once torn down.</summary>
+        public WorldHandle World { get; internal set; }
+
         /// <summary>Session-tier player/camera/UI/world rig; null for headless sessions.</summary>
         public SessionRig Rig { get; internal set; }
 

@@ -22,8 +22,8 @@ namespace Tests.PlayMode
 
         private GameObject hostA;
         private GameObject hostB;
-        private ArenaContext arenaA;
-        private ArenaContext arenaB;
+        private WorldHandle worldA;
+        private WorldHandle worldB;
         private HarnessField fieldA;
         private HarnessField fieldB;
         private EpisodePair pairA;
@@ -84,8 +84,8 @@ namespace Tests.PlayMode
             fieldB = null;
             if (hostA) Object.DestroyImmediate(hostA);
             if (hostB) Object.DestroyImmediate(hostB);
-            arenaA = null;
-            arenaB = null;
+            worldA = null;
+            worldB = null;
 
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
@@ -99,21 +99,21 @@ namespace Tests.PlayMode
             var specA = TightSpec(TrainingHost.DeriveArenaSeed(EvalProtocol.TrainingRunSeed, 0));
             var specB = TightSpec(TrainingHost.DeriveArenaSeed(EvalProtocol.TrainingRunSeed, 1));
 
-            (hostA, arenaA, fieldA, pairA, agentA, driverA, projectilesA) = ComposeArena("Arena0", TrainingHost.ArenaOffset(0), in specA);
-            (hostB, arenaB, fieldB, pairB, agentB, driverB, projectilesB) = ComposeArena("Arena1", TrainingHost.ArenaOffset(1), in specB);
+            (hostA, worldA, fieldA, pairA, agentA, driverA, projectilesA) = ComposeArena("Arena0", TrainingHost.ArenaOffset(0), in specA);
+            (hostB, worldB, fieldB, pairB, agentB, driverB, projectilesB) = ComposeArena("Arena1", TrainingHost.ArenaOffset(1), in specB);
 
             // (a) Provider isolation: each arena's ships were wired to their own arena handle and field instance.
-            Assert.AreSame(fieldA.Field, arenaA.ObstacleField, "arena 0's handle must expose its own field");
-            Assert.AreSame(fieldB.Field, arenaB.ObstacleField, "arena 1's handle must expose its own field");
-            Assert.AreNotSame(arenaA.ObstacleField, arenaB.ObstacleField, "the two arenas must not share a field instance");
+            Assert.AreSame(fieldA.Field, worldA.ObstacleField, "arena 0's handle must expose its own field");
+            Assert.AreSame(fieldB.Field, worldB.ObstacleField, "arena 1's handle must expose its own field");
+            Assert.AreNotSame(worldA.ObstacleField, worldB.ObstacleField, "the two arenas must not share a field instance");
             foreach (var ship in new[] { pairA.Agent, pairA.Baseline })
-                Assert.AreSame(arenaA, CommanderArena(ship), $"{ship.name} in arena 0 must be wired to arena 0's context");
+                Assert.AreSame(worldA, CommanderWorld(ship), $"{ship.name} in arena 0 must be wired to arena 0's context");
             foreach (var ship in new[] { pairB.Agent, pairB.Baseline })
-                Assert.AreSame(arenaB, CommanderArena(ship), $"{ship.name} in arena 1 must be wired to arena 1's context");
+                Assert.AreSame(worldB, CommanderWorld(ship), $"{ship.name} in arena 1 must be wired to arena 1's context");
 
             // (b) Decorrelation: the arena-1 seed derives different episode-0 poses than arena 0's.
-            var relA = GamePlane.WorldPointToPlane(pairA.Agent.transform.position) - arenaA.Offset;
-            var relB = GamePlane.WorldPointToPlane(pairB.Agent.transform.position) - arenaB.Offset;
+            var relA = GamePlane.WorldPointToPlane(pairA.Agent.transform.position) - worldA.Offset;
+            var relB = GamePlane.WorldPointToPlane(pairB.Agent.transform.position) - worldB.Offset;
             Assert.Greater((relA - relB).magnitude, 1e-3f,
                 "arena 1's episode-0 spawn pose must differ from arena 0's — identical poses mean the arena seed re-correlated");
 
@@ -128,8 +128,8 @@ namespace Tests.PlayMode
             {
                 yield return new WaitForFixedUpdate();
                 // (c) Spatial confinement: no ship crosses into the neighbor arena's half of the line.
-                AssertConfined(pairA, arenaA);
-                AssertConfined(pairB, arenaB);
+                AssertConfined(pairA, worldA);
+                AssertConfined(pairB, worldB);
                 if (aAlive) aAlive = loopA.MoveNext();
                 if (bAlive) bAlive = loopB.MoveNext();
             }
@@ -151,17 +151,18 @@ namespace Tests.PlayMode
             return spec;
         }
 
-        private (GameObject, ArenaContext, HarnessField, EpisodePair, ShipAgent, EpisodeLoopDriver, ProjectileService) ComposeArena(
+        private (GameObject, WorldHandle, HarnessField, EpisodePair, ShipAgent, EpisodeLoopDriver, ProjectileService) ComposeArena(
             string name, Vector2 offset, in RewardSpec spec)
         {
             var host = new GameObject(name);
             var units = host.AddComponent<UnitService>();
-            var (arena, projectiles) = ShipServices.Compose(units, host.transform, offset, presentationEnabled: true);
-            var field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform);
-            var pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
-            var agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset, host.transform);
-            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
-            return (host, arena, field, pair, agent, driver, projectiles);
+            var projectiles = ShipServices.Compose(units, host.transform, presentationEnabled: true);
+            var field = HarnessField.Spawn(offset, assets, spec.fieldDensityScale, host.transform);
+            var world = new WorldHandle(offset, units.Registry, field.Field);
+            var pair = EpisodePair.SpawnWithAgentBrain(units, world, projectiles, in spec, assets, out var brain);
+            var agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, world.Offset, host.transform);
+            var driver = new EpisodeLoopDriver(pair, agent, world.Offset, field);
+            return (host, world, field, pair, agent, driver, projectiles);
         }
 
         private static IEnumerator ArenaEpisodes(EpisodeLoopDriver driver, RewardSpec spec, int[] completed)
@@ -175,20 +176,20 @@ namespace Tests.PlayMode
             }
         }
 
-        private static ArenaContext CommanderArena(Ship ship)
+        private static WorldHandle CommanderWorld(Ship ship)
         {
             var commander = ship.GetComponentInChildren<AICommander>();
-            var field = typeof(AICommander).GetField("arena", BindingFlags.NonPublic | BindingFlags.Instance);
-            return (ArenaContext)field.GetValue(commander);
+            var field = typeof(AICommander).GetField("world", BindingFlags.NonPublic | BindingFlags.Instance);
+            return (WorldHandle)field.GetValue(commander);
         }
 
-        private static void AssertConfined(EpisodePair pair, ArenaContext arena)
+        private static void AssertConfined(EpisodePair pair, WorldHandle world)
         {
             foreach (var ship in new[] { pair.Agent, pair.Baseline })
             {
                 if (!ship) continue;
                 var planeX = GamePlane.WorldPointToPlane(ship.transform.position).x;
-                Assert.Less(Mathf.Abs(planeX - arena.Offset.x), TrainingHost.ArenaSpacing * 0.5f,
+                Assert.Less(Mathf.Abs(planeX - world.Offset.x), TrainingHost.ArenaSpacing * 0.5f,
                     $"{ship.name} left its arena's half of the fan-out line — arena isolation leak");
             }
         }

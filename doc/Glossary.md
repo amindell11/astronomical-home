@@ -374,8 +374,14 @@ Format: **term** — definition. *(authority)*
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
   arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
-  physical leakage — is a known, accepted consequence rather than a bug.
-  *(ArenaContext is the per-arena handle)*
+  physical leakage — is a known, accepted consequence rather than a bug. The
+  harness's per-arena composition builds a *WorldHandle* at its offset; "arena"
+  names the isolation unit, never the handle.
+- **WorldHandle** — the immutable per-world-load handle an AI ship reads its
+  world through (offset, registry, obstacle field or null). Built only at the
+  composition root (`SessionHost` per compose/load, a harness composition per
+  field) and passed down the spawn call — never held by `UnitService`, never a
+  slot anything writes. *(`Game/Services/WorldHandle.cs`; ruling: #519 PR-2)*
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.

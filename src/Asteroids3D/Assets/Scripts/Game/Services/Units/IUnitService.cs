@@ -13,22 +13,20 @@ namespace Game.Services
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
-        /// <summary>Arena handle injected into each spawned ship; required before the first spawn.</summary>
-        void SetArena(ArenaContext arena);
-
         /// <summary>Projectile registry ships arm their weapons with; arming throws while unset.</summary>
         void SetProjectiles(IProjectileService projectiles);
 
-        /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
+        /// <summary>Spawn a ship into <paramref name="world"/>, wire its dependencies, and register it.</summary>
         Ship SpawnShip(
             Ship template,
             Commander commander,
             int team,
             Vector3 position,
-            Quaternion rotation);
+            Quaternion rotation,
+            WorldHandle world);
 
-        /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, and register it.</summary>
-        Ship AdoptShip(Ship ship);
+        /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, and register it into <paramref name="world"/>.</summary>
+        Ship AdoptShip(Ship ship, WorldHandle world);
 
         /// <summary>Destroy a single service-owned ship and unregister it, dropping any queued respawn — producer-owned teardown clears sector content while the session-tier player (never passed here) survives.</summary>
         void DespawnShip(Ship ship);
@@ -46,6 +44,6 @@ namespace Game.Services
         public void CancelPendingRespawns();
 
         /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount.</summary>
-        void WireShipDependencies(Ship ship);
+        void WireShipDependencies(Ship ship, WorldHandle world);
     }
 }

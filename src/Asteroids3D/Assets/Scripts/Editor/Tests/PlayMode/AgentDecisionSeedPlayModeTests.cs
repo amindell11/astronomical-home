@@ -21,31 +21,31 @@ namespace Tests.PlayMode
     {
         // Spawns commander-less ships (no AI init needed to read the assigned seed) into the given
         // service and returns their decision seeds in spawn order.
-        private static int[] SpawnDecisionSeeds(UnitService units, Ship template, int count, List<Ship> spawned)
+        private static int[] SpawnDecisionSeeds(UnitService units, WorldHandle world, Ship template, int count, List<Ship> spawned)
         {
             var seeds = new int[count];
             for (var i = 0; i < count; i++)
             {
                 var ship = units.SpawnShip(template, null, team: 0,
-                    new Vector3(i * 100f, 0f, 0f), Quaternion.identity);
+                    new Vector3(i * 100f, 0f, 0f), Quaternion.identity, world);
                 spawned.Add(ship);
                 seeds[i] = ship.DecisionSeed;
             }
             return seeds;
         }
 
-        private static void WithService(Action<UnitService, Ship, List<Ship>> body)
+        private static void WithService(Action<UnitService, WorldHandle, Ship, List<Ship>> body)
         {
             var host = new GameObject("TestUnitService");
             var units = host.AddComponent<UnitService>();
-            units.SetArena(Tests.Common.TestArena.On(host, units.Registry));
+            var world = Tests.Common.TestWorld.On(units.Registry);
             var template = TestAssets.LoadShip2Prefab();
             Assert.IsNotNull(template, "Ship_2 prefab failed to load");
 
             var spawned = new List<Ship>();
             try
             {
-                body(units, template, spawned);
+                body(units, world, template, spawned);
             }
             finally
             {
@@ -59,8 +59,8 @@ namespace Tests.PlayMode
         public void SpawnOrder_ReproducesDecisionSeeds_AcrossReconstructedSessions()
         {
             int[] first = null, second = null;
-            WithService((u, t, s) => first = SpawnDecisionSeeds(u, t, 4, s));
-            WithService((u, t, s) => second = SpawnDecisionSeeds(u, t, 4, s));
+            WithService((u, w, t, s) => first = SpawnDecisionSeeds(u, w, t, 4, s));
+            WithService((u, w, t, s) => second = SpawnDecisionSeeds(u, w, t, 4, s));
 
             Assert.AreEqual(first, second,
                 "A fresh session with the same spawn order must derive identical decision seeds.");
@@ -69,11 +69,11 @@ namespace Tests.PlayMode
         [Test]
         public void EpisodeReset_ViaClear_ReproducesDecisionSeeds()
         {
-            WithService((units, template, spawned) =>
+            WithService((units, world, template, spawned) =>
             {
-                var firstEpisode = SpawnDecisionSeeds(units, template, 4, spawned);
+                var firstEpisode = SpawnDecisionSeeds(units, world, template, 4, spawned);
                 units.Clear();
-                var secondEpisode = SpawnDecisionSeeds(units, template, 4, spawned);
+                var secondEpisode = SpawnDecisionSeeds(units, world, template, 4, spawned);
 
                 Assert.AreEqual(firstEpisode, secondEpisode,
                     "Clear() is the episode-reset boundary — the next episode must re-derive the same seeds.");
@@ -84,7 +84,7 @@ namespace Tests.PlayMode
         public void SpawnedAgents_HaveDistinctNonzeroDecisionSeeds()
         {
             int[] seeds = null;
-            WithService((u, t, s) => seeds = SpawnDecisionSeeds(u, t, 5, s));
+            WithService((u, w, t, s) => seeds = SpawnDecisionSeeds(u, w, t, 5, s));
 
             CollectionAssert.AllItemsAreUnique(seeds,
                 "Each spawned agent must get a distinct decision seed.");

@@ -100,7 +100,7 @@ namespace Tests.EditMode
             rockHost = rock.gameObject;
 
             var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
-            commander.SetArena(TestArena.On(host, registry));
+            commander.SetWorld(TestWorld.On(registry));
             commander.Initialize(new ShipControl(status, new StubPilot(), new SeedScope(1),
                 new StubWeaponContext(), new NoWeapons()));
             createdSettings = commander.Navigator.mpcSettings;
