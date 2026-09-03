@@ -6,15 +6,15 @@ using Player;
 using UnityEngine;
 using Utils;
 
-namespace Game.Bootstrap
+namespace Game.Session
 {
     /// <summary>
-    /// The below-seam half of the session tier: the driver-agnostic lifecycle primitives an
-    /// interactive game or a headless/RL harness drives over an explicit per-session
-    /// <see cref="GameSession"/>. The primitives compose the service container + optional player/camera/UI
-    /// rig, cycle the sector, and tear the session down; they carry no clock and no reset policy — the
-    /// driver above them supplies both. The dependency points UP only — a driver references the host; the
-    /// host never references any driver.
+    /// The below-seam half of the session tier: the lifecycle primitives <see cref="GameDriver"/> drives
+    /// over an explicit per-session <see cref="GameSession"/>. The primitives compose the service container
+    /// + optional player/camera/UI rig, cycle the sector, and tear the session down; they carry no clock
+    /// and no reset policy — the driver above them supplies both. The dependency points UP only — a driver
+    /// references the host; the host never references any driver. The RL harness does not drive these: it
+    /// composes the substrate under them directly through <see cref="Services.ShipServices"/>.
     /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
@@ -41,11 +41,8 @@ namespace Game.Bootstrap
             // The session root doubles as the arena root: placed at the profile offset before anything composes against it.
             transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
 
-            var arena = new ArenaContext(target.Profile.offset, unitService.Registry);
-            unitService.SetArena(arena);
-
-            var projectiles = new ProjectileService(transform, target.Profile.presentation);
-            unitService.SetProjectiles(projectiles);
+            var (arena, projectiles) = ShipServices.Compose(
+                unitService, transform, target.Profile.offset, target.Profile.presentation);
 
             target.Services = new GameServices(
                 unitService: unitService,

@@ -1,3 +1,4 @@
+using Game.Services;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
@@ -10,7 +11,8 @@ namespace Game.RLHarness
 
         public SelfPlayComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset, presentationEnabled: false);
+            var units = host.AddComponent<UnitService>();
+            var (arena, projectiles) = ShipServices.Compose(units, host.transform, offset, presentationEnabled: false);
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;

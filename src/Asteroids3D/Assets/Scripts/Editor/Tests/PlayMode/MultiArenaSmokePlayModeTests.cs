@@ -6,7 +6,7 @@ using AI;
 using AI.Context;
 using AI.Scanning;
 using Game;
-using Game.Bootstrap;
+using Game.Session;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
