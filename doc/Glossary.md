@@ -383,18 +383,6 @@ Format: **term** — definition. *(authority)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
-<<<<<<< Updated upstream
-=======
-- **mechanical rebase** — re-expressing a scripted law's emitted command in the
-  anchored frame with no behavioral redesign: the same law numbers, read under
-  anchored (enemy-relative) semantics — which is why the anchored arm carries an
-  automatic enemy-velocity lead. K1-2's manipulation, as against a learned
-  policy change. *(VelocityRebase.ToAnchored)*
-- **velrebase** (probe) — the K1-2 open-loop instrument: paired
-  legacy-vs-anchored arms against a fixed-circuit enemy. The load-bearing
-  constraint is that churn is measured from ship kinematics, never in the
-  command's native space. *(VelRebaseProbe, VelRebaseLane)*
->>>>>>> Stashed changes
 - **controller** (probe) — the MPC-retune instrument separating target-motion
   yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
