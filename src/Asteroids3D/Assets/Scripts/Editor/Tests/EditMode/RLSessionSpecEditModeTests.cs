@@ -327,6 +327,15 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void RetiredPaintersSelector_ThrowsAsRemoved()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "steering"),
+                "the deleted painter selector must fail loudly, not be silently ignored into plain footage");
+            StringAssert.Contains("RL_HARNESS_PAINTERS", thrown.Message);
+            StringAssert.Contains("no replacement", thrown.Message);
+        }
+
+        [Test]
         public void GarbageValues_ThrowAtTheBoundaryInsteadOfBeingIgnored()
         {
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "abc"));
