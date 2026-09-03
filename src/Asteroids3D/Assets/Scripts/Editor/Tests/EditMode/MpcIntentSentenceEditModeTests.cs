@@ -19,7 +19,7 @@ namespace Tests.EditMode
 
         private static Config BareConfig() => new()
         {
-            dt = 0.1f, invDt = 10f, horizon = 17,
+            dt = 0.1f, horizon = 17,
             wFacing = 1f, facingWidth = 0.5f, facingTarget = float.NaN,
             wPos = 2f, posWidth = PosWidth,
             wLane = 2f, laneRange = LaneRange, laneWidth = LaneWidth,
@@ -505,7 +505,7 @@ namespace Tests.EditMode
 
         private static Config ObstacleConfig() => new()
         {
-            dt = 0.1f, invDt = 10f, horizon = 17,
+            dt = 0.1f, horizon = 17,
             facingTarget = float.NaN,
             wObstacle = 5f, collisionPenalty = 10000f, collisionSafetyMargin = 0.3f,
             maxBankAngleRad = 35f * Mathf.Deg2Rad, maxSpeedSq = 900f,
