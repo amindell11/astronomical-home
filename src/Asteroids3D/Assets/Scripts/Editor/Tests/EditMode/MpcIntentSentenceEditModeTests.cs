@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the intent-sentence additions (doc/Feature_Plans/Intent_Grammar.md): the POS and LANE terms' normalization contracts, frame/referent resolution, the error-relative POS width law, FIELD's turn-away-only authority, synthetic-referent extrapolation, the AIM (FacingCost) normalization contract, and the sentence-slot generalizations of idleness and the world velocity reference.</summary>
+    /// <summary>Pins the intent-sentence additions (#485): the POS and LANE terms' normalization contracts, frame/referent resolution, the error-relative POS width law, FIELD's turn-away-only authority, synthetic-referent extrapolation, the AIM (FacingCost) normalization contract, and the sentence-slot generalizations of idleness and the world velocity reference.</summary>
     [Category("MPC")]
     public class MpcIntentSentenceEditModeTests
     {

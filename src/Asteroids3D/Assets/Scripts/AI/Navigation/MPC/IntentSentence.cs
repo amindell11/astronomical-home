@@ -61,7 +61,7 @@ namespace Movement.MPC
         public float weight;   // Signed authority × the config's wLane ceiling
     }
 
-    /// <summary>An intent sentence: the decision-varying slice of the MPC cost as typed sentence slots, each re-resolved against live referent state every rollout step (doc/Feature_Plans/Intent_Grammar.md). Referent 0 = the bound enemy (rolled prediction stream); 1–3 = <see cref="CostInput"/>'s synthetic snapshots. Default (nothing armed) = the legacy world-frame path, bit-unchanged.</summary>
+    /// <summary>An intent sentence: the decision-varying slice of the MPC cost as typed sentence slots, each re-resolved against live referent state every rollout step (#485). Referent 0 = the bound enemy (rolled prediction stream); 1–3 = <see cref="CostInput"/>'s synthetic snapshots. Default (nothing armed) = the legacy world-frame path, bit-unchanged.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct IntentSentence
     {

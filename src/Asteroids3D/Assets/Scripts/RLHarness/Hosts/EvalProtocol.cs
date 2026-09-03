@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The frozen arc-gate eval constants (doc/Feature_Plans/RL_MLAgents_Agent.md decision 8): training seed, the 20 pinned held-out seeds (disjoint from training; never a tuning set), the pinned inference seed, and the Wilson bound the gate reads.</summary>
+    /// <summary>The frozen arc-gate eval constants (#492 decision 8): training seed, the 20 pinned held-out seeds (disjoint from training; never a tuning set), the pinned inference seed, and the Wilson bound the gate reads.</summary>
     public static class EvalProtocol
     {
         public const int TrainingRunSeed = 1;

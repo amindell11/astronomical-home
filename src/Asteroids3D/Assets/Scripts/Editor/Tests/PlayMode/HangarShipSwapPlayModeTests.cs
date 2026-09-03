@@ -19,6 +19,7 @@ namespace Tests.PlayMode
     /// Uses the real SessionRig prefab + a real service container — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
+    // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
     public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
     {

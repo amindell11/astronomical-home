@@ -11,7 +11,7 @@ namespace Game.RLHarness
         public RigScenario scenario;
     }
 
-    /// <summary>The 14-row tactic-bingo catalog: the 13 Stage A rows (Intent_Grammar.md §Staging, as amended §Forks 4) plus Stage C's field-authority row. Hand-authored sentences over scripted stimuli; geometry values are the authoring, not tuned constants.</summary>
+    /// <summary>The 14-row tactic-bingo catalog: the 13 Stage A rows (#485 §Staging, as amended §Forks 4) plus Stage C's field-authority row. Hand-authored sentences over scripted stimuli; geometry values are the authoring, not tuned constants.</summary>
     public static class RigBingoCard
     {
         public static BingoRow[] Rows() => new[]

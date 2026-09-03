@@ -23,6 +23,7 @@ namespace Tests.PlayMode
     /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
     /// <see cref="GameDriver.RunHangar"/>, so the flow is driven there.
     /// </summary>
+    // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
     public class HangarInputGatePlayModeTests : PlayModeWorldFixture
     {
