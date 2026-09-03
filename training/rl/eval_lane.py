@@ -65,7 +65,7 @@ def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> di
 
 def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
-                  opponent=None, probes=None, open_loop=None, sentence=None,
+                  opponent=None, probes=None, sentence=None,
                   lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
@@ -83,7 +83,6 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_DENSITY": density,
         "RL_HARNESS_OPPONENT": opponent,
         "RL_HARNESS_PROBES": probes,
-        "RL_HARNESS_OPENLOOP": open_loop,
         "RL_HARNESS_SENTENCE": sentence,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
@@ -145,9 +144,6 @@ def main() -> None:
     parser.add_argument("--density", default=None, help="RL_HARNESS_DENSITY (omit for the canonical eval env)")
     parser.add_argument("--opponent", default=None, help="RL_HARNESS_OPPONENT (omit for the roster)")
     parser.add_argument("--probes", default=None, help="RL_HARNESS_PROBES (omit for the default probe set)")
-    parser.add_argument("--open-loop", default=None,
-                        help="RL_HARNESS_OPENLOOP: run the K1-2 velrebase lane on this archetype (or \"all\") "
-                             "instead of a checkpoint eval")
     parser.add_argument("--sentence", default=None,
                         help="RL_HARNESS_SENTENCE: run the Stage A sentence lane on these session bingo rows "
                              "(comma-separated tokens, or \"all\") instead of a checkpoint eval")
@@ -174,8 +170,6 @@ def main() -> None:
     if args.exec_mode == "player":
         if args.onnx is None:
             parser.error("--exec player requires an explicit --onnx (a player has no smoke default)")
-        if args.open_loop:
-            parser.error("--open-loop is editor-only; the open-loop lane has no player")
         if args.sentence:
             parser.error("--sentence is editor-only; the sentence lane has no player")
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
@@ -184,9 +178,7 @@ def main() -> None:
                      "(-executeMethod Game.RLHarness.RLEvalPlayerBuild.Build via unity_access RunBatch)")
 
     unity = args.unity or default_unity_exe(args.project)
-    if args.open_loop:
-        stem = f"velrebase-{args.open_loop.lower()}"
-    elif args.sentence:
+    if args.sentence:
         stem = f"sentence-{args.sentence.lower().replace(',', '+')}"
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
@@ -203,7 +195,7 @@ def main() -> None:
         summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
                                 onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
                                 density=args.density, opponent=args.opponent, probes=args.probes,
-                                open_loop=args.open_loop, sentence=args.sentence, lease_wait=args.lease_wait)
+                                sentence=args.sentence, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 

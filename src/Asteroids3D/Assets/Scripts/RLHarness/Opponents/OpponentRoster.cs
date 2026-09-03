@@ -83,9 +83,9 @@ namespace Game.RLHarness
             return Install(Pick(new System.Random(scope.ToSeed()), in spec), in spec, episodeIndex, arenaCenter);
         }
 
-        /// <summary>Pinned draw for the degeneracy gate: jitters and installs the given archetype. <paramref name="drive"/> selects the K1-2 open-loop probe arms; the default is the production path.</summary>
+        /// <summary>Pinned draw for the degeneracy gate: jitters and installs the given archetype.</summary>
         public OpponentDraw Install(OpponentArchetype archetype, in RewardSpec spec, int episodeIndex,
-            Vector2 arenaCenter, ArchetypeDrive drive = ArchetypeDrive.Production)
+            Vector2 arenaCenter)
         {
             var scope = Scope(spec.runSeed, episodeIndex);
             var rng = new System.Random(scope.ToSeed());
@@ -120,7 +120,7 @@ namespace Game.RLHarness
             commander.InstallBrain(host =>
             {
                 var brain = host.AddComponent<ArchetypeBrain>();
-                brain.Configure(enemy, archetype, in draw, jukeSeed, arenaCenter, arenaRadius, drive);
+                brain.Configure(enemy, archetype, in draw, jukeSeed, arenaCenter, arenaRadius);
                 return brain;
             });
             return draw;

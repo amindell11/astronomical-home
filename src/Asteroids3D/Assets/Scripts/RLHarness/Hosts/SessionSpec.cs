@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
-    public enum SessionLane { Eval, Capture, OpenLoop, Sentence }
+    public enum SessionLane { Eval, Capture, Sentence }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -28,7 +28,7 @@ namespace Game.RLHarness
 
     public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
 
-    /// <summary>One block's opponent config: a pinned scripted archetype (production drive, or one K1-2 open-loop arm), the candidate's own mirror, or a second frozen checkpoint.</summary>
+    /// <summary>One block's opponent config: a pinned scripted archetype, the candidate's own mirror, or a second frozen checkpoint.</summary>
     public struct OpponentSpec
     {
         public const string MirrorLabel = "Mirror";
@@ -36,7 +36,6 @@ namespace Game.RLHarness
         public OpponentKind kind;
         public OpponentArchetype archetype;
         public string checkpointStem;
-        public ArchetypeDrive drive;
         // Two sentence rows can stage the same archetype; probe pools key on the label.
         public string labelOverride;
 
@@ -44,9 +43,6 @@ namespace Game.RLHarness
 
         public static OpponentSpec Pinned(OpponentArchetype archetype) =>
             new() { kind = OpponentKind.Archetype, archetype = archetype };
-
-        public static OpponentSpec OpenLoop(OpponentArchetype archetype, ArchetypeDrive drive) =>
-            new() { kind = OpponentKind.Archetype, archetype = archetype, drive = drive };
 
         public static OpponentSpec Sentence(OpponentArchetype archetype, string rowLabel) =>
             new() { kind = OpponentKind.Archetype, archetype = archetype, labelOverride = rowLabel };
@@ -58,8 +54,6 @@ namespace Game.RLHarness
         {
             OpponentKind.Mirror => MirrorLabel,
             OpponentKind.Checkpoint => checkpointStem,
-            _ when drive == ArchetypeDrive.OpenLoopLegacy => archetype + "-legacy",
-            _ when drive == ArchetypeDrive.OpenLoopAnchored => archetype + "-anchored",
             _ => archetype.ToString(),
         };
     }
@@ -114,8 +108,6 @@ namespace Game.RLHarness
         public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
         public string outDir;
-        /// <summary>OpenLoop lane only: the measured archetypes, each run as a paired legacy+anchored block pair.</summary>
-        public OpponentArchetype[] openLoopArchetypes;
         /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
         public SentenceRow[] sentenceRows;
 
@@ -168,38 +160,21 @@ namespace Game.RLHarness
             Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
-            var openLoop = getEnv("RL_HARNESS_OPENLOOP");
             var sentence = getEnv("RL_HARNESS_SENTENCE");
             var source = getEnv("RL_HARNESS_ONNX");
-            if (player && openLoop != null)
-                throw new ArgumentException(
-                    "The open-loop lane is editor-only; a player boot takes no RL_HARNESS_OPENLOOP.");
             if (player && sentence != null)
                 throw new ArgumentException(
                     "The sentence lane is editor-only; a player boot takes no RL_HARNESS_SENTENCE.");
-            if (openLoop != null && sentence != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_OPENLOOP and RL_HARNESS_SENTENCE each imply their own lane; set only one.");
-            if (openLoop != null && source != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_OPENLOOP measures scripted archetypes; RL_HARNESS_ONNX has no role in the open-loop lane.");
             if (sentence != null && source != null)
                 throw new ArgumentException(
                     "RL_HARNESS_SENTENCE plays scripted sentences; RL_HARNESS_ONNX has no role in the sentence lane.");
-            if (openLoop != null && getEnv("RL_HARNESS_OPPONENT") != null)
-                throw new ArgumentException(
-                    "The measured archetype rides RL_HARNESS_OPENLOOP; RL_HARNESS_OPPONENT selects eval-lane opponents.");
             if (sentence != null && getEnv("RL_HARNESS_OPPONENT") != null)
                 throw new ArgumentException(
                     "Each sentence row stages its own opponent; RL_HARNESS_OPPONENT selects eval-lane opponents.");
-            if (openLoop != null && getEnv("RL_HARNESS_LANE") != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_OPENLOOP implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             if (sentence != null && getEnv("RL_HARNESS_LANE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_SENTENCE implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             var lane = sentence != null ? SessionLane.Sentence
-                : openLoop != null ? SessionLane.OpenLoop
                 : ParseLane(getEnv("RL_HARNESS_LANE"));
             var spec = new SessionSpec
             {
@@ -220,12 +195,7 @@ namespace Game.RLHarness
             if (player && spec.lane != SessionLane.Eval)
                 throw new ArgumentException(
                     "The capture lane is editor-only; a player boot runs the eval lane (leave RL_HARNESS_LANE unset).");
-            if (openLoop != null)
-            {
-                spec.ParseOpenLoop(openLoop);
-                spec.tag = "velrebase-" + spec.tag;
-            }
-            else if (sentence != null)
+            if (sentence != null)
             {
                 spec.ParseSentence(sentence);
                 spec.tag = "sentence-" + spec.tag;
@@ -351,11 +321,6 @@ namespace Game.RLHarness
             return every;
         }
 
-        private static readonly OpponentArchetype[] RebasableArchetypes =
-        {
-            OpponentArchetype.Aggressor, OpponentArchetype.Evader, OpponentArchetype.Orbiter, OpponentArchetype.Kiter,
-        };
-
         /// <summary>Grammar: "all" (the six session rows) or comma-separated distinct row tokens.</summary>
         private void ParseSentence(string token)
         {
@@ -380,21 +345,6 @@ namespace Game.RLHarness
                 throw new ArgumentException(
                     $"RL_HARNESS_SENTENCE='{token}' selected no rows; use \"all\" or comma-separated row tokens.");
             sentenceRows = rows.ToArray();
-        }
-
-        /// <summary>Grammar: "all" (the four velocity-law archetypes) or one archetype name; Dummy has no law to rebase.</summary>
-        private void ParseOpenLoop(string token)
-        {
-            if (Matches(token, "all"))
-            {
-                openLoopArchetypes = (OpponentArchetype[])RebasableArchetypes.Clone();
-                return;
-            }
-            if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype)
-                || archetype == OpponentArchetype.Dummy)
-                throw new ArgumentException($"RL_HARNESS_OPENLOOP='{token}' is not \"all\" or one of "
-                    + $"{string.Join(", ", RebasableArchetypes)} (Dummy has no velocity law to rebase).");
-            openLoopArchetypes = new[] { archetype };
         }
 
         // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).
@@ -443,7 +393,6 @@ namespace Game.RLHarness
             if (value == null)
                 return lane switch
                 {
-                    SessionLane.OpenLoop => new[] { ProbeSpec.Named(VelRebaseProbe.ProbeName) },
                     SessionLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
                     _ => new[]
                     {
@@ -464,18 +413,12 @@ namespace Game.RLHarness
                 start = i + 1;
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
-            // The open-loop arms carry no policy brain; a policy-side probe would die at Begin, so fail at the boundary.
-            if (lane == SessionLane.OpenLoop)
-                foreach (var entry in entries)
-                    if (entry.name != VelRebaseProbe.ProbeName)
-                        throw ProbeError(entry.name,
-                            $"only '{VelRebaseProbe.ProbeName}' runs in the open-loop lane (no policy brain to read)");
-            // The sentence brain exposes no policy readout (facing) and no scripted-velocity readout (velrebase).
+            // The sentence brain exposes no policy readout (facing).
             if (lane == SessionLane.Sentence)
                 foreach (var entry in entries)
-                    if (entry.name == FacingProbe.ProbeName || entry.name == VelRebaseProbe.ProbeName)
+                    if (entry.name == FacingProbe.ProbeName)
                         throw ProbeError(entry.name,
-                            "the sentence lane's brain carries no policy or scripted-velocity readout");
+                            "the sentence lane's brain carries no policy readout");
             return entries.ToArray();
         }
 

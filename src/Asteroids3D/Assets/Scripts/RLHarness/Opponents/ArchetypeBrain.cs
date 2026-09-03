@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, the border tangent-steer post-step, and the per-drive velocity pack (production world reference vs the K1-2 open-loop arms). The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.</summary>
-    public sealed class ArchetypeBrain : Brain, IScriptedVelocityReadout
+    /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.</summary>
+    public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
 
@@ -35,24 +35,17 @@ namespace Game.RLHarness
         private Ship target;
         private Vector2 arenaCenter;
         private bool borderAnchored;
-        private ArchetypeDrive drive;
 
         private int tickCounter;
         private BrainDecision? cachedDecision;
-        private int totalDecisions;
-        private ScriptedVelocityCommand lastCommand;
 
         private System.Random rng;
         private int jukeSign = 1;
         private int recomputes;
         private int jukeEveryRecomputes = 1;
 
-        public ArchetypeDrive Drive => drive;
-        public int TotalDecisions => totalDecisions;
-        public ScriptedVelocityCommand LastCommand => lastCommand;
-
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
-            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
+            Vector2 arenaCenter, float borderRadius)
         {
             this.target = target;
             this.archetype = archetype;
@@ -60,7 +53,6 @@ namespace Game.RLHarness
             this.jukeSeed = jukeSeed;
             this.arenaCenter = arenaCenter;
             this.borderRadius = borderRadius;
-            this.drive = drive;
             borderAnchored = true;
             ResetState();
         }
@@ -130,36 +122,14 @@ namespace Game.RLHarness
             }
         }
 
-        /// <summary>Emits the law's velocity through the bound drive and captures the readout (one bump per 5 Hz recompute). Production keeps the border-steered world reference byte-for-byte; the open-loop arms drop the steer and suppress fire (a hit would perturb the paired enemy path) while keeping the aim, the anchored arm packing the same law numbers into the enemy-polar channel.</summary>
-        internal BrainDecision Pack(Vector2 planePos, Vector2 lawVelocity, bool engages)
+        /// <summary>Packs the law's velocity as the border-steered world reference and, for the fire-capable archetypes, the enemy-facing aim.</summary>
+        private BrainDecision Pack(Vector2 planePos, Vector2 lawVelocity, bool engages)
         {
-            var builder = NavObjective.Anchored(target.Id);
-
-            var worldVelocity = Vector2.zero;
-            float radialSpeed = 0f, tangentialSpeed = 0f;
-
-            if (drive == ArchetypeDrive.OpenLoopAnchored)
-            {
-                var polar = VelocityRebase.ToAnchored(lawVelocity, planePos, target.Kinematics.pos);
-                radialSpeed = polar.vel.radialSpeed;
-                tangentialSpeed = polar.vel.tangentialSpeed;
-                builder = builder.Velocity(radialSpeed, tangentialSpeed, polar.vel.weight);
-            }
-            else
-            {
-                worldVelocity = drive == ArchetypeDrive.Production
-                    ? ArchetypeSteering.BorderTangentSteer(planePos, lawVelocity, arenaCenter, borderRadius,
-                        ArchetypeSteering.BorderMargin)
-                    : lawVelocity;
-                builder = builder.Planar(worldVelocity);
-            }
-
+            var worldVelocity = ArchetypeSteering.BorderTangentSteer(planePos, lawVelocity, arenaCenter, borderRadius,
+                ArchetypeSteering.BorderMargin);
+            var builder = NavObjective.Anchored(target.Id).Planar(worldVelocity);
             if (engages) builder = builder.Facing(0f, 1f);
-
-            var engage = engages && drive == ArchetypeDrive.Production;
-            totalDecisions++;
-            lastCommand = new ScriptedVelocityCommand(worldVelocity, radialSpeed, tangentialSpeed);
-            return new BrainDecision(builder, engage, engage);
+            return new BrainDecision(builder, engages, engages);
         }
     }
 }
