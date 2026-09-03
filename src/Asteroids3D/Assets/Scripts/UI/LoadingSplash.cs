@@ -1,4 +1,4 @@
-using Game.Bootstrap;
+using Game.Session;
 using UnityEngine;
 
 namespace UI

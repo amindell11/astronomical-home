@@ -9,7 +9,7 @@ from pathlib import Path
 from trainer_runtime.contract import RunManifest, manifest_path, summaries_path, write_manifest
 
 RL_DIR = Path(__file__).resolve().parents[2]
-SERVER_PATH = RL_DIR.parent.parent / "dev" / "rl-status" / "server.py"
+SERVER_PATH = RL_DIR / "status" / "server.py"
 sys.path.insert(0, str(RL_DIR))
 
 from checkpoint_watch import discover_checkpoints

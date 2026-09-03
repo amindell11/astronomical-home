@@ -155,7 +155,8 @@ namespace Tests.PlayMode
             string name, Vector2 offset, in RewardSpec spec)
         {
             var host = new GameObject(name);
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset);
+            var units = host.AddComponent<UnitService>();
+            var (arena, projectiles) = ShipServices.Compose(units, host.transform, offset, presentationEnabled: true);
             var field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform);
             var pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
             var agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset, host.transform);

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.Bootstrap
+namespace Game.Session
 {
     /// <summary>
     /// Driver-supplied composition inputs — "what exists / what to load" for a session, orthogonal to

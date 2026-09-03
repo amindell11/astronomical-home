@@ -366,7 +366,7 @@ fix `53368b6a`) — never compare across that boundary.
 
 ### Archive anchors
 
-- Self-play seed: `training/archive/ship_combat_500k/` — full resumable 500k run
+- Self-play seed: `training/archive/2026-07-21-ship-combat-500k/` — full resumable 500k run
   dir; seed checkpoint `ShipCombat-499985` for `--initialize-from`.
-- Run 1: `training/archive/run1_curriculum/` (1.5M `ShipCombat-1499938`, final-2M
-  onnx, `configuration.yaml`); eval summaries in `training/archive/run1_eval_summaries/`.
+- Run 1: `training/archive/2026-07-21-run1-curriculum/` (1.5M `ShipCombat-1499938`, final-2M
+  onnx, `configuration.yaml`); eval summaries in `training/archive/2026-07-21-run1-eval-summaries/`.

@@ -53,8 +53,9 @@ namespace Game.RLHarness
             // An exception inside a nested coroutine kills it silently; the batch would then hang until the caller's lease expires.
             Application.logMessageReceived += ExitOnException;
 
-            var (composedUnits, arena, projectiles) = HarnessArena.Compose(gameObject, Vector2.zero,
-                presentationEnabled: spec.Presentation);
+            var composedUnits = gameObject.AddComponent<UnitService>();
+            var (arena, projectiles) = ShipServices.Compose(
+                composedUnits, transform, Vector2.zero, spec.Presentation);
             Initialize(spec, assets, composedUnits, arena, projectiles);
             yield return RunLane();
 #if UNITY_EDITOR

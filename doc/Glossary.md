@@ -341,6 +341,10 @@ Format: **term** — definition. *(authority)*
 
 ### Game & sim
 
+- **session tier** — the lifecycle layer (`Game/Session`: `SessionHost` primitives
+  + `GameDriver` interactive shell) that composes a session's services and rig and
+  cycles sectors. The RL harness does not use it; it composes the same per-ship
+  services through `ShipServices.Compose`.
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.

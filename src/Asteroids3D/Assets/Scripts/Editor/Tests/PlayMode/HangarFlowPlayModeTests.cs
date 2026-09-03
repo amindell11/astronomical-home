@@ -1,5 +1,5 @@
 using System.Collections;
-using Game.Bootstrap;
+using Game.Session;
 using NUnit.Framework;
 using Player;
 using Tests.PlayMode.Common;

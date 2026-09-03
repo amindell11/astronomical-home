@@ -3,7 +3,7 @@
 Regenerates from the trainer log + episode JSONLs on every request, so the page is always
 current; the browser re-requests on a meta refresh. Read-only: it never touches run state.
 
-    python dev/rl-status/server.py [--run-id ship_combat_stage2] [--port 8765]
+    python training/rl/status/server.py [--run-id ship_combat_stage2] [--port 8765]
 """
 import argparse
 import collections
@@ -18,7 +18,7 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "training" / "rl"))
 
 from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path

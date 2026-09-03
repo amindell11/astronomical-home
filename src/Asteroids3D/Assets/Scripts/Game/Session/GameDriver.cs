@@ -9,7 +9,7 @@ using UI;
 using UnityEngine;
 using Utils;
 
-namespace Game.Bootstrap
+namespace Game.Session
 {
     /// <summary>
     /// The interactive gameplay driver — the above-seam half of the session tier. It owns the clock
@@ -21,9 +21,7 @@ namespace Game.Bootstrap
     ///
     /// The driver-agnostic lifecycle primitives it sequences live below the seam on a sibling
     /// <see cref="SessionHost"/> (behind <see cref="ISessionPrimitives"/>); the driver never composes or
-    /// tears down directly — it calls the host. This driver is the swappable component: a headless/RL
-    /// driver replaces it on the same GameObject, driving the same host from its own step loop with its
-    /// own policy.
+    /// tears down directly — it calls the host.
     /// </summary>
     [RequireComponent(typeof(SessionHost))]
     public class GameDriver : MonoBehaviour

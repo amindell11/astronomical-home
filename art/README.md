@@ -14,3 +14,6 @@ folders under `Assets/Visuals/` — several of those files are live scene/prefab
 dependencies, so do not move them out.
 
 Everything binary here is LFS-tracked via this directory's `.gitattributes`.
+
+- `tools/` — art-pipeline generators (`tools/skybox/` renders the procedural
+  HDR space skybox with Blender); scripts, not sources, so not LFS.
