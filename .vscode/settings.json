@@ -9,6 +9,8 @@
         "art/": true,
         "build/": true,
         "scratch/": true,
+        "src/Asteroids3D/*.DotSettings": true,
+        "src/Asteroids3D/*.DotSettings.user": true,
         "src/Asteroids3D/*.csproj": true,
         "src/Asteroids3D/*.sln": true,
         "src/Asteroids3D/.idea/": true,
