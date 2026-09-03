@@ -37,7 +37,7 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | `sync_unity_solution.ps1` | Regenerate the `.sln` through a batch Unity (the ratchet's RunBatch child). | `-ConfigPath <json>` | called by the ratchet |
 | `inert_diff.ps1` | Verdict: is a C# delta comment/whitespace-only? | `-OldPath <f> -NewPath <f>` | header comment (3-value exit) |
 
-## lib/ (dot-sourced primitives; two real callers each)
+## lib/ (dot-sourced primitives)
 
 | File | Owns |
 |---|---|

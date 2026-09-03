@@ -344,6 +344,19 @@ function Get-RelevantUnityProcesses {
     return $result
 }
 
+function Test-UnityProcessLive {
+    param([int]$TargetProcessId)
+    return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq $TargetProcessId }).Count -gt 0
+}
+
+# True once the pid is gone, false if it outlives the wait.
+function Wait-ProcessExit {
+    param([int]$TargetProcessId, [int]$Seconds)
+    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $Seconds))
+    while ($null -ne (Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
+    return $null -eq (Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue)
+}
+
 function Get-DateValue {
     param([object]$Value)
     $parsed = [datetime]::MinValue
@@ -459,22 +472,23 @@ function Wait-EditorProfileReceipt {
     return $null
 }
 
+function New-ProfileVerdict {
+    param([bool]$Verified, [string]$RequestedProfile, [string]$ObservedQuality, [string]$Note)
+    return [ordered]@{ verified = $Verified; requestedProfile = $RequestedProfile; observedQuality = $ObservedQuality; note = $Note }
+}
+
 function Test-EditorProfileReceipt {
     param([object]$Receipt, [string]$RequestedProfile)
     $expectedQuality = Get-EditorProfileQuality $RequestedProfile
-    if ($null -eq $Receipt) {
-        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = "Timed out waiting for profile receipt." }
-    }
+    if ($null -eq $Receipt) { return New-ProfileVerdict $false $RequestedProfile "" "Timed out waiting for profile receipt." }
     $error = [string](Get-MemberValue $Receipt "error")
-    if (-not [string]::IsNullOrWhiteSpace($error)) {
-        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = ""; note = $error }
-    }
+    if (-not [string]::IsNullOrWhiteSpace($error)) { return New-ProfileVerdict $false $RequestedProfile "" $error }
     $receiptProfile = [string](Get-MemberValue $Receipt "requestedProfile")
     $observedQuality = [string](Get-MemberValue $Receipt "observedQuality")
     if ($receiptProfile -ne $RequestedProfile -or $observedQuality -ne $expectedQuality) {
-        return [ordered]@{ verified = $false; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "Profile receipt expected $RequestedProfile/$expectedQuality but reported $receiptProfile/$observedQuality." }
+        return New-ProfileVerdict $false $RequestedProfile $observedQuality "Profile receipt expected $RequestedProfile/$expectedQuality but reported $receiptProfile/$observedQuality."
     }
-    return [ordered]@{ verified = $true; requestedProfile = $RequestedProfile; observedQuality = $observedQuality; note = "" }
+    return New-ProfileVerdict $true $RequestedProfile $observedQuality ""
 }
 
 # ---- Owner liveness & records ----------------------------------------------
@@ -504,15 +518,23 @@ function Test-OwnerStale {
     # checked first so a child that exits just before the release does not open a reap window.
     $holder = [int](Get-MemberValue $Owner "holderProcessId")
     if ($holder -gt 0 -and (Test-HolderAlive $holder (Get-MemberValue $Owner "holderStartTime"))) { return $false }
-    if ([int]$Owner.processId -gt 0) {
-        return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
-    }
+    if ([int]$Owner.processId -gt 0) { return -not (Test-UnityProcessLive ([int]$Owner.processId)) }
     return ([datetime]::UtcNow - (Get-DateValue $Owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
+}
+
+function Get-OwnerDir {
+    param([string]$RequestedKey)
+    return Join-Path $OwnersRoot $RequestedKey
+}
+
+function Get-OwnerRecordPath {
+    param([string]$RequestedKey)
+    return Join-Path (Get-OwnerDir $RequestedKey) "owner.json"
 }
 
 function Get-ProjectOwner {
     param([string]$RequestedKey)
-    return Get-RecordOrReap (Join-Path $OwnersRoot $RequestedKey) "owner.json" { param($r) Test-OwnerStale $r }
+    return Get-RecordOrReap (Get-OwnerDir $RequestedKey) "owner.json" { param($r) Test-OwnerStale $r }
 }
 
 function Get-AllOwners {
@@ -542,7 +564,7 @@ function Get-BootOwner {
         param($boot)
         if (([datetime]::UtcNow - (Get-DateValue $boot.acquiredAt)).TotalSeconds -gt $BootTtlSeconds) { return $true }
         if ([int]$boot.processId -le 0) { return $false }
-        return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$boot.processId }).Count -eq 0
+        return -not (Test-UnityProcessLive ([int]$boot.processId))
     }
 }
 
@@ -689,7 +711,7 @@ function Try-AcquireAccess {
 
     if ($position -ne 1) { return [ordered]@{ status = "waiting"; position = $position; owner = $null } }
 
-    $ownerDir = Join-Path $OwnersRoot $ProjectKey
+    $ownerDir = Get-OwnerDir $ProjectKey
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -728,7 +750,7 @@ function Write-OwnerHeartbeat {
     $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
     $Owner | Add-Member -NotePropertyName holderStartTime -NotePropertyValue (Get-ProcessStartTime $PID) -Force
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
-    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
+    Write-JsonFile (Get-OwnerRecordPath ([string]$Owner.projectKey)) $Owner
 }
 
 # ---- Boot lane -------------------------------------------------------------
@@ -835,7 +857,7 @@ function Attach-Process {
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
     $owner.processId = $ProcessId
     $owner.updatedAt = [datetime]::UtcNow.ToString("o")
-    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+    Write-JsonFile (Get-OwnerRecordPath ([string]$owner.projectKey)) $owner
     $boot = Get-BootOwner
     if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
         $boot.processId = $ProcessId
@@ -874,7 +896,7 @@ function Adopt-Process {
     if ($null -ne $existing -and [string]$existing.lease -ne $Lease) {
         return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = $existing }
     }
-    $ownerDir = Join-Path $OwnersRoot $adoptKey
+    $ownerDir = Get-OwnerDir $adoptKey
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
         lease = $Lease
@@ -909,22 +931,18 @@ function Release-Access {
 
     # Close or kill only a coordinator-relevant Unity PID — never a bare/recycled one. Checked once,
     # above both branches: CloseMainWindow on a stranger's window is as wrong as killing it.
-    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0 -and
-        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
-        $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
+    if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0 -and (Test-UnityProcessLive ([int]$owner.processId))) {
+        $editorPid = [int]$owner.processId
+        $process = Get-Process -Id $editorPid -ErrorAction SilentlyContinue
         if ($null -ne $process) {
             $closed = $false
             if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
                 [void]$process.CloseMainWindow()
-                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-                $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
+                $closed = Wait-ProcessExit $editorPid $EditorCloseWaitSeconds
             }
             if (-not $closed) {
-                Stop-ProcessTree -ProcessId ([int]$owner.processId)
-                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-                if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
+                Stop-ProcessTree -ProcessId $editorPid
+                if (-not (Wait-ProcessExit $editorPid $EditorCloseWaitSeconds)) {
                     return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
                 }
             }
@@ -932,7 +950,7 @@ function Release-Access {
     }
 
     # After a CloseEditor kill our PID reads dead, so a concurrent reader may win this prune; already gone is the goal.
-    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath (Get-OwnerDir ([string]$owner.projectKey)) -Recurse -Force -ErrorAction SilentlyContinue
     [void](Release-Boot)
     [void](Cancel-Request)
     return [ordered]@{ status = "released"; alreadyFree = $false }

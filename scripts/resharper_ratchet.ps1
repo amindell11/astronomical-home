@@ -194,14 +194,13 @@ $diffBase = (& git -C $repoRoot merge-base $BaseRef HEAD)
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($diffBase)) { throw "Could not compute merge-base of $BaseRef and HEAD for the ReSharper ratchet." }
 
 $changedLines = Get-ChangedLineMap $repoRoot $diffBase
+New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
 if ($changedLines.Count -eq 0 -and -not $Audit.IsPresent) {
-    New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
     Write-Summary $summaryPath ([ordered]@{ status = "skipped"; reason = "no changed C# under Assets/Scripts"; baseRef = $BaseRef })
     Write-Host "ReSharper ratchet: no changed C# under Assets/Scripts; skipped."
     exit 0
 }
 
-New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
 Sync-UnitySolution $repoRoot $solutionRoot $outputRoot $UnityPath $UnityAccessWaitSec $UnitySyncTimeoutSec
 if (-not (Test-Path -LiteralPath $solution -PathType Leaf)) { throw "Unity did not generate $solution" }
 

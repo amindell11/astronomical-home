@@ -306,9 +306,15 @@ tested_tree_for() {
   cat "$(lock_dir_for "$slot")/tested_tree" 2>/dev/null || true
 }
 
+# First value of KEY= in a KEY=value record file; empty when absent.
+record_field() {
+  local file="$1" key="$2"
+  sed -n "s/^${key}=//p" "$file" 2>/dev/null | head -n 1
+}
+
 tested_scope_field() {
   local slot="$1" key="$2"
-  sed -n "s/^${key}=//p" "$(lock_dir_for "$slot")/tested_scope" 2>/dev/null | head -n 1
+  record_field "$(lock_dir_for "$slot")/tested_scope" "$key"
 }
 
 # Only a provenance-corroborated tree counts: a bare tested_tree (legacy scoped-run recordings) is not merge evidence.
@@ -683,6 +689,15 @@ cmd_run_tests_clean() {
   [[ "$exit_code" -eq 0 ]] || return "$exit_code"
 }
 
+# Proof comes only from this run: no stale summary may vouch for the tree.
+run_tests_for_proof() {
+  local slot="$1" path="$2"
+  shift 2
+  clear_run_summary "$path"
+  cmd_run_tests_clean "$slot" "$@"
+  record_tested_tree "$slot" "$path"
+}
+
 # ---- ReSharper ratchet -----------------------------------------------------
 resharper_fingerprint() {
   local path="$1" file hashes=""
@@ -722,9 +737,9 @@ resharper_proof_matches() {
   tree="$(git -C "$path" rev-parse 'HEAD^{tree}')"
   base_tree="$(git -C "$path" rev-parse "$base_ref^{tree}")"
   fingerprint="$(resharper_fingerprint "$path")"
-  [[ "$(sed -n 's/^tree=//p' "$proof" | head -n 1)" == "$tree" ]] || return 1
-  [[ "$(sed -n 's/^baseTree=//p' "$proof" | head -n 1)" == "$base_tree" ]] || return 1
-  [[ "$(sed -n 's/^fingerprint=//p' "$proof" | head -n 1)" == "$fingerprint" ]]
+  [[ "$(record_field "$proof" tree)" == "$tree" ]] || return 1
+  [[ "$(record_field "$proof" baseTree)" == "$base_tree" ]] || return 1
+  [[ "$(record_field "$proof" fingerprint)" == "$fingerprint" ]]
 }
 
 cmd_run_resharper() {
@@ -968,9 +983,7 @@ cmd_submit() {
   git -C "$path" checkout "$slot"
   require_clean_slot "$slot" "$path" "submit" || return 1
 
-  clear_run_summary "$path"
-  cmd_run_tests_clean "$slot" "${PR_TEST_ARGS[@]}"
-  record_tested_tree "$slot" "$path"
+  run_tests_for_proof "$slot" "$path" "${PR_TEST_ARGS[@]}"
   cmd_run_resharper "$slot" "$base_ref"
 
   local task_branch
@@ -1256,10 +1269,7 @@ cmd_merge() {
   trap 'merge_journal_finish "$?"' EXIT
   merge_phase_begin preflight
 
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  require_gh || return 1
 
   local path task_branch base_branch
   path="$(slot_path "$slot")"
@@ -1330,18 +1340,14 @@ cmd_merge() {
         echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
         merge_phase_begin tests
         merge_journal_note "code delta since proof - full suite"
-        clear_run_summary "$path"
-        cmd_run_tests_clean "$slot" "${test_args[@]}"
-        record_tested_tree "$slot" "$path"
+        run_tests_for_proof "$slot" "$path" "${test_args[@]}"
         ;;
     esac
   else
     echo "No full-suite proof for tree $current_tree — running the full suite before merge."
     merge_phase_begin tests
     merge_journal_note "no proof for landing tree - full suite"
-    clear_run_summary "$path"
-    cmd_run_tests_clean "$slot" "${test_args[@]}"
-    record_tested_tree "$slot" "$path"
+    run_tests_for_proof "$slot" "$path" "${test_args[@]}"
   fi
   if [[ "$(verified_proof_tree "$slot")" != "$current_tree" ]]; then
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
@@ -1407,10 +1413,7 @@ cmd_review_comments() {
   local slot="$1"
   local base="${2:-main}"
 
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  require_gh || return 1
 
   local head_branch
   head_branch="$(task_branch_for "$slot")"
@@ -1496,9 +1499,7 @@ cmd_revise() {
   if [[ "$no_test" -eq 1 ]]; then
     echo "Skipping tests (--no-test): no proof recorded; the merge gate will test the landing tree."
   else
-    clear_run_summary "$path"
-    cmd_run_tests_clean "$slot" "${test_args[@]}"
-    record_tested_tree "$slot" "$path"
+    run_tests_for_proof "$slot" "$path" "${test_args[@]}"
   fi
   cmd_run_resharper "$slot" origin/main
 
@@ -1507,6 +1508,11 @@ cmd_revise() {
 }
 
 # ---- Dispatch --------------------------------------------------------------
+require_slot_arg() {
+  local usage_line="$1" argc="$2"
+  [[ "$argc" -ge 1 ]] || { echo "$usage_line" >&2; exit 1; }
+}
+
 main() {
   if [[ $# -lt 1 ]]; then
     usage
@@ -1521,53 +1527,20 @@ main() {
       if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
       ;;
     acquire) cmd_acquire "$@" ;;
-    release)
-      [[ $# -ge 1 ]] || { echo "release requires <slot>" >&2; exit 1; }
-      cmd_release "$1"
-      ;;
-    prepare)
-      [[ $# -ge 1 ]] || { echo "prepare requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_prepare "$@"
-      ;;
-    run-tests)
-      [[ $# -ge 1 ]] || { echo "run-tests requires <slot> [args...]" >&2; exit 1; }
-      cmd_run_tests "$@"
-      ;;
-    run-resharper)
-      [[ $# -ge 1 ]] || { echo "run-resharper requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_run_resharper "$@"
-      ;;
+    release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
+    prepare) require_slot_arg "prepare requires <slot> [base_ref]" "$#"; cmd_prepare "$@" ;;
+    run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
+    run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
       cmd_run_script_tests "$@"
       ;;
-    create-pr)
-      [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
-      cmd_create_pr "$@"
-      ;;
-    submit)
-      [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" >&2; exit 1; }
-      cmd_submit "$@"
-      ;;
-    merge)
-      [[ $# -ge 1 ]] || { echo "merge requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
-      cmd_merge "$@"
-      ;;
-    merge-progress)
-      [[ $# -ge 1 ]] || { echo "merge-progress requires <slot> [--oneline]" >&2; exit 1; }
-      cmd_merge_progress "$@"
-      ;;
-    finalize)
-      [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_finalize "$@"
-      ;;
-    review-comments)
-      [[ $# -ge 1 ]] || { echo "review-comments requires <slot> [base]" >&2; exit 1; }
-      cmd_review_comments "$@"
-      ;;
-    revise)
-      [[ $# -ge 1 ]] || { echo "revise requires <slot> [--no-test] [-- test_args...]" >&2; exit 1; }
-      cmd_revise "$@"
-      ;;
+    create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
+    submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
+    merge) require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"; cmd_merge "$@" ;;
+    merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
+    finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
+    review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
+    revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
     -h|--help|help) usage ;;
     *)
       echo "Unknown command: $cmd" >&2

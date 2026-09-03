@@ -64,12 +64,15 @@ header() {
   divider
 }
 
-branch_status_summary() {
-  local path="$1"
-  local shell_path changed_count
-  shell_path="$(to_shell_path "$path")"
+changed_file_count() {
+  git -C "$(to_shell_path "$1")" status --short 2>/dev/null | wc -l | tr -d ' '
+}
 
-  changed_count="$(git -C "$shell_path" status --short 2>/dev/null | wc -l | tr -d ' ')"
+# Opt-in: the scan costs a git status per slot.
+changed_summary_for() {
+  local changed_count
+  [[ "$SHOW_STATUS" == "1" ]] || { printf "${DIM}skipped${NC}"; return; }
+  changed_count="$(changed_file_count "$1")"
   if [[ "$changed_count" -gt 0 ]]; then
     printf "${YELLOW}%s files${NC}" "$changed_count"
   else
@@ -81,7 +84,7 @@ branch_status_files() {
   local path="$1"
   local shell_path changed_count
   shell_path="$(to_shell_path "$path")"
-  changed_count="$(git -C "$shell_path" status --short 2>/dev/null | wc -l | tr -d ' ')"
+  changed_count="$(changed_file_count "$path")"
 
   if [[ "$changed_count" -le 0 ]]; then
     return
@@ -130,11 +133,7 @@ slot_info() {
   ahead="$(git -C "$ROOT" rev-list --count origin/main.."$slot" 2>/dev/null || echo '?')"
   behind="$(git -C "$ROOT" rev-list --count "$slot"..origin/main 2>/dev/null || echo '?')"
 
-  if [[ "$SHOW_STATUS" == "1" ]]; then
-    changed_summary="$(branch_status_summary "$path")"
-  else
-    changed_summary="${DIM}skipped${NC}"
-  fi
+  changed_summary="$(changed_summary_for "$path")"
 
   # The pool script owns the journal format; ask it, never parse it here.
   local merge_info=""
@@ -144,9 +143,8 @@ slot_info() {
 
   local pr_info=""
   if [[ "$SHOW_PRS" == "1" && -n "$tb" ]] && command -v gh >/dev/null 2>&1; then
-    local tb_check="$tb"
     local pr_url
-    pr_url="$(gh pr list --head "$tb_check" --base main --state open --json url --jq '.[0].url' 2>/dev/null || true)"
+    pr_url="$(gh pr list --head "$tb" --base main --state open --json url --jq '.[0].url' 2>/dev/null || true)"
     if [[ -n "$pr_url" && "$pr_url" != "null" ]]; then
       pr_info="${CYAN}PR: $pr_url${NC}"
     fi
@@ -174,11 +172,7 @@ main_info() {
   commit_msg="$(git -C "$ROOT" log --format='%s' -n 1 2>/dev/null || echo '(no commits)')"
   commit_msg="${commit_msg:0:50}"
 
-  if [[ "$SHOW_STATUS" == "1" ]]; then
-    changed_summary="$(branch_status_summary "$ROOT")"
-  else
-    changed_summary="${DIM}skipped${NC}"
-  fi
+  changed_summary="$(changed_summary_for "$ROOT")"
 
   printf "\n  ${BLUE}*${NC} ${BOLD}%-10s${NC} ${BLUE}MAIN${NC}\n" "$branch"
   printf "    ${DIM}path:${NC}    %s\n" "$ROOT"
