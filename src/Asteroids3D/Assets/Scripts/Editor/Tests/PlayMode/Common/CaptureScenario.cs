@@ -2,7 +2,7 @@
 using System.Collections;
 using AI;
 using Game;
-using Game.Bootstrap;
+using Game.Session;
 using Game.Capture;
 using Game.Services;
 using NUnit.Framework;

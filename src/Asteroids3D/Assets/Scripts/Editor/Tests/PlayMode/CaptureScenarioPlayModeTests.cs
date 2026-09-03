@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Game.Bootstrap;
+using Game.Session;
 using Game.Capture;
 using NUnit.Framework;
 using Tests.PlayMode.Common;

@@ -1,6 +1,6 @@
 using Game.Sectors;
 
-namespace Game.Bootstrap
+namespace Game.Session
 {
     [System.Serializable]
     public class SectorEntry

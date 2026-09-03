@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Reflection;
 using Game;
-using Game.Bootstrap;
+using Game.Session;
 using Game.Services;
 using NUnit.Framework;
 using Player;

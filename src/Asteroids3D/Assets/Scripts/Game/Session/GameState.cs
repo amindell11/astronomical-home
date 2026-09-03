@@ -1,4 +1,4 @@
-namespace Game.Bootstrap
+namespace Game.Session
 {
     public enum GameState
     {

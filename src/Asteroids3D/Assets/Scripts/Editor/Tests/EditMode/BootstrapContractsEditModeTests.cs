@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using Game.Bootstrap;
+using Game.Session;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;

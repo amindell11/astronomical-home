@@ -5,14 +5,14 @@ using Game.Services;
 using Player;
 using Ships;
 
-namespace Game.Bootstrap
+namespace Game.Session
 {
     /// <summary>
-    /// Per-session state owned by the bootstrap lifecycle primitives on
-    /// <see cref="SessionHost"/>: the service container, the optional player/camera/UI rig,
-    /// the presentation overlay, and the currently loaded sector. The primitives take this
-    /// container explicitly instead of reading process-wide singletons, so a future multi-arena
-    /// (RL) harness can own several sessions in one process without a signature-breaking retrofit.
+    /// Per-session state owned by the session lifecycle primitives on
+    /// <see cref="SessionHost"/>: the composition profile, the service container, the optional
+    /// player/camera/UI rig, and the currently loaded sector. The primitives take this container
+    /// explicitly rather than reading process-wide singletons, so one process can hold several
+    /// sessions at once.
     /// </summary>
     public sealed class GameSession
     {
