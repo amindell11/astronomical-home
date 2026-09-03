@@ -24,8 +24,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The sticky rock-slot selection service (#485 §Stage C
-    /// decision brief, fork 1): owns the 6-slot asteroid referent menu the policy observes and the
+    /// <summary>The sticky rock-slot selection service (#485): owns the 6-slot asteroid referent menu the policy observes and the
     /// boundary slot→entity capture. Roster rule: nearest-<see cref="NearestPerSide"/>-to-self ∪
     /// nearest-to-enemy, dedup, backfilled by self-distance. Occupancy is sticky — a challenger must
     /// beat an occupant's proximity score by a real margin, and an occupant bound by the held sentence

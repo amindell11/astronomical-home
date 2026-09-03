@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The six session-confirmed tactic-bingo rows (#485 §Stage A brief, fork 3); the other bingo rows are rig-only by ruling.</summary>
+    /// <summary>The six session-confirmed tactic-bingo rows (#485); the other bingo rows are rig-only by ruling.</summary>
     public enum SentenceRow { Orbit, Kite, CoverTake, FireLaneDodge, DummyCloseout, DriftHold }
 
     /// <summary>Stage A3's hand-authored sentence per session row: the fixed intent vector, the scripted opponent that stages the tactic, and the trigger stance. Vectors are starting points that live only here in code — the bingo run (#395) iterates them; verdicts freeze into the plan doc.</summary>
