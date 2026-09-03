@@ -27,3 +27,13 @@
   **domain** category (`Sectors`, `Weapons`, `MPC`, …) plus optional
   `Smoke`/`Slow`; run a feature slice with `-TestCategory <Domain>` instead of
   the whole suite. Give new fixtures exactly one domain tag.
+- **Performance/benchmark sweeps run SOLO** — a parallel Unity on the machine
+  contaminates timing metrics (solve-ms in particular).
+- **Never leave eval or benchmark artifacts only in a pool slot** — slot
+  recycling destroys them; copy anything you will cite out of the worktree.
+- **A test whose subject is an artifact asserts CONTENT, not existence.** "The
+  file appeared" is nearly uncorrelated with the producer working — #374's
+  capture lane passed while writing 1,195 uniformly blank PNGs. Assert something
+  only a working producer could satisfy (non-uniform pixels, a row count, a
+  parsed field), and prefer a discriminating on-vs-off pair. Same bar for any
+  "proven" claim: name the assertion that would fail if it were false.

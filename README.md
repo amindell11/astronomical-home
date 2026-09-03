@@ -7,7 +7,7 @@ A 3D space-combat game built in Unity 6 — asteroid fields, utility-AI enemy sh
 - `src/Asteroids3D/` — the Unity project (single `GameCore` assembly).
 - `training/rl/` — Python ML-Agents training harness (configs, runners, Unity-access coordination). See `training/rl/README.md`.
 - `scripts/` — agent tooling: worktree pool, Unity test runner, Unity access coordinator.
-- `doc/` — feature plans (`doc/Feature_Plans/`, lifecycle conventions in `AGENTS.md`) and postmortems.
+- `doc/` — agent law (`doc/agents/`), the glossary, and diagnosis recipes. Design briefs and records live on GitHub Issues (`design-record` label); code is the source of truth.
 - `art/` — WIP Blender sources and downloaded asset archives, kept outside `Assets/` so Unity never imports them.
 - `tools/` — standalone utilities.
 

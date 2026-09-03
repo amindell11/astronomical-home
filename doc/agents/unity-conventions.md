@@ -11,6 +11,26 @@
   `is not null`, `?.`, and `??` bypass the destroyed-object check; use
   `object.ReferenceEquals` only when CLR-reference identity is intentional.
   Plain C# types may use normal null syntax freely.
+- **Prefab-ASSET reads take a serialized reference, never a lookup in a property
+  getter** — no `Awake` runs on an asset, and getter-side `GetComponent` was
+  rejected in `Railguns.HangarStats` (#99). Serialize the ref and wire it in the
+  prefab; `Awake` is backfill-if-unwired only.
+- **Settings-driven behavior reads the `.asset`, not the C# default** — tuned
+  values live in the ScriptableObject (e.g. `MpcSettings.asset`); code defaults
+  are stale fallbacks and have produced wrong analyses.
+- **The game plane is frozen to `PlaneAxis.Z` at origin zero**, pinned by
+  `GamePlanePlayModeTests.Canonical_IsFrozenZFrameAtOrigin`. Any change baking a
+  plane convention into a constant must use Z — a Y freeze rotates every entity
+  onto the wrong plane while leaving Y-configuring tests green.
+- **Editor-hook types must subclass what Unity discovers** — Unity finds
+  `OnPostprocessAllAssets` only on `AssetPostprocessor` subclasses; a bare
+  `static class` fails completely silently, with every test still green. Verify
+  a "structurally impossible" claim by causing the failure, not by reading the
+  code. Also: never name an editor namespace `Editor` (CS0118 against
+  `UnityEditor.Editor` breaks the build).
+- **Never hand-author prefab YAML with nested instances** — it degenerates on
+  import (the main asset becomes a child rig). Regenerate prefabs through editor
+  scripts, and load them with `LoadMainAssetAtPath`.
 - **Prefer early returns** (inverted ifs) over nested blocks.
 - `[SerializeField]` tooltips are documentation for the inspector, not code
   comments — the comments policy in `AGENTS.md` does not apply to them.

@@ -1,7 +1,8 @@
 # Script contracts
 
 Review law for `scripts/**`. Read it before changing a script's outputs or calling
-one from another script. Provenance: `doc/Feature_Plans/Script_Seam_Hardening.md`.
+one from another script. Provenance: the 2026-08-27 `scripts/` audit arc (#451, #452-#456);
+rulings and do-not-break list in memory `project_script_seam_hardening`.
 
 ## 1. Every script is a module with a published interface
 
@@ -45,3 +46,22 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 (`agent_worktree_pool.sh run-script-tests`). Tests keep their state inside a temp dir
 and inject every root the script would otherwise take from this machine; the
 non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
+
+## 5. Shared primitives live in `scripts/lib/`
+
+Entry requires **two real callers**: the lib was seeded exclusively with already-duplicated
+logic (each with >=2 divergent copies). Nothing enters with one caller - one adapter is a
+hypothetical seam. A coordinated tool's own front door is a sanctioned client (section 3),
+not a shared primitive.
+
+Splitting the monolith scripts (`agent_worktree_pool.sh`, `unity_test_agent.ps1`,
+`unity_access.ps1`) into smaller files is a standing NON-GOAL: depth is a property of the
+interface, not the implementation, so a 1,500-line module behind a small honest interface is
+already the goal state. Splits buy maintainer locality only; they re-earn a place in the
+backlog via an observed maintenance failure, as their own hygiene arc.
+
+## 6. PowerShell 5.1 trap
+
+Piping a native command such as `git` into `Select-Object -First 1` can kill it
+mid-exit: you get good output alongside `$LASTEXITCODE = -1`. Collect the output
+first, then index into it.

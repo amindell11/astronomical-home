@@ -175,7 +175,7 @@ Heuristic policy (inverse-mapped ranger) — no trainer needed. Set the scene's
 ## Eval (training seeds, then held-out)
 
 `CheckpointEvaluator.Run` executes the frozen protocol
-(`doc/Feature_Plans/RL_MLAgents_Agent.md`): the 20 pinned held-out seeds
+(#492): the 20 pinned held-out seeds
 (`EvalProtocol.HeldOutSeeds`, disjoint from training), W/L/D aggregation with
 the Wilson 95% lower bound on win-rate (draws are non-wins; gate: > 50%),
 artifacts under `results/rl-eval/`. Checkpoints are selected on training-seed
@@ -292,3 +292,81 @@ the canonical thresholds), and appends to the auditable usage registry
 optional `RL_EPISODE_COUNT`) re-measures the scripted ranger-vs-baseline
 floor under the current harness (boost sampling zeroed on the agent's MPC
 clone, contract pacing).
+
+## Run runbook — launching, monitoring, recovering
+
+Proven across run 1 (2M curriculum) and the 500k retrain. Read before any launch.
+
+### Before launch
+
+- ⚠ **`CUDA_VISIBLE_DEVICES=""` on every training/bench launch.** The shared venv
+  (agent-1, junctioned into every slot) carries `torch 2.2.2+cu121` while the lock
+  pins the CPU build. With CUDA visible the owned trainer runtime auto-selects it:
+  ~0.5× throughput (66 → 38 steps/s measured) and a mixed-device crash at the
+  first checkpoint export. GPU PPO is refuted on this machine at current network
+  size. Unresolved since 2026-08-27.
+- ⚠ **Player-build LFS payload gate.** Verify the training scene's LFS assets are
+  hydrated payloads, not `version https://git-lfs.github.com/spec/v1` pointer
+  text — at minimum every asteroid render/collider FBX used by
+  `SpawnSettings.asset`. Unity reports `RLTrainingPlayerBuild result=Succeeded`
+  while pointer-shaped FBXs import as null meshes: a pointer-built player reached
+  step 1968, then four workers died on `ArgumentNullException` from
+  `AsteroidController.MeanVertexRadius`, with ML-Agents reporting the survivors as
+  merely stuck. Rebuild the player exe after any code merge.
+- Clear `<slot>/src/Asteroids3D/Library/BurstCache/`; keep ≥ ~10 GB free RAM.
+- Pick a unique run id and assert `results/rl-training/<run-id>` does not exist.
+  A first launch never uses `--force`.
+- Base port 5006 is single-occupancy machine-wide — check the work ledger and for
+  live fleets first.
+
+### While running
+
+- ⚠ **Never start another Academy play session while an editor-attached trainer is
+  connected** — it severs the connection (this killed run 1 at 534k). The trainer
+  listens ~5 min; a fresh editor plus `start-play.flag` reconnects with zero step
+  loss, and after trainer exit `--resume` loses nothing past the emergency
+  checkpoint.
+- On interruption, re-run the same command with `--resume`. Never combine
+  `--resume` with `--initialize-from`, never `--force` for recovery, never
+  hand-edit curriculum lesson state.
+- ⚠ Resume/init **inflates the first summaries** (only fast episodes complete in
+  the early windows) — distrust means for ~50k steps after any resume, and never
+  let them near a gate.
+- Read **per-archetype metrics, never blended** — the blend hid run 1's passivity
+  rot.
+- Stop and surface immediately on: repeated worker exits, communicator timeouts,
+  missing or empty worker JSONLs, NaNs, checkpoint-export failure, port collision,
+  schema/behavior-spec mismatch. Never silently fall back to a legacy model or path.
+- Editor-attach: verify the coordinator owner is pid-backed after boot; a pid-less
+  lease TTLs out mid-run into `unmanaged_unity` (recovery: `Adopt -ProcessId`).
+
+### Recovery hazards
+
+- After ANY trainer death, check `tasklist` for `RLTraining` — the driver's
+  `terminate_tree` early-returns when the trainer is already dead and leaks orphan
+  players.
+- ⚠ Windows file locks: a stopped log monitor orphans `tail.exe`/`grep.exe` holding
+  the logs, and the relaunch dies unlinking them (WinError 32). `taskkill //F //IM
+  tail.exe //IM grep.exe` first.
+- Editor RAM grows ~0.9 GB/h; silent editor death under memory pressure has
+  happened once (no dump, log just stops) — resume protocol above. Crash dumps:
+  `%LOCALAPPDATA%/Temp/Unity/Editor/Crashes` (UTC names).
+
+### Mid-run eval policy (user decision 2026-07-31)
+
+**Prototyping default: no mid-run evals.** The editor-beside-fleet machinery is
+where run-stability risk concentrates (editor OOM, mid-eval lease expiry, boot-lane
+dir vanish, run 1 killed by a second Unity session). Backfill instead —
+`eval_gate.py --run-id <id> --once` drains the checkpoint backlog on a quiet
+machine, and verdict history, auto-arm and confirmation replicates behave
+identically. Arm the live watch only for long unattended runs.
+
+⚠ All pre-#248 eval baselines were measured against overheating teachers (fire-gate
+fix `53368b6a`) — never compare across that boundary.
+
+### Archive anchors
+
+- Self-play seed: `training/archive/ship_combat_500k/` — full resumable 500k run
+  dir; seed checkpoint `ShipCombat-499985` for `--initialize-from`.
+- Run 1: `training/archive/run1_curriculum/` (1.5M `ShipCombat-1499938`, final-2M
+  onnx, `configuration.yaml`); eval summaries in `training/archive/run1_eval_summaries/`.

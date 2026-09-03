@@ -17,7 +17,10 @@ the matching doc when its branch fires:
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (Obsidian
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
-- Memory reads/writes from a worktree agent → `doc/agents/memory.md`.
+- Memory reads/writes → `doc/agents/memory.md` (holds nothing repo-critical: working memory + taste only).
+- Machine/tooling facts (remote box, LFS budget, editor-analytics churn, pool
+  capacity, MCP setup) → `doc/agents/environment.md`.
+- Answering "why is it like this" / "was X tried" → the `design-lookup` agent (searches issues + PR bodies, returns cited answers, never the record).
 - Changing a script's outputs, or calling one script from another →
   `doc/agents/script-contracts.md` (interface, machine channel, verdicts).
 
@@ -50,8 +53,8 @@ If the diff grows to a multiple of what the scope implies, stop and reclassify b
 
 Code is self-documenting; a comment is a last resort for a non-obvious *why* the code cannot express.
 One line means ≤ ~15 words. No `<summary>` on self-naming members. Never narrate *what*, never past-state framing, never commented-out code.
-**Type-level exception.** The entry-point type of a module or seam — the one a reader lands on first — may carry a `<summary>` up to ~10 lines. It earns those lines only by carrying what the file cannot: the type's role in the larger flow, a non-obvious invariant, pointers to collaborators and governing docs. A summary that only expands the type's name means the type doesn't qualify. Everything below the type still obeys the rules above.
-Ratchet: apply the standing rule to the hunks you touch, and update a documented type's summary in the diff that changes its role — a summary contradicting the code is a bug, not a comment nit. Writing a summary for a type that lacks one is opportunistic, never owed. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
+**Type-level summary.** A type may carry a `<summary>` up to ~10 lines only when a reader cannot work out its purpose or structure from the members alone — its role in the larger flow, an invariant it keeps, the collaborators it composes. With no design docs in the tree this is the only prose a reader lands on, which raises the value of the rare summary that qualifies, not the number that should exist. It may hold one pointer to the arc issue or design record for the why of *what shipped* (never to what was tried and rejected — that stays on the issue). A summary that only expands the type's name means the type doesn't qualify. Everything below the type still obeys the rules above.
+Ratchet: apply the standing rule to the hunks you touch, and update a documented type's summary in the diff that changes its role — a summary contradicting the code is a bug, not a comment nit. Adding a summary to a type that lacks one is opportunistic, never owed. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
 Review/build narration belongs in the PR description, not the code.
 
 ## Vocabulary
@@ -74,10 +77,12 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop — the default for any coding task, whether or not the request mentions worktrees, slots, or PRs. Invariants:
 - Scope is confirmed with the user before building.
 - Build and test in a pooled worktree, never the primary tree.
-- Design docs land on main before the work they govern builds (`doc/agents/design-docs.md` → Doc lifecycle).
+- The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
+- Follow-up rounds on an open PR go on that PR's existing slot/branch; acquire a fresh slot only for genuinely independent work.
+- After any pool-script merge, `git pull` main in every live session before its next pool command — a session executing an old script copy is the live hazard.
 - Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every ledger-writing transition; a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
@@ -86,12 +91,12 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 
 `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md` — worktree agents must use this exact absolute path.
 Read it at session start and before acquiring a slot; write on claim, PR-open, block, and merge.
-Rows are one line, claims only — merged rows are deleted; their story lives in the PR description and memory topic files.
+Rows are one line, claims only — merged rows are deleted; their story lives in the PR description and the arc issue.
 
 ## Deferrals & issue tracker
 
-Deferrals go on GitHub Issues (this repo) as thin title-plus-link issues linking to a memory/plan doc.
-All context lives in the linked doc, never in the issue body — the repo is public.
+Deferrals, briefs, negative results and design records go on GitHub Issues (this repo); the issue carries the why — code is the source of truth and prose holds only what code cannot say.
+Check closed issues before starting work that smells like a retry (`gh issue list --state closed --search <term>`).
 Label vocabulary, body law, and board sync: `doc/agents/issue-tracker.md`; usage conventions: `doc/agents/design-docs.md`.
 
 ## Dependency & wiring philosophy
@@ -113,6 +118,7 @@ Follow these when adding any new dependency; prefer zero new wiring over new sea
 
 ## Session hygiene
 
+Before deleting, force-pushing, or claiming shipped/preserved, check state directly (`git ls-remote`, grep main's tree) — squash merges destroy commit identity, and tracking surfaces record intentions, not outcomes.
 Approvals are per-action and never stretch into standing authorization — re-ask at each consequential step (merge, long-running or expensive launches).
 Past heavy context (~300k tokens), do not merge: write the handoff and let a fresh session drive the merge.
 Stopping a background monitor orphans its tail.exe/grep.exe children on Windows, and they keep tailed files locked (WinError 32 on delete/rename). taskkill the orphans before relaunching anything that recreates those logs.
