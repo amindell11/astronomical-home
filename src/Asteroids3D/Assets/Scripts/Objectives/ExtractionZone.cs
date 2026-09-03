@@ -1,4 +1,4 @@
-using Game;
+using Utils;
 using UnityEngine;
 
 namespace Objectives

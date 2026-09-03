@@ -24,7 +24,8 @@
       "Bash(gh pr comment:*)",
       "Bash(git add:*)",
       "Bash(git rm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git -C D:/amind/git/agent-4 diff --name-only origin/main...HEAD)"
     ]
   },
   "enabledMcpjsonServers": [
