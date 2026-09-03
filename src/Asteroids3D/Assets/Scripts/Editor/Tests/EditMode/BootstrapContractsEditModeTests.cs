@@ -193,11 +193,12 @@ namespace Tests.EditMode
             var build = typeof(SessionRig).GetMethod("Build");
             Assert.IsNotNull(build, "SessionRig must expose Build");
             var parameters = build.GetParameters();
-            Assert.AreEqual(3, parameters.Length,
-                "Build must take (services, buildPlayer, onPlayerDeath)");
+            Assert.AreEqual(4, parameters.Length,
+                "Build must take (services, buildPlayer, world, onPlayerDeath)");
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(WorldHandle), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[3].ParameterType);
         }
 
     }
