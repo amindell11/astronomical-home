@@ -150,8 +150,8 @@ namespace Movement.MPC
             }
         }
 
-        // POS width is error-relative per solve (Intent_Grammar.md §Stage C, fork 3): widened
-        // from the initial ring error so reach keeps a gradient; posWidth stays the settle floor.
+        // POS width is error-relative per solve: widened from the initial ring error so reach
+        // keeps a gradient; posWidth stays the settle floor.
         private void ApplyErrorRelativePosWidth(in MpcInputs inputs, State state)
         {
             var probe = new CostInput

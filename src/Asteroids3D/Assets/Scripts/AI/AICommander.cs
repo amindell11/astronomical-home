@@ -83,6 +83,7 @@ namespace AI
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
+            // Dynamics is captured by value: an AI ship cannot live-re-equip.
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);

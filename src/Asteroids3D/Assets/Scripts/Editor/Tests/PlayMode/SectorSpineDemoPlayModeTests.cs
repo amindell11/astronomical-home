@@ -68,6 +68,7 @@ namespace Tests.PlayMode
 
         private Ship SpawnKinematicShip(Vector2 planePos)
         {
+            // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
             var ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(planePos);
             TrackGO(ship.gameObject);
             return ship;

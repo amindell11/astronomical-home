@@ -77,8 +77,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Decodes the sentence action head (doc/Feature_Plans/Intent_Grammar.md §Stage C decision
-    /// brief, fork 2) — 10 continuous + 8 discrete branches — into <see cref="AgentAction"/>. Direction
+    /// <summary>Decodes the sentence action head (#485) — 10 continuous + 8 discrete branches — into <see cref="AgentAction"/>. Direction
     /// heads ride as vectors (angle = the command, magnitude = authority weight; x &gt; 0 is CCW from the
     /// head's zero, the anchored-intent convention), POS rides as an in-frame Cartesian offset plus
     /// setpoint (both arena-radius-normalized) with a signed weight, LANE/FIELD are bare weights. The
@@ -135,6 +134,7 @@ namespace Game.RLHarness
             var posY = Mathf.Clamp(c[PosY], -1f, 1f);
 
             var velReferent = Capture(d[VelReferentBranch], rockSlots);
+            // vr/vt deliberately unclamped: training ran unclamped, inference clips downstream.
             var velR = c[VelRadial];
             var velT = c[VelTangential];
             var velMagnitude = Mathf.Sqrt(velR * velR + velT * velT);

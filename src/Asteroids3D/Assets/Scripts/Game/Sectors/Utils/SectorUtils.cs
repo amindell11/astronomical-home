@@ -10,6 +10,7 @@ namespace Game.Sectors.Utils
     {
         public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2  playerSpawnPosition, IGameServices services)
         {
+            // Player is team 0 by construction; only adopted enemies need a non-zero team.
             var player = services.UnitService.SpawnShip(
                 playerTemplate,
                 playerCommander,
@@ -17,6 +18,7 @@ namespace Game.Sectors.Utils
                 services.Arena.Place(playerSpawnPosition),
                 GamePlane.Rotation);
             player.tag = "Player";
+            // World deref is unguarded: every play-sector has one.
             services.EnvironmentService.World.Follower?.SetTarget(player.transform);
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
             if (!observer) return player;

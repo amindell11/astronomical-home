@@ -4,7 +4,7 @@
 # the remaining 4 run the mirror league and ignore them. Why: a pure mirror league has no
 # pursuit gradient — two aggressive brawlers close immediately, nothing ever flees, and the
 # Evader capability the stage (ii) arc bought erodes monotonically while ELO still rises
-# (see doc/Feature_Plans/RL_Stage2_Shaping_SelfPlay_Findings.md, "Self-play erodes pursuit").
+# (self-play erodes pursuit).
 behaviors:
   ShipCombat:
     trainer_type: ppo

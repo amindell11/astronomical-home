@@ -69,6 +69,7 @@ namespace Game.Capture.GameView
             File.WriteAllText(store.journalPath, JsonUtility.ToJson(journal, true));
             SessionState.SetBool(store.activeMarker, true);
 
+            // Unity 6 ignores the checked-in m_EnterPlayModeOptionsEnabled; set and restore it here.
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions =
                 EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;

@@ -56,6 +56,7 @@ namespace Tests.PlayMode
                 new CameraService(), new UIService(), arena);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
+            // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
             _waveTemplate = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(1000f, 1000f));
             TrackGO(_waveTemplate.gameObject);
         }

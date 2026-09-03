@@ -285,6 +285,7 @@ namespace Tests.PlayMode
         private int DrawnFramesIn(string clipName)
         {
             var frames = Directory.GetFiles(Path.Combine(outDir, "frames", $"toggle-{clipName}"), "f_*.png");
+            // Do not weaken: this caught 1195 uniformly blank captured PNGs.
             Assert.IsNotEmpty(frames, $"{clipName}: the window filmed frames");
             var drawn = 0;
             foreach (var frame in frames)
