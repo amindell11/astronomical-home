@@ -9,6 +9,26 @@ LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
+# ---- Section map -------------------------------------------------------------
+#   Config & anchors          ROOT/LOCK_ROOT/TTL (above)
+#   Usage                     usage - the published command interface
+#   Slot & lease resolution   slots_tsv .. ensure_task_branch
+#   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
+#   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
+#   Locks                     write_lock, lock_age_seconds, clobber safety
+#   Status                    collect_slot_records (porcelain), cmd_status
+#   Acquire / release / prepare
+#   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
+#   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
+#   Script tests              cmd_run_script_tests, landing_diff_touches_scripts
+#   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
+#   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
+#   Merge gate                cmd_merge
+#   Finalize / review / revise
+#   Dispatch                  main
+# ------------------------------------------------------------------------------
+
+# ---- Usage -------------------------------------------------------------------
 usage() {
   cat <<'EOF'
 Usage: scripts/agent_worktree_pool.sh <command> [args]
@@ -137,6 +157,7 @@ Examples:
 EOF
 }
 
+# ---- Slot & lease resolution -----------------------------------------------
 slots_tsv() {
   git -C "$ROOT" worktree list --porcelain | awk '
     /^worktree / {
@@ -211,6 +232,7 @@ ensure_task_branch() {
   echo "$task_branch"
 }
 
+# ---- Run summary & merge-grade proof ---------------------------------------
 # The pool tells the runner where to write (-OutDir), so the pool may read that directory back.
 # Everything under it - summary name, editor logs - is the RUNNER's layout: derive paths from this
 # one variable, never re-spell the directory at a read site.
@@ -321,6 +343,7 @@ require_clean_slot() {
   return 1
 }
 
+# ---- Inert-delta classification --------------------------------------------
 # CallerLineNumber/CallerArgumentExpression et al. make comment/whitespace edits behavior-visible (line shifts, argument text); any use in Assets disables the .cs inert path for the merge.
 caller_info_attrs_present() {
   local path="$1" tree="$2"
@@ -374,6 +397,7 @@ cs_diff_is_comment_only() {
   return "$rc"
 }
 
+# ---- Locks -----------------------------------------------------------------
 write_lock() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -418,31 +442,7 @@ slot_is_clobber_safe() {
   is_head_pushed "$path"
 }
 
-repo_slug() {
-  local url
-  url="$(git -C "$ROOT" config --get remote.origin.url)"
-  if [[ "$url" =~ ^git@github.com:([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-  elif [[ "$url" =~ ^https?://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-  else
-    echo ""
-  fi
-}
-
-# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
-# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
-# task_branch_for's answer.
-pr_number_for_pushed_head() {
-  local head_branch="$1"
-  local base="${2:-main}"
-  if [[ -z "$head_branch" ]]; then
-    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
-    return 1
-  fi
-  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
-}
-
+# ---- Status ----------------------------------------------------------------
 # The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
@@ -511,6 +511,7 @@ cmd_status() {
   fi
 }
 
+# ---- Acquire / release / prepare -------------------------------------------
 try_lock_slot() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -627,6 +628,7 @@ cmd_prepare() {
   echo "Prepared $slot at $path -> $base"
 }
 
+# ---- Unity test runs -------------------------------------------------------
 cmd_run_tests() {
   local slot="$1"
   shift || true
@@ -681,6 +683,7 @@ cmd_run_tests_clean() {
   [[ "$exit_code" -eq 0 ]] || return "$exit_code"
 }
 
+# ---- ReSharper ratchet -----------------------------------------------------
 resharper_fingerprint() {
   local path="$1" file hashes=""
   for file in \
@@ -744,6 +747,7 @@ cmd_run_resharper() {
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 
+# ---- Script tests ----------------------------------------------------------
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
@@ -789,6 +793,7 @@ landing_diff_touches_scripts() {
   [[ -n "$changed" ]]
 }
 
+# ---- PR opening ------------------------------------------------------------
 require_pr_title_body() {
   local cmd="$1" title="$2" body="$3" body_file="$4"
   if [[ -z "$title" ]]; then
@@ -823,6 +828,31 @@ require_gh() {
     echo "gh CLI not found in PATH" >&2
     return 1
   }
+}
+
+repo_slug() {
+  local url
+  url="$(git -C "$ROOT" config --get remote.origin.url)"
+  if [[ "$url" =~ ^git@github.com:([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  elif [[ "$url" =~ ^https?://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  else
+    echo ""
+  fi
+}
+
+# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
+# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
+# task_branch_for's answer.
+pr_number_for_pushed_head() {
+  local head_branch="$1"
+  local base="${2:-main}"
+  if [[ -z "$head_branch" ]]; then
+    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
+    return 1
+  fi
+  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
 }
 
 # One flag grammar for every PR-opening command. Results land in PR_TITLE / PR_BODY /
@@ -1207,6 +1237,7 @@ cmd_merge_progress() {
   echo "  unity: $(basename "$log") last written ${age}s ago"
 }
 
+# ---- Merge gate ------------------------------------------------------------
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -1354,6 +1385,7 @@ cmd_merge() {
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
 }
 
+# ---- Finalize / review / revise --------------------------------------------
 cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
@@ -1474,6 +1506,7 @@ cmd_revise() {
   echo "Revised and pushed $slot -> $task_branch"
 }
 
+# ---- Dispatch --------------------------------------------------------------
 main() {
   if [[ $# -lt 1 ]]; then
     usage

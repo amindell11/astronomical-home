@@ -64,6 +64,20 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 . (Join-Path $PSScriptRoot "lib/process_tree.ps1")
 
+# ---- Section map -------------------------------------------------------------
+#   Parameter validation      flag combinations that can never run
+#   Unity access coordination Get-UnityAccessSlot .. Test-UnityBootComplete (lease + boot lane)
+#   Parsers & formatting      Get-ArgumentValue .. Get-TopStackFrame, Write-AutoSelection
+#   Cold transport            Test-ScopeFilterMatchesTests, Invoke-UnityProcess (boot, watchdog, kill)
+#   Run records & results     New-RunRecord, New-FailureEntry, Parse-UnityResultXml, Get-CoverageVerdict
+#   Routed transport          attach to a resident editor via the unity CLI pipeline
+#   Setup                     paths, output dir, scratch-scenario staging
+#   Scope resolution & run    Auto / Module / authored filter -> selection; routed | single-boot | per-platform
+#   Summary & exit            totals, coverage stamp, machine channel, exit code
+# ------------------------------------------------------------------------------
+
+# ---- Parameter validation --------------------------------------------------
+
 if ($WithGraphics.IsPresent) {
     if ($Mode -ne "PlayMode") {
         throw "-WithGraphics requires -Mode PlayMode: graphics runs are for filtered capture/render tests, never the merge-gate suite."
@@ -102,6 +116,21 @@ if ($Routed.IsPresent) {
     }
 }
 
+if ($ScopeType -eq "Auto") {
+    $manualSelectionArgs = [ordered]@{
+        "-TestFilter" = $TestFilter
+        "-TestCategory" = $TestCategory
+        "-AssemblyNames" = $AssemblyNames
+        "-OrderedTestListFile" = $OrderedTestListFile
+        "-RerunFailedFrom" = $RerunFailedFrom
+    }
+    $conflicting = @($manualSelectionArgs.Keys | Where-Object { -not [string]::IsNullOrWhiteSpace($manualSelectionArgs[$_]) })
+    if ($conflicting.Count -gt 0) {
+        throw "-ScopeType Auto cannot be combined with $($conflicting -join ', '): Auto owns test selection so its full-suite fallback stays a true full Workspace run. Narrow with -ExcludeCategory, or drop -ScopeType Auto."
+    }
+}
+
+# ---- Unity access coordination ---------------------------------------------
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 $Script:BootCompletePattern = ""
 $Script:BootWatchTimeoutSec = 180
@@ -201,6 +230,7 @@ function Test-UnityBootComplete {
     return [bool](Select-String -LiteralPath $LogPath -Pattern (Get-BootCompletePattern) -Quiet -ErrorAction SilentlyContinue)
 }
 
+# ---- Parsers & formatting --------------------------------------------------
 function Get-ArgumentValue {
     param([string[]]$Arguments, [string]$Name)
     for ($i = 0; $i -lt $Arguments.Count - 1; $i++) {
@@ -317,6 +347,7 @@ function Write-AutoSelection {
     Write-Host "=== End auto scope resolution ==="
 }
 
+# ---- Cold transport --------------------------------------------------------
 function Test-ScopeFilterMatchesTests {
     param(
         [string]$UnityExe,
@@ -453,6 +484,7 @@ function Invoke-UnityProcess {
     }
 }
 
+# ---- Run records & results -------------------------------------------------
 function Get-FailedFullNamesFromSummary {
     param([string]$SummaryPath)
 
@@ -630,6 +662,43 @@ function Parse-UnityResultXml {
     }
 
     return $base
+}
+
+# Merge-grade coverage is the RUNNER's verdict, not a reader's guess: only this script knows what it
+# was asked to run and what actually executed. The pool trusts coverage.verdict and checks only the
+# one thing it owns (that the summary describes the tree it is about to land) - script-contracts.md
+# sec.3. A summary carrying no stamp is partial by the reader's fail-closed rule.
+function Get-CoverageVerdict {
+    param([object[]]$Runs, [object]$Selection, [string]$OverallStatus)
+
+    if ($Routed.IsPresent) { return [ordered]@{ verdict = "partial"; reason = "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)" } }
+    if ($OverallStatus -ne "passed") { return [ordered]@{ verdict = "partial"; reason = "status=$OverallStatus" } }
+    if ($Mode -ne "Both") { return [ordered]@{ verdict = "partial"; reason = "mode=$Mode" } }
+    if ("$($Selection.scopeType)".ToLowerInvariant() -ne "workspace") { return [ordered]@{ verdict = "partial"; reason = "scopeType=$($Selection.scopeType)" } }
+
+    foreach ($key in @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$Selection[$key])) { return [ordered]@{ verdict = "partial"; reason = "$key set" } }
+    }
+
+    # RequiresGraphics is excluded from every gate run by design; any other exclusion narrows the suite.
+    $extraExclusions = @("$($Selection.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
+    if ($extraExclusions.Count -gt 0) { return [ordered]@{ verdict = "partial"; reason = "excludeCategory=$($Selection.excludeCategory)" } }
+
+    # A fully-green run containing ignored tests reports NUnit "Skipped:Ignored" -> per-run status
+    # "unknown", so per-platform greenness is failed==0/total>0, never the status label.
+    $platforms = @()
+    foreach ($run in @($Runs)) {
+        $platform = [string]$run.platform
+        $runStatus = [string]$run.status
+        if ($runStatus -eq "failed" -or $runStatus -eq "infra_error") { return [ordered]@{ verdict = "partial"; reason = "run $platform status=$runStatus" } }
+        if ($run.failed -ne 0 -or $run.total -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$($run.failed) total=$($run.total)" } }
+        $platforms += $platform
+    }
+    if ($platforms -notcontains "EditMode" -or $platforms -notcontains "PlayMode") {
+        return [ordered]@{ verdict = "partial"; reason = "runs lack passed EditMode+PlayMode" }
+    }
+
+    return [ordered]@{ verdict = "full"; reason = "mode=Both scopeType=Workspace excludeCategory=$($Selection.excludeCategory)" }
 }
 
 # --- Routed transport -------------------------------------------------------
@@ -1025,20 +1094,7 @@ function Invoke-RoutedSuite {
     return $routedRuns
 }
 
-if ($ScopeType -eq "Auto") {
-    $manualSelectionArgs = [ordered]@{
-        "-TestFilter" = $TestFilter
-        "-TestCategory" = $TestCategory
-        "-AssemblyNames" = $AssemblyNames
-        "-OrderedTestListFile" = $OrderedTestListFile
-        "-RerunFailedFrom" = $RerunFailedFrom
-    }
-    $conflicting = @($manualSelectionArgs.Keys | Where-Object { -not [string]::IsNullOrWhiteSpace($manualSelectionArgs[$_]) })
-    if ($conflicting.Count -gt 0) {
-        throw "-ScopeType Auto cannot be combined with $($conflicting -join ', '): Auto owns test selection so its full-suite fallback stays a true full Workspace run. Narrow with -ExcludeCategory, or drop -ScopeType Auto."
-    }
-}
-
+# ---- Setup -----------------------------------------------------------------
 $project = Resolve-FullPath $ProjectPath
 $unityExe = if ([string]::IsNullOrWhiteSpace($UnityPath)) { Resolve-UnityEditorPath -ProjectPath $project } else { Resolve-FullPath $UnityPath }
 $outRoot = Resolve-FullPath $OutDir
@@ -1090,6 +1146,7 @@ if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
     New-Item -ItemType Directory -Force -Path (Join-Path $repoRoot "results/capture") | Out-Null
 }
 
+# ---- Scope resolution & run ------------------------------------------------
 # Everything below can throw (scope resolution/validation, Unity runs); the finally must always unstage the scratch scenario.
 try {
 
@@ -1316,70 +1373,68 @@ try {
         }
     }
     else {
+        foreach ($platform in $platforms) {
+            $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
+            $logPath = Join-Path $outRoot "$stamp-$platform.log"
 
-    foreach ($platform in $platforms) {
-        $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
-        $logPath = Join-Path $outRoot "$stamp-$platform.log"
+            $args = @()
+            if (-not $Windowed.IsPresent) {
+                $args += "-batchmode"
+            }
+            if (-not $WithGraphics.IsPresent) {
+                $args += "-nographics"
+            }
+            $args += @(
+                "-projectPath", $project,
+                "-runTests",
+                "-testPlatform", $platform,
+                "-testResults", $xmlPath,
+                "-logFile", $logPath
+            )
 
-        $args = @()
-        if (-not $Windowed.IsPresent) {
-            $args += "-batchmode"
+            if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
+                $args += @("-testFilter", $TestFilter)
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+                $args += @("-testCategory", $categoryFilter)
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
+                $args += @("-assemblyNames", $AssemblyNames)
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
+                $args += @("-orderedTestListFile", $orderedListPath)
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+                $args += @("-captureScenario", $CaptureScenario)
+            }
+
+            Write-Host "Running Unity $platform tests..."
+
+            $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+            $unityExit = [int]$invoke.exitCode
+
+            $parsed = Parse-UnityResultXml `
+                -XmlPath $xmlPath `
+                -Platform $platform `
+                -LogPath $logPath `
+                -UnityExitCode $unityExit `
+                -FailureLimit $MaxFailures `
+                -MessageLimit $MaxMessageLength `
+                -WithStackTrace:$IncludeStackTrace `
+                -TailLines $LogTailLines `
+                -Selection $selection
+
+            if ($invoke.timedOut) {
+                $parsed.status = "infra_error"
+                $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+            }
+
+            $runs += $parsed
         }
-        if (-not $WithGraphics.IsPresent) {
-            $args += "-nographics"
-        }
-        $args += @(
-            "-projectPath", $project,
-            "-runTests",
-            "-testPlatform", $platform,
-            "-testResults", $xmlPath,
-            "-logFile", $logPath
-        )
-
-        if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
-            $args += @("-testFilter", $TestFilter)
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
-            $args += @("-testCategory", $categoryFilter)
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
-            $args += @("-assemblyNames", $AssemblyNames)
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
-            $args += @("-orderedTestListFile", $orderedListPath)
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
-            $args += @("-captureScenario", $CaptureScenario)
-        }
-
-        Write-Host "Running Unity $platform tests..."
-
-        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
-        $unityExit = [int]$invoke.exitCode
-
-        $parsed = Parse-UnityResultXml `
-            -XmlPath $xmlPath `
-            -Platform $platform `
-            -LogPath $logPath `
-            -UnityExitCode $unityExit `
-            -FailureLimit $MaxFailures `
-            -MessageLimit $MaxMessageLength `
-            -WithStackTrace:$IncludeStackTrace `
-            -TailLines $LogTailLines `
-            -Selection $selection
-
-        if ($invoke.timedOut) {
-            $parsed.status = "infra_error"
-            $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
-        }
-
-        $runs += $parsed
-    }
-
     }
 }
 finally {
@@ -1389,6 +1444,7 @@ finally {
     }
 }
 
+# ---- Summary & exit --------------------------------------------------------
 $total = 0
 $passed = 0
 $failed = 0
@@ -1418,43 +1474,6 @@ $overallStatus = if ($hasInfraError) {
     "failed"
 } else {
     "passed"
-}
-
-# Merge-grade coverage is the RUNNER's verdict, not a reader's guess: only this script knows what it
-# was asked to run and what actually executed. The pool trusts coverage.verdict and checks only the
-# one thing it owns (that the summary describes the tree it is about to land) - script-contracts.md
-# sec.3. A summary carrying no stamp is partial by the reader's fail-closed rule.
-function Get-CoverageVerdict {
-    param([object[]]$Runs, [object]$Selection, [string]$OverallStatus)
-
-    if ($Routed.IsPresent) { return [ordered]@{ verdict = "partial"; reason = "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)" } }
-    if ($OverallStatus -ne "passed") { return [ordered]@{ verdict = "partial"; reason = "status=$OverallStatus" } }
-    if ($Mode -ne "Both") { return [ordered]@{ verdict = "partial"; reason = "mode=$Mode" } }
-    if ("$($Selection.scopeType)".ToLowerInvariant() -ne "workspace") { return [ordered]@{ verdict = "partial"; reason = "scopeType=$($Selection.scopeType)" } }
-
-    foreach ($key in @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")) {
-        if (-not [string]::IsNullOrWhiteSpace([string]$Selection[$key])) { return [ordered]@{ verdict = "partial"; reason = "$key set" } }
-    }
-
-    # RequiresGraphics is excluded from every gate run by design; any other exclusion narrows the suite.
-    $extraExclusions = @("$($Selection.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
-    if ($extraExclusions.Count -gt 0) { return [ordered]@{ verdict = "partial"; reason = "excludeCategory=$($Selection.excludeCategory)" } }
-
-    # A fully-green run containing ignored tests reports NUnit "Skipped:Ignored" -> per-run status
-    # "unknown", so per-platform greenness is failed==0/total>0, never the status label.
-    $platforms = @()
-    foreach ($run in @($Runs)) {
-        $platform = [string]$run.platform
-        $runStatus = [string]$run.status
-        if ($runStatus -eq "failed" -or $runStatus -eq "infra_error") { return [ordered]@{ verdict = "partial"; reason = "run $platform status=$runStatus" } }
-        if ($run.failed -ne 0 -or $run.total -le 0) { return [ordered]@{ verdict = "partial"; reason = "run $platform failed=$($run.failed) total=$($run.total)" } }
-        $platforms += $platform
-    }
-    if ($platforms -notcontains "EditMode" -or $platforms -notcontains "PlayMode") {
-        return [ordered]@{ verdict = "partial"; reason = "runs lack passed EditMode+PlayMode" }
-    }
-
-    return [ordered]@{ verdict = "full"; reason = "mode=Both scopeType=Workspace excludeCategory=$($Selection.excludeCategory)" }
 }
 
 $summary = [ordered]@{
