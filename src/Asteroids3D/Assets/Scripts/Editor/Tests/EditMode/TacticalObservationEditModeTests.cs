@@ -6,6 +6,7 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
 
 namespace Tests.EditMode
 {

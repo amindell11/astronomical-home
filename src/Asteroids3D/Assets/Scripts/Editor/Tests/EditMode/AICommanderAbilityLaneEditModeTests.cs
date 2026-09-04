@@ -11,6 +11,8 @@ using Ships.Command;
 using Tests.Common;
 using UnityEditor;
 using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

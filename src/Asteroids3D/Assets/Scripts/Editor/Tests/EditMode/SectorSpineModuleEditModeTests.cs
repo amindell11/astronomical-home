@@ -7,6 +7,14 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Projectiles;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
+using Game.Sectors.Elements;
+using Game.Sectors.Activation;
 
 namespace Tests.EditMode
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Standing AND over terms — reads current bus levels each evaluation (never edge-subscribes) and latches on first full satisfaction.</summary>
     public class ActivationPredicate

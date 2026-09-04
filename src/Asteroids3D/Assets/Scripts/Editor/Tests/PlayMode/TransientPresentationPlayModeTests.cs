@@ -1,7 +1,7 @@
 using System.Collections;
-using Combat.Projectile;
-using Combat.Projectile.Audio;
-using Combat.Projectile.Visual;
+using Combat.Projectiles;
+using Combat.Projectiles.Audio;
+using Combat.Projectiles.Visual;
 using Combat.Weapons;
 using Game.Services;
 using NUnit.Framework;
@@ -10,6 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode
 {
@@ -124,7 +125,7 @@ namespace Tests.PlayMode
                 Assert.IsFalse(wave.GetComponent<ConcussionWaveVisual>().enabled);
 
                 var before = ActiveVfxCount();
-                wave.Begin(new Ships.ShipId(1));
+                wave.Begin(new Ships.Registry.ShipId(1));
                 yield return null;
 
                 Assert.AreEqual(before, ActiveVfxCount(),
@@ -148,7 +149,7 @@ namespace Tests.PlayMode
                 Assert.IsTrue(wave.GetComponent<ConcussionWaveVisual>().enabled);
 
                 var before = ActiveVfxCount();
-                wave.Begin(new Ships.ShipId(1));
+                wave.Begin(new Ships.Registry.ShipId(1));
                 yield return null;
 
                 Assert.Greater(ActiveVfxCount(), before,

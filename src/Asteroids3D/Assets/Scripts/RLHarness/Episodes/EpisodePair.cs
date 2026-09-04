@@ -4,6 +4,8 @@ using Game.Services;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Game.RLHarness
 {

@@ -3,7 +3,7 @@ using Ships;
 using UnityEngine;
 using Utils;
 
-namespace Game
+namespace Ships.Registry
 {
     public class ShipRegistry : IShipRegistry
     {

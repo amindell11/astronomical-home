@@ -3,7 +3,7 @@ using Movement;
 using UnityEngine;
 using Utils;
 
-namespace Combat
+namespace Combat.Targeting
 {
     /// <summary>
     /// Stateless aiming geometry: pure functions of a shooter's <see cref="Kinematics"/> and a

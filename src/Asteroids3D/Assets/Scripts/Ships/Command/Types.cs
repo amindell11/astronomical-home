@@ -3,6 +3,7 @@ using Combat;
 using Combat.Weapons;
 using Movement;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Ships.Command
 {

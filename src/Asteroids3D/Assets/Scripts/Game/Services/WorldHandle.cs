@@ -2,6 +2,7 @@ using System;
 using AI.Scanning;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Game.Services
 {

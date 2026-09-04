@@ -6,7 +6,7 @@ using Ships;
 using UnityEngine;
 using World;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Edit-time bake: scoped crawl of a sector's child hierarchy + manifest reconcile; the runtime never crawls. Pure C# (no UnityEditor) so it is unit-testable in EditMode.</summary>
     public static class SectorManifestSync

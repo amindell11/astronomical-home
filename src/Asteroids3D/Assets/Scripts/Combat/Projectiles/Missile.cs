@@ -5,7 +5,7 @@ using Movement;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     [RequireComponent(typeof(KinematicsPoller))]
     public class Missile : Projectile<Missile>, IDamageable
@@ -169,7 +169,7 @@ namespace Combat.Projectile
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
             var hitCount = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
             var velocity = rb ? rb.linearVelocity : Vector3.zero;
-            var attackerId = Shooter?.Id ?? Ships.ShipId.Invalid;
+            var attackerId = Shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             for (var i = 0; i < hitCount; i++)
             {
                 var obj = buffer[i].GetComponentInParent<IDamageable>();

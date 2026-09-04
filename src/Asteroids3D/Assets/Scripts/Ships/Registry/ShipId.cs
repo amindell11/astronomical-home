@@ -1,6 +1,6 @@
 using System;
 
-namespace Ships
+namespace Ships.Registry
 {
     public readonly struct ShipId : IEquatable<ShipId>
     {

@@ -1,12 +1,12 @@
 using UI;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.UI
 {
     public interface IUIService
     {
         Overlay ActiveOverlay { get; }
-        void Show(Overlay overlay, Camera uiCamera);
+        void Show(Overlay overlay, UnityEngine.Camera uiCamera);
         void Clear();
     }
 }

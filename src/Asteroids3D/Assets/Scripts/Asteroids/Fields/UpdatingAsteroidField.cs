@@ -66,7 +66,7 @@ namespace Asteroids.Fields
         /// center on. WHO the anchor is (player, chase evader, spectate subject) is the
         /// caller's policy — the field itself is subject-agnostic. Null (spectator/headless
         /// runs, no subject) or a later-destroyed anchor falls back to the field's own
-        /// origin. Called from <see cref="Game.Sectors.AsteroidFieldSpawner"/> during
+        /// origin. Called from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during
         /// <c>Build</c>, before this component's own <c>Awake</c>/<c>Start</c> have run.
         /// </summary>
         public void SetAnchor(Transform anchor)
@@ -79,7 +79,7 @@ namespace Asteroids.Fields
         /// <summary>
         /// Stash the sector's static authored player start (absolute plane
         /// space) so generation carves a permanent clearing around it. Called
-        /// from <see cref="Game.Sectors.AsteroidFieldSpawner"/> during
+        /// from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during
         /// <c>Build</c>, like <see cref="SetPlayer"/>. Only static authored
         /// positions may feed the layout — dynamic occupancy must never bake
         /// into the deterministic baseline.

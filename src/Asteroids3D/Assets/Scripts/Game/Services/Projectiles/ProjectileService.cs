@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Game.Presentation;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Projectiles
 {
     public class ProjectileService : IProjectileService
     {

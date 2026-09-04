@@ -7,7 +7,7 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Spawns a parametric full-circle ring of ships centred on this spawner's transform — author one per team and place it where the team should gather.</summary>
     public class RingSpawner : SectorSpawner

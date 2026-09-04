@@ -14,6 +14,7 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.EditMode
 {
@@ -560,13 +561,13 @@ namespace Tests.EditMode
                     Discrete((AgentActions.PosReferentBranch, 1)));
                 brain.SetAction(in action, boostAvailable: false);
 
-                var bound = new AI.AsteroidRef[PolicyBrain.MaxBoundRocks];
+                var bound = new AI.Strategy.AsteroidRef[PolicyBrain.MaxBoundRocks];
                 Assert.AreEqual(1, brain.GetBoundRocks(bound), "one distinct rock is bound");
-                Assert.IsTrue(bound[0].Equals(AI.AsteroidRef.Of(rock)));
+                Assert.IsTrue(bound[0].Equals(AI.Strategy.AsteroidRef.Of(rock)));
 
                 var decision = brain.Decide(null).Value;
                 Assert.AreEqual(1, decision.nav.sentence.pos.referent, "the rock claims seat 1");
-                Assert.IsTrue(decision.nav.RockSeat(1).Equals(AI.AsteroidRef.Of(rock)), "the seat carries the identity");
+                Assert.IsTrue(decision.nav.RockSeat(1).Equals(AI.Strategy.AsteroidRef.Of(rock)), "the seat carries the identity");
                 Assert.AreEqual(0, decision.nav.sentence.aim.referent, "AIM stays on the enemy stream");
                 Assert.AreEqual(0, decision.nav.sentence.vel.referent);
             }

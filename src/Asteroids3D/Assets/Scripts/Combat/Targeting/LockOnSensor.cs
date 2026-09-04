@@ -1,9 +1,10 @@
 using System;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Weapons;
 using Ships;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
 
 namespace Combat.Targeting
 {

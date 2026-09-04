@@ -7,7 +7,7 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Spawns a single ship at this spawner's transform pose (use adopt content when the authored instance should be the runtime object).</summary>
     public class SingleSpawner : SectorSpawner

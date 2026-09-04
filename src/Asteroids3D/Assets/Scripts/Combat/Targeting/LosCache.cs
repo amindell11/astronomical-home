@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Combat
+namespace Combat.Targeting
 {
     /// <summary>Sim-time-cached LOS result per fire-point (the cache keys on firing position, hence not per-ship), so per-tick LOS polling doesn't raycast per tick.</summary>
     public sealed class LosCache

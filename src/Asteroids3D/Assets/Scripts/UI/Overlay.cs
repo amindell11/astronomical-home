@@ -1,7 +1,8 @@
-using Combat.Conditions;
 using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
+using UI.PlayerState;
+using Combat.Weapons.Conditions;
 
 namespace UI
 {

@@ -3,7 +3,7 @@ using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     /// <summary>A live projectile's heading as a trail drawn back from its head, so a bolt reads as motion in a still frame.</summary>
     [InitializeOnLoad]

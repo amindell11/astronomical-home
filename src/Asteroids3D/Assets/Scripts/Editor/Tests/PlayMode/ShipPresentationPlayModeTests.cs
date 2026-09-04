@@ -8,6 +8,8 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UI.PlayerState;
+using Ships.Registry;
 
 namespace Tests.PlayMode
 {

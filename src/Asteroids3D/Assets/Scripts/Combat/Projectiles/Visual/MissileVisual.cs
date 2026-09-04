@@ -2,7 +2,7 @@ using Game.Presentation;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile.Visual
+namespace Combat.Projectiles.Visual
 {
     [RequireComponent(typeof(Missile))]
     public sealed class MissileVisual : MonoBehaviour, IPresentationPart

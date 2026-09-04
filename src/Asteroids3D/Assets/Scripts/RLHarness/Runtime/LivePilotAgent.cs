@@ -1,12 +1,13 @@
 using System;
 using AI;
 using AI.Observation;
-using Combat.Conditions;
 using Ships;
 using Ships.Command;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
+using Combat.Weapons.Conditions;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

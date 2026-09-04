@@ -1,7 +1,8 @@
-using Combat.Conditions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Game.Services;
 using UnityEngine;
+using Game.Services.Projectiles;
+using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {

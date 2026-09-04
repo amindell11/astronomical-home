@@ -2,6 +2,7 @@ using System;
 using Game.Services;
 using Ships.Command;
 using UnityEngine;
+using Game.Services.Projectiles;
 
 namespace Ships
 {

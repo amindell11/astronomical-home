@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using AI;
 using Combat;
-using Combat.Conditions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Weapons;
 using Damage;
 using Movement;
@@ -138,7 +137,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity => Vector3.zero;
             public Rigidbody Body => GetComponent<Rigidbody>();
-            public Ships.ShipId Id => Ships.ShipId.Invalid;
+            public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
 
         private DamageRecorder CreateTarget(Vector3 position)
@@ -276,7 +275,7 @@ namespace Tests.PlayMode
 
             // Ballistic slot leads the moving target along its velocity.
             var ballisticAim = gunner.AimPointFor(WeaponSlot.Primary);
-            var expectedLead = Combat.TargetingMath.PredictIntercept(Pose(), enemyPos, enemyVel, context.PrimarySpeed);
+            var expectedLead = Combat.Targeting.TargetingMath.PredictIntercept(Pose(), enemyPos, enemyVel, context.PrimarySpeed);
             Assert.AreEqual(Game.GamePlane.PlanePointToWorld(expectedLead), ballisticAim);
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 

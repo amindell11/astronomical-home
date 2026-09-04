@@ -1,9 +1,9 @@
-using Combat.Conditions;
 using Game;
 using Game.Diagnostics;
 using Ships;
 using UnityEditor;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace Combat.Targeting
 {

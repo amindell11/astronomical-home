@@ -6,6 +6,7 @@ using Movement.MPC;
 using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
+using AI.Strategy;
 
 namespace AI
 {

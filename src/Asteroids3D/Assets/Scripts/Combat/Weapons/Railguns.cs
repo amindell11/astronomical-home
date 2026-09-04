@@ -1,10 +1,11 @@
+using Combat.Projectiles;
 using System;
-using Combat.Conditions;
-using Combat.Projectile;
 using Damage;
 using Game.Services;
 using UnityEngine;
 using Utils;
+using Game.Services.Projectiles;
+using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {
@@ -120,7 +121,7 @@ namespace Combat.Weapons
             var damageable = hit.collider.GetComponentInParent<IDamageable>();
             if (damageable == null) return;
 
-            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.ShipId.Invalid,
+            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.Registry.ShipId.Invalid,
                 impactMass, firePoint.up * impactSpeed, hit.point));
         }
     }

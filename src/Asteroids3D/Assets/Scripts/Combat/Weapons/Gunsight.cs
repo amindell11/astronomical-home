@@ -3,6 +3,7 @@ using Combat.Weapons;
 using Game;
 using Movement;
 using UnityEngine;
+using Combat.Targeting;
 
 namespace Combat
 {

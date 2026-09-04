@@ -3,7 +3,7 @@ using Game.Presentation;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile.Visual
+namespace Combat.Projectiles.Visual
 {
     /// <summary>
     /// Renders the wave's frontier as a ring in the game plane — the ring is the readable damage

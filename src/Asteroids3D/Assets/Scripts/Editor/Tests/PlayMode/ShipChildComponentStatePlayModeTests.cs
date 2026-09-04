@@ -9,6 +9,7 @@ using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using UI.PlayerState;
 
 namespace Tests.PlayMode
 {

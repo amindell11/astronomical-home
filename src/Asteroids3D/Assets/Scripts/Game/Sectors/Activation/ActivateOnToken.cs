@@ -1,7 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using Game.Sectors.Elements;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Activates its own (dormant) GameObject when the named bus token goes true — the actee subscribes; no peer commands it.</summary>
     public class ActivateOnToken : SectorModule

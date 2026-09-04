@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Player;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.EditMode
 {

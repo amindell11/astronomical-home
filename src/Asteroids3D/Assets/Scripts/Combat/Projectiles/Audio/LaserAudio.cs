@@ -2,7 +2,7 @@ using Damage;
 using Game.Presentation;
 using UnityEngine;
 
-namespace Combat.Projectile.Audio
+namespace Combat.Projectiles.Audio
 {
     [RequireComponent(typeof(Laser))]
     public class LaserAudio : MonoBehaviour, IPresentationPart

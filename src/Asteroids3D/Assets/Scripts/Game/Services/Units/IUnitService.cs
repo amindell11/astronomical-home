@@ -2,8 +2,10 @@ using System;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Ships.Registry;
+using Game.Services.Projectiles;
 
-namespace Game.Services
+namespace Game.Services.Units
 {
     public interface IUnitService
     {

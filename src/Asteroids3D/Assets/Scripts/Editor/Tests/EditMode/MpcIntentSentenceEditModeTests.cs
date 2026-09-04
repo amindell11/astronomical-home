@@ -6,6 +6,8 @@ using Ships;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

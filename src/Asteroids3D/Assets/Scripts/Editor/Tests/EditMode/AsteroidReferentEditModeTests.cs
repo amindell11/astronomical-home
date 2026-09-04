@@ -6,6 +6,7 @@ using Game;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {
@@ -13,7 +14,7 @@ namespace Tests.EditMode
     [Category("AI")]
     public class AsteroidReferentEditModeTests
     {
-        private static readonly Ships.ShipId AnchorId = new(7);
+        private static readonly Ships.Registry.ShipId AnchorId = new(7);
 
         private AsteroidController rockA;
         private AsteroidController rockB;

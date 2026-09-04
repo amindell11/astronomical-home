@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.Common
 {

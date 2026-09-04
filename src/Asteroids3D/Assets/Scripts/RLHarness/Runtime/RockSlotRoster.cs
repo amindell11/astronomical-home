@@ -2,6 +2,7 @@ using System;
 using AI;
 using AI.Scanning;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {
