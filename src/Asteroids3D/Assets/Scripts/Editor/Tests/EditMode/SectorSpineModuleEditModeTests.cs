@@ -42,7 +42,6 @@ namespace Tests.EditMode
             public IObjectiveService ObjectiveService => objectives;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-            public ArenaContext Arena => null;
             public bool PresentationEnabled => true;
         }
 
@@ -68,7 +67,7 @@ namespace Tests.EditMode
             module.Bind(key, zone);
 
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(new StubServices(svc), null, null, bus);
+            var ctx = new SectorBuildContext(new StubServices(svc), null, null, null, bus);
             return (module, svc, key, zone, bus, ctx);
         }
 

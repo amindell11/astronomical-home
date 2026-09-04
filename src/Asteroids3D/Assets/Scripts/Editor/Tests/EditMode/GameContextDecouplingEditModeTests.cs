@@ -23,13 +23,13 @@ namespace Tests.EditMode
         }
         
         [Test]
-        public void AiCommander_ExposesArenaInjectionApi()
+        public void AiCommander_ExposesWorldInjectionApi()
         {
-            var method = typeof(AICommander).GetMethod("SetArena", BindingFlags.Public | BindingFlags.Instance);
+            var method = typeof(AICommander).GetMethod("SetWorld", BindingFlags.Public | BindingFlags.Instance);
             Assert.IsNotNull(method);
             var parameters = method.GetParameters();
             Assert.That(parameters.Length, Is.EqualTo(1));
-            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(ArenaContext)));
+            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(WorldHandle)));
         }
 
     }

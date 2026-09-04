@@ -62,6 +62,9 @@ namespace Player
         // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
         private System.Action<ShipId, DamageInfo> onPlayerDeath;
 
+        // No rocks: the player is session-tier and never AI-driven, so it senses no obstacle field.
+        private WorldHandle world;
+
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
         private Ship currentTemplate;
@@ -73,10 +76,11 @@ namespace Player
         /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
         /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
-        public IEnumerator Build(IGameServices services, bool buildPlayer,
+        public IEnumerator Build(IGameServices services, bool buildPlayer, WorldHandle world,
             System.Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.services = services;
+            this.world = world;
             this.onPlayerDeath = onPlayerDeath;
 
             // World is singleton infrastructure built before the player/camera, which depend on it.
@@ -95,7 +99,7 @@ namespace Player
 
             Player = SectorUtils.BuildAndWirePlayer(
                 playerTemplate, playerCommander,
-                0, playerSpawnPosition, services);
+                0, playerSpawnPosition, services, world);
             currentTemplate = playerTemplate;
 
             WirePlayerDeath();
@@ -176,7 +180,7 @@ namespace Player
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire, then re-bind the HUD to the new readouts.
-            services.UnitService.WireShipDependencies(Player);
+            services.UnitService.WireShipDependencies(Player, world);
             RebindHud();
         }
 
@@ -195,7 +199,7 @@ namespace Player
 
             Player = SectorUtils.BuildAndWirePlayer(
                 newTemplate, playerCommander,
-                0, playerSpawnPosition, services);
+                0, playerSpawnPosition, services, world);
             currentTemplate = newTemplate;
 
             WirePlayerDeath();

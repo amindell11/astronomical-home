@@ -17,10 +17,10 @@ public abstract class CaptureScenario
 {
     private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
 
-    /// <summary>The headless session the runner composed via SessionHost — real services, arena, UnitService.</summary>
+    /// <summary>The headless session the runner composed via SessionHost — real services, world, UnitService.</summary>
     public GameSession Session { get; internal set; }
 
-    public ArenaContext Arena => Session.Services.Arena;
+    public WorldHandle World => Session.World;
 
     public virtual CaptureConfig Config => new() { clipName = GetType().Name };
 
@@ -47,8 +47,9 @@ public abstract class CaptureScenario
 
         var ship = Session.Services.UnitService.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,
-            Arena.Place(planePos),
-            GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
+            World.Place(planePos),
+            GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),
+            Session.World);
         Assert.IsNotNull(ship, "Failed to create scenario ship — check test asset paths");
 
         var cmdr = ship.GetComponentInChildren<AICommander>();

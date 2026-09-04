@@ -160,10 +160,10 @@ namespace Game.Session
                 case PlayerDeathBehavior.RespawnInPlace:
                     var policy = playerRespawn;
                     if (!policy.Enabled) return null;
-                    // No live producer transform here, so the authored point resolves against the arena offset.
+                    // No live producer transform here, so the authored point resolves against the world origin.
                     return (victim, _) => target.Services.UnitService.WaitAndRespawnShip(
                         victim,
-                        Respawn.Resolve(policy, target.Services, target.Services.Arena.Offset),
+                        Respawn.Resolve(policy, target.Services, target.World.Offset, target.World.Offset),
                         0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:

@@ -91,7 +91,7 @@ namespace Tests.EditMode
 
             weapons = new SpyWeapons();
             var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
-            commander.SetArena(TestArena.On(host));
+            commander.SetWorld(TestWorld.On());
             commander.Initialize(new ShipControl(status, new StubPilot(), new SeedScope(1),
                 new StubWeaponContext(), weapons));
             createdSettings = commander.Navigator.mpcSettings;

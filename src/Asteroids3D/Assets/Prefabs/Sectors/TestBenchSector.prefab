@@ -67,6 +67,7 @@ MonoBehaviour:
   spawners:
   - {fileID: 5063900345841166789}
   modules: []
+  obstacleField: {fileID: 2929633249234037234}
 --- !u!1001 &1862518206806735493
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -230,6 +231,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
+--- !u!114 &2929633249234037234 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+    type: 3}
+  m_PrefabInstance: {fileID: 5067494347477777307}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5063900345841166789 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6137243209126494, guid: a4a07ada72adcc44ba51f616ad29384b,

@@ -36,8 +36,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // AICommander.TryInitializeSystems is gated on an arena — supply the fixture arena so all AI systems initialize.
-        cmdr.SetArena(Arena);
+        // AICommander.TryInitializeSystems is gated on a world — supply the fixture world so all AI systems initialize.
+        cmdr.SetWorld(World);
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -123,7 +123,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             radius = 1f,
             collider = obstacle.GetComponent<Collider>(),
         };
-        Arena.ObstacleField = stubField;
+        ObstacleField.Inner = stubField;
 
         // Commanded velocity leads straight through the obstacle; the solver must divert around it while keeping progress.
         var direction = new Vector2(1f, 1f).normalized;
@@ -152,7 +152,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(minDistToObstacle, Is.GreaterThan(1.5f),
             "MPC should maintain clearance from obstacle center");
 
-        Arena.ObstacleField = null;
+        ObstacleField.Inner = null;
         Object.Destroy(obstacle);
         yield return null;
     }

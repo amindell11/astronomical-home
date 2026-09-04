@@ -67,6 +67,7 @@ MonoBehaviour:
   - {fileID: 5940152637587894856}
   modules:
   - {fileID: 4131614711866306222}
+  obstacleField: {fileID: 4359794750649610879}
 --- !u!1 &6420115723280658274
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,11 +112,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3c5d86ca1eb664a83ba3c408ab0d61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  activationToken: 
   template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
   commander: {fileID: 1772957474756936600, guid: 1c6f3a82d5b9e4074a8d2c6f9b350e17,
     type: 3}
-  settings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
   team: 1
   count: 4
   radius: 15
@@ -168,11 +169,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3c5d86ca1eb664a83ba3c408ab0d61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  activationToken: 
   template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
   commander: {fileID: 1772957474756936600, guid: 1c6f3a82d5b9e4074a8d2c6f9b350e17,
     type: 3}
-  settings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
   team: 0
   count: 4
   radius: 15
@@ -249,6 +250,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
+--- !u!114 &4359794750649610879 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+    type: 3}
+  m_PrefabInstance: {fileID: 5943173229155180566}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &5548064837228422635 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2199105733414487549, guid: a4a07ada72adcc44ba51f616ad29384b,

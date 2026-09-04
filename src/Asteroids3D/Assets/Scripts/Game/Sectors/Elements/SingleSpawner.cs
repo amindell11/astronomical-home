@@ -27,7 +27,8 @@ namespace Game.Sectors
 
             var ship = ctx.Services.UnitService.SpawnShip(
                 template, commander, team,
-                transform.position, transform.rotation == Quaternion.identity ? GamePlane.Rotation : transform.rotation);
+                transform.position, transform.rotation == Quaternion.identity ? GamePlane.Rotation : transform.rotation,
+                ctx.World);
 
             if (ship)
             {

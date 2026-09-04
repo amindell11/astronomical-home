@@ -65,7 +65,7 @@ MonoBehaviour:
       delay: 0
   spawners: []
   modules: []
-  updatingAsteroidFieldPrefab: {fileID: 0}
+  obstacleField: {fileID: 0}
 --- !u!1001 &405733312791809307
 PrefabInstance:
   m_ObjectHideFlags: 0

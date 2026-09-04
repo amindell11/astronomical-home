@@ -21,15 +21,9 @@ namespace Game.Services
         private readonly List<Ship> spawnedShips = new();
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
-        private ArenaContext arena;
         private IProjectileService projectiles;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
-
-        public void SetArena(ArenaContext context)
-        {
-            arena = context;
-        }
 
         public void SetProjectiles(IProjectileService projectiles)
         {
@@ -43,7 +37,8 @@ namespace Game.Services
             Commander commander,
             int team,
             Vector3 position,
-            Quaternion rotation)
+            Quaternion rotation,
+            WorldHandle world)
         {
             if (!template)
                 throw new ArgumentNullException(nameof(template));
@@ -51,7 +46,7 @@ namespace Game.Services
             var ship = ShipFactory.CreateShip(
                 template, commander, team, NextDecisionSeed(team), projectiles,
                 position, rotation,
-                postInitialize: WireShipDependencies);
+                postInitialize: spawned => WireShipDependencies(spawned, world));
 
             ship.transform.SetParent(transform, true);
             ActiveRegistry.ActiveShips.Add(ship);
@@ -60,7 +55,7 @@ namespace Game.Services
             return ship;
         }
 
-        public Ship AdoptShip(Ship ship)
+        public Ship AdoptShip(Ship ship, WorldHandle world)
         {
             if (!ship)
                 return null;
@@ -76,7 +71,7 @@ namespace Game.Services
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
-            WireShipDependencies(ship);
+            WireShipDependencies(ship, world);
             OnShipSpawned?.Invoke(ship);
             return ship;
         }
@@ -123,14 +118,14 @@ namespace Game.Services
         }
 
         /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>
-        public void WireShipDependencies(Ship ship)
+        public void WireShipDependencies(Ship ship, WorldHandle world)
         {
             if (!ship) return;
-            if (arena == null)
-                throw new InvalidOperationException("UnitService.SetArena must be called before wiring ships.");
-            ship.Targeting?.SetRegistry(arena.Registry);
+            if (world == null) throw new ArgumentNullException(nameof(world));
+            var targeting = ship.Targeting;
+            if (targeting) targeting.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
-                aiCommander.SetArena(arena);
+                aiCommander.SetWorld(world);
         }
 
         /// <summary>Atomic pair-reset: repose, restore the ship's systems, and restore its commander "as if freshly spawned".</summary>

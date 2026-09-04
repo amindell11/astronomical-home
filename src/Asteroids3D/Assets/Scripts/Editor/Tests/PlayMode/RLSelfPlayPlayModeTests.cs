@@ -20,7 +20,7 @@ namespace Tests.PlayMode
     {
         private GameObject arenaHost;
         private UnitService unitService;
-        private ArenaContext arena;
+        private WorldHandle world;
         private ProjectileService projectiles;
         private float savedTimeScale;
         private float savedMaxDelta;
@@ -37,8 +37,7 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[SelfPlayArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
-            unitService.SetArena(arena);
+            world = TestWorld.On(unitService.ActiveRegistry);
             projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
@@ -72,7 +71,7 @@ namespace Tests.PlayMode
             pair?.Dispose();
             pair = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            arena = null;
+            world = null;
             projectiles = null;
 
             if (Academy.IsInitialized)
@@ -82,10 +81,10 @@ namespace Tests.PlayMode
 
         private EpisodeLoopDriver Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnSelfPlayPair(unitService, arena, projectiles, in spec, assets, out var brainA, out var brainB);
+            pair = EpisodePair.SpawnSelfPlayPair(unitService, world, projectiles, in spec, assets, out var brainA, out var brainB);
             (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
-                pair, brainA, brainB, in spec, arena.Offset, BehaviorType.HeuristicOnly);
-            return new EpisodeLoopDriver(pair, agentA, arena.Offset, opponentAgent: agentB);
+                pair, brainA, brainB, in spec, world.Offset, BehaviorType.HeuristicOnly);
+            return new EpisodeLoopDriver(pair, agentA, world.Offset, opponentAgent: agentB);
         }
 
         [UnityTest]

@@ -15,7 +15,8 @@ namespace Game.RLHarness
         [SerializeField] internal ScriptableObject captureModule;
         [SerializeField] internal bool exitEditorWhenComplete;
 
-        internal ArenaContext Arena { get; private set; }
+        /// <summary>The measurement arena sits at the plane origin; lanes and compositions place their world from this.</summary>
+        internal Vector2 Offset => Vector2.zero;
         internal HarnessAssets Assets => assets;
         internal IProjectileService Projectiles { get; private set; }
 
@@ -54,9 +55,8 @@ namespace Game.RLHarness
             Application.logMessageReceived += ExitOnException;
 
             var composedUnits = gameObject.AddComponent<UnitService>();
-            var (arena, projectiles) = ShipServices.Compose(
-                composedUnits, transform, Vector2.zero, spec.Presentation);
-            Initialize(spec, assets, composedUnits, arena, projectiles);
+            var projectiles = ShipServices.Compose(composedUnits, transform, spec.Presentation);
+            Initialize(spec, assets, composedUnits, projectiles);
             yield return RunLane();
 #if UNITY_EDITOR
             if (exitEditorWhenComplete) UnityEditor.EditorApplication.Exit(0);
@@ -66,12 +66,11 @@ namespace Game.RLHarness
         }
 
         internal void Initialize(SessionSpec sessionSpec, HarnessAssets harnessAssets, UnitService unitService,
-            ArenaContext arena, IProjectileService projectiles, IEpisodeCapture capture = null)
+            IProjectileService projectiles, IEpisodeCapture capture = null)
         {
             spec = sessionSpec;
             assets = harnessAssets;
             units = unitService;
-            Arena = arena;
             Projectiles = projectiles;
             if (capture != null)
             {
@@ -83,20 +82,25 @@ namespace Game.RLHarness
                 probes[i] = SessionProbes.Create(sessionSpec.probes[i].name, sessionSpec.probes[i].ToParameters());
         }
 
-        internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field) =>
-            opponent switch
+        internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field)
+        {
+            var world = World(field);
+            return opponent switch
             {
-                OpponentKind.Mirror => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
+                OpponentKind.Mirror => new PolicyPairComposition(units, world, Projectiles, assets, in seedSpec,
                     spec.model, spec.model, field),
-                OpponentKind.Checkpoint => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
+                OpponentKind.Checkpoint => new PolicyPairComposition(units, world, Projectiles, assets, in seedSpec,
                     spec.model, spec.opponentModel, field),
-                _ => new InferenceRosterComposition(units, Arena, Projectiles, assets, in seedSpec,
+                _ => new InferenceRosterComposition(units, world, Projectiles, assets, in seedSpec,
                     spec.model, field),
             };
+        }
 
         internal ISessionComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
             SentenceRow row) =>
-            new SentenceComposition(units, Arena, Projectiles, assets, in seedSpec, field, row);
+            new SentenceComposition(units, World(field), Projectiles, assets, in seedSpec, field, row);
+
+        private WorldHandle World(HarnessField field) => new(Offset, units.Registry, field?.Field);
 
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
@@ -109,8 +113,8 @@ namespace Game.RLHarness
             for (var episode = 0; episode < episodes; episode++)
             {
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
-                var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
-                var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
+                var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Offset);
+                var context = new ProbeContext(composition.Pair, Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
                 var pair = composition.Pair;
                 var captureConfig = spec.record.Records(episode)

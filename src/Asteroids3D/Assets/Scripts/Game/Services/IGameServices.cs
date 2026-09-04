@@ -8,7 +8,6 @@ namespace Game.Services
         IObjectiveService ObjectiveService { get; }
         ICameraService CameraService { get; }
         IUIService UIService { get; }
-        ArenaContext Arena { get; }
         /// <summary>This session's presentation policy — spawn seams apply it to what they instantiate.</summary>
         bool PresentationEnabled { get; }
     }

@@ -32,7 +32,7 @@ namespace Tests.PlayMode
 
         private GameObject arenaHost;
         private UnitService unitService;
-        private ArenaContext arena;
+        private WorldHandle world;
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private float savedTimeScale;
@@ -48,8 +48,7 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[ArchetypeArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
-            unitService.SetArena(arena);
+            world = TestWorld.On(unitService.ActiveRegistry);
             projectiles = new ProjectileService(arenaHost.transform);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
@@ -76,7 +75,7 @@ namespace Tests.PlayMode
             pair = null;
 
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            arena = null;
+            world = null;
             projectiles = null;
 
             AudioListener.pause = false;
@@ -95,11 +94,11 @@ namespace Tests.PlayMode
 
             foreach (var archetype in Archetypes)
             {
-                var draw = roster.Install(archetype, in spec, 0, arena.Offset);
+                var draw = roster.Install(archetype, in spec, 0, world.Offset);
                 pair.Reset(in spec, 0);
-                using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, arena.Offset,
+                using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, world.Offset,
                     spec.arenaRadius, in draw);
-                var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, 0, arena.Offset);
+                var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, 0, world.Offset);
                 runner.RecordOpponent(in draw);
                 yield return RunToCompletion(runner, spec, probe);
 
@@ -164,11 +163,11 @@ namespace Tests.PlayMode
                 var rows = new List<ArchetypeGateRow>();
                 for (var i = 0; i < episodesPerArchetype; i++)
                 {
-                    var draw = roster.Install(archetype, in spec, i, arena.Offset);
+                    var draw = roster.Install(archetype, in spec, i, world.Offset);
                     pair.Reset(in spec, i);
-                    using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, arena.Offset,
+                    using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, world.Offset,
                         spec.arenaRadius, in draw);
-                    var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, i, arena.Offset);
+                    var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, i, world.Offset);
                     yield return RunToCompletion(runner, spec, probe);
                     var row = probe.ToRow(runner.Result);
                     rows.Add(row);
@@ -184,7 +183,7 @@ namespace Tests.PlayMode
         /// <summary>The gate composition: the canonical pair with the deterministic ranger stand-in on the agent side, and the roster bound to the opponent while its prefab-default utility brain is still installed.</summary>
         private void SpawnPairWithRoster(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (commander, baselineShip) =>
+            pair = EpisodePair.Spawn(unitService, world, projectiles, in spec, (commander, baselineShip) =>
             {
                 var ranger = commander.InstallBrain<RangerBrain>();
                 ranger.Configure(baselineShip, RangerHoldRange);

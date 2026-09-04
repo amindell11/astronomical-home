@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical harness asteroid-field composition: the production <see cref="UpdatingAsteroidField"/> with streaming neutralized (static anchor, load radius covering the whole arena-sized field) and a fresh deterministic layout per episode, wired into <see cref="ArenaContext.ObstacleField"/> exactly like the sector bridge (<see cref="Game.Sectors.AsteroidFieldSpawner"/>). Hosts (tests, training scene, traversal probe) share this so the field scenario cannot drift between them.</summary>
+    /// <summary>The canonical harness asteroid-field composition: the production <see cref="UpdatingAsteroidField"/> with streaming neutralized (static anchor, load radius covering the whole arena-sized field) and a fresh deterministic layout per episode. The composition that owns it builds its <see cref="WorldHandle"/> from <see cref="Field"/>. Hosts (tests, training scene, traversal probe) share this so the field scenario cannot drift between them.</summary>
     public sealed class HarnessField : IDisposable
     {
         private const uint FieldSeedStream = 303;
@@ -17,28 +17,25 @@ namespace Game.RLHarness
 
         public UpdatingAsteroidField Field { get; }
 
-        private readonly ArenaContext arena;
         private readonly GameObject root;
 
-        private HarnessField(ArenaContext arena, GameObject root, UpdatingAsteroidField field)
+        private HarnessField(GameObject root, UpdatingAsteroidField field)
         {
-            this.arena = arena;
             this.root = root;
             Field = field;
         }
 
         /// <summary>Instantiates the field at the arena center and stages <paramref name="densityScale"/> before the field's own Start builds (the pool pre-size hint reads it). Episode 0 may see one extra build (Start auto-init + first reset rebuild) — accepted.</summary>
-        public static HarnessField Spawn(ArenaContext arena, HarnessAssets assets, float densityScale = 1f, Transform parent = null,
+        public static HarnessField Spawn(Vector2 offset, HarnessAssets assets, float densityScale = 1f, Transform parent = null,
             bool presentationEnabled = true)
         {
             var root = UnityEngine.Object.Instantiate(
-                assets.FieldPrefab, GamePlane.PlanePointToWorld(arena.Offset), Quaternion.identity, parent);
+                assets.FieldPrefab, GamePlane.PlanePointToWorld(offset), Quaternion.identity, parent);
             var field = root.GetComponent<UpdatingAsteroidField>();
             field.SetAnchor(null); // streams around its own transform: the whole field stays loaded
             field.SetDensityScale(densityScale);
             field.SetPresentation(presentationEnabled);
-            arena.ObstacleField = field;
-            return new HarnessField(arena, root, field);
+            return new HarnessField(root, field);
         }
 
         /// <summary>Per-episode reset for combat episodes: the spec's density and lethality stage first (curriculum values move between episodes), poses derive, both spawn positions become generation-time clearings, and the layout seed re-derives from (runSeed, episodeIndex). The rebuild's overlay wipe IS the reset — destruction never leaks across episodes.</summary>
@@ -68,8 +65,6 @@ namespace Game.RLHarness
 
         public void Dispose()
         {
-            if (arena != null && ReferenceEquals(arena.ObstacleField, Field))
-                arena.ObstacleField = null;
             if (Field) Field.DespawnAll();
             if (root) UnityEngine.Object.DestroyImmediate(root);
         }

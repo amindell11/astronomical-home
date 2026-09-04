@@ -15,7 +15,7 @@ namespace Game.RLHarness
             var jsonlPath = EpisodeJsonl.NewRunPath($"capture-vs-{block.Label}", "rl-capture", spec.outDir);
 
             var field = baseSpec.useAsteroidField
-                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale,
+                ? HarnessField.Spawn(host.Offset, host.Assets, baseSpec.fieldDensityScale,
                     presentationEnabled: spec.Presentation)
                 : null;
             var composition = host.NewComposition(in baseSpec, spec.opponentKind, field);

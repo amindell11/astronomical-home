@@ -40,7 +40,7 @@ namespace Tests.PlayMode
             public Vector2 Offset;
             public readonly List<Ship> ShipsInSpawnOrder = new();
 
-            public ArenaContext Arena => Session.Services.Arena;
+            public WorldHandle World => Session.World;
         }
 
         private readonly List<GameObject> created = new();
@@ -108,10 +108,10 @@ namespace Tests.PlayMode
                     $"Ship {i} in arena B must spawn at its arena-A twin's position translated by the offset.");
             }
 
-            var fieldA = a.Arena.ObstacleField;
-            var fieldB = b.Arena.ObstacleField;
-            Assert.IsNotNull(fieldA, "Arena A's sector must register its asteroid field on A's arena handle");
-            Assert.IsNotNull(fieldB, "Arena B's sector must register its asteroid field on B's arena handle");
+            var fieldA = a.World.ObstacleField;
+            var fieldB = b.World.ObstacleField;
+            Assert.IsNotNull(fieldA, "Arena A's sector must register its asteroid field on A's world handle");
+            Assert.IsNotNull(fieldB, "Arena B's sector must register its asteroid field on B's world handle");
             Assert.AreNotSame(fieldA, fieldB, "Each arena must carry its own obstacle-field provider");
 
             var buffer = new DetectedObstacle[64];
@@ -202,9 +202,9 @@ namespace Tests.PlayMode
                         "An arena-B ship leaked into arena A's registry.");
 
             var buffer = new DetectedObstacle[64];
-            Assert.AreEqual(0, a.Arena.ObstacleField.QueryObstacles(b.Offset, 300f, buffer),
+            Assert.AreEqual(0, a.World.ObstacleField.QueryObstacles(b.Offset, 300f, buffer),
                 "After simulating, arena A's field must still be empty at B's origin.");
-            Assert.AreEqual(0, b.Arena.ObstacleField.QueryObstacles(a.Offset, 300f, buffer),
+            Assert.AreEqual(0, b.World.ObstacleField.QueryObstacles(a.Offset, 300f, buffer),
                 "After simulating, arena B's field must still be empty at A's origin.");
 
             yield return TeardownArena(a);
@@ -239,7 +239,7 @@ namespace Tests.PlayMode
             {
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
-                var otherRegistry = other.Arena.Registry;
+                var otherRegistry = other.World.Registry;
                 void Handler(Damage.DamageInfo hit)
                 {
                     var attackerId = hit.AttackerId;

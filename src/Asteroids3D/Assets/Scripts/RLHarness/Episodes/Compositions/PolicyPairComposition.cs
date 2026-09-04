@@ -13,15 +13,15 @@ namespace Game.RLHarness
         private readonly ShipAgent agentA;
         private readonly ShipAgent agentB;
 
-        public PolicyPairComposition(UnitService units, ArenaContext arena, IProjectileService projectiles,
+        public PolicyPairComposition(UnitService units, WorldHandle world, IProjectileService projectiles,
             HarnessAssets assets, in RewardSpec spec, ModelAsset candidateModel, ModelAsset opponentModel,
             HarnessField field)
         {
-            Pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets,
+            Pair = EpisodePair.SpawnSelfPlayPair(units, world, projectiles, in spec, assets,
                 out var brainA, out var brainB);
-            (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(Pair, brainA, brainB, in spec, arena.Offset,
+            (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(Pair, brainA, brainB, in spec, world.Offset,
                 BehaviorType.InferenceOnly, parent: null, candidateModel, opponentModel);
-            Driver = new EpisodeLoopDriver(Pair, agentA, arena.Offset, field, roster: null, opponentAgent: agentB);
+            Driver = new EpisodeLoopDriver(Pair, agentA, world.Offset, field, roster: null, opponentAgent: agentB);
         }
 
         public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,
