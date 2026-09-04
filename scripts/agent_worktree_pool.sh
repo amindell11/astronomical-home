@@ -9,6 +9,26 @@ LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
+# ---- Section map -------------------------------------------------------------
+#   Config & anchors          ROOT/LOCK_ROOT/TTL (above)
+#   Usage                     usage - the published command interface
+#   Slot & lease resolution   slots_tsv .. ensure_task_branch
+#   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
+#   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
+#   Locks                     write_lock, lock_age_seconds, clobber safety
+#   Status                    collect_slot_records (porcelain), cmd_status
+#   Acquire / release / prepare
+#   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
+#   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
+#   Script tests              cmd_run_script_tests, landing_diff_touches_scripts
+#   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
+#   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
+#   Merge gate                cmd_merge
+#   Finalize / review / revise
+#   Dispatch                  main
+# ------------------------------------------------------------------------------
+
+# ---- Usage -------------------------------------------------------------------
 usage() {
   cat <<'EOF'
 Usage: scripts/agent_worktree_pool.sh <command> [args]
@@ -137,6 +157,7 @@ Examples:
 EOF
 }
 
+# ---- Slot & lease resolution -----------------------------------------------
 slots_tsv() {
   git -C "$ROOT" worktree list --porcelain | awk '
     /^worktree / {
@@ -211,6 +232,7 @@ ensure_task_branch() {
   echo "$task_branch"
 }
 
+# ---- Run summary & merge-grade proof ---------------------------------------
 # The pool tells the runner where to write (-OutDir), so the pool may read that directory back.
 # Everything under it - summary name, editor logs - is the RUNNER's layout: derive paths from this
 # one variable, never re-spell the directory at a read site.
@@ -284,9 +306,15 @@ tested_tree_for() {
   cat "$(lock_dir_for "$slot")/tested_tree" 2>/dev/null || true
 }
 
+# First value of KEY= in a KEY=value record file; empty when absent.
+record_field() {
+  local file="$1" key="$2"
+  sed -n "s/^${key}=//p" "$file" 2>/dev/null | head -n 1
+}
+
 tested_scope_field() {
   local slot="$1" key="$2"
-  sed -n "s/^${key}=//p" "$(lock_dir_for "$slot")/tested_scope" 2>/dev/null | head -n 1
+  record_field "$(lock_dir_for "$slot")/tested_scope" "$key"
 }
 
 # Only a provenance-corroborated tree counts: a bare tested_tree (legacy scoped-run recordings) is not merge evidence.
@@ -321,6 +349,7 @@ require_clean_slot() {
   return 1
 }
 
+# ---- Inert-delta classification --------------------------------------------
 # CallerLineNumber/CallerArgumentExpression et al. make comment/whitespace edits behavior-visible (line shifts, argument text); any use in Assets disables the .cs inert path for the merge.
 caller_info_attrs_present() {
   local path="$1" tree="$2"
@@ -374,6 +403,7 @@ cs_diff_is_comment_only() {
   return "$rc"
 }
 
+# ---- Locks -----------------------------------------------------------------
 write_lock() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -418,31 +448,7 @@ slot_is_clobber_safe() {
   is_head_pushed "$path"
 }
 
-repo_slug() {
-  local url
-  url="$(git -C "$ROOT" config --get remote.origin.url)"
-  if [[ "$url" =~ ^git@github.com:([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-  elif [[ "$url" =~ ^https?://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-  else
-    echo ""
-  fi
-}
-
-# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
-# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
-# task_branch_for's answer.
-pr_number_for_pushed_head() {
-  local head_branch="$1"
-  local base="${2:-main}"
-  if [[ -z "$head_branch" ]]; then
-    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
-    return 1
-  fi
-  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
-}
-
+# ---- Status ----------------------------------------------------------------
 # The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
@@ -511,6 +517,7 @@ cmd_status() {
   fi
 }
 
+# ---- Acquire / release / prepare -------------------------------------------
 try_lock_slot() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -627,6 +634,7 @@ cmd_prepare() {
   echo "Prepared $slot at $path -> $base"
 }
 
+# ---- Unity test runs -------------------------------------------------------
 cmd_run_tests() {
   local slot="$1"
   shift || true
@@ -681,6 +689,16 @@ cmd_run_tests_clean() {
   [[ "$exit_code" -eq 0 ]] || return "$exit_code"
 }
 
+# Proof comes only from this run: no stale summary may vouch for the tree.
+run_tests_for_proof() {
+  local slot="$1" path="$2"
+  shift 2
+  clear_run_summary "$path"
+  cmd_run_tests_clean "$slot" "$@"
+  record_tested_tree "$slot" "$path"
+}
+
+# ---- ReSharper ratchet -----------------------------------------------------
 resharper_fingerprint() {
   local path="$1" file hashes=""
   for file in \
@@ -719,9 +737,9 @@ resharper_proof_matches() {
   tree="$(git -C "$path" rev-parse 'HEAD^{tree}')"
   base_tree="$(git -C "$path" rev-parse "$base_ref^{tree}")"
   fingerprint="$(resharper_fingerprint "$path")"
-  [[ "$(sed -n 's/^tree=//p' "$proof" | head -n 1)" == "$tree" ]] || return 1
-  [[ "$(sed -n 's/^baseTree=//p' "$proof" | head -n 1)" == "$base_tree" ]] || return 1
-  [[ "$(sed -n 's/^fingerprint=//p' "$proof" | head -n 1)" == "$fingerprint" ]]
+  [[ "$(record_field "$proof" tree)" == "$tree" ]] || return 1
+  [[ "$(record_field "$proof" baseTree)" == "$base_tree" ]] || return 1
+  [[ "$(record_field "$proof" fingerprint)" == "$fingerprint" ]]
 }
 
 cmd_run_resharper() {
@@ -744,6 +762,7 @@ cmd_run_resharper() {
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 
+# ---- Script tests ----------------------------------------------------------
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
@@ -789,6 +808,7 @@ landing_diff_touches_scripts() {
   [[ -n "$changed" ]]
 }
 
+# ---- PR opening ------------------------------------------------------------
 require_pr_title_body() {
   local cmd="$1" title="$2" body="$3" body_file="$4"
   if [[ -z "$title" ]]; then
@@ -823,6 +843,31 @@ require_gh() {
     echo "gh CLI not found in PATH" >&2
     return 1
   }
+}
+
+repo_slug() {
+  local url
+  url="$(git -C "$ROOT" config --get remote.origin.url)"
+  if [[ "$url" =~ ^git@github.com:([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  elif [[ "$url" =~ ^https?://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
+    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  else
+    echo ""
+  fi
+}
+
+# PRs are opened from the minted task branch, never the bare agent-N slot branch: --head "agent-2"
+# finds nothing (or, worse, a stale PR someone once opened from the slot itself). Callers pass
+# task_branch_for's answer.
+pr_number_for_pushed_head() {
+  local head_branch="$1"
+  local base="${2:-main}"
+  if [[ -z "$head_branch" ]]; then
+    echo "pr_number_for_pushed_head: no head branch — the slot has no recorded task branch." >&2
+    return 1
+  fi
+  gh pr list --head "$head_branch" --base "$base" --state open --json number --jq '.[0].number' 2>/dev/null || true
 }
 
 # One flag grammar for every PR-opening command. Results land in PR_TITLE / PR_BODY /
@@ -938,9 +983,7 @@ cmd_submit() {
   git -C "$path" checkout "$slot"
   require_clean_slot "$slot" "$path" "submit" || return 1
 
-  clear_run_summary "$path"
-  cmd_run_tests_clean "$slot" "${PR_TEST_ARGS[@]}"
-  record_tested_tree "$slot" "$path"
+  run_tests_for_proof "$slot" "$path" "${PR_TEST_ARGS[@]}"
   cmd_run_resharper "$slot" "$base_ref"
 
   local task_branch
@@ -1207,6 +1250,7 @@ cmd_merge_progress() {
   echo "  unity: $(basename "$log") last written ${age}s ago"
 }
 
+# ---- Merge gate ------------------------------------------------------------
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -1225,10 +1269,7 @@ cmd_merge() {
   trap 'merge_journal_finish "$?"' EXIT
   merge_phase_begin preflight
 
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  require_gh || return 1
 
   local path task_branch base_branch
   path="$(slot_path "$slot")"
@@ -1299,18 +1340,14 @@ cmd_merge() {
         echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
         merge_phase_begin tests
         merge_journal_note "code delta since proof - full suite"
-        clear_run_summary "$path"
-        cmd_run_tests_clean "$slot" "${test_args[@]}"
-        record_tested_tree "$slot" "$path"
+        run_tests_for_proof "$slot" "$path" "${test_args[@]}"
         ;;
     esac
   else
     echo "No full-suite proof for tree $current_tree — running the full suite before merge."
     merge_phase_begin tests
     merge_journal_note "no proof for landing tree - full suite"
-    clear_run_summary "$path"
-    cmd_run_tests_clean "$slot" "${test_args[@]}"
-    record_tested_tree "$slot" "$path"
+    run_tests_for_proof "$slot" "$path" "${test_args[@]}"
   fi
   if [[ "$(verified_proof_tree "$slot")" != "$current_tree" ]]; then
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
@@ -1354,6 +1391,7 @@ cmd_merge() {
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
 }
 
+# ---- Finalize / review / revise --------------------------------------------
 cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
@@ -1375,10 +1413,7 @@ cmd_review_comments() {
   local slot="$1"
   local base="${2:-main}"
 
-  command -v gh >/dev/null 2>&1 || {
-    echo "gh CLI not found in PATH" >&2
-    return 1
-  }
+  require_gh || return 1
 
   local head_branch
   head_branch="$(task_branch_for "$slot")"
@@ -1464,14 +1499,18 @@ cmd_revise() {
   if [[ "$no_test" -eq 1 ]]; then
     echo "Skipping tests (--no-test): no proof recorded; the merge gate will test the landing tree."
   else
-    clear_run_summary "$path"
-    cmd_run_tests_clean "$slot" "${test_args[@]}"
-    record_tested_tree "$slot" "$path"
+    run_tests_for_proof "$slot" "$path" "${test_args[@]}"
   fi
   cmd_run_resharper "$slot" origin/main
 
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
   echo "Revised and pushed $slot -> $task_branch"
+}
+
+# ---- Dispatch --------------------------------------------------------------
+require_slot_arg() {
+  local usage_line="$1" argc="$2"
+  [[ "$argc" -ge 1 ]] || { echo "$usage_line" >&2; exit 1; }
 }
 
 main() {
@@ -1488,53 +1527,20 @@ main() {
       if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
       ;;
     acquire) cmd_acquire "$@" ;;
-    release)
-      [[ $# -ge 1 ]] || { echo "release requires <slot>" >&2; exit 1; }
-      cmd_release "$1"
-      ;;
-    prepare)
-      [[ $# -ge 1 ]] || { echo "prepare requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_prepare "$@"
-      ;;
-    run-tests)
-      [[ $# -ge 1 ]] || { echo "run-tests requires <slot> [args...]" >&2; exit 1; }
-      cmd_run_tests "$@"
-      ;;
-    run-resharper)
-      [[ $# -ge 1 ]] || { echo "run-resharper requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_run_resharper "$@"
-      ;;
+    release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
+    prepare) require_slot_arg "prepare requires <slot> [base_ref]" "$#"; cmd_prepare "$@" ;;
+    run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
+    run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
       cmd_run_script_tests "$@"
       ;;
-    create-pr)
-      [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
-      cmd_create_pr "$@"
-      ;;
-    submit)
-      [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" >&2; exit 1; }
-      cmd_submit "$@"
-      ;;
-    merge)
-      [[ $# -ge 1 ]] || { echo "merge requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
-      cmd_merge "$@"
-      ;;
-    merge-progress)
-      [[ $# -ge 1 ]] || { echo "merge-progress requires <slot> [--oneline]" >&2; exit 1; }
-      cmd_merge_progress "$@"
-      ;;
-    finalize)
-      [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref]" >&2; exit 1; }
-      cmd_finalize "$@"
-      ;;
-    review-comments)
-      [[ $# -ge 1 ]] || { echo "review-comments requires <slot> [base]" >&2; exit 1; }
-      cmd_review_comments "$@"
-      ;;
-    revise)
-      [[ $# -ge 1 ]] || { echo "revise requires <slot> [--no-test] [-- test_args...]" >&2; exit 1; }
-      cmd_revise "$@"
-      ;;
+    create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
+    submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
+    merge) require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"; cmd_merge "$@" ;;
+    merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
+    finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
+    review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
+    revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
     -h|--help|help) usage ;;
     *)
       echo "Unknown command: $cmd" >&2
