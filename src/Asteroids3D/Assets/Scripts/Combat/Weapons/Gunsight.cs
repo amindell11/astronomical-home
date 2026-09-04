@@ -5,7 +5,7 @@ using Movement;
 using UnityEngine;
 using Combat.Targeting;
 
-namespace Combat
+namespace Combat.Weapons
 {
     /// <summary>Builds the <see cref="TargetingContext"/> for one weapon against a world-space target point and defers the fire/envelope policy to the weapon — target-supplier-agnostic.</summary>
     public sealed class Gunsight

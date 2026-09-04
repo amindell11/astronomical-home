@@ -1,3 +1,4 @@
+using Combat.Weapons;
 using System;
 using AI;
 using AI.Observation;

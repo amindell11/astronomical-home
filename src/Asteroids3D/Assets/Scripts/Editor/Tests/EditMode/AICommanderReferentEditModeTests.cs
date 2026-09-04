@@ -1,3 +1,4 @@
+using Combat.Weapons;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;

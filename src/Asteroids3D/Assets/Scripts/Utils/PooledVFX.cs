@@ -14,16 +14,16 @@ namespace Utils
         {
             // restart all systems when the object is fetched from the pool
             foreach (var ps in systems) ps.Play(true);
-        
+
             // Cache duration calculation to avoid recalculating every time
             if (cachedMaxDuration < 0f)
             {
                 CalculateMaxDuration();
             }
-        
+
             Invoke(nameof(ReturnToPool), cachedMaxDuration);
         }
-    
+
         private void CalculateMaxDuration()
         {
             // schedule release when the longest system finishes
@@ -36,5 +36,5 @@ namespace Utils
         }
 
         private void ReturnToPool() => SimplePool<PooledVFX>.Release(this);
-    }   
+    }
 }
