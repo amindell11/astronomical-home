@@ -192,6 +192,24 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ComputeDrift_CountsObstacleFieldSlotMismatch()
+        {
+            var root = NewGO("Root");
+            var spawner = AddSpawner("Field", root.transform);
+            var field = spawner.gameObject.AddComponent<UpdatingAsteroidField>();
+            var stale = NewGO("Stale").AddComponent<UpdatingAsteroidField>();
+            var manifest = new SectorSpawner[] { spawner };
+
+            Assert.AreEqual(1, SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest).UnsyncedChildren,
+                "An authored field with an empty slot is unsynced.");
+            var driftStale = SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest, null, stale);
+            Assert.AreEqual(1, driftStale.UnsyncedChildren);
+            Assert.AreEqual(1, driftStale.OrphanedEntries, "A slot pointing at a field not in the hierarchy is orphaned.");
+            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest, null, field).HasDrift,
+                "A slot bound to the authored field is in sync.");
+        }
+
+        [Test]
         public void ComputeDrift_CountsModuleDrift()
         {
             var root = NewGO("Root");

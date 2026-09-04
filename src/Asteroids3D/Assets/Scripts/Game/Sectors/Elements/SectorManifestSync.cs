@@ -227,10 +227,10 @@ namespace Game.Sectors
             }
         }
 
-        /// <summary>Read-only drift check: recognised children not yet in the manifest, and manifest entries pointing at deleted/unrecognised targets.</summary>
+        /// <summary>Read-only drift check: recognised children not yet in the manifest, manifest entries pointing at deleted/unrecognised targets, and an obstacle-field slot that disagrees with the authored field.</summary>
         public static DriftReport ComputeDrift(
             Transform root, IReadOnlyList<AdoptEntry> adopted, IReadOnlyList<SectorSpawner> spawners,
-            IReadOnlyList<SectorModule> modules = null)
+            IReadOnlyList<SectorModule> modules = null, UpdatingAsteroidField obstacleField = null)
         {
             var collected = new List<Component>();
             Collect(root, collected);
@@ -263,6 +263,13 @@ namespace Game.Sectors
                 }
             foreach (var m in liveModules)
                 if (!referencedModules.Contains(m)) unsynced++;
+
+            var liveField = SingleObstacleField(collected);
+            if (liveField != obstacleField)
+            {
+                if (liveField) unsynced++;
+                if (obstacleField) orphaned++;
+            }
 
             return new DriftReport(unsynced, orphaned);
         }

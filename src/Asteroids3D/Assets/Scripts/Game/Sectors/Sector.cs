@@ -154,7 +154,7 @@ namespace Game.Sectors
 
         /// <summary>Editor-only read-only drift check against the live hierarchy.</summary>
         public SectorManifestSync.DriftReport ComputeDrift() =>
-            SectorManifestSync.ComputeDrift(transform, adopted, spawners, modules);
+            SectorManifestSync.ComputeDrift(transform, adopted, spawners, modules, obstacleField);
 
         /// <summary>Test/editor seam mirroring what the inspector Sync writes; null arguments leave that slice untouched.</summary>
         internal void SetManifest(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
