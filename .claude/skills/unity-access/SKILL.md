@@ -102,3 +102,34 @@ Cancel an abandoned queued request:
 ```
 
 Finally run `Status -Json`. Verify that this lease appears in neither `owners`, `boot`, nor `queue`. Do not claim success if cleanup fails; report the remaining owner, ticket, or process PID.
+
+## Remote lane (graphical editor on the lane machine)
+
+`scripts/remote_editor.sh` launches, drives, and tears down a **graphical**
+editor on the remote lane machine (default `alastor`) entirely over SSH —
+the editor-lane sibling of `remote_gate.sh` (which owns branch/LFS sync;
+`start` opens whatever is checked out remotely).
+
+```bash
+./scripts/remote_editor.sh start [lease]    # launch + wait until CLI-ready
+./scripts/remote_editor.sh cmd <unity-command> [args...]   # quoting handled
+./scripts/remote_editor.sh status [lease]
+./scripts/remote_editor.sh stop [lease]     # Release -CloseEditor + cleanup
+```
+
+Constraints the script enforces — don't work around them by hand:
+
+- **A GUI editor cannot boot in session 0.** SSH children and WMI-created
+  processes land there, where the editor stalls before project load on an
+  invisible modal. The launch rides an interactive scheduled task (`/IT`),
+  which only fires while a user is logged in at the remote console; `start`
+  preflights that and fails loudly otherwise.
+- The task runs elevated, so git needs the repo in `safe.directory`
+  (`start` ensures it idempotently).
+- Launches still go through the remote clone's `unity_access.ps1`
+  coordinator — the lease rules above apply on that machine unchanged.
+- The lane machine has no Wake-on-LAN: if SSH is down, the box needs a
+  physical wake. Capabilities/paths: memory `reference_alastor_remote_machine.md`.
+
+Remote captures land on the remote disk — `cmd screenshot --output C:/dev/x.png`
+then `scp` the file back.
