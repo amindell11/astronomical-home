@@ -1,38 +1,38 @@
-using Game.Session;
+using Game.Play;
+using Game.Services;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Tests.EditMode
 {
     /// <summary>
-    /// Guards the PR3 scene surgery: the session-root GameObject in each bootstrap scene must carry
-    /// BOTH halves of the cleaved session tier — the above-seam <see cref="GameDriver"/> and the
-    /// below-seam <see cref="SessionHost"/> — as siblings on the same object. A driver with no host to
-    /// drive would NRE at first transition, so this is a load-bearing wiring invariant.
+    /// Each bootstrap scene must carry a session root the host can actually compose against: a
+    /// <see cref="GameSessionHost"/> whose GameObject also holds the two services the session
+    /// constructor requires. A host without them NREs at first transition, so this is a
+    /// load-bearing wiring invariant.
     /// </summary>
     [Category("Bootstrap")]
     public class SceneWiringEditModeTests
     {
         [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/TestScene.unity")]
-        public void SessionRoot_HasDriverAndHostSiblings(string scenePath)
+        public void SessionRoot_HasHostAndItsServices(string scenePath)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
-                GameDriver driver = null;
+                GameSessionHost host = null;
                 foreach (var root in scene.GetRootGameObjects())
                 {
-                    driver = root.GetComponentInChildren<GameDriver>(true);
-                    if (driver) break;
+                    host = root.GetComponentInChildren<GameSessionHost>(true);
+                    if (host) break;
                 }
 
-                Assert.IsNotNull(driver, $"{scenePath} must contain a GameDriver");
-                Assert.IsNotNull(driver.GetComponent<SessionHost>(),
-                    $"{scenePath}: the GameDriver's GameObject must also carry a SessionHost sibling");
+                Assert.IsNotNull(host, $"{scenePath} must contain a GameSessionHost");
+                Assert.IsNotNull(host.GetComponent<UnitService>(),
+                    $"{scenePath}: the GameSessionHost's GameObject must also carry a UnitService");
+                Assert.IsNotNull(host.GetComponent<ObjectiveService>(),
+                    $"{scenePath}: the GameSessionHost's GameObject must also carry an ObjectiveService");
             }
             finally
             {

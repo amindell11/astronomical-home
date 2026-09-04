@@ -11,17 +11,17 @@ namespace Game.RLHarness
 
         private readonly OpponentRoster roster;
 
-        public SentenceComposition(UnitService units, WorldHandle world, IProjectileService projectiles,
+        public SentenceComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
             HarnessAssets assets, in RewardSpec spec, HarnessField field, SentenceRow row)
         {
-            Pair = EpisodePair.Spawn(units, world, projectiles, in spec, (commander, baselineShip) =>
+            Pair = EpisodePair.Spawn(units, offset, field?.Field, projectiles, in spec, (commander, baselineShip) =>
             {
                 var brain = commander.InstallBrain<SentenceBrain>();
                 brain.Configure(baselineShip, row);
                 return brain;
             }, assets);
             roster = new OpponentRoster(Pair.Baseline, Pair.Agent);
-            Driver = new EpisodeLoopDriver(Pair, agent: null, world.Offset, field);
+            Driver = new EpisodeLoopDriver(Pair, agent: null, offset, field);
         }
 
         public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,

@@ -1,4 +1,4 @@
-namespace Game.Session
+namespace Game.Play
 {
     public enum GameState
     {

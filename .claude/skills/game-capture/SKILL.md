@@ -159,7 +159,7 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
 - **Live-fire scene without playing the game:** boot InitScene, then
   `cli-eval/launch_no_presentation.cs`, `spawn_enemy.cs` (`UnitService.SpawnShip` with a
   Ship prefab + AgentPilot Commander), `teleport_close.cs` for tight ObserverCam framing.
-  `launch_no_presentation.cs` flips `GameDriver.sessionProfile.presentation = false`
+  `launch_no_presentation.cs` flips `GameSessionHost.sessionProfile.presentation = false`
   **before** clicking hangar launch, so the pre-spawn compose suppresses the asteroid
   field's renderers too — poking only the `GameSettings` static after compose leaves the
   field lit (the "magenta asteroid" leak). With presentation off, the environment

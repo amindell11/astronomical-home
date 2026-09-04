@@ -30,7 +30,6 @@ namespace Tests.PlayMode
         }
 
         private UnitService _unitService;
-        private WorldHandle _world;
         private GameServices _services;
         private ObjectiveService _objectives;
         private SectorSettings _config;
@@ -48,7 +47,6 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            _world = Tests.Common.TestWorld.On(_unitService.Registry);
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
@@ -117,7 +115,7 @@ namespace Tests.PlayMode
         {
             var go = TrackGO(new GameObject("AmbushSector"));
             var sector = go.AddComponent<BusProbeSector>();
-            sector.Initialize(_services, _config, _world, player);
+            sector.Initialize(_services, _config, default, player);
             return sector;
         }
 

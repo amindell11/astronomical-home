@@ -2,9 +2,8 @@
 using System.Collections;
 using AI;
 using Game;
-using Game.Session;
 using Game.Capture;
-using Game.Services;
+using Game.Sessions;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
@@ -17,10 +16,8 @@ public abstract class CaptureScenario
 {
     private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
 
-    /// <summary>The headless session the runner composed via SessionHost — real services, world, UnitService.</summary>
-    public GameSession Session { get; internal set; }
-
-    public WorldHandle World => Session.World;
+    /// <summary>The headless session the runner composed — real services and UnitService, no sector.</summary>
+    public Session Session { get; internal set; }
 
     public virtual CaptureConfig Config => new() { clipName = GetType().Name };
 
@@ -39,7 +36,7 @@ public abstract class CaptureScenario
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();
 
-    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session.</summary>
+    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. No sector is loaded, so the ship senses no obstacles.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
         var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
@@ -47,9 +44,9 @@ public abstract class CaptureScenario
 
         var ship = Session.Services.UnitService.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,
-            World.Place(planePos),
+            Session.Frame.Place(planePos),
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),
-            Session.World);
+            field: null);
         Assert.IsNotNull(ship, "Failed to create scenario ship — check test asset paths");
 
         var cmdr = ship.GetComponentInChildren<AICommander>();

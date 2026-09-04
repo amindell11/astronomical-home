@@ -1,11 +1,12 @@
+using Game.Sectors;
 using UnityEngine;
 
-namespace Game.Session
+namespace Game.Sessions
 {
     /// <summary>
-    /// Driver-supplied composition inputs — "what exists / what to load" for a session, orthogonal to
-    /// the driver's clock/reset policy. The driver sets it on <see cref="GameSession.Profile"/> before
-    /// composing; the lifecycle primitives consume it. A headless/RL driver supplies its own.
+    /// Host-supplied composition inputs — "what exists / what to load" for a session, orthogonal to
+    /// the host's clock/reset policy. A host authors it (the interactive host serializes one on its
+    /// inspector) and hands it to the <see cref="Session"/> constructor.
     /// </summary>
     [System.Serializable]
     public class SessionProfile
@@ -20,8 +21,15 @@ namespace Game.Session
                  "ships stay renderer/audio/particle-free while fully simulated.")]
         public bool presentation = true;
 
-        [Tooltip("This arena's in-plane world offset. Zero for the single-arena game; the RL harness " +
-                 "supplies a per-arena offset.")]
+        [Tooltip("This session's in-plane frame offset. Zero for the single-arena game; multi-session " +
+                 "hosts supply a per-session offset.")]
         public Vector2 offset;
+    }
+
+    [System.Serializable]
+    public class SectorEntry
+    {
+        public SectorSettings config;
+        public Sector prefab;
     }
 }

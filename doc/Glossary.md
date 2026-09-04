@@ -76,7 +76,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
-| **driver** | Python drivers (`training/rl/`) · `GameDriver` · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. |
+| **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameSessionHost`), not a driver. |
 | **harness** | RL harness (`Game.RLHarness`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
@@ -341,10 +341,21 @@ Format: **term** — definition. *(authority)*
 
 ### Game & sim
 
-- **session tier** — the lifecycle layer (`Game/Session`: `SessionHost` primitives
-  + `GameDriver` interactive shell) that composes a session's services and rig and
-  cycles sectors. The RL harness does not use it; it composes the same per-ship
-  services through `ShipServices.Compose`.
+- **session tier** — the lifecycle layer (`Game/Sessions`) whose one type, the
+  self-orchestrating `Session`, composes a session's services and rig and cycles
+  sectors; a *host* paces it. The RL harness does not use it; it composes the
+  same per-ship services through `ShipServices.Compose`.
+- **host** — the scene component that wraps a session-shaped thing and is the
+  outside world's interface to it: the *game session host* (`GameSessionHost`,
+  `Game/Play`) owns the clock, hangar, death recap and reset policy over one
+  `Session`; the *harness session host* (`HarnessSessionHost`) sequences
+  compositions and episode blocks for a lane client. Always qualified — bare
+  "host" also names the pool worktree machine.
+- **session frame** — the in-plane frame a session's authored content is placed
+  in (offset + `Place`); zero for the single-arena game, a per-arena offset for
+  anything fanning sessions across one plane. A session fact, distinct from the
+  obstacle field an AI ship senses, which rides the spawn call on its own.
+  *(`SessionFrame`, `Game/Sessions/Session.cs`)*
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
@@ -375,13 +386,8 @@ Format: **term** — definition. *(authority)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
   arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
   physical leakage — is a known, accepted consequence rather than a bug. The
-  harness's per-arena composition builds a *WorldHandle* at its offset; "arena"
-  names the isolation unit, never the handle.
-- **WorldHandle** — the immutable per-world-load handle an AI ship reads its
-  world through (offset, registry, obstacle field or null). Built only at the
-  composition root (`SessionHost` per compose/load, a harness composition per
-  field) and passed down the spawn call — never held by `UnitService`, never a
-  slot anything writes. *(`Game/Services/WorldHandle.cs`; ruling: #519 PR-2)*
+  harness's per-arena composition spawns at its offset and hands its field to
+  each ship; "arena" names the isolation unit, never a handle or a session.
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
@@ -530,9 +536,9 @@ Format: **term** — definition. *(authority)*
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
 - **death recap** — the post-death summary rendered from the damage ledger at
-  the driver-owned `GameState.DeathRecap` hold; presentation-gated, so headless
-  drivers fall straight through to Restart.
-  *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
+  the host-owned `GameState.DeathRecap` hold; presentation-gated, so a headless
+  host falls straight through to Restart.
+  *(DeathRecapScreen, GameSessionHost.HandleDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type

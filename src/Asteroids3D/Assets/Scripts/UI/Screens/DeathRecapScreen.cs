@@ -12,7 +12,7 @@ namespace UI
     /// <summary>
     /// Post-death recap panel rendered from the damage ledger: what killed you, and what hurt
     /// you this life, aggregated per source. Code-built (no prefab) so headless paths never
-    /// touch it; the driver creates it during <see cref="Game.Session.GameState.DeathRecap"/>.
+    /// touch it; the host creates it during <see cref="Game.Play.GameState.DeathRecap"/>.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class DeathRecapScreen : MonoBehaviour

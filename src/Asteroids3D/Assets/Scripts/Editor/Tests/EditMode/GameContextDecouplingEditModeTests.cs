@@ -1,7 +1,6 @@
 using System.Reflection;
 using AI;
-using Game;
-using Game.Services;
+using AI.Scanning;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -23,13 +22,14 @@ namespace Tests.EditMode
         }
         
         [Test]
-        public void AiCommander_ExposesWorldInjectionApi()
+        public void AiCommander_ExposesSensingInjectionApi()
         {
-            var method = typeof(AICommander).GetMethod("SetWorld", BindingFlags.Public | BindingFlags.Instance);
+            var method = typeof(AICommander).GetMethod("SetSensing", BindingFlags.Public | BindingFlags.Instance);
             Assert.IsNotNull(method);
             var parameters = method.GetParameters();
-            Assert.That(parameters.Length, Is.EqualTo(1));
-            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(WorldHandle)));
+            Assert.That(parameters.Length, Is.EqualTo(2));
+            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(IShipRegistry)));
+            Assert.That(parameters[1].ParameterType, Is.EqualTo(typeof(IObstacleField)));
         }
 
     }

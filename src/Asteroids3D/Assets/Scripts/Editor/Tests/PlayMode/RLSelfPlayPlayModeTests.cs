@@ -5,7 +5,6 @@ using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
-using Tests.Common;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
@@ -20,7 +19,6 @@ namespace Tests.PlayMode
     {
         private GameObject arenaHost;
         private UnitService unitService;
-        private WorldHandle world;
         private ProjectileService projectiles;
         private float savedTimeScale;
         private float savedMaxDelta;
@@ -37,7 +35,6 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[SelfPlayArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            world = TestWorld.On(unitService.ActiveRegistry);
             projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
@@ -71,7 +68,6 @@ namespace Tests.PlayMode
             pair?.Dispose();
             pair = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            world = null;
             projectiles = null;
 
             if (Academy.IsInitialized)
@@ -81,10 +77,10 @@ namespace Tests.PlayMode
 
         private EpisodeLoopDriver Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnSelfPlayPair(unitService, world, projectiles, in spec, assets, out var brainA, out var brainB);
+            pair = EpisodePair.SpawnSelfPlayPair(unitService, Vector2.zero, field: null, projectiles, in spec, assets, out var brainA, out var brainB);
             (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
-                pair, brainA, brainB, in spec, world.Offset, BehaviorType.HeuristicOnly);
-            return new EpisodeLoopDriver(pair, agentA, world.Offset, opponentAgent: agentB);
+                pair, brainA, brainB, in spec, Vector2.zero, BehaviorType.HeuristicOnly);
+            return new EpisodeLoopDriver(pair, agentA, Vector2.zero, opponentAgent: agentB);
         }
 
         [UnityTest]

@@ -1,35 +1,35 @@
-using Game.Session;
+using Game.Play;
 using UnityEngine;
 
 namespace UI
 {
     /// <summary>
     /// Full-screen splash canvas covering the non-interactive game states — boot, session compose,
-    /// and sector load/unload. Instantiated once by <see cref="GameDriver"/> at boot and driven
+    /// and sector load/unload. Instantiated once by <see cref="GameSessionHost"/> at boot and driven
     /// by its state transitions; the hangar and live-sector states hide it.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class LoadingSplash : MonoBehaviour
     {
         private Canvas canvas;
-        private GameDriver manager;
+        private GameSessionHost host;
 
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
         }
 
-        public void Initialize(GameDriver manager)
+        public void Initialize(GameSessionHost host)
         {
-            this.manager = manager;
-            manager.OnGameStateChanged += HandleGameStateChanged;
-            HandleGameStateChanged(manager.CurrentState);
+            this.host = host;
+            host.OnGameStateChanged += HandleGameStateChanged;
+            HandleGameStateChanged(host.CurrentState);
         }
 
         private void OnDestroy()
         {
-            if (manager)
-                manager.OnGameStateChanged -= HandleGameStateChanged;
+            if (host)
+                host.OnGameStateChanged -= HandleGameStateChanged;
         }
 
         private void HandleGameStateChanged(GameState state) => canvas.enabled = Covers(state);
