@@ -62,7 +62,7 @@ namespace Player
         // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
         private System.Action<ShipId, DamageInfo> onPlayerDeath;
 
-        // The session's pre-sector world (offset, registry, no rocks): the player is session-tier and never AI-driven, so it needs no sector field.
+        // No rocks: the player is session-tier and never AI-driven, so it senses no obstacle field.
         private WorldHandle world;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected

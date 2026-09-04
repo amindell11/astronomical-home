@@ -122,7 +122,8 @@ namespace Game.Services
         {
             if (!ship) return;
             if (world == null) throw new ArgumentNullException(nameof(world));
-            ship.Targeting?.SetRegistry(ActiveRegistry);
+            var targeting = ship.Targeting;
+            if (targeting) targeting.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetWorld(world);
         }

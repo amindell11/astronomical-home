@@ -42,7 +42,7 @@ namespace Game.Session
             transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
 
             var projectiles = ShipServices.Compose(unitService, transform, target.Profile.presentation);
-            // Before any sector loads the session is a world with no rocks; the rig's player spawns into it.
+            // The rig's player spawns before any sector loads, so a world must already exist.
             target.World = NoRocksWorld(target);
 
             target.Services = new GameServices(

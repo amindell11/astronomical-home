@@ -7,8 +7,7 @@ namespace Game.Services
     /// tier (<c>SessionHost.ComposeSession</c>) and the RL harness compose it here, so the substrate
     /// under both hosts has one definition instead of two that drift. Callers supply the
     /// <see cref="UnitService"/> — the session's authored sibling or the harness's <c>AddComponent</c> —
-    /// so composition never reaches for a lookup. The world a ship reads is a <see cref="WorldHandle"/>
-    /// built separately per world load and passed down the spawn call.
+    /// so composition never reaches for a lookup.
     /// </summary>
     public static class ShipServices
     {

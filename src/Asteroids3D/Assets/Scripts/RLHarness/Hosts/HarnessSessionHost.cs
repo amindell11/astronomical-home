@@ -15,7 +15,7 @@ namespace Game.RLHarness
         [SerializeField] internal ScriptableObject captureModule;
         [SerializeField] internal bool exitEditorWhenComplete;
 
-        /// <summary>The measurement arena's in-plane offset; the lanes spawn their field here and the compositions build their world from it.</summary>
+        /// <summary>The measurement arena sits at the plane origin; lanes and compositions place their world from this.</summary>
         internal Vector2 Offset => Vector2.zero;
         internal HarnessAssets Assets => assets;
         internal IProjectileService Projectiles { get; private set; }

@@ -30,7 +30,6 @@ namespace Game.Services
             PresentationEnabled = presentationEnabled;
         }
 
-        /// <summary>Clear all service registries between sectors.</summary>
         public void ClearAll()
         {
             Projectiles.ReturnAllToPool();

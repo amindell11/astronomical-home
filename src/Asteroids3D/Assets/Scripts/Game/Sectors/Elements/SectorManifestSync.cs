@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Asteroids.Fields;
@@ -198,7 +199,7 @@ namespace Game.Sectors
             {
                 if (!c.TryGetComponent<UpdatingAsteroidField>(out var field)) continue;
                 if (found)
-                    throw new System.InvalidOperationException(
+                    throw new InvalidOperationException(
                         $"Sector authors two asteroid fields ('{found.name}', '{field.name}'); a world has one obstacle field.");
                 found = field;
             }
