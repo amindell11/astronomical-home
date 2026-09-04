@@ -3,6 +3,7 @@ using AI.Scanning.Sensors;
 using Ships;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
 
 namespace AI.Scanning
 {

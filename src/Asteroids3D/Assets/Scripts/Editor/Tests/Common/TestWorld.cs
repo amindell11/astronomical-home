@@ -2,6 +2,7 @@ using AI.Scanning;
 using Game.Services;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.Common
 {

@@ -5,6 +5,8 @@ using Objectives;
 using Ships;
 using UnityEditor;
 using UnityEngine;
+using Game.Sectors.Elements;
+using Game.Sectors.Activation;
 
 namespace Tests.EditMode
 {

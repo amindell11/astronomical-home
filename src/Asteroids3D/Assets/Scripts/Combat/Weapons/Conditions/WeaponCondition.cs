@@ -1,7 +1,7 @@
 using Combat.Weapons;
 using UnityEngine;
 
-namespace Combat.Conditions
+namespace Combat.Weapons.Conditions
 {
     public abstract class WeaponCondition : MonoBehaviour
     {

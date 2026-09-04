@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Cameras;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Camera
 {
     public interface ICameraService
     {

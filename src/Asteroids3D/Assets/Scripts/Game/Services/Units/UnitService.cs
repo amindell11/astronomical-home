@@ -5,8 +5,10 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using ShipFactory = Ships.Factory;
+using Ships.Registry;
+using Game.Services.Projectiles;
 
-namespace Game.Services
+namespace Game.Services.Units
 {
     public class UnitService : MonoBehaviour, IUnitService
     {

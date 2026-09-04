@@ -85,7 +85,7 @@ namespace Asteroids
             if (damage <= 0f) return;
 
             var damageable = collision.gameObject.GetComponent<IDamageable>();
-            damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.ShipId.Invalid,
+            damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.Registry.ShipId.Invalid,
                 controller.Mass, controller.Rb.linearVelocity, collision.GetContact(0).point));
         }
 

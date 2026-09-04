@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>
     /// A polymorphic, hand-placed behavior unit dropped on a sector (root component) and reconciled

@@ -15,6 +15,8 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode
 {

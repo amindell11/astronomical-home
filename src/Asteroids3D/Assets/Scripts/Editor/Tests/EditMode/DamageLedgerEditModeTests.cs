@@ -5,6 +5,7 @@ using Ships;
 using Ships.Damage;
 using UI;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.EditMode
 {

@@ -3,6 +3,7 @@ using AI;
 using AI.Context;
 using Ships;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Ships.Command;
 using Ships.Weapons;
 using UnityEngine;
+using Game.Services.Projectiles;
 
 namespace Tests.EditMode
 {

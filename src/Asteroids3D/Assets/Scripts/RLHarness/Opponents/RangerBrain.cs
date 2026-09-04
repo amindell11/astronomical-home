@@ -1,8 +1,10 @@
+using Combat.Weapons;
 using AI;
 using AI.Context;
 using Movement;
 using Ships;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

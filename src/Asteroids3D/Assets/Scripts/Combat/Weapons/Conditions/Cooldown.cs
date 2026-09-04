@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Combat.Conditions
+namespace Combat.Weapons.Conditions
 {
     public class Cooldown : WeaponCondition
     {

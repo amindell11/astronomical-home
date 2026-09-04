@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Damage;
 using Ships;
 using Ships.Damage;
+using Ships.Registry;
 
 namespace Player
 {

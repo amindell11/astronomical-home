@@ -3,6 +3,7 @@ using Ships.Damage;
 using Ships.Presentation;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
 
 namespace Ships.Visuals
 {

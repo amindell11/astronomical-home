@@ -4,7 +4,7 @@ using Game;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     public abstract class ProjectileBase : MonoBehaviour
     {
@@ -101,7 +101,7 @@ namespace Combat.Projectile
         private void ApplyDirectDamage(IDamageable other)
         {
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            var attackerId = Shooter?.Id ?? Ships.ShipId.Invalid;
+            var attackerId = Shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             other?.TakeDamage(new DamageInfo(damage * damageScale, Kind, attackerId,
                 mass, impactVelocity, transform.position));
         }

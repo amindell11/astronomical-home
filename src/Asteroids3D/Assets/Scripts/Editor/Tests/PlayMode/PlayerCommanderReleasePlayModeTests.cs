@@ -8,6 +8,7 @@ using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Ships.Registry;
 
 namespace Tests.PlayMode
 {

@@ -1,3 +1,4 @@
+using Game.Session;
 using System;
 using System.IO;
 using NUnit.Framework;

@@ -7,6 +7,7 @@ using Movement.MPC;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

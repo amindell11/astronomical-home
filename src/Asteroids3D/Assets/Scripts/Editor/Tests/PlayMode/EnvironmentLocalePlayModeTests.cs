@@ -5,6 +5,7 @@ using Game.Services;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Game.Services.Environment;
 
 namespace Tests.PlayMode
 {

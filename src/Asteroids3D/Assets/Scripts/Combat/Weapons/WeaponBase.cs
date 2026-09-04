@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Combat.Conditions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Targeting;
 using Game.Services;
 using UnityEngine;
 using Utils;
+using Game.Services.Projectiles;
+using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {

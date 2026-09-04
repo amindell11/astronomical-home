@@ -4,7 +4,7 @@ using Cameras;
 using Ships;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>
     /// Spectator-camera behavior, relocated from <c>ArenaSector</c>. Swaps the observer camera's

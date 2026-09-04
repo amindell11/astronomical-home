@@ -11,6 +11,8 @@ using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode
 {
@@ -84,7 +86,7 @@ namespace Tests.PlayMode
         // Registration is mandatory and transients die with their fixture root — foreign debris means a leaking fixture to FIX, so assert, never sweep.
         private static void AssertNoForeignDebris()
         {
-            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None).Length,
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectiles.ProjectileBase>(FindObjectsSortMode.None).Length,
                 "A previous fixture leaked live projectiles — its transients escaped their registry/root");
             Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
                 "A previous fixture leaked ships — fix its teardown");

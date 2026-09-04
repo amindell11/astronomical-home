@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start.</summary>
     public class AsteroidFieldSpawner : SectorSpawner

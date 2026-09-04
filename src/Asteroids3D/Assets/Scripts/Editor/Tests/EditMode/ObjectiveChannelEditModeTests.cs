@@ -7,6 +7,7 @@ using Objectives.States;
 using UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Game.Services.Objectives;
 
 namespace Tests.EditMode
 {

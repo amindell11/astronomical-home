@@ -14,6 +14,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Utils;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Projectiles;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
 
 namespace Tests.PlayMode
 {

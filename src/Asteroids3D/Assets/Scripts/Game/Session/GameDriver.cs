@@ -8,6 +8,8 @@ using Ships;
 using UI;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
+using Game.Sectors.Elements;
 
 namespace Game.Session
 {

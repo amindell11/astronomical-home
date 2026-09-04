@@ -4,7 +4,7 @@ using Game;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     /// <summary>Drop-behind concussion charge, detonated by fuse expiry, armed contact, or being shot: detonation spawns a <see cref="ConcussionWave"/> — the grenade itself never applies damage.</summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
@@ -90,7 +90,7 @@ namespace Combat.Projectile
             if (wavePrefab)
             {
                 var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-                wave.Begin(Shooter?.Id ?? Ships.ShipId.Invalid);
+                wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
                 Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
             }
 

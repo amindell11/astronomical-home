@@ -33,7 +33,7 @@ namespace Asteroids
         public AsteroidSpawnSettings.MeshInfo.LobeSphere[] Lobes { get; private set; }
         public Rigidbody Rb { get; private set; }
         /// <summary>Bumped each <see cref="Initialize"/>: pooled reuse hands this component to a new
-        /// rock, so a held reference is only the same rock while the epoch matches (see <see cref="AI.AsteroidRef"/>).</summary>
+        /// rock, so a held reference is only the same rock while the epoch matches (see <see cref="AI.Strategy.AsteroidRef"/>).</summary>
         public int SpawnEpoch { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }

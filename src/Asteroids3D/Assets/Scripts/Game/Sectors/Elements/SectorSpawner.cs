@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Ships;
 using UnityEngine;
+using Game.Sectors.Activation;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Hand-placed procedural producer (template + parameters, creates its own instances — unlike adopt content); subclasses implement <see cref="Produce"/>/<see cref="OnTeardown"/>, while <see cref="Build"/>/<see cref="Teardown"/> own the sector lifecycle and the optional activation-token gate.</summary>
     public abstract class SectorSpawner : MonoBehaviour

@@ -11,6 +11,8 @@ using Ships.Command;
 using Tests.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode
 {

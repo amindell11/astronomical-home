@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Objectives;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Objectives
 {
     /// <summary>Owns the spine tracker plus open local trackers and ticks them itself via Update.</summary>
     public class ObjectiveService : MonoBehaviour, IObjectiveService, IObjectiveTrackerAdapter

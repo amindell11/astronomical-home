@@ -5,6 +5,11 @@ using Game.Services;
 using Player;
 using UnityEngine;
 using Utils;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
 
 namespace Game.Session
 {

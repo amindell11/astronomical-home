@@ -1,7 +1,8 @@
 using Game.Services;
 using Ships;
+using Game.Sectors.Activation;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Build/teardown context for spawners and modules — no static lookups. Player and world are injected at runtime from the session tier (player null for headless/RL), the dependencies that cannot be dragged serialized references.</summary>
     public readonly struct SectorBuildContext

@@ -4,6 +4,7 @@ using Game.Sectors;
 using Game.Services;
 using Player;
 using Ships;
+using Ships.Registry;
 
 namespace Game.Session
 {

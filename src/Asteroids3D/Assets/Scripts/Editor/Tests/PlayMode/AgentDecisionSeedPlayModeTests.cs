@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
+using Game.Services.Units;
 
 namespace Tests.PlayMode
 {

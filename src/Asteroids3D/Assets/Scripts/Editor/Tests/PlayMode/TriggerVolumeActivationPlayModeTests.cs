@@ -8,6 +8,8 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Game.Sectors.Elements;
+using Game.Sectors.Activation;
 
 namespace Tests.PlayMode
 {

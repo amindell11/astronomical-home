@@ -1,6 +1,7 @@
 using Game.Services;
 using Unity.MLAgents.Policies;
 using UnityEngine;
+using Game.Services.Units;
 
 namespace Game.RLHarness
 {
