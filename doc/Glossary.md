@@ -171,8 +171,8 @@ Format: **term** — definition. *(authority)*
   authoritative and must be named at that document's first use of the mark.
 - **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
   live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
-  vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file,
-  `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
+  vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file /
+  namespace and asmdef naming, `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
   (AGENTS.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.

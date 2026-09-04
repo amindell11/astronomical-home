@@ -42,5 +42,15 @@
 - **One primary type per file, file named for that type.** Small satellite
   types (a row struct, an enum, a summary) may ride with their owner; a file
   whose name matches none of its types is the smell.
-- **Structure ratchet:** apply to files and folders you touch; whole-package
-  re-taxonomies are dedicated hygiene PRs, never folded into feature PRs.
+- **Names mirror location.** A type's namespace is its folder path under
+  `Assets/Scripts/` (`Combat/Projectiles/Audio/` → `Combat.Projectiles.Audio`);
+  editor code under `Editor/<X>/` takes the namespace of the runtime tree it
+  edits. Every assembly is `Game.<Area>[.Runtime|.Editor]`, its `.asmdef` file
+  named exactly for it, and editor-only assemblies live under an `Editor/`
+  folder. Moving a file moves its namespace in the same diff; a namespace that
+  names a folder that doesn't exist is the smell.
+- **Structure ratchet:** apply the two rules above to files and folders you
+  touch — a file you edit gets its correct home and namespace in the same PR,
+  and a renamed or moved folder drags its namespaces with it. Whole-package
+  re-taxonomies and rename sweeps are dedicated hygiene PRs, never folded
+  into feature PRs. Known drift is inventoried on the open taxonomy issue.

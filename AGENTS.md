@@ -9,7 +9,8 @@ evidence bar code scaffolding must meet. Workflow detail lives in
 the matching doc when its branch fires:
 
 - Writing Unity code → `doc/agents/unity-conventions.md` (Awake-only lookups,
-  lifetime-aware null checks, folder taxonomy, one-type-per-file).
+  lifetime-aware null checks, folder taxonomy, one-type-per-file,
+  namespace/asmdef naming).
 - Running Unity tests → `doc/agents/testing.md` (artifact dir, unity_access
   protocol, domain categories; suite guide: `TESTING.md`).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
