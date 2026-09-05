@@ -46,13 +46,13 @@ namespace Game.Sectors
                 var offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
                 var ship = ctx.Services.UnitService.SpawnShip(
                     template, commander, team,
-                    GamePlane.PlanePointToWorld(center + offset), GamePlane.Rotation, ctx.World);
+                    GamePlane.PlanePointToWorld(center + offset), GamePlane.Rotation, ctx.Field);
                 if (ship) spawned.Add(ship);
             }
 
             // Producer-owned respawn: each product is wired here (additive — default policy is a no-op).
             foreach (var ship in spawned)
-                Respawn.Wire(ship, respawn, ctx.Services, ctx.World.Offset);
+                Respawn.Wire(ship, respawn, ctx.Services, ctx.Frame.Offset);
         }
 
         protected override void OnDrawGizmos()

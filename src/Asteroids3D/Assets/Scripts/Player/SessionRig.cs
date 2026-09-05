@@ -1,8 +1,8 @@
 using System.Collections;
 using Cameras;
 using Damage;
-using Game.Session;
 using Game.Sectors;
+using Game.Sessions;
 using Game.Sectors.Utils;
 using Game.Services;
 using Ships;
@@ -16,10 +16,10 @@ namespace Player
 {
     /// <summary>
     /// Session-tier rig: builds the world (singleton infrastructure), player ship, observer camera and
-    /// UI overlay <b>once</b> at <see cref="GameState.Start"/> and holds them for the whole session.
+    /// UI overlay <b>once</b> at session compose and holds them for the whole session.
     /// Sectors are swapped underneath it and reference the player by injection
     /// (<see cref="Sector.Initialize"/>) — they never build or clear the rig. Only session exit tears
-    /// the rig down. Pure mechanism: the rig holds no session policy — the driver injects the
+    /// the rig down. Pure mechanism: the rig holds no session policy — the host injects the
     /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it builds.
     /// </summary>
     public class SessionRig : MonoBehaviour
@@ -46,7 +46,7 @@ namespace Player
         /// <summary>
         /// The player's pending module selection — seeded from the ship's authored build in
         /// <see cref="Build"/>, edited by the hangar, and installed by <see cref="ApplyLoadout"/> at
-        /// each run's <see cref="GameState.Hangar"/> step. Session-scoped (this is the session rig);
+        /// each run's hangar step. Session-scoped (this is the session rig);
         /// how session-scoped state should be owned across arenas is still an open question.
         /// Null in a spectator/headless session (no player).
         /// </summary>
@@ -58,12 +58,11 @@ namespace Player
         // Session services captured at Build so the hangar can rebuild the player between runs.
         private IGameServices services;
 
-        // Driver-supplied player-death behavior, stored at Build and wired onto every player the rig
+        // Host-supplied player-death behavior, stored at Build and wired onto every player the rig
         // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
         private System.Action<ShipId, DamageInfo> onPlayerDeath;
 
-        // No rocks: the player is session-tier and never AI-driven, so it senses no obstacle field.
-        private WorldHandle world;
+        private SessionFrame frame;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -72,15 +71,15 @@ namespace Player
         /// <summary>
         /// Build the world/player/camera/UI rig into the session services. Called once, before the
         /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
-        /// therefore cleared by <c>services.ClearAll()</c> on session exit. The driver-supplied
+        /// therefore cleared by <c>services.ClearAll()</c> on session exit. The host-supplied
         /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
         /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
-        public IEnumerator Build(IGameServices services, bool buildPlayer, WorldHandle world,
+        public IEnumerator Build(IGameServices services, bool buildPlayer, SessionFrame frame,
             System.Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.services = services;
-            this.world = world;
+            this.frame = frame;
             this.onPlayerDeath = onPlayerDeath;
 
             // World is singleton infrastructure built before the player/camera, which depend on it.
@@ -99,7 +98,7 @@ namespace Player
 
             Player = SectorUtils.BuildAndWirePlayer(
                 playerTemplate, playerCommander,
-                0, playerSpawnPosition, services, world);
+                0, playerSpawnPosition, services, frame);
             currentTemplate = playerTemplate;
 
             WirePlayerDeath();
@@ -156,7 +155,7 @@ namespace Player
         /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
         /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
         /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
-        /// <see cref="GameState.Hangar"/> step — never mid-sector. No-op in a spectator/headless
+        /// hangar step — never mid-sector. No-op in a spectator/headless
         /// session (no player).
         /// </summary>
         public void ApplyLoadout()
@@ -179,8 +178,8 @@ namespace Player
                 Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
-            // wired at spawn; ask it to re-wire, then re-bind the HUD to the new readouts.
-            services.UnitService.WireShipDependencies(Player, world);
+            // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
+            services.UnitService.WireShipDependencies(Player, field: null);
             RebindHud();
         }
 
@@ -199,7 +198,7 @@ namespace Player
 
             Player = SectorUtils.BuildAndWirePlayer(
                 newTemplate, playerCommander,
-                0, playerSpawnPosition, services, world);
+                0, playerSpawnPosition, services, frame);
             currentTemplate = newTemplate;
 
             WirePlayerDeath();

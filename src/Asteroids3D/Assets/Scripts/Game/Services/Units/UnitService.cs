@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AI;
+using AI.Scanning;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace Game.Services
             int team,
             Vector3 position,
             Quaternion rotation,
-            WorldHandle world)
+            IObstacleField field)
         {
             if (!template)
                 throw new ArgumentNullException(nameof(template));
@@ -46,7 +47,7 @@ namespace Game.Services
             var ship = ShipFactory.CreateShip(
                 template, commander, team, NextDecisionSeed(team), projectiles,
                 position, rotation,
-                postInitialize: spawned => WireShipDependencies(spawned, world));
+                postInitialize: spawned => WireShipDependencies(spawned, field));
 
             ship.transform.SetParent(transform, true);
             ActiveRegistry.ActiveShips.Add(ship);
@@ -55,7 +56,7 @@ namespace Game.Services
             return ship;
         }
 
-        public Ship AdoptShip(Ship ship, WorldHandle world)
+        public Ship AdoptShip(Ship ship, IObstacleField field)
         {
             if (!ship)
                 return null;
@@ -71,7 +72,7 @@ namespace Game.Services
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
-            WireShipDependencies(ship, world);
+            WireShipDependencies(ship, field);
             OnShipSpawned?.Invoke(ship);
             return ship;
         }
@@ -118,14 +119,13 @@ namespace Game.Services
         }
 
         /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>
-        public void WireShipDependencies(Ship ship, WorldHandle world)
+        public void WireShipDependencies(Ship ship, IObstacleField field)
         {
             if (!ship) return;
-            if (world == null) throw new ArgumentNullException(nameof(world));
             var targeting = ship.Targeting;
             if (targeting) targeting.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
-                aiCommander.SetWorld(world);
+                aiCommander.SetSensing(ActiveRegistry, field);
         }
 
         /// <summary>Atomic pair-reset: repose, restore the ship's systems, and restore its commander "as if freshly spawned".</summary>

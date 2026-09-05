@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using AI.Scanning;
 using Game;
+using Game.Sessions;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>The net-new guarantee of the WorldHandle cut: a consumer wired to one world reads only that world's obstacle field.</summary>
+    /// <summary>Arena isolation: a consumer wired to one arena's obstacle field reads only that field, and a session frame places authored points in its own offset frame.</summary>
     [Category("Core")]
     public class TwoArenaIsolationEditModeTests
     {
@@ -36,12 +37,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ObstacleScanner_WiredToWorldA_ReadsWorldAField_NotWorldB()
+        public void ObstacleScanner_WiredToFieldA_ReadsFieldA_NotFieldB()
         {
-            var worldA = TestWorld.On(field: new TestWorld.SwappableField());
-            var worldB = TestWorld.On(field: new TestWorld.SwappableField());
-            var fieldA = (TestWorld.SwappableField)worldA.ObstacleField;
-            var fieldB = (TestWorld.SwappableField)worldB.ObstacleField;
+            var fieldA = new SwappableField();
+            var fieldB = new SwappableField();
 
             const float radiusA = 11f;
             const float radiusB = 22f;
@@ -50,32 +49,32 @@ namespace Tests.EditMode
 
             var origin = Track(new GameObject("Ship")).transform;
             var scanner = new ObstacleScanner(origin, maxSpeed: 10f, maxAccel: 5f, lookaheadTime: 2f,
-                field: worldA.ObstacleField);
+                field: fieldA);
 
             scanner.Scan();
-            Assert.AreEqual(1, scanner.DetectedCount, "scanner sees world A's single obstacle");
+            Assert.AreEqual(1, scanner.DetectedCount, "scanner sees field A's single obstacle");
             Assert.AreEqual(radiusA, scanner.DetectedBuffer[0].radius, 1e-4f,
-                "a consumer wired to world A reads A's field, never B's");
+                "a consumer wired to field A reads A, never B");
 
             fieldB.Inner = null;
             scanner.Scan();
-            Assert.AreEqual(1, scanner.DetectedCount, "world A is unaffected by clearing world B");
+            Assert.AreEqual(1, scanner.DetectedCount, "field A is unaffected by clearing field B");
             Assert.AreEqual(radiusA, scanner.DetectedBuffer[0].radius, 1e-4f);
 
             fieldA.Inner = null;
             scanner.Scan();
-            Assert.AreEqual(0, scanner.DetectedCount, "a null world field senses zero obstacles");
+            Assert.AreEqual(0, scanner.DetectedCount, "a null obstacle field senses zero obstacles");
         }
 
         [Test]
-        public void Place_AppliesWorldOffset_ToAuthoredPlanePoints()
+        public void Place_AppliesFrameOffset_ToAuthoredPlanePoints()
         {
             var offset = new Vector2(1000f, -250f);
-            var world = new Game.Services.WorldHandle(offset, new StubShipRegistry(), null);
+            var frame = new SessionFrame(offset);
 
             var authored = new Vector2(7f, 3f);
-            Assert.AreEqual(GamePlane.PlanePointToWorld(authored + offset), world.Place(authored),
-                "Place must convert an authored plane point into the world's offset frame.");
+            Assert.AreEqual(GamePlane.PlanePointToWorld(authored + offset), frame.Place(authored),
+                "Place must convert an authored plane point into the frame's offset.");
         }
     }
 }

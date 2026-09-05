@@ -1,13 +1,12 @@
 using System;
 using Asteroids.Fields;
 using Asteroids.Fields.Core;
-using Game.Services;
 using Ships.Command;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical harness asteroid-field composition: the production <see cref="UpdatingAsteroidField"/> with streaming neutralized (static anchor, load radius covering the whole arena-sized field) and a fresh deterministic layout per episode. The composition that owns it builds its <see cref="WorldHandle"/> from <see cref="Field"/>. Hosts (tests, training scene, traversal probe) share this so the field scenario cannot drift between them.</summary>
+    /// <summary>The canonical harness asteroid-field composition: the production <see cref="UpdatingAsteroidField"/> with streaming neutralized (static anchor, load radius covering the whole arena-sized field) and a fresh deterministic layout per episode. The composition that owns it hands <see cref="Field"/> to every ship it spawns. Hosts (tests, training scene, traversal probe) share this so the field scenario cannot drift between them.</summary>
     public sealed class HarnessField : IDisposable
     {
         private const uint FieldSeedStream = 303;

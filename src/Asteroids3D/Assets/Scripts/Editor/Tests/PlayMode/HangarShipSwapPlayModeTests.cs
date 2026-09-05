@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Game.Services;
+using Game.Sessions;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -52,7 +53,6 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var world = Tests.Common.TestWorld.On(unitService.Registry);
             var projectiles = new ProjectileService(servicesGo.transform);
             unitService.SetProjectiles(projectiles);
             services = new GameServices(
@@ -66,7 +66,7 @@ namespace Tests.PlayMode
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, world, onPlayerDeath: onPlayerDeath);
+            yield return rig.Build(services, buildPlayer: true, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

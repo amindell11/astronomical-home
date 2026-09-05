@@ -36,8 +36,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // AICommander.TryInitializeSystems is gated on a world — supply the fixture world so all AI systems initialize.
-        cmdr.SetWorld(World);
+        // AICommander.TryInitializeSystems is gated on sensing, so wire it before the AI systems are expected to run.
+        cmdr.SetSensing(new StubShipRegistry(), Field);
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif

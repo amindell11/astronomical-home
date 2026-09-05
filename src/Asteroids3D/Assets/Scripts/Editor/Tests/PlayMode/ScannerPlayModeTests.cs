@@ -28,9 +28,8 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
         ship = ShipTestFactory.CreateDefaultShip(Projectiles);
         cmdr = ship.Commander as AICommander;
 
-        // Scout.Initialize() (and therefore obstacleScanner) is gated on a world being
-        // present. Supply the fixture world so AI systems fully initialise without a real game world.
-        cmdr.SetWorld(World);
+        // Scout.Initialize() (and therefore obstacleScanner) is gated on sensing being wired.
+        cmdr.SetSensing(new StubShipRegistry(), Field);
 #else
         Assert.Ignore("ScannerPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -47,7 +46,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [Category("Smoke")]
     public IEnumerator ObstacleScanner_DetectsNearbyObstacle_WithinTimeout()
     {
-        // The obstacle scanner queries the world's obstacle field, not physics colliders.
+        // The obstacle scanner queries the obstacle field it was wired with, not physics colliders.
         // Inject a stub that reports one obstacle at the ship's location so the merge path fills.
         ObstacleField.Inner = new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null));
 

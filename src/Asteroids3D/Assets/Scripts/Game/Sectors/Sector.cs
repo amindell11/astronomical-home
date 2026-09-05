@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Game.Services;
+using Game.Sessions;
 using Ships;
 using UnityEngine;
 using World;
@@ -40,7 +41,7 @@ namespace Game.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
-        /// <summary>The baked obstacle field the session host builds this sector's <see cref="WorldHandle"/> from; null for a sector without rocks.</summary>
+        /// <summary>The baked obstacle field AI ships spawned into this sector sense; null for a sector without rocks.</summary>
         public AI.Scanning.IObstacleField ObstacleField => obstacleField ? obstacleField : null;
 
         /// <summary>Plane-space player start from an optional PlayerStartMarker child (sector root otherwise), recomputed each entry — the sector only declares it, the session tier does the reset.</summary>
@@ -53,18 +54,17 @@ namespace Game.Sectors
             }
         }
 
-        public void Initialize(IGameServices services, SectorSettings config, WorldHandle world, Ship player)
+        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            if (world == null) throw new ArgumentNullException(nameof(world));
-            Context = new SectorBuildContext(Services, this, world, player);
+            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
-            Context = new SectorBuildContext(Services, this, Context.World, Context.Player, new SectorEventBus());
+            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, new SectorEventBus());
 
             yield return OnBeforeContent();
 
@@ -134,9 +134,9 @@ namespace Game.Sectors
         private void AdoptShip(Ship ship, AdoptEntry entry)
         {
             ship.teamNumber = entry.team;
-            var adoptedShip = Services.UnitService.AdoptShip(ship, Context.World);
+            var adoptedShip = Services.UnitService.AdoptShip(ship, Context.Field);
             if (!adoptedShip) return;
-            Respawn.Wire(adoptedShip, entry.respawn, Services, Context.World.Offset);
+            Respawn.Wire(adoptedShip, entry.respawn, Services, Context.Frame.Offset);
             if (!entry.startActive) adoptedShip.gameObject.SetActive(false);
         }
 

@@ -6,7 +6,6 @@ using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
-using Tests.Common;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
@@ -21,7 +20,6 @@ namespace Tests.PlayMode
     {
         private GameObject arenaHost;
         private UnitService unitService;
-        private WorldHandle world;
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private float savedTimeScale;
@@ -41,7 +39,6 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[AgentArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            world = TestWorld.On(unitService.ActiveRegistry);
             projectiles = new ProjectileService(arenaHost.transform);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
@@ -73,7 +70,6 @@ namespace Tests.PlayMode
             pair = null;
             brain = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            world = null;
             projectiles = null;
 
             if (Academy.IsInitialized)
@@ -92,8 +88,8 @@ namespace Tests.PlayMode
 
         private void Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnWithAgentBrain(unitService, world, projectiles, in spec, assets, out brain);
-            agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, world.Offset);
+            pair = EpisodePair.SpawnWithAgentBrain(unitService, Vector2.zero, field: null, projectiles, in spec, assets, out brain);
+            agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, Vector2.zero);
             Assert.IsNotNull(agent, "ShipAgent must be attachable (harness assembly is not editor-only)");
         }
 
@@ -107,7 +103,7 @@ namespace Tests.PlayMode
             spec.maxSeparation = 24f;
 
             Compose(in spec);
-            var driver = new EpisodeLoopDriver(pair, agent, world.Offset);
+            var driver = new EpisodeLoopDriver(pair, agent, Vector2.zero);
 
             for (var i = 0; i < 2; i++)
             {
@@ -142,7 +138,7 @@ namespace Tests.PlayMode
             spec.maxSeparation = 48f;
 
             Compose(in spec);
-            var driver = new EpisodeLoopDriver(pair, agent, world.Offset);
+            var driver = new EpisodeLoopDriver(pair, agent, Vector2.zero);
 
             var speeds = new List<float>();
             var academyBefore = Academy.Instance.TotalStepCount;
@@ -172,8 +168,8 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            pair = EpisodePair.SpawnWithAgentBrain(unitService, world, projectiles, in spec, assets, out brain);
-            agent = ShipAgentFactory.ComposeInferenceOnly(pair, brain, in spec, world.Offset,
+            pair = EpisodePair.SpawnWithAgentBrain(unitService, Vector2.zero, field: null, projectiles, in spec, assets, out brain);
+            agent = ShipAgentFactory.ComposeInferenceOnly(pair, brain, in spec, Vector2.zero,
                 LoadModel(ShipAgentFactory.SmokeFixturePath));
 
             var behavior = agent.GetComponent<BehaviorParameters>();
@@ -183,7 +179,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(InferenceDevice.Burst, behavior.InferenceDevice,
                 "eval must pin the inference device (Default may change between releases)");
 
-            var driver = new EpisodeLoopDriver(pair, agent, world.Offset);
+            var driver = new EpisodeLoopDriver(pair, agent, Vector2.zero);
 
             yield return driver.RunEpisode(spec, 0);
             var result = driver.Runner.Result;
@@ -362,7 +358,7 @@ namespace Tests.PlayMode
             spec.maxSeparation = 60f;
 
             Compose(in spec);
-            var driver = new EpisodeLoopDriver(pair, agent, world.Offset);
+            var driver = new EpisodeLoopDriver(pair, agent, Vector2.zero);
 
             yield return driver.RunEpisode(spec, 0);
             Assert.AreEqual(EndKind.Truncation.ToString(), driver.Runner.Result.endKind);

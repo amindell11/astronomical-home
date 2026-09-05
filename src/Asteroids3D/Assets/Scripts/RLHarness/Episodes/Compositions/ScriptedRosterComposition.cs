@@ -18,19 +18,18 @@ namespace Game.RLHarness
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(offset, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
-            var world = new WorldHandle(offset, units.Registry, field?.Field);
-            var pair = EpisodePair.SpawnWithAgentBrain(units, world, projectiles, in spec, assets, out var brain);
+            var pair = EpisodePair.SpawnWithAgentBrain(units, offset, field?.Field, projectiles, in spec, assets, out var brain);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
 
             var agent = behaviorType switch
             {
-                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, brain, in spec, world.Offset, host.transform),
-                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, world.Offset, host.transform),
+                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, brain, in spec, offset, host.transform),
+                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, offset, host.transform),
                 _ => throw new NotSupportedException(
                     $"Training supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
             };
 
-            Driver = new EpisodeLoopDriver(pair, agent, world.Offset, field, roster);
+            Driver = new EpisodeLoopDriver(pair, agent, offset, field, roster);
         }
 
         public void Dispose() => roster?.Dispose();

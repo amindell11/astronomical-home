@@ -1,7 +1,6 @@
 using System;
 using AI.Scanning;
 using AI.Scanning.Sensors;
-using Game.Services;
 using Movement;
 using Ships;
 using Ships.Command;
@@ -38,17 +37,18 @@ namespace AI
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
-        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext, WorldHandle world)
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext,
+            IShipRegistry registry, IObstacleField field)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
-            Registry = world.Registry;
+            Registry = registry;
             this.shipContext = shipContext;
-            shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, world.Registry);
+            shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
-            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime, world.ObstacleField);
+            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime, field);
         }
 
         /// <summary>Clears cached scan outputs to their pre-first-scan state; the next Update rebuilds them from the live world.</summary>

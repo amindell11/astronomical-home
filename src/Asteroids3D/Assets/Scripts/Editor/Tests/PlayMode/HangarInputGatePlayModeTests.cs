@@ -1,8 +1,9 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Reflection;
-using Game.Session;
+using Game.Play;
 using Game.Services;
+using Game.Sessions;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -21,7 +22,7 @@ namespace Tests.PlayMode
     /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
     /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
     /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
-    /// <see cref="GameDriver.RunHangar"/>, so the flow is driven there.
+    /// <see cref="GameSessionHost.RunHangar"/>, so the flow is driven there.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
@@ -32,7 +33,7 @@ namespace Tests.PlayMode
         private const string CatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private GameObject servicesGo;
-        private GameObject driverGo;
+        private GameObject hostGo;
         private SessionRig rig;
         private GameServices services;
 
@@ -44,7 +45,7 @@ namespace Tests.PlayMode
             if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
             services?.ClearAll();
-            DestroyTestObject(driverGo);
+            DestroyTestObject(hostGo);
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(servicesGo);
             base.TearDown();
@@ -58,7 +59,6 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var world = Tests.Common.TestWorld.On(unitService.Registry);
             var projectiles = new ProjectileService(servicesGo.transform);
             unitService.SetProjectiles(projectiles);
             services = new GameServices(
@@ -72,24 +72,22 @@ namespace Tests.PlayMode
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, world, onPlayerDeath: null);
+            yield return rig.Build(services, buildPlayer: true, new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
 
-            // Supply screen + catalog to an inactive driver (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
-            driverGo = new GameObject("TestDriver");
-            driverGo.SetActive(false);
-            var driver = driverGo.AddComponent<GameDriver>();
-            SetPrivate(driver, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
-            SetPrivate(driver, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
-
-            var session = new GameSession { Rig = rig, Services = services };
+            // Supply screen + catalog to an inactive host (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
+            hostGo = new GameObject("TestHost");
+            hostGo.SetActive(false);
+            var host = hostGo.AddComponent<GameSessionHost>();
+            SetPrivate(host, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
+            SetPrivate(host, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
 
             var finished = false;
             IEnumerator Run()
             {
-                yield return driver.RunHangar(session);
+                yield return host.RunHangar(rig, services);
                 finished = true;
             }
             rig.StartCoroutine(Run());

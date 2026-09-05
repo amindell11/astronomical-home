@@ -6,12 +6,13 @@ using AI;
 using AI.Context;
 using AI.Scanning;
 using Game;
-using Game.Session;
+using Game.Sessions;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
+using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -35,12 +36,9 @@ namespace Tests.PlayMode
         private sealed class ArenaUnderTest
         {
             public GameObject Root;
-            public SessionHost Host;
-            public GameSession Session;
+            public Session Session;
             public Vector2 Offset;
             public readonly List<Ship> ShipsInSpawnOrder = new();
-
-            public WorldHandle World => Session.World;
         }
 
         private readonly List<GameObject> created = new();
@@ -108,10 +106,10 @@ namespace Tests.PlayMode
                     $"Ship {i} in arena B must spawn at its arena-A twin's position translated by the offset.");
             }
 
-            var fieldA = a.World.ObstacleField;
-            var fieldB = b.World.ObstacleField;
-            Assert.IsNotNull(fieldA, "Arena A's sector must register its asteroid field on A's world handle");
-            Assert.IsNotNull(fieldB, "Arena B's sector must register its asteroid field on B's world handle");
+            var fieldA = a.Session.ActiveSector.ObstacleField;
+            var fieldB = b.Session.ActiveSector.ObstacleField;
+            Assert.IsNotNull(fieldA, "Arena A's sector must expose its own asteroid field");
+            Assert.IsNotNull(fieldB, "Arena B's sector must expose its own asteroid field");
             Assert.AreNotSame(fieldA, fieldB, "Each arena must carry its own obstacle-field provider");
 
             var buffer = new DetectedObstacle[64];
@@ -202,9 +200,9 @@ namespace Tests.PlayMode
                         "An arena-B ship leaked into arena A's registry.");
 
             var buffer = new DetectedObstacle[64];
-            Assert.AreEqual(0, a.World.ObstacleField.QueryObstacles(b.Offset, 300f, buffer),
+            Assert.AreEqual(0, a.Session.ActiveSector.ObstacleField.QueryObstacles(b.Offset, 300f, buffer),
                 "After simulating, arena A's field must still be empty at B's origin.");
-            Assert.AreEqual(0, b.World.ObstacleField.QueryObstacles(a.Offset, 300f, buffer),
+            Assert.AreEqual(0, b.Session.ActiveSector.ObstacleField.QueryObstacles(a.Offset, 300f, buffer),
                 "After simulating, arena B's field must still be empty at A's origin.");
 
             yield return TeardownArena(a);
@@ -239,7 +237,7 @@ namespace Tests.PlayMode
             {
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
-                var otherRegistry = other.World.Registry;
+                var otherRegistry = other.Session.Services.UnitService.Registry;
                 void Handler(Damage.DamageInfo hit)
                 {
                     var attackerId = hit.AttackerId;
@@ -338,22 +336,18 @@ namespace Tests.PlayMode
 
             arena.Root = new GameObject(name);
             created.Add(arena.Root);
-            arena.Host = arena.Root.AddComponent<SessionHost>();
-            arena.Session = new GameSession
+            arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {
-                Profile = new SessionProfile
-                {
-                    sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
-                    buildPlayer = false,
-                    presentation = false,
-                    offset = arena.Offset
-                }
-            };
+                sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
+                buildPlayer = false,
+                presentation = false,
+                offset = arena.Offset
+            });
 
-            yield return arena.Host.ComposeSession(arena.Session);
+            yield return arena.Session.Compose();
 
             arena.Session.Services.UnitService.OnShipSpawned += arena.ShipsInSpawnOrder.Add;
-            yield return arena.Host.LoadSector(arena.Session);
+            yield return arena.Session.LoadSector();
         }
 
         // The asteroid field fills in its own Start, one frame after LoadSector returns.
@@ -365,8 +359,8 @@ namespace Tests.PlayMode
 
         private IEnumerator TeardownArena(ArenaUnderTest arena)
         {
-            yield return arena.Host.UnloadSector(arena.Session);
-            yield return arena.Host.TeardownSession(arena.Session);
+            yield return arena.Session.UnloadSector();
+            yield return arena.Session.Teardown();
         }
     }
 }

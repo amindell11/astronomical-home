@@ -84,23 +84,20 @@ namespace Game.RLHarness
 
         internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field)
         {
-            var world = World(field);
             return opponent switch
             {
-                OpponentKind.Mirror => new PolicyPairComposition(units, world, Projectiles, assets, in seedSpec,
+                OpponentKind.Mirror => new PolicyPairComposition(units, Offset, Projectiles, assets, in seedSpec,
                     spec.model, spec.model, field),
-                OpponentKind.Checkpoint => new PolicyPairComposition(units, world, Projectiles, assets, in seedSpec,
+                OpponentKind.Checkpoint => new PolicyPairComposition(units, Offset, Projectiles, assets, in seedSpec,
                     spec.model, spec.opponentModel, field),
-                _ => new InferenceRosterComposition(units, world, Projectiles, assets, in seedSpec,
+                _ => new InferenceRosterComposition(units, Offset, Projectiles, assets, in seedSpec,
                     spec.model, field),
             };
         }
 
         internal ISessionComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
             SentenceRow row) =>
-            new SentenceComposition(units, World(field), Projectiles, assets, in seedSpec, field, row);
-
-        private WorldHandle World(HarnessField field) => new(Offset, units.Registry, field?.Field);
+            new SentenceComposition(units, Offset, Projectiles, assets, in seedSpec, field, row);
 
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,

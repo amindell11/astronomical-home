@@ -1,4 +1,4 @@
-using Game;
+using AI.Scanning;
 using Game.Services;
 using NUnit.Framework;
 using Tests.Common;
@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Per-test world fixture: world handle (registry, swappable obstacle field), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
+/// <summary>Per-test world fixture: a swappable obstacle field, projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
 public abstract class PlayModeWorldFixture
 {
     /// <summary>Override false if a test needs audio.</summary>
@@ -20,11 +20,11 @@ public abstract class PlayModeWorldFixture
     private float savedTimeScale;
     private float savedMaxDelta;
 
-    /// <summary>The per-test world-frame handle wired into AI ships.</summary>
-    protected WorldHandle World { get; private set; }
+    /// <summary>The obstacle field wired into AI ships; defaults to <see cref="ObstacleField"/>, and a test may point it elsewhere before wiring.</summary>
+    protected IObstacleField Field { get; set; }
 
-    /// <summary>The world's obstacle source; set <c>Inner</c> to swap what the ships see mid-test.</summary>
-    protected TestWorld.SwappableField ObstacleField { get; private set; }
+    /// <summary>The default obstacle source; set <c>Inner</c> to swap what the ships see mid-test.</summary>
+    protected SwappableField ObstacleField { get; private set; }
 
     /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
@@ -47,8 +47,8 @@ public abstract class PlayModeWorldFixture
         TestSceneBuilder.CreateTestArena();
 
         arenaHost = new GameObject("[TestArena]");
-        ObstacleField = new TestWorld.SwappableField();
-        World = TestWorld.On(field: ObstacleField);
+        ObstacleField = new SwappableField();
+        Field = ObstacleField;
         Projectiles = new ProjectileService(arenaHost.transform);
     }
 
@@ -57,7 +57,7 @@ public abstract class PlayModeWorldFixture
     public virtual void TearDown()
     {
         if (arenaHost) Object.DestroyImmediate(arenaHost);
-        World = null;
+        Field = null;
         ObstacleField = null;
         Projectiles = null;
 

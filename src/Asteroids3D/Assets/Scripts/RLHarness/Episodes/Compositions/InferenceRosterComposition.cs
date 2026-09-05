@@ -13,13 +13,13 @@ namespace Game.RLHarness
         private readonly OpponentRoster roster;
         private readonly ShipAgent agent;
 
-        public InferenceRosterComposition(UnitService units, WorldHandle world, IProjectileService projectiles,
+        public InferenceRosterComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
             HarnessAssets assets, in RewardSpec spec, ModelAsset model, HarnessField field)
         {
-            Pair = EpisodePair.SpawnWithAgentBrain(units, world, projectiles, in spec, assets, out var brain);
+            Pair = EpisodePair.SpawnWithAgentBrain(units, offset, field?.Field, projectiles, in spec, assets, out var brain);
             roster = new OpponentRoster(Pair.Baseline, Pair.Agent);
-            agent = ShipAgentFactory.ComposeInferenceOnly(Pair, brain, in spec, world.Offset, model);
-            Driver = new EpisodeLoopDriver(Pair, agent, world.Offset, field);
+            agent = ShipAgentFactory.ComposeInferenceOnly(Pair, brain, in spec, offset, model);
+            Driver = new EpisodeLoopDriver(Pair, agent, offset, field);
         }
 
         public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,

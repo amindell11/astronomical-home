@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
-using System.Reflection;
-using Game.Session;
+using Game.Play;
 using Game.Sectors;
 using Game.Services;
+using Game.Sessions;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Tests.EditMode
 {
     [Category("Bootstrap")]
-    public class BootstrapContractsEditModeTests
+    public class SessionContractsEditModeTests
     {
         [Test]
         public void ISector_HasOnSectorCompleteEvent()
@@ -32,8 +32,8 @@ namespace Tests.EditMode
             Assert.AreEqual(4, parameters.Length);
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(SectorSettings), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(WorldHandle), parameters[2].ParameterType,
-                "Initialize must accept the composition-root world handle as its third parameter");
+            Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType,
+                "Initialize must accept the session's in-plane frame as its third parameter");
             Assert.AreEqual(typeof(Ship), parameters[3].ParameterType,
                 "Initialize must accept the injected session-rig player as its fourth parameter");
         }
@@ -103,80 +103,71 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameDriver_HasCurrentStateProperty()
+        public void GameSessionHost_HasCurrentStateProperty()
         {
-            var prop = typeof(GameDriver).GetProperty("CurrentState");
-            Assert.IsNotNull(prop, "GameDriver must expose CurrentState");
+            var prop = typeof(GameSessionHost).GetProperty("CurrentState");
+            Assert.IsNotNull(prop, "GameSessionHost must expose CurrentState");
             Assert.AreEqual(typeof(GameState), prop.PropertyType);
         }
 
         [Test]
-        public void GameDriver_HasOnGameStateChangedEvent()
+        public void GameSessionHost_HasOnGameStateChangedEvent()
         {
-            var ev = typeof(GameDriver).GetEvent("OnGameStateChanged");
-            Assert.IsNotNull(ev, "GameDriver must declare OnGameStateChanged event");
+            var ev = typeof(GameSessionHost).GetEvent("OnGameStateChanged");
+            Assert.IsNotNull(ev, "GameSessionHost must declare OnGameStateChanged event");
         }
 
         [Test]
-        public void SessionHost_ImplementsSessionPrimitivesSeam()
+        public void Session_ExposesLifecycleCoroutines()
         {
-            Assert.IsTrue(typeof(ISessionPrimitives).IsAssignableFrom(typeof(SessionHost)),
-                "SessionHost must implement ISessionPrimitives (the driver-agnostic seam)");
-        }
-
-        [Test]
-        public void SessionHost_ExposesDriverAgnosticLifecyclePrimitives()
-        {
-            // These primitives are the seam an RL/headless driver reuses.
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
+            foreach (var name in new[] { "Compose", "LoadSector", "UnloadSector", "Teardown" })
             {
-                var method = typeof(SessionHost).GetMethod(name, flags);
-                Assert.IsNotNull(method, $"SessionHost must expose lifecycle primitive {name}");
+                var method = typeof(Session).GetMethod(name);
+                Assert.IsNotNull(method, $"Session must expose lifecycle step {name}");
                 Assert.AreEqual(typeof(IEnumerator), method.ReturnType,
                     $"{name} must be a coroutine (IEnumerator)");
-                var parameters = method.GetParameters();
-                Assert.GreaterOrEqual(parameters.Length, 1, $"{name} must take the session container");
-                Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType,
-                    $"{name} must take GameSession as its first parameter (per-instance shaping)");
+                Assert.IsEmpty(method.GetParameters(),
+                    $"{name} drives the session it belongs to, so it takes no arguments");
             }
-
-            var applyLoadout = typeof(SessionHost).GetMethod("ApplyLoadout", flags);
-            Assert.IsNotNull(applyLoadout, "SessionHost must expose ApplyLoadout");
-            var applyParams = applyLoadout.GetParameters();
-            Assert.AreEqual(1, applyParams.Length);
-            Assert.AreEqual(typeof(GameSession), applyParams[0].ParameterType);
         }
 
         [Test]
-        public void GameSession_ExposesPerSessionState()
+        public void Session_ExposesPerSessionState()
         {
-            var type = typeof(GameSession);
+            var type = typeof(Session);
             Assert.IsFalse(typeof(MonoBehaviour).IsAssignableFrom(type),
-                "GameSession is a plain container, not a scene object");
-            Assert.IsNotNull(type.GetProperty("Services"), "GameSession must expose Services");
-            Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
-            Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
-            // Presentation policy rides SessionProfile → GameServices/spawn seams (plus the interim
-            // GameSettings.PresentationEnabled global for ship rigs), never GameSession state.
-
-            var hook = type.GetProperty("OnSectorComplete");
-            Assert.IsNotNull(hook, "GameSession must expose the OnSectorComplete policy hook");
-            Assert.AreEqual(typeof(Action<SectorResult>), hook.PropertyType);
-            Assert.IsTrue(hook.CanWrite, "OnSectorComplete is the driver-settable policy seam");
+                "Session is a plain object, not a scene component");
+            Assert.IsNotNull(type.GetProperty("Services"), "Session must expose Services");
+            Assert.IsNotNull(type.GetProperty("ActiveSector"), "Session must expose ActiveSector");
+            Assert.IsNotNull(type.GetProperty("Rig"), "Session must expose Rig");
+            Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
+                "Session must expose its in-plane Frame");
+            // Presentation policy rides SessionProfile to the GameServices/spawn seams (plus the
+            // interim GameSettings.PresentationEnabled global for ship rigs), never Session state.
         }
 
         [Test]
-        public void ComposeSession_CarriesNoResetPolicy()
+        public void Session_TakesItsPolicyHooksAtConstruction()
         {
-            // Reset policy lives on GameSession.OnPlayerDeath instead.
-            var method = typeof(SessionHost).GetMethod("ComposeSession",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            Assert.IsNotNull(method, "SessionHost must expose ComposeSession");
-            var parameters = method.GetParameters();
-            Assert.AreEqual(1, parameters.Length,
-                "ComposeSession must take only the session container — no policy callbacks");
-            Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType);
+            var constructors = typeof(Session).GetConstructors();
+            Assert.AreEqual(1, constructors.Length, "Session has a single composition root");
+            var parameters = constructors[0].GetParameters();
+            Assert.AreEqual(7, parameters.Length,
+                "Session(profile, root, units, objectives, rig, onSectorComplete, onPlayerDeath)");
+            Assert.AreEqual(typeof(SessionProfile), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(Transform), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(UnitService), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(ObjectiveService), parameters[3].ParameterType);
+            Assert.AreEqual(typeof(SessionRig), parameters[4].ParameterType);
+            Assert.AreEqual(typeof(Action<SectorResult>), parameters[5].ParameterType,
+                "the sector-complete hook is injected, never settable after construction");
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[6].ParameterType,
+                "the player-death hook is injected, never settable after construction");
+
+            Assert.IsNull(typeof(Session).GetProperty("OnSectorComplete"),
+                "policy hooks are constructor parameters, not settable properties");
+            Assert.IsNull(typeof(Session).GetProperty("OnPlayerDeath"),
+                "policy hooks are constructor parameters, not settable properties");
         }
 
         [Test]
@@ -185,21 +176,15 @@ namespace Tests.EditMode
             Assert.IsNull(typeof(SessionRig).GetEvent("RestartRequested"),
                 "SessionRig must not declare a RestartRequested event");
 
-            var hook = typeof(GameSession).GetProperty("OnPlayerDeath");
-            Assert.IsNotNull(hook, "GameSession must expose the OnPlayerDeath policy hook");
-            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), hook.PropertyType);
-            Assert.IsTrue(hook.CanWrite, "OnPlayerDeath is the driver-settable policy seam");
-
             var build = typeof(SessionRig).GetMethod("Build");
             Assert.IsNotNull(build, "SessionRig must expose Build");
             var parameters = build.GetParameters();
             Assert.AreEqual(4, parameters.Length,
-                "Build must take (services, buildPlayer, world, onPlayerDeath)");
+                "Build must take (services, buildPlayer, frame, onPlayerDeath)");
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(WorldHandle), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType);
             Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[3].ParameterType);
         }
-
     }
 }

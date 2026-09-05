@@ -1,8 +1,9 @@
 using AI.Context;
+using AI.Scanning;
 using System;
-using Game.Services;
 using Movement;
 using Movement.MPC;
+using Ships;
 using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
@@ -27,7 +28,9 @@ namespace AI
         [SerializeField] private float combatExitDelay = 3f;
 
         protected ShipControl control;
-        protected WorldHandle world;
+        protected IShipRegistry registry;
+        protected IObstacleField field;
+        private bool sensingWired;
         protected bool systemsInitialized;
 
         // Per-slot engage gates, latched from the last decision; the Gunner owns trigger timing.
@@ -64,9 +67,12 @@ namespace AI
             return Brain;
         }
 
-        public void SetWorld(WorldHandle worldHandle)
+        /// <summary>What this ship senses: the registry it scans for ships and the obstacle field it scans for rocks (null for none). Set by the unit service at wiring, before the systems initialise.</summary>
+        public void SetSensing(IShipRegistry shipRegistry, IObstacleField obstacleField)
         {
-            world = worldHandle;
+            registry = shipRegistry ?? throw new ArgumentNullException(nameof(shipRegistry));
+            field = obstacleField;
+            sensingWired = true;
             TryInitializeSystems();
         }
 
@@ -78,13 +84,13 @@ namespace AI
 
         private void TryInitializeSystems()
         {
-            if (systemsInitialized || control.Ship == null || world == null) return;
+            if (systemsInitialized || control.Ship == null || !sensingWired) return;
             var self = control.Ship;
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, world);
+            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry, field);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)

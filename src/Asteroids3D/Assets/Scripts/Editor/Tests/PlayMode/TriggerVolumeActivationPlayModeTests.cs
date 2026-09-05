@@ -68,7 +68,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
             var volume = CreateVolume("in-zone", player);
             yield return volume.Setup(ctx);
 
@@ -96,7 +96,7 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
 
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
             Assert.IsFalse(bus.Get("in-zone"));
 
             yield return volume.Setup(ctx);
@@ -111,7 +111,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f), colliderCount: 2);
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
             var volume = CreateVolume("in-zone", player, radius: 3f);
             yield return volume.Setup(ctx);
 
@@ -168,7 +168,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
             var volume = CreateVolume("in-zone", player);
             yield return volume.Setup(ctx);
 
@@ -255,8 +255,8 @@ namespace Tests.PlayMode
             var liveRule = TrackGO(new GameObject("LiveTimeRule")).AddComponent<ActivationRule>();
             liveRule.Configure(new[] { ActivationTerm.Time(0.05f) });
 
-            yield return frozenRule.Setup(new SectorBuildContext(null, null, null, null, frozenBus));
-            yield return liveRule.Setup(new SectorBuildContext(null, null, null, null, liveBus));
+            yield return frozenRule.Setup(new SectorBuildContext(null, null, default, null, null, frozenBus));
+            yield return liveRule.Setup(new SectorBuildContext(null, null, default, null, null, liveBus));
             frozenBus.Freeze();
 
             yield return new WaitForSeconds(0.3f);
@@ -270,7 +270,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
             var volume = CreateVolume("", player);
 
             LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*blank signal token.*inert"));
@@ -291,7 +291,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
 
             var volume = CreateVolume("in-gate", player);
             var rule = TrackGO(new GameObject("ExtractionRule")).AddComponent<ActivationRule>();

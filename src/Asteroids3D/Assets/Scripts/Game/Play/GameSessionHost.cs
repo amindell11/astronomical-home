@@ -3,34 +3,36 @@ using System.Collections;
 using Damage;
 using Game.Sectors;
 using Game.Services;
+using Game.Sessions;
 using Player;
 using Ships;
 using UI;
 using UnityEngine;
 using Utils;
 
-namespace Game.Session
+namespace Game.Play
 {
     /// <summary>
-    /// The interactive gameplay driver — the above-seam half of the session tier. It owns the clock
-    /// (a coroutine state machine paced against the frame loop), the between-run hangar flow, and the
-    /// gameplay reset policy (sector complete / player death → restart), wired onto the session via
-    /// <see cref="GameSession.OnSectorComplete"/> and <see cref="GameSession.OnPlayerDeath"/>. It holds
-    /// the one <see cref="GameSession"/> it drives and reads <see cref="ActiveSector"/>/<see cref="Services"/>
-    /// off it.
-    ///
-    /// The driver-agnostic lifecycle primitives it sequences live below the seam on a sibling
-    /// <see cref="SessionHost"/> (behind <see cref="ISessionPrimitives"/>); the driver never composes or
-    /// tears down directly — it calls the host.
+    /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and is the
+    /// game's interface to it. It owns the clock (a coroutine state machine paced against the frame
+    /// loop), the between-run hangar flow, the splash, the death recap, and the reset policy
+    /// (sector complete / player death → restart), injected into the session as its two hooks. The
+    /// session orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
+    /// The RL harness's <c>HarnessSessionHost</c> is the other host shape, over the harness's own
+    /// composition rather than a session.
     /// </summary>
-    [RequireComponent(typeof(SessionHost))]
-    public class GameDriver : MonoBehaviour
+    [RequireComponent(typeof(UnitService))]
+    [RequireComponent(typeof(ObjectiveService))]
+    public class GameSessionHost : MonoBehaviour
     {
         /// <summary>Session policy for what happens when the persistent player ship dies.</summary>
         public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
 
         [Header("Session")]
         [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
+
+        [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
+        [SerializeField] private SessionRig playerRig;
 
         [Header("Splash")]
         [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
@@ -61,9 +63,10 @@ namespace Game.Session
 
         private DamageInfo lastKillingBlow;
 
-        private SessionHost host;
+        private UnitService unitService;
+        private ObjectiveService objectiveService;
 
-        private GameSession session;
+        private Session session;
         private Coroutine stateRoutine;
         public GameState CurrentState { get; private set; }
 
@@ -75,7 +78,8 @@ namespace Game.Session
 
         private void Awake()
         {
-            host = GetComponent<SessionHost>();
+            unitService = GetComponent<UnitService>();
+            objectiveService = GetComponent<ObjectiveService>();
 
             DontDestroyOnLoad(gameObject);
 
@@ -129,7 +133,8 @@ namespace Game.Session
 
         private IEnumerator HandleLoading()
         {
-            session = new GameSession { Profile = sessionProfile };
+            session = new Session(sessionProfile, transform, unitService, objectiveService, playerRig,
+                HandleSectorComplete, BuildDeathCallback());
 
             yield return null;
             TransitionTo(GameState.Start);
@@ -137,17 +142,13 @@ namespace Game.Session
 
         private IEnumerator HandleStart()
         {
-            // Reset-policy hooks must be set BEFORE composing so a spawn-frame death already has a subscriber.
-            session.OnSectorComplete = HandleSectorComplete;
-            session.OnPlayerDeath = BuildDeathCallback(session);
-
-            yield return host.ComposeSession(session);
+            yield return session.Compose();
 
             TransitionTo(GameState.Hangar);
         }
 
         // Services are read from the session at death time, after composition has populated them.
-        private Action<ShipId, DamageInfo> BuildDeathCallback(GameSession target)
+        private Action<ShipId, DamageInfo> BuildDeathCallback()
         {
             switch (deathBehavior)
             {
@@ -160,10 +161,10 @@ namespace Game.Session
                 case PlayerDeathBehavior.RespawnInPlace:
                     var policy = playerRespawn;
                     if (!policy.Enabled) return null;
-                    // No live producer transform here, so the authored point resolves against the world origin.
-                    return (victim, _) => target.Services.UnitService.WaitAndRespawnShip(
+                    // No live producer transform here, so the authored point resolves against the frame origin.
+                    return (victim, _) => session.Services.UnitService.WaitAndRespawnShip(
                         victim,
-                        Respawn.Resolve(policy, target.Services, target.World.Offset, target.World.Offset),
+                        Respawn.Resolve(policy, session.Services, session.Frame.Offset, session.Frame.Offset),
                         0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:
@@ -175,15 +176,14 @@ namespace Game.Session
         private IEnumerator HandleHangar()
         {
             if (session.Rig)
-                yield return RunHangar(session);
+                yield return RunHangar(session.Rig, session.Services);
 
             TransitionTo(GameState.LoadSector);
         }
 
         /// <summary>Interactive hangar flow; applies the standing loadout silently when headless (never blocks on a click) and stays callable without the state machine for tests.</summary>
-        internal IEnumerator RunHangar(GameSession target)
+        internal IEnumerator RunHangar(SessionRig rig, IGameServices services)
         {
-            var rig = target.Rig;
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab
                 || !GameSettings.PresentationEnabled)
             {
@@ -191,7 +191,7 @@ namespace Game.Session
                 yield break;
             }
 
-            var overlay = target.Services.UIService.ActiveOverlay;
+            var overlay = services.UIService.ActiveOverlay;
             if (overlay) overlay.SetVisible(false);
             SetPlayerInputEnabled(rig, false);
 
@@ -206,7 +206,7 @@ namespace Game.Session
 
             // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
             SetPlayerInputEnabled(rig, true);
-            var activeOverlay = target.Services.UIService.ActiveOverlay;
+            var activeOverlay = services.UIService.ActiveOverlay;
             if (activeOverlay) activeOverlay.SetVisible(true);
         }
 
@@ -219,7 +219,7 @@ namespace Game.Session
 
         private IEnumerator HandleLoadSector()
         {
-            yield return host.LoadSector(session);
+            yield return session.LoadSector();
 
             TransitionTo(GameState.InSector);
         }
@@ -255,7 +255,7 @@ namespace Game.Session
 
         private IEnumerator HandleRestart()
         {
-            yield return host.UnloadSector(session);
+            yield return session.UnloadSector();
 
             TransitionTo(GameState.Hangar);
         }
@@ -267,7 +267,7 @@ namespace Game.Session
 
         private IEnumerator ExitRoutine()
         {
-            yield return host.TeardownSession(session);
+            yield return session.Teardown();
             session = null;
         }
     }
