@@ -39,6 +39,7 @@ namespace AI.Navigation.MPC.TerminalField
         public TerminalFieldView View => view;
         public int BakeCount { get; private set; }
         public int LastDiscCount { get; private set; }
+        internal NativeArray<byte> Occupied => occupied;
 
         public TerminalField(MpcSettings settings, Dynamics dynamics, ObstacleScanner scanner)
         {
