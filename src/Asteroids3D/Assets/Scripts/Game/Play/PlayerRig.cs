@@ -208,9 +208,9 @@ namespace Game.Play
             if (!observer) return;
 
             observer.SetSubject(Player.transform);
-            var playerCommander = Player.Commander as PlayerCommander;
-            if (playerCommander)
-                playerCommander.SetScreenToGamePlane(pos =>
+            var screenCommander = Player.Commander as PlayerCommander;
+            if (screenCommander)
+                screenCommander.SetScreenToGamePlane(pos =>
                     GamePlane.ProjectOntoPlane(observer.Cam.ScreenToWorldPoint(pos))
                     + GamePlane.Origin);
         }
