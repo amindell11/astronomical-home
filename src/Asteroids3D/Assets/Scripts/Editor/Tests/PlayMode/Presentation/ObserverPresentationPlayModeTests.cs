@@ -41,7 +41,7 @@ namespace Tests.PlayMode
         public override void TearDown()
         {
             GameSettings.SetPresentationEnabled(savedPresentation);
-            unitService?.Clear();
+            if (unitService) unitService.Clear();
             unitService = null;
             DestroyTestObject(observer ? observer.gameObject : null);
             observer = null;

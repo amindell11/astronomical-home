@@ -47,7 +47,7 @@ namespace Tests.PlayMode
         {
             GameSettings.SetPresentationEnabled(true);
             if (rig) rig.Teardown();
-            unitService?.Clear();
+            if (unitService) unitService.Clear();
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
             DestroyTestObject(servicesGo);

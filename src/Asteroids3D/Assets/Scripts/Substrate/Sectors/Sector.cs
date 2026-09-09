@@ -115,7 +115,10 @@ namespace Substrate.Sectors
 
             // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts are deliberately left alone.
             foreach (var entry in adopted)
-                if (entry.target is Ship ship) Units.DespawnShip(ship);
+            {
+                var ship = entry.target as Ship;
+                if (ship) Units.DespawnShip(ship);
+            }
 
             yield return OnAfterTeardown();
         }

@@ -47,7 +47,7 @@ namespace Tests.PlayMode
             if (screen) DestroyTestObject(screen.gameObject);
             if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
-            unitService?.Clear();
+            if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
