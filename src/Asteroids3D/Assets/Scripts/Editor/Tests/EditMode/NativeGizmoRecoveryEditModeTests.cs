@@ -1,9 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using AI;
 using Game.Capture.GameView;
-using AI.Navigation.MPC;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -14,7 +12,7 @@ namespace Tests.EditMode
     [Category("Core")]
     public class NativeGizmoRecoveryEditModeTests
     {
-        private static readonly Type Journaled = typeof(Navigator);
+        private string journaledName;
 
         private bool priorGizmoEnabled;
         private bool priorIconEnabled;
@@ -22,13 +20,16 @@ namespace Tests.EditMode
         private bool priorCompatibilityMode;
         private bool priorGlobalSettingsDirty;
 
-        // Assumes a warm Library/AnnotationManager; batch -nographics never populates it.
         [SetUp]
         public void SetUp()
         {
+            // Any annotation round-trips the same; a user script's needs a graphics-warmed Library/AnnotationManager.
+            var registered = GizmoUtility.GetGizmoInfo();
+            var annotation = Array.Find(registered, info => info.hasGizmo);
+            Assert.IsNotNull(annotation,
+                $"none of the {registered.Length} annotations this Editor reports carries a gizmo to journal.");
+            journaledName = annotation.name;
             // GizmoInfo is a reference type: hold the flags, never a snapshot object a later apply would alias.
-            Assert.IsTrue(GizmoUtility.TryGetGizmoInfo(Journaled, out var annotation),
-                $"{Journaled.Name} has no registered Unity annotation to journal.");
             priorGizmoEnabled = annotation.gizmoEnabled;
             priorIconEnabled = annotation.iconEnabled;
             priorRunInBackground = Application.runInBackground;
@@ -114,9 +115,16 @@ namespace Tests.EditMode
             UrpGizmoCaptureAdapter.Restore(!priorCompatibilityMode);
         }
 
-        private static void ApplyAnnotation(bool gizmoEnabled, bool iconEnabled)
+        private GizmoInfo Journaled()
         {
-            Assert.IsTrue(GizmoUtility.TryGetGizmoInfo(Journaled, out var annotation));
+            var annotation = Array.Find(GizmoUtility.GetGizmoInfo(), info => info.name == journaledName);
+            Assert.IsNotNull(annotation, $"annotation '{journaledName}' is no longer registered.");
+            return annotation;
+        }
+
+        private void ApplyAnnotation(bool gizmoEnabled, bool iconEnabled)
+        {
+            var annotation = Journaled();
             annotation.gizmoEnabled = gizmoEnabled;
             annotation.iconEnabled = iconEnabled;
             GizmoUtility.ApplyGizmoInfo(annotation, false);
@@ -124,7 +132,7 @@ namespace Tests.EditMode
 
         private void AssertStateRestored()
         {
-            Assert.IsTrue(GizmoUtility.TryGetGizmoInfo(Journaled, out var restored));
+            var restored = Journaled();
             Assert.AreEqual(priorGizmoEnabled, restored.gizmoEnabled, "annotation visibility");
             Assert.AreEqual(priorIconEnabled, restored.iconEnabled, "annotation icon");
             Assert.AreEqual(priorRunInBackground, Application.runInBackground);

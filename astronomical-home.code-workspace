@@ -1,0 +1,69 @@
+{
+  "folders": [
+    { "name": "repo", "path": "." },
+    { "name": "Scripts (Unity)", "path": "src/Asteroids3D/Assets/Scripts" },
+    { "name": "Tests (Unity)", "path": "src/Asteroids3D/Assets/Tests" },
+    { "name": "training/rl", "path": "training/rl" },
+    { "name": "doc", "path": "doc" },
+    { "name": "scripts", "path": "scripts" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/*.meta": true,
+      "**/__pycache__": true,
+      "**/.venv": true
+    },
+    "files.watcherExclude": {
+      "**/__pycache__/**": true,
+      "**/.venv/**": true
+    },
+    "search.exclude": {
+      "**/*.meta": true,
+      "**/__pycache__": true,
+      "**/.venv": true
+    },
+    "editor.stickyScroll.enabled": true,
+    "gitlens.currentLine.enabled": true,
+    "gitlens.views.worktrees.showBranchComparison": false,
+    "githubPullRequests.pullBranch": "never",
+    "peacock.color": "#1f4e79",
+    "workbench.colorCustomizations": {
+      "activityBar.background": "#2968a2",
+      "activityBar.foreground": "#e7e7e7",
+      "titleBar.activeBackground": "#1f4e79",
+      "titleBar.activeForeground": "#e7e7e7",
+      "statusBar.background": "#1f4e79",
+      "statusBar.foreground": "#e7e7e7",
+      "activityBar.activeBackground": "#2968a2",
+      "activityBar.activeBorder": "#e7e7e7",
+      "activityBar.inactiveForeground": "#e7e7e799",
+      "activityBarBadge.background": "#661a41",
+      "activityBarBadge.foreground": "#e7e7e7",
+      "activityBarTop.activeBackground": "#2968a2",
+      "activityBarTop.activeBorder": "#e7e7e7",
+      "activityBarTop.background": "#2968a2",
+      "activityBarTop.foreground": "#e7e7e7",
+      "activityBarTop.inactiveForeground": "#e7e7e799",
+      "commandCenter.border": "#e7e7e799",
+      "commandCenter.foreground": "#e7e7e7",
+      "sash.hoverBorder": "#2968a2",
+      "statusBar.debuggingBackground": "#1f4e79",
+      "statusBar.debuggingForeground": "#e7e7e7",
+      "statusBarItem.hoverBackground": "#2968a2",
+      "statusBarItem.remoteBackground": "#d14d92",
+      "statusBarItem.remoteForeground": "#e7e7e7",
+      "titleBar.inactiveBackground": "#1f4e7999",
+      "titleBar.inactiveForeground": "#e7e7e799"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "eamodio.gitlens",
+      "GitHub.vscode-pull-request-github",
+      "alefragnani.Bookmarks",
+      "johnpapa.vscode-peacock",
+      "ms-dotnettools.csdevkit",
+      "visualstudiotoolsforunity.vstuc"
+    ]
+  }
+}
