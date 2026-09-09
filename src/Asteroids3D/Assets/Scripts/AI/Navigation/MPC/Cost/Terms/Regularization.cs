@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Solver-owned: effort, smoothness, yaw-rate damping and the momentum prior are ship character
     // from MpcSettings — constant per ship, never varying per decision.

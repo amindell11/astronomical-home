@@ -1,7 +1,7 @@
 # RL training home
 
 Python side of the ML-Agents loop. Unity side: `Assets/Scenes/RLTraining.unity`
-hosting `TrainingHost` (`Assets/Scripts/RLHarness/Hosts/`), which composes the
+hosting `TrainingHost` (`Assets/Scripts/RL/Hosts/`), which composes the
 episode pair per arena and drives runner-owned Academy stepping.
 
 Every driver here is an **asserting runner**: it launches what it needs, waits on
@@ -101,7 +101,7 @@ cd training/rl
 .venv\Scripts\python run_parallel.py --smoke --num-envs 2 --force   # 2-env liveness gate
 ```
 
-Build the `--env` exe first with `Game.RLHarness.RLTrainingPlayerBuild.Build`
+Build the `--env` exe first with `RL.Hosts.RLTrainingPlayerBuild.Build`
 (headless StandaloneWindows64, lands at `build/rl-training/RLTraining.exe`). That
 is a Unity launch like any other, so it runs as a coordinator batch child —
 `harness_child.ps1` is the shape to copy: a self-exiting `-batchmode -nographics
@@ -183,7 +183,7 @@ eval BEFORE the held-out set is opened; any RewardSpec change resets the
 protocol.
 
 It runs as a coordinator batch child (`harness_child.ps1`, which carries the
-environment into `-executeMethod Game.RLHarness.TrainingBootstrap.RunHarnessSession`).
+environment into `-executeMethod RL.Hosts.TrainingBootstrap.RunHarnessSession`).
 The `RL_HARNESS_*` family is the session grammar, parsed once by `SessionSpec` (C#)
 at the batch boundary — a retired `RL_EVAL_*` name present in the environment
 throws there, naming its replacement:

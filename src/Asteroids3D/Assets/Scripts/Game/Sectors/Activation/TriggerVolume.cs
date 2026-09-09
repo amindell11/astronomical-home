@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using Utils;
-using Utils.Physics;
 using Game.Sectors.Elements;
 
 namespace Game.Sectors.Activation

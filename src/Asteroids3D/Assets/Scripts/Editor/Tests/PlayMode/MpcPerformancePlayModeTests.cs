@@ -1,6 +1,6 @@
 using System.Collections;
 using AI;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Tests.Common;

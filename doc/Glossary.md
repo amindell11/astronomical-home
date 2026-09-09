@@ -77,7 +77,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameSessionHost`), not a driver. |
-| **harness** | RL harness (`Game.RLHarness`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
+| **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |

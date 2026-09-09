@@ -2,7 +2,7 @@
 using AI;
 using AI.Context;
 using Movement;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;

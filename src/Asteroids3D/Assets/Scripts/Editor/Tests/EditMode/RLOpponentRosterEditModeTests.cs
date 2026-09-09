@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
-using Game.RLHarness;
 using NUnit.Framework;
+using RL.Opponents;
+using RL.Reward;
 
 namespace Tests.EditMode
 {

@@ -1,11 +1,12 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
-using Game.RLHarness;
 using Movement;
 using NUnit.Framework;
 using UnityEngine;
 using AI.Strategy;
+using RL.Episodes;
+using RL.Probes;
 
 namespace Tests.EditMode
 {

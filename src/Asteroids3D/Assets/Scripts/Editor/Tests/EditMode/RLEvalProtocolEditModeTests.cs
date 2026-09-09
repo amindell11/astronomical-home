@@ -1,9 +1,11 @@
 #if UNITY_EDITOR
 using System.IO;
 using System.Linq;
-using Game.RLHarness;
 using NUnit.Framework;
 using UnityEngine;
+using RL.Episodes;
+using RL.Hosts;
+using RL.Hosts.Lanes;
 
 namespace Tests.EditMode
 {

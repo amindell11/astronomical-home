@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Solver-owned: admissibility and collision are never brain-optional, so no objective can
     // weaken them. Character-axis strength lives in MpcSettings, not in a decision.

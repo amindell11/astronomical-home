@@ -66,7 +66,7 @@ def main() -> None:
     editor_pid = start_editor(
         lease, PROJECT,
         ["-batchmode", "-nographics",
-         "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
+         "-executeMethod", "RL.Hosts.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
          "-logFile", str(editor_log),
          "--harness-num-arenas", str(args.num_arenas)],
         unity, env)

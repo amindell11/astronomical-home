@@ -1,7 +1,7 @@
 using AI.Scanning;
 using Game;
 using Game.Diagnostics;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;

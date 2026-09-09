@@ -1,10 +1,10 @@
 #if UNITY_EDITOR
 using AI;
-using Game.RLHarness;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
 using AI.Strategy;
+using RL.Opponents;
 
 namespace Tests.EditMode
 {

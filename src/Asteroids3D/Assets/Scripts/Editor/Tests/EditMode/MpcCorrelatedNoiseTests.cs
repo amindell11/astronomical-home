@@ -1,5 +1,5 @@
 #if UNITY_EDITOR
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Jobs;

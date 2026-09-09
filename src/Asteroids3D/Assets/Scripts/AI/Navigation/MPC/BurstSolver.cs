@@ -1,9 +1,10 @@
+using Movement;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     [BurstCompile]
     public struct GenerateCandidatesJob : IJobParallelFor

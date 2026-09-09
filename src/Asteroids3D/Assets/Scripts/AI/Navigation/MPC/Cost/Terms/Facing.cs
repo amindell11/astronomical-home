@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Objective term: what the nose is for. Both the commanded target and its authority come from
     // the decision's NavObjective; the prior is the weight-0 floor underneath it.
