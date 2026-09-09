@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Combat.Conditions;
 using Combat.Targeting;
 using Combat.Weapons;
 using Ships.Command;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace UI
 {

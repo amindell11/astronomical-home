@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Game.Sectors.Elements;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → publish latched tokens, so downstream rules run strictly after this rule's effect.</summary>
     public class ActivationRule : SectorModule

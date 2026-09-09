@@ -4,6 +4,7 @@ using Game.RLHarness;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

@@ -5,7 +5,7 @@ using Game;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     /// <summary>Expanding concussion wavefront: each damageable is hit exactly once as the frontier first overlaps it, damage/impulse scaled by <see cref="Falloff"/>; deliberately hits everything — shooter included (kept only for kill attribution) — so the dropper must outrun their own blast.</summary>
     public class ConcussionWave : MonoBehaviour
@@ -23,7 +23,7 @@ namespace Combat.Projectile
         private readonly HashSet<Collider> resolved = new();
         private readonly HashSet<IDamageable> swept = new();
         private float radius;
-        private Ships.ShipId attackerId;
+        private Ships.Registry.ShipId attackerId;
 
         public float Radius => radius;
         public float MaxRadius => maxRadius;
@@ -42,7 +42,7 @@ namespace Combat.Projectile
         public event Action Released;
 
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>.</summary>
-        public void Begin(Ships.ShipId attackerId)
+        public void Begin(Ships.Registry.ShipId attackerId)
         {
             this.attackerId = attackerId;
             radius = 0f;

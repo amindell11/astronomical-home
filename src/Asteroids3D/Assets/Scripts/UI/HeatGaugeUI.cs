@@ -1,6 +1,6 @@
-using Combat.Conditions;
 using UnityEngine;
 using UnityEngine.UI;
+using Combat.Weapons.Conditions;
 
 namespace UI
 {

@@ -4,7 +4,7 @@ using Ships.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI
+namespace UI.PlayerState
 {
     /// <summary>
     /// Ship-space status bar: a horizontal fill tracking one damage resource (shield or health),

@@ -40,7 +40,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity => Vector3.zero;
             public Rigidbody Body => GetComponent<Rigidbody>();
-            public Ships.ShipId Id => Ships.ShipId.Invalid;
+            public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable

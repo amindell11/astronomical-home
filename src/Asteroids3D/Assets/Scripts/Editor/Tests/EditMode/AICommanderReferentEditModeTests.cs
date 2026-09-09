@@ -1,3 +1,4 @@
+using Combat.Weapons;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
@@ -13,6 +14,8 @@ using Ships.Command;
 using Tests.Common;
 using UnityEditor;
 using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

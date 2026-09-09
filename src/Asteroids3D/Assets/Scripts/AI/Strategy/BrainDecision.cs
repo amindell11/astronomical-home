@@ -1,4 +1,4 @@
-namespace AI
+namespace AI.Strategy
 {
     /// <summary>One decision's three lanes. A transport, not a union — the commander routes each lane to its own consumer and keeps nothing. The fire lanes are strategic engage gates; the Gunner owns trigger timing.</summary>
     public readonly struct BrainDecision

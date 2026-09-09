@@ -1,7 +1,7 @@
 using Damage;
 using UnityEngine;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     public class Laser : Projectile<Laser>
     {

@@ -1,7 +1,7 @@
 using Game.Presentation;
 using UnityEngine;
 
-namespace Combat.Projectile.Audio
+namespace Combat.Projectiles.Audio
 {
     [RequireComponent(typeof(Missile), typeof(AudioSource))]
     public class MissileAudio : MonoBehaviour, IPresentationPart

@@ -5,6 +5,7 @@ using Game.RLHarness;
 using Movement;
 using NUnit.Framework;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

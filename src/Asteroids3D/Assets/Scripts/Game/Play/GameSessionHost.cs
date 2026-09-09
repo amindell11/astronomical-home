@@ -9,6 +9,11 @@ using Ships;
 using UI;
 using UnityEngine;
 using Utils;
+using UI.Screens;
+using Ships.Registry;
+using Game.Services.Units;
+using Game.Services.Objectives;
+using Game.Sectors.Elements;
 
 namespace Game.Play
 {

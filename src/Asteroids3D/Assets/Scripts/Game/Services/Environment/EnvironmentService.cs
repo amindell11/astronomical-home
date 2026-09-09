@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using World;
 
-namespace Game.Services
+namespace Game.Services.Environment
 {
     public class EnvironmentService : IEnvironmentService
     {

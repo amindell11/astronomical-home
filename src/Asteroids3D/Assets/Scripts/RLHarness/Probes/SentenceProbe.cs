@@ -6,6 +6,7 @@ using System.Text;
 using AI;
 using Ships;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

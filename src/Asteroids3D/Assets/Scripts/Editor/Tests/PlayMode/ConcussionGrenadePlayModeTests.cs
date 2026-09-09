@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Combat;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Weapons;
 using Damage;
 using Game;
@@ -46,7 +46,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity { get; set; }
             public Rigidbody Body => GetComponent<Rigidbody>();
-            public Ships.ShipId Id => Ships.ShipId.Invalid;
+            public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
@@ -60,7 +60,7 @@ namespace Tests.PlayMode
         }
 
         private static DamageInfo Shot(Vector3 point) =>
-            new(1f, DamageKind.Laser, Ships.ShipId.Invalid, 0.1f, Vector3.zero, point);
+            new(1f, DamageKind.Laser, Ships.Registry.ShipId.Invalid, 0.1f, Vector3.zero, point);
 
         /// <summary>A shooter root with the weapon mounted as a child, nose along the plane's forward axis.</summary>
         private Grenades MountWeapon(out MovingShooter shooter)

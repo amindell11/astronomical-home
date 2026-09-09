@@ -4,6 +4,8 @@ using System.IO;
 using Game.Capture;
 using Game.Services;
 using UnityEngine;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Game.RLHarness
 {

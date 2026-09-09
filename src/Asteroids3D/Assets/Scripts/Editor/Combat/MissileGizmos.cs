@@ -3,7 +3,7 @@ using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
-namespace Combat.Projectile
+namespace Combat.Projectiles
 {
     /// <summary>One missile's flight state in plane space: body ring, explosion radius, velocity ray, target line, and travelled distance.</summary>
     [InitializeOnLoad]
