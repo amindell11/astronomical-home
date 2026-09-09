@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using AI.Navigation.MPC.Field;
 using Unity.Collections;
 using Unity.Mathematics;
 namespace AI.Navigation.MPC
@@ -60,6 +61,8 @@ namespace AI.Navigation.MPC
 
         // Velocity-track weight — the tracking objective's gain.
         public float wVelTrack;
+
+        public float wTerminalField;
     }
 
     public static class ConfigExtensions
@@ -119,6 +122,9 @@ namespace AI.Navigation.MPC
         public ReferentSnapshot referent1;
         public ReferentSnapshot referent2;
         public ReferentSnapshot referent3;
+
+        /// <summary>The ship's baked cost-to-go field, sampled once at the rollout's end state; invalid = no POS goal, zero cost.</summary>
+        public TerminalFieldView terminalField;
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable
@@ -153,6 +159,7 @@ namespace AI.Navigation.MPC
         public float momentum;
         public float effort;
         public float smoothness;
+        public float terminalField;
         public float total;
 
         public void Add(CostBreakdown other)
@@ -168,6 +175,7 @@ namespace AI.Navigation.MPC
             momentum += other.momentum;
             effort += other.effort;
             smoothness += other.smoothness;
+            terminalField += other.terminalField;
             total += other.total;
         }
     }

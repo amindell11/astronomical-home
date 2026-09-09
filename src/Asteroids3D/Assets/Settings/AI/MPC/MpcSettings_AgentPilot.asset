@@ -34,3 +34,7 @@ MonoBehaviour:
   collisionPenalty: 10000
   collisionSafetyMargin: 0.3
   multiSphereObstacles: 1
+  wTerminalField: 1
+  terminalFieldBakeInterval: 0.4
+  terminalFieldResolution: 48
+  terminalFieldMinSpacing: 4

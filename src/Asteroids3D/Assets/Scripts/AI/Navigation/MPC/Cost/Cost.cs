@@ -19,6 +19,7 @@ namespace AI.Navigation.MPC
             public float2 posPoint;
             public float posSetpoint;
             public float posWeightScale;
+            public bool posResolved;   // armed with a live referent, whatever the weight: the terminal field's goal gate
             public float fieldScale;
             public float2 laneStart;
             public float2 laneEnd;
@@ -92,6 +93,7 @@ namespace AI.Navigation.MPC
                 float2 posPoint = default;
                 var posSetpoint = 0f;
                 var posWeightScale = 0f;
+                var posResolved = false;
                 if (sentence.pos.armed && ResolveReferent(sentence.pos.referent, input, hasEnemy,
                         enemyPos, enemyVel, enemyYaw, stepTime, out var posRefPos, out var posRefVel, out var posRefYaw))
                 {
@@ -99,6 +101,7 @@ namespace AI.Navigation.MPC
                         * Direction(FrameAngle(sentence.pos.frame, posRefYaw, posRefVel) + sentence.pos.offsetThetaRad);
                     posSetpoint = sentence.pos.setpoint;
                     posWeightScale = sentence.pos.weight;
+                    posResolved = true;
                 }
 
                 // LANE binds the enemy only (rocks have no facing): the segment rides the rolled enemy pose per step.
@@ -120,7 +123,8 @@ namespace AI.Navigation.MPC
                     posPoint = posPoint,
                     posSetpoint = posSetpoint,
                     posWeightScale = posWeightScale,
-                    fieldScale = sentence.field.armed ? sentence.field.weight : 1f,
+                    posResolved = posResolved,
+                    fieldScale = FieldScale(in sentence),
                     laneStart = laneStart,
                     laneEnd = laneEnd,
                     laneWeightScale = laneWeightScale,
@@ -270,6 +274,8 @@ namespace AI.Navigation.MPC
                 prevU = u;
             }
 
+            totalBreakdown.terminalField = EvaluateTerminal(current, input, cfg);
+            totalBreakdown.total += totalBreakdown.terminalField;
             return totalBreakdown;
         }
 #endif

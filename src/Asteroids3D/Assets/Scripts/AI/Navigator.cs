@@ -67,8 +67,12 @@ namespace AI
             projectileSpeed = primaryProjectileSpeed;
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
-            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            mpc = CreateMpc();
         }
+
+        // The field gathers rocks through the scout's scanner: the one path from the arena's obstacle field to the solver.
+        private Mpc CreateMpc() =>
+            new(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint(), scout ? scout.obstacleScanner : null);
 
         /// <summary>Restores the freshly-initialized navigator: clears every override and rebuilds the solver so its warm-start plan and RNG stream replay from the spawn seed.</summary>
         public void ResetState()
@@ -77,7 +81,7 @@ namespace AI
             currentCommand = default;
             lastSolveFixedTime = double.NaN;
             mpc?.Dispose();
-            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            mpc = CreateMpc();
         }
 
         public PilotCommand ComputeCommand()

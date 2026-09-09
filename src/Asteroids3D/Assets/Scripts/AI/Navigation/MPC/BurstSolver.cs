@@ -1,3 +1,4 @@
+using AI.Navigation.MPC.Field;
 using Movement;
 using Unity.Burst;
 using Unity.Collections;
@@ -110,6 +111,7 @@ namespace AI.Navigation.MPC
                 current = Model.Step(current, u, cfg, dynamics);
                 prevU = u;
             }
+            totalCost += Cost.EvaluateTerminal(current, costInput, cfg);
 
             costs[candidateIndex] = totalCost;
         }
@@ -132,8 +134,10 @@ namespace AI.Navigation.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
+        private NativeArray<float> noField;   // scheduling needs a constructed container even for an invalid view
         private bool allocated;
         private int lastObstacleCount;
+        private TerminalFieldView lastTerminalField;
 
         public NativeArray<ObstacleData> Obstacles => obstacles;
         public int ObstacleCount => lastObstacleCount;
@@ -153,6 +157,7 @@ namespace AI.Navigation.MPC
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed, in IntentSentence sentence,
             in ReferentSnapshot referent1, in ReferentSnapshot referent2, in ReferentSnapshot referent3,
+            in TerminalFieldView terminalField,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float eliteFraction = 0.1f)
         {
@@ -192,6 +197,12 @@ namespace AI.Navigation.MPC
                 enemyStateCount = horizon;
             }
             LastEnemyStateCount = enemyStateCount;
+            lastTerminalField = terminalField;
+            if (!lastTerminalField.distances.IsCreated)
+            {
+                lastTerminalField.distances = noField;
+                lastTerminalField.valid = 0;
+            }
 
             var costInput = new CostInput
             {
@@ -210,6 +221,7 @@ namespace AI.Navigation.MPC
                 referent1 = referent1,
                 referent2 = referent2,
                 referent3 = referent3,
+                terminalField = lastTerminalField,
             };
 
             // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
@@ -365,6 +377,7 @@ namespace AI.Navigation.MPC
                 referent1 = referent1,
                 referent2 = referent2,
                 referent3 = referent3,
+                terminalField = lastTerminalField,
             };
         }
 
@@ -422,6 +435,7 @@ namespace AI.Navigation.MPC
             // 96 (not 64): multi-sphere expansion turns each elongated rock into up to 3 rows, so a full nearest-N scan needs headroom above the raw obstacle count.
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
+            noField = new NativeArray<float>(1, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             allocated = true;
         }
@@ -434,6 +448,7 @@ namespace AI.Navigation.MPC
             costs.Dispose();
             obstacles.Dispose();
             enemyStates.Dispose();
+            noField.Dispose();
             result.Dispose();
             allocated = false;
         }
