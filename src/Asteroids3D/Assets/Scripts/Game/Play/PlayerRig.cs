@@ -208,9 +208,11 @@ namespace Game.Play
             if (!observer) return;
 
             observer.SetSubject(Player.transform);
-            (Player.Commander as PlayerCommander)?.SetScreenToGamePlane(pos =>
-                GamePlane.ProjectOntoPlane(observer.Cam.ScreenToWorldPoint(pos))
-                + GamePlane.Origin);
+            var playerCommander = Player.Commander as PlayerCommander;
+            if (playerCommander)
+                playerCommander.SetScreenToGamePlane(pos =>
+                    GamePlane.ProjectOntoPlane(observer.Cam.ScreenToWorldPoint(pos))
+                    + GamePlane.Origin);
         }
 
         // The overlay instance persists across player rebuilds and loadout changes; re-Initialize

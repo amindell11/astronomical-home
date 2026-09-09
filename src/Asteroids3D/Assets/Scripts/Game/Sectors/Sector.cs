@@ -125,7 +125,8 @@ namespace Game.Sectors
             var target = entry.target;
             if (!target) return;
 
-            if (target is Ship ship) AdoptShip(ship, entry);
+            var ship = target as Ship;
+            if (ship) AdoptShip(ship, entry);
         }
 
         private void AdoptShip(Ship ship, AdoptEntry entry)
