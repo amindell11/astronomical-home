@@ -878,7 +878,7 @@ MonoBehaviour:
     - line: '|     PS5: UNITY_POST_PROCESSING_STACK_V2'
     - line: '|     QNX: UNITY_POST_PROCESSING_STACK_V2'
     - line: '|     ReservedCFE: UNITY_POST_PROCESSING_STACK_V2'
-    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED'
+    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2'
     - line: '|     VisionOS: UNITY_POST_PROCESSING_STACK_V2'
     - line: '|     WebGL: UNITY_POST_PROCESSING_STACK_V2'
     - line: '|     XboxOne: UNITY_POST_PROCESSING_STACK_V2'
