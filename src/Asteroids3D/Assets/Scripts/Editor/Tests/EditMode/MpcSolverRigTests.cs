@@ -384,6 +384,73 @@ namespace Tests.EditMode
             Debug.Log("[TerminalFieldArms]\n" + report);
         }
 
+        // The dense-field reproduction of the capture stall: a random rock band at the harness's density-2.0
+        // occupancy between spawn and a Dummy 140 m away, the dummy-closeout sentence, and a wTerminalField sweep.
+        private static RigScenario DenseCloseout(uint layoutSeed, bool aligned)
+        {
+            var s = RigScenario.VersusDummy(140f);
+            s.startPos = new float2(-70f, 0f);
+            // Aligned = the nose already on the goal (the capture's spawn); off-axis = the AIM term supplies the first push.
+            s.startYawRad = aligned ? -math.PI / 2f : 0f;
+            s.enemyLaw = RigLaw.Static(new float2(70f, 0f), math.PI / 2f);
+            s.intent = new IntentSentence
+            {
+                aim = new AimSlot { armed = true, weight = 1f },
+                pos = new PosSlot { armed = true, setpoint = 6f, weight = 1f },
+                field = new FieldSlot { armed = true, weight = 1f },
+            };
+            s.warmupSeconds = 0f;
+            s.durationSeconds = 30f;
+            var rng = new Unity.Mathematics.Random(layoutSeed);
+            var rocks = new List<RigCircle>();
+            while (rocks.Count < 96)
+            {
+                var c = new float2(rng.NextFloat(-80f, 80f), rng.NextFloat(-30f, 30f));
+                if (math.distance(c, s.startPos) < 10f || math.distance(c, new float2(70f, 0f)) < 10f) continue;
+                rocks.Add(new RigCircle(c, rng.NextFloat(1.5f, 4.2f)));
+            }
+            s.obstacles = rocks.ToArray();
+            return s;
+        }
+
+        [Test]
+        public void DenseField_Closeout_WeightSweep_Emit()
+        {
+            if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
+                Assert.Ignore("Set MPC_RIG_EMIT=1 to run the dense-field weight sweep.");
+
+            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/mpc-rig/terminal-field"));
+            Directory.CreateDirectory(outDir);
+            var report = "layout,aligned,wTerminalField,seed,finalRange,travelled,collisionStepFraction,threatStepFraction,fieldBakes,meanTerminalCost\n";
+            foreach (var layout in new uint[] { 11u, 22u })
+            foreach (var aligned in new[] { false, true })
+            foreach (var w in new[] { 1f, 0.3f, 0.1f, 0.03f, 0f })
+            foreach (var seed in new uint[] { 1234u, 7u })
+            {
+                var scenario = DenseCloseout(layout, aligned);
+                var clone = UnityEngine.Object.Instantiate(settings);
+                var trace = new List<RigTraceRow>();
+                RigResult result;
+                try
+                {
+                    clone.wTerminalField = w;
+                    result = MpcSolverRig.Run(clone, dynamics, in scenario, seed, trace);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(clone);
+                }
+                var terminal = 0f;
+                foreach (var r in trace) terminal += r.costTerminalField;
+                var last = trace[trace.Count - 1];
+                var travelled = math.distance(new float2(last.posX, last.posY), scenario.startPos);
+                if (w is 1f or 0f) RigTraceCsv.Write(Path.Combine(outDir, $"dense-{layout}-{(aligned ? "aligned" : "offaxis")}-w{w:F2}-{seed}.csv"), trace);
+                report += $"{layout},{(aligned ? 1 : 0)},{w:F2},{seed},{result.finalRange:F2},{travelled:F1},{result.collisionStepFraction:F4},{result.threatStepFraction:F4},{result.fieldBakes},{terminal / trace.Count:F3}\n";
+            }
+            File.WriteAllText(Path.Combine(outDir, "dense-sweep.csv"), report);
+            Debug.Log("[TerminalFieldDense]\n" + report);
+        }
+
         private static float SegmentDistance(float2 pos, float2 start, float2 end)
         {
             var seg = end - start;

@@ -59,6 +59,8 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator RunsRequestedScenario()
         {
+            // The test body has its own log scope (SetUp's is disposed before it). A windowed editor's panels log network errors (Package Manager token refresh) that would otherwise end the run before a frame is filmed; the capture asserts by exception, never by log.
+            LogAssert.ignoreFailingMessages = true;
             var typeName = CaptureDispatch.ConsumeRequest() ?? CommandLineArg("-captureScenario");
             if (string.IsNullOrEmpty(typeName))
                 Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
