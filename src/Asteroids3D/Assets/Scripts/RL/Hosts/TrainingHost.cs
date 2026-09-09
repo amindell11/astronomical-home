@@ -9,7 +9,6 @@ using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
 using RL.Reward;
-using Utils;
 
 namespace RL.Hosts
 {

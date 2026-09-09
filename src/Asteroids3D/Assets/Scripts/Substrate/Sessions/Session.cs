@@ -17,7 +17,7 @@ namespace Substrate.Sessions
     /// its services once, loads and unloads the profile's sector any number of times, and
     /// tears everything down. It owns no player and no policy — a host (<c>GameSessionHost</c> for the
     /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
-    /// player it built to each load. The RL harness composes the same substrate
+    /// player it built to each load. The RL harness composes the same per-ship services
     /// through <see cref="ShipServices"/> and never drives a session. No process-wide state is written
     /// except the presentation flag set on compose, so one process can hold several sessions.
     /// </summary>

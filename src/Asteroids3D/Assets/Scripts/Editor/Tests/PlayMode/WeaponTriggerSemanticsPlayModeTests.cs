@@ -8,10 +8,10 @@ using Movement;
 using NUnit.Framework;
 using Ships.Command;
 using Tests.PlayMode.Common;
+using Substrate;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-using Substrate;
 #endif
 
 namespace Tests.PlayMode

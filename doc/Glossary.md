@@ -345,11 +345,11 @@ Format: **term** — definition. *(authority)*
   sectors, the three services and the presentation flag, and the plane, tag and
   layer conventions. Rooted at `Substrate/`; the interactive game (`Game/`) and
   the RL harness (`RL/`) are its two clients.
-- **session tier** — the lifecycle layer (`Substrate/Sessions`) whose one type, the
-  self-orchestrating `Session`, composes a session's services and cycles
-  sectors; a *host* paces it and hands each load the *hero* it built — the
-  session owns no rig and no policy. The RL harness does not use it; it composes
-  the same per-ship services through `ShipServices.Compose`.
+- **session tier** — the lifecycle layer (`Substrate/Sessions`) whose one
+  type, the self-orchestrating `Session`, composes a session's services and
+  cycles sectors; a *host* paces it and hands each load the *hero* it built —
+  the session owns no rig and no policy. The RL harness does not use it; it
+  composes the same per-ship services through `ShipServices.Compose`.
 - **host** — the scene component that wraps a session-shaped thing and is the
   outside world's interface to it: the *game session host* (`GameSessionHost`,
   `Game/`) builds the viewport (the observer camera, with the starfield

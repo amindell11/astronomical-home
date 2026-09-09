@@ -13,7 +13,6 @@ using RL.Hosts.Lanes;
 using RL.Opponents;
 using RL.Probes;
 using RL.Reward;
-using Utils;
 
 namespace RL.Hosts
 {
