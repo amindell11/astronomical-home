@@ -453,6 +453,16 @@ Format: **term** — definition. *(authority)*
 - **terminal ramp** — the MPC multiplier that scales *state* costs up toward the
   horizon end (reaching semantics); control terms and the velocity tracker
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
+- **terminal field** — the `Mpc`-owned Dijkstra cost-to-go grid over the ship's
+  rock occupancy, sampled once at each rollout's end state as a terminal cost
+  outside the terminal ramp. Always on, not sayable: its goal is the POS slot's
+  resolved centre and the FIELD slot's authority scales it like turn-away. It
+  adds beyond-horizon route knowledge; collision and turn-away stay (#461).
+  *(TerminalField, TerminalFieldView, Cost.EvaluateTerminal)*
+- **detour excess** — what the terminal field charges: baked route distance
+  minus the octile straight-line distance from the seed cell, so an empty grid
+  costs 0 everywhere and the field cannot double-count the POS ring's pull.
+  *(TerminalFieldView.DetourExcess)*
 - **nav objective** — the decision-varying slice of the MPC cost function, and
   the only thing that crosses the seam's navigation lane: an intent sentence
   plus the legacy world-plane move channel, and (since Stage C2) the rock-seat

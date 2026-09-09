@@ -1,4 +1,5 @@
 using System;
+using AI.Navigation.MPC.TerminalField;
 using AI.Scanning;
 using Movement;
 using Unity.Mathematics;
@@ -42,6 +43,7 @@ namespace Movement.MPC
         private readonly MpcSettings settings;
         private readonly Dynamics dynamics;
         private readonly SolverBuffers solver;
+        private readonly TerminalField terminalField;
 
         private Config config;
         private Control[] bestSequence;
@@ -50,10 +52,12 @@ namespace Movement.MPC
         private float lastBestCost;
         private State lastInitialState;
 
-        public Mpc(MpcSettings settings, Dynamics dynamics, uint seed)
+        /// <param name="scanner">The ship's obstacle source for the terminal field; null bakes nothing, so the field never validates.</param>
+        public Mpc(MpcSettings settings, Dynamics dynamics, uint seed, ObstacleScanner scanner = null)
         {
             this.settings = settings;
             this.dynamics = dynamics;
+            terminalField = new TerminalField(settings, dynamics, scanner);
 
             config = settings.ToConfig();
             config.ApplyDynamics(in dynamics);
@@ -67,7 +71,9 @@ namespace Movement.MPC
         {
             var mpcState = ToMpcState(inputs.kinematics);
             RefreshConfig(in inputs);
-            ApplyErrorRelativePosWidth(in inputs, mpcState);
+            var probe = ProbeInput(in inputs);
+            config.posWidth = Cost.EffectivePosWidth(mpcState, in probe, in config, settings.posWidthSlope);
+            UpdateTerminalField(mpcState, in probe, inputs.dt);
             lastInitialState = mpcState;
 
             // Slide the warm start's time origin forward by dt so its plan clock tracks sim
@@ -89,6 +95,7 @@ namespace Movement.MPC
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.sentence,
                     inputs.referent1, inputs.referent2, inputs.referent3,
+                    terminalField.View,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     settings.eliteFraction);
             }
@@ -150,21 +157,27 @@ namespace Movement.MPC
             }
         }
 
-        // POS width is error-relative per solve: widened from the initial ring error so reach
-        // keeps a gradient; posWidth stays the settle floor.
-        private void ApplyErrorRelativePosWidth(in MpcInputs inputs, State state)
+        // Step-0 sentence resolution for the per-solve pre-passes: the error-relative POS width
+        // (widened from the initial ring error so reach keeps a gradient; posWidth stays the settle
+        // floor) and the terminal field's goal.
+        private static CostInput ProbeInput(in MpcInputs inputs) => new()
         {
-            var probe = new CostInput
-            {
-                enemyPos = inputs.enemyPos,
-                enemyVel = inputs.enemyVel,
-                enemyYaw = inputs.enemyYaw,
-                enemyYawRate = inputs.enemyYawRate,
-                sentence = inputs.sentence,
-                referent1 = inputs.referent1,
-                referent2 = inputs.referent2,
-            };
-            config.posWidth = Cost.EffectivePosWidth(state, in probe, in config, settings.posWidthSlope);
+            enemyPos = inputs.enemyPos,
+            enemyVel = inputs.enemyVel,
+            enemyYaw = inputs.enemyYaw,
+            enemyYawRate = inputs.enemyYawRate,
+            sentence = inputs.sentence,
+            referent1 = inputs.referent1,
+            referent2 = inputs.referent2,
+            referent3 = inputs.referent3,
+        };
+
+        // The goal is the POS term's resolved centre (referent + frame offset, no ring radius) at
+        // step 0, so field and ring agree on the point; POS authority never gates it.
+        private void UpdateTerminalField(State state, in CostInput probe, float dt)
+        {
+            var ctx = Cost.EvalContext.Create(state, probe, config, 0);
+            terminalField.Update(state.pos, ctx.posResolved, ctx.posPoint, dt);
         }
 
         private void RefreshConfig(in MpcInputs inputs)
@@ -177,11 +190,16 @@ namespace Movement.MPC
             predictedStates = new State[config.horizon];
         }
 
-        public void Dispose() => solver?.Dispose();
+        public void Dispose()
+        {
+            solver?.Dispose();
+            terminalField?.Dispose();
+        }
 
         internal MpcSettings Settings => settings;
         internal Dynamics Dynamics => dynamics;
         internal SolverBuffers Solver => solver;
+        internal TerminalField TerminalField => terminalField;
         internal Config Config => config;
         internal Control[] BestSequence => bestSequence;
         internal State[] PredictedStates => predictedStates;

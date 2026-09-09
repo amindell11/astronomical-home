@@ -24,6 +24,8 @@ namespace Game.RLHarness
         public float p90FacingErrorDeg;
         public float finalRange;
         public float threatStepFraction;
+        public float collisionStepFraction;
+        public int fieldBakes;
         public float incumbentWinFraction;
         public float meanIncumbentRank;
         public float meanAbsEmitYawDeltaFromIncumbent;
@@ -54,7 +56,11 @@ namespace Game.RLHarness
         private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in RigScenario scenario, uint seed,
             List<RigTraceRow> trace)
         {
-            using var mpc = new Mpc(settings, dynamics, seed);
+            // The terminal field gathers through a production scanner over the authored circles; the rig
+            // never runs the ship-centred Scan, so the scanner has no origin and no travel envelope.
+            var scanner = new ObstacleScanner(origin: null, maxSpeed: 0f, maxAccel: 0f, lookaheadTime: 0f,
+                new RigObstacleField(scenario.obstacles));
+            using var mpc = new Mpc(settings, dynamics, seed, scanner);
 
             // The plant integrates at sim rate; the solver's own config keeps rolloutDt.
             var plantConfig = settings.ToConfig();
@@ -69,6 +75,7 @@ namespace Game.RLHarness
             var rankSum = 0L;
             var absEmitYawDeltaSum = 0f;
             var threatSteps = 0;
+            var collisionSteps = 0;
 
             var scan = BuildScan(scenario.obstacles);
             var enemyRunner = new LawRunner(scenario.enemyLaw);
@@ -122,6 +129,7 @@ namespace Game.RLHarness
                 var hullRadius = cfg.shipRadius * Cost.BankProfileScale(applied.strafe, cfg) + cfg.collisionSafetyMargin;
                 var underThreat = ControllerProbe.ObstacleThreat(state.pos, state.vel,
                     mpc.Solver.Obstacles, mpc.Solver.ObstacleCount, hullRadius, cfg.maxLatAccel);
+                var collided = Cost.Collides(state.pos, mpc.Solver.Obstacles, mpc.Solver.ObstacleCount, hullRadius);
 
                 // The facing metric follows the AIM slot's referent; rows without an armed live AIM sample no facing error.
                 var aimReferent = Resolve(scenario.intent.aim.referent, enemy, referent1, referent2);
@@ -145,6 +153,7 @@ namespace Game.RLHarness
                         hasAnchor ? anchorYawRad : 0f, underThreat, scenario.simDt);
                     if (hasAnchor) facingErrorDeg.Add(errorDeg);
                     if (underThreat) threatSteps++;
+                    if (collided) collisionSteps++;
                     if (incumbentRank == 0) incumbentWins++;
                     rankSum += incumbentRank;
                     absEmitYawDeltaSum += Mathf.Abs(emitYawDelta);
@@ -157,6 +166,9 @@ namespace Game.RLHarness
                         enemy.valid ? enemy.yaw : float.NaN, 0f, scenario.projectileSpeed,
                         state.vel, scenario.intent, referent1, referent2);
                     var breakdown = Cost.EvaluateBreakdown(state, applied, prevControl, costInput, cfg);
+                    // The emitted plan's endpoint field cost, apart from the step-0 breakdown: what the terminal term charged this solve.
+                    var endpoint = mpc.PredictedStates[cfg.horizon - 1];
+                    var terminalField = Cost.EvaluateTerminal(endpoint, costInput, cfg);
                     trace.Add(new RigTraceRow
                     {
                         t = i * scenario.simDt,
@@ -189,6 +201,8 @@ namespace Game.RLHarness
                         costEffort = breakdown.effort,
                         costSmoothness = breakdown.smoothness,
                         costTotal = breakdown.total,
+                        costTerminalField = terminalField,
+                        fieldSpacing = mpc.TerminalField.View.IsValid ? mpc.TerminalField.View.spacing : 0f,
                     });
                 }
 
@@ -220,6 +234,8 @@ namespace Game.RLHarness
                 p90FacingErrorDeg = FacingSummary.Percentile(facingErrorDeg, 90),
                 finalRange = lastRange,
                 threatStepFraction = overall.steps > 0 ? threatSteps / (float)overall.steps : 0f,
+                collisionStepFraction = overall.steps > 0 ? collisionSteps / (float)overall.steps : 0f,
+                fieldBakes = mpc.TerminalField.BakeCount,
                 incumbentWinFraction = overall.steps > 0 ? incumbentWins / (float)overall.steps : 0f,
                 meanIncumbentRank = overall.steps > 0 ? rankSum / (float)overall.steps : 0f,
                 meanAbsEmitYawDeltaFromIncumbent = overall.steps > 0 ? absEmitYawDeltaSum / overall.steps : 0f,
