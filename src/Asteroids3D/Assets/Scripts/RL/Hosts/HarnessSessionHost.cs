@@ -46,7 +46,7 @@ namespace RL.Hosts
             if (episodeCapture == null && spec != null && spec.record.enabled)
             {
                 var type = System.Type.GetType(
-                    "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor", throwOnError: true);
+                    "Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor", throwOnError: true);
                 var module = ScriptableObject.CreateInstance(type);
                 module.hideFlags = HideFlags.HideAndDontSave;
                 captureModule = module;

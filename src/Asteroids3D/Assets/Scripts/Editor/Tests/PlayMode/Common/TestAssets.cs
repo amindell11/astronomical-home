@@ -106,7 +106,7 @@ public static class TestAssets
 
     /// <summary>The Editor-owned capture module, resolved by name because the test assemblies do not reference its assembly.</summary>
     public static IEpisodeCapture NewNativeCapture() => (IEpisodeCapture)ScriptableObject.CreateInstance(
-        Type.GetType("Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor",
+        Type.GetType("Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor",
             throwOnError: true));
 }
 

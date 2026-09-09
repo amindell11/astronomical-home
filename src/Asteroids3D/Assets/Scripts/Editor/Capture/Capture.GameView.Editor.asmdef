@@ -1,10 +1,10 @@
 {
-    "name": "Game.Capture.GameView.Editor",
+    "name": "Capture.GameView.Editor",
     "rootNamespace": "",
     "references": [
-        "Game.Core",
-        "Game.Core.Editor",
-        "Game.Capture.Editor",
+        "Core",
+        "Core.Editor",
+        "Capture",
         "Unity.Recorder.Editor",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.Pipeline"

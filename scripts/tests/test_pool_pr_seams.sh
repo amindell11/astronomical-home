@@ -20,10 +20,12 @@ git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/primary"
 git -C "$TMP/primary" config user.email pool-test@example.test
 git -C "$TMP/primary" config user.name "Pool Test"
-mkdir -p "$TMP/primary/src/Asteroids3D/ProjectSettings"
+mkdir -p "$TMP/primary/src/Asteroids3D/ProjectSettings" "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles"
 printf 'base\n' > "$TMP/primary/file.txt"
 printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2\n' \
   > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
+printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2'
+"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
 git -C "$TMP/primary" add -A
 git -C "$TMP/primary" commit -qm init
 git -C "$TMP/primary" push -q origin main
@@ -83,6 +85,13 @@ churn() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$CHURN" -Work
 printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED\n' \
   > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
 [[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the analytics define flip is the known churn"
+
+printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED'
+"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in both files together is the known churn"
+
+git -C "$TMP/primary" restore --worktree -- src/Asteroids3D/ProjectSettings
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in the Main build profile alone is the known churn"
 
 printf 'edited\n' > "$TMP/primary/file.txt"
 [[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "a real edit alongside the churn is NOT allowlisted"
