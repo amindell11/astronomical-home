@@ -63,6 +63,9 @@ Commands:
       if it isn't free (or safely reclaimable) acquire FAILS — no
       silent fallback to auto-pick.
       Output: SLOT=<name> PATH=<abs-path>
+      Lease mutation uses Perl flock on a stable per-slot .mutation file.
+      Concurrent mutation returns nonzero; process exit releases the OS lock.
+      Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
       Release slot lock (e.g., agent-1).
@@ -404,6 +407,24 @@ cs_diff_is_comment_only() {
 }
 
 # ---- Locks -----------------------------------------------------------------
+with_slot_mutation() {
+  local slot="$1"
+  shift
+  command -v perl >/dev/null 2>&1 || { echo 'Pool mutation requires Perl flock support.' >&2; return 1; }
+  # The execed mutator inherits the lock; launcher death cannot expose a surviving child.
+  perl -e '
+    use strict;
+    use warnings;
+    use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
+    my $path = shift @ARGV;
+    open my $lock, ">>", $path or die "Pool mutation lock $path: $!\n";
+    flock($lock, LOCK_EX | LOCK_NB) or exit 1;
+    fcntl($lock, F_SETFD, 0) or die "Pool mutation lock inheritance: $!\n";
+    exec @ARGV or die "Pool mutation exec: $!\n";
+  ' "$LOCK_ROOT/$slot.mutation" bash -c 'source "$1"; shift; "$@"' \
+    pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
 write_lock() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -518,7 +539,9 @@ cmd_status() {
 }
 
 # ---- Acquire / release / prepare -------------------------------------------
-try_lock_slot() {
+try_lock_slot() { with_slot_mutation "$1" claim_free_slot "$@"; }
+
+claim_free_slot() {
   local slot="$1" lease="$2" path="$3"
   local ldir
   ldir="$(lock_dir_for "$slot")"
@@ -528,9 +551,11 @@ try_lock_slot() {
 }
 
 # Reclaim only past-TTL locks whose slot holds no unpushed work (never clobber a dead lock's WIP — the CLOBBER HAZARD).
-try_reclaim_slot() {
+try_reclaim_slot() { with_slot_mutation "$1" reclaim_stale_slot "$@"; }
+
+reclaim_stale_slot() {
   local slot="$1" lease="$2" path="$3"
-  local ldir age tomb stamp_before stamp_after
+  local ldir age
   ldir="$(lock_dir_for "$slot")"
   age="$(lock_age_seconds "$ldir")"
   [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] || return 1
@@ -538,21 +563,8 @@ try_reclaim_slot() {
     echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
     return 1
   fi
-  # Single winner: the stale dir is renamed aside and only one racer's rename can succeed.
-  # A rename that landed on a rival's already-fresh lock (stamp differs from the one age-checked)
-  # is put back — reclaim must never clobber a live lock.
-  # Tombstones are dead state; only sweep ones far too old to belong to an in-flight racer.
-  find "$(dirname "$ldir")" -maxdepth 1 -name "$(basename "$ldir").tomb.*" -mmin +60 -exec rm -rf {} + 2>/dev/null || true
-  stamp_before="$(cat "$ldir/timestamp" 2>/dev/null || true)"
-  tomb="${ldir}.tomb.$$-$(date +%s%N)"
-  mv "$ldir" "$tomb" 2>/dev/null || return 1
-  stamp_after="$(cat "$tomb/timestamp" 2>/dev/null || true)"
-  if [[ "$stamp_after" != "$stamp_before" ]]; then
-    [[ -d "$ldir" ]] || mv "$tomb" "$ldir" 2>/dev/null || true
-    return 1
-  fi
-  rm -rf "$tomb"
-  mkdir "$ldir" 2>/dev/null || return 1
+  rm -rf "$ldir"
+  mkdir "$ldir"
   write_lock "$slot" "$lease" "$path"
   echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
   echo "SLOT=$slot PATH=$path"
@@ -585,7 +597,9 @@ cmd_acquire() {
   return 1
 }
 
-cmd_release() {
+cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
+
+release_slot() {
   local slot="$1"
   local ldir path
   ldir="$(lock_dir_for "$slot")"
