@@ -8,9 +8,11 @@ export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
 source "$POOL"
 MERGE_JOURNAL="$TMP/journal"
 MERGE_RUN_START=$EPOCHSECONDS
+utc_before="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 journal_event $'ev"ent' $'ph\\ase' 'sec=-3' $'detail=a\tb\nc"d\\e' 'empty='
 grep -q '"event":"event","phase":"phase","sec":-3,"detail":"abcde","empty":""}' "$MERGE_JOURNAL"
-grep -Eq '"ts":"[0-9-]+T[0-9:]+Z"' "$MERGE_JOURNAL"
+utc_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+grep -Fq "\"ts\":\"$utc_before\"" "$MERGE_JOURNAL" || grep -Fq "\"ts\":\"$utc_after\"" "$MERGE_JOURNAL"
 mkdir -p "$TMP/suite/scripts/tests"
 printf 'exit 0\n' > "$TMP/suite/scripts/tests/test_a.sh"
 printf 'exit 7\n' > "$TMP/suite/scripts/tests/test_b.sh"
