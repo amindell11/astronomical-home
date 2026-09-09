@@ -18,7 +18,7 @@ namespace Tests.EditMode
     {
         private static Config BareConfig() => new()
         {
-            dt = 0.1f, invDt = 10f, horizon = 17,
+            dt = 0.1f, horizon = 17,
             wFacing = 1f, facingWidth = 0.5f, facingTarget = float.NaN,
             maxSpeedSq = 100f,
             wVelTrack = 5f,

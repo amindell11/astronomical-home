@@ -34,6 +34,27 @@ Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" 
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Feature" -ScopeName "nonexistent") "invalid feature resolves to empty filter (warning expected above)"
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Module" -ScopeName "ai") "Module no longer resolves via name-filter (derives categories instead)"
 
+Write-Host ""
+Write-Host "Structured selection: one authored format, two transport readings"
+$smokeSelection = Resolve-ScopeSelection -ScopeMap $scopeMap -ScopeType "Smoke" -ScopeName ""
+Assert-Equal "names" $smokeSelection.kind "Smoke resolves to a name selection"
+Assert-True ($smokeSelection.representable) "the authored Smoke selection is routed-representable"
+Assert-Equal $smokeFilter $smokeSelection.testFilter "cold transport still gets the authored alternation"
+Assert-True (@($smokeSelection.names).Count -gt 1) "routed transport gets one literal name per alternative"
+Assert-True (@($smokeSelection.names) -contains "CameraUtilsEditModeTests") "names are literal fixture names, not regex fragments"
+
+$workspaceSelection = Resolve-ScopeSelection -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName ""
+Assert-Equal "none" $workspaceSelection.kind "Workspace selects no names (full suite)"
+Assert-Equal 0 @($workspaceSelection.names).Count "Workspace yields no routed calls"
+
+$literal = ConvertTo-TestNameSelection -TestFilter " Foo | Bar "
+Assert-Equal "Foo|Bar" $literal.testFilter "alternation is trimmed and rebuilt"
+Assert-Equal 2 @($literal.names).Count "each alternative is its own name"
+$regexy = ConvertTo-TestNameSelection -TestFilter "Foo.*Bar"
+Assert-True (-not $regexy.representable) "a regex the routed filter cannot reproduce is not representable"
+Assert-True ($regexy.reason -like '*alternation*') "the refusal says why"
+Assert-Equal "Foo.*Bar" $regexy.testFilter "the cold transport still receives the regex verbatim"
+
 $syntheticMapJson = @'
 {
   "smoke": { "testFilter": "SmokeA|SmokeB" },

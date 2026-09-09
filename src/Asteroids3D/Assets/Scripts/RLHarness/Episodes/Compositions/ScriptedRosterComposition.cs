@@ -1,4 +1,5 @@
 using System;
+using Game.Services;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
@@ -12,22 +13,23 @@ namespace Game.RLHarness
 
         public ScriptedRosterComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset, presentationEnabled: false);
+            var units = host.AddComponent<UnitService>();
+            var projectiles = ShipServices.Compose(units, host.transform, presentationEnabled: false);
             var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
+                ? HarnessField.Spawn(offset, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
-            var pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
+            var pair = EpisodePair.SpawnWithAgentBrain(units, offset, field?.Field, projectiles, in spec, assets, out var brain);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
 
             var agent = behaviorType switch
             {
-                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, brain, in spec, arena.Offset, host.transform),
-                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset, host.transform),
+                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, brain, in spec, offset, host.transform),
+                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, offset, host.transform),
                 _ => throw new NotSupportedException(
                     $"Training supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
             };
 
-            Driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field, roster);
+            Driver = new EpisodeLoopDriver(pair, agent, offset, field, roster);
         }
 
         public void Dispose() => roster?.Dispose();

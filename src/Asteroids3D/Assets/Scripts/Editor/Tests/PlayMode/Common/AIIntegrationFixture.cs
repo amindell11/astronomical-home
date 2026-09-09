@@ -15,14 +15,12 @@ namespace Tests.PlayMode.Common
 public abstract class AIIntegrationFixture : PlayModeWorldFixture
 {
     protected ShipRegistry registry;
-    private ArenaContext arena;
     private readonly List<Ship> trackedShips = new();
 
     public override void SetUp()
     {
         base.SetUp();
         registry = new ShipRegistry();
-        arena = new ArenaContext(Vector2.zero, registry);
     }
 
     public override void TearDown()
@@ -56,8 +54,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         cmdr.InstallBrain<ArchetypeBrain>()
             .Configure(null, OpponentArchetype.Dummy, default, jukeSeed: 0, Vector2.zero, borderRadius: 0f);
 
-        // SetArena triggers TryInitializeSystems.
-        cmdr.SetArena(arena);
+        // Sensing wiring triggers TryInitializeSystems; these ships sense ships only, no obstacles.
+        cmdr.SetSensing(registry, null);
 
         return (ship, cmdr);
     }

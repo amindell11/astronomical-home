@@ -76,8 +76,6 @@ namespace Tests.PlayMode
             servicesHost = new GameObject("[TestServices]");
             var unitService = servicesHost.AddComponent<UnitService>();
             var objectiveService = servicesHost.AddComponent<ObjectiveService>();
-            var arena = Tests.Common.TestArena.On(servicesHost, unitService.Registry);
-            unitService.SetArena(arena);
             var projectiles = new ProjectileService(servicesHost.transform, presentation);
             unitService.SetProjectiles(projectiles);
 
@@ -88,7 +86,6 @@ namespace Tests.PlayMode
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
                 uiService: new UIService(),
-                arena: arena,
                 presentationEnabled: presentation);
 
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
@@ -96,7 +93,7 @@ namespace Tests.PlayMode
             rig = Object.Instantiate(rigPrefab);
 
             // No player: the world and the observer camera are the whole subject here.
-            yield return rig.Build(services, buildPlayer: false, onPlayerDeath: null);
+            yield return rig.Build(services, buildPlayer: false, frame: default, onPlayerDeath: null);
         }
 
         private Renderer[] WorldRenderers()

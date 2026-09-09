@@ -59,11 +59,8 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 # Run tests in that slot (always writes to results/unity-tests-agent)
 ./scripts/agent_worktree_pool.sh run-tests agent-1 -Mode Both -ScopeType Workspace
 
-# Create a PR for a slot branch (requires gh auth)
-./scripts/agent_worktree_pool.sh create-pr agent-1
-
-# Create PRs for all slot branches that are ahead of main
-./scripts/agent_worktree_pool.sh create-pool-prs
+# Create a PR for a slot branch (requires gh auth; --title and one of --body/--body-file are required)
+./scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body-file pr-body.md
 
 # One-shot flow: prepare + run tests + create PR + release lock
 ./scripts/agent_worktree_pool.sh finalize agent-1 origin/main -- -Mode Both -ScopeType Workspace
@@ -383,23 +380,15 @@ Assets/Scripts/Editor/Tests/
 
 ### Naming Conventions
 
-All test files and classes follow a strict naming convention enforced by `scripts/check_test_naming.ps1`:
+All test files and classes follow a strict naming convention. Nothing enforces it
+automatically - it is review law, checked by the reader:
 
 **Rules:**
 1. **Test files** must end with `Tests.cs` (e.g., `MyFeatureTests.cs`)
 2. **Test classes** must match their file name exactly (e.g., `public class MyFeatureTests`)
 3. **Utility classes** (like `TestSceneBuilder`) are exempt from the `*Tests` requirement
 
-**Validation:**
-```powershell
-# Check all test files for naming violations
-.\scripts\check_test_naming.ps1
-
-# Show suggested fixes for violations
-.\scripts\check_test_naming.ps1 -Fix
-```
-
-This check is run in CI to prevent naming drift. If you rename a test class, you must also rename the file to match.
+If you rename a test class, rename the file to match.
 
 ---
 
@@ -551,7 +540,7 @@ needs no scope-map upkeep:
 
 ### EditMode test checklist
 - ✅ **File and class must match exactly** (e.g., `MyFeatureTests.cs` / `public class MyFeatureTests`)
-- ✅ **Both must end with `Tests`** (enforced by `scripts/check_test_naming.ps1`)
+- ✅ **Both must end with `Tests`**
 - Namespace: `Tests.EditMode`
 - Exactly one **domain** `[Category(...)]` on the class (see the table above)
 - Add `[Category("Smoke")]` to the single fastest / most critical test method

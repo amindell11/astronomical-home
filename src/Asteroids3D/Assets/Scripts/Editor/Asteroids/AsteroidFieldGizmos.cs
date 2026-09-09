@@ -1,15 +1,25 @@
 using System.Runtime.CompilerServices;
 using Asteroids.Fields.Core;
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace Asteroids.Fields
 {
+    [InitializeOnLoad]
     internal static class AsteroidFieldGizmos
     {
         private const float HeatmapAlpha = 0.18f;
         private const int MaxGizmoCellsPerAxis = 64;
+
+        static AsteroidFieldGizmos()
+        {
+            GizmoView.Register(typeof(AsteroidField), "chunks", "Chunk Grid & Extents",
+                "chunk grid + green/magenta load-unload rings + field-radius sphere", "Environment");
+            GizmoView.Register(typeof(AsteroidField), "heatmap", "Noise Heatmap",
+                "blue→red per-cell authored-density heatmap", "Environment");
+        }
 
         // Edit-mode preview of the exact runtime layout (same seed + params via the same core code).
         private sealed class PreviewState
@@ -21,17 +31,26 @@ namespace Asteroids.Fields
 
         private static readonly ConditionalWeakTable<UpdatingAsteroidField, PreviewState> Previews = new();
 
-        [DrawGizmo(GizmoType.Selected, typeof(AsteroidField))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AsteroidField))]
         private static void Draw(AsteroidField field, GizmoType gizmoType)
         {
-            if (!field.settings) return;
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(field.transform.position, field.settings.fieldRadius);
+            if (!field.settings || !GizmoView.InScope(field)) return;
 
-            if (field is UpdatingAsteroidField updating) DrawStreaming(updating);
+            var chunks = GizmoView.IsOn(typeof(AsteroidField), "chunks");
+            var heatmap = GizmoView.IsOn(typeof(AsteroidField), "heatmap");
+            if (!chunks && !heatmap) return;
+
+            if (chunks)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(field.transform.position, field.settings.fieldRadius);
+            }
+
+            var updating = field as UpdatingAsteroidField;
+            if (updating) DrawStreaming(updating, chunks, heatmap);
         }
 
-        private static void DrawStreaming(UpdatingAsteroidField field)
+        private static void DrawStreaming(UpdatingAsteroidField field, bool chunks, bool heatmap)
         {
             var settings = field.settings;
             var layout = ActiveLayout(field);
@@ -43,8 +62,10 @@ namespace Asteroids.Fields
                 : field.transform.position;
             var anchorPlane = WorldToPlaneSafe(anchorWorld) - originPlane;
 
-            if (field.drawNoiseHeatmap) DrawNoiseHeatmap(settings, layout, originPlane, anchorPlane);
-            if (field.drawChunkGizmos) DrawChunkGrid(field, originPlane, anchorPlane);
+            if (heatmap) DrawNoiseHeatmap(settings, layout, originPlane, anchorPlane);
+            if (!chunks) return;
+
+            DrawChunkGrid(field, originPlane, anchorPlane);
 
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(anchorWorld, settings.loadRadius);

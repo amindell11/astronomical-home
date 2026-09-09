@@ -14,7 +14,6 @@ namespace Tests.EditMode
     public class RespawnEditModeTests
     {
         private GameObject _follower;
-        private GameObject _arenaHost;
 
         private class StubEnv : IEnvironmentService
         {
@@ -31,14 +30,12 @@ namespace Tests.EditMode
         private class StubServices : IGameServices
         {
             public IEnvironmentService Env;
-            public ArenaContext ArenaCtx;
             public IUnitService UnitService => null;
             public IProjectileService Projectiles => null;
             public IEnvironmentService EnvironmentService => Env;
             public IObjectiveService ObjectiveService => null;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-            public ArenaContext Arena => ArenaCtx;
             public bool PresentationEnabled => true;
         }
 
@@ -47,8 +44,6 @@ namespace Tests.EditMode
         {
             if (_follower) Object.DestroyImmediate(_follower);
             _follower = null;
-            if (_arenaHost) Object.DestroyImmediate(_arenaHost);
-            _arenaHost = null;
         }
 
         private StubServices Services(Transform follower = null) =>
@@ -67,7 +62,7 @@ namespace Tests.EditMode
                 radius = 0f,
             };
 
-            var resolved = Respawn.Resolve(policy, Services(_follower.transform));
+            var resolved = Respawn.Resolve(policy, Services(_follower.transform), Vector2.zero);
             Assert.AreEqual(new Vector2(7, 3), resolved,
                 "FixedPoint must revive at 'point' (follower ignored) when radius is 0.");
         }
@@ -83,7 +78,7 @@ namespace Tests.EditMode
             };
 
             var producerBase = new Vector2(10, 5);
-            Assert.AreEqual(new Vector2(12, 2), Respawn.Resolve(policy, Services(), producerBase),
+            Assert.AreEqual(new Vector2(12, 2), Respawn.Resolve(policy, Services(), Vector2.zero, producerBase),
                 "FixedPoint must resolve to the producer's base position plus 'point' (producer-relative offset).");
         }
 
@@ -101,7 +96,7 @@ namespace Tests.EditMode
             };
 
             var expected = GamePlane.WorldPointToPlane(_follower.transform.position);
-            var resolved = Respawn.Resolve(policy, Services(_follower.transform));
+            var resolved = Respawn.Resolve(policy, Services(_follower.transform), Vector2.zero);
 
             Assert.AreEqual(expected, resolved,
                 "FollowerRelative must anchor to the world follower's plane position, not 'point'.");
@@ -117,17 +112,14 @@ namespace Tests.EditMode
                 radius = 0f,
             };
 
-            Assert.AreEqual(Vector2.zero, Respawn.Resolve(policy, Services(follower: null)),
+            Assert.AreEqual(Vector2.zero, Respawn.Resolve(policy, Services(follower: null), Vector2.zero),
                 "With no world follower, FollowerRelative anchors to zero.");
         }
 
         [Test]
-        public void Resolve_FollowerRelative_NoFollower_FallsBackToArenaOffset()
+        public void Resolve_FollowerRelative_NoFollower_FallsBackToWorldOrigin()
         {
-            _arenaHost = new GameObject("Arena");
             var offset = new Vector2(1000f, -250f);
-            var services = Services(follower: null);
-            services.ArenaCtx = new ArenaContext(offset, new Tests.Common.StubShipRegistry());
 
             var policy = new RespawnPolicy
             {
@@ -135,15 +127,15 @@ namespace Tests.EditMode
                 radius = 0f,
             };
 
-            Assert.AreEqual(offset, Respawn.Resolve(policy, services),
-                "With no world follower, FollowerRelative anchors to the arena origin, not the world origin.");
+            Assert.AreEqual(offset, Respawn.Resolve(policy, Services(follower: null), offset),
+                "With no world follower, FollowerRelative anchors to the given world origin, not the plane origin.");
         }
 
         [Test]
         public void Wire_OriginNone_WiresNothing_ReturnsFalse()
         {
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
-            Assert.IsFalse(Respawn.Wire(null, policy, Services()),
+            Assert.IsFalse(Respawn.Wire(null, policy, Services(), Vector2.zero),
                 "A None policy must wire nothing and report false (even with a null ship).");
         }
 
@@ -151,8 +143,8 @@ namespace Tests.EditMode
         public void Wire_MissingShipOrServices_ReturnsFalse()
         {
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint };
-            Assert.IsFalse(Respawn.Wire(null, policy, Services()), "Null ship must not wire.");
-            Assert.IsFalse(Respawn.Wire(null, policy, null), "Null services must not wire.");
+            Assert.IsFalse(Respawn.Wire(null, policy, Services(), Vector2.zero), "Null ship must not wire.");
+            Assert.IsFalse(Respawn.Wire(null, policy, null, Vector2.zero), "Null services must not wire.");
         }
     }
 }

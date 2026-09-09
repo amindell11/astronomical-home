@@ -33,7 +33,7 @@ namespace Movement.MPC
         public ReferentFrame frame;
     }
 
-    /// <summary>VEL sentence slot: polar velocity relative to the referent's motion. vr &gt; 0 closes along +losHat, vt &gt; 0 orbits CCW.</summary>
+    /// <summary>VEL sentence slot: polar velocity relative to the referent's motion, decomposed in the referent's chosen frame — Position = the live LOS basis (vr &gt; 0 closes along +losHat, vt &gt; 0 orbits CCW), Facing/Velocity swap the basis forward for the referent's facing or motion direction.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct VelSlot
     {
@@ -42,6 +42,7 @@ namespace Movement.MPC
         public float tangentialSpeed;  // m/s
         public float weight;           // Signed authority × the config's wVelTrack ceiling
         public int referent;
+        public ReferentFrame frame;
     }
 
     /// <summary>FIELD sentence slot: hazard-repulsion authority over the turn-away branch only — the collision penalty is never sentence-weakened. Unarmed = ×1.</summary>
@@ -60,7 +61,7 @@ namespace Movement.MPC
         public float weight;   // Signed authority × the config's wLane ceiling
     }
 
-    /// <summary>An intent sentence: the decision-varying slice of the MPC cost as typed sentence slots, each re-resolved against live referent state every rollout step (doc/Feature_Plans/Intent_Grammar.md). Referent 0 = the bound enemy (rolled prediction stream); 1–3 = <see cref="CostInput"/>'s synthetic snapshots. Default (nothing armed) = the legacy world-frame path, bit-unchanged.</summary>
+    /// <summary>An intent sentence: the decision-varying slice of the MPC cost as typed sentence slots, each re-resolved against live referent state every rollout step (#485). Referent 0 = the bound enemy (rolled prediction stream); 1–3 = <see cref="CostInput"/>'s synthetic snapshots. Default (nothing armed) = the legacy world-frame path, bit-unchanged.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct IntentSentence
     {

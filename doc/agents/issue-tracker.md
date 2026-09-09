@@ -7,26 +7,32 @@ Issues live in this repo's GitHub Issues; use the `gh` CLI. The repo is
 
 ## Body law
 
-Deep rationale, trade-offs, and file-level detail never go in issue bodies or
-comments — they live in agent memory or a plan doc, linked from the issue
-(`Detail:` link); the memory file names the issue number. The tracker says *what / for-when*; memory says *why / how*;
-live in-flight claims go in the active-work ledger (see `AGENTS.md`). Three
-body shapes are legal:
+The tracker is where design prose lives (ruling 2026-09-02; before it, bodies
+were thin links to plan docs). Bodies and comments carry the why, the
+rejected alternatives, results and rulings — never a restatement of what the
+code says; point at the symbol. The tracker says *what / for-when / why*;
+memory holds machine-local session state; live in-flight claims go in the
+active-work ledger (see `AGENTS.md`). Body shapes:
 
-- **Deferral issue** (default): scannable title + `Detail:` link. No essay.
+- **Arc issue**: the brief — design, forks, rulings — written before the
+  build; slices are sub-issues. The completing PR carries the shipped why;
+  the arc issue closes with a link to it.
+- **Deferral issue** (default for mid-task punts): scannable title + enough
+  why to act on later. No essay for a one-liner, but the rationale goes here,
+  not in memory.
 - **Slice issue** (published by to-tickets): `What to build` (end-to-end
-  behaviour) + acceptance criteria + `Blocked by`. Behavioural spec is
-  public-safe; the design rationale stays in the plan doc it came from.
-  The tracker owns an arc's slice breakdown — plan docs carry design and
-  point at the issues, never a duplicate slice list.
+  behaviour) + acceptance criteria + `Blocked by`.
+- **Design record** (`design-record` label, closed): the why/results/rulings
+  of a shipped or shelved arc that outlived its PR bodies; migrated plan docs
+  live here. Amend by comment, never by editing history away.
 - **Wayfinder map / ticket**: map body is an index (gists + links); ticket
-  body is the `## Question`. A resolution comment carries the gist and, when
-  the answer runs deep, a link to the memory/plan doc holding it.
+  body is the `## Question`; a resolution comment carries the answer.
 
 ## Labels
 
 - **Priority axis** (how soon): `pri:now` / `pri:next` / `pri:later`. One per
   issue; `bug` marks defects and can ride alongside.
+- **`design-record`**: closed issue holding an arc's why/results/rulings (see body law).
 - **Triage states**: `needs-triage` — agent-created, awaiting user review
   (**default on every deferral issue an agent mints mid-task**; the user
   clears it to a priority/readiness label on review). `ready-for-agent` —
@@ -52,6 +58,9 @@ body shapes are legal:
   Robust fallback: GraphQL scan for `issueDependenciesSummary.blockedBy == 0`.
 - **Rate limits** that bite a fleet: search 30 req/min; content creation
   80/min + 500/hr per account. Reads (REST 5k/hr) are ample.
+- **Structural limits**: 100 sub-issues per parent, 8 nesting levels, 50
+  dependencies per relationship type. Issue *types* and *fields* are
+  org-only and unavailable here — use labels.
 
 ## Projects board sync
 
@@ -65,6 +74,11 @@ gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: {projec
 ```
 
 (`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.)
+
+⚠ `updateProjectV2Field`'s `singleSelectOptions` is a **REPLACE, not a merge**
+— always carry the existing option ids to rename in place. A rename mutation
+without them once wiped all 66 items' Status, and closed items' pre-wipe
+Status was unrecoverable.
 
 Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `76914216`; `pri:now` → Now `291743a0`; `pri:next` → Next `4dbdbff5`;

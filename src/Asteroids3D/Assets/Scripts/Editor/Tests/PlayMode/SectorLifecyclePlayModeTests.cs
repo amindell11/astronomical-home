@@ -54,7 +54,7 @@ namespace Tests.PlayMode
             contentChild.transform.SetParent(template.transform);
             contentChild.AddComponent<AwakeProbe>();
 
-            // Inactive holder — mirrors SessionHost.LoadSector.
+            // Inactive holder — mirrors Session.LoadSector.
             var holder = Track(new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave });
             holder.SetActive(false);
 

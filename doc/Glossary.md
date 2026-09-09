@@ -62,7 +62,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
-| **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — `Intent_Grammar.md`) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
+| **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
@@ -76,9 +76,9 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
-| **driver** | Python drivers (`training/rl/`) · `GameDriver` · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. |
+| **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameSessionHost`), not a driver. |
 | **harness** | RL harness (`Game.RLHarness`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
-| **arc** | multi-PR work arc · enemy arc exposure (`ExposureCost`) | The work sense dominates; combat docs say "exposure arc". |
+| **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
@@ -129,7 +129,7 @@ Format: **term** — definition. *(authority)*
 - **speculative** — a review comment about a hypothetical; gets a written reply,
   never code.
 - **decision brief** — pr-prep's frozen artifact: scope + fork resolutions +
-  assumptions + blindsider resolutions. *(doc/Feature_Plans/)*
+  assumptions + blindsider resolutions; lives on the arc's issue. *(doc/agents/design-docs.md)*
 - **grill** — a user-driven adversarial interrogation that can overturn a
   direction; distinct from pr-prep (plan-seeded) and design consult (external
   agent). All inflections canonical. *(grill-me skill)*
@@ -171,8 +171,8 @@ Format: **term** — definition. *(authority)*
   authoritative and must be named at that document's first use of the mark.
 - **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
   live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
-  vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file,
-  `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
+  vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file /
+  namespace and asmdef naming, `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
   (AGENTS.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
@@ -242,16 +242,15 @@ Format: **term** — definition. *(authority)*
 - **trainer runtime** — the Python process owning environment scheduling, PPO
   updates, checkpointing, and stats for a training run: stock `mlagents-learn`
   (the *ml-agents runtime*) today, replaced stage-by-stage by the project-owned
-  *owned runtime*. *(RL_Trainer_Runtime_Takeover.md)*
+  *owned runtime*. *(#494)*
 - **inference microbatch** — one policy forward over decision requests from
-  several ready trainer-runtime workers; its worker cap bounds group size and
-  its collection window bounds the wait after the first ready response.
-  *(RL_Trainer_Runtime_Takeover.md §Slice-4a decision brief)*
-- **checkpoint manifest** — append-only JSONL beside the run manifest, one line
-  per published checkpoint; the producer-emitted completeness signal replacing
-  glob-visibility inference. Reader dedupes by step, last line wins (resume
-  legs legitimately republish a boundary step).
-  *(RL_Trainer_Runtime_Takeover.md §Slice-3 decision brief · trainer_runtime/contract.py)*
+  several ready trainer-runtime workers. Designed, not built — slice-4a is
+  parked on `task/trainer-microbatch-parked`.
+  *(#494 §Stage 2)*
+- **checkpoint manifest** — the producer-emitted completeness signal replacing
+  glob-visibility inference. Gotcha: readers dedupe by step, last line wins —
+  resume legs legitimately republish a boundary step.
+  *(training/rl/trainer_runtime/contract.py)*
 - **eval gate** — the deterministic scripted eval run per checkpoint, as a
   **sidecar**: it reports and does not kill the trainer runtime unless
   explicitly armed to. Treating it as an automatic stop is the recurring
@@ -287,7 +286,7 @@ Format: **term** — definition. *(authority)*
   probe's per-episode measurement surface (range-band occupancy, TTK inputs,
   engagement cycles, resource-at-engagement, regen events, boost usage). Lands
   ahead of the rules branch so every screening consumer reads one instrument.
-  *(Weapon_Strategy_And_Balance_Principles.md → combat telemetry brief)*
+  *(#488 · CombatTelemetryProbe.cs)*
 - **engagement** (telemetry) — the interval while either ship's firing envelope
   is valid, ended by a 3 s exit hysteresis; the predicate behind
   engage/disengage metrics. Definition lives at `EngagementTracker`
@@ -304,7 +303,7 @@ Format: **term** — definition. *(authority)*
   solve than sim time has elapsed: the solver re-plans every fixed step
   (0.02 s) but consumes one rollout step (0.1 s) per solve, so the plan runs
   5× ahead of reality. Observed 2026-08-06; evidence in
-  `MPC_Retune_Pass.md` § problem brief. *(Mpc.ShiftSequenceForward)*
+  #486 §The churn diagnosis. *(Mpc.ShiftSequenceForward)*
 - **facing authority** — the policy's way of saying "facing doesn't matter right
   now", by scaling down the MPC facing cost. It changed the **action semantics**,
   so checkpoints from before it cannot warm-start across the boundary.
@@ -342,6 +341,21 @@ Format: **term** — definition. *(authority)*
 
 ### Game & sim
 
+- **session tier** — the lifecycle layer (`Game/Sessions`) whose one type, the
+  self-orchestrating `Session`, composes a session's services and rig and cycles
+  sectors; a *host* paces it. The RL harness does not use it; it composes the
+  same per-ship services through `ShipServices.Compose`.
+- **host** — the scene component that wraps a session-shaped thing and is the
+  outside world's interface to it: the *game session host* (`GameSessionHost`,
+  `Game/Play`) owns the clock, hangar, death recap and reset policy over one
+  `Session`; the *harness session host* (`HarnessSessionHost`) sequences
+  compositions and episode blocks for a lane client. Always qualified — bare
+  "host" also names the pool worktree machine.
+- **session frame** — the in-plane frame a session's authored content is placed
+  in (offset + `Place`); zero for the single-arena game, a per-arena offset for
+  anything fanning sessions across one plane. A session fact, distinct from the
+  obstacle field an AI ship senses, which rides the spawn call on its own.
+  *(`SessionFrame`, `Game/Sessions/Session.cs`)*
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
@@ -371,8 +385,9 @@ Format: **term** — definition. *(authority)*
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
   arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
-  physical leakage — is a known, accepted consequence rather than a bug.
-  *(ArenaContext is the per-arena handle)*
+  physical leakage — is a known, accepted consequence rather than a bug. The
+  harness's per-arena composition spawns at its offset and hands its field to
+  each ship; "arena" names the isolation unit, never a handle or a session.
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
@@ -384,19 +399,8 @@ Format: **term** — definition. *(authority)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
-- **mechanical rebase** — re-expressing a scripted law's emitted command in the
-  anchored frame with no behavioral redesign: the same law numbers, read under
-  anchored (enemy-relative) semantics — which is why the anchored arm carries an
-  automatic enemy-velocity lead. K1-2's manipulation, as against a learned
-  policy change. *(VelocityRebase.ToAnchored)*
-- **velrebase** (probe) — the K1-2 open-loop measurement instrument: paired
-  legacy-vs-anchored archetype drive against a fixed-circuit enemy, measuring
-  velocity churn from ship kinematics (never in the command's native space) and
-  per-step tracking error against the arm's intended reference, binned by range
-  around the yaw wall (< 3 u) and the trackable annulus (3–8 u).
-  *(VelRebaseProbe, VelRebaseLane)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
-  yaw demand from self-generated churn; the metrics live in the row schema.
+  yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
 - **obstacle threat** — per-step classification: the MPC's obstacle handling
   fires — hull overlap (`Cost.Collides`) or collision-course turn-away
@@ -410,7 +414,7 @@ Format: **term** — definition. *(authority)*
   armed slot against live referent state each rollout step. An armed weight-0
   slot is a live command ("nothing matters"); an absent sentence is idleness —
   the distinction is structural (`IsIdle` = no armed slot). Design + staging:
-  `doc/Feature_Plans/Intent_Grammar.md`. *(IntentSentence, Cost.EvalContext)*
+  #485. *(IntentSentence, Cost.EvalContext)*
 - **LANE slot** — the sentence term over the enemy's fire-lane geometry: a
   ray-segment down the enemy's facing, held (+) or dodged (−) by the weight's
   sign. Referent pinned to the enemy — rocks have no facing, so a referent
@@ -430,16 +434,17 @@ Format: **term** — definition. *(authority)*
   referents, ambient populations are class terms the solver resolves); six
   admission rules gate new vocabulary. "Closed" means syntax never grows, only
   vocabulary. Frozen at Stage B (2026-08-13) with the normalization contract.
-  *(doc/Feature_Plans/Intent_Grammar.md §The grammar + §Stage B freeze)*
+  *(#485 §The grammar + §Stage B freeze)*
 - **anchored intent** — the enemy-bound AIM+VEL degenerate intent sentence,
   today's production shape: a facing offset around the enemy intercept anchor,
   and a polar velocity in the enemy frame, each with a [0,1] weight. The MPC
   re-resolves both against the predicted enemy every rollout step, so the
   command never goes stale. **Sign pins:** radial > 0 closes along +losHat;
   tangential > 0 and positive facing offsets are CCW; the polar velocity is
-  *relative to the enemy's motion*; the action-side mapping is [−1,1] ×
-  maxSpeed. Authored through `NavObjective.Anchored(...)`; the `IntentSentence`
-  struct is the solver-side carrier.
+  *relative to the enemy's motion*. Since Stage C3 the action-side VEL mapping
+  is the θ-head — unit direction × the character-axis `speedRef`, vector
+  magnitude = the slot weight. Authored through `NavObjective.Anchored(...)`;
+  the `IntentSentence` struct is the solver-side carrier.
   *(AnchoredBuilder, IntentSentence, Cost.EvalContext)*
 - **delegation prior** — the low-weight, config-gated fallback that steers a
   channel when its anchored authority is 0: facing eases to the velocity-aligned
@@ -473,6 +478,19 @@ Format: **term** — definition. *(authority)*
   Refreshed only at the decision boundary, so referent actions always bind
   against the roster the policy observed. Distinct from the obstacle-token
   attention buffer, which stays unindexed. *(RockSlotRoster)*
+- **sentence release** — the curriculum pin state on the sentence action head,
+  carried by the `sentence_release` environment parameter and enforced by the
+  discrete action mask: pinned (0) = referents→enemy, frames→Position — the
+  legacy-equivalence point — while released (1) opens every occupied rock slot
+  and frame. An ABSENT key reads released, so eval and gameplay always run the
+  full vocabulary; the secondary trigger stays disengage-only under both states
+  until marksmanship (#409). Continuous channels are never pinned (§Stage C
+  fork 5). *(EnvParamOverlay.SentenceRelease, AgentActions.WriteMask)*
+- **sentence probe** — the session probe over the policy's decoded sentences
+  (per-episode JSONL aggregates + a per-decision CSV sidecar): §Stage C fork 6's
+  failure-branch diagnosis surface and the live check on residual slot thrash.
+  Weight-entropy is Shannon entropy over the five |weights| (0 = saturated on
+  one slot). *(SentenceProbe, SentenceSampler)*
 - **brain / decision lane** — the swappable-decision seam. A **brain** is the
   component that decides: one `Brain` subclass per policy, installed through
   `AICommander.InstallBrain` or authored on the pilot prefab. ("Chooser" was the
@@ -508,22 +526,19 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **DamageInfo** — the per-hit context struct (amount, damage kind, attacker
-  ShipId, hit point/mass/velocity) every damage producer builds at its call site
-  and every damage event carries. The non-obvious bits: producer-side `Amount`
-  is the incoming damage, event-side it is the *applied* damage (absorbed by
-  shield + hull, the locked bleed-through reading); `AttackerId` is
-  `ShipId.Invalid` when no ship caused the hit (asteroid collision); `OnDeath`
-  carries the killing blow and is latched to fire once per life.
-  *(DamageInfo, DamageController)*
+- **DamageInfo** — the per-hit context struct every damage producer builds at
+  its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
+  event-side the *applied* damage (shield + hull, the locked bleed-through
+  reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
+  `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
 - **damage ledger** — per-life accumulation of the player's received DamageInfo
   rows, aggregated per source — consumer-side recorder owned by the session rig,
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
-- **death recap** — the post-death summary panel rendered from the damage ledger
-  at the driver-owned `GameState.DeathRecap` hold, between death and the restart
-  flow; presentation-gated, so headless drivers fall straight through to Restart.
-  *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
+- **death recap** — the post-death summary rendered from the damage ledger at
+  the host-owned `GameState.DeathRecap` hold; presentation-gated, so a headless
+  host falls straight through to Restart.
+  *(DeathRecapScreen, GameSessionHost.HandleDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type
@@ -531,18 +546,23 @@ Format: **term** — definition. *(authority)*
   presentation off — collider silhouettes and gizmo geometry are the footage;
   selecting none films plain gameplay with presentation on.
   *(GizmoCaptureProfile, GizmoCaptureProfiles)*
+- **gizmo subview** — one registered gizmo toggle row in the Gizmo View window.
+  Drawers gate each on the window's flag + scope predicate instead of
+  `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
+  RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
+  never committed. *(GizmoView, GizmoViewWindow)*
 
 ### Infra & tooling
 
 - **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
   new caller goes through the coordinator; generalize the primitive, never bypass
   it. *(AGENTS.md wiring §6)*
-- **editor profile** — a coordinator-selected, launch-scoped choice of an
-  existing Unity quality tier. `LowMemory` maps to `Performant`; `HighFidelity`
-  maps to `High Fidelity`. *(Editor_Memory_Low_Profile.md)*
-- **profile receipt** — the editor bootstrap's atomic record of requested and
-  observed profile values; the coordinator reads it before handing off the
-  editor. *(Editor_Memory_Low_Profile.md)*
+- **editor profile / profile receipt** — a coordinator-selected, launch-scoped
+  Unity quality tier (`LowMemory` → `Performant`, `HighFidelity` → `High
+  Fidelity`) / the bootstrap's atomic record of requested-vs-observed values.
+  The coordinator verifies the receipt before handing the editor off, so a
+  mismatch fails the start rather than downgrading silently.
+  *(unity_access.ps1, PR #457)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
   paths. *(AGENTS.md §6 corollary)*

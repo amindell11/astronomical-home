@@ -11,7 +11,10 @@
       is broken both directions).
     - Which interactive Unity editor (if any) holds the project. A non-batch
       editor on the project makes the batch runner infra_error, and is the
-      instance CLI commands route to via the per-project lockfile.
+      instance CLI commands route to via the per-project lockfile. This comes
+      from the access coordinator (Status -ProjectPath, through the sanctioned
+      client), never from a process scan of our own - so a coordinator that
+      cannot answer is reported as unknown, not as "no editor".
     - EnterPlayModeOptions: the domain-reload trap. In-Editor PlayMode test
       runs need domain reload ON; the DisableDomainReload bit leaks statics
       (GamePlane "already configured", ships won't move).
@@ -35,6 +38,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "unity_access_client.ps1")
 
 function Resolve-FullPath {
     param([string]$Path)
@@ -43,26 +47,14 @@ function Resolve-FullPath {
     return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
 }
 
-function Find-InteractiveEditor {
-    param([string]$ProjectFullPath)
-    $normalizedProject = $ProjectFullPath.Replace('\', '/').ToLowerInvariant()
-    try {
-        $procs = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue
-    }
-    catch { return $null }
-    if ($null -eq $procs) { return $null }
-    foreach ($proc in $procs) {
-        $cmd = [string]$proc.CommandLine
-        if ([string]::IsNullOrWhiteSpace($cmd)) { continue }
-        $cmdLower = $cmd.ToLowerInvariant()
-        if ($cmdLower -notlike "*-projectpath*") { continue }
-        $batch = ($cmdLower -like "*-batchmode*")
-        $cmdNorm = $cmdLower.Replace('\', '/')
-        if ($cmdNorm.Contains($normalizedProject)) {
-            return [ordered]@{ pid = [int]$proc.ProcessId; batch = $batch }
-        }
-    }
-    return $null
+# Under StrictMode a missing property THROWS, so a schema change reads as "the tool failed" - which is
+# how a CLI envelope rename once got reported as "no live editor answers". Absent is a value here.
+function Get-DoctorProp {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $prop = $Object.PSObject.Properties[$Name]
+    if ($null -eq $prop) { return $null }
+    return $prop.Value
 }
 
 function Get-EnterPlayModeState {
@@ -95,8 +87,11 @@ function Add-Check {
 $unityAccessScript = Join-Path $PSScriptRoot "unity_access.ps1"
 if (Test-Path -LiteralPath $unityAccessScript) {
     try {
-        $accessJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $unityAccessScript -Action Status -Json
-        $unityAccess = $accessJson | ConvertFrom-Json
+        # -ProjectPath makes Status answer "who owns this path and what sits on it", so the process
+        # classification below is the coordinator's, not a second CIM scan of our own.
+        $call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "Status", "-ProjectPath", $project)
+        if ($null -eq $call.result) { throw "coordinator returned no JSON (exit=$($call.exitCode)): $($call.stderr)" }
+        $unityAccess = $call.result
         $owners = @($unityAccess.owners)
         foreach ($owner in $owners) {
             Add-Check "unity-access" "INFO" "Project owned: slot=$($owner.slot) mode=$($owner.mode) lease=$($owner.lease) pid=$($owner.processId) project=$($owner.projectPath)"
@@ -134,9 +129,13 @@ else {
     try {
         $raw = & $UnityCliPath command editor_status --project-path $project --format json --no-banner --quiet
         $parsed = ($raw -join "`n") | ConvertFrom-Json
-        if ($parsed.success) {
-            $cliStatus = $parsed.data.result
-            Add-Check "cli-editor" "OK" "Live editor answers editor_status (status=$($cliStatus.status) playMode=$($cliStatus.playMode) compiling=$($cliStatus.compiling))"
+        $success = Get-DoctorProp $parsed "success"
+        if ($null -eq $success) {
+            Add-Check "cli-editor" "WARN" "unity CLI answered in an unrecognized shape (no 'success' field) -- the CLI's envelope schema changed; this is a tooling break, not an absent editor."
+        }
+        elseif ([bool]$success) {
+            $cliStatus = Get-DoctorProp (Get-DoctorProp $parsed "data") "result"
+            Add-Check "cli-editor" "OK" "Live editor answers editor_status (status=$(Get-DoctorProp $cliStatus 'status') playMode=$(Get-DoctorProp $cliStatus 'playMode') compiling=$(Get-DoctorProp $cliStatus 'compiling'))"
         }
         else {
             Add-Check "cli-editor" "INFO" "No live editor answers editor_status for this project (CLI reported failure)."
@@ -147,15 +146,22 @@ else {
     }
 }
 
-$editor = Find-InteractiveEditor -ProjectFullPath $project
-if ($null -eq $editor) {
-    Add-Check "project-editor" "OK" "No interactive Unity editor holds this project; batch runner can run."
-}
-elseif ($editor.batch) {
-    Add-Check "project-editor" "INFO" "A batch Unity is running on this project (pid $($editor.pid)) -- likely an in-progress test run."
+if ($null -eq $unityAccess) {
+    Add-Check "project-editor" "WARN" "Unknown: the coordinator did not answer, and this check has no second source for which process holds the project."
 }
 else {
-    Add-Check "project-editor" "WARN" "Interactive Unity editor holds this project (pid $($editor.pid)). Batch runner will infra_error; close it before batch tests. CLI commands route to this instance."
+    $projectProcesses = @(Get-DoctorProp $unityAccess "projectProcesses")
+    $interactive = @($projectProcesses | Where-Object { -not [bool]$_.batch })
+    $batchProcs = @($projectProcesses | Where-Object { [bool]$_.batch })
+    if ($interactive.Count -gt 0) {
+        Add-Check "project-editor" "WARN" "Interactive Unity editor holds this project (pid $($interactive[0].processId)). Batch runner will infra_error; close it before batch tests. CLI commands route to this instance."
+    }
+    elseif ($batchProcs.Count -gt 0) {
+        Add-Check "project-editor" "INFO" "A batch Unity is running on this project (pid $($batchProcs[0].processId)) -- likely an in-progress test run."
+    }
+    else {
+        Add-Check "project-editor" "OK" "No Unity process holds this project; batch runner can run."
+    }
 }
 
 $epm = Get-EnterPlayModeState -ProjectFullPath $project

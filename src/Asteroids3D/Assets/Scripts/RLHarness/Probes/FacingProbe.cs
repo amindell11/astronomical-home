@@ -227,7 +227,7 @@ namespace Game.RLHarness
             pool.simSeconds += result.simSeconds;
         }
 
-        // Zero keeps the previous sign — only strict positive↔negative flips count. Shared with the velrebase sampler.
+        // Zero keeps the previous sign — only strict positive↔negative flips count.
         internal static bool FlippedStrictly(float value, ref int sign)
         {
             var next = value > 0f ? 1 : value < 0f ? -1 : 0;

@@ -1,4 +1,5 @@
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace Movement.MPC
         // Lives in OnSceneGUI, not the gizmo pass: Handles.Button needs SceneView input access.
         private static bool DrawCandidateSelectionHandles(Navigator nav)
         {
-            if (!nav.showCandidateTrajectories || nav.solver == null) return false;
+            if (!GizmoView.IsOn(typeof(Navigator), "candidates") || nav.solver == null) return false;
             if (nav.visibleCandidateIndices == null || nav.visibleCount == 0) return false;
 
             var horizon = nav.solver.LastHorizon;
@@ -96,7 +97,7 @@ namespace Movement.MPC
 
             RenderBreakdownBars(nav.mpcSettings, breakdown);
 
-            if (nav.showCandidateTrajectories && nav.selectedCandidateIndex >= 0)
+            if (GizmoView.IsOn(typeof(Navigator), "candidates") && nav.selectedCandidateIndex >= 0)
             {
                 EditorGUILayout.Space();
                 var selBreakdown = GetSelectedCandidateBreakdown(nav);

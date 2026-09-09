@@ -13,6 +13,10 @@ namespace Game.RLHarness
         public const string OpponentWeightOrbiter = "opponent_weight_orbiter";
         public const string OpponentWeightKiter = "opponent_weight_kiter";
         public const string OpponentWeightDummy = "opponent_weight_dummy";
+        // Consumed at the agent's action mask (ShipAgent.WriteDiscreteActionMask), never applied to the
+        // spec: the sentence-release pin is action-vocabulary state, not sim/reward state, and the spec
+        // block must stay comparable across the Bench-408 era boundary. Absent = released (eval/gameplay).
+        public const string SentenceRelease = "sentence_release";
 
         internal static readonly string[] ParamNames =
         {
@@ -24,6 +28,7 @@ namespace Game.RLHarness
             OpponentWeightOrbiter,
             OpponentWeightKiter,
             OpponentWeightDummy,
+            SentenceRelease,
         };
 
         /// <summary>Applies the current environment-parameter values onto <paramref name="spec"/>; a parameter the trainer does not send leaves its spec field untouched (the getter's default).</summary>

@@ -5,7 +5,6 @@ using System.IO;
 using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
-using Tests.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
@@ -18,7 +17,6 @@ namespace Tests.PlayMode
     {
         private GameObject arenaHost;
         private UnitService unitService;
-        private ArenaContext arena;
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private string outDir;
@@ -30,8 +28,6 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(false);
             arenaHost = new GameObject("[SentenceArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
-            unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
@@ -70,7 +66,7 @@ namespace Tests.PlayMode
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
             var host = hostObject.AddComponent<HarnessSessionHost>();
-            host.Initialize(spec, assets, unitService, arena, projectiles);
+            host.Initialize(spec, assets, unitService, projectiles);
 
             // Drift-hold never kills: the episode must end by the shortened timeout rule, not test patience.
             var seedSpec = RewardSpec.Default;

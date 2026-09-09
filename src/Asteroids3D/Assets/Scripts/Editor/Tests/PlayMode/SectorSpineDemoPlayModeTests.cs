@@ -39,13 +39,11 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var arena = Tests.Common.TestArena.On(unitServiceGO, _unitService.Registry);
-            _unitService.SetArena(arena);
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
                 _unitService, projectiles, new EnvironmentService(), _objectives,
-                new CameraService(), new UIService(), arena);
+                new CameraService(), new UIService());
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
@@ -68,6 +66,7 @@ namespace Tests.PlayMode
 
         private Ship SpawnKinematicShip(Vector2 planePos)
         {
+            // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
             var ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(planePos);
             TrackGO(ship.gameObject);
             return ship;
@@ -123,7 +122,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_services, _config, player);
+            sector.Initialize(_services, _config, default, player);
             return (sector, key, zone, player, chaser);
         }
 
@@ -341,7 +340,7 @@ namespace Tests.PlayMode
             var module = moduleGO.AddComponent<SectorSpineModule>();
             module.Bind(key, zone);
 
-            var ctx = new SectorBuildContext(new StubServices(svc), null, null, new SectorEventBus());
+            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, new SectorEventBus());
             yield return module.Setup(ctx);
             Assert.AreEqual(key.transform, svc.SpineTarget, "Sanity: the live module reports the spine target.");
 
@@ -369,7 +368,6 @@ namespace Tests.PlayMode
             public IObjectiveService ObjectiveService => objectives;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-            public ArenaContext Arena => null;
             public bool PresentationEnabled => true;
         }
     }

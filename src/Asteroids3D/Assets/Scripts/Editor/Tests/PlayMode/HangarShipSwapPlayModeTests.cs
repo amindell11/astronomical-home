@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Game.Services;
+using Game.Sessions;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -19,6 +20,7 @@ namespace Tests.PlayMode
     /// Uses the real SessionRig prefab + a real service container — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
+    // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
     public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
     {
@@ -51,8 +53,6 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
-            unitService.SetArena(arena);
             var projectiles = new ProjectileService(servicesGo.transform);
             unitService.SetProjectiles(projectiles);
             services = new GameServices(
@@ -61,13 +61,12 @@ namespace Tests.PlayMode
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
-                uiService: new UIService(),
-                arena: arena);
+                uiService: new UIService());
 
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, onPlayerDeath: onPlayerDeath);
+            yield return rig.Build(services, buildPlayer: true, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

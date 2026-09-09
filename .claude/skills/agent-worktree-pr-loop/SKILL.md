@@ -212,9 +212,10 @@ describe the actual payload) and a real `--body`. The PR body carries the
 build story: what changed and why, test proof, quality-pass changes, and a
 scope-conservation check — read the diff back against the Step-1 scope
 statement; anything a scope-reader wouldn't expect either comes out or is
-flagged in the body for confirmation. An arc-completing PR also settles its
-plan doc — delete the transient brief, or update the living doc's STATUS
-header (convention in `doc/agents/design-docs.md`). The body also carries one bookkeeping line,
+flagged in the body for confirmation. The body also carries the
+alternatives tried and rejected on the way — it is the only home of that why
+(`doc/agents/design-docs.md` → Where design lives). An arc-completing PR
+closes its arc issue with a link back. The body also carries one bookkeeping line,
 `Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
 moves in this same PR. Flip the ledger row to in-review with the PR number.
 
@@ -267,7 +268,7 @@ record no merge proof.
 
 `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`, then pull
 `origin/main` in the primary worktree (`git checkout main && git pull`).
-Delete the ledger row — the story lives in the PR body and the memory topic
+Delete the ledger row — the story lives in the PR body and the arc issue
 file, not the ledger.
 
 ## Preconditions & known hazards

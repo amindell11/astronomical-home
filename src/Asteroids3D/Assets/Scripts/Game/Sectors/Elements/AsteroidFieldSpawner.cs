@@ -18,17 +18,12 @@ namespace Game.Sectors
                 updating.SetAnchor(ctx.Player ? ctx.Player.transform : null);
                 // Declared even in spectator/headless runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
-                // Arena obstacle slot: AI queries live asteroids directly (deterministic) instead of physics-scanning.
-                ctx.Services.Arena.ObstacleField = updating;
             }
             yield break;
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
-            if (field is AI.Scanning.IObstacleField of
-                && ReferenceEquals(ctx.Services.Arena.ObstacleField, of))
-                ctx.Services.Arena.ObstacleField = null;
             if (field) field.DespawnAll();
             yield break;
         }

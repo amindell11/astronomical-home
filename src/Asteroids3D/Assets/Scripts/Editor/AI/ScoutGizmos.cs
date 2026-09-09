@@ -1,21 +1,28 @@
 using AI.Scanning;
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace AI
 {
     /// <summary>Scout scan envelopes in plane space: nearby-ship and asteroid-cover radius rings, the fixed worst-case obstacle query box, and a ring per detected obstacle.</summary>
+    [InitializeOnLoad]
     internal static class ScoutGizmos
     {
+        static ScoutGizmos() =>
+            GizmoView.Register(typeof(Scout), "scan", "Scout Scan",
+                "scan-envelope rings, query box + detected-obstacle rings", "Steering");
+
         private static readonly Color NearbyShips = new(1f, 1f, 0f, 0.2f);
         private static readonly Color AsteroidCover = new(0f, 1f, 1f, 0.2f);
         private static readonly Color QueryBox = new(1f, 0.75f, 0f, 0.15f);
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
-        [DrawGizmo(GizmoType.Selected, typeof(Scout))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Scout))]
         private static void Draw(Scout scout, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(Scout), "scan") || !GizmoView.InScope(scout)) return;
             if (!Application.isPlaying || scout.obstacleScanner == null) return;
 
             var pos = GamePlane.WorldPointToPlane(scout.transform.position);

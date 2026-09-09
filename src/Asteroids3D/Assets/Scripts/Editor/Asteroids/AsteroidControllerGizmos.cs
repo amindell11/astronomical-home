@@ -1,13 +1,20 @@
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace Asteroids
 {
+    [InitializeOnLoad]
     internal static class AsteroidControllerGizmos
     {
+        static AsteroidControllerGizmos() =>
+            GizmoView.Register(typeof(AsteroidController), "velocity", "Velocity & Health",
+                "yellow velocity arrow + red→green health bar", "Environment");
+
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AsteroidController))]
         private static void DrawVelocityAndHealth(AsteroidController asteroid, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(AsteroidController), "velocity") || !GizmoView.InScope(asteroid)) return;
             var transform = asteroid.transform;
             if (asteroid.Rb)
             {

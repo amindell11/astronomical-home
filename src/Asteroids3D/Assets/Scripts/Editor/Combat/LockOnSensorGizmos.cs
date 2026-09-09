@@ -8,17 +8,23 @@ using UnityEngine;
 namespace Combat.Targeting
 {
     /// <summary>Lock-on sensor state in plane space: sensor-cone ray fan, max-range ring, forward ray, lock line + target ring, lock-progress arc, and a state/lock/cooldown readout — all colored by <see cref="LockState"/>.</summary>
+    [InitializeOnLoad]
     internal static class LockOnSensorGizmos
     {
+        static LockOnSensorGizmos() =>
+            GizmoView.Register(typeof(LockOnSensor), "lock", "Lock-On Sensor",
+                "sensor cone, range ring, lock line + progress arc, state readout", "Combat");
+
         private const float ConeRayStepDeg = 5f;
         private const float TargetRingRadius = 1f;
         private const float ProgressArcRadius = 2f;
 
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
-        [DrawGizmo(GizmoType.Selected, typeof(LockOnSensor))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(LockOnSensor))]
         private static void Draw(LockOnSensor sensor, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(LockOnSensor), "lock") || !GizmoView.InScope(sensor)) return;
             if (!sensor.firePoint) return;
             // Edit mode: Awake hasn't cached the ship and Kinematics is unpopulated — derive both from transforms.
             var ship = sensor.selfShip ? sensor.selfShip : sensor.GetComponentInParent<Ship>();

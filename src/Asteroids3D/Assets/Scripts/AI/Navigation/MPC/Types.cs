@@ -24,7 +24,6 @@ namespace Movement.MPC
     public struct Config
     {
         public float dt;
-        public float invDt;
         public int horizon;
 
         public float wYawRate;

@@ -1,8 +1,8 @@
-var drivers = UnityEngine.Object.FindObjectsByType<Game.Bootstrap.GameDriver>(UnityEngine.FindObjectsSortMode.None);
-if (drivers.Length != 1) return "GameDriver count=" + drivers.Length;
-var pf = typeof(Game.Bootstrap.GameDriver).GetField("sessionProfile",
+var hosts = UnityEngine.Object.FindObjectsByType<Game.Play.GameSessionHost>(UnityEngine.FindObjectsSortMode.None);
+if (hosts.Length != 1) return "GameSessionHost count=" + hosts.Length;
+var pf = typeof(Game.Play.GameSessionHost).GetField("sessionProfile",
     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-var profile = (Game.Bootstrap.SessionProfile)pf.GetValue(drivers[0]);
+var profile = (Game.Sessions.SessionProfile)pf.GetValue(hosts[0]);
 profile.presentation = false;
 
 Ships.Ship player = null;

@@ -66,7 +66,7 @@ namespace Game.Capture.GameView
                 frameDir = artifacts.FrameDir;
                 BuildSelection();
                 transaction = new GameViewCaptureTransaction(GizmoCaptureProfiles.Resolve(profile), appliedSelection,
-                    subjects[0].gameObject, config.width, config.height);
+                    subjects[0].gameObject, config.width, config.height, MapScope(config.gizmoScope), config.gizmoScopeTeam);
                 CreateRig();
                 FrameCamera();
                 activationFrame = Time.renderedFrameCount;
@@ -130,6 +130,14 @@ namespace Game.Capture.GameView
             try { End(); }
             catch (Exception exception) { Debug.LogException(exception); }
         }
+
+        private static Game.Diagnostics.GizmoScope MapScope(CaptureGizmoScope scope) => scope switch
+        {
+            CaptureGizmoScope.All => Game.Diagnostics.GizmoScope.All,
+            CaptureGizmoScope.Selected => Game.Diagnostics.GizmoScope.Selected,
+            CaptureGizmoScope.Team => Game.Diagnostics.GizmoScope.Team,
+            _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unmapped capture gizmo scope."),
+        };
 
         private void CreateRig()
         {

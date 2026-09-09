@@ -1,5 +1,6 @@
 using Cameras;
 using Game.Services;
+using Game.Sessions;
 using Player;
 using Ships;
 using Ships.Command;
@@ -8,15 +9,19 @@ namespace Game.Sectors.Utils
 {
     public class SectorUtils
     {
-        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2  playerSpawnPosition, IGameServices services)
+        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2 playerSpawnPosition,
+            IGameServices services, SessionFrame frame)
         {
+            // Player is team 0 by construction; only adopted enemies need a non-zero team.
             var player = services.UnitService.SpawnShip(
                 playerTemplate,
                 playerCommander,
                 0,
-                services.Arena.Place(playerSpawnPosition),
-                GamePlane.Rotation);
+                frame.Place(playerSpawnPosition),
+                GamePlane.Rotation,
+                field: null);
             player.tag = "Player";
+            // World deref is unguarded: every play-sector has one.
             services.EnvironmentService.World.Follower?.SetTarget(player.transform);
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
             if (!observer) return player;

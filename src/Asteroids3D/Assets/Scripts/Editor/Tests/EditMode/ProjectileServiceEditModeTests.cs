@@ -225,8 +225,7 @@ namespace Tests.EditMode
             tempObjects.Add(unitGo);
             var services = new GameServices(
                 unitGo.AddComponent<UnitService>(), service, new EnvironmentService(),
-                unitGo.AddComponent<ObjectiveService>(), new CameraService(), new UIService(),
-                Tests.Common.TestArena.On(unitGo));
+                unitGo.AddComponent<ObjectiveService>(), new CameraService(), new UIService());
             var projectile = Create<TestProjectile>();
             service.Register(projectile, projectile.ReturnToPoolImmediate);
 

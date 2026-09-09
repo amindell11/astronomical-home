@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using AI;
 using AI.Observation;
-using Tests.Common;
 using Game;
 using Game.RLHarness;
 using Game.Services;
@@ -25,7 +24,6 @@ namespace Tests.PlayMode
 
         private GameObject arenaHost;
         private UnitService unitService;
-        private ArenaContext arena;
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private float savedTimeScale;
@@ -43,8 +41,6 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[EpisodeArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
-            unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
@@ -75,7 +71,6 @@ namespace Tests.PlayMode
             baseline = null;
 
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            arena = null;
             projectiles = null;
 
             AudioListener.pause = false;
@@ -109,7 +104,7 @@ namespace Tests.PlayMode
                 AssertPoseApplied(agent, poses.agentPos, $"agent episode {i}");
                 AssertPoseApplied(baseline, poses.baselinePos, $"baseline episode {i}");
 
-                var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset);
+                var runner = new EpisodeRunner(agent, baseline, spec, i, Vector2.zero);
                 yield return RunToCompletion(runner, spec);
 
                 var result = runner.Result;
@@ -132,8 +127,8 @@ namespace Tests.PlayMode
                 Assert.AreEqual(spec.decisionIntervalSteps, roundTrip.spec.decisionIntervalSteps);
             }
 
-            var again = EpisodePoses.Derive(in spec, 1, arena.Offset);
-            var reference = EpisodePoses.Derive(in spec, 1, arena.Offset);
+            var again = EpisodePoses.Derive(in spec, 1, Vector2.zero);
+            var reference = EpisodePoses.Derive(in spec, 1, Vector2.zero);
             Assert.AreEqual(reference.agentPos, again.agentPos, "(runSeed, i) must reproduce poses");
         }
 
@@ -194,7 +189,7 @@ namespace Tests.PlayMode
             const int recordSteps = 100;
             const int dirtySteps = 80;
 
-            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
             SpawnPair(in spec);
             for (var i = 0; i < dirtySteps; i++)
                 yield return new WaitForFixedUpdate();
@@ -238,8 +233,8 @@ namespace Tests.PlayMode
             var spec = RewardSpec.Default;
             spec.useAsteroidField = true;
 
-            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
-            field.Reset(in spec, 0, EpisodePoses.Derive(in spec, 0, arena.Offset));
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
+            field.Reset(in spec, 0, EpisodePoses.Derive(in spec, 0, Vector2.zero));
             yield return null; // frame 1: the field's Start runs the staged build
             yield return null; // frame 2: LateUpdate applies the no-anchor collider default
 
@@ -261,7 +256,7 @@ namespace Tests.PlayMode
             var spec = RewardSpec.Default;
             spec.useAsteroidField = true;
 
-            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
             SpawnPair(in spec);
             ResetWithField(in spec, 0);
             yield return null; // frame 1: the field's Start runs the staged build
@@ -292,7 +287,7 @@ namespace Tests.PlayMode
         /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
         private void ResetWithField(in RewardSpec spec, int episodeIndex)
         {
-            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, Vector2.zero);
             var sw = System.Diagnostics.Stopwatch.StartNew();
             field.Reset(in spec, episodeIndex, in poses);
             sw.Stop();
@@ -304,7 +299,7 @@ namespace Tests.PlayMode
         private List<float> CaptureFieldDigest(in RewardSpec spec)
         {
             var buffer = new AI.Scanning.DetectedObstacle[1024];
-            var count = arena.ObstacleField.QueryObstacles(arena.Offset, spec.arenaRadius + 40f, buffer);
+            var count = field.Field.QueryObstacles(Vector2.zero, spec.arenaRadius + 40f, buffer);
             Assert.Less(count, buffer.Length, "Digest buffer saturated — it must hold the FULL loaded set");
             var digest = new List<float>(1 + count * 3) { count };
             for (var i = 0; i < count; i++)
@@ -318,9 +313,9 @@ namespace Tests.PlayMode
 
         private void AssertSpawnClearings(in RewardSpec spec, int episodeIndex)
         {
-            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, Vector2.zero);
             var buffer = new AI.Scanning.DetectedObstacle[1024];
-            var count = arena.ObstacleField.QueryObstacles(arena.Offset, spec.arenaRadius + 40f, buffer);
+            var count = field.Field.QueryObstacles(Vector2.zero, spec.arenaRadius + 40f, buffer);
             for (var i = 0; i < count; i++)
             {
                 Assert.Greater((buffer[i].position - poses.agentPos).magnitude, HarnessField.SpawnClearRadius,
@@ -342,7 +337,7 @@ namespace Tests.PlayMode
             SpawnPair(in spec);
             pair.Reset(in spec, 0);
 
-            var runner = new EpisodeRunner(agent, baseline, spec, 0, arena.Offset, tracePerDecision: true);
+            var runner = new EpisodeRunner(agent, baseline, spec, 0, Vector2.zero, tracePerDecision: true);
             yield return RunToCompletion(runner, spec);
             var result = runner.Result;
             Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome);
@@ -372,7 +367,7 @@ namespace Tests.PlayMode
             SpawnPair(in spec);
             pair.Reset(in spec, 0);
 
-            var runner = new EpisodeRunner(agent, baseline, spec, 0, arena.Offset, tracePerDecision: true);
+            var runner = new EpisodeRunner(agent, baseline, spec, 0, Vector2.zero, tracePerDecision: true);
             yield return RunToCompletion(runner, spec);
             var result = runner.Result;
 
@@ -415,7 +410,7 @@ namespace Tests.PlayMode
             for (var i = 0; i < episodes; i++)
             {
                 pair.Reset(in spec, i);
-                var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
+                var runner = new EpisodeRunner(agent, baseline, spec, i, Vector2.zero, trace);
                 yield return RunToCompletion(runner, spec);
                 EpisodeJsonl.Append(path, runner.Result);
             }
@@ -425,7 +420,7 @@ namespace Tests.PlayMode
 
         private void SpawnPair(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (commander, baselineShip) =>
+            pair = EpisodePair.Spawn(unitService, Vector2.zero, field?.Field, projectiles, in spec, (commander, baselineShip) =>
             {
                 var ranger = commander.InstallBrain<RangerBrain>();
                 ranger.Configure(baselineShip, RangerHoldRange);

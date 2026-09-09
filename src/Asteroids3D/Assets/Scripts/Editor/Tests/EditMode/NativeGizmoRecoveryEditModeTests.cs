@@ -21,6 +21,7 @@ namespace Tests.EditMode
         private bool priorCompatibilityMode;
         private bool priorGlobalSettingsDirty;
 
+        // Assumes a warm Library/AnnotationManager; batch -nographics never populates it.
         [SetUp]
         public void SetUp()
         {

@@ -72,8 +72,10 @@ namespace Game.RLHarness
             AgentObservations.ApplySchema(behavior, obstacleBuffer);
 
             var agent = host.AddComponent<ShipAgent>();
-            var scout = ((AICommander)self.Commander).Scout;
-            agent.Configure(self, opponent, brain, in spec, arenaCenter, scout, obstacleBuffer);
+            var commander = (AICommander)self.Commander;
+            agent.Configure(self, opponent, brain, in spec, arenaCenter, commander.Scout, obstacleBuffer,
+                commander.Navigator.mpcSettings.speedRef,
+                Academy.Instance.EnvironmentParameters.GetWithDefault);
             host.SetActive(true);
             return agent;
         }

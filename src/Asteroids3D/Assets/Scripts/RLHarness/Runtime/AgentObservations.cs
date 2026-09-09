@@ -10,10 +10,12 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Flattens the decision-boundary state into the fixed 28-float combat vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, self primary-weapon readiness 1, self primary heat 1, ego-frame intercept-lead direction 2, enemy primary-weapon readiness 1, enemy primary heat 1). Asteroids ride a separate variable-length attention buffer via <see cref="BuildObstacleTokens"/>. Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> and the lead from <see cref="Gunner.AimPoint"/> so their semantics stay single-sourced.</summary>
+    /// <summary>Flattens the decision-boundary state into the fixed 76-float combat vector: the 28 legacy channels (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, self primary-weapon readiness 1, self primary heat 1, ego-frame intercept-lead direction 2, enemy primary-weapon readiness 1, enemy primary heat 1) then the 6 indexed rock slots (valid flag + the 7-float obstacle token layout each) the sentence referent branches bind against. The ambient asteroid population still rides a separate variable-length attention buffer via <see cref="BuildObstacleTokens"/>. Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> and the lead from <see cref="Gunner.AimPoint"/> so their semantics stay single-sourced.</summary>
     public static class AgentObservations
     {
-        public const int CombatChannels = 28;
+        public const int LegacyCombatChannels = 28;
+        public const int RockSlotFloats = 1 + ObstacleTokenFloats;
+        public const int CombatChannels = LegacyCombatChannels + RockSlotRoster.SlotCount * RockSlotFloats;
         public const int ObstacleTokenFloats = 7;
         // BufferSensor capacity, baked into the ONNX at export. Sized to cover the obstacle scan-box occupancy
         // at max training density (2.5): true P95 ≈ 108, but Scout.ObstacleScanner delivers at most 64 tokens
@@ -32,7 +34,7 @@ namespace Game.RLHarness
         {
             behavior.BrainParameters.VectorObservationSize = CombatChannels;
             behavior.BrainParameters.ActionSpec = new ActionSpec(
-                AgentActions.Count, new[] { AgentActions.ChoicesPerBranch, AgentActions.ChoicesPerBranch });
+                AgentActions.ContinuousCount, AgentActions.BranchSizes);
 
             obstacleBuffer.SensorName = ObstacleSensorName;
             obstacleBuffer.ObservableSize = ObstacleTokenFloats;
@@ -42,7 +44,7 @@ namespace Game.RLHarness
         public static void Fill(float[] buffer, IShipStatus self, in TargetView target,
             bool inMyEnvelope, bool inEnemyEnvelope, bool primaryWeaponReady, float primaryHeatPct,
             float primaryProjectileSpeed, Vector2 arenaCenterPlane, float arenaRadius,
-            bool enemyWeaponReady, float enemyHeatPct)
+            bool enemyWeaponReady, float enemyHeatPct, RockSlotRoster rockSlots)
         {
             var kin = self.Kinematics;
             var frame = new EgoFrame(kin.pos, kin.Forward);
@@ -102,6 +104,40 @@ namespace Game.RLHarness
             // Enemy weapon state, target-conditional: heat-lasers with full lockout make ready non-derivable from heatPct, so both channels ride.
             buffer[i++] = target.has && enemyWeaponReady ? 1f : 0f;
             buffer[i++] = target.has ? enemyHeatPct : 0f;
+
+            FillRockSlots(buffer, i, self, arenaRadius, rockSlots);
+        }
+
+        /// <summary>Writes the 6 indexed rock-slot blocks: valid flag then the obstacle token layout (ego relPos.xy, distance, ego relVel.xy, radius, healthPct — normalized like <see cref="BuildObstacleTokens"/>); empty slots zero-fill, mirroring the target-token convention.</summary>
+        private static void FillRockSlots(float[] buffer, int offset, IShipStatus self,
+            float arenaRadius, RockSlotRoster rockSlots)
+        {
+            var kin = self.Kinematics;
+            var frame = new EgoFrame(kin.pos, kin.Forward);
+            var maxSpeed = Mathf.Max(self.MaxSpeed, 1e-3f);
+            var radius = Mathf.Max(arenaRadius, 1e-3f);
+
+            var i = offset;
+            for (var s = 0; s < RockSlotRoster.SlotCount; s++)
+            {
+                var view = rockSlots.SlotView(s);
+                if (!view.valid)
+                {
+                    for (var z = 0; z < RockSlotFloats; z++) buffer[i++] = 0f;
+                    continue;
+                }
+
+                var relPos = frame.Point(view.pos);
+                var relVel = frame.Direction(view.vel - kin.vel);
+                buffer[i++] = 1f;
+                buffer[i++] = relPos.x / radius;
+                buffer[i++] = relPos.y / radius;
+                buffer[i++] = (view.pos - kin.pos).magnitude / radius;
+                buffer[i++] = relVel.x / maxSpeed;
+                buffer[i++] = relVel.y / maxSpeed;
+                buffer[i++] = view.radius / SpawnSettingsMaxAsteroidRadius;
+                buffer[i++] = view.healthPct;
+            }
         }
 
         /// <summary>Selects the nearest <paramref name="maxTokens"/> asteroids and writes their 7-float tokens (ego relPos.xy, distance, ego relVel.xy, radius, healthPct — normalized) contiguously into <paramref name="dest"/>, returning the token count. No ordering guarantee beyond nearest-N selection and no zero-pad: the attention buffer is variable-length, so absence is the mask, not a sentinel.</summary>

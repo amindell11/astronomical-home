@@ -1,4 +1,5 @@
 using System;
+using AI.Scanning;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -13,22 +14,20 @@ namespace Game.Services
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
-        /// <summary>Arena handle injected into each spawned ship; required before the first spawn.</summary>
-        void SetArena(ArenaContext arena);
-
         /// <summary>Projectile registry ships arm their weapons with; arming throws while unset.</summary>
         void SetProjectiles(IProjectileService projectiles);
 
-        /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
+        /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it.</summary>
         Ship SpawnShip(
             Ship template,
             Commander commander,
             int team,
             Vector3 position,
-            Quaternion rotation);
+            Quaternion rotation,
+            IObstacleField field);
 
-        /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, and register it.</summary>
-        Ship AdoptShip(Ship ship);
+        /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, wire it against <paramref name="field"/>, and register it.</summary>
+        Ship AdoptShip(Ship ship, IObstacleField field);
 
         /// <summary>Destroy a single service-owned ship and unregister it, dropping any queued respawn — producer-owned teardown clears sector content while the session-tier player (never passed here) survives.</summary>
         void DespawnShip(Ship ship);
@@ -46,6 +45,6 @@ namespace Game.Services
         public void CancelPendingRespawns();
 
         /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount.</summary>
-        void WireShipDependencies(Ship ship);
+        void WireShipDependencies(Ship ship, IObstacleField field);
     }
 }

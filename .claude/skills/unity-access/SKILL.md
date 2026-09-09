@@ -7,9 +7,15 @@ description: Coordinate access to this repository's shared Unity editors. Use be
 
 Use `scripts/unity_access.ps1` as the authority for Unity process coordination. Ownership is **per project**: runs on different worktree projects overlap freely, and only Unity **startup** serializes through a machine-wide boot lane (concurrent boots were the deadlock hazard — postmortem D6). Prefer batch tests, wait in FIFO order when your project is busy, and leave owners, the boot lane, and the queue clean.
 
-Every Unity boot — batch or editor — costs ~2.5–4 GB working set, and the machine sustains about two editors. Boot only when free physical RAM is ≥ ~10 GB (`(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB` → GB); below that, report the memory pressure and wait for an editor to exit.
+Every Unity boot — batch or editor — costs ~2.5–4 GB working set, and the machine sustains about two editors. Boot only when free physical RAM is ≥ ~10 GB (`(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB` → GB). Below that, use the Alastor remote-gate fallback when it is available; otherwise report the memory pressure and wait for an editor to exit.
 
 Run commands from the repository root with PowerShell.
+
+## Alastor remote-gate fallback
+
+When Mordechai is below the local RAM floor and a full batch gate is needed, check Alastor before waiting: inspect its available RAM, `unity_access.ps1 -Action Status -Json`, and remote `git status`. If its lane is clear, run `scripts/remote_gate.sh <branch>` from the local branch being tested; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
+
+`remote_gate.sh` force-checks out the target commit on Alastor. Preserve any remote dirty state first (back up and restore the exact changed files) or get explicit authority to discard it. A passing remote summary is valid test evidence, but it does not record merge-grade proof in `agent_worktree_pool.sh`; include it in the PR and let the pool's merge protocol run its required gate when local capacity is available.
 
 ## Choose the least disruptive path
 
@@ -71,7 +77,7 @@ Run commands from the repository root with PowerShell.
 - `blocked_user_editor` means an untracked editor on the main worktree belongs to the user. Report its PID and ask the user to close it. Never terminate or attach to it. Batch requests hit this only when they target the main project itself; editor-mode requests block on any untracked Unity process.
 - `blocked_unmanaged_unity` means an untracked Unity process contends: for batch requests, an untracked batch process on any project (it may be mid-boot) or an untracked editor on the requested project. Do not close it; wait for it to exit or identify its owner.
 - **Recovering from `blocked_unmanaged_unity` / `ownership_mismatch`:** the JSON names the blocker's `processId` and `projectPath`. Check whether it's alive (`Get-Process -Id <pid>`). If it's **dead**, the record is stale — re-run `Acquire` (dead owners self-prune on the next call); if it still blocks, report it. If it's **alive and it's an untracked editor that outlived its lease** (an orphaned RL batch process, or your own editor whose owner record aged out), seize it back with `Adopt -Lease <lease> -Slot <slot> -ProcessId <pid>`: it writes a fresh pid-backed owner (project derived from the process's own `-projectPath`). `Adopt` refuses a PID that is already tracked or is the user's hand-opened dev editor (`user_editor`); it does not refuse `-batchmode`. The `user_editor` heuristic (windowed editor on the primary tree) also catches coordinator-launched primary-tree editors whose owner aged out — there the recovery is: report the PID and get the user's explicit go-ahead to kill. Renew the owner (re-`Acquire` under the same lease) at natural breaks in a long interactive session so it never ages out under a live editor. Never hand-edit `owner.json`.
-- **The coordinator launches everything — do not `Popen`/`Start-Process` Unity beside it.** RL drivers (`run_training.py`, `run_smoke.py`) boot their batch editor through `StartEditor -EditorArgs @(...)` so the owner is pid-backed from birth and the boot lane is honored; a live editor the coordinator did not launch is debt, not a supported category. If some launch genuinely lands outside the coordinator, `Adopt` is the recovery hatch (above).
+- **The coordinator launches everything — do not `Popen`/`Start-Process` Unity beside it.** RL drivers (`run_training.py`, `run_smoke.py`) boot their batch editor through `StartEditor -EditorArgs @(...)` so the owner is pid-backed from birth and the boot lane is honored; a live editor the coordinator did not launch is debt, not a supported category. If some launch genuinely lands outside the coordinator, `Adopt` is the recovery hatch (above). ⚠ `-EditorArgs` REPLACES the defaults verbatim — omit `-projectPath` and Unity opens the most-recently-used project.
 - `BootAcquire`/`BootRelease` exist for launchers (`unity_test_agent.ps1` drives them); you rarely call them directly. `BootAcquire` requires already holding a project owner lease.
 - Never bypass the coordinator or jump the FIFO queue.
 

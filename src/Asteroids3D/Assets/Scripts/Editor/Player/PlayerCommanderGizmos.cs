@@ -1,17 +1,23 @@
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Utils;
 
 namespace Player
 {
+    [InitializeOnLoad]
     internal static class PlayerCommanderGizmos
     {
+        static PlayerCommanderGizmos() =>
+            GizmoView.Register(typeof(PlayerCommander), "mouse", "Mouse Aim",
+                "red/orange/blue/green facing + plane arrows", "Steering");
+
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(PlayerCommander))]
         private static void Draw(PlayerCommander commander, GizmoType gizmoType)
         {
-            if (!commander.showMouseGizmos || !Application.isPlaying ||
-                !commander.useMouseDirection || !commander.playerInput.WantsToRotate) return;
+            if (!GizmoView.IsOn(typeof(PlayerCommander), "mouse") || !GizmoView.InScope(commander) ||
+                !Application.isPlaying || !commander.useMouseDirection || !commander.playerInput.WantsToRotate) return;
 
             var position = commander.transform.position;
             var scale = commander.mouseGizmoScale;

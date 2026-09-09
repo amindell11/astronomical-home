@@ -8,8 +8,13 @@ using UnityEngine;
 namespace Ships.Damage
 {
     /// <summary>Filled shield/health bars in plane space, plus their numeric readout. The serialized maxima carry the bars in edit mode, where <see cref="DamageController"/>'s pools do not exist yet.</summary>
+    [InitializeOnLoad]
     internal static class DamageControllerGizmos
     {
+        static DamageControllerGizmos() =>
+            GizmoView.Register(typeof(DamageController), "health", "Shield & Health Bars",
+                "filled shield/health bars + numeric readout", "Combat");
+
         private const float BaseOffset = 2f;
         private const float BarWidth = 3.5f;
         private const float BarHeight = 0.25f;
@@ -18,9 +23,10 @@ namespace Ships.Damage
 
         private static readonly ConditionalWeakTable<DamageController, Ship> ParentShips = new();
 
-        [DrawGizmo(GizmoType.Selected, typeof(DamageController))]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(DamageController))]
         private static void DrawHealthBars(DamageController damage, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(DamageController), "health") || !GizmoView.InScope(damage)) return;
             var ship = ParentShips.GetValue(damage, d => d.GetComponentInParent<Ship>());
             if (!ship) return;
 

@@ -40,7 +40,7 @@ namespace Game.RLHarness
             var rows = spec.sentenceRows;
             var episodeCounts = new int[rows.Length];
             var field = baseSpec.useAsteroidField
-                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale, presentationEnabled: false)
+                ? HarnessField.Spawn(host.Offset, host.Assets, baseSpec.fieldDensityScale, presentationEnabled: false)
                 : null;
 
             foreach (var seed in spec.seeds)

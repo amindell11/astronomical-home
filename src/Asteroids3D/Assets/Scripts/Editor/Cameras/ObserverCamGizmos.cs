@@ -1,15 +1,22 @@
 using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace Cameras
 {
     /// <summary>The boundary the observer camera is framing, as a plane-space rectangle.</summary>
+    [InitializeOnLoad]
     internal static class ObserverCamGizmos
     {
-        [DrawGizmo(GizmoType.Selected, typeof(ObserverCam))]
+        static ObserverCamGizmos() =>
+            GizmoView.Register(typeof(ObserverCam), "bounds", "Camera Bounds",
+                "yellow subject-framing rectangle", "Environment");
+
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(ObserverCam))]
         private static void DrawSubjectBounds(ObserverCam cam, GizmoType gizmoType)
         {
+            if (!GizmoView.IsOn(typeof(ObserverCam), "bounds") || !GizmoView.InScope(cam)) return;
             if (!Application.isPlaying) return;
             if (!cam.TryGetBoundaryAroundAllSubjects(out var min, out var max)) return;
 

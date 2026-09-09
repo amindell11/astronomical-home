@@ -47,7 +47,7 @@
       "testFilter": "ServiceContractsEditModeTests|GameContextDecouplingEditModeTests"
     },
     "bootstrap": {
-      "testFilter": "BootstrapContractsEditModeTests"
+      "testFilter": "SessionContractsEditModeTests"
     }
   },
   "modules": {

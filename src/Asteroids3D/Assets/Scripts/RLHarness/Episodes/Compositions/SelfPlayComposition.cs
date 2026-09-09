@@ -1,3 +1,4 @@
+using Game.Services;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
@@ -10,14 +11,15 @@ namespace Game.RLHarness
 
         public SelfPlayComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset, presentationEnabled: false);
+            var units = host.AddComponent<UnitService>();
+            var projectiles = ShipServices.Compose(units, host.transform, presentationEnabled: false);
             var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
+                ? HarnessField.Spawn(offset, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
-            var pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets, out var brainA, out var brainB);
+            var pair = EpisodePair.SpawnSelfPlayPair(units, offset, field?.Field, projectiles, in spec, assets, out var brainA, out var brainB);
             var (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
-                pair, brainA, brainB, in spec, arena.Offset, behaviorType, host.transform);
-            Driver = new EpisodeLoopDriver(pair, agentA, arena.Offset, field, roster: null, opponentAgent: agentB);
+                pair, brainA, brainB, in spec, offset, behaviorType, host.transform);
+            Driver = new EpisodeLoopDriver(pair, agentA, offset, field, roster: null, opponentAgent: agentB);
         }
 
         public void Dispose() { }

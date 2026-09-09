@@ -4,7 +4,7 @@
 # the remaining 4 run the mirror league and ignore them. Why: a pure mirror league has no
 # pursuit gradient — two aggressive brawlers close immediately, nothing ever flees, and the
 # Evader capability the stage (ii) arc bought erodes monotonically while ELO still rises
-# (see doc/Feature_Plans/RL_Stage2_Shaping_SelfPlay_Findings.md, "Self-play erodes pursuit").
+# (self-play erodes pursuit).
 behaviors:
   ShipCombat:
     trainer_type: ppo
@@ -66,6 +66,10 @@ environment_parameters:
   opponent_weight_kiter: 0.15
   opponent_weight_dummy: 0.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
+# device pin is load-bearing: the shared venv carries torch cu121 and mlagents defaults to
+# cuda-if-available, which measured 50-55 steps/s vs CPU 89 on this net (2026-08-27).
+torch_settings:
+  device: cpu
 engine_settings:
   width: 320
   height: 240

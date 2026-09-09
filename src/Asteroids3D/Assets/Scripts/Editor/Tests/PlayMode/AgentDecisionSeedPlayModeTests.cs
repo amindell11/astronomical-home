@@ -27,7 +27,7 @@ namespace Tests.PlayMode
             for (var i = 0; i < count; i++)
             {
                 var ship = units.SpawnShip(template, null, team: 0,
-                    new Vector3(i * 100f, 0f, 0f), Quaternion.identity);
+                    new Vector3(i * 100f, 0f, 0f), Quaternion.identity, field: null);
                 spawned.Add(ship);
                 seeds[i] = ship.DecisionSeed;
             }
@@ -38,7 +38,6 @@ namespace Tests.PlayMode
         {
             var host = new GameObject("TestUnitService");
             var units = host.AddComponent<UnitService>();
-            units.SetArena(Tests.Common.TestArena.On(host, units.Registry));
             var template = TestAssets.LoadShip2Prefab();
             Assert.IsNotNull(template, "Ship_2 prefab failed to load");
 

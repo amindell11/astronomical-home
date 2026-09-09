@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Asteroids.Fields;
@@ -15,6 +16,8 @@ namespace Game.Sectors
             public readonly AdoptEntry[] Adopted;
             public readonly SectorSpawner[] Spawners;
             public readonly SectorModule[] Modules;
+            /// <summary>The single authored asteroid field, or null; a second one is an authoring error and throws at bake.</summary>
+            public readonly UpdatingAsteroidField ObstacleField;
             public readonly int AppendedAdopt;
             public readonly int AppendedSpawner;
             public readonly int AppendedModule;
@@ -23,12 +26,14 @@ namespace Game.Sectors
             public readonly int OrphanedModule;
 
             public ReconcileResult(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
+                UpdatingAsteroidField obstacleField,
                 int appendedAdopt, int appendedSpawner, int appendedModule,
                 int orphanedAdopt, int orphanedSpawner, int orphanedModule)
             {
                 Adopted = adopted;
                 Spawners = spawners;
                 Modules = modules;
+                ObstacleField = obstacleField;
                 AppendedAdopt = appendedAdopt;
                 AppendedSpawner = appendedSpawner;
                 AppendedModule = appendedModule;
@@ -181,8 +186,24 @@ namespace Game.Sectors
 
             return new ReconcileResult(
                 keptAdopt.ToArray(), keptSpawners.ToArray(), keptModules.ToArray(),
+                SingleObstacleField(collected),
                 appendedAdopt, appendedSpawner, appendedModule,
                 orphanedAdopt, orphanedSpawner, orphanedModule);
+        }
+
+        /// <summary>The field ON a recognised node (the field prefab's spawner wins recognition, so the crawl never yields the field itself).</summary>
+        private static UpdatingAsteroidField SingleObstacleField(List<Component> collected)
+        {
+            UpdatingAsteroidField found = null;
+            foreach (var c in collected)
+            {
+                if (!c.TryGetComponent<UpdatingAsteroidField>(out var field)) continue;
+                if (found)
+                    throw new InvalidOperationException(
+                        $"Sector authors two asteroid fields ('{found.name}', '{field.name}'); a world has one obstacle field.");
+                found = field;
+            }
+            return found;
         }
 
         /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnToken on an adopted ship) are collected, its subtree is not.</summary>
@@ -206,10 +227,10 @@ namespace Game.Sectors
             }
         }
 
-        /// <summary>Read-only drift check: recognised children not yet in the manifest, and manifest entries pointing at deleted/unrecognised targets.</summary>
+        /// <summary>Read-only drift check: recognised children not yet in the manifest, manifest entries pointing at deleted/unrecognised targets, and an obstacle-field slot that disagrees with the authored field.</summary>
         public static DriftReport ComputeDrift(
             Transform root, IReadOnlyList<AdoptEntry> adopted, IReadOnlyList<SectorSpawner> spawners,
-            IReadOnlyList<SectorModule> modules = null)
+            IReadOnlyList<SectorModule> modules = null, UpdatingAsteroidField obstacleField = null)
         {
             var collected = new List<Component>();
             Collect(root, collected);
@@ -242,6 +263,13 @@ namespace Game.Sectors
                 }
             foreach (var m in liveModules)
                 if (!referencedModules.Contains(m)) unsynced++;
+
+            var liveField = SingleObstacleField(collected);
+            if (liveField != obstacleField)
+            {
+                if (liveField) unsynced++;
+                if (obstacleField) orphaned++;
+            }
 
             return new DriftReport(unsynced, orphaned);
         }

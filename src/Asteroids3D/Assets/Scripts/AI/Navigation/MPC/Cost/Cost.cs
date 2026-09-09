@@ -68,9 +68,12 @@ namespace Movement.MPC
                 if (sentence.vel.armed)
                 {
                     var hasVelReferent = ResolveReferent(sentence.vel.referent, input, hasEnemy,
-                        enemyPos, enemyVel, enemyYaw, stepTime, out var velPos, out var velVel, out _);
+                        enemyPos, enemyVel, enemyYaw, stepTime, out var velPos, out var velVel, out var velYaw);
                     velocityRef = hasVelReferent
-                        ? AnchoredVelocityRef(s.pos, velPos, velVel, sentence.vel.radialSpeed, sentence.vel.tangentialSpeed)
+                        ? sentence.vel.frame == ReferentFrame.Position
+                            ? AnchoredVelocityRef(s.pos, velPos, velVel, sentence.vel.radialSpeed, sentence.vel.tangentialSpeed)
+                            : FrameVelocityRef(velVel, FrameAngle(sentence.vel.frame, velYaw, velVel),
+                                sentence.vel.radialSpeed, sentence.vel.tangentialSpeed)
                         : default;
                     velTrackScale = hasVelReferent ? sentence.vel.weight : 0f;
                 }
@@ -148,6 +151,14 @@ namespace Movement.MPC
                 vel = snapshot.vel;
                 yaw = snapshot.yaw;
                 return snapshot.valid;
+            }
+
+            /// <summary>Non-Position VEL basis: radial along the frame's forward, tangential keeping the LOS basis's handedness.</summary>
+            private static float2 FrameVelocityRef(float2 refVel, float forwardYaw, float radialSpeed, float tangentialSpeed)
+            {
+                var forward = Direction(forwardYaw);
+                var side = new float2(forward.y, -forward.x);
+                return refVel + radialSpeed * forward + tangentialSpeed * side;
             }
 
             /// <summary>The frame's forward angle; the velocity frame falls back to world axes near rest.</summary>

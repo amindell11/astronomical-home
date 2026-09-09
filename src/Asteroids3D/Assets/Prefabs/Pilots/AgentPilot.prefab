@@ -133,5 +133,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f2c9b48e1a6d5034f8b3e7a1d92c650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  model: {fileID: 5022602860645237092, guid: e28d8b0c8a505504e8c3a28d75d05380, type: 3}
+  model: {fileID: 5022602860645237092, guid: f02a76f368f86fb4ba99892970e69fb0, type: 3}
   leashRadius: 120

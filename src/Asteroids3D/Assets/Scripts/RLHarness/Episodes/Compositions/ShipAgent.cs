@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The ML-Agents face of one episode ship: observes at the runner's decision boundary (the envelope bits come from the SAME boundary snapshot — never re-evaluate Gunsight from observation code) and pushes each received action into the <see cref="PolicyBrain"/>. Lifecycle (reset, decision pacing, reward) is owned by the hosting loop; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
+    /// <summary>The ML-Agents face of one episode ship: observes at the runner's decision boundary (the envelope bits come from the SAME boundary snapshot — never re-evaluate Gunsight from observation code) and pushes each received action into the <see cref="PolicyBrain"/>. Owns the boundary slot→entity capture: the rock-slot roster refreshes only here, so the referent branches and mask always bind against the roster the policy observed. Lifecycle (reset, decision pacing, reward) is owned by the hosting loop; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
     public sealed class ShipAgent : Agent
     {
         public const float HeuristicHoldRange = 15f;
@@ -24,21 +24,24 @@ namespace Game.RLHarness
         private IHeatReadout primaryHeat;
         private IHeatReadout enemyHeat;
         private float primaryProjectileSpeed;
+        private float speedRef;
+        private Func<string, float, float> envParams;
         private Scout scout;
         private EpisodeRunner runner;
         private BufferSensorComponent obstacleBuffer;
         private readonly float[] observationBuffer = new float[AgentObservations.CombatChannels];
         private readonly float[] tokenScratch = new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
         private readonly float[] token = new float[AgentObservations.ObstacleTokenFloats];
-        // Refreshed only here at the decision boundary, so referent actions bind against the roster
-        // the policy observed. Stage C3 reads it into the obs slots and the action's referent branch.
         private readonly RockSlotRoster rockSlots = new();
+        private readonly AsteroidRef[] boundScratch = new AsteroidRef[PolicyBrain.MaxBoundRocks];
 
         public RockSlotRoster RockSlots => rockSlots;
 
         public int DecisionsReceived { get; private set; }
 
-        public void Configure(Ship self, Ship opponent, PolicyBrain brain, in RewardSpec spec, Vector2 arenaCenter, Scout scout, BufferSensorComponent obstacleBuffer)
+        public void Configure(Ship self, Ship opponent, PolicyBrain brain, in RewardSpec spec,
+            Vector2 arenaCenter, Scout scout, BufferSensorComponent obstacleBuffer,
+            float speedRef, Func<string, float, float> envParams)
         {
             this.self = self;
             this.opponent = opponent;
@@ -47,6 +50,8 @@ namespace Game.RLHarness
             this.arenaCenter = arenaCenter;
             this.scout = scout;
             this.obstacleBuffer = obstacleBuffer;
+            this.speedRef = speedRef;
+            this.envParams = envParams;
             primaryHeat = ResolvePrimaryHeat(self);
             // Resolved at the opponent-injection point (fixed for the episode), mirroring self's heat.
             enemyHeat = ResolvePrimaryHeat(opponent);
@@ -73,8 +78,9 @@ namespace Game.RLHarness
         {
             var snapshot = runner.BoundarySnapshot;
             var enemyKin = opponent.Kinematics;
-            // No sentence-bound rocks until Stage C3 arms the referent branch — the empty span is factual.
-            rockSlots.Update(self.Kinematics.pos, enemyKin.pos, scout.AsteroidScan, default);
+            var boundCount = brain.GetBoundRocks(boundScratch);
+            rockSlots.Update(self.Kinematics.pos, enemyKin.pos, scout.AsteroidScan,
+                boundScratch.AsSpan(0, boundCount));
             var target = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
                 opponent.HealthPct, opponent.ShieldPct);
 
@@ -83,7 +89,8 @@ namespace Game.RLHarness
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
                 arenaCenter, spec.arenaRadius,
-                opponent.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f);
+                opponent.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f,
+                rockSlots);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
@@ -97,12 +104,15 @@ namespace Game.RLHarness
             }
         }
 
+        // Runs after CollectObservations at the same boundary (Agent.SendInfoToBrain), so the mask
+        // reads the roster the policy is about to observe.
+        public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask) =>
+            AgentActions.WriteMask(actionMask, rockSlots,
+                AgentActions.VocabularyFromParam(envParams(EnvParamOverlay.SentenceRelease, 1f)));
+
         public override void OnActionReceived(ActionBuffers actions)
         {
-            var continuous = actions.ContinuousActions;
-            var discrete = actions.DiscreteActions;
-            var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
-                continuous[3], continuous[4], discrete[0], discrete[1], self.MaxSpeed);
+            var action = AgentActions.Map(in actions, rockSlots, speedRef, spec.arenaRadius);
             brain.SetAction(in action, self.BoostAvailable);
             DecisionsReceived++;
         }
@@ -119,14 +129,21 @@ namespace Game.RLHarness
             var losHat = los.sqrMagnitude > 1e-8f ? los.normalized : Vector2.up;
             var maxSpeed = Mathf.Max(self.MaxSpeed, 1e-3f);
 
-            // Aim at intercept (offset 0, full weight), close along the LOS toward the hold band, no orbit, full velocity authority.
-            continuous[0] = 0f;
-            continuous[1] = 1f;
-            continuous[2] = Mathf.Clamp(Vector2.Dot(world, losHat) / maxSpeed, -1f, 1f);
-            continuous[3] = 0f;
-            continuous[4] = 1f;
-            discrete[0] = 1;
-            discrete[1] = 0;
+            // Aim at intercept (offset 0, full weight), close along the LOS toward the hold band,
+            // POS/LANE silent, stock hazard authority; everything enemy-bound in the Position frame.
+            continuous[AgentActions.AimX] = 0f;
+            continuous[AgentActions.AimY] = 1f;
+            continuous[AgentActions.PosX] = 0f;
+            continuous[AgentActions.PosY] = 0f;
+            continuous[AgentActions.PosSetpoint] = 0f;
+            continuous[AgentActions.PosWeight] = 0f;
+            continuous[AgentActions.VelRadial] = Mathf.Clamp(Vector2.Dot(world, losHat) / maxSpeed, -1f, 1f);
+            continuous[AgentActions.VelTangential] = 0f;
+            continuous[AgentActions.LaneWeight] = 0f;
+            continuous[AgentActions.FieldWeight] = 1f;
+            for (var b = 0; b < AgentActions.BranchSizes.Length; b++)
+                discrete[b] = 0;
+            discrete[AgentActions.FirePrimaryBranch] = 1;
         }
 
         // The hosting loop is the single reset owner; a policy-triggered begin here would race the pair-reset.

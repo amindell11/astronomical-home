@@ -23,10 +23,6 @@ namespace Asteroids.Fields
         [Tooltip("Authored layout seed for this placed field. Two sectors sharing the same settings asset still get distinct layouts by varying this.")]
         [SerializeField] internal int seed = 12345;
 
-        [Header("Debug Visualization (editor gizmos)")]
-        [SerializeField] internal bool drawChunkGizmos = true;
-        [SerializeField] internal bool drawNoiseHeatmap = true;
-
         public Func<Vector3> CurrentAnchorPos { internal get; set; }
 
         /// <summary>Headless core, exposed for tests and tooling.</summary>

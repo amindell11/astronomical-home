@@ -6,7 +6,6 @@ using Game.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
-using Tests.Common;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -35,13 +34,6 @@ namespace Tests.EditMode
             return go.AddComponent<T>();
         }
 
-        private GameObject TrackedArenaHost()
-        {
-            var go = new GameObject("Test_ArenaHost");
-            tempObjects.Add(go);
-            return go;
-        }
-
         [Test]
         public void GameServices_Constructor_ThrowsOnNullService()
         {
@@ -52,15 +44,13 @@ namespace Tests.EditMode
 
             var ui = new UIService();
             var proj = new ProjectileService(unit.transform);
-            var arena = TestArena.On(TrackedArenaHost());
 
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, env, obj, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null, obj, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, null, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, null, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, null, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, ui, null));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, env, obj, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null, obj, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, null, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, null, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, null));
         }
 
         [Test]
@@ -212,8 +202,7 @@ namespace Tests.EditMode
             var env = new EnvironmentService();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
-            var arena = TestArena.On(TrackedArenaHost());
-            var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService(), arena);
+            var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService());
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

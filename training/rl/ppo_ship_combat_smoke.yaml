@@ -27,6 +27,10 @@ behaviors:
     max_steps: 4000
     time_horizon: 64
     summary_freq: 500
+# device pin is load-bearing: the shared venv carries torch cu121 and mlagents defaults to
+# cuda-if-available, which measured 50-55 steps/s vs CPU 89 on this net (2026-08-27).
+torch_settings:
+  device: cpu
 engine_settings:
   width: 320
   height: 240

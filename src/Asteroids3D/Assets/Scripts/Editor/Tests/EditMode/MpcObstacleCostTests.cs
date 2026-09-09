@@ -27,7 +27,6 @@ namespace Tests.EditMode
         private static Config CollisionOnlyConfig() => new()
         {
             dt = 0.1f,
-            invDt = 10f,
             horizon = 17,
             shipRadius = ShipRadius,
             collisionSafetyMargin = SafetyMargin,

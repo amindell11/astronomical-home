@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Utils
 {
     /// <summary>
-    /// Game-wide presentation policy, composed per session by a game-tier caller (<c>SessionHost</c>,
+    /// Game-wide presentation policy, composed per session by a game-tier caller (<c>Session</c>,
     /// or an RL host for a headless run). Never persisted, so a headless run cannot leak into play.
     /// </summary>
     public static class GameSettings
