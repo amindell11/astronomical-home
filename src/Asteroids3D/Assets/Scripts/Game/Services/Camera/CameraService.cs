@@ -3,7 +3,7 @@ using System.Linq;
 using Cameras;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Camera
 {
     public class CameraService : ICameraService
     {

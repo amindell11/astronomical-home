@@ -2,7 +2,7 @@ using Ships.Command;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI
+namespace UI.PlayerState
 {
     /// <summary>
     /// Boost readiness bar: a horizontal fill that charges toward full as the cooldown runs

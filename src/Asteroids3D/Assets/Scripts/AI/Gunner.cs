@@ -5,6 +5,7 @@ using Game;
 using Movement;
 using Ships.Command;
 using UnityEngine;
+using Combat.Targeting;
 
 namespace AI
 {

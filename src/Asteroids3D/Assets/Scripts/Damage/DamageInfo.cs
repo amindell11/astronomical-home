@@ -1,5 +1,6 @@
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Damage
 {

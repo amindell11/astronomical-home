@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace UI
+namespace UI.Screens
 {
     /// <summary>
     /// Post-death recap panel rendered from the damage ledger: what killed you, and what hurt

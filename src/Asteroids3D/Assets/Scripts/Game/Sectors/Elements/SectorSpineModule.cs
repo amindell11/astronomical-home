@@ -5,8 +5,10 @@ using Game.Services;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using Game.Services.Objectives;
+using Game.Sectors.Activation;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     public class SectorSpineModule : SectorModule
     {

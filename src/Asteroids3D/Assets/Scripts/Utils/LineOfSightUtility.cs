@@ -20,10 +20,10 @@ namespace Utils
             if (dist <= 0f) return true;
 
             dir /= dist;
-            var mask = occluderMask ?? Physics.DefaultRaycastLayers;
+            var mask = occluderMask ?? UnityEngine.Physics.DefaultRaycastLayers;
 
-            // Physics.Raycast returns the CLOSEST hit; an unordered NonAlloc query could return the target's own collider while an occluder sits in front.
-            if (!Physics.Raycast(origin, dir, out var hit, dist, mask, QueryTriggerInteraction.Ignore))
+            // UnityEngine.Physics.Raycast returns the CLOSEST hit; an unordered NonAlloc query could return the target's own collider while an occluder sits in front.
+            if (!UnityEngine.Physics.Raycast(origin, dir, out var hit, dist, mask, QueryTriggerInteraction.Ignore))
                 return true;
 
             return targetRoot && hit.collider.transform.IsChildOf(targetRoot);

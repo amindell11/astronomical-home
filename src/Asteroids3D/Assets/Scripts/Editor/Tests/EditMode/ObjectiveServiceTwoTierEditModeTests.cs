@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using Game.Services.Objectives;
 
 namespace Tests.EditMode
 {

@@ -2,6 +2,7 @@ using Game;
 using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
+using AI.Strategy;
 
 namespace AI
 {

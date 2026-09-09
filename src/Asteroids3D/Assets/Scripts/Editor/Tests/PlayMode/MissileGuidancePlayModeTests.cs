@@ -1,6 +1,6 @@
 using System.Collections;
 using Combat;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
@@ -21,7 +21,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity { get; set; }
             public Rigidbody Body => GetComponent<Rigidbody>();
-            public Ships.ShipId Id => Ships.ShipId.Invalid;
+            public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
 
         public override void TearDown()

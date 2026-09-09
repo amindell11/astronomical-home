@@ -1,5 +1,5 @@
-using Combat.Conditions;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace UI.Audio
 {

@@ -1,4 +1,4 @@
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     using UnityEngine;
 

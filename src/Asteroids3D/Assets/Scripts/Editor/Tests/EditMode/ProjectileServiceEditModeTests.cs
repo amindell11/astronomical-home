@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Damage;
 using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Projectiles;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
 
 namespace Tests.EditMode
 {

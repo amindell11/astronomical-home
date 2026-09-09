@@ -1,6 +1,7 @@
 using Damage;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.PlayMode.Common
 {

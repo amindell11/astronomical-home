@@ -1,7 +1,7 @@
 using Game.Presentation;
 using UnityEngine;
 
-namespace Combat.Projectile.Visual
+namespace Combat.Projectiles.Visual
 {
     [RequireComponent(typeof(Laser))]
     public class LaserVisual : MonoBehaviour, IPresentationPart

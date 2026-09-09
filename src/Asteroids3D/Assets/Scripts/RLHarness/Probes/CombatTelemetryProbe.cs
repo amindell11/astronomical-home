@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Combat.Conditions;
 using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace Game.RLHarness
 {

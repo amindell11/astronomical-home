@@ -1,6 +1,6 @@
-using Combat.Conditions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Projectiles
 {
     /// <summary>Live-transient registry for damage-dealing pooled objects (projectiles, concussion waves): the arena-scoped answer to "what's checked out right now", so episode resets and sector transitions flush in-flight transients without scanning the scene. Registrants never hold the service — the firing weapon registers them, and their own return-to-pool events deregister them.</summary>
     public interface IProjectileService

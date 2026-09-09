@@ -2,8 +2,9 @@ using AI.Scanning;
 using Game.Services;
 using Game.Sessions;
 using Ships;
+using Game.Sectors.Activation;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Build/teardown context for spawners and modules — no static lookups. The frame, the sector's obstacle field and the player are injected at runtime from the session (player null for headless/RL), the dependencies that cannot be dragged serialized references.</summary>
     public readonly struct SectorBuildContext

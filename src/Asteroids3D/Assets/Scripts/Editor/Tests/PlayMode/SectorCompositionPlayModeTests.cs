@@ -11,6 +11,13 @@ using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Projectiles;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
+using Game.Sectors.Elements;
 
 namespace Tests.PlayMode
 {
