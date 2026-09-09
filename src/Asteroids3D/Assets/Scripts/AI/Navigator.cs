@@ -69,7 +69,7 @@ namespace Movement.MPC
             mpc = CreateMpc();
         }
 
-        // The field gathers rocks through the scout's scanner: the one path from the arena's obstacle field to the solver.
+        // The scout's scanner is the arena obstacle field's only path to the solver.
         private Mpc CreateMpc() =>
             new(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint(), scout ? scout.obstacleScanner : null);
 

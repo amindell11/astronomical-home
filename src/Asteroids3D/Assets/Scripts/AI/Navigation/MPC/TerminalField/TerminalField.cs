@@ -39,7 +39,6 @@ namespace AI.Navigation.MPC.TerminalField
         public TerminalFieldView View => view;
         public int BakeCount { get; private set; }
         public int LastDiscCount { get; private set; }
-        public NativeArray<byte> Occupied => occupied;
 
         public TerminalField(MpcSettings settings, Dynamics dynamics, ObstacleScanner scanner)
         {
@@ -82,13 +81,13 @@ namespace AI.Navigation.MPC.TerminalField
             Bake(shipPos, goal);
         }
 
-        public void Invalidate()
+        private void Invalidate()
         {
             view.valid = 0;
             sinceBake = 0f;
         }
 
-        /// <summary>Bakes now around the given ship and goal; <see cref="Update"/> is the production entry, this one serves the tests and the microbench.</summary>
+        /// <summary><see cref="Update"/> is the production entry; this one serves the tests and the microbench.</summary>
         public void Bake(float2 shipPos, float2 goal)
         {
             centre = 0.5f * (shipPos + goal);

@@ -166,7 +166,7 @@ namespace Game.RLHarness
                         enemy.valid ? enemy.yaw : float.NaN, 0f, scenario.projectileSpeed,
                         state.vel, scenario.intent, referent1, referent2);
                     var breakdown = Cost.EvaluateBreakdown(state, applied, prevControl, costInput, cfg);
-                    // The emitted plan's endpoint field cost, apart from the step-0 breakdown: what the terminal term charged this solve.
+                    // Apart from the step-0 breakdown: what the terminal term charged this solve.
                     var endpoint = mpc.PredictedStates[cfg.horizon - 1];
                     var terminalField = Cost.EvaluateTerminal(endpoint, costInput, cfg);
                     trace.Add(new RigTraceRow
