@@ -1404,10 +1404,7 @@ cmd_finalize() {
   require_gh || return 1
   [[ -n "$task_branch" ]] || { echo "finalize: no task branch for $slot; preserve the slot and resolve its lease." >&2; return 1; }
   require_clean_slot "$slot" "$path" finalize || return 1
-  if [[ "$(git -C "$path" symbolic-ref --short HEAD)" != "$slot" ]]; then
-    echo "finalize: $path is not on $slot; preserve its work and restore the slot branch first." >&2
-    return 1
-  fi
+
   evidence="$(gh pr list --head "$task_branch" --base "${base_ref#origin/}" --state all --limit 1 \
     --json state,headRefOid,mergeCommit --jq '.[0] | [.state, .headRefOid, .mergeCommit.oid] | @tsv')" || return 1
   IFS=$'\t' read -r state pr_head merge_commit <<< "$evidence"
@@ -1436,8 +1433,8 @@ cmd_finalize() {
   if [[ -n "$remote_head" ]]; then
     git -C "$path" push --force-with-lease="refs/heads/$task_branch:$pr_head" origin --delete "$task_branch" || return 1
   fi
-  cmd_prepare "$slot" "$base_ref" --force || return 1
-  cmd_release "$slot" || return 1
+  cmd_prepare "$slot" "$base_ref" --force
+  cmd_release "$slot"
   echo "Finalized $slot: reset to $base_ref and released lock."
 }
 

@@ -6,11 +6,22 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 mkdir -p "$TMP/bin"
+export REAL_GIT="$(command -v git)"
+cat > "$TMP/bin/git" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${FAIL_RESET:-0}" == 1 && " $* " == *' reset --hard '* ]]; then
+  echo 'injected reset failure' >&2
+  exit 73
+fi
+exec "$REAL_GIT" "$@"
+EOF
+chmod +x "$TMP/bin/git"
 cat > "$TMP/bin/gh" <<'EOF'
 #!/usr/bin/env bash
 case "$1 $2" in
   'pr list')
     [[ "$*" == *--state\ all* ]] || { echo 7; exit 0; }
+    [[ " $* " == *" --head task/lifecycle --base main "* ]] || { echo 'wrong PR identity' >&2; exit 1; }
     [[ "${PR_API_FAIL:-0}" == 0 ]] || exit 1
     printf '%s\t%s\t%s\n' "${PR_STATE:-OPEN}" "$PR_HEAD" "$MERGE_SHA" ;;
 
@@ -84,7 +95,7 @@ saved_head="$PR_HEAD"
 export PR_HEAD=''
 refuse_finalize 'missing PR head' 'merged PR evidence unavailable'
 export PR_HEAD="$saved_head"
-# A squash merge has a distinct commit but preserves the PR head as API evidence.
+# Squash commits differ from PR heads; GitHub preserves the merged head as evidence.
 git merge --squash agent-1 >/dev/null && git commit -qm squash
 export MERGE_SHA="$(git rev-parse HEAD)"
 refuse_finalize 'merge absent from remote base' 'does not contain'
@@ -101,3 +112,18 @@ bash "$POOL" finalize agent-1 > "$TMP/finalize.log" 2>&1 || { cat "$TMP/finalize
 [[ -z "$(git ls-remote origin refs/heads/task/lifecycle)" ]] || fail 'success retained remote branch'
 [[ ! -d "$TMP/locks/agent-1.lock" ]] || fail 'success retained lease'
 echo 'PASS: verified merged work finalizes'
+
+bash "$POOL" acquire lifecycle agent-1 >/dev/null
+git -C "$TMP/agent-1" reset -q --hard "$PR_HEAD"
+set +e
+FAIL_RESET=1 bash "$POOL" finalize agent-1 > "$TMP/finalize.log" 2>&1
+code=$?
+set -e
+[[ "$code" == 73 ]] || { cat "$TMP/finalize.log"; fail 'prepare reset failure was swallowed'; }
+[[ "$(git -C "$TMP/agent-1" rev-parse HEAD)" == "$PR_HEAD" ]] || fail 'failed reset changed HEAD'
+[[ -d "$TMP/locks/agent-1.lock" ]] || fail 'failed reset released lease'
+echo 'PASS: prepare failure propagates and retains lease'
+bash "$POOL" finalize agent-1 > "$TMP/finalize.log" 2>&1 || { cat "$TMP/finalize.log"; fail 'already deleted remote branch refused'; }
+[[ "$(git -C "$TMP/agent-1" rev-parse HEAD)" == "$MERGE_SHA" ]] || fail 'absent branch cleanup did not reset'
+[[ ! -d "$TMP/locks/agent-1.lock" ]] || fail 'absent branch cleanup retained lease'
+echo 'PASS: verified merged work finalizes with remote branch already deleted'
