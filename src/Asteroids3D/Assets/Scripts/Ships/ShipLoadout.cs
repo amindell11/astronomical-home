@@ -1,5 +1,4 @@
 using Combat.Weapons;
-using Game;
 
 namespace Ships
 {

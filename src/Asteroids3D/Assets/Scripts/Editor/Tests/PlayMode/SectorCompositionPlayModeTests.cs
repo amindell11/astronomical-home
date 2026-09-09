@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using AI;
 using Substrate.Sectors;
-using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;

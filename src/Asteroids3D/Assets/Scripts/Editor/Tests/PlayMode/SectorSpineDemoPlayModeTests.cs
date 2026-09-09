@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Substrate.Sectors;
-using Substrate.Services;
 using NUnit.Framework;
 using Objectives;
 using Ships;

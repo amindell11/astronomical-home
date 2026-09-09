@@ -3,7 +3,6 @@ using System.Collections;
 using System.Reflection;
 using Cameras;
 using Game;
-using Substrate.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -12,7 +11,6 @@ using UnityEngine.TestTools;
 using Utils;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
-using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {

@@ -1,4 +1,4 @@
-var units = UnityEngine.Object.FindObjectsByType<Game.Services.Units.UnitService>(UnityEngine.FindObjectsSortMode.None);
+var units = UnityEngine.Object.FindObjectsByType<Substrate.Services.Units.UnitService>(UnityEngine.FindObjectsSortMode.None);
 if (units.Length != 1) return "UnitService count=" + units.Length;
 var shipPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<Ships.Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
 var pilotPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>("Assets/Prefabs/Pilots/AgentPilot.prefab");
@@ -6,7 +6,7 @@ if (shipPrefab == null) return "no ship prefab";
 if (pilotPrefab == null) return "no pilot prefab";
 var pilot = pilotPrefab.GetComponent<Ships.Command.Commander>();
 if (pilot == null) return "pilot prefab has no Commander";
-var pos = Game.GamePlane.PlanePointToWorld(new UnityEngine.Vector2(25f, 10f));
-var ship = units[0].SpawnShip(shipPrefab, pilot, 1, pos, Game.GamePlane.Rotation);
+var pos = Substrate.GamePlane.PlanePointToWorld(new UnityEngine.Vector2(25f, 10f));
+var ship = units[0].SpawnShip(shipPrefab, pilot, 1, pos, Substrate.GamePlane.Rotation);
 ship.name = "EyeballEnemy";
 return "spawned id=" + ship.gameObject.GetInstanceID() + " at " + ship.transform.position.ToString("F1");

@@ -31,7 +31,7 @@ public abstract class CaptureScenario
 
     /// <summary>Begins filming the given ships; they are the framed and gizmo-selected subjects.</summary>
     protected void Film(params Ship[] subjects) =>
-        Capture.Begin(Config, Profile, subjects, Session.Services.Projectiles);
+        Capture.Begin(Config, Profile, subjects, Session.Projectiles);
 
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();

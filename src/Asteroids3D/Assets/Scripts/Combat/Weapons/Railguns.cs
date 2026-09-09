@@ -1,7 +1,6 @@
 using System;
 using Combat.Projectiles;
 using Damage;
-using Substrate.Services;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;

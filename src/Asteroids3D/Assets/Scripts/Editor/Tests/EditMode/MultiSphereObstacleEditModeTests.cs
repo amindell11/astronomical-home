@@ -44,6 +44,8 @@ namespace Tests.EditMode
         [Test]
         public void FatAxisClearance_Unchanged_BetweenLobesAndSingle()
         {
+            using var lobes = Circles(C(-D, 0f, R), C(D, 0f, R));
+            using var single = Circles(C(0f, 0f, SingleR));
 
             // Well inside the rod tip: both representations block.
             var inside = new float2(2.0f, 0f);

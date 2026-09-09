@@ -3,14 +3,10 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Combat.Projectiles;
 using Damage;
-using Substrate.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
-using Substrate.Services.Objectives;
-using Utils;
 
 namespace Tests.EditMode
 {

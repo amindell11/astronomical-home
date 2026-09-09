@@ -1,6 +1,5 @@
 using Combat.Projectiles;
 using Combat.Targeting;
-using Substrate.Services;
 using UnityEngine;
 using Missile = Combat.Projectiles.Missile;
 using Substrate.Services.Projectiles;

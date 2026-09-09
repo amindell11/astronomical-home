@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using AI;
 using AI.Observation;
-using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;

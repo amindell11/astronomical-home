@@ -3,7 +3,6 @@ using Combat.Projectiles;
 using Combat.Projectiles.Audio;
 using Combat.Projectiles.Visual;
 using Combat.Weapons;
-using Substrate.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;

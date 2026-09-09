@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
-using Substrate.Services;
 using Movement;
 using Ships.Command;
 using UnityEngine;

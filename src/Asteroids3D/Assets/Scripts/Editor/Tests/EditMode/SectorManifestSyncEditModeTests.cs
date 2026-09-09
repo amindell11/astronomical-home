@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Asteroids.Fields;
-using Substrate.Sectors;
 using NUnit.Framework;
 using UnityEngine;
 using Substrate.Sectors.Elements;

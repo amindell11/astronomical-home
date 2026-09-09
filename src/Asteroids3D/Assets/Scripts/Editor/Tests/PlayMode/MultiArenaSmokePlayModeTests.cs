@@ -7,7 +7,6 @@ using AI.Context;
 using AI.Scanning;
 using Substrate.Sessions;
 using Substrate.Sectors;
-using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;

@@ -11,7 +11,6 @@ using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
-using Utils;
 
 namespace Tests.EditMode
 {

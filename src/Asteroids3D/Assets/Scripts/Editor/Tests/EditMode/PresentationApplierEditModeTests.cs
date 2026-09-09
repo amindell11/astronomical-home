@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using Combat.Projectiles;
 using Damage;
 using Substrate.Presentation;
-using Substrate.Services;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using Substrate.Services.Projectiles;
-using Utils;
 
 namespace Tests.EditMode
 {

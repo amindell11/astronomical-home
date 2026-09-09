@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Substrate.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
 using Substrate.Services.Units;
-using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
 
 namespace Tests.EditMode

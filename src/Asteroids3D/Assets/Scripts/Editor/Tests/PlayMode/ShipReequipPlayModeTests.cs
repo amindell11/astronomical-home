@@ -4,7 +4,6 @@ using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game;
 
 namespace Tests.PlayMode
 {

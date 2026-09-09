@@ -2,7 +2,6 @@ using System;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
-using Substrate.Services;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;

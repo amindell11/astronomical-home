@@ -14,7 +14,7 @@ namespace UI
         // Same plane-dweller convention as the arena (GamePlane.PlanePose): normal away from the
         // viewer (world-down), nose screen-right — world-Y anchor spin is then true in-plane yaw.
         private static readonly Quaternion BaseOrientation =
-            Game.GamePlane.PlanePose(Vector3.down, Vector3.right);
+            Substrate.GamePlane.PlanePose(Vector3.down, Vector3.right);
 
         private const float IdleSpinDegPerSec = 20f;
         private const float PopOutSeconds = 0.12f;

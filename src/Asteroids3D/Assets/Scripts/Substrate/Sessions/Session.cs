@@ -9,7 +9,6 @@ using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
 using Substrate.Services.Environment;
-using Game;
 
 namespace Substrate.Sessions
 {
