@@ -1,31 +1,22 @@
 using System;
 using System.Collections;
-using Game.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using World;
 
 namespace Game.Services.Environment
 {
-    public class EnvironmentService : IEnvironmentService
+    /// <summary>
+    /// Locale switching for one session, held privately by it rather than by the service container:
+    /// swap the active (lighting) scene to a sector's authored locale before its content builds, and
+    /// put the boot scene's lighting back at teardown. Both steps are presentation-only — the session
+    /// skips them headless — and nothing outside the session ever calls them.
+    /// </summary>
+    public class LocaleService
     {
-        private readonly Scene bootScene;
-        private readonly Transform arenaRoot;
-        private readonly bool presentationEnabled;
+        private readonly Scene bootScene = SceneManager.GetActiveScene();
         private string loadedLocaleName;
 
-        public EnvironmentService(Transform arenaRoot = null, bool presentationEnabled = true)
-        {
-            bootScene = SceneManager.GetActiveScene();
-            this.arenaRoot = arenaRoot;
-            this.presentationEnabled = presentationEnabled;
-        }
-
-        public WorldRoot World { get; private set; }
-
-        public Transform WorldFollowerTransform =>
-            World && World.Follower ? World.Follower.transform : null;
-
+        /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty (inherit boot lighting) or already applied.</summary>
         public IEnumerator ApplyLocaleAsync(string localeSceneName)
         {
             if (string.IsNullOrWhiteSpace(localeSceneName) || loadedLocaleName == localeSceneName)
@@ -54,6 +45,7 @@ namespace Game.Services.Environment
             loadedLocaleName = localeSceneName;
         }
 
+        /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
         public IEnumerator RestoreBootEnvironmentAsync()
         {
             if (string.IsNullOrEmpty(loadedLocaleName))
@@ -65,28 +57,6 @@ namespace Game.Services.Environment
 
             yield return UnloadLocaleAsync(loadedLocaleName);
             loadedLocaleName = null;
-        }
-
-        public void SpawnWorld(WorldRoot prefab)
-        {
-            if (!prefab) return;
-            World = UnityEngine.Object.Instantiate(prefab, arenaRoot);
-            PresentationApplier.Apply(World.gameObject, presentationEnabled);
-        }
-
-        public void AdoptWorld(WorldRoot existing)
-        {
-            if (!existing) return;
-            World = existing;
-            existing.transform.SetParent(arenaRoot, true);
-            PresentationApplier.Apply(World.gameObject, presentationEnabled);
-        }
-
-        public void Clear()
-        {
-            if (!World) return;
-            UnityEngine.Object.Destroy(World.gameObject);
-            World = null;
         }
 
         // SetActiveScene does not recompute the skybox-derived ambient/reflection probe; refresh it here.

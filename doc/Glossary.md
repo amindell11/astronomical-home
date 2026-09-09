@@ -83,7 +83,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
-| **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
+| **anchor** | `--initialize-from` checkpoint · field anchor / subject (the transform an asteroid field streams and LODs against) / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
@@ -342,15 +342,28 @@ Format: **term** — definition. *(authority)*
 ### Game & sim
 
 - **session tier** — the lifecycle layer (`Game/Sessions`) whose one type, the
-  self-orchestrating `Session`, composes a session's services and rig and cycles
-  sectors; a *host* paces it. The RL harness does not use it; it composes the
-  same per-ship services through `ShipServices.Compose`.
+  self-orchestrating `Session`, composes a session's services and cycles
+  sectors; a *host* paces it and hands each load the *hero* it built — the
+  session owns no rig and no policy. The RL harness does not use it; it composes
+  the same per-ship services through `ShipServices.Compose`.
 - **host** — the scene component that wraps a session-shaped thing and is the
   outside world's interface to it: the *game session host* (`GameSessionHost`,
-  `Game/Play`) owns the clock, hangar, death recap and reset policy over one
-  `Session`; the *harness session host* (`HarnessSessionHost`) sequences
-  compositions and episode blocks for a lane client. Always qualified — bare
-  "host" also names the pool worktree machine.
+  `Game/Play`) builds the viewport (the observer camera, with the starfield
+  backdrop and reverb zone riding it) and the optional *player rig*, and owns
+  the clock, hangar, death recap and reset policy over one `Session`; the
+  *harness session host* (`HarnessSessionHost`) sequences compositions and
+  episode blocks for a lane client. Always qualified — bare "host" also names
+  the pool worktree machine.
+- **player rig** — what the interactive game puts into a session for the human:
+  the player ship and its commander, the HUD (overlay, UI and minimap cameras),
+  the pending loadout, the damage ledger and the death hook. Built once by the
+  game session host against the viewport it owns, injected into every sector
+  load, torn down at session exit. A host with no rig assigned has no player.
+  *(`PlayerRig`, `Game/Play`)*
+- **hero** — the main character of a session: the ship a sector lays out around
+  and resets to its declared start. The player in the interactive game, possibly
+  an AI in a scenario; the sector side still names it *player* (`ctx.Player`,
+  `PlayerStart`, the tag). *(`Session.LoadSector(hero)`)*
 - **session frame** — the in-plane frame a session's authored content is placed
   in (offset + `Place`); zero for the single-arena game, a per-arena offset for
   anything fanning sessions across one plane. A session fact, distinct from the
@@ -532,7 +545,7 @@ Format: **term** — definition. *(authority)*
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
 - **damage ledger** — per-life accumulation of the player's received DamageInfo
-  rows, aggregated per source — consumer-side recorder owned by the session rig,
+  rows, aggregated per source — consumer-side recorder owned by the player rig,
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
 - **death recap** — the post-death summary rendered from the damage ledger at

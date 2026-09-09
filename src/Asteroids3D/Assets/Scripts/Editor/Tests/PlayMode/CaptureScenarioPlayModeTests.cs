@@ -69,7 +69,6 @@ namespace Tests.PlayMode
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
                 sectorEntry = null,
-                buildPlayer = false,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();

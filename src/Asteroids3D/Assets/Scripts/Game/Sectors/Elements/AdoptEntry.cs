@@ -7,14 +7,14 @@ namespace Game.Sectors.Elements
     /// A baked, serialized reference to a hand-placed content child of a sector prefab that is
     /// wired into services in place at load (the object you placed IS the runtime object).
     /// The set of adoptable target types is recognised by type-dispatch in the adopter
-    /// (<c>Ship</c> / <c>WorldRoot</c> / <c>UpdatingAsteroidField</c>); see <see cref="Sector"/>.
+    /// (<c>Ship</c> / <c>UpdatingAsteroidField</c>); see <see cref="Sector"/>.
     /// Annotations are authored in the sector's inspector list, never on a per-child wrapper.
     /// Pose comes from the child's transform.
     /// </summary>
     [Serializable]
     public struct AdoptEntry
     {
-        [Tooltip("Placed child to adopt: a Ship, WorldRoot, or UpdatingAsteroidField.")]
+        [Tooltip("Placed child to adopt: a Ship or UpdatingAsteroidField.")]
         public Component target;
 
         [Tooltip("Team number applied to an adopted Ship (ignored for non-ship targets).")]

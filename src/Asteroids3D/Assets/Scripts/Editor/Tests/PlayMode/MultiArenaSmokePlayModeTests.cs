@@ -339,7 +339,6 @@ namespace Tests.PlayMode
             arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {
                 sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
-                buildPlayer = false,
                 presentation = false,
                 offset = arena.Offset
             });

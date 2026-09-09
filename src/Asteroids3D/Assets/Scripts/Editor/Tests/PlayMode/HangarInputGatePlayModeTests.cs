@@ -1,11 +1,11 @@
 #if UNITY_EDITOR
 using System.Collections;
+using Cameras;
 using System.Reflection;
 using Game.Play;
 using Game.Services;
 using Game.Sessions;
 using NUnit.Framework;
-using Player;
 using Ships;
 using Tests.PlayMode.Common;
 using UI;
@@ -16,11 +16,8 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Utils;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 
 namespace Tests.PlayMode
 {
@@ -40,7 +37,8 @@ namespace Tests.PlayMode
 
         private GameObject servicesGo;
         private GameObject hostGo;
-        private SessionRig rig;
+        private PlayerRig rig;
+        private ObserverCam observer;
         private GameServices services;
 
         public override void TearDown()
@@ -53,6 +51,7 @@ namespace Tests.PlayMode
             services?.ClearAll();
             DestroyTestObject(hostGo);
             DestroyTestObject(rig ? rig.gameObject : null);
+            DestroyTestObject(observer ? observer.gameObject : null);
             DestroyTestObject(servicesGo);
             base.TearDown();
         }
@@ -70,15 +69,13 @@ namespace Tests.PlayMode
             services = new GameServices(
                 unitService: unitService,
                 projectiles: projectiles,
-                environmentService: new EnvironmentService(),
-                objectiveService: objectiveService,
-                cameraService: new CameraService(),
-                uiService: new UIService());
+                objectiveService: objectiveService);
 
-            var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
-            Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
+            observer = TestAssets.NewObserverCam();
+            var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
+            Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, new SessionFrame(Vector2.zero), onPlayerDeath: null);
+            yield return rig.Build(services, observer, new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
@@ -93,7 +90,7 @@ namespace Tests.PlayMode
             var finished = false;
             IEnumerator Run()
             {
-                yield return host.RunHangar(rig, services);
+                yield return host.RunHangar(rig);
                 finished = true;
             }
             rig.StartCoroutine(Run());

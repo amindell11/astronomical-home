@@ -13,11 +13,8 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 using Game.Sectors.Elements;
 using Game.Sectors.Activation;
 
@@ -49,9 +46,7 @@ namespace Tests.PlayMode
 
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
-            _services = new GameServices(
-                _unitService, projectiles, new EnvironmentService(), _objectives,
-                new CameraService(), new UIService());
+            _services = new GameServices(_unitService, projectiles, _objectives);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
@@ -348,7 +343,7 @@ namespace Tests.PlayMode
             var module = moduleGO.AddComponent<SectorSpineModule>();
             module.Bind(key, zone);
 
-            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, new SectorEventBus());
+            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus: new SectorEventBus());
             yield return module.Setup(ctx);
             Assert.AreEqual(key.transform, svc.SpineTarget, "Sanity: the live module reports the spine target.");
 
@@ -372,10 +367,7 @@ namespace Tests.PlayMode
             public StubServices(IObjectiveService objectives) => this.objectives = objectives;
             public IUnitService UnitService => null;
             public IProjectileService Projectiles => null;
-            public IEnvironmentService EnvironmentService => null;
             public IObjectiveService ObjectiveService => objectives;
-            public ICameraService CameraService => null;
-            public IUIService UIService => null;
             public bool PresentationEnabled => true;
         }
     }

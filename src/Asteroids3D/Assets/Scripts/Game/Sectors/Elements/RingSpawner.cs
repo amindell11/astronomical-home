@@ -52,7 +52,7 @@ namespace Game.Sectors.Elements
 
             // Producer-owned respawn: each product is wired here (additive — default policy is a no-op).
             foreach (var ship in spawned)
-                Respawn.Wire(ship, respawn, ctx.Services, ctx.Frame.Offset);
+                Respawn.Wire(ship, respawn, ctx.Services.UnitService);
         }
 
         protected override void OnDrawGizmos()

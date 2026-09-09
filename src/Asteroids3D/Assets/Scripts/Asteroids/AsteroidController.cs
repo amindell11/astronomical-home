@@ -14,7 +14,6 @@ namespace Asteroids
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;
         private SphereCollider cheapCollider;
-        private Transform worldFollowTransform;
         private AsteroidDamage damage;
 
 
@@ -56,11 +55,6 @@ namespace Asteroids
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             Rb.useGravity = false;
-        }
-
-        public void SetWorldAnchor(Transform anchor)
-        {
-            worldFollowTransform = anchor;
         }
 
         public void Initialize(
@@ -155,10 +149,11 @@ namespace Asteroids
 
             if (!meshCollider) return;
             // No anchor = no collider LOD: full physics, never ghosts (harness/spectator/benchmark fields).
+            var anchor = AsteroidSpawner ? AsteroidSpawner.AnchorPosition : null;
             var shouldEnable = true;
-            if (worldFollowTransform)
+            if (anchor.HasValue)
             {
-                var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+                var distSqr = (anchor.Value - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
                 shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             }
             if (meshCollider.enabled != shouldEnable)

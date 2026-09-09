@@ -14,9 +14,6 @@ namespace Game.Sessions
         [Tooltip("The sector to load. (Single-sector today; the future home for sector sequencing.)")]
         public SectorEntry sectorEntry;
 
-        [Tooltip("When false, no player ship is built (spectator/headless).")]
-        public bool buildPlayer = true;
-
         [Tooltip("When false, ship visual rigs, HUD/UI and one-shot VFX are disabled (headless/RL) — " +
                  "ships stay renderer/audio/particle-free while fully simulated.")]
         public bool presentation = true;

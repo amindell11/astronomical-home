@@ -4,8 +4,8 @@ using Game.Play;
 using Game.Sectors;
 using Game.Services;
 using Game.Sessions;
+using Cameras;
 using NUnit.Framework;
-using Player;
 using Ships;
 using UnityEngine;
 using Ships.Registry;
@@ -38,7 +38,7 @@ namespace Tests.EditMode
             Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType,
                 "Initialize must accept the session's in-plane frame as its third parameter");
             Assert.AreEqual(typeof(Ship), parameters[3].ParameterType,
-                "Initialize must accept the injected session-rig player as its fourth parameter");
+                "Initialize must accept the host-injected player as its fourth parameter");
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null, null),
+                new GameServices(null, null, null),
                 "GameServices constructor must reject null services");
         }
 
@@ -129,8 +129,9 @@ namespace Tests.EditMode
                 Assert.IsNotNull(method, $"Session must expose lifecycle step {name}");
                 Assert.AreEqual(typeof(IEnumerator), method.ReturnType,
                     $"{name} must be a coroutine (IEnumerator)");
-                Assert.IsEmpty(method.GetParameters(),
-                    $"{name} drives the session it belongs to, so it takes no arguments");
+                foreach (var parameter in method.GetParameters())
+                    Assert.IsTrue(parameter.IsOptional,
+                        $"{name} drives the session it belongs to, so every argument is optional");
             }
         }
 
@@ -142,7 +143,8 @@ namespace Tests.EditMode
                 "Session is a plain object, not a scene component");
             Assert.IsNotNull(type.GetProperty("Services"), "Session must expose Services");
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "Session must expose ActiveSector");
-            Assert.IsNotNull(type.GetProperty("Rig"), "Session must expose Rig");
+            Assert.IsNull(type.GetProperty("Rig"),
+                "the player is the host's, not the session's — a session holds no rig");
             Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
                 "Session must expose its in-plane Frame");
             // Presentation policy rides SessionProfile to the GameServices/spawn seams (plus the
@@ -150,42 +152,50 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Session_TakesItsPolicyHooksAtConstruction()
+        public void Session_TakesOnlyItsSubstrateAtConstruction()
         {
             var constructors = typeof(Session).GetConstructors();
             Assert.AreEqual(1, constructors.Length, "Session has a single composition root");
             var parameters = constructors[0].GetParameters();
-            Assert.AreEqual(7, parameters.Length,
-                "Session(profile, root, units, objectives, rig, onSectorComplete, onPlayerDeath)");
+            Assert.AreEqual(4, parameters.Length,
+                "Session(profile, root, units, objectives) — no rig, no policy");
             Assert.AreEqual(typeof(SessionProfile), parameters[0].ParameterType);
             Assert.AreEqual(typeof(Transform), parameters[1].ParameterType);
             Assert.AreEqual(typeof(UnitService), parameters[2].ParameterType);
             Assert.AreEqual(typeof(ObjectiveService), parameters[3].ParameterType);
-            Assert.AreEqual(typeof(SessionRig), parameters[4].ParameterType);
-            Assert.AreEqual(typeof(Action<SectorResult>), parameters[5].ParameterType,
-                "the sector-complete hook is injected, never settable after construction");
-            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[6].ParameterType,
-                "the player-death hook is injected, never settable after construction");
 
             Assert.IsNull(typeof(Session).GetProperty("OnSectorComplete"),
-                "policy hooks are constructor parameters, not settable properties");
+                "the sector-complete hook rides the load call, not a settable property");
             Assert.IsNull(typeof(Session).GetProperty("OnPlayerDeath"),
-                "policy hooks are constructor parameters, not settable properties");
+                "the player-death hook belongs to the player rig, not the session");
         }
 
         [Test]
-        public void SessionRig_TakesInjectedDeathCallback_NoRestartEvent()
+        public void Session_TakesTheSectorCompleteHookOnTheLoadCall()
         {
-            Assert.IsNull(typeof(SessionRig).GetEvent("RestartRequested"),
-                "SessionRig must not declare a RestartRequested event");
+            var parameters = typeof(Session).GetMethod("LoadSector").GetParameters();
+            Assert.AreEqual(2, parameters.Length,
+                "LoadSector(hero, onSectorComplete)");
+            Assert.AreEqual(typeof(Ship), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(Action<SectorResult>), parameters[1].ParameterType,
+                "the sector-complete hook binds for the life of one load");
+            foreach (var parameter in parameters)
+                Assert.IsTrue(parameter.IsOptional, $"{parameter.Name} must be optional");
+        }
 
-            var build = typeof(SessionRig).GetMethod("Build");
-            Assert.IsNotNull(build, "SessionRig must expose Build");
+        [Test]
+        public void PlayerRig_TakesInjectedDeathCallback_NoRestartEvent()
+        {
+            Assert.IsNull(typeof(PlayerRig).GetEvent("RestartRequested"),
+                "PlayerRig must not declare a RestartRequested event");
+
+            var build = typeof(PlayerRig).GetMethod("Build");
+            Assert.IsNotNull(build, "PlayerRig must expose Build");
             var parameters = build.GetParameters();
             Assert.AreEqual(4, parameters.Length,
-                "Build must take (services, buildPlayer, frame, onPlayerDeath)");
+                "Build must take (services, observer, frame, onPlayerDeath)");
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
-            Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(ObserverCam), parameters[1].ParameterType);
             Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType);
             Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[3].ParameterType);
         }

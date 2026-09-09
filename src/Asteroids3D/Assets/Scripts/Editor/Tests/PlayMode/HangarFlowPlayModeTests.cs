@@ -1,7 +1,6 @@
 using System.Collections;
 using Game.Play;
 using NUnit.Framework;
-using Player;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -41,11 +40,10 @@ namespace Tests.PlayMode
 
             // A bare rig: no player was built, no screen prefab assigned — both gate conditions hold.
             rigGo = new GameObject("TestRig");
-            var rig = rigGo.AddComponent<SessionRig>();
+            var rig = rigGo.AddComponent<PlayerRig>();
 
-            // Services are unread on the headless path: it applies the loadout and returns.
             var finished = false;
-            var step = host.RunHangar(rig, services: null);
+            var step = host.RunHangar(rig);
             while (step.MoveNext())
                 yield return step.Current;
             finished = true;

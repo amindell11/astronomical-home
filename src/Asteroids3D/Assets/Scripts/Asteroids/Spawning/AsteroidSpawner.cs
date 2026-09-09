@@ -28,7 +28,7 @@ namespace Asteroids.Spawning
         private Registry registry;
         private SpawnPool pool;
         private int poolMaxSizeHint;
-        private Transform worldAnchor;
+        private Func<Vector3?> anchorPosition;
         private Fragger fragger;
         private float lethalityScale = 1f;
         private bool presentationEnabled = true;
@@ -38,9 +38,13 @@ namespace Asteroids.Spawning
         // sibling Awake ordering.
         private SpawnPool Pool => pool ??= new SpawnPool(settings, transform, poolMaxSizeHint, ApplyPresentation);
 
-        public void SetWorldAnchor(Transform anchor)
+        /// <summary>Plane-projected position every spawned asteroid LODs its mesh collider against; null when the owning field has no subject.</summary>
+        public Vector3? AnchorPosition => anchorPosition?.Invoke();
+
+        /// <summary>Stage the subject probe every asteroid reads live; the owning field decides who the subject is.</summary>
+        public void SetAnchor(Func<Vector3?> anchorPosition)
         {
-            worldAnchor = anchor;
+            this.anchorPosition = anchorPosition;
         }
 
         /// <summary>Session presentation policy for every later spawn; staged by the owning field before the first spawn. The pool is arena-local, so applying once per created instance covers all reuse.</summary>
@@ -115,7 +119,6 @@ namespace Asteroids.Spawning
             var ast = Pool.Get();
             ast.transform.SetParent(transform);
             ast.transform.SetPositionAndRotation(pose.position, pose.rotation);
-            ast.SetWorldAnchor(worldAnchor);
             return ast;
         }
     }

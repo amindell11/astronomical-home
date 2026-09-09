@@ -1,30 +1,24 @@
 using System;
 using System.Collections;
-using Damage;
 using Game.Sectors;
 using Game.Services;
-using Player;
 using Ships;
 using UnityEngine;
 using Utils;
-using Ships.Registry;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Objectives;
 using Game.Services.Environment;
-using Game.Services.Camera;
 
 namespace Game.Sessions
 {
     /// <summary>
     /// One game session, orchestrating its own lifecycle over the substrate it is handed: it composes
-    /// the service container and the optional player rig once, loads and unloads the profile's sector
-    /// any number of times, and tears everything down. A host (<c>GameSessionHost</c> for the
-    /// interactive game) paces these steps and owns every policy — clock, hangar, death and restart;
-    /// the two hooks injected at construction are the only policy the session carries, and they are
-    /// wired before anything can die or complete. The RL harness composes the same substrate through
-    /// <see cref="ShipServices"/> and never drives a session. No process-wide state is written except
-    /// the presentation flag set on compose, so one process can hold several sessions.
+    /// the service container once, loads and unloads the profile's sector any number of times, and
+    /// tears everything down. It owns no player and no policy — a host (<c>GameSessionHost</c> for the
+    /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
+    /// player it built to each load. The RL harness composes the same substrate
+    /// through <see cref="ShipServices"/> and never drives a session. No process-wide state is written
+    /// except the presentation flag set on compose, so one process can hold several sessions.
     /// </summary>
     public sealed class Session
     {
@@ -33,8 +27,8 @@ namespace Game.Sessions
         private readonly Transform root;
         private readonly UnitService units;
         private readonly ObjectiveService objectives;
-        private readonly Action<SectorResult> onSectorComplete;
-        private readonly Action<ShipId, DamageInfo> onPlayerDeath;
+        private readonly LocaleService locale = new();
+        private Action<SectorResult> onSectorComplete;
         private Phase phase = Phase.Created;
 
         public SessionProfile Profile { get; }
@@ -45,25 +39,18 @@ namespace Game.Sessions
         /// <summary>Service registries owned by this session; null once torn down.</summary>
         public GameServices Services { get; private set; }
 
-        /// <summary>Session-tier player/camera/UI rig; null for a headless session.</summary>
-        public SessionRig Rig { get; }
-
         public Sector ActiveSector { get; private set; }
 
-        public Session(SessionProfile profile, Transform root, UnitService units, ObjectiveService objectives,
-            SessionRig rig, Action<SectorResult> onSectorComplete, Action<ShipId, DamageInfo> onPlayerDeath)
+        public Session(SessionProfile profile, Transform root, UnitService units, ObjectiveService objectives)
         {
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
             this.root = root ? root : throw new ArgumentNullException(nameof(root));
             this.units = units ? units : throw new ArgumentNullException(nameof(units));
             this.objectives = objectives ? objectives : throw new ArgumentNullException(nameof(objectives));
-            Rig = rig;
-            this.onSectorComplete = onSectorComplete;
-            this.onPlayerDeath = onPlayerDeath;
             Frame = new SessionFrame(profile.offset);
         }
 
-        /// <summary>Compose the service container and the rig — once; the rig persists across sector loads until <see cref="Teardown"/>.</summary>
+        /// <summary>Compose the service container — once; it persists across sector loads until <see cref="Teardown"/>.</summary>
         public IEnumerator Compose()
         {
             Require(Phase.Created, nameof(Compose));
@@ -76,21 +63,22 @@ namespace Game.Sessions
             Services = new GameServices(
                 unitService: units,
                 projectiles: projectiles,
-                environmentService: new EnvironmentService(root, Profile.presentation),
                 objectiveService: objectives,
-                cameraService: new CameraService(),
-                uiService: new UIService(),
                 presentationEnabled: Profile.presentation
             );
 
-            // Composed once the services exist: a hook firing while the rig builds may already restart.
             phase = Phase.Composed;
-            if (Rig)
-                yield return Rig.Build(Services, Profile.buildPlayer, Frame, onPlayerDeath);
+            yield break;
         }
 
-        /// <summary>Load the profile's sector, subscribe the sector-complete hook to it, and reset the player to the sector's declared start.</summary>
-        public IEnumerator LoadSector()
+        /// <summary>
+        /// Load the profile's sector, inject the host's hero into it, subscribe
+        /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
+        /// sector's declared start. The hero is the main character the sector lays out around — the
+        /// player today, possibly an AI; the sector side still names it the player. Every argument is
+        /// optional: a headless session loads with none.
+        /// </summary>
+        public IEnumerator LoadSector(Ship hero = null, Action<SectorResult> onSectorComplete = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
             var entry = Profile.sectorEntry;
@@ -99,8 +87,7 @@ namespace Game.Sessions
 
             // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
             if (Profile.presentation)
-                yield return Services.EnvironmentService.ApplyLocaleAsync(
-                    entry.config ? entry.config.Locale?.SceneName : null);
+                yield return locale.ApplyLocaleAsync(entry.config ? entry.config.Locale?.SceneName : null);
 
             // Compose under an inactive holder at the arena root so authored children Awake only after adoption has wired them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
@@ -111,15 +98,17 @@ namespace Game.Sessions
             ActiveSector = sector;
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
-            // Inject the persistent rig's player — the sector references it, never builds/owns it.
-            sector.Initialize(Services, entry.config, Frame, Rig ? Rig.Player : null);
+            // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
+            sector.Initialize(Services, entry.config, Frame, hero);
 
+            this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
                 sector.OnSectorComplete += onSectorComplete;
 
             // The sector only DECLARES its start via PlayerStart; the session does the entry reset.
-            if (Rig && Rig.Player)
-                Services.UnitService.RespawnShip(Rig.Player.Id, sector.PlayerStart, 0f);
+            // It must precede Setup: the obstacle field lays out and anchors against the placed hero.
+            if (hero)
+                Services.UnitService.RespawnShip(hero.Id, sector.PlayerStart, 0f);
 
             yield return sector.Setup();
 
@@ -128,11 +117,11 @@ namespace Game.Sessions
             UnityEngine.Object.Destroy(holder);
         }
 
-        /// <summary>Unload the sector (run its teardown phase, destroy its content); the rig and registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
+        /// <summary>Unload the sector (run its teardown phase, destroy its content); the registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
         public IEnumerator UnloadSector()
         {
             Require(Phase.Loaded, nameof(UnloadSector));
-            // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
+            // Drop any queued player/NPC revives so a pending respawn cannot fire into the torn-down sector.
             Services.UnitService.CancelPendingRespawns();
             // Old-sector transients must not survive into the next sector (they live under the session root, not the sector).
             Services.Projectiles.ReturnAllToPool();
@@ -141,7 +130,7 @@ namespace Game.Sessions
             phase = Phase.Composed;
         }
 
-        /// <summary>Session exit: drop the sector (without running its teardown phase), tear down the rig, and wipe every registry.</summary>
+        /// <summary>Session exit: drop the sector (without running its teardown phase) and wipe every registry.</summary>
         public IEnumerator Teardown()
         {
             if (phase is not (Phase.Composed or Phase.Loaded))
@@ -149,12 +138,8 @@ namespace Game.Sessions
 
             yield return DestroyActiveSector(runTeardown: false);
 
-            if (Rig)
-                Rig.Teardown();
-
-            // Restore boot lighting + unload the locale after the rig (a boot-scene object) is gone.
             if (Profile.presentation)
-                yield return Services.EnvironmentService.RestoreBootEnvironmentAsync();
+                yield return locale.RestoreBootEnvironmentAsync();
 
             Services.ClearAll();
             Services = null;
@@ -174,6 +159,7 @@ namespace Game.Sessions
 
             if (onSectorComplete != null)
                 sector.OnSectorComplete -= onSectorComplete;
+            onSectorComplete = null;
 
             if (runTeardown)
                 yield return sector.Teardown();

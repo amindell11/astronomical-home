@@ -170,10 +170,11 @@ MonoBehaviour:
       config: {fileID: 11400000, guid: 6cb05f9f988f48a18ee615e444e24d3f, type: 2}
       prefab: {fileID: 6734031631238332472, guid: 47426a24cc9026e408695399dc81c107,
         type: 3}
-    buildPlayer: 1
     presentation: 1
     offset: {x: 0, y: 0}
   playerRig: {fileID: 3540623995813302772, guid: 07feb380eb970254986133c3546b624c,
+    type: 3}
+  observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
     type: 3}
   splashPrefab: {fileID: 4900000000000000005, guid: 29caef627551652e1ae46b2ea099953e,
     type: 3}

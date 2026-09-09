@@ -6,7 +6,11 @@ using Game.Sectors.Activation;
 
 namespace Game.Sectors.Elements
 {
-    /// <summary>Build/teardown context for spawners and modules — no static lookups. The frame, the sector's obstacle field and the player are injected at runtime from the session (player null for headless/RL), the dependencies that cannot be dragged serialized references.</summary>
+    /// <summary>
+    /// Build/teardown context for spawners and modules — no static lookups. The frame, the sector's
+    /// obstacle field and the player are injected at runtime from the host through the session
+    /// (all null for headless/RL), the dependencies that cannot be dragged as serialized references.
+    /// </summary>
     public readonly struct SectorBuildContext
     {
         public readonly IGameServices Services;

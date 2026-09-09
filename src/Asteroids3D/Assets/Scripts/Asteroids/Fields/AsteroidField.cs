@@ -29,8 +29,6 @@ namespace Asteroids.Fields
         {
         }
 
-        public void SetWorldAnchor(Transform anchor) => AsteroidSpawner?.SetWorldAnchor(anchor);
-
         /// <summary>Pre-Awake-safe stash (sector Produce runs before this field's Awake); forwarded to the spawner on wiring.</summary>
         public void SetPresentation(bool enabled)
         {

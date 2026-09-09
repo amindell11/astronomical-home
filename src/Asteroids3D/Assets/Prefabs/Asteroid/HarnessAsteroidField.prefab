@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fd180f1995b12041beb2918914c5740, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: 31325b171e42d6d4980a0132e0d6ba36, type: 2}
 --- !u!114 &1000000000000000004
 MonoBehaviour:
@@ -57,13 +57,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: ca06035e090e4ca58ac4e8d5b236cbfe, type: 2}
-  follower: {fileID: 0}
   seed: 12345
-  drawChunkGizmos: 0
-  drawNoiseHeatmap: 0
 --- !u!114 &1000000000000000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,7 +71,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dfd940a710d276e4a8462d8ea44d954f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   asteroidFragAsteroidFragSettings: {fileID: 11400000, guid: 8baace25097f38847916b17e62b62f43,
     type: 2}

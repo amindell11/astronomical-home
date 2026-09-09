@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
+using Cameras;
 using Damage;
+using Game.Presentation;
 using Game.Sectors;
 using Game.Services;
 using Game.Sessions;
-using Player;
 using Ships;
 using UI;
 using UnityEngine;
@@ -21,8 +22,10 @@ namespace Game.Play
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and is the
     /// game's interface to it. It owns the clock (a coroutine state machine paced against the frame
     /// loop), the between-run hangar flow, the splash, the death recap, and the reset policy
-    /// (sector complete / player death → restart), injected into the session as its two hooks. The
-    /// session orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
+    /// (sector complete / player death → restart). It also builds the viewport — the observer camera
+    /// every sector and the player rig frame themselves against — and the optional
+    /// <see cref="PlayerRig"/>, handing both to the session at each sector load. The session
+    /// orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
     /// The RL harness's <c>HarnessSessionHost</c> is the other host shape, over the harness's own
     /// composition rather than a session.
     /// </summary>
@@ -36,8 +39,14 @@ namespace Game.Play
         [Header("Session")]
         [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
 
-        [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
-        [SerializeField] private SessionRig playerRig;
+        [Tooltip("The player and its HUD. Built once at Start; persists across sector restarts. " +
+                 "Null → no player (spectator).")]
+        [SerializeField] private PlayerRig playerRig;
+
+        [Header("View")]
+        [Tooltip("Observer camera spawned once at session start and framed on the fleet; the player " +
+                 "rig and the sector's modules are handed this instance.")]
+        [SerializeField] private ObserverCam observerCamPrefab;
 
         [Header("Splash")]
         [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
@@ -72,6 +81,7 @@ namespace Game.Play
         private ObjectiveService objectiveService;
 
         private Session session;
+        private ObserverCam observer;
         private Coroutine stateRoutine;
         public GameState CurrentState { get; private set; }
 
@@ -138,8 +148,7 @@ namespace Game.Play
 
         private IEnumerator HandleLoading()
         {
-            session = new Session(sessionProfile, transform, unitService, objectiveService, playerRig,
-                HandleSectorComplete, BuildDeathCallback());
+            session = new Session(sessionProfile, transform, unitService, objectiveService);
 
             yield return null;
             TransitionTo(GameState.Start);
@@ -149,7 +158,35 @@ namespace Game.Play
         {
             yield return session.Compose();
 
+            observer = BuildObserver(session.Services);
+            if (playerRig)
+                yield return playerRig.Build(session.Services, observer, session.Frame, BuildDeathCallback());
+
             TransitionTo(GameState.Hangar);
+        }
+
+        /// <summary>Stays callable without the state machine so the presentation gate can be driven directly.</summary>
+        internal ObserverCam BuildObserver(IGameServices services)
+        {
+            var built = Instantiate(observerCamPrefab);
+
+            // The authored prefab clears to the skybox; a non-presenting session must not render one.
+            if (!services.PresentationEnabled)
+            {
+                built.Cam.clearFlags = CameraClearFlags.SolidColor;
+                built.Cam.backgroundColor = Color.black;
+            }
+
+            // The camera carries authored presentation of its own (the starfield backdrop, the reverb zone).
+            PresentationApplier.Apply(built.gameObject, services.PresentationEnabled);
+
+            var registry = services.UnitService.ActiveRegistry;
+            if (registry == null)
+                return built;
+
+            registry.ActiveShips.OnAdd += s => built.AddSecondarySubject(s.transform);
+            registry.ActiveShips.OnRemove += s => built.RemoveSecondarySubject(s.transform);
+            return built;
         }
 
         // Services are read from the session at death time, after composition has populated them.
@@ -168,9 +205,7 @@ namespace Game.Play
                     if (!policy.Enabled) return null;
                     // No live producer transform here, so the authored point resolves against the frame origin.
                     return (victim, _) => session.Services.UnitService.WaitAndRespawnShip(
-                        victim,
-                        Respawn.Resolve(policy, session.Services, session.Frame.Offset, session.Frame.Offset),
-                        0f, policy.delay);
+                        victim, Respawn.Resolve(policy, session.Frame.Offset), 0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:
                     return null;
@@ -180,14 +215,14 @@ namespace Game.Play
         /// <summary>Between-run hangar step, run before every sector load (first launch and every restart).</summary>
         private IEnumerator HandleHangar()
         {
-            if (session.Rig)
-                yield return RunHangar(session.Rig, session.Services);
+            if (playerRig)
+                yield return RunHangar(playerRig);
 
             TransitionTo(GameState.LoadSector);
         }
 
         /// <summary>Interactive hangar flow; applies the standing loadout silently when headless (never blocks on a click) and stays callable without the state machine for tests.</summary>
-        internal IEnumerator RunHangar(SessionRig rig, IGameServices services)
+        internal IEnumerator RunHangar(PlayerRig rig)
         {
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab
                 || !GameSettings.PresentationEnabled)
@@ -196,7 +231,7 @@ namespace Game.Play
                 yield break;
             }
 
-            var overlay = services.UIService.ActiveOverlay;
+            var overlay = rig.Overlay;
             if (overlay) overlay.SetVisible(false);
             SetPlayerInputEnabled(rig, false);
 
@@ -211,12 +246,12 @@ namespace Game.Play
 
             // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
             SetPlayerInputEnabled(rig, true);
-            var activeOverlay = services.UIService.ActiveOverlay;
+            var activeOverlay = rig.Overlay;
             if (activeOverlay) activeOverlay.SetVisible(true);
         }
 
         // Fire1 shares mouse 0 with UI clicks, so the commander sleeps for the hangar screen's lifetime.
-        private static void SetPlayerInputEnabled(SessionRig rig, bool inputEnabled)
+        private static void SetPlayerInputEnabled(PlayerRig rig, bool inputEnabled)
         {
             if (rig.Player && rig.Player.Commander)
                 rig.Player.Commander.enabled = inputEnabled;
@@ -224,7 +259,7 @@ namespace Game.Play
 
         private IEnumerator HandleLoadSector()
         {
-            yield return session.LoadSector();
+            yield return session.LoadSector(playerRig ? playerRig.Player : null, HandleSectorComplete);
 
             TransitionTo(GameState.InSector);
         }
@@ -234,26 +269,25 @@ namespace Game.Play
         /// <summary>Recap hold between death and restart; headless (no presentation/rig) falls straight through.</summary>
         private IEnumerator HandleDeathRecap()
         {
-            var rig = session.Rig;
-            if (!GameSettings.PresentationEnabled || !rig)
+            if (!GameSettings.PresentationEnabled || !playerRig)
             {
                 TransitionTo(GameState.Restart);
                 yield break;
             }
 
-            var overlay = session.Services.UIService.ActiveOverlay;
+            var overlay = playerRig.Overlay;
             if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(rig, false);
+            SetPlayerInputEnabled(playerRig, false);
 
             var screen = DeathRecapScreen.Create();
             var dismissed = false;
-            screen.Show(lastKillingBlow, rig.Ledger.Rows, () => dismissed = true);
+            screen.Show(lastKillingBlow, playerRig.Ledger.Rows, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
 
             Destroy(screen.gameObject);
-            SetPlayerInputEnabled(rig, true);
+            SetPlayerInputEnabled(playerRig, true);
             if (overlay) overlay.SetVisible(true);
             TransitionTo(GameState.Restart);
         }
@@ -270,9 +304,15 @@ namespace Game.Play
             StartCoroutine(ExitRoutine());
         }
 
+        // Ships die before cameras: ClearAll destroys the player the rig and observer reference.
         private IEnumerator ExitRoutine()
         {
             yield return session.Teardown();
+            if (playerRig)
+                playerRig.Teardown();
+            if (observer)
+                Destroy(observer.gameObject);
+            observer = null;
             session = null;
         }
     }

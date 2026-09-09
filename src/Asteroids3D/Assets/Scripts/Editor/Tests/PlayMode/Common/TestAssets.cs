@@ -19,6 +19,7 @@ public static class TestAssets
     // Standard asset paths
     private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
+    private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
     /// <summary>
     /// Loads the Ship_2 prefab (commonly used in tests).
@@ -87,6 +88,17 @@ public static class TestAssets
     {
 #if UNITY_EDITOR
         return AssetDatabase.LoadAssetAtPath<ShieldModule>(assetPath);
+#else
+        return null;
+#endif
+    }
+
+    /// <summary>A live observer camera built from the authored prefab the game session host spawns.</summary>
+    public static Cameras.ObserverCam NewObserverCam()
+    {
+#if UNITY_EDITOR
+        var prefab = AssetDatabase.LoadAssetAtPath<Cameras.ObserverCam>(ObserverCamPrefabPath);
+        return prefab ? UnityEngine.Object.Instantiate(prefab) : null;
 #else
         return null;
 #endif
