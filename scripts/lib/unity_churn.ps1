@@ -33,9 +33,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$Script:UnityChurnFile = "src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
-# The whole allowlist: exactly this define line, with or without the analytics define.
-$Script:UnityChurnLinePattern = '^[-+]\s+Standalone: UNITY_POST_PROCESSING_STACK_V2(?:;SENTIS_ANALYTICS_ENABLED)?$'
+# The whole allowlist: in each file, exactly its define line, with or without the analytics define.
+$Script:UnityChurnFiles = [ordered]@{
+    "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" =
+        '^[-+]\s+Standalone: UNITY_POST_PROCESSING_STACK_V2(?:;SENTIS_ANALYTICS_ENABLED)?$'
+    "src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset" =
+        '^[-+]\s+- line: ''\|\s+Standalone: UNITY_POST_PROCESSING_STACK_V2(?:;SENTIS_ANALYTICS_ENABLED)?''$'
+}
 
 function Get-TrackedChanges {
     param([string]$RepoRoot)
@@ -51,16 +55,19 @@ function Test-UnityAnalyticsChurnOnly {
     if ($changes.Count -eq 0) { return [ordered]@{ knownChurn = $true; changes = @() } }
 
     $names = @(& git -c core.excludesFile= -C $RepoRoot diff --name-only)
-    $numstat = @(& git -c core.excludesFile= -C $RepoRoot diff --numstat -- $Script:UnityChurnFile)
-    $diff = @(& git -c core.excludesFile= -C $RepoRoot diff --unified=0 -- $Script:UnityChurnFile)
-    $content = @($diff | Where-Object { $_ -match '^[+-]\s+Standalone:' -and $_ -notmatch '^[+-]{3}' })
-
-    $known = $names.Count -eq 1 -and
-        $names[0] -eq $Script:UnityChurnFile -and
-        $numstat.Count -eq 1 -and
-        $numstat[0] -eq "1`t1`t$Script:UnityChurnFile" -and
-        $content.Count -eq 2 -and
-        @($content | Where-Object { $_ -notmatch $Script:UnityChurnLinePattern }).Count -eq 0
+    $known = $names.Count -ge 1
+    foreach ($name in $names) {
+        if (-not $Script:UnityChurnFiles.Contains($name)) { $known = $false; break }
+        $pattern = $Script:UnityChurnFiles[$name]
+        $numstat = @(& git -c core.excludesFile= -C $RepoRoot diff --numstat -- $name)
+        $diff = @(& git -c core.excludesFile= -C $RepoRoot diff --unified=0 -- $name)
+        $content = @($diff | Where-Object { $_ -match '^[+-]' -and $_ -notmatch '^[+-]{3}' })
+        $known = $numstat.Count -eq 1 -and
+            $numstat[0] -eq "1`t1`t$name" -and
+            $content.Count -eq 2 -and
+            @($content | Where-Object { $_ -notmatch $pattern }).Count -eq 0
+        if (-not $known) { break }
+    }
 
     return [ordered]@{ knownChurn = [bool]$known; changes = $changes }
 }

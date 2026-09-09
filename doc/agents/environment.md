@@ -53,7 +53,7 @@ cache, then `git checkout -f HEAD`. Delete this section when the quota is raised
 `com.unity.ai.inference` (pulled in by `com.unity.ml-agents`) has an
 `[InitializeOnLoadMethod]` that adds `SENTIS_ANALYTICS_ENABLED` when
 `EditorAnalytics.enabled` and removes it otherwise — either direction dirties
-`ProjectSettings.asset` and forces a recompile.
+`ProjectSettings.asset` and the `Main` build profile asset and forces a recompile.
 
 Fix, with Unity closed: set BOTH
 `HKCU\Software\Unity Technologies\Unity Editor 5.x\EnableEditorAnalytics_h1011414259`

@@ -44,7 +44,7 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | `lib/repo_root.ps1` | `Get-RepoRoot`: worktree root via git, never `..` counting. |
 | `lib/unity_editor.ps1` | `Resolve-UnityEditorPath`: the editor matching `ProjectVersion.txt`. |
 | `lib/process_tree.ps1` | `Stop-ProcessTree`: kill a Unity and its children. |
-| `lib/unity_churn.ps1` | `Test-UnityAnalyticsChurnOnly`: classify tracked changes as the known analytics-define flip. |
+| `lib/unity_churn.ps1` | `Test-UnityAnalyticsChurnOnly`: classify tracked changes as the known analytics-define flip (`ProjectSettings.asset`, the `Main` build profile). |
 
 ## tests/
 
