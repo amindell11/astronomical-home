@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct State

@@ -1,8 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using AI;
 using Game.Capture.GameView;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

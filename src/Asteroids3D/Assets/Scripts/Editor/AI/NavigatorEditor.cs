@@ -1,9 +1,10 @@
+using AI.Navigation.MPC;
 using Game;
 using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
-namespace Movement.MPC
+namespace AI
 {
     [CustomEditor(typeof(Navigator))]
     public class NavigatorEditor : Editor

@@ -1,8 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using Game.RLHarness;
 using NUnit.Framework;
+using RL.Hosts;
+using RL.Reward;
 
 namespace Tests.EditMode
 {

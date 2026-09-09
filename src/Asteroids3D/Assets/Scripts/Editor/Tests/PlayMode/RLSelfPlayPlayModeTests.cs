@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Game;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
@@ -11,6 +10,11 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Game.Services.Units;
 using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes;
+using RL.Episodes.Compositions;
+using RL.Hosts;
+using RL.Reward;
 
 namespace Tests.PlayMode
 {

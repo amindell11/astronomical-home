@@ -2,15 +2,15 @@
 using System;
 using AI;
 using AI.Context;
-using Game.RLHarness;
 using Movement;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
+using RL.Opponents;
 
 namespace Tests.EditMode
 {

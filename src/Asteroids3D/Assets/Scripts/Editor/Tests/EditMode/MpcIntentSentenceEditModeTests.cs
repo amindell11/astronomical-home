@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
 using AI;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Unity.Collections;

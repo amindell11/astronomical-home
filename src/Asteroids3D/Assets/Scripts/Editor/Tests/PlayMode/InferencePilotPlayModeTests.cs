@@ -1,12 +1,13 @@
 #if UNITY_EDITOR
 using System.Collections;
-using Game.RLHarness;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using Unity.InferenceEngine;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using RL.Episodes.Compositions;
+using RL.Runtime;
 
 namespace Tests.PlayMode
 {

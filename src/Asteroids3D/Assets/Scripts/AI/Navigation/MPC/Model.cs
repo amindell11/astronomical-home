@@ -1,7 +1,7 @@
 using Unity.Mathematics;
 using Movement;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     public static class Model
     {

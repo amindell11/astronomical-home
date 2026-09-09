@@ -3,7 +3,7 @@ using AI;
 using Combat.Projectiles;
 using Combat.Targeting;
 using Combat.Weapons;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using Ships;
 using Ships.Damage;
 using Ships.Movement;

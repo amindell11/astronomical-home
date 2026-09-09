@@ -1,0 +1,149 @@
+using System;
+using Game;
+using AI;
+using AI.Scanning;
+using Game.Services;
+using Ships;
+using Ships.Command;
+using UnityEngine;
+using Game.Services.Units;
+using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Opponents;
+using RL.Reward;
+using RL.Runtime;
+
+namespace RL.Episodes
+{
+    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected brain, versus a fixed mid-band brawler baseline (an Aggressor <see cref="ArchetypeBrain"/>); both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
+    public sealed class EpisodePair : IDisposable
+    {
+        private const uint AgentSeedStream = 101;
+        private const uint BaselineSeedStream = 202;
+
+        public Ship Agent { get; }
+        public Ship Baseline { get; }
+
+        private readonly UnitService units;
+        private readonly IProjectileService projectiles;
+        private readonly Vector2 arenaCenter;
+
+        private EpisodePair(UnitService units, IProjectileService projectiles, Vector2 arenaCenter,
+            Ship agent, Ship baseline)
+        {
+            this.units = units;
+            this.projectiles = projectiles;
+            this.arenaCenter = arenaCenter;
+            Agent = agent;
+            Baseline = baseline;
+        }
+
+        /// <summary>Spawns the pair at the (runSeed, episode 0) poses; the brain factory installs on the agent's commander and sees the baseline ship, so it can configure the injected opponent before the commanders initialize.</summary>
+        public static EpisodePair Spawn(UnitService units, Vector2 offset, IObstacleField field, IProjectileService projectiles,
+            in RewardSpec spec, Func<AICommander, Ship, Brain> installAgentBrain, HarnessAssets assets)
+        {
+            var poses = EpisodePoses.Derive(in spec, 0, offset);
+            var rootScope = new SeedScope(spec.runSeed);
+
+            var agent = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed());
+            var baseline = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.BaselinePilot,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
+
+            installAgentBrain(agent.GetComponentInChildren<AICommander>(), baseline);
+
+            // Fixed mid-band Aggressor draw: the deterministic default opponent; roster episodes re-install per draw.
+            baseline.GetComponentInChildren<AICommander>().InstallBrain<ArchetypeBrain>()
+                .Configure(agent, OpponentArchetype.Aggressor,
+                    new OpponentDraw { desiredRange = 10f, speedFraction = 0.85f },
+                    jukeSeed: 0, offset, spec.arenaRadius);
+
+            units.WireShipDependencies(agent, field);
+            units.WireShipDependencies(baseline, field);
+
+            return new EpisodePair(units, projectiles, offset, agent, baseline);
+        }
+
+        /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="PolicyBrain"/> (injected opponent) — the single recipe every agent host (training, eval, tests) shares.</summary>
+        public static EpisodePair SpawnWithAgentBrain(UnitService units, Vector2 offset, IObstacleField field,
+            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets, out PolicyBrain brain)
+        {
+            PolicyBrain created = null;
+            var pair = Spawn(units, offset, field, projectiles, in spec, (commander, baselineShip) =>
+            {
+                created = commander.InstallBrain<PolicyBrain>();
+                created.Configure(baselineShip);
+                return created;
+            }, assets);
+            brain = created;
+            return pair;
+        }
+
+        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="PolicyBrain"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No scripted baseline — both ships are agent-driven.</summary>
+        public static EpisodePair SpawnSelfPlayPair(UnitService units, Vector2 offset, IObstacleField field,
+            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
+            out PolicyBrain brainA, out PolicyBrain brainB)
+        {
+            var poses = EpisodePoses.Derive(in spec, 0, offset);
+            var rootScope = new SeedScope(spec.runSeed);
+
+            var shipA = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed());
+            var shipB = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
+
+            brainA = InstallAgentBrain(shipA, opponent: shipB);
+            brainB = InstallAgentBrain(shipB, opponent: shipA);
+
+            units.WireShipDependencies(shipA, field);
+            units.WireShipDependencies(shipB, field);
+            return new EpisodePair(units, projectiles, offset, shipA, shipB);
+        }
+
+        private static PolicyBrain InstallAgentBrain(Ship ship, Ship opponent)
+        {
+            var brain = ship.GetComponentInChildren<AICommander>().InstallBrain<PolicyBrain>();
+            brain.Configure(opponent);
+            return brain;
+        }
+
+        /// <summary>Atomic pair-reset to the (runSeed, episodeIndex) poses, flushing in-flight projectiles.</summary>
+        public SpawnPoses Reset(in RewardSpec spec, int episodeIndex)
+        {
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, arenaCenter);
+            units.RespawnShip(Agent.Id, poses.agentPos, poses.agentRotDeg);
+            units.RespawnShip(Baseline.Id, poses.baselinePos, poses.baselineRotDeg);
+            projectiles.ReturnAllToPool();
+            return poses;
+        }
+
+        public void Dispose()
+        {
+            Remove(Agent);
+            Remove(Baseline);
+        }
+
+        private void Remove(Ship ship)
+        {
+            if (!ship) return;
+            units.ActiveRegistry.ActiveShips.Remove(ship);
+            UnityEngine.Object.DestroyImmediate(ship.gameObject);
+        }
+
+        private static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
+            Ship shipPrefab, AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed)
+        {
+            var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
+                GamePlane.PlanePointToWorld(planePos),
+                GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
+            // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.
+            ship.transform.SetParent(units.transform, true);
+            units.ActiveRegistry.ActiveShips.Add(ship);
+
+            ship.Reequip(ship.Engine, ship.Shield, ship.Weapons.PrimaryMountPrefab, null);
+            if (ship.Weapons.Context.Slots.Count != 1)
+                throw new InvalidOperationException("Episode loadout must be lasers-only.");
+            return ship;
+        }
+    }
+}

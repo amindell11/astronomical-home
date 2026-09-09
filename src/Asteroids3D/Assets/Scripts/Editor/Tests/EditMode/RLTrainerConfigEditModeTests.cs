@@ -4,9 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Game.RLHarness;
 using NUnit.Framework;
 using UnityEngine;
+using RL.Hosts;
+using RL.Reward;
 
 namespace Tests.EditMode
 {

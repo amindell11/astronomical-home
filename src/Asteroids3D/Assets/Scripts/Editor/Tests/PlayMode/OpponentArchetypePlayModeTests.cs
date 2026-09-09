@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
@@ -12,6 +11,12 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Game.Services.Units;
 using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes;
+using RL.Hosts;
+using RL.Opponents;
+using RL.Probes;
+using RL.Reward;
 
 namespace Tests.PlayMode
 {

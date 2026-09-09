@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Objective term: the enemy's fire lane — a ray-segment from the enemy along its facing,
     // re-resolved per rollout step. Positive weight holds the lane, negative dodges it.

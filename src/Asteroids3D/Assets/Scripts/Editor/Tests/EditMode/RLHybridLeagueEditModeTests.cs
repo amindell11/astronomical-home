@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System;
-using Game.RLHarness;
 using NUnit.Framework;
+using RL.Hosts;
 
 namespace Tests.EditMode
 {

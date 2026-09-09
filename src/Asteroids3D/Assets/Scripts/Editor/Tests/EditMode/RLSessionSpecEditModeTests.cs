@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Capture;
-using Game.RLHarness;
 using NUnit.Framework;
+using RL.Hosts;
+using RL.Opponents;
+using RL.Probes;
 
 namespace Tests.EditMode
 {

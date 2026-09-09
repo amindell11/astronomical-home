@@ -60,7 +60,7 @@ def main() -> None:
     editor_pid = start_editor(
         lease, PROJECT,
         ["-batchmode", "-nographics",
-         "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
+         "-executeMethod", "RL.Hosts.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
          "-logFile", str(editor_log)],
         unity, editor_env)
     print(f"editor pid {editor_pid} (owned by unity-access lease {lease})")

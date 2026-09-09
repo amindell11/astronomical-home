@@ -1,5 +1,5 @@
 using System;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using Ships;
 using UnityEngine;
 using Ships.Registry;

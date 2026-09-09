@@ -1,4 +1,5 @@
 using System;
+using AI.Scanning.Sensors;
 using Combat.Projectiles;
 using Combat.Weapons;
 using Ships;
@@ -21,7 +22,7 @@ namespace Combat.Targeting
         [SerializeField] internal WeaponBase<Missile> weapon;
 
         private TargetLock targetLock;
-        private Sensors.FanSensor sensor;
+        private FanSensor sensor;
         private IShipRegistry registry;
         private ShipId selfShipId;
         internal Ship selfShip;
@@ -73,7 +74,7 @@ namespace Combat.Targeting
             targetLock = new TargetLock(lockOnTime, lockExpiry, CanLock);
             targetLock.OnStateChanged += HandleTargetLockStateChanged;
 
-            sensor = new Sensors.FanSensor(
+            sensor = new FanSensor(
                 firePoint,
                 maxLockDistance,
                 lockOnConeAngle,

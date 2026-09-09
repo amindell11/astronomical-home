@@ -1,12 +1,13 @@
 using System;
-using AI;
+using Movement;
+using AI.Navigation.MPC;
 using AI.Context;
 using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
 using AI.Strategy;
-namespace Movement.MPC
+namespace AI
 {
 #if UNITY_EDITOR
     public enum CostBreakdownMode

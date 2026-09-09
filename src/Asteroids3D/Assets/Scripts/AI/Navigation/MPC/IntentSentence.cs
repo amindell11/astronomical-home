@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using Unity.Mathematics;
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     /// <summary>Which live referent frame a slot's free parameters live in: position (world axes), facing, or velocity direction.</summary>
     public enum ReferentFrame

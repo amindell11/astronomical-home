@@ -6,7 +6,6 @@ using System.IO;
 using AI;
 using AI.Observation;
 using Game;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
@@ -15,6 +14,12 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Game.Services.Units;
 using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes;
+using RL.Hosts;
+using RL.Opponents;
+using RL.Reward;
+using RL.Runtime;
 
 namespace Tests.PlayMode
 {

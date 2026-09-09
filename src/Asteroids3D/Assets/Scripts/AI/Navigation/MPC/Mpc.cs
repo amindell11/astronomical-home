@@ -4,7 +4,7 @@ using Movement;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     /// <summary>Everything the MPC solver needs for one tick, assembled by the Navigator.</summary>
     public struct MpcInputs
