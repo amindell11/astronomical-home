@@ -64,11 +64,13 @@ Commands:
       silent fallback to auto-pick.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
-      Concurrent mutation returns nonzero; process exit releases the OS lock.
+      Concurrent mutation returns nonzero. The OS lock releases when its
+      last inheriting process exits.
       Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
-      Release slot lock (e.g., agent-1).
+      Release slot lock (e.g., agent-1). Uses the same mutation lock and Perl
+      requirement as acquire; contention exits nonzero without releasing.
 
   prepare <slot> [base_ref]
       Reset slot branch/worktree to base ref (default: origin/main)
