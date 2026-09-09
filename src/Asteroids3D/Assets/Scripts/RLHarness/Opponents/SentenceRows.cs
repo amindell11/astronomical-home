@@ -2,6 +2,8 @@ using System;
 using AI;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

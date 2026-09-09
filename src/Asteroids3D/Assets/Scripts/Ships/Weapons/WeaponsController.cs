@@ -7,6 +7,7 @@ using Game.Services;
 using Movement;
 using Ships.Command;
 using UnityEngine;
+using Game.Services.Projectiles;
 
 namespace Ships.Weapons
 {

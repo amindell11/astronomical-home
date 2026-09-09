@@ -1,6 +1,6 @@
-using Combat.Conditions;
 using NUnit.Framework;
 using UnityEngine;
+using Combat.Weapons.Conditions;
 
 namespace Tests.EditMode
 {

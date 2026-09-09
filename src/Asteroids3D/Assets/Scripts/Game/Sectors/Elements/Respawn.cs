@@ -3,7 +3,7 @@ using Ships;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>Wires a producer-owned <see cref="RespawnPolicy"/> onto a ship: on death, queue a revive (reposition + reset, NOT re-instantiate) via <c>UnitService.WaitAndRespawnShip</c>.</summary>
     public static class Respawn

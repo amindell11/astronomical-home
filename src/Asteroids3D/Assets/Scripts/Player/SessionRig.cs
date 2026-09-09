@@ -11,6 +11,7 @@ using UI;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using World;
+using Ships.Registry;
 
 namespace Player
 {

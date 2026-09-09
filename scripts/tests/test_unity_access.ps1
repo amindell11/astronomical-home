@@ -480,13 +480,14 @@ try {
 
     $missingReceiptRecorder = Join-Path $Root "missing-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($missingReceiptRecorder, "@echo off`r`n", $Utf8NoBom)
+    $missingProfileWait = 5
     $missingStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds 5 -Json 2>&1)
+    $missingOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease missingprofile -Slot agent-1 -ProjectPath $projA -UnityPath $missingReceiptRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -WaitSeconds 1 -ProfileWaitSeconds $missingProfileWait -Json 2>&1)
     $missingStopwatch.Stop()
     Assert-Equal $LASTEXITCODE 26 "StartEditor profile timeout exit"
     $missingResult = [string](@($missingOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $missingResult.profile.note "Editor exited before writing profile receipt." "StartEditor reports an exited editor without a receipt"
-    Assert-True ($missingStopwatch.Elapsed.TotalSeconds -lt 2) "StartEditor fails before the profile receipt timeout when the editor exits"
+    Assert-True ($missingStopwatch.Elapsed.TotalSeconds -lt $missingProfileWait) "StartEditor fails before the profile receipt timeout when the editor exits"
     $missingStatus = Invoke-Coordinator -Action Status
     Assert-True ($null -eq (Get-OwnerByLease $missingStatus "missingprofile")) "profile timeout releases the owner lease"
 

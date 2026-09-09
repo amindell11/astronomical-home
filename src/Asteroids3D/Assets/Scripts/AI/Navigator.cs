@@ -5,6 +5,7 @@ using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using AI.Strategy;
 namespace Movement.MPC
 {
 #if UNITY_EDITOR

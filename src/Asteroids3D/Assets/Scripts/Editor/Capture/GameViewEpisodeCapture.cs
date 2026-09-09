@@ -8,6 +8,7 @@ using UnityEditor.Recorder;
 using UnityEditor.Recorder.Input;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Game.Services.Projectiles;
 
 namespace Game.Capture.GameView
 {

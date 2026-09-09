@@ -1,8 +1,10 @@
 using System.Collections;
 using UnityEngine;
 using Utils;
+using Utils.Physics;
+using Game.Sectors.Elements;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Mirrors the player's in/out occupancy of its trigger collider to a named bus signal.</summary>
     [RequireComponent(typeof(Collider))]

@@ -4,6 +4,7 @@ using Game.Services;
 using Movement;
 using Ships;
 using UnityEngine;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode.Common
 {

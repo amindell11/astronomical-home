@@ -4,6 +4,7 @@ using Asteroids.Fields;
 using Game.Sectors;
 using NUnit.Framework;
 using UnityEngine;
+using Game.Sectors.Elements;
 
 namespace Tests.EditMode
 {

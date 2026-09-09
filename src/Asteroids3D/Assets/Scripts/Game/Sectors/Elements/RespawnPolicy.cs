@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>
     /// Producer-owned respawn rule, authored beside the spawn/adopt that creates a ship. Carried by

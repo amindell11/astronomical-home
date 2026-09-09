@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Per-sector named boolean signals: levels via Set, latched events via Latch; fresh instance per sector Setup, frozen when teardown begins.</summary>
     public class SectorEventBus

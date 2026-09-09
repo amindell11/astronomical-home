@@ -2,7 +2,7 @@ using System;
 using Combat.Weapons;
 using UnityEngine;
 
-namespace Combat.Conditions
+namespace Combat.Weapons.Conditions
 {
     /// <summary>
     /// What a charge gauge renders: the read-only, event-driven face of <see cref="ChargeTime"/>.

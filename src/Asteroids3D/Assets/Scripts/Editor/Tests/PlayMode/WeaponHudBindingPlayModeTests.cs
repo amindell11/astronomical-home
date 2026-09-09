@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using Combat.Conditions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Targeting;
 using Combat.Weapons;
 using NUnit.Framework;
@@ -12,6 +11,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
 using UnityEditor;
+using Combat.Weapons.Conditions;
 #endif
 
 namespace Tests.PlayMode

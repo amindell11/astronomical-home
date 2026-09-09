@@ -5,8 +5,10 @@ using Game.Services;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using Game.Services.Objectives;
+using Game.Sectors.Elements;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     /// <summary>Ambush encounter: fires on its terms (spatial + delay), opens a concurrent local clear-hostiles objective over its wave spawner (observation-only ref), and latches publishOnCleared when the wave is dead.</summary>
     public class AmbushEncounter : ActivationRule, IHostileTracker

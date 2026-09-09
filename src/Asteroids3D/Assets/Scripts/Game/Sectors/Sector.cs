@@ -6,6 +6,8 @@ using Game.Sessions;
 using Ships;
 using UnityEngine;
 using World;
+using Game.Sectors.Elements;
+using Game.Sectors.Activation;
 
 namespace Game.Sectors
 {

@@ -3,7 +3,7 @@ using Asteroids;
 using Game;
 using UnityEngine;
 
-namespace AI
+namespace AI.Strategy
 {
     /// <summary>Pool-safe asteroid identity for sentence referents: component-ref + spawn-epoch stamp,
     /// re-resolvable to live plane kinematics each tick. EXPLICITLY INTERIM (wiring rule 3): an

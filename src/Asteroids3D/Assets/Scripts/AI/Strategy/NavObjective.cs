@@ -2,8 +2,9 @@ using System;
 using Movement.MPC;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
-namespace AI
+namespace AI.Strategy
 {
     /// <summary>The decision-varying slice of the MPC cost: an intent sentence plus the legacy world-plane move channel. Referent-frame slots exist only through <see cref="Anchored"/>; each binds the one ship anchor (referent 0) or a rock seat (referent 1–3). Bindings are identity, not kinematics: the host resolves them each tick, so a held decision never steers at a stale referent.</summary>
     public readonly struct NavObjective

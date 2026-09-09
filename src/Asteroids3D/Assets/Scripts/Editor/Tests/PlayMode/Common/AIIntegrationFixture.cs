@@ -7,6 +7,7 @@ using Game.Services;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.PlayMode.Common
 {

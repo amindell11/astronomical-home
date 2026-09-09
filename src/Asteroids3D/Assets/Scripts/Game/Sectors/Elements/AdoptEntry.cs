@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Game.Sectors.Elements
 {
     /// <summary>
     /// A baked, serialized reference to a hand-placed content child of a sector prefab that is
