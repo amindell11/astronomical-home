@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Cameras;
+using Game.Play;
 using Game.Services;
 using Game.Sessions;
 using NUnit.Framework;

@@ -343,7 +343,7 @@ namespace Tests.PlayMode
             var module = moduleGO.AddComponent<SectorSpineModule>();
             module.Bind(key, zone);
 
-            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, new SectorEventBus());
+            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus: new SectorEventBus());
             yield return module.Setup(ctx);
             Assert.AreEqual(key.transform, svc.SpineTarget, "Sanity: the live module reports the spine target.");
 

@@ -69,7 +69,7 @@ namespace Tests.EditMode
             module.Bind(key, zone);
 
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus);
+            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus: bus);
             return (module, svc, key, zone, bus, ctx);
         }
 

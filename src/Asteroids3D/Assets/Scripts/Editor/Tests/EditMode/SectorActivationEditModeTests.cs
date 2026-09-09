@@ -120,7 +120,7 @@ namespace Tests.EditMode
         public void Chaining_RuleAPublishOnFired_SatisfiesRuleB_AndRulesFireOnce()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
 
             var a = NewGO("RuleA").AddComponent<ActivationRule>();
             a.Configure(new[] { ActivationTerm.Signal("go") }, new[] { "a-fired" });
@@ -153,7 +153,7 @@ namespace Tests.EditMode
         public void CausalOrder_EffectThenEvent_BeforeDownstreamRule()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
             var log = new List<string>();
 
             var a = NewGO("RuleA").AddComponent<LoggingRule>();
@@ -201,7 +201,7 @@ namespace Tests.EditMode
         public void BlankPublishToken_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
             var rule = NewGO("BadPublishRule").AddComponent<ActivationRule>();
             rule.Configure(new[] { ActivationTerm.Signal("go") }, new[] { " " });
 
@@ -220,7 +220,7 @@ namespace Tests.EditMode
         public void BlankSignalTermToken_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus);
+            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
             var rule = NewGO("BadTermRule").AddComponent<ActivationRule>();
             rule.Configure(new[] { ActivationTerm.Signal(null), ActivationTerm.Time(0f) });
 
