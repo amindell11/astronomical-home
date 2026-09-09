@@ -107,7 +107,8 @@ namespace Tests.EditMode
                 var lines = File.ReadAllLines(path);
                 Assert.That(lines.Length, Is.EqualTo(trace.Count + 1), "Header plus one line per tick.");
                 Assert.That(lines[0], Does.StartWith("t,posX"));
-                Assert.That(lines[0], Does.Contain("costPos").And.Contain("costObstacle").And.Contain("costTotal"),
+                Assert.That(lines[0], Does.Contain("costPos").And.Contain("costObstacle").And.Contain("costTotal")
+                        .And.Contain("costTerminalField").And.Contain("fieldSpacing"),
                     "The per-term breakdown columns are the trace's diagnostic payload.");
             }
             finally
@@ -183,15 +184,17 @@ namespace Tests.EditMode
             // Stage B constant-60 override lands 4/5 on these same seeds (measured 2026-08-13, PR
             // #419 build), so a per-seed pin would gate on basin luck, not the width law. The bar
             // is the measured majority; a regression below it is real.
+            // The no-field arm: the terminal field's regression witness, kept at its pre-field bar.
             var seeds = new uint[] { 1234u, 7u, 99u, 2001u, 2002u };
             var transits = 0;
             var report = "";
             foreach (var seed in seeds)
             {
-                var result = MpcSolverRig.Run(settings, dynamics, in row.scenario, seed);
+                var result = RunArm(FieldArm.FieldOff, in row.scenario, seed);
                 if (result.finalRange < 20f) transits++;
                 report += $" seed {seed}: {result.finalRange:F1} m;";
             }
+            Debug.Log($"[TerminalField] minefield-transit without field: {transits}/5 —{report}");
             Assert.That(transits, Is.GreaterThanOrEqualTo(3),
                 $"the transit must complete on stock asset values on most draws;{report}");
         }
@@ -256,6 +259,129 @@ namespace Tests.EditMode
             // (recorded in PR #419 for the user's ruling).
             Assert.That(meanDivergence, Is.GreaterThan(0.5f),
                 $"FIELD 0 vs 1 must measurably diverge; mean trajectory divergence {meanDivergence:F2} m.");
+        }
+
+        // ---- Terminal field: the four cloned-settings arms and the acceptance pins ----
+
+        /// <summary>The differential arms: both shaping terms on, the terminal field off, turn-away off, both off. Collision is always on; the asset is never written.</summary>
+        private enum FieldArm { BothOn, FieldOff, TurnAwayOff, BothOff }
+
+        private RigResult RunArm(FieldArm arm, in RigScenario scenario, uint seed, List<RigTraceRow> trace = null)
+        {
+            var clone = UnityEngine.Object.Instantiate(settings);
+            try
+            {
+                if (arm is FieldArm.FieldOff or FieldArm.BothOff) clone.wTerminalField = 0f;
+                if (arm is FieldArm.TurnAwayOff or FieldArm.BothOff) clone.wObstacle = 0f;
+                return MpcSolverRig.Run(clone, dynamics, in scenario, seed, trace);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(clone);
+            }
+        }
+
+        // The original five seeds plus fifteen predeclared before the first with-field run.
+        private static readonly uint[] TransitSeeds =
+        {
+            1234u, 7u, 99u, 2001u, 2002u,
+            3u, 11u, 42u, 77u, 101u, 256u, 512u, 777u, 1001u, 1337u, 2024u, 3141u, 4096u, 5555u, 8080u,
+        };
+
+        [Test]
+        public void Bingo_MinefieldTransit_WithField_TwentySeeds()
+        {
+            var row = FindRow("minefield-transit");
+            var transits = 0;
+            var report = "";
+            foreach (var seed in TransitSeeds)
+            {
+                var result = MpcSolverRig.Run(settings, dynamics, in row.scenario, seed);
+                if (result.finalRange < 20f) transits++;
+                report += $" seed {seed}: {result.finalRange:F1} m ({result.fieldBakes} bakes, collide {result.collisionStepFraction:P1});";
+            }
+            Debug.Log($"[TerminalField] minefield-transit with field: {transits}/20 —{report}");
+            Assert.That(transits, Is.GreaterThanOrEqualTo(18),
+                $"the terminal field must carry the 90 m transit on ≥18/20 predeclared seeds; {transits}/20 —{report}");
+        }
+
+        [Test]
+        public void Bingo_Kite_NoPos_FieldInert_TrajectoryUnchanged()
+        {
+            // Kite arms no POS: no goal, no bake, zero terminal cost, and the field-off arm replays it bit for bit — the no-POS control and the sign check in one.
+            var row = FindRow("kite");
+            var with = new List<RigTraceRow>();
+            var without = new List<RigTraceRow>();
+            var withResult = RunArm(FieldArm.BothOn, in row.scenario, 1234u, with);
+            RunArm(FieldArm.FieldOff, in row.scenario, 1234u, without);
+
+            Assert.That(withResult.fieldBakes, Is.Zero, "no POS referent means no bake");
+            Assert.That(with.Count, Is.EqualTo(without.Count));
+            for (var i = 0; i < with.Count; i++)
+            {
+                Assert.That(with[i].costTerminalField, Is.Zero, $"step {i}: the field must charge nothing without a POS goal");
+                Assert.That(with[i].yawTorque, Is.EqualTo(without[i].yawTorque), $"step {i}: a kiter's command must not move with the field");
+                Assert.That(with[i].posX, Is.EqualTo(without[i].posX), $"step {i}: the kiter's path must not be dragged toward the enemy");
+            }
+        }
+
+        [Test]
+        public void Bingo_DummyCloseout_EmptyField_ChargesNothing_AndClosesAsWithout()
+        {
+            var row = FindRow("dummy-closeout");
+            var trace = new List<RigTraceRow>();
+            var result = RunArm(FieldArm.BothOn, in row.scenario, 1234u, trace);
+            var without = RunArm(FieldArm.FieldOff, in row.scenario, 1234u);
+
+            Assert.That(result.fieldBakes, Is.GreaterThan(0), "an armed POS on the enemy bakes a field");
+            var maxTerminal = 0f;
+            foreach (var r in trace) maxTerminal = Mathf.Max(maxTerminal, r.costTerminalField);
+            Assert.That(maxTerminal, Is.LessThanOrEqualTo(1e-3f), $"an empty grid samples zero excess; max traced {maxTerminal:E2}");
+            Assert.That(result.finalRange, Is.EqualTo(without.finalRange).Within(1f),
+                $"an empty field leaves the closeout where the field-off arm puts it: {result.finalRange:F2} m vs {without.finalRange:F2} m");
+        }
+
+        [Test]
+        public void Bingo_MinefieldTransit_FieldArms_Emit()
+        {
+            if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
+                Assert.Ignore("Set MPC_RIG_EMIT=1 to run the four-arm field sweeps.");
+
+            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/mpc-rig/terminal-field"));
+            Directory.CreateDirectory(outDir);
+            var rows = new[] { "minefield-transit", "field-authority", "cover-take", "herd-toward-asteroid", "shoot-the-rock", "missile-drag" };
+            var seeds = new uint[] { 1234u, 7u, 99u };
+            var report = "row,arm,seed,finalRange,collisionStepFraction,threatStepFraction,fieldBakes,meanFieldSpacing,meanTerminalCost\n";
+
+            foreach (var name in rows)
+            foreach (FieldArm arm in System.Enum.GetValues(typeof(FieldArm)))
+            foreach (var seed in seeds)
+            {
+                var scenario = FindRow(name).scenario;
+                var trace = new List<RigTraceRow>();
+                var result = RunArm(arm, in scenario, seed, trace);
+                var spacing = 0f;
+                var terminal = 0f;
+                foreach (var r in trace)
+                {
+                    spacing += r.fieldSpacing;
+                    terminal += r.costTerminalField;
+                }
+                spacing /= Mathf.Max(1, trace.Count);
+                terminal /= Mathf.Max(1, trace.Count);
+                RigTraceCsv.Write(Path.Combine(outDir, $"{name}-{arm}-{seed}.csv"), trace);
+                report += $"{name},{arm},{seed},{result.finalRange:F2},{result.collisionStepFraction:F4},{result.threatStepFraction:F4},{result.fieldBakes},{spacing:F2},{terminal:F3}\n";
+            }
+
+            var fieldZeroed = RigBingoCard.FieldZeroed(FindRow("minefield-transit").scenario);
+            foreach (var seed in seeds)
+            {
+                var result = MpcSolverRig.Run(settings, dynamics, in fieldZeroed, seed);
+                report += $"minefield-transit,FieldZeroed,{seed},{result.finalRange:F2},{result.collisionStepFraction:F4},{result.threatStepFraction:F4},{result.fieldBakes},,\n";
+            }
+
+            File.WriteAllText(Path.Combine(outDir, "arms.csv"), report);
+            Debug.Log("[TerminalFieldArms]\n" + report);
         }
 
         private static float SegmentDistance(float2 pos, float2 start, float2 end)

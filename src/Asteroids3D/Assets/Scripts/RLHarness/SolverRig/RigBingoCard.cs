@@ -29,7 +29,7 @@ namespace Game.RLHarness
             return copy;
         }
 
-        /// <summary>The differential-authority arm: FIELD authority to zero, slot left armed — turn-away shaping off, collision penalty untouched.</summary>
+        /// <summary>The differential-authority arm: FIELD authority to zero, slot left armed — both shaping terms off (turn-away and the terminal field), collision penalty untouched.</summary>
         public static RigScenario FieldZeroed(in RigScenario scenario)
         {
             var copy = scenario;

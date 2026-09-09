@@ -106,6 +106,20 @@ namespace Movement.MPC
                  "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
         public bool multiSphereObstacles = true;
 
+        [Header("Terminal Field")]
+        [Tooltip("Weight on the baked route field's detour excess at the rollout's end state, in cost per metre " +
+                 "of route added by rocks beyond the straight line to the POS goal. Scaled by the sentence's " +
+                 "FIELD authority like turn-away; 0 disables the term (the bake still runs).")]
+        public float wTerminalField = 1f;
+        [Tooltip("Simulation seconds between field bakes; the field also rebakes early when the ship or the goal " +
+                 "leaves the grid.")]
+        public float terminalFieldBakeInterval = 0.4f;
+        [Tooltip("Cells per grid side. The grid is re-placed and re-spaced every bake to contain ship, goal, " +
+                 "max-speed reach over rollout + bake interval, hull clearance and two cells of padding.")]
+        public int terminalFieldResolution = 48;
+        [Tooltip("Smallest cell spacing in metres; spacing grows past it, uncapped, when the grid must contain a far goal.")]
+        public float terminalFieldMinSpacing = 4f;
+
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
         public Config ToConfig(float facingTargetRad = float.NaN)
@@ -135,6 +149,7 @@ namespace Movement.MPC
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,
                 wVelTrack = wVelTrack,
+                wTerminalField = wTerminalField,
             };
         }
     }

@@ -38,6 +38,8 @@ namespace Game.RLHarness
         public float costEffort;
         public float costSmoothness;
         public float costTotal;
+        public float costTerminalField;
+        public float fieldSpacing;
     }
 
     public static class RigTraceCsv
@@ -46,7 +48,7 @@ namespace Game.RLHarness
             "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg," +
             "range,underThreat,solveCost,incumbentRank,incumbentCost,emitYawDeltaFromIncumbent," +
             "costVelocityTrack,costFacing,costFacingPrior,costPos,costLane,costYawRate,costObstacle,costCollision," +
-            "costMomentum,costEffort,costSmoothness,costTotal";
+            "costMomentum,costEffort,costSmoothness,costTotal,costTerminalField,fieldSpacing";
 
         public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
         {
@@ -63,7 +65,8 @@ namespace Game.RLHarness
                     F(r.emitYawDeltaFromIncumbent),
                     F(r.costVelocityTrack), F(r.costFacing), F(r.costFacingPrior), F(r.costPos), F(r.costLane),
                     F(r.costYawRate), F(r.costObstacle), F(r.costCollision),
-                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal)));
+                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal),
+                    F(r.costTerminalField), F(r.fieldSpacing)));
             File.WriteAllText(path, sb.ToString());
         }
 
