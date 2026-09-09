@@ -261,7 +261,7 @@ namespace Tests.EditMode
                 $"FIELD 0 vs 1 must measurably diverge; mean trajectory divergence {meanDivergence:F2} m.");
         }
 
-        // ---- Terminal field (#461 PR-1): the four cloned-settings arms and the acceptance pins ----
+        // ---- Terminal field: the four cloned-settings arms and the acceptance pins ----
 
         /// <summary>The differential arms: both shaping terms on, the terminal field off, turn-away off, both off. Collision is always on; the asset is never written.</summary>
         private enum FieldArm { BothOn, FieldOff, TurnAwayOff, BothOff }
