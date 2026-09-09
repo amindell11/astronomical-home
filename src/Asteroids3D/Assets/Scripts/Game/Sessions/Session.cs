@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Cameras;
 using Game.Sectors;
 using Game.Services;
 using Ships;
@@ -17,7 +16,7 @@ namespace Game.Sessions
     /// the service container once, loads and unloads the profile's sector any number of times, and
     /// tears everything down. It owns no player and no policy — a host (<c>GameSessionHost</c> for the
     /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
-    /// player and observer camera it built to each load. The RL harness composes the same substrate
+    /// player it built to each load. The RL harness composes the same substrate
     /// through <see cref="ShipServices"/> and never drives a session. No process-wide state is written
     /// except the presentation flag set on compose, so one process can hold several sessions.
     /// </summary>
@@ -73,12 +72,11 @@ namespace Game.Sessions
         }
 
         /// <summary>
-        /// Load the profile's sector, inject the host's player and observer camera into it, subscribe
+        /// Load the profile's sector, inject the host's player into it, subscribe
         /// <paramref name="onSectorComplete"/> for the life of this load, and reset the player to the
         /// sector's declared start. Every argument is optional: a headless session loads with none.
         /// </summary>
-        public IEnumerator LoadSector(Ship focus = null, ObserverCam observer = null,
-            Action<SectorResult> onSectorComplete = null)
+        public IEnumerator LoadSector(Ship focus = null, Action<SectorResult> onSectorComplete = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
             var entry = Profile.sectorEntry;
@@ -99,7 +97,7 @@ namespace Game.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Services, entry.config, Frame, focus, observer);
+            sector.Initialize(Services, entry.config, Frame, focus);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)

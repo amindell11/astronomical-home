@@ -5,13 +5,12 @@ using Game.Services;
 using Game.Sessions;
 using Ships;
 using UnityEngine;
-using Cameras;
 using Game.Sectors.Elements;
 using Game.Sectors.Activation;
 
 namespace Game.Sectors
 {
-    /// <summary>The single concrete play-sector: owns manifest content + modules; the player ship and the observer camera are session-lifetime and injected by the host through <see cref="Initialize"/>. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
+    /// <summary>The single concrete play-sector: owns manifest content + modules; the player ship is session-lifetime and injected by the host through <see cref="Initialize"/>. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
     public class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
@@ -56,18 +55,17 @@ namespace Game.Sectors
             }
         }
 
-        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player,
-            ObserverCam observer = null)
+        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player, observer);
+            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
-            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, Context.Observer, new SectorEventBus());
+            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, new SectorEventBus());
 
             yield return OnBeforeContent();
 

@@ -259,7 +259,7 @@ namespace Game.Play
 
         private IEnumerator HandleLoadSector()
         {
-            yield return session.LoadSector(playerRig ? playerRig.Player : null, observer, HandleSectorComplete);
+            yield return session.LoadSector(playerRig ? playerRig.Player : null, HandleSectorComplete);
 
             TransitionTo(GameState.InSector);
         }

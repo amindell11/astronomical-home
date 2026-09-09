@@ -32,15 +32,13 @@ namespace Tests.EditMode
             Assert.IsNotNull(method, "ISector must declare Initialize method");
 
             var parameters = method.GetParameters();
-            Assert.AreEqual(5, parameters.Length);
+            Assert.AreEqual(4, parameters.Length);
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(SectorSettings), parameters[1].ParameterType);
             Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType,
                 "Initialize must accept the session's in-plane frame as its third parameter");
             Assert.AreEqual(typeof(Ship), parameters[3].ParameterType,
                 "Initialize must accept the host-injected player as its fourth parameter");
-            Assert.AreEqual(typeof(ObserverCam), parameters[4].ParameterType,
-                "Initialize must accept the host-injected observer camera as its fifth parameter");
         }
 
         [Test]
@@ -176,11 +174,10 @@ namespace Tests.EditMode
         public void Session_TakesTheSectorCompleteHookOnTheLoadCall()
         {
             var parameters = typeof(Session).GetMethod("LoadSector").GetParameters();
-            Assert.AreEqual(3, parameters.Length,
-                "LoadSector(focus, observer, onSectorComplete)");
+            Assert.AreEqual(2, parameters.Length,
+                "LoadSector(focus, onSectorComplete)");
             Assert.AreEqual(typeof(Ship), parameters[0].ParameterType);
-            Assert.AreEqual(typeof(ObserverCam), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(Action<SectorResult>), parameters[2].ParameterType,
+            Assert.AreEqual(typeof(Action<SectorResult>), parameters[1].ParameterType,
                 "the sector-complete hook binds for the life of one load");
             foreach (var parameter in parameters)
                 Assert.IsTrue(parameter.IsOptional, $"{parameter.Name} must be optional");
