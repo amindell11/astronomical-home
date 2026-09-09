@@ -165,7 +165,7 @@ namespace Game.Play
             TransitionTo(GameState.Hangar);
         }
 
-        /// <summary>Spawn the session's observer camera and wire it to frame every active ship; stays callable without the state machine so the presentation gate can be driven directly.</summary>
+        /// <summary>Stays callable without the state machine so the presentation gate can be driven directly.</summary>
         internal ObserverCam BuildObserver(IGameServices services)
         {
             var built = Instantiate(observerCamPrefab);
@@ -304,8 +304,7 @@ namespace Game.Play
             StartCoroutine(ExitRoutine());
         }
 
-        // Ships die before cameras: the session's ClearAll destroys the player the rig and the
-        // observer still reference.
+        // Ships die before cameras: ClearAll destroys the player the rig and observer reference.
         private IEnumerator ExitRoutine()
         {
             yield return session.Teardown();

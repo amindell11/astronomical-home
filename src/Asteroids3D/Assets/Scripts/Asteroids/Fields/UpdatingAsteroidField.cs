@@ -71,7 +71,7 @@ namespace Asteroids.Fields
         public void SetAnchor(Transform anchor)
         {
             streamAnchor = anchor;
-            CurrentAnchorPos = () => streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : transform.position;
+            CurrentAnchorPos = () => SubjectPosition() ?? transform.position;
             // The sibling spawner only exists from Awake on; Start pushes the probe again then.
             if (AsteroidSpawner) AsteroidSpawner.SetAnchor(SubjectPosition);
         }

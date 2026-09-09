@@ -188,8 +188,7 @@ namespace Game.Play
             Ledger.Bind(Player.Damage, services.UnitService.Registry);
         }
 
-        // Spawn the ship, take the viewport's subject, and give the commander its screen-to-plane
-        // projection; the death hook is wired here so a spawn-frame death already has a subscriber.
+        // The death hook is wired here so a spawn-frame death already has a subscriber.
         private void BuildPlayer(Ship template)
         {
             // Player is team 0 by construction; only adopted enemies need a non-zero team.

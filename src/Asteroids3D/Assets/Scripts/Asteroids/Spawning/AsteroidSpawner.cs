@@ -41,7 +41,7 @@ namespace Asteroids.Spawning
         /// <summary>Plane-projected position every spawned asteroid LODs its mesh collider against; null when the owning field has no subject.</summary>
         public Vector3? AnchorPosition => anchorPosition?.Invoke();
 
-        /// <summary>Stage the subject probe for later spawns; the owning field decides who the subject is.</summary>
+        /// <summary>Stage the subject probe every asteroid reads live; the owning field decides who the subject is.</summary>
         public void SetAnchor(Func<Vector3?> anchorPosition)
         {
             this.anchorPosition = anchorPosition;

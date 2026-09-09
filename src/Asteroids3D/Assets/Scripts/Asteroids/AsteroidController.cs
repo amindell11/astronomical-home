@@ -153,7 +153,7 @@ namespace Asteroids
             var shouldEnable = true;
             if (anchor.HasValue)
             {
-                var distSqr = (GamePlane.ProjectOntoPlane(anchor.Value) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+                var distSqr = (anchor.Value - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
                 shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             }
             if (meshCollider.enabled != shouldEnable)

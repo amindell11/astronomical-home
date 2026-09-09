@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Game.Sectors.Elements
 {
     /// <summary>
-    /// Spectator-camera behavior, relocated from <c>ArenaSector</c>. Swaps the observer camera's
+    /// Spectator-camera behavior. Swaps the observer camera's
     /// default <see cref="ObserverCamInputHandler"/> for an <see cref="ArenaSpectatorInput"/>, feeds
     /// it the player + all active ships (so the spectator can cycle between them), and locks the
     /// camera to its subject. Reads the player and the observer camera off
