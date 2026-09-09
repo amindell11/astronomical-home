@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game;
 using AI.Scanning;
 using Movement;
 using AI.Navigation.MPC;
@@ -57,6 +56,7 @@ namespace RL.SolverRig
             List<RigTraceRow> trace)
         {
             using var mpc = new Mpc(settings, dynamics, seed);
+using Substrate;
 
             // The plant integrates at sim rate; the solver's own config keeps rolloutDt.
             var plantConfig = settings.ToConfig();

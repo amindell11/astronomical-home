@@ -2,9 +2,9 @@
 using System.Collections;
 using Cameras;
 using System.Reflection;
-using Game.Play;
-using Game.Services;
-using Game.Sessions;
+using Game;
+using Substrate.Services;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -15,9 +15,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {

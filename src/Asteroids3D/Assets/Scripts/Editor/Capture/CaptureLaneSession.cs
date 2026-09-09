@@ -4,7 +4,7 @@ using Unity.Pipeline.Commands;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     /// <summary>
     /// Warm-capture-lane editor-session policy: attach journals the current Enter
@@ -33,7 +33,7 @@ namespace Game.Capture.GameView
         }
 
         private static readonly LaneStore Production = new(
-            "Game.Capture.CaptureLaneSession.Active",
+            "Capture.CaptureLaneSession.Active",
             Path.GetFullPath(Path.Combine(
                 Application.dataPath, "..", "Library", "NativeGizmoCapture", "lane_session.json")));
 

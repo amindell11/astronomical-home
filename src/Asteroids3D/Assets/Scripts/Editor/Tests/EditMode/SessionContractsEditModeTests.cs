@@ -1,16 +1,17 @@
 using System;
 using System.Collections;
-using Game.Play;
-using Game.Sectors;
-using Game.Sessions;
+using Game;
+using Substrate.Sectors;
+using Substrate.Sessions;
 using Cameras;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
 using Ships.Registry;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
+using Utils;
 
 namespace Tests.EditMode
 {

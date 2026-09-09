@@ -1,4 +1,4 @@
-using Game.Play;
+using Game;
 using UnityEngine;
 
 namespace UI

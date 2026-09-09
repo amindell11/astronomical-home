@@ -1,15 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using Objectives;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
 
 namespace Tests.PlayMode
 {

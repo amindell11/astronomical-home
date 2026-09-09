@@ -2,7 +2,7 @@ using System;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
-using Game.Services;
+using Substrate.Services;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
@@ -10,7 +10,7 @@ using Ships.Weapons;
 using Movement;
 using UnityEngine;
 using Ships.Registry;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Ships
 {

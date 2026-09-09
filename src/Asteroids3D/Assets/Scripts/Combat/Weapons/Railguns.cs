@@ -1,11 +1,11 @@
 using System;
 using Combat.Projectiles;
 using Damage;
-using Game.Services;
+using Substrate.Services;
 using UnityEngine;
-using Utils;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Substrate;
 
 namespace Combat.Weapons
 {

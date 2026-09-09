@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
 
 namespace Tests.EditMode
 {

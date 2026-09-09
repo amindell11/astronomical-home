@@ -5,7 +5,6 @@ using AI;
 using AI.Context;
 using Asteroids;
 using Combat;
-using Game;
 using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
@@ -16,6 +15,7 @@ using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
 using AI.Strategy;
+using Substrate;
 
 namespace Tests.EditMode
 {

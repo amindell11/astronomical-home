@@ -1,8 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
-using Game;
-using Game.Services;
+using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;

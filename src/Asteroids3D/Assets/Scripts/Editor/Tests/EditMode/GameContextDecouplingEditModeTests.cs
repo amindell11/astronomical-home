@@ -2,7 +2,7 @@ using System.Reflection;
 using AI;
 using AI.Scanning;
 using NUnit.Framework;
-using Player;
+using Game.Player;
 using Ships;
 using UnityEngine;
 using Ships.Registry;

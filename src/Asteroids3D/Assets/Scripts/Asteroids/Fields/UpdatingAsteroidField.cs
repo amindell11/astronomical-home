@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Asteroids.Fields.Core;
 using Asteroids.Spawning;
-using Game;
 using UnityEngine;
+using Substrate;
 
 namespace Asteroids.Fields
 {
@@ -61,7 +61,7 @@ namespace Asteroids.Fields
         /// The field's subject: streaming centers on it and asteroids LOD their mesh colliders against
         /// it. Who it is (player, chase evader, spectate subject) is the caller's policy. Null or
         /// destroyed: streaming falls back to the field origin and collider LOD is dropped. Called
-        /// pre-Awake from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/>.
+        /// pre-Awake from <see cref="Substrate.Sectors.Elements.AsteroidFieldSpawner"/>.
         /// </summary>
         public void SetAnchor(Transform anchor)
         {

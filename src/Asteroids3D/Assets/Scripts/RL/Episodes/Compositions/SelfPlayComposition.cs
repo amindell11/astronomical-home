@@ -1,7 +1,7 @@
-using Game.Services;
+using Substrate.Services;
 using Unity.MLAgents.Policies;
 using UnityEngine;
-using Game.Services.Units;
+using Substrate.Services.Units;
 using RL.Arena;
 using RL.Episodes;
 using RL.Reward;

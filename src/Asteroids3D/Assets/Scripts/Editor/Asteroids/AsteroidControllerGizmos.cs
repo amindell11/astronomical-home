@@ -1,4 +1,4 @@
-using Game.Diagnostics;
+using Diagnostics;
 using UnityEditor;
 using UnityEngine;
 

@@ -2,19 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using AI;
-using Game;
-using Game.Sectors;
-using Game.Services;
+using Substrate.Sectors;
+using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
-using Game.Sectors.Elements;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
+using Substrate.Sectors.Elements;
+using Substrate;
 
 namespace Tests.PlayMode
 {

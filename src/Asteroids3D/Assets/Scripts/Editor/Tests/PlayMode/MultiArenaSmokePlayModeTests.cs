@@ -5,10 +5,9 @@ using System.Linq;
 using AI;
 using AI.Context;
 using AI.Scanning;
-using Game;
-using Game.Sessions;
-using Game.Sectors;
-using Game.Services;
+using Substrate.Sessions;
+using Substrate.Sectors;
+using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
@@ -17,6 +16,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
+using Substrate;
 
 namespace Tests.PlayMode
 {

@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Game.Services;
+using Substrate.Services;
 using Ships;
 using UnityEditor;
 using UnityEditor.Recorder;
 using UnityEditor.Recorder.Input;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
+using Substrate;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     [InitializeOnLoad]
     public sealed class GameViewEpisodeCapture : ScriptableObject, IEpisodeCapture
@@ -132,11 +133,11 @@ namespace Game.Capture.GameView
             catch (Exception exception) { Debug.LogException(exception); }
         }
 
-        private static Game.Diagnostics.GizmoScope MapScope(CaptureGizmoScope scope) => scope switch
+        private static Diagnostics.GizmoScope MapScope(CaptureGizmoScope scope) => scope switch
         {
-            CaptureGizmoScope.All => Game.Diagnostics.GizmoScope.All,
-            CaptureGizmoScope.Selected => Game.Diagnostics.GizmoScope.Selected,
-            CaptureGizmoScope.Team => Game.Diagnostics.GizmoScope.Team,
+            CaptureGizmoScope.All => Diagnostics.GizmoScope.All,
+            CaptureGizmoScope.Selected => Diagnostics.GizmoScope.Selected,
+            CaptureGizmoScope.Team => Diagnostics.GizmoScope.Team,
             _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unmapped capture gizmo scope."),
         };
 

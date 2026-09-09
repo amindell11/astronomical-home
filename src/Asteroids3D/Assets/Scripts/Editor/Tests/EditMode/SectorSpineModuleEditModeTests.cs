@@ -1,17 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Sectors;
-using Game.Services;
+using Substrate.Sectors;
+using Substrate.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
 
 namespace Tests.EditMode
 {

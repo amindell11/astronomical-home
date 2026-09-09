@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Cameras;
-using Game.Play;
-using Game.Sessions;
+using Game;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;

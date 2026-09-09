@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using Asteroids.Fields.Core;
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
 
 namespace Asteroids.Fields
 {

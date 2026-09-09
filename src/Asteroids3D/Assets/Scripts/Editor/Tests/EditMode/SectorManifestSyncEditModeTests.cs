@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using Asteroids.Fields;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using UnityEngine;
-using Game.Sectors.Elements;
+using Substrate.Sectors.Elements;
 
 namespace Tests.EditMode
 {

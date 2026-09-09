@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Game.Services;
+using Substrate.Services;
 using Ships;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
-namespace Game.Capture
+namespace Capture
 {
     public enum GizmoCaptureProfile
     {

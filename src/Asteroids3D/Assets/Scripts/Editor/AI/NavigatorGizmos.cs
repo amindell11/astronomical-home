@@ -1,10 +1,10 @@
 using AI.Scanning;
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using AI.Navigation.MPC;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
 
 namespace AI
 {

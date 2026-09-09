@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Combat.Projectiles;
 using Combat.Targeting;
-using Game.Services;
+using Substrate.Services;
 using UnityEngine;
 using Utils;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons

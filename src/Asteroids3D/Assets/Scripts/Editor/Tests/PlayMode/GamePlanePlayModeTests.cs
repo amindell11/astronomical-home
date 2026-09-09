@@ -1,6 +1,6 @@
-using Game;
 using NUnit.Framework;
 using UnityEngine;
+using Substrate;
 
 namespace Tests.PlayMode
 {

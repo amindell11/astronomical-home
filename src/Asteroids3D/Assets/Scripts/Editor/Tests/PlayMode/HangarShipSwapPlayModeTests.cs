@@ -1,9 +1,9 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Cameras;
-using Game.Play;
-using Game.Services;
-using Game.Sessions;
+using Game;
+using Substrate.Services;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -12,9 +12,9 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
 using Ships.Registry;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {
@@ -22,7 +22,7 @@ namespace Tests.PlayMode
     /// The hangar's ship change is a whole-player rebuild (PlayerRig.ApplyLoadout →
     /// RebuildPlayer): the old ship despawns, a fresh build of the chosen prefab takes its place
     /// with the standard wiring re-run, and the injected death callback follows the new instance.
-    /// Uses the real PlayerRig prefab + a real service container — this is the integration seam the
+    /// Uses the real PlayerRig prefab + a real unit service — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.

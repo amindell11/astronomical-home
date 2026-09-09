@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using AI.Scanning.Sensors;
 using Ships;
 using UnityEngine;
-using Utils;
 using Ships.Registry;
+using Substrate;
 
 namespace AI.Scanning
 {

@@ -2,7 +2,6 @@
 using System;
 using AI;
 using Asteroids;
-using Game;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;

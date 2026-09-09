@@ -9,9 +9,9 @@ using NUnit.Framework;
 using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
-using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
+using Substrate;
 #endif
 
 namespace Tests.PlayMode

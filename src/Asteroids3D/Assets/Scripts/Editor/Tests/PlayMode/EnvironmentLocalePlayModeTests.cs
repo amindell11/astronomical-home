@@ -1,11 +1,11 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
-using Game.Services;
+using Substrate.Services;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Game.Services.Environment;
+using Substrate.Services.Environment;
 
 namespace Tests.PlayMode
 {

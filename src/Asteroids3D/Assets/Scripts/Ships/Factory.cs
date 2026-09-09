@@ -1,8 +1,8 @@
 using System;
-using Game.Services;
+using Substrate.Services;
 using Ships.Command;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Ships
 {

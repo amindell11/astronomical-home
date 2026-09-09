@@ -77,7 +77,6 @@ namespace Tests.EditMode
         // asserted here, at the raw candidate buffer, not on the planned output.
         private Control[] SolveCandidates(int seed, MpcInputs inputs)
         {
-            using var mpc = new Mpc(settings, dynamics, (uint)seed);
             mpc.Plan(in inputs);
             var solver = mpc.Solver;
             var count = solver.LastSampleCount * solver.LastHorizon;

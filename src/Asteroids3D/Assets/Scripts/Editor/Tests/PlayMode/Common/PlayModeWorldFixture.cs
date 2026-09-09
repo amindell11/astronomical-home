@@ -1,9 +1,9 @@
 using AI.Scanning;
-using Game.Services;
+using Substrate.Services;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Tests.PlayMode.Common
 {

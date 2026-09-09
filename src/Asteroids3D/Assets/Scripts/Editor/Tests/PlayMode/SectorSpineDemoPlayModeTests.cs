@@ -2,9 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Game;
-using Game.Sectors;
-using Game.Services;
+using Substrate.Sectors;
+using Substrate.Services;
 using NUnit.Framework;
 using Objectives;
 using Ships;
@@ -12,11 +11,12 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
+using Substrate;
 
 namespace Tests.PlayMode
 {

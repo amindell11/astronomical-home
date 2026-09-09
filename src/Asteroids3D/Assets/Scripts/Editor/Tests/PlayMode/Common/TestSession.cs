@@ -1,7 +1,8 @@
-using Game.Sessions;
+using Substrate.Sessions;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Objectives;
+using Game;
 
 namespace Tests.PlayMode.Common
 {

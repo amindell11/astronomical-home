@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace Game.Capture
+namespace Capture
 {
     public sealed class CaptureArtifacts
     {

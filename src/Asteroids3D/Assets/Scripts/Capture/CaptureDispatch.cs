@@ -2,7 +2,7 @@
 using System;
 using UnityEditor;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>
     /// Warm-capture-lane dispatch seam: a one-shot scenario request handed to the
@@ -14,7 +14,7 @@ namespace Game.Capture
     /// </summary>
     public static class CaptureDispatch
     {
-        private const string ProductionKey = "Game.Capture.CaptureDispatch.RequestedScenario";
+        private const string ProductionKey = "Capture.CaptureDispatch.RequestedScenario";
 
         public static void Request(string scenarioTypeName) => Request(ProductionKey, scenarioTypeName);
 

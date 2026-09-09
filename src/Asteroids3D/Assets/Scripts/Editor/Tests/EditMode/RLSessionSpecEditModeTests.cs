@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Capture;
+using Capture;
 using NUnit.Framework;
 using RL.Hosts;
 using RL.Opponents;

@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 using System.Collections;
 using AI;
-using Game;
-using Game.Capture;
-using Game.Sessions;
+using Capture;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
+using Substrate;
 
 namespace Tests.PlayMode.Common
 {

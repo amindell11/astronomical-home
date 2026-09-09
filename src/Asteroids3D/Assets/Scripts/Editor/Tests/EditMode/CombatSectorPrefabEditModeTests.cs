@@ -1,12 +1,12 @@
-using Game;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using Objectives;
 using Ships;
 using UnityEditor;
 using UnityEngine;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
+using Substrate;
 
 namespace Tests.EditMode
 {

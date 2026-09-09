@@ -2,17 +2,17 @@
 using System.Collections;
 using System.Reflection;
 using Cameras;
-using Game.Play;
-using Game.Services;
+using Game;
+using Substrate.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {

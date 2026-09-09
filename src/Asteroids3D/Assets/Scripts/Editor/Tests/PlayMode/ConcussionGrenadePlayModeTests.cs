@@ -4,7 +4,6 @@ using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
 using Damage;
-using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -12,6 +11,7 @@ using UnityEngine.TestTools;
 using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
+using Substrate;
 #endif
 
 namespace Tests.PlayMode
