@@ -1,18 +1,20 @@
 {
-    "name": "Game.Capture.Editor",
+    "name": "Core.Editor",
     "rootNamespace": "",
     "references": [
-        "Game.Core"
+        "Core",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Pipeline"
     ],
     "includePlatforms": [
-        "Editor",
-        "WindowsStandalone64"
+        "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

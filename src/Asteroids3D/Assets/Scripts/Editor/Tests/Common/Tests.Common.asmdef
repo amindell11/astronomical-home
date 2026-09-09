@@ -2,7 +2,7 @@
     "name": "Tests.Common",
     "rootNamespace": "",
     "references": [
-        "Game.Core"
+        "Core"
     ],
     "includePlatforms": [
         "Editor",

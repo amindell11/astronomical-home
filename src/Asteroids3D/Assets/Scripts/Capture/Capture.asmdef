@@ -1,13 +1,8 @@
 {
-    "name": "Game.RLHarness.Editor",
+    "name": "Capture",
     "rootNamespace": "",
     "references": [
-        "Game.Core",
-        "Game.RLHarness.Runtime",
-        "Game.Capture.Editor",
-        "Unity.ML-Agents",
-        "Unity.InferenceEngine",
-        "Unity.Mathematics"
+        "Core"
     ],
     "includePlatforms": [
         "Editor",

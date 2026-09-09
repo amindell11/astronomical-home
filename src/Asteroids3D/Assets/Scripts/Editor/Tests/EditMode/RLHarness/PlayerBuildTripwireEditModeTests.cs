@@ -82,7 +82,7 @@ namespace Tests.EditMode
             return null;
         }
 
-        // #251's shape: Game.Capture.Editor silently dropped, Game.RLHarness.Editor still
+        // #251's shape: Capture silently dropped, RL still
         // compiled against its types — CS0246 only a player build can see.
         [Test]
         public void PlayerIncludedAsmdefs_ReferenceOnlyPlayerIncludedAsmdefs()

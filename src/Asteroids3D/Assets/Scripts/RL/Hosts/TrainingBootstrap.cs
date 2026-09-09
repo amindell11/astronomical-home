@@ -14,7 +14,7 @@ namespace RL.Hosts
     public static class TrainingBootstrap
     {
         private const string GameViewCaptureType =
-            "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor";
+            "Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor";
         private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         private const string EvalOpponentAssetPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(

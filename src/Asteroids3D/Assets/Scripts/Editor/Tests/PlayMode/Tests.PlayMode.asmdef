@@ -8,11 +8,11 @@
         "GUID:584d57d225904db990c8670b71908128",
         "GUID:3ba9d43214e04d738b22b5e448da986d",
         "Unity.Mathematics",
-        "Game.RLHarness.Editor",
-        "Game.RLHarness.Runtime",
+        "RL",
+        "RL.Runtime",
         "Unity.InferenceEngine",
         "Unity.ML-Agents",
-        "Game.Capture.Editor"
+        "Capture"
     ],
     "includePlatforms": [
         "Editor",
