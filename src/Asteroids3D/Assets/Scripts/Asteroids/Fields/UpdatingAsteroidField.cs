@@ -13,8 +13,6 @@ namespace Asteroids.Fields
     /// plus the sparse override overlay (<see cref="AsteroidFieldOverlay"/>).
     /// A given spot always holds the same asteroids; destruction and damage
     /// persist for the session, everything else regenerates from the seed.
-    /// (Class name kept from the old annulus spawner to avoid churn across
-    /// GameConfig / SectorManifestSync / AdoptEntry / AsteroidFieldSpawner.)
     /// </summary>
     public class UpdatingAsteroidField : AsteroidField, AI.Scanning.IObstacleField
     {
@@ -60,13 +58,10 @@ namespace Asteroids.Fields
         private readonly HashSet<AsteroidController> destructionHooked = new();
 
         /// <summary>
-        /// Set the field's subject: the transform chunk streaming centers on and every spawned
-        /// asteroid LODs its mesh collider against. WHO the subject is (player, chase evader,
-        /// spectate subject) is the caller's policy — the field itself is subject-agnostic. Null
-        /// (spectator/headless runs, no subject) or a later-destroyed anchor falls streaming back to
-        /// the field's own origin and drops collider LOD entirely. Called from
-        /// <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during <c>Build</c>, before this
-        /// component's own <c>Awake</c>/<c>Start</c> have run.
+        /// The field's subject: streaming centers on it and asteroids LOD their mesh colliders against
+        /// it. Who it is (player, chase evader, spectate subject) is the caller's policy. Null or
+        /// destroyed: streaming falls back to the field origin and collider LOD is dropped. Called
+        /// pre-Awake from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/>.
         /// </summary>
         public void SetAnchor(Transform anchor)
         {
@@ -81,28 +76,18 @@ namespace Asteroids.Fields
             streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : null;
 
         /// <summary>
-        /// Stash the sector's static authored player start (absolute plane
-        /// space) so generation carves a permanent clearing around it. Called
-        /// from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during
-        /// <c>Build</c>, like <see cref="SetPlayer"/>. Only static authored
-        /// positions may feed the layout — dynamic occupancy must never bake
-        /// into the deterministic baseline.
+        /// The sector's static authored player start (absolute plane space); generation carves a
+        /// permanent clearing around it. Only static authored positions may feed the deterministic baseline.
         /// </summary>
         public void SetPlayerStart(Vector2 absolutePlanePosition) => playerStartPlane = absolutePlanePosition;
 
         /// <summary>
-        /// Benchmark/tooling hook: override the authored layout seed. Takes effect on the next
-        /// <c>InitializeField</c> — call it before the field's <c>Start</c> runs (e.g. from a
-        /// sector module's Setup, while the sector is still under its inactive load holder) or
-        /// follow it with <see cref="RebuildField"/> on a live field.
+        /// Benchmark/tooling override of the authored seed. Takes effect on the next
+        /// <c>InitializeField</c> (call before <c>Start</c>) or <see cref="RebuildField"/>.
         /// </summary>
         public void SetLayoutSeed(int value) => seed = value;
 
-        /// <summary>
-        /// Runtime multiplier on the authored per-cell density (1 = the settings asset as
-        /// authored). Same pre-rebuild contract as <see cref="SetLayoutSeed"/>: takes effect
-        /// on the next <c>InitializeField</c>/<see cref="RebuildField"/>.
-        /// </summary>
+        /// <summary>Runtime multiplier on the authored per-cell density; same pre-rebuild contract as <see cref="SetLayoutSeed"/>.</summary>
         public void SetDensityScale(float value)
         {
             if (!(value > 0f) || float.IsInfinity(value))
@@ -111,10 +96,8 @@ namespace Asteroids.Fields
         }
 
         /// <summary>
-        /// Runtime multiplier on ship-collision damage (1 = the AsteroidDamage tuning as
-        /// authored). Same pre-rebuild contract as <see cref="SetLayoutSeed"/>; applied
-        /// through the spawn chain so layout spawns, pool reuse, and mid-episode fragments
-        /// all receive it.
+        /// Runtime multiplier on ship-collision damage, applied through the spawn chain (layout,
+        /// pool reuse, fragments); same pre-rebuild contract as <see cref="SetLayoutSeed"/>.
         /// </summary>
         public void SetLethalityScale(float value)
         {
@@ -124,11 +107,9 @@ namespace Asteroids.Fields
         }
 
         /// <summary>
-        /// Host-declared no-spawn clearings (absolute plane space, like
-        /// <see cref="SetPlayerStart"/>; converted to field-relative at build time). Same
-        /// pre-rebuild contract as <see cref="SetLayoutSeed"/>. Callers that derive centers
-        /// from runtime occupancy must rebuild the whole layout afterwards — a partial bake
-        /// of dynamic state into a live baseline would break streaming determinism.
+        /// Host-declared no-spawn clearings (absolute plane space); same pre-rebuild contract as
+        /// <see cref="SetLayoutSeed"/>. Centers derived from runtime occupancy need a full rebuild —
+        /// dynamic state must never bake into the live baseline.
         /// </summary>
         public void SetExclusionVolumes(ExclusionVolume[] absolutePlaneVolumes) =>
             hostExclusionsPlane = absolutePlaneVolumes;
