@@ -139,6 +139,9 @@ unity command capture_lane_release --project-path <proj>  # restores EPO
 
 Verify drawers/visuals in a live coordinated Editor over the `unity` CLI (route into a
 held editor per the unity-access skill; CLI contract: `doc/agents/unity-cli.md`).
+This lane also runs against a graphical editor on the remote lane machine —
+`scripts/remote_editor.sh` (unity-access skill § Remote lane) launches and drives it
+over SSH; captures land on the remote disk, `scp` them back.
 Proven end-to-end by the 2026-08-26 gizmo-eyeball pass (arc #357). Ready-made eval
 snippets live in this skill's `cli-eval/` — run them with `eval_file`.
 
