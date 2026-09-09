@@ -10,6 +10,14 @@
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
     content). Fields consumers depend on:
       projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      wallTiming     - elapsedSec from runner entry to summary construction; cold startupToFirstTestSec
+                       sums process launch to first XML test-run start; executionSec sums XML
+                       test-run start/end intervals (second precision). remainingSec covers access
+                       waits, setup, inter-suite gaps, shutdown and parsing; these three reconcile
+                       to elapsedSec within rounding. NUnit totals.durationSec is unchanged.
+                       Missing/inconsistent XML times or routed transport leave the partition null
+                       with unavailableReason; elapsedSec remains available. UTC clock changes can
+                       invalidate the partition. runs[].startedAt/finishedAt are raw XML timestamps.
       transport      - present and "routed" only for a -Routed warm-editor run.
       coverage       - { verdict = "full"|"partial"; reason = "<machine-readable why>" }. THE
                        coverage verdict: "full" means this run covered the whole suite cold,
@@ -59,6 +67,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+$runnerStartedAt = [DateTimeOffset]::UtcNow
+$processTimings = @()
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
 . (Join-Path $PSScriptRoot "unity_access_client.ps1")
 . (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
@@ -414,6 +424,62 @@ function Test-ScopeFilterMatchesTests {
     }
 }
 
+function Get-RunWallTiming {
+    param($StartedAt, $FinishedAt, [array]$Runs, [array]$Processes, [bool]$Routed)
+
+    $elapsed = ($FinishedAt - $StartedAt).TotalSeconds
+    $timing = [ordered]@{
+        elapsedSec = [Math]::Round($elapsed, 3)
+        startupToFirstTestSec = $null
+        executionSec = $null
+        remainingSec = $null
+        unavailableReason = ""
+    }
+    if ($Routed) {
+        $timing.unavailableReason = "resident-editor transport has no cold-process timestamps"
+        return $timing
+    }
+    $starts = @()
+    $execution = 0.0
+    $previousEnd = $null
+    foreach ($run in $Runs) {
+        $start = [DateTimeOffset]::MinValue
+        $end = [DateTimeOffset]::MinValue
+        if (-not $run.Contains('startedAt') -or -not $run.Contains('finishedAt') -or
+            -not [DateTimeOffset]::TryParse($run.startedAt, [ref]$start) -or
+            -not [DateTimeOffset]::TryParse($run.finishedAt, [ref]$end) -or
+            $end -lt $start -or ($null -ne $previousEnd -and $start -lt $previousEnd) -or
+            $end -gt $FinishedAt) {
+            $timing.unavailableReason = "missing, invalid or overlapping XML test-run timestamps"
+            return $timing
+        }
+        $starts += $start
+        $execution += ($end - $start).TotalSeconds
+        $previousEnd = $end
+    }
+    if ($Processes.Count -eq 0 -or $Runs.Count -eq 0) {
+        $timing.unavailableReason = "no cold-process test intervals"
+        return $timing
+    }
+    $startup = 0.0
+    foreach ($process in $Processes) {
+        $seconds = ($starts[$process.firstRun] - $process.launchedAt).TotalSeconds
+        if ($seconds -lt 0) {
+            $timing.unavailableReason = "XML test start precedes process launch"
+            return $timing
+        }
+        $startup += $seconds
+    }
+    if ($startup + $execution -gt $elapsed) {
+        $timing.unavailableReason = "test intervals exceed runner elapsed time"
+        return $timing
+    }
+    $timing.startupToFirstTestSec = [Math]::Round($startup, 3)
+    $timing.executionSec = [Math]::Round($execution, 3)
+    $timing.remainingSec = [Math]::Round($elapsed - $startup - $execution, 3)
+    return $timing
+}
+
 function Invoke-UnityProcess {
     param(
         [string]$UnityExe,
@@ -434,6 +500,7 @@ function Invoke-UnityProcess {
 
     try {
         $bootHeld = Enter-UnityBootLane -ProjectFullPath $processProject
+        $launchedAt = [DateTimeOffset]::UtcNow
         $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
         Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
 
@@ -471,6 +538,7 @@ function Invoke-UnityProcess {
 
                 Start-Sleep -Milliseconds 300
                 return [ordered]@{
+                    launchedAt = $launchedAt
                     exitCode = 124
                     timedOut = -not $hungAfterResults
                     killedAfterResults = $hungAfterResults
@@ -487,6 +555,7 @@ function Invoke-UnityProcess {
         }
 
         return [ordered]@{
+            launchedAt = $launchedAt
             exitCode = $exitCode
             timedOut = $false
             killedAfterResults = $false
@@ -647,6 +716,8 @@ function Parse-UnityResultXml {
     $base.passed = To-Int (Get-Attr -Node $run -Name "passed")
     $base.failed = To-Int (Get-Attr -Node $run -Name "failed")
     $base.skipped = To-Int (Get-Attr -Node $run -Name "skipped")
+    $base.startedAt = Get-Attr -Node $run -Name "start-time"
+    $base.finishedAt = Get-Attr -Node $run -Name "end-time"
     $base.durationSec = To-Double (Get-Attr -Node $run -Name "duration")
     $base.failures = $failures
     $base.truncatedFailures = [Math]::Max(0, $failedCount - $failures.Count)
@@ -1323,6 +1394,7 @@ try {
 
         $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec `
             -CompletionFiles @($xmlEdit, $xmlPlay)
+        $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
         $unityExit = [int]$invoke.exitCode
 
         # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
@@ -1385,6 +1457,7 @@ try {
             Write-Host "Running Unity $platform tests..."
 
             $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+            $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
             $unityExit = [int]$invoke.exitCode
 
             $parsed = Parse-UnityResultXml -XmlPath $xmlPath -Platform $platform -LogPath $logPath -UnityExitCode $unityExit @parseOptions
@@ -1453,6 +1526,7 @@ $summary = [ordered]@{
     }
     runs = $runs
 }
+$summary.wallTiming = Get-RunWallTiming -StartedAt $runnerStartedAt -FinishedAt ([DateTimeOffset]::UtcNow) -Runs $runs -Processes $processTimings -Routed $Routed.IsPresent
 $summary.coverage = Get-CoverageVerdict -Runs $runs -Selection $selection -OverallStatus $overallStatus
 if ($Routed.IsPresent) {
     # Warm-run marker; the coverage stamp already reports routed runs as partial (the merge gate stays cold-process).
