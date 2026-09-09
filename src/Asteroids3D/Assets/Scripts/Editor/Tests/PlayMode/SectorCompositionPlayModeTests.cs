@@ -12,11 +12,8 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 using Game.Sectors.Elements;
 
 namespace Tests.PlayMode
@@ -75,8 +72,7 @@ namespace Tests.PlayMode
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
-                _unitService, projectiles, new EnvironmentService(), objectiveService,
-                new CameraService(), new UIService());
+                _unitService, projectiles, objectiveService);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
 
@@ -91,7 +87,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            _services?.CameraService?.Clear();
             _unitService?.Clear();
 
             foreach (var go in _created)
@@ -380,7 +375,7 @@ namespace Tests.PlayMode
 
             var point = new Vector2(17f, -9f);
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
-            Assert.IsTrue(Respawn.Wire(s, policy, _services, Vector2.zero), "FixedPoint policy must wire a respawn.");
+            Assert.IsTrue(Respawn.Wire(s, policy, _services.UnitService), "FixedPoint policy must wire a respawn.");
 
             TestDamage.Kill(s);
 
@@ -405,7 +400,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(s);
 
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
-            Assert.IsFalse(Respawn.Wire(s, policy, _services, Vector2.zero), "A None policy must wire nothing.");
+            Assert.IsFalse(Respawn.Wire(s, policy, _services.UnitService), "A None policy must wire nothing.");
 
             TestDamage.Kill(s);
 

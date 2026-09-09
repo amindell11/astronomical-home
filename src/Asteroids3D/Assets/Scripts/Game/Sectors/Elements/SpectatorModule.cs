@@ -10,8 +10,8 @@ namespace Game.Sectors.Elements
     /// Spectator-camera behavior, relocated from <c>ArenaSector</c>. Swaps the observer camera's
     /// default <see cref="ObserverCamInputHandler"/> for an <see cref="ArenaSpectatorInput"/>, feeds
     /// it the player + all active ships (so the spectator can cycle between them), and locks the
-    /// camera to its subject. Reads <see cref="SectorBuildContext.Player"/> and the active ships from
-    /// the unit service; the observer camera is resolved through the camera service.
+    /// camera to its subject. Reads the player and the observer camera off
+    /// <see cref="SectorBuildContext"/> and the active ships from the unit service.
     /// </summary>
     public class SpectatorModule : SectorModule
     {
@@ -19,7 +19,7 @@ namespace Game.Sectors.Elements
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            var observer = ctx.Services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
+            var observer = ctx.Observer;
             if (!observer) yield break;
 
             // Remove the default observer input; the arena drives the camera itself.

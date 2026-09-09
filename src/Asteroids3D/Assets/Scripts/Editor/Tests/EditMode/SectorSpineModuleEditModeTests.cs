@@ -8,11 +8,8 @@ using Objectives;
 using Objectives.States;
 using UnityEngine;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 using Game.Sectors.Elements;
 using Game.Sectors.Activation;
 
@@ -46,10 +43,7 @@ namespace Tests.EditMode
             public StubServices(IObjectiveService objectives) => this.objectives = objectives;
             public IUnitService UnitService => null;
             public IProjectileService Projectiles => null;
-            public IEnvironmentService EnvironmentService => null;
             public IObjectiveService ObjectiveService => objectives;
-            public ICameraService CameraService => null;
-            public IUIService UIService => null;
             public bool PresentationEnabled => true;
         }
 

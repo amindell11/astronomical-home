@@ -4,7 +4,6 @@ using System.Linq;
 using Asteroids.Fields;
 using Ships;
 using UnityEngine;
-using World;
 
 namespace Game.Sectors.Elements
 {
@@ -59,7 +58,6 @@ namespace Game.Sectors.Elements
         /// <summary>True if the component is a recognised content node that owns its subtree.</summary>
         public static bool IsRecognized(Transform t) =>
             t.GetComponent<SectorSpawner>() ||
-            t.GetComponent<WorldRoot>() ||
             t.GetComponent<UpdatingAsteroidField>() ||
             t.GetComponent<Ship>();
 
@@ -69,7 +67,6 @@ namespace Game.Sectors.Elements
         private static Component Recognized(Transform t)
         {
             if (t.TryGetComponent<SectorSpawner>(out var sp)) return sp;
-            if (t.TryGetComponent<WorldRoot>(out var w)) return w;
             if (t.TryGetComponent<UpdatingAsteroidField>(out var f)) return f;
             if (t.TryGetComponent<Ship>(out var s)) return s;
             return null;

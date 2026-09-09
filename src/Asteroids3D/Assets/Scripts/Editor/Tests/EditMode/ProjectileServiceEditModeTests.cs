@@ -8,11 +8,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 
 namespace Tests.EditMode
 {
@@ -230,8 +227,8 @@ namespace Tests.EditMode
             var unitGo = new GameObject("Unit");
             tempObjects.Add(unitGo);
             var services = new GameServices(
-                unitGo.AddComponent<UnitService>(), service, new EnvironmentService(),
-                unitGo.AddComponent<ObjectiveService>(), new CameraService(), new UIService());
+                unitGo.AddComponent<UnitService>(), service,
+                unitGo.AddComponent<ObjectiveService>());
             var projectile = Create<TestProjectile>();
             service.Register(projectile, projectile.ReturnToPoolImmediate);
 

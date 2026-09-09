@@ -10,7 +10,7 @@ using Game.Services.Environment;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// PlayMode coverage for the locale (environment) scene seam on <see cref="EnvironmentService"/>:
+    /// PlayMode coverage for the locale (environment) scene seam on <see cref="LocaleService"/>:
     /// apply makes the locale the active scene, a repeat apply is a no-op, a different locale swaps the
     /// active scene (unloading the previous), and restore returns the boot scene to active. Locale
     /// scenes are created empty at runtime so the tests exercise the SetActive/diff/restore paths
@@ -55,7 +55,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyLocale_MakesLocaleTheActiveScene()
         {
-            var env = new EnvironmentService();
+            var env = new LocaleService();
             yield return env.ApplyLocaleAsync(LocaleA);
             Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
         }
@@ -63,7 +63,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplySameLocaleTwice_StaysActiveAndLoaded()
         {
-            var env = new EnvironmentService();
+            var env = new LocaleService();
             yield return env.ApplyLocaleAsync(LocaleA);
             yield return env.ApplyLocaleAsync(LocaleA);
             Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
@@ -73,7 +73,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyDifferentLocale_SwapsActiveAndUnloadsPrevious()
         {
-            var env = new EnvironmentService();
+            var env = new LocaleService();
             yield return env.ApplyLocaleAsync(LocaleA);
             yield return env.ApplyLocaleAsync(LocaleB);
             Assert.AreEqual(LocaleB, SceneManager.GetActiveScene().name);
@@ -84,7 +84,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator RestoreBoot_RestoresActiveAndUnloadsLocale()
         {
-            var env = new EnvironmentService();
+            var env = new LocaleService();
             yield return env.ApplyLocaleAsync(LocaleA);
             yield return env.RestoreBootEnvironmentAsync();
             Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
@@ -95,7 +95,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyUnassignedLocale_IsNoOp()
         {
-            var env = new EnvironmentService();
+            var env = new LocaleService();
             var before = SceneManager.GetActiveScene().handle;
             yield return env.ApplyLocaleAsync(null);
             yield return env.ApplyLocaleAsync(string.Empty);

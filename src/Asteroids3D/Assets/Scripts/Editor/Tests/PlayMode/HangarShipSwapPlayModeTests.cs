@@ -1,9 +1,9 @@
 #if UNITY_EDITOR
 using System.Collections;
+using Cameras;
 using Game.Services;
 using Game.Sessions;
 using NUnit.Framework;
-using Player;
 using Ships;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -12,19 +12,16 @@ using UnityEngine.TestTools;
 using Utils;
 using Ships.Registry;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The hangar's ship change is a whole-player rebuild (SessionRig.ApplyLoadout →
+    /// The hangar's ship change is a whole-player rebuild (PlayerRig.ApplyLoadout →
     /// RebuildPlayer): the old ship despawns, a fresh build of the chosen prefab takes its place
     /// with the standard wiring re-run, and the injected death callback follows the new instance.
-    /// Uses the real SessionRig prefab + a real service container — this is the integration seam the
+    /// Uses the real PlayerRig prefab + a real service container — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
@@ -35,7 +32,8 @@ namespace Tests.PlayMode
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
 
         private GameObject servicesGo;
-        private SessionRig rig;
+        private PlayerRig rig;
+        private ObserverCam observer;
         private GameServices services;
 
         public override void SetUp()
@@ -51,6 +49,7 @@ namespace Tests.PlayMode
             if (rig) rig.Teardown();
             services?.ClearAll();
             DestroyTestObject(rig ? rig.gameObject : null);
+            DestroyTestObject(observer ? observer.gameObject : null);
             DestroyTestObject(servicesGo);
             base.TearDown();
         }
@@ -65,15 +64,13 @@ namespace Tests.PlayMode
             services = new GameServices(
                 unitService: unitService,
                 projectiles: projectiles,
-                environmentService: new EnvironmentService(),
-                objectiveService: objectiveService,
-                cameraService: new CameraService(),
-                uiService: new UIService());
+                objectiveService: objectiveService);
 
-            var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
-            Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
+            observer = TestAssets.NewObserverCam();
+            var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
+            Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
+            yield return rig.Build(services, observer, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

@@ -12,11 +12,8 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 using Game.Sectors.Elements;
 using Game.Sectors.Activation;
 
@@ -58,8 +55,7 @@ namespace Tests.PlayMode
             var projectiles = new ProjectileService(unitServiceGO.transform);
             _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
-                _unitService, projectiles, new EnvironmentService(), _objectives,
-                new CameraService(), new UIService());
+                _unitService, projectiles, _objectives);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
             // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.

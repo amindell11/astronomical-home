@@ -8,11 +8,8 @@ using Objectives;
 using Objectives.States;
 using UnityEngine;
 using Game.Services.Units;
-using Game.Services.UI;
 using Game.Services.Projectiles;
 using Game.Services.Objectives;
-using Game.Services.Environment;
-using Game.Services.Camera;
 
 namespace Tests.EditMode
 {
@@ -45,18 +42,11 @@ namespace Tests.EditMode
         {
             var unit = CreateMonoBehaviourService<UnitService>();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
-            var env = new EnvironmentService();
-            var cam = new CameraService();
-
-            var ui = new UIService();
             var proj = new ProjectileService(unit.transform);
 
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, env, obj, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null, obj, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, null, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, null, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, null));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, obj));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null));
         }
 
         [Test]
@@ -65,14 +55,6 @@ namespace Tests.EditMode
             var svc = CreateMonoBehaviourService<UnitService>();
             Assert.IsNotNull(svc.Registry);
             Assert.IsNotNull(svc.ActiveRegistry);
-        }
-
-        [Test]
-        public void EnvironmentService_WorldIsNull_AfterConstruction()
-        {
-            var svc = new EnvironmentService();
-            Assert.IsNull(svc.World);
-            Assert.IsNull(svc.WorldFollowerTransform);
         }
 
         [Test]
@@ -195,20 +177,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void CameraService_IsEmpty_AfterConstruction()
-        {
-            var svc = new CameraService();
-            Assert.IsEmpty(svc.Cameras);
-        }
-
-        [Test]
         public void GameServices_ClearAll_ClearsAllServices()
         {
             var unit = CreateMonoBehaviourService<UnitService>();
-            var env = new EnvironmentService();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
-            var cam = new CameraService();
-            var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService());
+            var services = new GameServices(unit, new ProjectileService(unit.transform), obj);
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

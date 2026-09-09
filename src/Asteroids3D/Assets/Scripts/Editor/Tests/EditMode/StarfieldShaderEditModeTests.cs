@@ -9,8 +9,7 @@ namespace Tests.EditMode
     public class StarfieldShaderEditModeTests
     {
         private const string MaterialPath = "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat";
-        private const string WorldPrefabPath = "Assets/Prefabs/World/World.prefab";
-        private const string StandalonePrefabPath = "Assets/Prefabs/MiscObjects/StarField.prefab";
+        private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
         private static Material LoadMaterial()
         {
@@ -58,15 +57,14 @@ namespace Tests.EditMode
             Assert.That(material.GetFloat("_NearLayerShare"), Is.InRange(0f, 1f));
         }
 
-        [TestCase(WorldPrefabPath)]
-        [TestCase(StandalonePrefabPath)]
-        public void AuthoredStarfields_UseProductionMaterial(string prefabPath)
+        [Test]
+        public void AuthoredStarfield_RidesTheObserverCamera_WithTheProductionMaterial()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            Assert.IsNotNull(prefab, $"Starfield prefab missing at {prefabPath}.");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ObserverCamPrefabPath);
+            Assert.IsNotNull(prefab, $"Observer camera prefab missing at {ObserverCamPrefabPath}.");
 
             var renderer = prefab.GetComponentInChildren<SpriteRenderer>(true);
-            Assert.IsNotNull(renderer, $"No SpriteRenderer found in {prefabPath}.");
+            Assert.IsNotNull(renderer, $"No starfield SpriteRenderer found under {ObserverCamPrefabPath}.");
             Assert.AreSame(LoadMaterial(), renderer.sharedMaterial);
         }
     }

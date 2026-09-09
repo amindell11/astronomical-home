@@ -18,8 +18,6 @@ namespace Asteroids.Fields
     /// </summary>
     public class UpdatingAsteroidField : AsteroidField, AI.Scanning.IObstacleField
     {
-        [SerializeField] private World.WorldFollow follower;
-
         [Tooltip("Authored layout seed for this placed field. Two sectors sharing the same settings asset still get distinct layouts by varying this.")]
         [SerializeField] internal int seed = 12345;
 
@@ -62,19 +60,25 @@ namespace Asteroids.Fields
         private readonly HashSet<AsteroidController> destructionHooked = new();
 
         /// <summary>
-        /// Set the streaming anchor: the transform chunk loading and the world follower
-        /// center on. WHO the anchor is (player, chase evader, spectate subject) is the
-        /// caller's policy — the field itself is subject-agnostic. Null (spectator/headless
-        /// runs, no subject) or a later-destroyed anchor falls back to the field's own
-        /// origin. Called from <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during
-        /// <c>Build</c>, before this component's own <c>Awake</c>/<c>Start</c> have run.
+        /// Set the field's subject: the transform chunk streaming centers on and every spawned
+        /// asteroid LODs its mesh collider against. WHO the subject is (player, chase evader,
+        /// spectate subject) is the caller's policy — the field itself is subject-agnostic. Null
+        /// (spectator/headless runs, no subject) or a later-destroyed anchor falls streaming back to
+        /// the field's own origin and drops collider LOD entirely. Called from
+        /// <see cref="Game.Sectors.Elements.AsteroidFieldSpawner"/> during <c>Build</c>, before this
+        /// component's own <c>Awake</c>/<c>Start</c> have run.
         /// </summary>
         public void SetAnchor(Transform anchor)
         {
             streamAnchor = anchor;
-            if (follower) follower.SetTarget(anchor);
             CurrentAnchorPos = () => streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : transform.position;
+            // The sibling spawner only exists from Awake on; Start pushes the probe again then.
+            if (AsteroidSpawner) AsteroidSpawner.SetAnchor(SubjectPosition);
         }
+
+        // Collider LOD has no fallback: with no subject every asteroid keeps its full collider.
+        private Vector3? SubjectPosition() =>
+            streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : null;
 
         /// <summary>
         /// Stash the sector's static authored player start (absolute plane
@@ -142,9 +146,8 @@ namespace Asteroids.Fields
 
         protected virtual void Start()
         {
-            // Anchor the spawner BEFORE the initial fill: each asteroid captures the spawner's
-            // world-anchor at spawn time (used for mesh-collider LOD).
-            SetWorldAnchor(follower ? follower.transform : null);
+            // Anchor the spawner BEFORE the initial fill: every asteroid reads it for mesh-collider LOD.
+            if (AsteroidSpawner) AsteroidSpawner.SetAnchor(SubjectPosition);
             CurrentAnchorPos ??= () => transform.position;
 
             InitializeField();

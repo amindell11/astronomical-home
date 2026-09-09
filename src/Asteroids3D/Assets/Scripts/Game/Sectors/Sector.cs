@@ -5,13 +5,13 @@ using Game.Services;
 using Game.Sessions;
 using Ships;
 using UnityEngine;
-using World;
+using Cameras;
 using Game.Sectors.Elements;
 using Game.Sectors.Activation;
 
 namespace Game.Sectors
 {
-    /// <summary>The single concrete play-sector: owns manifest content + modules; player/camera/world are session-tier, injected via Initialize. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
+    /// <summary>The single concrete play-sector: owns manifest content + modules; the player ship and the observer camera are session-lifetime and injected by the host through <see cref="Initialize"/>. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
     public class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
@@ -56,17 +56,18 @@ namespace Game.Sectors
             }
         }
 
-        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player)
+        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player,
+            ObserverCam observer = null)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player);
+            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player, observer);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
-            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, new SectorEventBus());
+            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, Context.Observer, new SectorEventBus());
 
             yield return OnBeforeContent();
 
@@ -107,7 +108,7 @@ namespace Game.Sectors
             for (var i = spawners.Length - 1; i >= 0; i--)
                 if (spawners[i]) yield return spawners[i].Teardown(Context);
 
-            // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts (WorldRoot) are session infra, deliberately left alone.
+            // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts are deliberately left alone.
             foreach (var entry in adopted)
                 if (entry.target is Ship ship) Services.UnitService.DespawnShip(ship);
 
@@ -124,13 +125,7 @@ namespace Game.Sectors
             var target = entry.target;
             if (!target) return;
 
-            switch (target)
-            {
-                case Ship ship: AdoptShip(ship, entry); break;
-                case WorldRoot world: Services.EnvironmentService.AdoptWorld(world); break;
-                default:
-                    break;
-            }
+            if (target is Ship ship) AdoptShip(ship, entry);
         }
 
         private void AdoptShip(Ship ship, AdoptEntry entry)
@@ -138,7 +133,7 @@ namespace Game.Sectors
             ship.teamNumber = entry.team;
             var adoptedShip = Services.UnitService.AdoptShip(ship, Context.Field);
             if (!adoptedShip) return;
-            Respawn.Wire(adoptedShip, entry.respawn, Services, Context.Frame.Offset);
+            Respawn.Wire(adoptedShip, entry.respawn, Services.UnitService);
             if (!entry.startActive) adoptedShip.gameObject.SetActive(false);
         }
 

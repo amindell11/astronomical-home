@@ -1,40 +1,36 @@
+using System;
 using System.Collections;
 using Cameras;
 using Damage;
 using Game.Sectors;
 using Game.Sessions;
-using Game.Sectors.Utils;
 using Game.Services;
 using Ships;
 using Ships.Command;
 using UI;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using World;
 using Ships.Registry;
 
-namespace Player
+namespace Game.Play
 {
     /// <summary>
-    /// Session-tier rig: builds the world (singleton infrastructure), player ship, observer camera and
-    /// UI overlay <b>once</b> at session compose and holds them for the whole session.
-    /// Sectors are swapped underneath it and reference the player by injection
-    /// (<see cref="Sector.Initialize"/>) — they never build or clear the rig. Only session exit tears
-    /// the rig down. Pure mechanism: the rig holds no session policy — the host injects the
-    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it builds.
+    /// Everything the interactive game puts into a session for the human: the player ship and its
+    /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout and the damage
+    /// ledger. Built <b>once</b> at session start against a viewport the host owns, and held for the
+    /// whole session — sectors are swapped underneath it and reference the player by injection
+    /// (<see cref="Sector.Initialize"/>), never building or clearing it. Pure mechanism: the rig holds
+    /// no session policy — the host injects the player-death behavior via <see cref="Build"/> and the
+    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
     /// </summary>
-    public class SessionRig : MonoBehaviour
+    public class PlayerRig : MonoBehaviour
     {
-        [Header("Environment")]
-        [SerializeField] private WorldRoot worldPrefab;
-
         [Header("Player")]
         [SerializeField] private Ship playerTemplate;
         [SerializeField] private Commander playerCommander;
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Header("Camera")]
-        [SerializeField] private ObserverCam observerCamPrefab;
         [SerializeField] private Camera uiCamPrefab;
         [SerializeField] private Camera minimapCamPrefab;
 
@@ -47,21 +43,26 @@ namespace Player
         /// <summary>
         /// The player's pending module selection — seeded from the ship's authored build in
         /// <see cref="Build"/>, edited by the hangar, and installed by <see cref="ApplyLoadout"/> at
-        /// each run's hangar step. Session-scoped (this is the session rig);
-        /// how session-scoped state should be owned across arenas is still an open question.
-        /// Null in a spectator/headless session (no player).
+        /// each run's hangar step. Session-scoped; how session-scoped state should be owned across
+        /// arenas is still an open question.
         /// </summary>
         public ShipLoadout Loadout { get; private set; }
 
         /// <summary>Per-life damage rows for the death recap; re-bound to each player the rig builds.</summary>
         public DamageLedger Ledger { get; } = new();
 
+        /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
+        public Overlay Overlay { get; private set; }
+
         // Session services captured at Build so the hangar can rebuild the player between runs.
         private IGameServices services;
 
+        // The host's viewport, captured at Build so a rebuilt player can re-take the camera subject.
+        private ObserverCam observer;
+
         // Host-supplied player-death behavior, stored at Build and wired onto every player the rig
         // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
-        private System.Action<ShipId, DamageInfo> onPlayerDeath;
+        private Action<ShipId, DamageInfo> onPlayerDeath;
 
         private SessionFrame frame;
 
@@ -70,39 +71,23 @@ namespace Player
         private Ship currentTemplate;
 
         /// <summary>
-        /// Build the world/player/camera/UI rig into the session services. Called once, before the
-        /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
-        /// therefore cleared by <c>services.ClearAll()</c> on session exit. The host-supplied
+        /// Build the player and its HUD into the session services, framed by the host's
+        /// <paramref name="observer"/>. Called once, before the first sector loads. The ship is owned
+        /// by the unit service and therefore cleared by <c>services.ClearAll()</c> on session exit;
+        /// the overlay is the rig's own and goes in <see cref="Teardown"/>. The host-supplied
         /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
         /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
-        public IEnumerator Build(IGameServices services, bool buildPlayer, SessionFrame frame,
-            System.Action<ShipId, DamageInfo> onPlayerDeath)
+        public IEnumerator Build(IGameServices services, ObserverCam observer, SessionFrame frame,
+            Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.services = services;
+            this.observer = observer;
             this.frame = frame;
             this.onPlayerDeath = onPlayerDeath;
 
-            // World is singleton infrastructure built before the player/camera, which depend on it.
-            if (worldPrefab)
-                services.EnvironmentService.SpawnWorld(worldPrefab);
+            BuildPlayer(playerTemplate);
 
-            SectorUtils.BuildAndWireObserverCam(services, observerCamPrefab);
-
-            // Spectator/headless session: no player ship, no player-driven UI. The observer camera
-            // already frames the fleet via the registry OnAdd/OnRemove wiring, so spectate works.
-            if (!buildPlayer)
-            {
-                yield return null;
-                yield break;
-            }
-
-            Player = SectorUtils.BuildAndWirePlayer(
-                playerTemplate, playerCommander,
-                0, playerSpawnPosition, services, frame);
-            currentTemplate = playerTemplate;
-
-            WirePlayerDeath();
             Ledger.Bind(Player.Damage, services.UnitService.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
@@ -110,45 +95,46 @@ namespace Player
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
-            var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
-
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
-            if (services.PresentationEnabled && Player && overlayPrefab && uiCamPrefab)
+            if (services.PresentationEnabled && observer && overlayPrefab && uiCamPrefab)
             {
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
                 observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
 
-                var overlay = Instantiate(overlayPrefab);
-                services.UIService.Show(overlay, uiCam);
-                overlay.Initialize(BuildHudBinding());
+                Overlay = Instantiate(overlayPrefab);
+                Overlay.SetCanvasWorldCamera(uiCam);
+                Overlay.Initialize(BuildHudBinding());
 
                 // Hand the objective marker the objective-service channel; it subscribes and
                 // self-decides visibility (encounters report their target via IObjectiveService).
-                if (overlay.ObjectiveMarker)
-                    overlay.ObjectiveMarker.BindObjectiveService(services.ObjectiveService);
+                if (Overlay.ObjectiveMarker)
+                    Overlay.ObjectiveMarker.BindObjectiveService(services.ObjectiveService);
             }
 
-            if (services.PresentationEnabled && minimapCamPrefab)
+            if (services.PresentationEnabled && observer && minimapCamPrefab)
             {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
-                var overlay = services.UIService.ActiveOverlay;
-                if (overlay && overlay.ObjectiveMarker && overlay.MinimapRect)
-                    overlay.ObjectiveMarker.Initialize(minimapCam, overlay.MinimapRect);
+                if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
+                    Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
             }
 
             yield return null;
         }
 
         /// <summary>
-        /// Drop the player reference and unwire its death callback. The service-owned instances
-        /// (player, cameras, overlay, world) are destroyed by <c>services.ClearAll()</c> on exit.
+        /// Drop the player reference, unwire its death callback and destroy the overlay. The
+        /// service-owned player instance is destroyed by <c>services.ClearAll()</c> on exit.
         /// </summary>
         public void Teardown()
         {
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
+            if (Overlay)
+                Destroy(Overlay.gameObject);
+            Overlay = null;
             Player = null;
+            observer = null;
             services = null;
         }
 
@@ -156,8 +142,7 @@ namespace Player
         /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
         /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
         /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
-        /// hangar step — never mid-sector. No-op in a spectator/headless
-        /// session (no player).
+        /// hangar step — never mid-sector.
         /// </summary>
         public void ApplyLoadout()
         {
@@ -186,8 +171,8 @@ namespace Player
 
         /// <summary>
         /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
-        /// the old ship, re-run the standard player build/wiring (registry, camera subject, world
-        /// follower, commander, screen-to-plane), and re-wire the injected death callback. The caller
+        /// the old ship, re-run the standard player build/wiring (registry, camera subject, commander,
+        /// screen-to-plane), and re-wire the injected death callback. The caller
         /// (<see cref="ApplyLoadout"/>) re-binds the HUD after the module equip that follows. Runs
         /// only in the between-run hangar gap, where no sector is loaded — the subsequent
         /// <c>LoadSector</c> injects and positions the new player as usual.
@@ -197,13 +182,34 @@ namespace Player
             UnwirePlayerDeath();
             services.UnitService.DespawnShip(Player);
 
-            Player = SectorUtils.BuildAndWirePlayer(
-                newTemplate, playerCommander,
-                0, playerSpawnPosition, services, frame);
-            currentTemplate = newTemplate;
+            BuildPlayer(newTemplate);
+
+            Ledger.Bind(Player.Damage, services.UnitService.Registry);
+        }
+
+        // Spawn the ship, take the viewport's subject, and give the commander its screen-to-plane
+        // projection; the death hook is wired here so a spawn-frame death already has a subscriber.
+        private void BuildPlayer(Ship template)
+        {
+            // Player is team 0 by construction; only adopted enemies need a non-zero team.
+            Player = services.UnitService.SpawnShip(
+                template,
+                playerCommander,
+                0,
+                frame.Place(playerSpawnPosition),
+                GamePlane.Rotation,
+                field: null);
+            Player.tag = "Player";
+            currentTemplate = template;
 
             WirePlayerDeath();
-            Ledger.Bind(Player.Damage, services.UnitService.Registry);
+
+            if (!observer) return;
+
+            observer.SetSubject(Player.transform);
+            (Player.Commander as PlayerCommander)?.SetScreenToGamePlane(pos =>
+                GamePlane.ProjectOntoPlane(observer.Cam.ScreenToWorldPoint(pos))
+                + GamePlane.Origin);
         }
 
         // The overlay instance persists across player rebuilds and loadout changes; re-Initialize
@@ -211,9 +217,8 @@ namespace Player
         // their old source).
         private void RebindHud()
         {
-            var overlay = services.UIService.ActiveOverlay;
-            if (overlay)
-                overlay.Initialize(BuildHudBinding());
+            if (Overlay)
+                Overlay.Initialize(BuildHudBinding());
         }
 
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).

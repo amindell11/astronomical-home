@@ -12,7 +12,7 @@ namespace Tests.PlayMode
     /// flattened <see cref="ResolvedShipStats"/>, the MPC <see cref="Movement.Dynamics"/>, and the live
     /// movement rigidbody all reflect the new engine, and a shield swap updates the resolved shield cap.
     /// This is the runtime substrate the hangar's between-run loadout change
-    /// (the hangar step → <see cref="Player.SessionRig.ApplyLoadout"/>) drives.
+    /// (the hangar step → <see cref="Game.Play.PlayerRig.ApplyLoadout"/>) drives.
     /// </summary>
     public class ShipReequipPlayModeTests : PlayModeWorldFixture
     {
