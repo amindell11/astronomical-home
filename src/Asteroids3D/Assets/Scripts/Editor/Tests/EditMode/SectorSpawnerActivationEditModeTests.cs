@@ -4,6 +4,8 @@ using Game.Sectors;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Sectors.Elements;
+using Game.Sectors.Activation;
 
 namespace Tests.EditMode
 {

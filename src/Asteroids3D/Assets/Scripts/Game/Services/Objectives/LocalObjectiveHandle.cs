@@ -2,7 +2,7 @@ using System;
 using Objectives;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Objectives
 {
     /// <summary>An encounter-owned concurrent objective; the service ticks its tracker until Close().</summary>
     public sealed class LocalObjectiveHandle

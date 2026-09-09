@@ -4,6 +4,7 @@ using Game.Diagnostics;
 using Ships.Command;
 using UnityEditor;
 using UnityEngine;
+using Combat.Targeting;
 
 namespace AI
 {

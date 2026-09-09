@@ -1,4 +1,4 @@
-namespace AI
+namespace AI.Strategy
 {
     /// <summary>One decision's commanded output as carried by the nav objective <see cref="Brain.Decide"/> returns: the full intent sentence (facing offset, polar velocity, position offset/setpoint, lane and field weights, referent/frame branch choices) plus the trigger branches. Referent fields are the action's slot choices (0 = enemy, 1..N = rock slots), not entity identities — readouts correlate switches, they never resolve rocks.</summary>
     public readonly struct PolicyAction

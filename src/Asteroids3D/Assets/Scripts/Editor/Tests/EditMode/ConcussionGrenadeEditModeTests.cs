@@ -1,4 +1,4 @@
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Weapons;
 using NUnit.Framework;
 using UnityEditor;

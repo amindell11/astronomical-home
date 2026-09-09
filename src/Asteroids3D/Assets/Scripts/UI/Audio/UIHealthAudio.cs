@@ -1,4 +1,4 @@
-﻿using Ships.Damage;
+using Ships.Damage;
 using UnityEngine;
 
 namespace UI.Audio
@@ -62,7 +62,7 @@ namespace UI.Audio
             CheckAlarmCondition();
         }
 
-        private void OnPlayerDeath(Ships.ShipId _victimId, Damage.DamageInfo _killingBlow)
+        private void OnPlayerDeath(Ships.Registry.ShipId _victimId, Damage.DamageInfo _killingBlow)
         {
             StopAlarm();
         }

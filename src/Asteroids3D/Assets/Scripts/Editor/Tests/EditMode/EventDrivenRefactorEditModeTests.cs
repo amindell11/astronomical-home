@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Combat.Conditions;
 using Combat.Targeting;
 using NUnit.Framework;
 using UI;
 using UI.Audio;
 using UnityEngine;
 using UnityEngine.UI;
+using Combat.Weapons.Conditions;
 
 namespace Tests.EditMode
 {

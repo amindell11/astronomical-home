@@ -7,6 +7,7 @@ using Game.RLHarness;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Tests.EditMode
 {

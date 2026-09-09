@@ -7,6 +7,12 @@ using Player;
 using Ships;
 using UnityEngine;
 using Utils;
+using Ships.Registry;
+using Game.Services.Units;
+using Game.Services.UI;
+using Game.Services.Objectives;
+using Game.Services.Environment;
+using Game.Services.Camera;
 
 namespace Game.Sessions
 {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Combat.Projectile;
+using Combat.Projectiles;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;

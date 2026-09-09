@@ -9,6 +9,8 @@ using Ships.Movement;
 using Ships.Weapons;
 using Movement;
 using UnityEngine;
+using Ships.Registry;
+using Game.Services.Projectiles;
 
 namespace Ships
 {

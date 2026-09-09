@@ -3,6 +3,7 @@ using Game.Services;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode.Common
 {

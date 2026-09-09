@@ -2,6 +2,8 @@ using Game.Play;
 using Game.Services;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
+using Game.Services.Units;
+using Game.Services.Objectives;
 
 namespace Tests.EditMode
 {

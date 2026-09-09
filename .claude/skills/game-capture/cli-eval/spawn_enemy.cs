@@ -1,4 +1,4 @@
-var units = UnityEngine.Object.FindObjectsByType<Game.Services.UnitService>(UnityEngine.FindObjectsSortMode.None);
+var units = UnityEngine.Object.FindObjectsByType<Game.Services.Units.UnitService>(UnityEngine.FindObjectsSortMode.None);
 if (units.Length != 1) return "UnitService count=" + units.Length;
 var shipPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<Ships.Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
 var pilotPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>("Assets/Prefabs/Pilots/AgentPilot.prefab");

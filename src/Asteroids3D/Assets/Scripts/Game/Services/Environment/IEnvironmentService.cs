@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using World;
 
-namespace Game.Services
+namespace Game.Services.Environment
 {
     public interface IEnvironmentService
     {

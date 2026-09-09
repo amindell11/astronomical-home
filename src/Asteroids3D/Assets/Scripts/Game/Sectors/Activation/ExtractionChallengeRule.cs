@@ -1,8 +1,9 @@
 using System.Collections;
 using Objectives;
 using UnityEngine;
+using Game.Sectors.Elements;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     public class ExtractionChallengeRule : ActivationRule
     {

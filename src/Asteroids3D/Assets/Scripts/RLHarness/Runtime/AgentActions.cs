@@ -2,6 +2,7 @@ using AI;
 using Movement.MPC;
 using Unity.MLAgents.Actuators;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

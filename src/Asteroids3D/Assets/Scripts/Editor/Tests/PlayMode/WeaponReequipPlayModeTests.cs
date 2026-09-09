@@ -1,5 +1,4 @@
 using System.Collections;
-using Combat.Conditions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
@@ -9,6 +8,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
 using UnityEditor;
+using Combat.Weapons.Conditions;
 #endif
 
 namespace Tests.PlayMode

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Damage;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Tests.EditMode
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Objectives;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Objectives
 {
     public interface IObjectiveService
     {

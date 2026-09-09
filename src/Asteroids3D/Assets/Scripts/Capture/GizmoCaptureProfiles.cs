@@ -1,6 +1,6 @@
 using System;
 using AI;
-using Combat.Projectile;
+using Combat.Projectiles;
 using Combat.Targeting;
 using Combat.Weapons;
 using Movement.MPC;

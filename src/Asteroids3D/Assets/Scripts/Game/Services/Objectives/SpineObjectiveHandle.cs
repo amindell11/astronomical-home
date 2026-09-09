@@ -1,7 +1,7 @@
 using Objectives;
 using UnityEngine;
 
-namespace Game.Services
+namespace Game.Services.Objectives
 {
     /// <summary>The spine owner's mutation surface (mirrors LocalObjectiveHandle); every mutation through a superseded handle is a no-op.</summary>
     public sealed class SpineObjectiveHandle

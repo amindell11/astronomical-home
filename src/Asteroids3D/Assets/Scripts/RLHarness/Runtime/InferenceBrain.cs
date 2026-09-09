@@ -6,6 +6,7 @@ using Unity.InferenceEngine;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using AI.Strategy;
 
 namespace Game.RLHarness
 {

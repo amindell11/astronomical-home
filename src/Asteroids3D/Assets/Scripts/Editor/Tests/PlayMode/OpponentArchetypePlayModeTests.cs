@@ -10,6 +10,8 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Game.Services.Units;
+using Game.Services.Projectiles;
 
 namespace Tests.PlayMode
 {

@@ -3,6 +3,7 @@ using Ships;
 using Ships.Damage;
 using Ships.Presentation;
 using UnityEngine;
+using Ships.Registry;
 
 namespace Ships.Audio
 {

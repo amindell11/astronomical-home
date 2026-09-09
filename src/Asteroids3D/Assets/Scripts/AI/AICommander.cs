@@ -7,6 +7,8 @@ using Ships;
 using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
+using Ships.Registry;
+using AI.Strategy;
 
 namespace AI
 {

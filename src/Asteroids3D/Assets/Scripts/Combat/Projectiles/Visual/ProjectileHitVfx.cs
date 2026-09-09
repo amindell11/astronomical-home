@@ -3,7 +3,7 @@ using Game.Presentation;
 using UnityEngine;
 using Utils;
 
-namespace Combat.Projectile.Visual
+namespace Combat.Projectiles.Visual
 {
     [RequireComponent(typeof(ProjectileBase))]
     public class ProjectileHitVfx : MonoBehaviour, IPresentationPart

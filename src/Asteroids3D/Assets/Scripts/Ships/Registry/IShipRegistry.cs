@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Registry
 {
     public interface IShipRegistry
     {

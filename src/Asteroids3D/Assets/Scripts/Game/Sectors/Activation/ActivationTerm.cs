@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.Sectors
+namespace Game.Sectors.Activation
 {
     [Serializable]
     public class ActivationTerm

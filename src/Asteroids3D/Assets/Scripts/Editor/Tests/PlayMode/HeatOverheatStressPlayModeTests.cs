@@ -1,11 +1,11 @@
 using System.Collections;
-using Combat.Conditions;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Combat.Weapons.Conditions;
 
 namespace Tests.PlayMode
 {
