@@ -112,9 +112,8 @@ namespace AI.Scanning
     }
 
     /// <summary>
-    /// Fills a buffer with live asteroids inside a fixed-size AABB around the ship by
-    /// querying the deterministic asteroid field directly (no physics overlap). Destroyed
-    /// asteroids are never reported. The MPC handles relevance through its cost function.
+    /// Coordinates asteroid queries for the ship scan and caller-owned regional queries.
+    /// Regional storage grows independently of the fixed nearest-first ship scan.
     /// </summary>
     public class ObstacleScanner
     {
@@ -152,6 +151,18 @@ namespace AI.Scanning
             if (field == null) return;
             var centerPlane = GamePlane.WorldPointToPlane(origin.position);
             DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);
+        }
+
+        public ObstacleScan Query(Vector2 center, float halfExtent, ref DetectedObstacle[] buffer)
+        {
+            if (field == null) return new ObstacleScan(buffer, 0);
+            if (buffer == null || buffer.Length == 0) buffer = new DetectedObstacle[64];
+            while (true)
+            {
+                var count = field.QueryObstacles(center, halfExtent, buffer);
+                if (count < buffer.Length) return new ObstacleScan(buffer, count);
+                System.Array.Resize(ref buffer, checked(buffer.Length * 2));
+            }
         }
 
         /// <summary>Back to the pre-first-scan state; stale results must not outlive a reset (episode boundaries rebuild the field).</summary>
