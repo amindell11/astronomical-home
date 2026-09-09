@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using AI;
 using AI.Scanning;
 using Asteroids;
-using Game.RLHarness;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
 using AI.Strategy;
+using RL.Runtime;
 
 namespace Tests.EditMode
 {

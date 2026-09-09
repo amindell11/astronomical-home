@@ -62,7 +62,7 @@
     },
     "rlharness": {
       "paths": [
-        "src/Asteroids3D/Assets/Scripts/RLHarness/**",
+        "src/Asteroids3D/Assets/Scripts/RL/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RL*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/RL*"
       ]

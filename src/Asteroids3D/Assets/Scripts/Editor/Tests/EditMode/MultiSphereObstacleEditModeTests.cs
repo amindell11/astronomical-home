@@ -1,6 +1,6 @@
 using AI.Scanning;
 using Movement;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;

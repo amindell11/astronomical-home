@@ -1,6 +1,6 @@
 using System.Collections;
 using AI;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using Game;
 using NUnit.Framework;
 using Ships;

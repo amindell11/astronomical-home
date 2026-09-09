@@ -2,10 +2,12 @@ using AI;
 using Combat;
 using Combat.Weapons;
 using Game;
-using Game.RLHarness;
 using Movement;
 using NUnit.Framework;
 using UnityEngine;
+using RL.Episodes;
+using RL.Reward;
+using RL.Runtime;
 
 namespace Tests.EditMode
 {

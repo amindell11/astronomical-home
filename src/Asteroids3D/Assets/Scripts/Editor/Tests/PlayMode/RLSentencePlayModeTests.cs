@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
@@ -10,6 +9,13 @@ using UnityEngine.TestTools;
 using Utils;
 using Game.Services.Units;
 using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes;
+using RL.Hosts;
+using RL.Hosts.Lanes;
+using RL.Opponents;
+using RL.Probes;
+using RL.Reward;
 
 namespace Tests.PlayMode
 {

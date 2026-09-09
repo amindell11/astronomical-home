@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using AI;
 using Game;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
 using Ships.Registry;
+using RL.Opponents;
 
 namespace Tests.PlayMode.Common
 {

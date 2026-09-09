@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using Game;
 using Game.Capture;
-using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
@@ -16,6 +15,10 @@ using UnityEngine.TestTools;
 using Utils;
 using Game.Services.Units;
 using Game.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes.Compositions;
+using RL.Hosts;
+using RL.Hosts.Lanes;
 
 namespace Tests.PlayMode
 {
@@ -110,7 +113,7 @@ namespace Tests.PlayMode
                 out var globalSettings), "URP global settings must be registered for native Game View capture.");
             var priorGlobalSettingsDirty = UnityEditor.EditorUtility.IsDirty(globalSettings);
             var registered = UnityEditor.GizmoUtility.GetGizmoInfo();
-            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var priorNavigator),
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(AI.Navigator), out var priorNavigator),
                 $"Navigator annotation missing; registered: {string.Join(", ", registered.Select(info => info.name))}");
 
             var spec = SpecFor(GizmoSelector, PinnedNativeSpec);
@@ -129,7 +132,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(priorFocusedWindow, UnityEditor.EditorWindow.focusedWindow);
             Assert.AreEqual(priorRunInBackground, Application.runInBackground);
             Assert.AreEqual(priorGlobalSettingsDirty, UnityEditor.EditorUtility.IsDirty(globalSettings));
-            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var restored));
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(AI.Navigator), out var restored));
             Assert.AreEqual(priorNavigator.gizmoEnabled, restored.gizmoEnabled);
             Assert.AreEqual(priorNavigator.iconEnabled, restored.iconEnabled);
         }

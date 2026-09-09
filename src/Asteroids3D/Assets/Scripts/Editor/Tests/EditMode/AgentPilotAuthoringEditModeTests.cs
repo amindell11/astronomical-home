@@ -1,10 +1,10 @@
 #if UNITY_EDITOR
 using AI;
-using Game.RLHarness;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using RL.Runtime;
 
 namespace Tests.EditMode
 {

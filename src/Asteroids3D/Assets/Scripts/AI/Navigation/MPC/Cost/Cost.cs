@@ -1,6 +1,7 @@
+using Movement;
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>, <c>Terms/Lane</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do. Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
     public static partial class Cost

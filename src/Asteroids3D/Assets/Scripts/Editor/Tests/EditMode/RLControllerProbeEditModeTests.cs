@@ -1,10 +1,11 @@
 #if UNITY_EDITOR
-using Game.RLHarness;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using RL.Episodes;
+using RL.Probes;
 
 namespace Tests.EditMode
 {

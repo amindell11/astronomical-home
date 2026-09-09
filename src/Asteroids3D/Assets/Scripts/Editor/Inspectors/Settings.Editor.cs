@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     [CustomEditor(typeof(MpcSettings))]
     public class SettingsEditor : Editor

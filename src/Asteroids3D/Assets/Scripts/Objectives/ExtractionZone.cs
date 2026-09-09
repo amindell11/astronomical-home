@@ -1,6 +1,5 @@
 using Utils;
 using UnityEngine;
-using Utils.Physics;
 
 namespace Objectives
 {

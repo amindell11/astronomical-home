@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Objective term: where the ship should be. The POS sentence slot places a point (setpoint 0)
     // or a hold-ring (setpoint r₀) in its referent's chosen frame, re-resolved per rollout step.

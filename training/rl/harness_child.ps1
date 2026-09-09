@@ -5,6 +5,6 @@ $ErrorActionPreference = "Stop"
 # Recorder's WaitForEndOfFrame never resumes under -batchmode. Non-recording runs stay headless.
 $unityArgs = @('-projectPath', $env:HARNESS_PROJ)
 if ([string]::IsNullOrEmpty($env:RL_HARNESS_RECORD)) { $unityArgs += @('-batchmode', '-nographics') }
-$unityArgs += @('-executeMethod', 'Game.RLHarness.TrainingBootstrap.RunHarnessSession', '-logFile', $env:HARNESS_LOG)
+$unityArgs += @('-executeMethod', 'RL.Hosts.TrainingBootstrap.RunHarnessSession', '-logFile', $env:HARNESS_LOG)
 & $env:HARNESS_UNITY @unityArgs
 exit $LASTEXITCODE

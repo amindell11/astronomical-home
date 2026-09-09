@@ -175,7 +175,7 @@ def main() -> None:
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
         if not PLAYER_EXE.exists():
             sys.exit(f"FAIL: eval player exe missing at {PLAYER_EXE}; build it first "
-                     "(-executeMethod Game.RLHarness.RLEvalPlayerBuild.Build via unity_access RunBatch)")
+                     "(-executeMethod RL.Hosts.PlayerEval.RLEvalPlayerBuild.Build via unity_access RunBatch)")
 
     unity = args.unity or default_unity_exe(args.project)
     if args.sentence:

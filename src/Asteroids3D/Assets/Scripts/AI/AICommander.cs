@@ -2,7 +2,7 @@ using AI.Context;
 using AI.Scanning;
 using System;
 using Movement;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using Ships;
 using Ships.Command;
 using Unity.Mathematics;

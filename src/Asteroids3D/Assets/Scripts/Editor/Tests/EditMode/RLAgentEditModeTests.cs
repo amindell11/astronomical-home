@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using AI.Observation;
 using AI.Scanning;
 using Asteroids;
-using Game.RLHarness;
 using Movement;
-using Movement.MPC;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -15,6 +14,8 @@ using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 using Ships.Registry;
+using RL.Episodes;
+using RL.Runtime;
 
 namespace Tests.EditMode
 {

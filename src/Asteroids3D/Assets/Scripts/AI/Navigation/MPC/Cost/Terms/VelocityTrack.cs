@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Objective term: where the ship is going. The reference is either the decision's world-plane
     // velocity or its VEL slot's polar command re-resolved against the predicted referent each step.
