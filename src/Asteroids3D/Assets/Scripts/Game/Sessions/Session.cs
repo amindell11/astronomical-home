@@ -72,11 +72,13 @@ namespace Game.Sessions
         }
 
         /// <summary>
-        /// Load the profile's sector, inject the host's player into it, subscribe
-        /// <paramref name="onSectorComplete"/> for the life of this load, and reset the player to the
-        /// sector's declared start. Every argument is optional: a headless session loads with none.
+        /// Load the profile's sector, inject the host's hero into it, subscribe
+        /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
+        /// sector's declared start. The hero is the main character the sector lays out around — the
+        /// player today, possibly an AI; the sector side still names it the player. Every argument is
+        /// optional: a headless session loads with none.
         /// </summary>
-        public IEnumerator LoadSector(Ship focus = null, Action<SectorResult> onSectorComplete = null)
+        public IEnumerator LoadSector(Ship hero = null, Action<SectorResult> onSectorComplete = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
             var entry = Profile.sectorEntry;
@@ -97,16 +99,16 @@ namespace Game.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Services, entry.config, Frame, focus);
+            sector.Initialize(Services, entry.config, Frame, hero);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
                 sector.OnSectorComplete += onSectorComplete;
 
             // The sector only DECLARES its start via PlayerStart; the session does the entry reset.
-            // It must precede Setup: the obstacle field lays out and anchors against the placed player.
-            if (focus)
-                Services.UnitService.RespawnShip(focus.Id, sector.PlayerStart, 0f);
+            // It must precede Setup: the obstacle field lays out and anchors against the placed hero.
+            if (hero)
+                Services.UnitService.RespawnShip(hero.Id, sector.PlayerStart, 0f);
 
             yield return sector.Setup();
 

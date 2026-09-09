@@ -343,9 +343,9 @@ Format: **term** — definition. *(authority)*
 
 - **session tier** — the lifecycle layer (`Game/Sessions`) whose one type, the
   self-orchestrating `Session`, composes a session's services and cycles
-  sectors; a *host* paces it and hands each load the player and observer camera
-  it built — the session owns no rig and no policy. The RL harness does not use
-  it; it composes the same per-ship services through `ShipServices.Compose`.
+  sectors; a *host* paces it and hands each load the *hero* it built — the
+  session owns no rig and no policy. The RL harness does not use it; it composes
+  the same per-ship services through `ShipServices.Compose`.
 - **host** — the scene component that wraps a session-shaped thing and is the
   outside world's interface to it: the *game session host* (`GameSessionHost`,
   `Game/Play`) builds the viewport (the observer camera, with the starfield
@@ -360,6 +360,10 @@ Format: **term** — definition. *(authority)*
   game session host against the viewport it owns, injected into every sector
   load, torn down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/Play`)*
+- **hero** — the main character of a session: the ship a sector lays out around
+  and resets to its declared start. The player in the interactive game, possibly
+  an AI in a scenario; the sector side still names it *player* (`ctx.Player`,
+  `PlayerStart`, the tag). *(`Session.LoadSector(hero)`)*
 - **session frame** — the in-plane frame a session's authored content is placed
   in (offset + `Place`); zero for the single-arena game, a per-arena offset for
   anything fanning sessions across one plane. A session fact, distinct from the

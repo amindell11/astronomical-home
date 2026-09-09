@@ -175,7 +175,7 @@ namespace Tests.EditMode
         {
             var parameters = typeof(Session).GetMethod("LoadSector").GetParameters();
             Assert.AreEqual(2, parameters.Length,
-                "LoadSector(focus, onSectorComplete)");
+                "LoadSector(hero, onSectorComplete)");
             Assert.AreEqual(typeof(Ship), parameters[0].ParameterType);
             Assert.AreEqual(typeof(Action<SectorResult>), parameters[1].ParameterType,
                 "the sector-complete hook binds for the life of one load");
