@@ -82,8 +82,8 @@ namespace Tests.EditMode
             return null;
         }
 
-        // #251's shape: Capture silently dropped, RL still
-        // compiled against its types — CS0246 only a player build can see.
+        // The failure shape: an editor-only assembly silently dropped from the player build while
+        // a player-included one still compiled against its types — CS0246 only a player build sees.
         [Test]
         public void PlayerIncludedAsmdefs_ReferenceOnlyPlayerIncludedAsmdefs()
         {

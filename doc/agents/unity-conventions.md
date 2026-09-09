@@ -47,10 +47,11 @@
   editor code under `Editor/<X>/` takes the namespace of the runtime tree it
   edits. An assembly is `<Root>[.<Sub>][.Runtime|.Editor]`, mirroring the
   folder root it covers, its `.asmdef` file named exactly for it. `.Editor`
-  means editor-only (`includePlatforms` is Editor alone); an assembly that also
-  builds into a player carries no suffix, whatever folder it sits in. Moving a
-  file moves its namespace in the same diff; a namespace that names a folder
-  that doesn't exist is the smell.
+  means editor-only (`includePlatforms` is Editor alone) and never appears on
+  an assembly that builds into a player; `.Runtime` marks the all-platform
+  inner assembly beneath a platform-gated root (`RL.Runtime` under `RL`).
+  Moving a file moves its namespace in the same diff; a namespace that names a
+  folder that doesn't exist is the smell.
 - **Structure ratchet:** apply the two rules above to files and folders you
   touch — a file you edit gets its correct home and namespace in the same PR,
   and a renamed or moved folder drags its namespaces with it. Whole-package
