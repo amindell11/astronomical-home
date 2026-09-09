@@ -28,7 +28,6 @@ namespace Tests.PlayMode
         private static readonly Vector2 GatePlane = new(50f, 50f);
 
         private UnitService _unitService;
-        private GameServices _services;
         private ObjectiveService _objectives;
         private SectorSettings _config;
         private readonly List<GameObject> _created = new();
@@ -44,9 +43,7 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var projectiles = new ProjectileService(unitServiceGO.transform);
-            _unitService.SetProjectiles(projectiles);
-            _services = new GameServices(_unitService, projectiles, _objectives);
+            _unitService.SetProjectiles(new ProjectileService(unitServiceGO.transform));
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
@@ -125,7 +122,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_services, _config, default, player);
+            sector.Initialize(_unitService, _objectives, true, _config, default, player);
             return (sector, key, zone, player, chaser);
         }
 
@@ -343,7 +340,7 @@ namespace Tests.PlayMode
             var module = moduleGO.AddComponent<SectorSpineModule>();
             module.Bind(key, zone);
 
-            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus: new SectorEventBus());
+            var ctx = new SectorBuildContext(null, svc, true, null, default, null, null, bus: new SectorEventBus());
             yield return module.Setup(ctx);
             Assert.AreEqual(key.transform, svc.SpineTarget, "Sanity: the live module reports the spine target.");
 
@@ -359,16 +356,6 @@ namespace Tests.PlayMode
 
             Assert.IsNull(svc.SpineTarget,
                 "A module destroyed without Teardown must not react to later spine installs (leaked step subscription).");
-        }
-
-        private sealed class StubServices : IGameServices
-        {
-            private readonly IObjectiveService objectives;
-            public StubServices(IObjectiveService objectives) => this.objectives = objectives;
-            public IUnitService UnitService => null;
-            public IProjectileService Projectiles => null;
-            public IObjectiveService ObjectiveService => objectives;
-            public bool PresentationEnabled => true;
         }
     }
 }

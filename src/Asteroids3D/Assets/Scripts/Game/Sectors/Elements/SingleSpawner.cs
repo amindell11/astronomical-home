@@ -25,7 +25,7 @@ namespace Game.Sectors.Elements
             if (!template)
                 yield break;
 
-            var ship = ctx.Services.UnitService.SpawnShip(
+            var ship = ctx.Units.SpawnShip(
                 template, commander, team,
                 transform.position, transform.rotation == Quaternion.identity ? GamePlane.Rotation : transform.rotation,
                 ctx.Field);

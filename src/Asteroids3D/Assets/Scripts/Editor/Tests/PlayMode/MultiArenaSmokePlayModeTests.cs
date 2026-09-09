@@ -192,11 +192,11 @@ namespace Tests.PlayMode
 
             foreach (var ship in a.ShipsInSpawnOrder)
                 if (ship)
-                    Assert.IsFalse(b.Session.Services.UnitService.ActiveRegistry.ActiveShips.Contains(ship),
+                    Assert.IsFalse(b.Session.Units.ActiveRegistry.ActiveShips.Contains(ship),
                         "An arena-A ship leaked into arena B's registry.");
             foreach (var ship in b.ShipsInSpawnOrder)
                 if (ship)
-                    Assert.IsFalse(a.Session.Services.UnitService.ActiveRegistry.ActiveShips.Contains(ship),
+                    Assert.IsFalse(a.Session.Units.ActiveRegistry.ActiveShips.Contains(ship),
                         "An arena-B ship leaked into arena A's registry.");
 
             var buffer = new DetectedObstacle[64];
@@ -237,7 +237,7 @@ namespace Tests.PlayMode
             {
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
-                var otherRegistry = other.Session.Services.UnitService.Registry;
+                var otherRegistry = other.Session.Units.Registry;
                 void Handler(Damage.DamageInfo hit)
                 {
                     var attackerId = hit.AttackerId;
@@ -345,7 +345,7 @@ namespace Tests.PlayMode
 
             yield return arena.Session.Compose();
 
-            arena.Session.Services.UnitService.OnShipSpawned += arena.ShipsInSpawnOrder.Add;
+            arena.Session.Units.OnShipSpawned += arena.ShipsInSpawnOrder.Add;
             yield return arena.Session.LoadSector();
         }
 

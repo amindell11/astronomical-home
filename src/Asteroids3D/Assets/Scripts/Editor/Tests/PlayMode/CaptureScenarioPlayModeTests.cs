@@ -34,11 +34,11 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            // Crash-path net: spawned ships live under the session root, so destroying it unwinds a scenario the test never got to tear down; Services is null when Teardown already flushed.
+            // Crash-path net: spawned ships live under the session root, so destroying it unwinds a scenario the test never got to tear down; the pool is null when Teardown already flushed.
             DestroyTestObject(sessionRoot);
             sessionRoot = null;
 
-            session?.Services?.Projectiles.ReturnAllToPool();
+            session?.Projectiles?.ReturnAllToPool();
             session = null;
 
             // Crash-path net: a scenario that died mid-episode never reached the runner's End.

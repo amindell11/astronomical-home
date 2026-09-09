@@ -35,7 +35,7 @@ namespace Game.Sectors.Elements
                 yield break;
             }
 
-            objectives = ctx.Services.ObjectiveService;
+            objectives = ctx.Objectives;
             bus = ctx.Bus;
 
             var playerBody = ctx.Player ? ctx.Player.Body : null;

@@ -64,7 +64,7 @@ namespace Game.Sectors.Activation
                 [StepClear] = () => new ClearHostilesState(this),
                 [StepCleared] = () => new CompletedState(onEnter: HandleCleared)
             };
-            local = ctx.Services.ObjectiveService.OpenLocal(mission, builders, waveSpawner.transform);
+            local = ctx.Objectives.OpenLocal(mission, builders, waveSpawner.transform);
         }
 
         private void HandleCleared()

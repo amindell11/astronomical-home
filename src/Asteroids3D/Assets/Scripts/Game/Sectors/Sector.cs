@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Services;
+using Game.Services.Units;
+using Game.Services.Objectives;
 using Game.Sessions;
 using Ships;
 using UnityEngine;
@@ -28,7 +29,9 @@ namespace Game.Sectors
         [Tooltip("The authored asteroid field AI ships sense in this sector (none = a world with no rocks).")]
         [SerializeField] private Asteroids.Fields.UpdatingAsteroidField obstacleField;
 
-        protected IGameServices Services { get; private set; }
+        protected IUnitService Units { get; private set; }
+        protected IObjectiveService Objectives { get; private set; }
+        protected bool PresentationEnabled { get; private set; }
         protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
         protected SectorBuildContext Context { get; private set; }
@@ -55,17 +58,21 @@ namespace Game.Sectors
             }
         }
 
-        public void Initialize(IGameServices services, SectorSettings config, SessionFrame frame, Ship player)
+        public void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
+            SectorSettings config, SessionFrame frame, Ship player)
         {
-            Services = services ?? throw new ArgumentNullException(nameof(services));
+            Units = units ?? throw new ArgumentNullException(nameof(units));
+            Objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
+            PresentationEnabled = presentationEnabled;
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            Context = new SectorBuildContext(Services, this, frame, ObstacleField, player);
+            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, player);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
-            Context = new SectorBuildContext(Services, this, Context.Frame, Context.Field, Context.Player, new SectorEventBus());
+            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, Context.Frame,
+                Context.Field, Context.Player, new SectorEventBus());
 
             yield return OnBeforeContent();
 
@@ -108,7 +115,7 @@ namespace Game.Sectors
 
             // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts are deliberately left alone.
             foreach (var entry in adopted)
-                if (entry.target is Ship ship) Services.UnitService.DespawnShip(ship);
+                if (entry.target is Ship ship) Units.DespawnShip(ship);
 
             yield return OnAfterTeardown();
         }
@@ -130,9 +137,9 @@ namespace Game.Sectors
         private void AdoptShip(Ship ship, AdoptEntry entry)
         {
             ship.teamNumber = entry.team;
-            var adoptedShip = Services.UnitService.AdoptShip(ship, Context.Field);
+            var adoptedShip = Units.AdoptShip(ship, Context.Field);
             if (!adoptedShip) return;
-            Respawn.Wire(adoptedShip, entry.respawn, Services.UnitService);
+            Respawn.Wire(adoptedShip, entry.respawn, Units);
             if (!entry.startActive) adoptedShip.gameObject.SetActive(false);
         }
 

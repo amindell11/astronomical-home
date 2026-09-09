@@ -4,7 +4,8 @@ using Cameras;
 using Damage;
 using Game.Sectors;
 using Game.Sessions;
-using Game.Services;
+using Game.Services.Units;
+using Game.Services.Objectives;
 using Player;
 using Ships;
 using Ships.Command;
@@ -55,8 +56,8 @@ namespace Game.Play
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
 
-        // Session services captured at Build so the hangar can rebuild the player between runs.
-        private IGameServices services;
+        // The session's unit service, captured at Build so the hangar can rebuild the player between runs.
+        private IUnitService units;
 
         // The host's viewport, captured at Build so a rebuilt player can re-take the camera subject.
         private ObserverCam observer;
@@ -72,24 +73,24 @@ namespace Game.Play
         private Ship currentTemplate;
 
         /// <summary>
-        /// Build the player and its HUD into the session services, framed by the host's
+        /// Build the player and its HUD into the session's services, framed by the host's
         /// <paramref name="observer"/>. Called once, before the first sector loads. The ship is owned
-        /// by the unit service and therefore cleared by <c>services.ClearAll()</c> on session exit;
-        /// the overlay is the rig's own and goes in <see cref="Teardown"/>. The host-supplied
+        /// by the unit service and therefore cleared by the session's teardown; the overlay is the
+        /// rig's own and goes in <see cref="Teardown"/>. The host-supplied
         /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
         /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
-        public IEnumerator Build(IGameServices services, ObserverCam observer, SessionFrame frame,
-            Action<ShipId, DamageInfo> onPlayerDeath)
+        public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
+            ObserverCam observer, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
         {
-            this.services = services;
+            this.units = units;
             this.observer = observer;
             this.frame = frame;
             this.onPlayerDeath = onPlayerDeath;
 
             BuildPlayer(playerTemplate);
 
-            Ledger.Bind(Player.Damage, services.UnitService.Registry);
+            Ledger.Bind(Player.Damage, units.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
             Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield,
@@ -97,7 +98,7 @@ namespace Game.Play
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
-            if (services.PresentationEnabled && observer && overlayPrefab && uiCamPrefab)
+            if (presentationEnabled && observer && overlayPrefab && uiCamPrefab)
             {
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
@@ -110,10 +111,10 @@ namespace Game.Play
                 // Hand the objective marker the objective-service channel; it subscribes and
                 // self-decides visibility (encounters report their target via IObjectiveService).
                 if (Overlay.ObjectiveMarker)
-                    Overlay.ObjectiveMarker.BindObjectiveService(services.ObjectiveService);
+                    Overlay.ObjectiveMarker.BindObjectiveService(objectives);
             }
 
-            if (services.PresentationEnabled && observer && minimapCamPrefab)
+            if (presentationEnabled && observer && minimapCamPrefab)
             {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
@@ -125,7 +126,7 @@ namespace Game.Play
 
         /// <summary>
         /// Drop the player reference, unwire its death callback and destroy the overlay. The
-        /// service-owned player instance is destroyed by <c>services.ClearAll()</c> on exit.
+        /// service-owned player instance is destroyed by the session's teardown.
         /// </summary>
         public void Teardown()
         {
@@ -136,7 +137,7 @@ namespace Game.Play
             Overlay = null;
             Player = null;
             observer = null;
-            services = null;
+            units = null;
         }
 
         /// <summary>
@@ -166,7 +167,7 @@ namespace Game.Play
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
-            services.UnitService.WireShipDependencies(Player, field: null);
+            units.WireShipDependencies(Player, field: null);
             RebindHud();
         }
 
@@ -181,18 +182,18 @@ namespace Game.Play
         private void RebuildPlayer(Ship newTemplate)
         {
             UnwirePlayerDeath();
-            services.UnitService.DespawnShip(Player);
+            units.DespawnShip(Player);
 
             BuildPlayer(newTemplate);
 
-            Ledger.Bind(Player.Damage, services.UnitService.Registry);
+            Ledger.Bind(Player.Damage, units.Registry);
         }
 
         // The death hook is wired here so a spawn-frame death already has a subscriber.
         private void BuildPlayer(Ship template)
         {
             // Player is team 0 by construction; only adopted enemies need a non-zero team.
-            Player = services.UnitService.SpawnShip(
+            Player = units.SpawnShip(
                 template,
                 playerCommander,
                 0,

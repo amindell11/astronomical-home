@@ -53,9 +53,10 @@ namespace Tests.PlayMode
 
             yield return session.Compose();
 
-            Assert.IsNotNull(session.Services, "Compose must populate the session's services");
+            Assert.IsNotNull(session.Units, "Compose must populate the session's services");
 
-            yield return rigInstance.Build(session.Services, observer, session.Frame, onPlayerDeath: null);
+            yield return rigInstance.Build(session.Units, session.Objectives, presentationEnabled: false,
+                observer, session.Frame, onPlayerDeath: null);
 
             Assert.IsNotNull(rigInstance.Player, "the rig builds the player against the session's services");
 
@@ -67,7 +68,7 @@ namespace Tests.PlayMode
 
             yield return session.Teardown();
 
-            Assert.IsNull(session.Services, "Teardown must clear the session's services");
+            Assert.IsNull(session.Units, "Teardown must clear the session's services");
         }
     }
 }

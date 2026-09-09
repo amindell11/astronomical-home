@@ -58,7 +58,7 @@ namespace Game.Sectors.Elements
         protected virtual IEnumerator OnTeardown(SectorBuildContext ctx)
         {
             foreach (var ship in Spawned)
-                if (ship) ctx.Services.UnitService.DespawnShip(ship);
+                if (ship) ctx.Units.DespawnShip(ship);
             Spawned = System.Array.Empty<Ship>();
             yield break;
         }

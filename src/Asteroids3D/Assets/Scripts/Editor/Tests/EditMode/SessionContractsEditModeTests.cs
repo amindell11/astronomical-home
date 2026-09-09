@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using Game.Play;
 using Game.Sectors;
-using Game.Services;
 using Game.Sessions;
 using Cameras;
 using NUnit.Framework;
@@ -10,6 +9,7 @@ using Ships;
 using UnityEngine;
 using Ships.Registry;
 using Game.Services.Units;
+using Game.Services.Projectiles;
 using Game.Services.Objectives;
 
 namespace Tests.EditMode
@@ -32,13 +32,16 @@ namespace Tests.EditMode
             Assert.IsNotNull(method, "ISector must declare Initialize method");
 
             var parameters = method.GetParameters();
-            Assert.AreEqual(4, parameters.Length);
-            Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
-            Assert.AreEqual(typeof(SectorSettings), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType,
-                "Initialize must accept the session's in-plane frame as its third parameter");
-            Assert.AreEqual(typeof(Ship), parameters[3].ParameterType,
-                "Initialize must accept the host-injected player as its fourth parameter");
+            Assert.AreEqual(6, parameters.Length);
+            Assert.AreEqual(typeof(IUnitService), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(IObjectiveService), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(bool), parameters[2].ParameterType,
+                "Initialize must accept the session's presentation policy as its third parameter");
+            Assert.AreEqual(typeof(SectorSettings), parameters[3].ParameterType);
+            Assert.AreEqual(typeof(SessionFrame), parameters[4].ParameterType,
+                "Initialize must accept the session's in-plane frame as its fifth parameter");
+            Assert.AreEqual(typeof(Ship), parameters[5].ParameterType,
+                "Initialize must accept the host-injected player as its sixth parameter");
         }
 
         [Test]
@@ -58,14 +61,6 @@ namespace Tests.EditMode
         {
             Assert.IsFalse(typeof(Sector).IsAbstract,
                 "Sector is the single concrete play-sector (Combat/Arena/Testbench are prefabs of it)");
-        }
-
-        [Test]
-        public void GameServices_Constructor_RejectsNullServices()
-        {
-            Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null),
-                "GameServices constructor must reject null services");
         }
 
         [Test]
@@ -141,13 +136,20 @@ namespace Tests.EditMode
             var type = typeof(Session);
             Assert.IsFalse(typeof(MonoBehaviour).IsAssignableFrom(type),
                 "Session is a plain object, not a scene component");
-            Assert.IsNotNull(type.GetProperty("Services"), "Session must expose Services");
+            Assert.AreEqual(typeof(IUnitService), type.GetProperty("Units")?.PropertyType,
+                "Session must expose its unit service");
+            Assert.AreEqual(typeof(IProjectileService), type.GetProperty("Projectiles")?.PropertyType,
+                "Session must expose its projectile service");
+            Assert.AreEqual(typeof(IObjectiveService), type.GetProperty("Objectives")?.PropertyType,
+                "Session must expose its objective service");
+            Assert.IsNull(type.GetProperty("Services"),
+                "the services are named one by one — a session holds no service container");
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "Session must expose ActiveSector");
             Assert.IsNull(type.GetProperty("Rig"),
                 "the player is the host's, not the session's — a session holds no rig");
             Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
                 "Session must expose its in-plane Frame");
-            // Presentation policy rides SessionProfile to the GameServices/spawn seams (plus the
+            // Presentation policy rides SessionProfile to the sector and spawn seams (plus the
             // interim GameSettings.PresentationEnabled global for ship rigs), never Session state.
         }
 
@@ -192,12 +194,14 @@ namespace Tests.EditMode
             var build = typeof(PlayerRig).GetMethod("Build");
             Assert.IsNotNull(build, "PlayerRig must expose Build");
             var parameters = build.GetParameters();
-            Assert.AreEqual(4, parameters.Length,
-                "Build must take (services, observer, frame, onPlayerDeath)");
-            Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
-            Assert.AreEqual(typeof(ObserverCam), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(SessionFrame), parameters[2].ParameterType);
-            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[3].ParameterType);
+            Assert.AreEqual(6, parameters.Length,
+                "Build must take (units, objectives, presentationEnabled, observer, frame, onPlayerDeath)");
+            Assert.AreEqual(typeof(IUnitService), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(IObjectiveService), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(bool), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(ObserverCam), parameters[3].ParameterType);
+            Assert.AreEqual(typeof(SessionFrame), parameters[4].ParameterType);
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[5].ParameterType);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Game.Play
     /// loop), the between-run hangar flow, the splash, the death recap, and the reset policy
     /// (sector complete / player death → restart). It also builds the viewport — the observer camera
     /// every sector and the player rig frame themselves against — and the optional
-    /// <see cref="PlayerRig"/>, handing both to the session at each sector load. The session
+    /// <see cref="PlayerRig"/>, handing the player to the session at each sector load. The session
     /// orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
     /// The RL harness's <c>HarnessSessionHost</c> is the other host shape, over the harness's own
     /// composition rather than a session.
@@ -88,8 +88,6 @@ namespace Game.Play
         public event Action<GameState> OnGameStateChanged;
 
         public Sector ActiveSector => session?.ActiveSector;
-
-        public IGameServices Services => session?.Services;
 
         private void Awake()
         {
@@ -158,29 +156,30 @@ namespace Game.Play
         {
             yield return session.Compose();
 
-            observer = BuildObserver(session.Services);
+            observer = BuildObserver(session.Units, sessionProfile.presentation);
             if (playerRig)
-                yield return playerRig.Build(session.Services, observer, session.Frame, BuildDeathCallback());
+                yield return playerRig.Build(session.Units, session.Objectives, sessionProfile.presentation,
+                    observer, session.Frame, BuildDeathCallback());
 
             TransitionTo(GameState.Hangar);
         }
 
         /// <summary>Stays callable without the state machine so the presentation gate can be driven directly.</summary>
-        internal ObserverCam BuildObserver(IGameServices services)
+        internal ObserverCam BuildObserver(IUnitService units, bool presentationEnabled)
         {
             var built = Instantiate(observerCamPrefab);
 
             // The authored prefab clears to the skybox; a non-presenting session must not render one.
-            if (!services.PresentationEnabled)
+            if (!presentationEnabled)
             {
                 built.Cam.clearFlags = CameraClearFlags.SolidColor;
                 built.Cam.backgroundColor = Color.black;
             }
 
             // The camera carries authored presentation of its own (the starfield backdrop, the reverb zone).
-            PresentationApplier.Apply(built.gameObject, services.PresentationEnabled);
+            PresentationApplier.Apply(built.gameObject, presentationEnabled);
 
-            var registry = services.UnitService.ActiveRegistry;
+            var registry = units.ActiveRegistry;
             if (registry == null)
                 return built;
 
@@ -189,7 +188,7 @@ namespace Game.Play
             return built;
         }
 
-        // Services are read from the session at death time, after composition has populated them.
+        // The unit service is read from the session at death time, after composition has populated it.
         private Action<ShipId, DamageInfo> BuildDeathCallback()
         {
             switch (deathBehavior)
@@ -204,7 +203,7 @@ namespace Game.Play
                     var policy = playerRespawn;
                     if (!policy.Enabled) return null;
                     // No live producer transform here, so the authored point resolves against the frame origin.
-                    return (victim, _) => session.Services.UnitService.WaitAndRespawnShip(
+                    return (victim, _) => session.Units.WaitAndRespawnShip(
                         victim, Respawn.Resolve(policy, session.Frame.Offset), 0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:

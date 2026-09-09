@@ -49,7 +49,7 @@ namespace Tests.EditMode
         public void EmptyToken_ProducesAtBuild()
         {
             var spawner = NewSpawner();
-            Drive(spawner.Build(new SectorBuildContext(null, null, default, null, null, bus: new SectorEventBus())));
+            Drive(spawner.Build(new SectorBuildContext(null, null, true, null, default, null, null, bus: new SectorEventBus())));
             Assert.AreEqual(1, spawner.ProduceCalls);
         }
 
@@ -58,7 +58,7 @@ namespace Tests.EditMode
         {
             var spawner = NewSpawner("go");
             var bus = new SectorEventBus();
-            Drive(spawner.Build(new SectorBuildContext(null, null, default, null, null, bus: bus)));
+            Drive(spawner.Build(new SectorBuildContext(null, null, true, null, default, null, null, bus: bus)));
             Assert.AreEqual(0, spawner.ProduceCalls, "A token-gated spawner must stay dormant at Build.");
 
             bus.Set("other", true);
@@ -78,7 +78,7 @@ namespace Tests.EditMode
             var spawner = NewSpawner("go");
             var bus = new SectorEventBus();
             bus.Latch("go");
-            Drive(spawner.Build(new SectorBuildContext(null, null, default, null, null, bus: bus)));
+            Drive(spawner.Build(new SectorBuildContext(null, null, true, null, default, null, null, bus: bus)));
             Assert.AreEqual(1, spawner.ProduceCalls);
         }
 
@@ -87,7 +87,7 @@ namespace Tests.EditMode
         {
             var spawner = NewSpawner("go");
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             Drive(spawner.Build(ctx));
             Drive(spawner.Teardown(ctx));
 
@@ -101,7 +101,7 @@ namespace Tests.EditMode
             var spawner = NewSpawner("go");
             LogAssert.Expect(LogType.Error,
                 new System.Text.RegularExpressions.Regex("SectorSpawner .*no bus.*inert"));
-            Drive(spawner.Build(new SectorBuildContext(null, null, default)));
+            Drive(spawner.Build(new SectorBuildContext(null, null, true, null, default)));
             Assert.AreEqual(0, spawner.ProduceCalls);
         }
     }

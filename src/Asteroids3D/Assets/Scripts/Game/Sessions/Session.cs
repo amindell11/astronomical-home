@@ -6,6 +6,7 @@ using Ships;
 using UnityEngine;
 using Utils;
 using Game.Services.Units;
+using Game.Services.Projectiles;
 using Game.Services.Objectives;
 using Game.Services.Environment;
 
@@ -13,7 +14,7 @@ namespace Game.Sessions
 {
     /// <summary>
     /// One game session, orchestrating its own lifecycle over the substrate it is handed: it composes
-    /// the service container once, loads and unloads the profile's sector any number of times, and
+    /// its services once, loads and unloads the profile's sector any number of times, and
     /// tears everything down. It owns no player and no policy — a host (<c>GameSessionHost</c> for the
     /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
     /// player it built to each load. The RL harness composes the same substrate
@@ -36,8 +37,14 @@ namespace Game.Sessions
         /// <summary>The in-plane frame this session's authored content is placed in.</summary>
         public SessionFrame Frame { get; }
 
-        /// <summary>Service registries owned by this session; null once torn down.</summary>
-        public GameServices Services { get; private set; }
+        /// <summary>Unit registry owned by this session; null once torn down.</summary>
+        public IUnitService Units { get; private set; }
+
+        /// <summary>Projectile pool owned by this session; null once torn down.</summary>
+        public IProjectileService Projectiles { get; private set; }
+
+        /// <summary>Objective registry owned by this session; null once torn down.</summary>
+        public IObjectiveService Objectives { get; private set; }
 
         public Sector ActiveSector { get; private set; }
 
@@ -50,7 +57,7 @@ namespace Game.Sessions
             Frame = new SessionFrame(profile.offset);
         }
 
-        /// <summary>Compose the service container — once; it persists across sector loads until <see cref="Teardown"/>.</summary>
+        /// <summary>Compose the services — once; they persist across sector loads until <see cref="Teardown"/>.</summary>
         public IEnumerator Compose()
         {
             Require(Phase.Created, nameof(Compose));
@@ -59,13 +66,9 @@ namespace Game.Sessions
             // The session root doubles as the arena root: placed at the frame offset before anything composes against it.
             root.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(Frame.Offset);
 
-            var projectiles = ShipServices.Compose(units, root, Profile.presentation);
-            Services = new GameServices(
-                unitService: units,
-                projectiles: projectiles,
-                objectiveService: objectives,
-                presentationEnabled: Profile.presentation
-            );
+            Projectiles = ShipServices.Compose(units, root, Profile.presentation);
+            Units = units;
+            Objectives = objectives;
 
             phase = Phase.Composed;
             yield break;
@@ -99,7 +102,7 @@ namespace Game.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Services, entry.config, Frame, hero);
+            sector.Initialize(Units, Objectives, Profile.presentation, entry.config, Frame, hero);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
@@ -108,7 +111,7 @@ namespace Game.Sessions
             // The sector only DECLARES its start via PlayerStart; the session does the entry reset.
             // It must precede Setup: the obstacle field lays out and anchors against the placed hero.
             if (hero)
-                Services.UnitService.RespawnShip(hero.Id, sector.PlayerStart, 0f);
+                Units.RespawnShip(hero.Id, sector.PlayerStart, 0f);
 
             yield return sector.Setup();
 
@@ -122,9 +125,9 @@ namespace Game.Sessions
         {
             Require(Phase.Loaded, nameof(UnloadSector));
             // Drop any queued player/NPC revives so a pending respawn cannot fire into the torn-down sector.
-            Services.UnitService.CancelPendingRespawns();
+            Units.CancelPendingRespawns();
             // Old-sector transients must not survive into the next sector (they live under the session root, not the sector).
-            Services.Projectiles.ReturnAllToPool();
+            Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(runTeardown: true);
             phase = Phase.Composed;
@@ -141,8 +144,12 @@ namespace Game.Sessions
             if (Profile.presentation)
                 yield return locale.RestoreBootEnvironmentAsync();
 
-            Services.ClearAll();
-            Services = null;
+            Projectiles.ReturnAllToPool();
+            Units.Clear();
+            Objectives.ClearAll();
+            Projectiles = null;
+            Units = null;
+            Objectives = null;
             phase = Phase.TornDown;
         }
 

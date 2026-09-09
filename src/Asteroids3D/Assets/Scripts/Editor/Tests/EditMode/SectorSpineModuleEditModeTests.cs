@@ -37,16 +37,6 @@ namespace Tests.EditMode
             return go;
         }
 
-        private sealed class StubServices : IGameServices
-        {
-            private readonly IObjectiveService objectives;
-            public StubServices(IObjectiveService objectives) => this.objectives = objectives;
-            public IUnitService UnitService => null;
-            public IProjectileService Projectiles => null;
-            public IObjectiveService ObjectiveService => objectives;
-            public bool PresentationEnabled => true;
-        }
-
         private static void Run(IEnumerator routine)
         {
             while (routine.MoveNext()) { }
@@ -69,7 +59,7 @@ namespace Tests.EditMode
             module.Bind(key, zone);
 
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(new StubServices(svc), null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, svc, true, null, default, null, null, bus: bus);
             return (module, svc, key, zone, bus, ctx);
         }
 

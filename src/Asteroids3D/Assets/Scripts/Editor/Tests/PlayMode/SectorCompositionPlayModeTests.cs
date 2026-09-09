@@ -28,7 +28,7 @@ namespace Tests.PlayMode
             public bool IsBuilt => IsSetUp;
             protected override IEnumerator OnAfterTeardown()
             {
-                Services.UnitService.Clear();
+                Units.Clear();
                 yield break;
             }
         }
@@ -54,7 +54,7 @@ namespace Tests.PlayMode
         }
 
         private UnitService _unitService;
-        private GameServices _services;
+        private ObjectiveService _objectiveService;
         private SectorSettings _config;
         private readonly List<GameObject> _created = new();
 
@@ -67,12 +67,9 @@ namespace Tests.PlayMode
             _unitService = unitServiceGO.AddComponent<UnitService>();
 
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
-            var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
+            _objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var projectiles = new ProjectileService(unitServiceGO.transform);
-            _unitService.SetProjectiles(projectiles);
-            _services = new GameServices(
-                _unitService, projectiles, objectiveService);
+            _unitService.SetProjectiles(new ProjectileService(unitServiceGO.transform));
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
 
@@ -106,7 +103,7 @@ namespace Tests.PlayMode
             // Author content under an INACTIVE sector — mirrors Session's inactive holder so authored ships don't Awake before adoption.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.Initialize(_services, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
             return sector;
         }
 
@@ -116,7 +113,7 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
-            sector.Initialize(_services, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
             return sector;
         }
 
@@ -375,7 +372,7 @@ namespace Tests.PlayMode
 
             var point = new Vector2(17f, -9f);
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
-            Assert.IsTrue(Respawn.Wire(s, policy, _services.UnitService), "FixedPoint policy must wire a respawn.");
+            Assert.IsTrue(Respawn.Wire(s, policy, _unitService), "FixedPoint policy must wire a respawn.");
 
             TestDamage.Kill(s);
 
@@ -400,7 +397,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(s);
 
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
-            Assert.IsFalse(Respawn.Wire(s, policy, _services.UnitService), "A None policy must wire nothing.");
+            Assert.IsFalse(Respawn.Wire(s, policy, _unitService), "A None policy must wire nothing.");
 
             TestDamage.Kill(s);
 

@@ -42,7 +42,7 @@ public abstract class CaptureScenario
         var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
-        var ship = Session.Services.UnitService.SpawnShip(
+        var ship = Session.Units.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,
             Session.Frame.Place(planePos),
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),

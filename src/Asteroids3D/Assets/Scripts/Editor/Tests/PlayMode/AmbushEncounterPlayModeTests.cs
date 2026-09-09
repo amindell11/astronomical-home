@@ -35,7 +35,6 @@ namespace Tests.PlayMode
         }
 
         private UnitService _unitService;
-        private GameServices _services;
         private ObjectiveService _objectives;
         private SectorSettings _config;
         private Ship _waveTemplate;
@@ -52,10 +51,7 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var projectiles = new ProjectileService(unitServiceGO.transform);
-            _unitService.SetProjectiles(projectiles);
-            _services = new GameServices(
-                _unitService, projectiles, _objectives);
+            _unitService.SetProjectiles(new ProjectileService(unitServiceGO.transform));
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
             // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
@@ -119,7 +115,7 @@ namespace Tests.PlayMode
         {
             var go = TrackGO(new GameObject("AmbushSector"));
             var sector = go.AddComponent<BusProbeSector>();
-            sector.Initialize(_services, _config, default, player);
+            sector.Initialize(_unitService, _objectives, true, _config, default, player);
             return sector;
         }
 

@@ -220,22 +220,5 @@ namespace Tests.EditMode
 
             Assert.AreEqual(new MonoBehaviour[] { live }, visited);
         }
-
-        [Test]
-        public void GameServicesClearAll_FlushesLiveTransients()
-        {
-            var unitGo = new GameObject("Unit");
-            tempObjects.Add(unitGo);
-            var services = new GameServices(
-                unitGo.AddComponent<UnitService>(), service,
-                unitGo.AddComponent<ObjectiveService>());
-            var projectile = Create<TestProjectile>();
-            service.Register(projectile, projectile.ReturnToPoolImmediate);
-
-            services.ClearAll();
-
-            Assert.AreEqual(1, projectile.Returns, "sector transitions must not leak live projectiles");
-            Assert.AreEqual(0, service.ActiveCount);
-        }
     }
 }
