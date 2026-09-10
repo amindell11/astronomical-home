@@ -1,3 +1,4 @@
+using Ships.Loadout;
 using Movement;
 using Ships.Command;
 using UnityEngine;

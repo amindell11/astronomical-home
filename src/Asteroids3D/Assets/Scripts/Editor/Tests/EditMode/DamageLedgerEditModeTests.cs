@@ -2,6 +2,7 @@ using Damage;
 using NUnit.Framework;
 using Game.Player;
 using Ships;
+using Ships.Loadout;
 using Ships.Damage;
 using UI;
 using UnityEngine;

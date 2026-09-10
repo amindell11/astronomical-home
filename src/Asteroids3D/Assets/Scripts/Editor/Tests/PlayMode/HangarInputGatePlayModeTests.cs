@@ -6,6 +6,7 @@ using Game;
 using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
+using Ships.Loadout;
 using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;

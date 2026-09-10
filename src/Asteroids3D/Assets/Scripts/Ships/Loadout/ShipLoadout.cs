@@ -1,6 +1,6 @@
 using Combat.Weapons;
 
-namespace Ships
+namespace Ships.Loadout
 {
     /// <summary>
     /// The pending module selection a hangar edits before it is applied to a ship. Holds every

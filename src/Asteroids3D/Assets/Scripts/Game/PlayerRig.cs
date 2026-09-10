@@ -8,6 +8,7 @@ using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 using Game.Player;
 using Ships;
+using Ships.Loadout;
 using Ships.Command;
 using UI;
 using UnityEngine;

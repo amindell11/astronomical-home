@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Ships;
+using Ships.Loadout;
 using Ships.Command;
 using Ships.Movement;
 using Movement;

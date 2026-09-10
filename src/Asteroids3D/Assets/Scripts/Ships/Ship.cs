@@ -1,3 +1,4 @@
+using Ships.Loadout;
 using System;
 using Combat;
 using Combat.Targeting;

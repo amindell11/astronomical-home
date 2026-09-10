@@ -1,7 +1,7 @@
 using Movement;
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Loadout
 {
     /// <summary>
     /// The flattened, runtime-facing view of a ship's stats, produced at spawn by copying each field

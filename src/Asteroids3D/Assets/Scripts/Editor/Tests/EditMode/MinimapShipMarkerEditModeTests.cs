@@ -1,24 +1,25 @@
 using NUnit.Framework;
-using Ships;
+using Ships.Visuals;
+using Substrate;
 using Ships.Presentation;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
     [Category("UI")]
-    public class MinimapLayerSetterEditModeTests
+    public class MinimapShipMarkerEditModeTests
     {
         private GameObject go;
-        private MinimapLayerSetter setter;
+        private MinimapShipMarker marker;
         private int enemyLayer;
 
         [SetUp]
         public void SetUp()
         {
-            enemyLayer = LayerMask.NameToLayer("Minimap_Enemy");
+            enemyLayer = LayerIds.MinimapEnemy;
             if (enemyLayer < 0) Assert.Ignore("Minimap_Enemy layer not defined in this project.");
             go = new GameObject("MapMesh") { layer = 0 };
-            setter = go.AddComponent<MinimapLayerSetter>();
+            marker = go.AddComponent<MinimapShipMarker>();
         }
 
         [TearDown]
@@ -33,14 +34,14 @@ namespace Tests.EditMode
         [Test]
         public void Bind_NonPlayer_SwitchesToEnemyLayer()
         {
-            setter.Bind(View(isPlayer: false));
+            marker.Bind(View(isPlayer: false));
             Assert.AreEqual(enemyLayer, go.layer);
         }
 
         [Test]
         public void Bind_Player_LeavesLayerUntouched()
         {
-            setter.Bind(View(isPlayer: true));
+            marker.Bind(View(isPlayer: true));
             Assert.AreEqual(0, go.layer);
         }
     }
