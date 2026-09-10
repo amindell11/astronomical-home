@@ -128,7 +128,10 @@ Commands:
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
-      origin/main), clean the worktree, and release the lock.
+      origin/main), delete the task branch, and release the lock. Requires a
+      clean slot at the merged PR head, the merge commit in the fetched base,
+      and no later remote task-branch commits. Missing or failed evidence
+      exits nonzero before cleanup; preserve additional work before retrying.
 
   review-comments <slot> [base]
       Show open PR URL and unresolved review threads/comments for slot.
@@ -1395,17 +1398,43 @@ cmd_merge() {
 cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
-
-  local task_branch
+  local path task_branch evidence state pr_head merge_commit remote_head
+  path="$(slot_path "$slot")" || return 1
   task_branch="$(task_branch_for "$slot")"
-  if [[ -n "$task_branch" ]]; then
-    git -C "$ROOT" push origin --delete "$task_branch" 2>/dev/null || true
-  fi
+  require_gh || return 1
+  [[ -n "$task_branch" ]] || { echo "finalize: no task branch for $slot; preserve the slot and resolve its lease." >&2; return 1; }
+  require_clean_slot "$slot" "$path" finalize || return 1
 
-  # --force: post-merge reset is intentional discard — the squash subsumed the slot's commits and the remote task branch is gone.
+  evidence="$(gh pr list --head "$task_branch" --base "${base_ref#origin/}" --state all --limit 1 \
+    --json state,headRefOid,mergeCommit --jq '.[0] | [.state, .headRefOid, .mergeCommit.oid] | @tsv')" || return 1
+  IFS=$'\t' read -r state pr_head merge_commit <<< "$evidence"
+  if [[ "$state" != MERGED || ! "$pr_head" =~ ^[0-9a-f]{40}$ || ! "$merge_commit" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "finalize: merged PR evidence unavailable for $task_branch; preserve the slot and verify the PR." >&2
+    return 1
+  fi
+  if [[ "$(git -C "$path" rev-parse HEAD)" != "$pr_head" ]]; then
+    echo "finalize: $slot HEAD differs from the merged PR head; preserve its additional work first." >&2
+    return 1
+  fi
+  git -C "$path" fetch origin || return 1
+  if ! git -C "$path" merge-base --is-ancestor "$merge_commit" "$base_ref"; then
+    echo "finalize: $base_ref does not contain the PR merge commit; preserve the slot and verify the base." >&2
+    return 1
+  fi
+  remote_head="$(git -C "$path" ls-remote --exit-code origin "refs/heads/$task_branch")" || {
+    [[ $? == 2 ]] || return 1
+    remote_head=""
+  }
+  remote_head="${remote_head%%$'\t'*}"
+  if [[ -n "$remote_head" && "$remote_head" != "$pr_head" ]]; then
+    echo "finalize: $task_branch changed after the PR merged; preserve its additional work first." >&2
+    return 1
+  fi
+  if [[ -n "$remote_head" ]]; then
+    git -C "$path" push --force-with-lease="refs/heads/$task_branch:$pr_head" origin --delete "$task_branch" || return 1
+  fi
   cmd_prepare "$slot" "$base_ref" --force
   cmd_release "$slot"
-
   echo "Finalized $slot: reset to $base_ref and released lock."
 }
 
