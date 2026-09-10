@@ -2,6 +2,7 @@ using System;
 using AI;
 using Capture;
 using Ships;
+using Ships.Loadout;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;

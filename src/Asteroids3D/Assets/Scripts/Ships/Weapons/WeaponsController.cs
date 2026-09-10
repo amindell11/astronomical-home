@@ -5,6 +5,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using Movement;
 using Ships.Command;
+using Ships.Loadout;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 

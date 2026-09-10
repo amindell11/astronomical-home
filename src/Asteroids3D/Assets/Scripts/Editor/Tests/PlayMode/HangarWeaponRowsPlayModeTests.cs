@@ -2,6 +2,7 @@
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
+using Ships.Loadout;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
 using UI;

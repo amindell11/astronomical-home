@@ -1,5 +1,7 @@
 using Ships;
+using Ships.Loadout;
 using Ships.Presentation;
+using Ships.Visuals;
 using UnityEngine;
 
 namespace UI
@@ -212,7 +214,7 @@ namespace UI
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
                 if (canvas.gameObject != rig.gameObject)
                     DestroyImmediate(canvas.gameObject);
-            foreach (var minimap in rig.GetComponentsInChildren<MinimapLayerSetter>(true))
+            foreach (var minimap in rig.GetComponentsInChildren<MinimapShipMarker>(true))
                 if (minimap && minimap.gameObject != rig.gameObject)
                     DestroyImmediate(minimap.gameObject);
             // Disable, don't destroy: sources may be [RequireComponent]-pinned by their binders.

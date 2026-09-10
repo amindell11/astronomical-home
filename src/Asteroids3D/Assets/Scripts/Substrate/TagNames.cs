@@ -11,5 +11,6 @@ namespace Substrate
         public const string Missile = "Missile";
         public const string ReferencePlane = "ReferencePlane";
         public const string UICam = "UICam";
+        public const string MinimapEnemy = "Minimap_Enemy";
     }
 } 

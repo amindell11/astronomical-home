@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Loadout
 {
     /// <summary>
     /// Movement/handling stats for a ship. One of the composable modules a <see cref="Ship"/> carries.

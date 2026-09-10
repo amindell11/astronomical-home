@@ -1,7 +1,7 @@
 using Combat.Weapons;
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Loadout
 {
     /// <summary>
     /// The catalog of modules the hangar offers per slot — the pool a <see cref="ShipLoadout"/>

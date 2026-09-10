@@ -2,6 +2,7 @@ using System;
 using Movement;
 using UnityEngine;
 using Ships.Command;
+using Ships.Loadout;
 using Substrate;
 namespace Ships.Movement
 {

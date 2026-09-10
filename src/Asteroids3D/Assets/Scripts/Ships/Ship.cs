@@ -4,6 +4,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using Ships.Command;
 using Ships.Damage;
+using Ships.Loadout;
 using Ships.Movement;
 using Ships.Weapons;
 using Movement;

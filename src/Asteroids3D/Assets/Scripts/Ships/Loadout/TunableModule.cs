@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Ships
+namespace Ships.Loadout
 {
     /// <summary>
     /// Base for the composable ship-settings ScriptableObjects (frame + modules). Carries the
