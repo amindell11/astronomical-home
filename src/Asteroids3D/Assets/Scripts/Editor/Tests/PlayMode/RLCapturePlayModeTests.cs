@@ -10,7 +10,7 @@ using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
+using Substrate.Presentation;
 using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
@@ -50,7 +50,6 @@ namespace Tests.PlayMode
         public void SetUp()
         {
             AudioListener.pause = true;
-            GameSettings.SetPresentationEnabled(true);
             arenaHost = new GameObject("[CaptureArena]");
             unitService = arenaHost.AddComponent<UnitService>();
             projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
@@ -71,7 +70,6 @@ namespace Tests.PlayMode
             subjectB = null;
             projectiles?.ReturnAllToPool();
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            GameSettings.SetPresentationEnabled(true);
             if (ownsOutDir && Directory.Exists(outDir)) Directory.Delete(outDir, true);
             AudioListener.pause = false;
         }
@@ -85,7 +83,6 @@ namespace Tests.PlayMode
 
             var spec = PinnedPlainSpec();
             // No gizmo types selected, so the Game View films the game itself — presentation stays on.
-            GameSettings.SetPresentationEnabled(spec.Presentation);
             Assert.IsTrue(spec.Presentation, "a capture with no gizmo profile films with presentation enabled");
 
             var host = NewHost(spec);
@@ -117,7 +114,6 @@ namespace Tests.PlayMode
 
             var spec = SpecFor(GizmoSelector, PinnedNativeSpec);
             // Native profiles film collider silhouettes and gizmo geometry; presentation meshes would occlude them.
-            GameSettings.SetPresentationEnabled(spec.Presentation);
             Assert.IsFalse(spec.Presentation, "a native gizmo profile films with presentation disabled");
 
             var host = NewHost(spec);
@@ -141,12 +137,14 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator NativeCapture_GameViewFollowsGizmoTypeToggles()
         {
-            GameSettings.SetPresentationEnabled(false);
             subjectA = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(-12f, 0f)),
                 GamePlane.Rotation, projectiles, team: 0);
             subjectB = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(12f, 0f)),
                 GamePlane.Rotation, projectiles, team: 1);
             Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
+            // The factory spawns outside the unit service's applying seam, so the test darkens its own subjects.
+            PresentationApplier.Apply(subjectA.gameObject, false);
+            PresentationApplier.Apply(subjectB.gameObject, false);
 
             // One clip per window, so each window's frames are attributable and a one-way toggle cannot hide in an aggregate.
             yield return FilmToggleWindow(EnabledWindowA, profileEnabled: true);
@@ -169,12 +167,13 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator NativeCapture_PresentationOff_FilmsGizmoAndColliderSilhouettePixels()
         {
-            GameSettings.SetPresentationEnabled(false);
             subjectA = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(-6f, 0f)),
                 GamePlane.Rotation, projectiles, team: 0);
             subjectB = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(6f, 0f)),
                 GamePlane.Rotation, projectiles, team: 1);
             Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
+            PresentationApplier.Apply(subjectA.gameObject, false);
+            PresentationApplier.Apply(subjectB.gameObject, false);
 
             var priorColliderGizmos = ColliderGizmosEnabled();
 
@@ -424,6 +423,7 @@ namespace Tests.PlayMode
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
             var host = hostObject.AddComponent<HarnessSessionHost>();
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, spec.Presentation);
             host.Initialize(spec, assets, unitService, projectiles, TestAssets.NewNativeCapture());
             Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
             return host;
