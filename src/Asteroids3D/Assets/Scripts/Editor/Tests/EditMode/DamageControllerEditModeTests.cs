@@ -1,8 +1,7 @@
 using Damage;
 using NUnit.Framework;
-using Ships;
-using Ships.Loadout;
 using Ships.Damage;
+using Ships.Loadout;
 using UnityEngine;
 using Ships.Registry;
 

@@ -1,7 +1,7 @@
 using NUnit.Framework;
+using Ships.Presentation;
 using Ships.Visuals;
 using Substrate;
-using Ships.Presentation;
 using UnityEngine;
 
 namespace Tests.EditMode

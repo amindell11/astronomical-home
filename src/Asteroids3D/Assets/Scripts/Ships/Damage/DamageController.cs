@@ -1,7 +1,7 @@
-using Ships.Loadout;
 using System;
 using Damage;
 using UnityEngine;
+using Ships.Loadout;
 using Ships.Registry;
 
 namespace Ships.Damage

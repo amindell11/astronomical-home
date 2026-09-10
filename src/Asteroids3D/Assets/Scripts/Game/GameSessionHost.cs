@@ -5,7 +5,6 @@ using Damage;
 using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sessions;
-using Ships;
 using Ships.Loadout;
 using UI;
 using UnityEngine;

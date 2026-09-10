@@ -1,7 +1,7 @@
 using Ships;
-using Ships.Visuals;
 using Ships.Loadout;
 using Ships.Presentation;
+using Ships.Visuals;
 using UnityEngine;
 
 namespace UI
