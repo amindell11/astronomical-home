@@ -58,8 +58,9 @@ namespace RL.SolverRig
         private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in RigScenario scenario, uint seed,
             List<RigTraceRow> trace)
         {
+            var obstacleField = new RigObstacleField(scenario.obstacles);
             var scanner = new ObstacleScanner(null, dynamics.maxSpeed, 0f, settings.horizonSeconds,
-                new RigObstacleField(scenario.obstacles));
+                obstacleField);
             using var mpc = new Mpc(settings, dynamics, seed, scanner);
 
             // The plant integrates at sim rate; the solver's own config keeps rolloutDt.
@@ -78,7 +79,7 @@ namespace RL.SolverRig
             var collisionSteps = 0;
             var pathLength = 0f;
 
-            var scan = BuildScan(scenario.obstacles);
+            var allObstacles = BuildScan(scenario.obstacles);
             var enemyRunner = new LawRunner(scenario.enemyLaw);
             var referent1Runner = new LawRunner(scenario.referent1Law);
             var referent2Runner = new LawRunner(scenario.referent2Law);
@@ -95,6 +96,8 @@ namespace RL.SolverRig
                 var referent1 = referent1Runner.Step(scenario.simDt, state.pos);
                 var referent2 = referent2Runner.Step(scenario.simDt, state.pos);
 
+                var count = obstacleField.QueryObstacles(new Vector2(state.pos.x, state.pos.y), scanner.HalfExtent, scanner.DetectedBuffer);
+                var scan = new ObstacleScan(scanner.DetectedBuffer, count);
                 var inputs = new MpcInputs
                 {
                     kinematics = ToKinematics(state),
@@ -209,9 +212,9 @@ namespace RL.SolverRig
                 if (i >= warmupSteps)
                 {
                     pathLength += math.distance(state.pos, next.pos);
-                    for (var obstacleIndex = 0; obstacleIndex < scan.count; obstacleIndex++)
+                    for (var obstacleIndex = 0; obstacleIndex < allObstacles.count; obstacleIndex++)
                     {
-                        var obstacle = scan.buffer[obstacleIndex];
+                        var obstacle = allObstacles.buffer[obstacleIndex];
                         var radius = dynamics.shipRadius * Cost.BankProfileScale(applied.strafe, cfg) + obstacle.radius;
                         if (math.distancesq(next.pos, new float2(obstacle.position.x, obstacle.position.y)) >= radius * radius) continue;
                         collisionSteps++;
