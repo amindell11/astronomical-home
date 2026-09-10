@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
-using Game.Services;
 using Movement;
 using Ships.Command;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Ships.Weapons
 {

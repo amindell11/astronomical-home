@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Game.Capture;
-using Game.Sessions;
+using Capture;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -15,7 +15,7 @@ using Utils;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a sector-less Session — scenarios get the real service container and UnitService spawn path — with presentation decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
+    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a sector-less Session — scenarios get the session's real services and UnitService spawn path — with presentation decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
     [TestFixture]
     [Category("Camera")]
     [Category("RequiresGraphics")]
@@ -34,11 +34,11 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            // Crash-path net: spawned ships live under the session root, so destroying it unwinds a scenario the test never got to tear down; Services is null when Teardown already flushed.
+            // Crash-path net: spawned ships live under the session root, so destroying it unwinds a scenario the test never got to tear down; the pool is null when Teardown already flushed.
             DestroyTestObject(sessionRoot);
             sessionRoot = null;
 
-            session?.Services?.Projectiles.ReturnAllToPool();
+            session?.Projectiles?.ReturnAllToPool();
             session = null;
 
             // Crash-path net: a scenario that died mid-episode never reached the runner's End.

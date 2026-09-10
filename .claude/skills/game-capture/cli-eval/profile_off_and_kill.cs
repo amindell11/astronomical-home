@@ -1,8 +1,8 @@
-var hosts = UnityEngine.Object.FindObjectsByType<Game.Play.GameSessionHost>(UnityEngine.FindObjectsSortMode.None);
+var hosts = UnityEngine.Object.FindObjectsByType<Game.GameSessionHost>(UnityEngine.FindObjectsSortMode.None);
 if (hosts.Length != 1) return "GameSessionHost count=" + hosts.Length;
-var pf = typeof(Game.Play.GameSessionHost).GetField("sessionProfile",
+var pf = typeof(Game.GameSessionHost).GetField("sessionProfile",
     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-var profile = (Game.Sessions.SessionProfile)pf.GetValue(hosts[0]);
+var profile = (Substrate.Sessions.SessionProfile)pf.GetValue(hosts[0]);
 profile.presentation = false;
 
 Ships.Ship player = null;

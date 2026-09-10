@@ -8,8 +8,8 @@ using Movement;
 using NUnit.Framework;
 using Ships.Command;
 using Tests.PlayMode.Common;
+using Substrate;
 using UnityEngine;
-using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -271,12 +271,12 @@ namespace Tests.PlayMode
 
             // Hitscan slot (speed 0) aims at the target's present position.
             var hitscanAim = gunner.AimPointFor(WeaponSlot.Secondary);
-            Assert.AreEqual(Game.GamePlane.PlanePointToWorld(enemyPos), hitscanAim);
+            Assert.AreEqual(Substrate.GamePlane.PlanePointToWorld(enemyPos), hitscanAim);
 
             // Ballistic slot leads the moving target along its velocity.
             var ballisticAim = gunner.AimPointFor(WeaponSlot.Primary);
             var expectedLead = Combat.Targeting.TargetingMath.PredictIntercept(Pose(), enemyPos, enemyVel, context.PrimarySpeed);
-            Assert.AreEqual(Game.GamePlane.PlanePointToWorld(expectedLead), ballisticAim);
+            Assert.AreEqual(Substrate.GamePlane.PlanePointToWorld(expectedLead), ballisticAim);
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 
             // The AI mashes: pressed and held both reflect its per-step decision.

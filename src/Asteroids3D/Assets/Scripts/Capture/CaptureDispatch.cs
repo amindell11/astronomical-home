@@ -2,7 +2,7 @@
 using System;
 using UnityEditor;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>
     /// Warm-capture-lane dispatch seam: a one-shot scenario request handed to the

@@ -1,6 +1,6 @@
 using System;
-using Game;
 using UnityEngine;
+using Substrate;
 
 namespace AI.Scanning.Sensors
 {

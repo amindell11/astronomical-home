@@ -1,9 +1,8 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Cameras;
-using Game.Play;
-using Game.Services;
-using Game.Sessions;
+using Game;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -12,9 +11,9 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
 using Ships.Registry;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {
@@ -22,7 +21,7 @@ namespace Tests.PlayMode
     /// The hangar's ship change is a whole-player rebuild (PlayerRig.ApplyLoadout →
     /// RebuildPlayer): the old ship despawns, a fresh build of the chosen prefab takes its place
     /// with the standard wiring re-run, and the injected death callback follows the new instance.
-    /// Uses the real PlayerRig prefab + a real service container — this is the integration seam the
+    /// Uses the real PlayerRig prefab + a real unit service — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
@@ -35,7 +34,7 @@ namespace Tests.PlayMode
         private GameObject servicesGo;
         private PlayerRig rig;
         private ObserverCam observer;
-        private GameServices services;
+        private UnitService unitService;
 
         public override void SetUp()
         {
@@ -48,7 +47,7 @@ namespace Tests.PlayMode
         {
             GameSettings.SetPresentationEnabled(true);
             if (rig) rig.Teardown();
-            services?.ClearAll();
+            if (unitService) unitService.Clear();
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
             DestroyTestObject(servicesGo);
@@ -58,20 +57,16 @@ namespace Tests.PlayMode
         private IEnumerator BuildRig(System.Action<ShipId, Damage.DamageInfo> onPlayerDeath = null)
         {
             servicesGo = new GameObject("TestServices");
-            var unitService = servicesGo.AddComponent<UnitService>();
+            unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var projectiles = new ProjectileService(servicesGo.transform);
-            unitService.SetProjectiles(projectiles);
-            services = new GameServices(
-                unitService: unitService,
-                projectiles: projectiles,
-                objectiveService: objectiveService);
+            unitService.SetProjectiles(new ProjectileService(servicesGo.transform));
 
             observer = TestAssets.NewObserverCam();
             var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, observer, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
+            yield return rig.Build(unitService, objectiveService, presentationEnabled: false, observer,
+                new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 
@@ -95,9 +90,9 @@ namespace Tests.PlayMode
             Assert.AreNotSame(oldShip, rig.Player, "a new player instance was built");
             Assert.AreEqual("Ship_1(Clone)", rig.Player.name, "new player comes from the chosen template");
             Assert.AreEqual("Player", rig.Player.tag, "player wiring re-ran on the new instance");
-            Assert.IsFalse(services.UnitService.Registry.TryGetShip(oldId, out _),
+            Assert.IsFalse(unitService.Registry.TryGetShip(oldId, out _),
                 "old ship left the registry");
-            Assert.IsTrue(services.UnitService.Registry.TryGetShip(rig.Player.Id, out _),
+            Assert.IsTrue(unitService.Registry.TryGetShip(rig.Player.Id, out _),
                 "new ship is registered");
 
             yield return null; // let Destroy(oldShip) finalize

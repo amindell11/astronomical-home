@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Diagnostics
+namespace Diagnostics
 {
     /// <summary>
     /// Scene-global gizmo control: a matrix of registered subview toggles grouped under capture-category

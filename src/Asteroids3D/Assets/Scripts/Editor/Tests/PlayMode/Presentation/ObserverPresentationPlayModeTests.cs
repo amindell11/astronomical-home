@@ -2,17 +2,15 @@
 using System.Collections;
 using System.Reflection;
 using Cameras;
-using Game.Play;
-using Game.Services;
+using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 
 namespace Tests.PlayMode
 {
@@ -30,7 +28,7 @@ namespace Tests.PlayMode
 
         private GameObject servicesHost;
         private GameObject hostGo;
-        private GameServices services;
+        private UnitService unitService;
         private ObserverCam observer;
         private bool savedPresentation;
 
@@ -43,8 +41,8 @@ namespace Tests.PlayMode
         public override void TearDown()
         {
             GameSettings.SetPresentationEnabled(savedPresentation);
-            services?.ClearAll();
-            services = null;
+            if (unitService) unitService.Clear();
+            unitService = null;
             DestroyTestObject(observer ? observer.gameObject : null);
             observer = null;
             DestroyTestObject(hostGo);
@@ -83,16 +81,8 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(presentation);
 
             servicesHost = new GameObject("[TestServices]");
-            var unitService = servicesHost.AddComponent<UnitService>();
-            var objectiveService = servicesHost.AddComponent<ObjectiveService>();
-            var projectiles = new ProjectileService(servicesHost.transform, presentation);
-            unitService.SetProjectiles(projectiles);
-
-            services = new GameServices(
-                unitService: unitService,
-                projectiles: projectiles,
-                objectiveService: objectiveService,
-                presentationEnabled: presentation);
+            unitService = servicesHost.AddComponent<UnitService>();
+            unitService.SetProjectiles(new ProjectileService(servicesHost.transform, presentation));
 
             // Inactive host: Awake and the state machine never run, so the camera build is exercised alone.
             hostGo = new GameObject("TestHost");
@@ -104,7 +94,7 @@ namespace Tests.PlayMode
                 .GetField("observerCamPrefab", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(host, prefab);
 
-            observer = host.BuildObserver(services);
+            observer = host.BuildObserver(unitService, presentation);
             yield return null;
         }
 

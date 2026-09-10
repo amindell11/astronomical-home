@@ -3,14 +3,13 @@ using Combat.Projectiles;
 using Combat.Projectiles.Audio;
 using Combat.Projectiles.Visual;
 using Combat.Weapons;
-using Game.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Tests.PlayMode
 {

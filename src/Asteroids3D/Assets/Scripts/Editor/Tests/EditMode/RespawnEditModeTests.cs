@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Sectors.Elements;
+using Substrate.Services.Units;
+using Substrate.Sectors.Elements;
 
 namespace Tests.EditMode
 {

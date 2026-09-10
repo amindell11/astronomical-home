@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>Both backends sample every fixed step of a filmed episode, captured or skipped, so two clips of one episode spec compare directly.</summary>
     public sealed class CaptureCost

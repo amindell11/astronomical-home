@@ -6,6 +6,7 @@ using Ships;
 using UnityEngine;
 using Utils;
 using Ships.Registry;
+using Substrate;
 
 namespace Combat.Targeting
 {

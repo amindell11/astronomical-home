@@ -2,13 +2,12 @@
 using System;
 using System.Collections;
 using System.IO;
-using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Hosts;

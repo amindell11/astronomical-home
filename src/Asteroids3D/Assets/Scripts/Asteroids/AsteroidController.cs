@@ -1,9 +1,8 @@
 using System;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
-using Game;
 using UnityEngine;
-using Utils;
+using Substrate;
 
 namespace Asteroids
 {

@@ -2,9 +2,8 @@
 using System.Collections;
 using Cameras;
 using System.Reflection;
-using Game.Play;
-using Game.Services;
-using Game.Sessions;
+using Game;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -15,9 +14,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
 {
@@ -39,7 +38,7 @@ namespace Tests.PlayMode
         private GameObject hostGo;
         private PlayerRig rig;
         private ObserverCam observer;
-        private GameServices services;
+        private UnitService unitService;
 
         public override void TearDown()
         {
@@ -48,7 +47,7 @@ namespace Tests.PlayMode
             if (screen) DestroyTestObject(screen.gameObject);
             if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
-            services?.ClearAll();
+            if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
@@ -62,20 +61,16 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(true);
 
             servicesGo = new GameObject("TestServices");
-            var unitService = servicesGo.AddComponent<UnitService>();
+            unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            var projectiles = new ProjectileService(servicesGo.transform);
-            unitService.SetProjectiles(projectiles);
-            services = new GameServices(
-                unitService: unitService,
-                projectiles: projectiles,
-                objectiveService: objectiveService);
+            unitService.SetProjectiles(new ProjectileService(servicesGo.transform));
 
             observer = TestAssets.NewObserverCam();
             var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, observer, new SessionFrame(Vector2.zero), onPlayerDeath: null);
+            yield return rig.Build(unitService, objectiveService, presentationEnabled: true, observer,
+                new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");

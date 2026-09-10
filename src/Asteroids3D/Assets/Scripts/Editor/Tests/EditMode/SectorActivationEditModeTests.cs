@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Game.Sectors;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
 
 namespace Tests.EditMode
 {
@@ -120,7 +119,7 @@ namespace Tests.EditMode
         public void Chaining_RuleAPublishOnFired_SatisfiesRuleB_AndRulesFireOnce()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
 
             var a = NewGO("RuleA").AddComponent<ActivationRule>();
             a.Configure(new[] { ActivationTerm.Signal("go") }, new[] { "a-fired" });
@@ -153,7 +152,7 @@ namespace Tests.EditMode
         public void CausalOrder_EffectThenEvent_BeforeDownstreamRule()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var log = new List<string>();
 
             var a = NewGO("RuleA").AddComponent<LoggingRule>();
@@ -201,7 +200,7 @@ namespace Tests.EditMode
         public void BlankPublishToken_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var rule = NewGO("BadPublishRule").AddComponent<ActivationRule>();
             rule.Configure(new[] { ActivationTerm.Signal("go") }, new[] { " " });
 
@@ -220,7 +219,7 @@ namespace Tests.EditMode
         public void BlankSignalTermToken_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var rule = NewGO("BadTermRule").AddComponent<ActivationRule>();
             rule.Configure(new[] { ActivationTerm.Signal(null), ActivationTerm.Time(0f) });
 

@@ -1,7 +1,6 @@
 using System.Collections;
 using AI;
 using AI.Navigation.MPC;
-using Game;
 using NUnit.Framework;
 using Ships;
 using Tests.Common;
@@ -9,6 +8,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using AICommander = AI.AICommander;
+using Substrate;
 
 namespace Tests.PlayMode
 {

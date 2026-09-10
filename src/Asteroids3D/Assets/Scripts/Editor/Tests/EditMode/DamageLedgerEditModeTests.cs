@@ -1,6 +1,6 @@
 using Damage;
 using NUnit.Framework;
-using Player;
+using Game.Player;
 using Ships;
 using Ships.Damage;
 using UI;

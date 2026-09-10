@@ -1,9 +1,8 @@
-using Game.Play;
-using Game.Services;
+using Game;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
-using Game.Services.Units;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Objectives;
 
 namespace Tests.EditMode
 {

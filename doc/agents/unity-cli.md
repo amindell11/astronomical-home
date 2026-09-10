@@ -56,7 +56,7 @@ sometimes as a JSON string — parse both.
 
 - Snippets are method-body-wrapped: `using` directives are compile errors — fully
   qualify every type. Grep the repo for the exact namespace before writing
-  (`Game.GamePlane`, `AI.Navigator`; guesses cost a round-trip each).
+  (`Substrate.GamePlane`, `AI.Navigator`; guesses cost a round-trip each).
 - `internal` members need reflection.
 - On an unfocused/background editor, run `set_autotick --enable true` first — without
   it, main-thread ops time out at 5000 ms. Autotick resets on EVERY domain reload, so

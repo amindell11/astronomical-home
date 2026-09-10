@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.IO;
-using Game.Capture;
-using Game.Services;
+using Capture;
+using Substrate.Services;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
@@ -46,7 +46,7 @@ namespace RL.Hosts
             if (episodeCapture == null && spec != null && spec.record.enabled)
             {
                 var type = System.Type.GetType(
-                    "Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor", throwOnError: true);
+                    "Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor", throwOnError: true);
                 var module = ScriptableObject.CreateInstance(type);
                 module.hideFlags = HideFlags.HideAndDontSave;
                 captureModule = module;

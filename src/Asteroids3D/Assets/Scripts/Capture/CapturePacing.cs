@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>Locked frame pacing for capture runs: 1 fixed step per rendered frame, so recorded clips are deterministic and assemble to real-time playback whatever the wall-clock speed.</summary>
     public static class CapturePacing

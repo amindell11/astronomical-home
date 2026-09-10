@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Game.Diagnostics;
+using Diagnostics;
 using Ships;
 using UnityEditor;
 using UnityEngine;

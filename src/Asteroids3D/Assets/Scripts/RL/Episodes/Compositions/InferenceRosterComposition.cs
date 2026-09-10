@@ -1,8 +1,7 @@
-using Game.Services;
 using Unity.InferenceEngine;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Hosts;

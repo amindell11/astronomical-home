@@ -1,11 +1,11 @@
 using System;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>
     /// Runtime-safe mirror of the editor-only Gizmo View scope: a scenario author picks which ships a
     /// capture's gizmos draw over, without the runtime capture assembly referencing the editor enum.
-    /// The capture transaction maps this onto <c>Game.Diagnostics.GizmoScope</c>.
+    /// The capture transaction maps this onto <c>Diagnostics.GizmoScope</c>.
     /// </summary>
     public enum CaptureGizmoScope
     {

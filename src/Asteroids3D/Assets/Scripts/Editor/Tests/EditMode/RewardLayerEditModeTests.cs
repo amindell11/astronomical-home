@@ -1,13 +1,13 @@
 using AI;
 using Combat;
 using Combat.Weapons;
-using Game;
 using Movement;
 using NUnit.Framework;
 using UnityEngine;
 using RL.Episodes;
 using RL.Reward;
 using RL.Runtime;
+using Substrate;
 
 namespace Tests.EditMode
 {
@@ -230,7 +230,7 @@ namespace Tests.EditMode
                 && context.distanceToTarget <= 30f
                 && context.angleToTarget <= 5f;
 
-            public override Combat.Projectiles.ProjectileBase Fire(Game.Services.Projectiles.IProjectileService projectiles) => null;
+            public override Combat.Projectiles.ProjectileBase Fire(Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
 
         [Test]

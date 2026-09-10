@@ -1,9 +1,8 @@
 using Combat.Projectiles;
 using Combat.Targeting;
-using Game.Services;
 using UnityEngine;
 using Missile = Combat.Projectiles.Missile;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons

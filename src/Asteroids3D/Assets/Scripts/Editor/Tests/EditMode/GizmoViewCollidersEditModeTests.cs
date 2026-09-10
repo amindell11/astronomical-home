@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
 using System;
-using Game.Diagnostics;
+using Diagnostics;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

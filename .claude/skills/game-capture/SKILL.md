@@ -51,7 +51,7 @@ structural, not a preference: Unity never resumes Recorder's `WaitForEndOfFrame`
 ```csharp
 #if UNITY_EDITOR
 using System.Collections;
-using Game.Capture;
+using Capture;
 using Tests.PlayMode.Common;
 using UnityEngine;
 

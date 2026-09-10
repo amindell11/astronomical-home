@@ -4,7 +4,7 @@ using Unity.Pipeline.Commands;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     /// <summary>
     /// Warm-capture-lane editor-session policy: attach journals the current Enter

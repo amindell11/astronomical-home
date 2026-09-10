@@ -1,8 +1,9 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
 
-namespace Game.Diagnostics
+namespace Diagnostics
 {
     /// <summary>Which stacked status row a diagnostic writes. Declaration order is bottom-to-top stack order and each row reserves <see cref="ShipReadout.ReservedLines"/> lines, so a row sits in the same place whether or not the others drew.</summary>
     public enum ShipReadoutRow

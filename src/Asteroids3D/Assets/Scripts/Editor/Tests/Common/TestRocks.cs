@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
 using System.Reflection;
 using Asteroids;
-using Game;
 using UnityEngine;
+using Substrate;
 
 namespace Tests.Common
 {

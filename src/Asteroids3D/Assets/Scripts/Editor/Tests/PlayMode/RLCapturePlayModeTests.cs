@@ -4,21 +4,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Game;
-using Game.Capture;
-using Game.Services;
+using Capture;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes.Compositions;
 using RL.Hosts;
 using RL.Hosts.Lanes;
+using Substrate;
 
 namespace Tests.PlayMode
 {

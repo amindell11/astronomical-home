@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 using System.Collections;
 using AI;
-using Game;
-using Game.Capture;
-using Game.Sessions;
+using Capture;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
+using Substrate;
 
 namespace Tests.PlayMode.Common
 {
@@ -31,7 +31,7 @@ public abstract class CaptureScenario
 
     /// <summary>Begins filming the given ships; they are the framed and gizmo-selected subjects.</summary>
     protected void Film(params Ship[] subjects) =>
-        Capture.Begin(Config, Profile, subjects, Session.Services.Projectiles);
+        Capture.Begin(Config, Profile, subjects, Session.Projectiles);
 
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();
@@ -42,7 +42,7 @@ public abstract class CaptureScenario
         var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
-        var ship = Session.Services.UnitService.SpawnShip(
+        var ship = Session.Units.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,
             Session.Frame.Place(planePos),
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),

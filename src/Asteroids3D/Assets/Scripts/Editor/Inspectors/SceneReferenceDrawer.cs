@@ -1,9 +1,8 @@
 using System.IO;
-using Game.Sectors;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Sectors.Inspectors
+namespace Substrate.Sectors
 {
     /// <summary>
     /// Draws a <see cref="SceneReference"/> as a SceneAsset object field, baking the chosen asset's

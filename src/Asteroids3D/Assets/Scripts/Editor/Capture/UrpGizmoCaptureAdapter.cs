@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     internal static class UrpGizmoCaptureAdapter
     {

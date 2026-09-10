@@ -1,11 +1,11 @@
 using System.Collections;
 using Combat;
 using Combat.Projectiles;
-using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Substrate;
 
 namespace Tests.PlayMode
 {

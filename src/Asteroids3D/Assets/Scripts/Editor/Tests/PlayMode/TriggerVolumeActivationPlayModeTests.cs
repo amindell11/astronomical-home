@@ -1,15 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Game.Sectors;
 using NUnit.Framework;
 using Objectives;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
 
 namespace Tests.PlayMode
 {
@@ -70,7 +69,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var volume = CreateVolume("in-zone", player);
             yield return volume.Setup(ctx);
 
@@ -98,7 +97,7 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
 
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             Assert.IsFalse(bus.Get("in-zone"));
 
             yield return volume.Setup(ctx);
@@ -113,7 +112,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f), colliderCount: 2);
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var volume = CreateVolume("in-zone", player, radius: 3f);
             yield return volume.Setup(ctx);
 
@@ -170,7 +169,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var volume = CreateVolume("in-zone", player);
             yield return volume.Setup(ctx);
 
@@ -257,8 +256,8 @@ namespace Tests.PlayMode
             var liveRule = TrackGO(new GameObject("LiveTimeRule")).AddComponent<ActivationRule>();
             liveRule.Configure(new[] { ActivationTerm.Time(0.05f) });
 
-            yield return frozenRule.Setup(new SectorBuildContext(null, null, default, null, null, bus: frozenBus));
-            yield return liveRule.Setup(new SectorBuildContext(null, null, default, null, null, bus: liveBus));
+            yield return frozenRule.Setup(new SectorBuildContext(null, null, true, null, default, null, null, bus: frozenBus));
+            yield return liveRule.Setup(new SectorBuildContext(null, null, true, null, default, null, null, bus: liveBus));
             frozenBus.Freeze();
 
             yield return new WaitForSeconds(0.3f);
@@ -272,7 +271,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
             var volume = CreateVolume("", player);
 
             LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*blank signal token.*inert"));
@@ -293,7 +292,7 @@ namespace Tests.PlayMode
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, default, null, null, bus: bus);
+            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
 
             var volume = CreateVolume("in-gate", player);
             var rule = TrackGO(new GameObject("ExtractionRule")).AddComponent<ActivationRule>();
