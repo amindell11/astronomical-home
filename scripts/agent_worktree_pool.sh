@@ -82,7 +82,11 @@ Commands:
   run-script-tests [dir]
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
       (powershell.exe) under dir (default: the primary worktree). Prints
-      one PASS/FAIL line per file and stops at the first failure.
+      one PASS/FAIL line per file and stops at the first failure (exit 1).
+      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
+      SCRIPT_TEST_TOTAL_SECONDS=<wall seconds> includes the failed final file.
+      During a merge, journal event script-test (phase script-tests) carries
+      file, sec and exit for each completed file.
       Non-hermetic files are SKIPped unless
       SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. The merge
       gate runs this when the landing diff touches scripts/.
@@ -763,9 +767,11 @@ cmd_run_resharper() {
 }
 
 # ---- Script tests ----------------------------------------------------------
+# run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
+# SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
-  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
+  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
@@ -782,17 +788,22 @@ cmd_run_script_tests() {
     fi
     ran=1
     rc=0
+    started=$SECONDS
     case "$file" in
       *.sh) bash "$file" || rc=$? ;;
       *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
     esac
+    journal_event script-test script-tests "file=$base" "sec=$((SECONDS - started))" "exit=$rc"
+    echo "SCRIPT_TEST_FILE=$base SECONDS=$((SECONDS - started)) EXIT=$rc"
     if [[ "$rc" -eq 0 ]]; then
       echo "PASS $base"
     else
       echo "FAIL $base (exit $rc)"
+      echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
       return 1
     fi
   done
+  echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
   [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
 }
 
@@ -1005,15 +1016,15 @@ MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}
 # passes must still land.
 merge_phase_budget() {
   case "$1" in
-    preflight) echo 30 ;;
-    fetch) echo 60 ;;
-    base-merge) echo 60 ;;
-    proof-check) echo 15 ;;
-    tests) echo 1200 ;;
-    resharper) echo 300 ;;
-    script-tests) echo 420 ;;
-    push) echo 90 ;;
-    gh-merge) echo 90 ;;
+    preflight) echo 10 ;;
+    fetch) echo 15 ;;
+    base-merge) echo 15 ;;
+    proof-check) echo 5 ;;
+    tests) echo 480 ;;
+    resharper) echo 360 ;;
+    script-tests) echo 360 ;;
+    push) echo 30 ;;
+    gh-merge) echo 20 ;;
     *) echo 0 ;;
   esac
 }
@@ -1024,10 +1035,12 @@ MERGE_RUN_START=0
 MERGE_PHASE=""
 MERGE_PHASE_START=0
 
-# Values are ours (phase names, hashes, PR numbers, short status words); drop the
-# two characters that would need escaping rather than emit invalid JSON.
+# Journal fields omit quotes, backslashes and control characters.
 json_scrub() {
-  printf '%s' "$1" | tr -d '"\\' | tr -d '[:cntrl:]'
+  local scrubbed="${!1}"
+  scrubbed="${scrubbed//\"/}"
+  scrubbed="${scrubbed//\\/}"
+  printf -v "$1" '%s' "${scrubbed//[[:cntrl:]]/}"
 }
 
 # Journalling must never be able to fail a merge.
@@ -1040,20 +1053,26 @@ journal_event() {
   [[ -n "$MERGE_JOURNAL" ]] || return 0
   local event="$1" phase="$2"
   shift 2
-  local now frag="" kv key val
-  now="$(date +%s)"
+  local now stamp line field frag="" kv key val
+  printf -v now '%(%s)T' -1
+  TZ=UTC printf -v stamp '%(%Y-%m-%dT%H:%M:%SZ)T' "$now"
+  json_scrub event
+  json_scrub phase
   for kv in "$@"; do
     key="${kv%%=*}"
     val="${kv#*=}"
+    json_scrub key
     if [[ "$val" =~ ^-?[0-9]+$ ]]; then
-      frag+="$(printf ',"%s":%s' "$(json_scrub "$key")" "$val")"
+      printf -v field ',"%s":%s' "$key" "$val"
     else
-      frag+="$(printf ',"%s":"%s"' "$(json_scrub "$key")" "$(json_scrub "$val")")"
+      json_scrub val
+      printf -v field ',"%s":"%s"' "$key" "$val"
     fi
+    frag+="$field"
   done
-  journal_line "$(printf '{"ts":"%s","t":%s,"event":"%s","phase":"%s"%s}' \
-    "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$((now - MERGE_RUN_START))" \
-    "$(json_scrub "$event")" "$(json_scrub "$phase")" "$frag")"
+  printf -v line '{"ts":"%s","t":%s,"event":"%s","phase":"%s"%s}' \
+    "$stamp" "$((now - MERGE_RUN_START))" "$event" "$phase" "$frag"
+  journal_line "$line"
 }
 
 merge_journal_open() {
