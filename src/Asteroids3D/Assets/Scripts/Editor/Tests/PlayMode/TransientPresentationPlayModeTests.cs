@@ -2,7 +2,6 @@ using System.Collections;
 using Combat.Projectiles;
 using Combat.Projectiles.Audio;
 using Combat.Projectiles.Visual;
-using Combat.Weapons;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -174,30 +173,6 @@ namespace Tests.PlayMode
             foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(vfx.gameObject);
             SimplePool<PooledVFX>.Clear();
-        }
-
-        [UnityTest]
-        public IEnumerator RailBeamVisual_SelfGates_WhenSessionPresentationIsOff()
-        {
-            var saved = GameSettings.PresentationEnabled;
-            GameObject mount = null;
-            try
-            {
-                GameSettings.SetPresentationEnabled(false);
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Weapons/Railgun.prefab");
-                Assert.IsNotNull(prefab, "Missing Railgun prefab");
-                mount = Object.Instantiate(prefab);
-                yield return null;
-
-                var beam = mount.GetComponentInChildren<RailBeamVisual>(true);
-                Assert.IsNotNull(beam, "Railgun prefab carries no RailBeamVisual");
-                Assert.IsFalse(beam.enabled);
-            }
-            finally
-            {
-                GameSettings.SetPresentationEnabled(saved);
-                DestroyTestObject(mount);
-            }
         }
     }
 }

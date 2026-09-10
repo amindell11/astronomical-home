@@ -10,6 +10,7 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using RL.Arena;
@@ -47,10 +48,9 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[EpisodeArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            projectiles = new ProjectileService(arenaHost.transform);
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
-            unitService.SetProjectiles(projectiles);
             AssertNoForeignDebris();
 
             savedTimeScale = Time.timeScale;

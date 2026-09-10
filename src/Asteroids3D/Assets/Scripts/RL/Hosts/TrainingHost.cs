@@ -39,9 +39,6 @@ namespace RL.Hosts
             if (!assets)
                 throw new InvalidOperationException("TrainingHost.assets is unset — assign the HarnessAssets catalog on the RLTraining scene's [TrainingHost].");
 
-            // Before any ship spawns — embedded visual rigs self-gate on this at Awake.
-            Utils.GameSettings.SetPresentationEnabled(false);
-
             PacingContract.Apply();
             StartCoroutine(PacingWatchdog());
 

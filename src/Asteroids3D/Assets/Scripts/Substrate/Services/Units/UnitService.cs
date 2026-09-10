@@ -7,6 +7,7 @@ using Ships.Command;
 using UnityEngine;
 using ShipFactory = Ships.Factory;
 using Ships.Registry;
+using Substrate.Presentation;
 using Substrate.Services.Projectiles;
 
 namespace Substrate.Services.Units
@@ -25,12 +26,15 @@ namespace Substrate.Services.Units
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
         private IProjectileService projectiles;
+        private bool presentationEnabled;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        public void SetProjectiles(IProjectileService projectiles)
+        /// <summary>Composition-time wiring (see <c>ShipServices.Compose</c>): the projectile registry ships arm their weapons with — arming throws while unset — and the presentation policy every ship this service wires is darkened or lit by.</summary>
+        public void Initialize(IProjectileService projectiles, bool presentationEnabled)
         {
             this.projectiles = projectiles;
+            this.presentationEnabled = presentationEnabled;
         }
 
         public event Action<Ship> OnShipSpawned;
@@ -128,6 +132,7 @@ namespace Substrate.Services.Units
             if (targeting) targeting.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetSensing(ActiveRegistry, field);
+            PresentationApplier.Apply(ship.gameObject, presentationEnabled);
         }
 
         /// <summary>Atomic pair-reset: repose, restore the ship's systems, and restore its commander "as if freshly spawned".</summary>

@@ -1,6 +1,6 @@
 using System.Collections;
+using Substrate.Presentation;
 using UnityEngine;
-using Utils;
 
 namespace Combat.Weapons
 {
@@ -9,7 +9,7 @@ namespace Combat.Weapons
     /// and fades it out. Purely cosmetic — damage is applied by the weapon's raycast.
     /// </summary>
     [RequireComponent(typeof(Railguns), typeof(LineRenderer))]
-    public sealed class RailBeamVisual : MonoBehaviour
+    public sealed class RailBeamVisual : MonoBehaviour, IPresentationPart
     {
         [Tooltip("Seconds the beam takes to fade out after a shot.")]
         [SerializeField, Min(0.01f)] private float fadeTime = 0.15f;
@@ -22,14 +22,21 @@ namespace Combat.Weapons
         {
             weapon = GetComponent<Railguns>();
             line = GetComponent<LineRenderer>();
-            line.enabled = false;
-            // Weapon-mounted presentation on a per-arena-persistent object: same Awake self-gate as
-            // ShipVisualRig (interim process-wide flag until per-arena policy reaches ship wiring).
-            if (!GameSettings.PresentationEnabled)
-                enabled = false;
         }
 
-        private void OnEnable() => weapon.OnBeamFired += ShowBeam;
+        public void ApplyPresentation(bool visible)
+        {
+            enabled = visible;
+            // Only a shot lights the beam; the field is unset until Awake caches it.
+            if (line) line.enabled = false;
+        }
+
+        private void OnEnable()
+        {
+            weapon.OnBeamFired += ShowBeam;
+            line.enabled = false;
+        }
+
         private void OnDisable()
         {
             weapon.OnBeamFired -= ShowBeam;
