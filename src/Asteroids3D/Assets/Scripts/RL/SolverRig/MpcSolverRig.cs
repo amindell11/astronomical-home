@@ -24,6 +24,8 @@ namespace RL.SolverRig
         public float meanAbsYawRateDegPerSec;
         public float meanFacingErrorDeg;
         public float p90FacingErrorDeg;
+        public int collisionSteps;
+        public float pathLength;
         public float finalRange;
         public float threatStepFraction;
         public float incumbentWinFraction;
@@ -56,7 +58,9 @@ namespace RL.SolverRig
         private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in RigScenario scenario, uint seed,
             List<RigTraceRow> trace)
         {
-            using var mpc = new Mpc(settings, dynamics, seed);
+            var scanner = new ObstacleScanner(null, dynamics.maxSpeed, 0f, settings.horizonSeconds,
+                new RigObstacleField(scenario.obstacles));
+            using var mpc = new Mpc(settings, dynamics, seed, scanner);
 
             // The plant integrates at sim rate; the solver's own config keeps rolloutDt.
             var plantConfig = settings.ToConfig();
@@ -71,6 +75,8 @@ namespace RL.SolverRig
             var rankSum = 0L;
             var absEmitYawDeltaSum = 0f;
             var threatSteps = 0;
+            var collisionSteps = 0;
+            var pathLength = 0f;
 
             var scan = BuildScan(scenario.obstacles);
             var enemyRunner = new LawRunner(scenario.enemyLaw);
@@ -191,10 +197,28 @@ namespace RL.SolverRig
                         costEffort = breakdown.effort,
                         costSmoothness = breakdown.smoothness,
                         costTotal = breakdown.total,
+                        fieldSpacing = mpc.TerminalField.View.spacing,
+                        fieldBakeCount = mpc.TerminalField.BakeCount,
+                        fieldEndpointX = mpc.PredictedStates[mpc.PredictedStates.Length - 1].pos.x,
+                        fieldEndpointY = mpc.PredictedStates[mpc.PredictedStates.Length - 1].pos.y,
+                        costTerminalField = Cost.EvaluateTerminal(mpc.PredictedStates[mpc.PredictedStates.Length - 1], costInput, cfg),
                     });
                 }
 
-                state = Model.Step(state, applied, plantConfig, dynamics);
+                var next = Model.Step(state, applied, plantConfig, dynamics);
+                if (i >= warmupSteps)
+                {
+                    pathLength += math.distance(state.pos, next.pos);
+                    for (var obstacleIndex = 0; obstacleIndex < scan.count; obstacleIndex++)
+                    {
+                        var obstacle = scan.buffer[obstacleIndex];
+                        var radius = dynamics.shipRadius * Cost.BankProfileScale(applied.strafe, cfg) + obstacle.radius;
+                        if (math.distancesq(next.pos, new float2(obstacle.position.x, obstacle.position.y)) >= radius * radius) continue;
+                        collisionSteps++;
+                        break;
+                    }
+                }
+                state = next;
             }
 
             // One more law sample lands the referents on the episode endpoint the final Model.Step reached.
@@ -220,6 +244,8 @@ namespace RL.SolverRig
                 meanAbsYawRateDegPerSec = stats.meanAbsYawRateDegPerSec,
                 meanFacingErrorDeg = FacingSummary.Mean(facingErrorDeg),
                 p90FacingErrorDeg = FacingSummary.Percentile(facingErrorDeg, 90),
+                collisionSteps = collisionSteps,
+                pathLength = pathLength,
                 finalRange = lastRange,
                 threatStepFraction = overall.steps > 0 ? threatSteps / (float)overall.steps : 0f,
                 incumbentWinFraction = overall.steps > 0 ? incumbentWins / (float)overall.steps : 0f,

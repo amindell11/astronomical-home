@@ -37,6 +37,11 @@ namespace RL.SolverRig
         public float costMomentum;
         public float costEffort;
         public float costSmoothness;
+        public float fieldSpacing;
+        public int fieldBakeCount;
+        public float fieldEndpointX;
+        public float fieldEndpointY;
+        public float costTerminalField;
         public float costTotal;
     }
 
@@ -46,7 +51,7 @@ namespace RL.SolverRig
             "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg," +
             "range,underThreat,solveCost,incumbentRank,incumbentCost,emitYawDeltaFromIncumbent," +
             "costVelocityTrack,costFacing,costFacingPrior,costPos,costLane,costYawRate,costObstacle,costCollision," +
-            "costMomentum,costEffort,costSmoothness,costTotal";
+            "costMomentum,costEffort,costSmoothness,costTotal,costTerminalField,fieldSpacing,fieldBakeCount,fieldEndpointX,fieldEndpointY";
 
         public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
         {
@@ -63,7 +68,7 @@ namespace RL.SolverRig
                     F(r.emitYawDeltaFromIncumbent),
                     F(r.costVelocityTrack), F(r.costFacing), F(r.costFacingPrior), F(r.costPos), F(r.costLane),
                     F(r.costYawRate), F(r.costObstacle), F(r.costCollision),
-                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal)));
+                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal), F(r.costTerminalField), F(r.fieldSpacing), r.fieldBakeCount.ToString(CultureInfo.InvariantCulture), F(r.fieldEndpointX), F(r.fieldEndpointY)));
             File.WriteAllText(path, sb.ToString());
         }
 

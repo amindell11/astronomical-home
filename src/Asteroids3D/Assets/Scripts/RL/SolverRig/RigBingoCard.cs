@@ -33,6 +33,7 @@ namespace RL.SolverRig
         public static RigScenario FieldZeroed(in RigScenario scenario)
         {
             var copy = scenario;
+            copy.intent.field.armed = true;
             copy.intent.field.weight = 0f;
             return copy;
         }

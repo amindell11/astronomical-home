@@ -67,7 +67,7 @@ namespace AI
             projectileSpeed = primaryProjectileSpeed;
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
-            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint(), scout.obstacleScanner);
         }
 
         /// <summary>Restores the freshly-initialized navigator: clears every override and rebuilds the solver so its warm-start plan and RNG stream replay from the spawn seed.</summary>
@@ -77,7 +77,7 @@ namespace AI
             currentCommand = default;
             lastSolveFixedTime = double.NaN;
             mpc?.Dispose();
-            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint(), scout.obstacleScanner);
         }
 
         public PilotCommand ComputeCommand()

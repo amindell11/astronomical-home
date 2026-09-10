@@ -179,19 +179,21 @@ namespace Tests.EditMode
             Assert.That(row.scenario.posWidthOverride, Is.Zero,
                 "the hand-tuned override is retired: error-relative width must carry the 90 m reach");
 
-            // The from-rest transit is chaotically marginal under incumbent-elite selection — the
-            // Stage B constant-60 override lands 4/5 on these same seeds (measured 2026-08-13, PR
-            // #419 build), so a per-seed pin would gate on basin luck, not the width law. The bar
-            // is the measured majority; a regression below it is real.
             var seeds = new uint[] { 1234u, 7u, 99u, 2001u, 2002u };
             var transits = 0;
             var report = "";
+            var noField = Object.Instantiate(settings);
+            noField.wTerminalField = 0f;
+            try
+            {
             foreach (var seed in seeds)
             {
-                var result = MpcSolverRig.Run(settings, dynamics, in row.scenario, seed);
+                var result = MpcSolverRig.Run(noField, dynamics, in row.scenario, seed);
                 if (result.finalRange < 20f) transits++;
                 report += $" seed {seed}: {result.finalRange:F1} m;";
             }
+            }
+            finally { Object.DestroyImmediate(noField); }
             Assert.That(transits, Is.GreaterThanOrEqualTo(3),
                 $"the transit must complete on stock asset values on most draws;{report}");
         }

@@ -106,6 +106,12 @@ namespace AI.Navigation.MPC
                  "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
         public bool multiSphereObstacles = true;
 
+        [Header("Terminal Field")]
+        [Min(0f)] public float wTerminalField = 3f;
+        [Min(0.001f)] public float terminalFieldBakeInterval = 0.4f;
+        [Min(6)] public int terminalFieldResolution = 48;
+        [Min(0.001f)] public float terminalFieldMinSpacing = 4f;
+
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
         public Config ToConfig(float facingTargetRad = float.NaN)
@@ -132,6 +138,7 @@ namespace AI.Navigation.MPC
                 laneRange = laneRange,
                 laneWidth = laneWidth,
                 wObstacle = wObstacle,
+                wTerminalField = wTerminalField,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,
                 wVelTrack = wVelTrack,

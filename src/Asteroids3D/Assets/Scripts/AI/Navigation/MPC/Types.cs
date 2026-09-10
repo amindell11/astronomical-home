@@ -48,6 +48,7 @@ namespace AI.Navigation.MPC
         public float laneRange;
         public float laneWidth;
 
+        public float wTerminalField;
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
@@ -91,6 +92,7 @@ namespace AI.Navigation.MPC
         /// <summary>Commanded world-plane velocity (objective ‖s.vel − velocityReference‖²); NaN.x = no world command, the tracker drops.</summary>
         public float2 velocityReference;
 
+        public TerminalField.TerminalFieldView terminalField;
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 
@@ -149,6 +151,7 @@ namespace AI.Navigation.MPC
         public float lane;
         public float yawRate;
         public float obstacle;
+        public float terminalField;
         public float collision;
         public float momentum;
         public float effort;
@@ -164,6 +167,7 @@ namespace AI.Navigation.MPC
             lane += other.lane;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
+            terminalField += other.terminalField;
             collision += other.collision;
             momentum += other.momentum;
             effort += other.effort;

@@ -20,6 +20,8 @@ namespace AI
                 "cyan→red cost-colored chosen path + red enemy rollout", "Steering");
             GizmoView.Register(typeof(Navigator), "obstacles", "Obstacle Hulls",
                 "collision hull rings + yellow turn-away bite ranges", "Steering");
+            GizmoView.Register(typeof(Navigator), "field", "Terminal Field",
+                "terrain occupancy, detour excess and terminal endpoint", "Steering");
             GizmoView.Register(typeof(Navigator), "controls", "Control Bars",
                 "THR/STR/YAW applied-control bars", "Steering");
         }
@@ -61,6 +63,50 @@ namespace AI
             }
             if (GizmoView.IsOn(typeof(Navigator), "obstacles")) DrawObstacles(nav);
             if (GizmoView.IsOn(typeof(Navigator), "controls")) DrawControlInputs(nav);
+            if (GizmoView.IsOn(typeof(Navigator), "field")) DrawField(nav);
+        }
+
+        private static void DrawField(Navigator nav)
+        {
+            var owner = nav.mpc.TerminalField;
+            var view = owner.View;
+            if (!view.valid) return;
+            var width = (view.resolution - 1) * view.spacing;
+            var lower = Plane(view.origin);
+            var upper = lower + Vector2.one * width;
+            Line(lower, new Vector2(upper.x, lower.y), Color.white);
+            Line(lower, new Vector2(lower.x, upper.y), Color.white);
+            Line(upper, new Vector2(upper.x, lower.y), Color.white);
+            Line(upper, new Vector2(lower.x, upper.y), Color.white);
+            var maximum = 0f;
+            for (var i = 0; i < view.distances.Length; i++)
+                if (math.isfinite(view.distances[i])) maximum = math.max(maximum, view.Excess(i));
+            var occupied = owner.Occupied;
+            for (var i = 0; i < view.distances.Length; i++)
+            {
+                Color color;
+                if (occupied[i] != 0) color = new Color(0.7f, 0.2f, 0.9f, 0.4f);
+                else if (!math.isfinite(view.distances[i])) color = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+                else
+                {
+                    var excess = view.Excess(i);
+                    if (excess < 0.01f) continue;
+                    color = Color.Lerp(Color.cyan, Color.red, excess / maximum);
+                    color.a = 0.2f;
+                }
+                Gizmos.color = color;
+                Gizmos.DrawCube(GamePlane.PlanePointToWorld(Plane(view.CellCenter(i))),
+                    new Vector3(view.spacing * 0.9f, view.spacing * 0.9f, 0.02f));
+            }
+            Ring(Plane(view.goal), math.max(view.goalRadius, view.spacing * 0.6f), Color.green);
+            if (view.seedIndex >= 0) Ring(Plane(view.CellCenter(view.seedIndex)), view.spacing * 0.25f, Color.yellow);
+            var endpoint = nav.mpc.PredictedStates[nav.mpc.PredictedStates.Length - 1].pos;
+            Ring(Plane(endpoint), 1f, Color.white);
+            var input = nav.solver.BuildCostInput(nav.CostVelocityReference, sentence: nav.sentence);
+            var terminalCost = Cost.EvaluateTerminal(nav.mpc.PredictedStates[nav.mpc.PredictedStates.Length - 1], input, nav.config);
+            Label(Plane(endpoint), $"end excess {view.Sample(endpoint):F2} m; cost {terminalCost:F2}", Color.white);
+            Label(Plane(nav.mpc.LastInitialState.pos) + Vector2.up * 4f,
+                $"field h={view.spacing:F1} bake={owner.BakeCount} ship={view.Sample(nav.mpc.LastInitialState.pos):F2} m", Color.white);
         }
 
         private static void DrawCandidates(Navigator nav)

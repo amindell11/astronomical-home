@@ -16,6 +16,7 @@ namespace AI.Navigation.MPC
             public float facingWeightScale;
             public float2 velocityRef;
             public float velTrackScale;
+            public bool posResolved;
             public float2 posPoint;
             public float posSetpoint;
             public float posWeightScale;
@@ -90,11 +91,13 @@ namespace AI.Navigation.MPC
                 }
 
                 float2 posPoint = default;
+                var posResolved = false;
                 var posSetpoint = 0f;
                 var posWeightScale = 0f;
                 if (sentence.pos.armed && ResolveReferent(sentence.pos.referent, input, hasEnemy,
                         enemyPos, enemyVel, enemyYaw, stepTime, out var posRefPos, out var posRefVel, out var posRefYaw))
                 {
+                    posResolved = true;
                     posPoint = posRefPos + sentence.pos.offsetR
                         * Direction(FrameAngle(sentence.pos.frame, posRefYaw, posRefVel) + sentence.pos.offsetThetaRad);
                     posSetpoint = sentence.pos.setpoint;
@@ -117,6 +120,7 @@ namespace AI.Navigation.MPC
                     facingWeightScale = facingWeightScale,
                     velocityRef = velocityRef,
                     velTrackScale = velTrackScale,
+                    posResolved = posResolved,
                     posPoint = posPoint,
                     posSetpoint = posSetpoint,
                     posWeightScale = posWeightScale,
@@ -270,6 +274,8 @@ namespace AI.Navigation.MPC
                 prevU = u;
             }
 
+            totalBreakdown.terminalField = EvaluateTerminal(current, input, cfg);
+            totalBreakdown.total += totalBreakdown.terminalField;
             return totalBreakdown;
         }
 #endif

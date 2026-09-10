@@ -121,6 +121,7 @@ namespace AI
         private void RenderBreakdownBars(MpcSettings s, CostBreakdown breakdown)
         {
             var total = breakdown.total;
+            DrawCostBar("Terminal Field", breakdown.terminalField, s.wTerminalField, total, Color.magenta);
             DrawCostBar("Velocity Track", breakdown.velocityTrack, s.wVelTrack, total, new Color(0.5f, 1f, 0.5f));
             DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
             DrawCostBar("Facing Prior", breakdown.facingPrior, s.wFacingPrior, total, new Color(0f, 0.7f, 0.9f));

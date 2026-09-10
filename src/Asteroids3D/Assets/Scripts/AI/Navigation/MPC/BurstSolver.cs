@@ -111,7 +111,7 @@ namespace AI.Navigation.MPC
                 prevU = u;
             }
 
-            costs[candidateIndex] = totalCost;
+            costs[candidateIndex] = totalCost + Cost.EvaluateTerminal(current, costInput, cfg);
         }
     }
 
@@ -132,6 +132,9 @@ namespace AI.Navigation.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
+        private TerminalField.TerminalFieldView terminalField;
+        private NativeArray<float> emptyTerminalDistances;
+        private NativeArray<byte> emptyTerminalOccupied;
         private bool allocated;
         private int lastObstacleCount;
 
@@ -154,10 +157,12 @@ namespace AI.Navigation.MPC
             Dynamics enemyDynamics, float projectileSpeed, in IntentSentence sentence,
             in ReferentSnapshot referent1, in ReferentSnapshot referent2, in ReferentSnapshot referent3,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
-            float eliteFraction = 0.1f)
+            float eliteFraction = 0.1f, TerminalField.TerminalFieldView terminalField = default)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
+            this.terminalField = terminalField.valid ? terminalField
+                : new TerminalField.TerminalFieldView { distances = emptyTerminalDistances, emptyDistances = emptyTerminalDistances, occupied = emptyTerminalOccupied };
             LastSampleCount = samples;
             LastHorizon = horizon;
 
@@ -198,6 +203,7 @@ namespace AI.Navigation.MPC
                 velocityReference = velocityReference,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
+                terminalField = this.terminalField,
                 enemyPos = enemyPos,
                 enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
@@ -353,6 +359,7 @@ namespace AI.Navigation.MPC
                 velocityReference = velocityReference,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
+                terminalField = this.terminalField,
                 enemyPos = enemyPos,
                 enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
@@ -423,6 +430,8 @@ namespace AI.Navigation.MPC
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
+            emptyTerminalDistances = new NativeArray<float>(0, Allocator.Persistent);
+            emptyTerminalOccupied = new NativeArray<byte>(0, Allocator.Persistent);
             allocated = true;
         }
 
@@ -435,6 +444,8 @@ namespace AI.Navigation.MPC
             obstacles.Dispose();
             enemyStates.Dispose();
             result.Dispose();
+            emptyTerminalDistances.Dispose();
+            emptyTerminalOccupied.Dispose();
             allocated = false;
         }
     }

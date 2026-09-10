@@ -101,6 +101,8 @@ namespace Game.Capture.GameView
             CreateRecorder();
             recordingStarted = controller.StartRecording();
             if (!recordingStarted) throw new InvalidOperationException("Unity Recorder refused to start Game View capture.");
+            // Recorder 5.1.2 needs constant-rate initialization before variable-rate frame skipping.
+            recorderSettings.FrameRatePlayback = FrameRatePlayback.Variable;
         }
 
         public void End()
@@ -192,7 +194,7 @@ namespace Game.Capture.GameView
         {
             controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
             controllerSettings.SetRecordModeToManual();
-            controllerSettings.FrameRatePlayback = FrameRatePlayback.Variable;
+            controllerSettings.FrameRatePlayback = FrameRatePlayback.Constant;
             // Recorder cadence follows simulation; captureEveryNthFrame controls PNG cadence.
             controllerSettings.FrameRate = 1f / Time.fixedDeltaTime;
             controllerSettings.CapFrameRate = false;

@@ -1,4 +1,5 @@
 using System;
+using FieldOwner = AI.Navigation.MPC.TerminalField.TerminalField;
 using AI.Scanning;
 using Movement;
 using Unity.Mathematics;
@@ -36,12 +37,13 @@ namespace AI.Navigation.MPC
         public float cost;
     }
 
-    /// <summary>Model-predictive control solver owning the rollout buffers, warm-start, and per-tick config refresh. The <see cref="Navigator"/> drives it via <see cref="Plan"/>; it knows nothing of intents or the component graph.</summary>
+    /// <summary>Owns rollout buffers, the warm start and a terrain field. Plan resolves the POS centre and completes terrain bakes before scheduling candidate rollouts.</summary>
     public class Mpc : IDisposable
     {
         private readonly MpcSettings settings;
         private readonly Dynamics dynamics;
         private readonly SolverBuffers solver;
+        private readonly FieldOwner terminalField;
 
         private Config config;
         private Control[] bestSequence;
@@ -50,7 +52,7 @@ namespace AI.Navigation.MPC
         private float lastBestCost;
         private State lastInitialState;
 
-        public Mpc(MpcSettings settings, Dynamics dynamics, uint seed)
+        public Mpc(MpcSettings settings, Dynamics dynamics, uint seed, ObstacleScanner scanner = null)
         {
             this.settings = settings;
             this.dynamics = dynamics;
@@ -59,6 +61,7 @@ namespace AI.Navigation.MPC
             config.ApplyDynamics(in dynamics);
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
+            terminalField = new FieldOwner(settings, dynamics, scanner);
             solver = new SolverBuffers(seed);
         }
 
@@ -69,6 +72,15 @@ namespace AI.Navigation.MPC
             RefreshConfig(in inputs);
             ApplyErrorRelativePosWidth(in inputs, mpcState);
             lastInitialState = mpcState;
+            var goalInput = new CostInput
+            {
+                enemyPos = inputs.enemyPos, enemyVel = inputs.enemyVel,
+                enemyYaw = inputs.enemyYaw, enemyYawRate = inputs.enemyYawRate,
+                sentence = inputs.sentence, referent1 = inputs.referent1,
+                referent2 = inputs.referent2, referent3 = inputs.referent3,
+            };
+            var resolved = Cost.EvalContext.Create(mpcState, goalInput, config, 0);
+            terminalField.Update(inputs.dt, mpcState.pos, resolved.posResolved, resolved.posPoint, config, resolved.posSetpoint);
 
             // Slide the warm start's time origin forward by dt so its plan clock tracks sim
             // time at solve rate: whole slots first, then the ZOH-faithful fractional resample.
@@ -90,7 +102,7 @@ namespace AI.Navigation.MPC
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.sentence,
                     inputs.referent1, inputs.referent2, inputs.referent3,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
-                    settings.eliteFraction);
+                    settings.eliteFraction, terminalField.View);
             }
 
             UpdatePredictedStates(mpcState);
@@ -177,7 +189,13 @@ namespace AI.Navigation.MPC
             predictedStates = new State[config.horizon];
         }
 
-        public void Dispose() => solver?.Dispose();
+        public void Dispose()
+        {
+            solver.Dispose();
+            terminalField.Dispose();
+        }
+
+        internal FieldOwner TerminalField => terminalField;
 
         internal MpcSettings Settings => settings;
         internal Dynamics Dynamics => dynamics;
