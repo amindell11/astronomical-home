@@ -20,8 +20,7 @@ namespace Ships.Presentation
 
         public void ApplyPresentation(bool visible) => gameObject.SetActive(visible);
 
-        // Self-wire from the parent ship once all sim components have Awoken. Runs only when this
-        // subtree is active — a darkened rig never reaches Start.
+        // Self-wire from the parent ship once all sim components have Awoken.
         private void Start()
         {
             var ship = GetComponentInParent<Ship>();

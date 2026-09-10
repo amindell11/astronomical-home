@@ -30,7 +30,7 @@ namespace Substrate.Services.Units
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        /// <summary>Composition-time wiring (see <c>ShipServices.Compose</c>): the projectile registry ships arm their weapons with — arming throws while unset — and the presentation policy every ship this service wires is darkened or lit by.</summary>
+        /// <summary>Composition-time wiring only (<c>ShipServices.Compose</c>): arming a weapon throws until the projectile registry lands here.</summary>
         public void Initialize(IProjectileService projectiles, bool presentationEnabled)
         {
             this.projectiles = projectiles;

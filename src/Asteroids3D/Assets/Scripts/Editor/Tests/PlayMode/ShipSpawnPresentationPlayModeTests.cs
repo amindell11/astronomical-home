@@ -109,7 +109,7 @@ namespace Tests.PlayMode
                 "test premise: a presenting ship's death plays its pooled death clip");
         }
 
-        /// <summary>Swaps in the two mounts the seam must reach and re-wires, as a loadout change does.</summary>
+        // Re-equip mid-life is the moment the seam must reach a ship's swapped-in mounts.
         private RailBeamVisual ReequipToRailgunAndMissiles(Ship ship)
         {
             var railgun = AssetDatabase.LoadAssetAtPath<WeaponComponent>(RailgunPath);
@@ -145,7 +145,7 @@ namespace Tests.PlayMode
             return count;
         }
 
-        /// <summary>A one-shot stays checked out until its delayed return, and the pool's Clear only destroys stacked instances — an active one would outlive this fixture under the DontDestroyOnLoad pool root.</summary>
+        // The pool's Clear destroys only stacked instances; a checked-out one-shot would outlive this fixture.
         private static void DestroyPooledAudio()
         {
             foreach (var source in Object.FindObjectsByType<PooledAudioSource>(FindObjectsSortMode.None))
