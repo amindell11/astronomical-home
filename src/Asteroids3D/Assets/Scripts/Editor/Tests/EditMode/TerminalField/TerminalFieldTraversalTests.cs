@@ -54,16 +54,27 @@ namespace Tests.EditMode.TerminalField
             }
             finally { UnityEngine.Object.DestroyImmediate(settings); }
         }
-        private static void Run(bool heldOut)
+        [Test]
+        public void ResolutionDiagnostic() => Run(false, 96, 4104);
+
+        [Test]
+        public void WeightDiagnostic() => Run(false, 0, 4104, .3f);
+
+        [Test]
+        public void WeightDevelopment() => Run(false, 0, 0, .3f);
+
+        private static void Run(bool heldOut, int resolution = 0, uint seedOverride = 0, float? weightOverride = null)
         {
-            if (Environment.GetEnvironmentVariable("MPC_TRAVERSAL") != (heldOut ? "held-out" : "development"))
+            if (Environment.GetEnvironmentVariable("MPC_TRAVERSAL") != (weightOverride.HasValue ? "weight" : resolution > 0 ? "resolution" : heldOut ? "held-out" : "development"))
                 Assert.Ignore("Opt-in traversal benchmark.");
             var output = Environment.GetEnvironmentVariable("MPC_FIELD_OUT");
             if (string.IsNullOrWhiteSpace(output)) throw new InvalidOperationException("MPC_FIELD_OUT is required.");
-            var directory = Path.Combine(output, (heldOut ? "held-out-" : "development-") + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff"));
+            var directory = Path.Combine(output, (weightOverride.HasValue ? $"weight{weightOverride.Value}-seed{seedOverride}-" : resolution > 0 ? $"resolution{resolution}-seed{seedOverride}-" : heldOut ? "held-out-" : "development-") + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff"));
             Directory.CreateDirectory(directory);
             var asset = AssetDatabase.LoadAssetAtPath<MpcSettings>("Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset");
             var settings = UnityEngine.Object.Instantiate(asset);
+            if (resolution > 0) settings.terminalFieldResolution = resolution;
+            if (weightOverride.HasValue) settings.wTerminalField = weightOverride.Value;
             var dynamics = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_1.prefab").ResolveStats().Dynamics;
             var priorSync = BurstCompiler.Options.EnableBurstCompileSynchronously;
             BurstCompiler.Options.EnableBurstCompileSynchronously = true;
@@ -76,8 +87,8 @@ namespace Tests.EditMode.TerminalField
                 File.WriteAllText(Path.Combine(directory, "conditions.txt"), FormattableString.Invariant($"maxSpeed={dynamics.maxSpeed}; shipRadius={dynamics.shipRadius}; seconds={Seconds}; goalRange={2 * dynamics.maxSpeed * Seconds}; Burst={BurstCompiler.Options.EnableBurstCompilation}"));
                 using var report = new StreamWriter(Path.Combine(directory, "summary.csv"));
                 report.WriteLine("seed,arm,weight,progressSpeed,actualSpeed,stalledSeconds,routeEfficiency,emptyProgressSpeed,emptyFraction,sweptCollisionSteps,endpointCollisionSteps,fieldSpacing,meanTerminalCost,obstacles");
-                var first = heldOut ? 4201u : 4101u;
-                var count = heldOut ? 20 : 5;
+                var first = seedOverride != 0 ? seedOverride : heldOut ? 4201u : 4101u;
+                var count = seedOverride != 0 ? 1 : heldOut ? 20 : 5;
                 for (var index = 0; index < count; index++)
                 {
                     var seed = first + (uint)index;
@@ -90,7 +101,7 @@ namespace Tests.EditMode.TerminalField
                     }
                     for (var arm = 0; arm < 2; arm++)
                     {
-                        settings.wTerminalField = arm == 0 ? asset.wTerminalField : 0f;
+                        settings.wTerminalField = arm == 0 ? weightOverride ?? asset.wTerminalField : 0f;
                         var trace = new List<RigTraceRow>();
                         var result = MpcSolverRig.Run(settings, dynamics, scenario, seed, trace);
                         RigTraceCsv.Write(Path.Combine(directory, $"seed{seed}-arm{arm}.csv"), trace);
