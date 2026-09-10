@@ -14,7 +14,7 @@ namespace Capture
     /// </summary>
     public static class CaptureDispatch
     {
-        private const string ProductionKey = "Capture.CaptureDispatch.RequestedScenario";
+        private const string ProductionKey = "Game.Capture.CaptureDispatch.RequestedScenario";
 
         public static void Request(string scenarioTypeName) => Request(ProductionKey, scenarioTypeName);
 

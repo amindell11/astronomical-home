@@ -33,7 +33,7 @@ namespace Capture.GameView
         }
 
         private static readonly LaneStore Production = new(
-            "Capture.CaptureLaneSession.Active",
+            "Game.Capture.CaptureLaneSession.Active",
             Path.GetFullPath(Path.Combine(
                 Application.dataPath, "..", "Library", "NativeGizmoCapture", "lane_session.json")));
 
