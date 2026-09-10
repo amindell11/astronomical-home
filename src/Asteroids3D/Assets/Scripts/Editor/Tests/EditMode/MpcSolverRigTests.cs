@@ -186,16 +186,16 @@ namespace Tests.EditMode
             noField.wTerminalField = 0f;
             try
             {
-            foreach (var seed in seeds)
-            {
-                var result = MpcSolverRig.Run(noField, dynamics, in row.scenario, seed);
-                if (result.finalRange < 20f) transits++;
-                report += $" seed {seed}: {result.finalRange:F1} m;";
-            }
+                foreach (var seed in seeds)
+                {
+                    var result = MpcSolverRig.Run(noField, dynamics, in row.scenario, seed);
+                    if (result.finalRange < 20f) transits++;
+                    report += $" seed {seed}: {result.finalRange:F1} m;";
+                }
             }
             finally { Object.DestroyImmediate(noField); }
             Assert.That(transits, Is.GreaterThanOrEqualTo(3),
-                $"the transit must complete on stock asset values on most draws;{report}");
+                $"the transit must complete with the field-off asset baseline on most draws;{report}");
         }
 
         [Test]

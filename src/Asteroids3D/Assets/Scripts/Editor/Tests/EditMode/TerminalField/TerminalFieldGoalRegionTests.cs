@@ -7,7 +7,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.TerminalField
 {
     [Category("MPC")]
     public class TerminalFieldGoalRegionTests

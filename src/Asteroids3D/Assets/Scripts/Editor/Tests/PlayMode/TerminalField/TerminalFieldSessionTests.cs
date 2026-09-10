@@ -21,7 +21,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.TerminalField
 {
     [Category("MPC")]
     public class TerminalFieldSessionTests : PlayModeWorldFixture

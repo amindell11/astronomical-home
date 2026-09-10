@@ -11,7 +11,7 @@ using Unity.Burst;
 using UnityEditor;
 using UnityEngine;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.TerminalField
 {
     [Category("MPC")]
     public class TerminalFieldRigTests

@@ -11,7 +11,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using FieldOwner = AI.Navigation.MPC.TerminalField.TerminalField;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.TerminalField
 {
     [Category("MPC")]
     public class TerminalFieldTests
