@@ -17,6 +17,12 @@ namespace Tests.EditMode
             private readonly DetectedObstacle obstacle;
             public SingleObstacleStub(DetectedObstacle obstacle) => this.obstacle = obstacle;
 
+            public int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref DetectedObstacle[] buffer)
+            {
+                if (buffer == null || buffer.Length == 0) buffer = new DetectedObstacle[1];
+                return QueryObstacles(centerPlane, halfExtent, buffer);
+            }
+
             public int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer)
             {
                 if (buffer == null || buffer.Length == 0) return 0;

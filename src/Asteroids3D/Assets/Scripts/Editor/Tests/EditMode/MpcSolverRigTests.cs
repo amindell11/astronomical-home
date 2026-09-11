@@ -32,6 +32,27 @@ namespace Tests.EditMode
             dynamics = ship.ResolveStats().Dynamics;
         }
 
+        [Test]
+        public void RegionalQuery_PreservesEveryObstacleAndTheNearestScan()
+        {
+            var circles = new RigCircle[150];
+            for (var i = 0; i < circles.Length; i++) circles[i] = new RigCircle(new float2(75 - i, 0), 1);
+            var source = new RigObstacleField(circles);
+            var expected = new AI.Scanning.DetectedObstacle[256];
+            var count = source.QueryObstacles(Vector2.zero, 100, expected);
+            var nearest = new AI.Scanning.DetectedObstacle[64];
+            source.QueryObstacles(Vector2.zero, 100, nearest);
+            var actual = new AI.Scanning.DetectedObstacle[8];
+            Assert.That(source.QueryAllObstacles(Vector2.zero, 100, ref actual), Is.EqualTo(count));
+            for (var i = 0; i < count; i++) Assert.That(actual[i], Is.EqualTo(expected[i]));
+            var warm = actual;
+            Assert.That(source.QueryAllObstacles(Vector2.zero, 100, ref actual), Is.EqualTo(count));
+            Assert.That(actual, Is.SameAs(warm));
+            var after = new AI.Scanning.DetectedObstacle[64];
+            source.QueryObstacles(Vector2.zero, 100, after);
+            Assert.That(after, Is.EqualTo(nearest));
+        }
+
         private static RigScenario ShortScenario()
         {
             var scenario = RigScenario.VersusDummy(40f);

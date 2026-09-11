@@ -8,6 +8,9 @@ namespace Tests.Common
     {
         public IObstacleField Inner;
 
+        public int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref DetectedObstacle[] buffer) =>
+            Inner?.QueryAllObstacles(centerPlane, halfExtent, ref buffer) ?? 0;
+
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer) =>
             Inner?.QueryObstacles(centerPlane, halfExtent, buffer) ?? 0;
     }

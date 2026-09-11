@@ -275,12 +275,30 @@ namespace Tests.EditMode.TerminalField
             finally { UnityEngine.Object.DestroyImmediate(origin); }
         }
 
+        [Test]
+        public void RegionalQuery_GathersOnceEvenWhenStorageMustGrow()
+        {
+            var source = new CountingField();
+            var scanner = new ObstacleScanner(null, 1f, 0f, 1f, source);
+            var buffer = new DetectedObstacle[8];
+            var scan = scanner.Query(Vector2.zero, 200f, ref buffer);
+            Assert.That(scan.count, Is.EqualTo(129));
+            for (var i = 0; i < scan.count; i++) Assert.That(buffer[i].radius, Is.EqualTo(i + 200f));
+            Assert.That(source.QueryCount, Is.EqualTo(1), "An all-results request must not repeatedly gather and select nearest prefixes.");
+        }
         private sealed class CountingField : IObstacleField
         {
+            public int QueryCount;
             private readonly int available;
             public CountingField(int available = 129) => this.available = available;
+            public int QueryAllObstacles(Vector2 center, float extent, ref DetectedObstacle[] buffer)
+            {
+                if (available > (buffer?.Length ?? 0)) Array.Resize(ref buffer, Mathf.NextPowerOfTwo(available));
+                return QueryObstacles(center, extent, buffer);
+            }
             public int QueryObstacles(Vector2 center, float extent, DetectedObstacle[] buffer)
             {
+                QueryCount++;
                 var count = Math.Min(buffer.Length, available);
                 for (var i = 0; i < count; i++) buffer[i] = new DetectedObstacle(Vector3.zero, i + extent, null);
                 return count;

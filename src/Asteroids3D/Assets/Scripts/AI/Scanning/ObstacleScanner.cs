@@ -156,13 +156,8 @@ namespace AI.Scanning
         public ObstacleScan Query(Vector2 center, float halfExtent, ref DetectedObstacle[] buffer)
         {
             if (field == null) return new ObstacleScan(buffer, 0);
-            if (buffer == null || buffer.Length == 0) buffer = new DetectedObstacle[64];
-            while (true)
-            {
-                var count = field.QueryObstacles(center, halfExtent, buffer);
-                if (count < buffer.Length) return new ObstacleScan(buffer, count);
-                System.Array.Resize(ref buffer, checked(buffer.Length * 2));
-            }
+            var count = field.QueryAllObstacles(center, halfExtent, ref buffer);
+            return new ObstacleScan(buffer, count);
         }
 
         /// <summary>Back to the pre-first-scan state; stale results must not outlive a reset (episode boundaries rebuild the field).</summary>

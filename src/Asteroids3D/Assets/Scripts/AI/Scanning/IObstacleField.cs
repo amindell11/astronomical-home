@@ -5,5 +5,6 @@ namespace AI.Scanning
     public interface IObstacleField
     {
         int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer);
+        int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref DetectedObstacle[] buffer);
     }
 }

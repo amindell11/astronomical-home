@@ -90,6 +90,30 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
         return field;
     }
 
+    [UnityTest]
+    public IEnumerator QueryAllObstacles_PreservesLiveGeometryAndReusesStorage()
+    {
+        var field = SpawnHarnessField();
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+        var expected = new DetectedObstacle[2048];
+        var count = field.QueryObstacles(Vector2.zero, 200f, expected);
+        Assert.That(count, Is.GreaterThan(8).And.LessThan(expected.Length));
+        var nearest = new DetectedObstacle[8];
+        field.QueryObstacles(Vector2.zero, 200f, nearest);
+        var actual = new DetectedObstacle[8];
+        Assert.That(field.QueryAllObstacles(Vector2.zero, 200f, ref actual), Is.EqualTo(count));
+        for (var i = 0; i < count; i++) Assert.That(actual[i], Is.EqualTo(expected[i]));
+        var warm = actual;
+        Assert.That(field.QueryAllObstacles(Vector2.zero, 200f, ref actual), Is.EqualTo(count));
+        Assert.That(actual, Is.SameAs(warm));
+        var after = new DetectedObstacle[8];
+        field.QueryObstacles(Vector2.zero, 200f, after);
+        Assert.That(after, Is.EqualTo(nearest));
+        Object.DestroyImmediate(actual[0].source.gameObject);
+        Assert.That(field.QueryAllObstacles(Vector2.zero, 200f, ref actual), Is.EqualTo(count - 1));
+    }
+
     private static int CountAll(UpdatingAsteroidField field)
     {
         var buffer = new DetectedObstacle[2048];

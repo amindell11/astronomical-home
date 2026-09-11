@@ -4,8 +4,8 @@ using UnityEngine;
 namespace AI.Scanning
 {
     /// <summary>
-    /// Fixed-capacity obstacle selection. An obstacle producer may find more obstacles in
-    /// range than the consumer's buffer (and the solver's fixed obstacle array) can hold; the
+    /// Copies complete regional results or the nearest obstacles that fit a fixed-capacity consumer.
+    /// A bounded consumer cannot hold every obstacle in range; the
     /// ones kept must be the <b>nearest</b> to the query point, never an arbitrary
     /// scan-order prefix — dropping a near obstacle in favour of a far one blinds avoidance to
     /// exactly the geometry that matters over the planning horizon.
@@ -47,6 +47,15 @@ namespace AI.Scanning
                 dst[k] = candidates[k];
             }
             return keep;
+        }
+
+        public static int CopyAll(List<DetectedObstacle> candidates, ref DetectedObstacle[] dst)
+        {
+            var count = candidates.Count;
+            if (count == 0) return 0;
+            if (count > (dst?.Length ?? 0)) System.Array.Resize(ref dst, Mathf.NextPowerOfTwo(count));
+            candidates.CopyTo(dst);
+            return count;
         }
 
         private static float DistSq(Vector2 a, Vector2 b)
