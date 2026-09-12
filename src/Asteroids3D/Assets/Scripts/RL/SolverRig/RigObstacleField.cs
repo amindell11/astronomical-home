@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AI.Scanning;
 using UnityEngine;
+using Substrate;
 
 namespace RL.SolverRig
 {

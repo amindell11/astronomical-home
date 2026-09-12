@@ -5,6 +5,7 @@ using AI.Context;
 using AI.Strategy;
 using Capture;
 using RL.Arena;
+using RL.Opponents;
 using RL.SolverRig;
 using NUnit.Framework;
 using Ships;
@@ -85,7 +86,7 @@ namespace Tests.PlayMode.Scenarios
 
         private (Ship ship, AICommander cmdr) Spawn(HarnessAssets assets, Vector2 planePos, float rotDeg, int team, HarnessField rocks)
         {
-            var ship = Session.Services.UnitService.SpawnShip(
+            var ship = Session.Units.SpawnShip(
                 assets.ShipPrefab, assets.AgentPilot, team,
                 Session.Frame.Place(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),

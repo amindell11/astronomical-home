@@ -4,6 +4,7 @@ using Diagnostics;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
 
 namespace AI
 {

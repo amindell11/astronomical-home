@@ -134,7 +134,8 @@ namespace AI.Navigation.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
-        private NativeArray<float> noField;   // scheduling needs a constructed container even for an invalid view
+        private NativeArray<float> noField;          // scheduling needs constructed containers even for an invalid view
+        private NativeArray<byte> noFieldOccupied;
         private bool allocated;
         private int lastObstacleCount;
         private TerminalFieldView lastTerminalField;
@@ -198,9 +199,10 @@ namespace AI.Navigation.MPC
             }
             LastEnemyStateCount = enemyStateCount;
             lastTerminalField = terminalField;
-            if (!lastTerminalField.distances.IsCreated)
+            if (!lastTerminalField.distances.IsCreated || !lastTerminalField.occupied.IsCreated)
             {
                 lastTerminalField.distances = noField;
+                lastTerminalField.occupied = noFieldOccupied;
                 lastTerminalField.valid = 0;
             }
 
@@ -436,6 +438,7 @@ namespace AI.Navigation.MPC
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             noField = new NativeArray<float>(1, Allocator.Persistent);
+            noFieldOccupied = new NativeArray<byte>(1, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             allocated = true;
         }
@@ -449,6 +452,7 @@ namespace AI.Navigation.MPC
             obstacles.Dispose();
             enemyStates.Dispose();
             noField.Dispose();
+            noFieldOccupied.Dispose();
             result.Dispose();
             allocated = false;
         }

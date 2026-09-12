@@ -72,7 +72,7 @@ namespace Tests.PlayMode.Scenarios
             yield return null;
             yield return null;
 
-            var units = Session.Services.UnitService;
+            var units = Session.Units;
             var pursuer = units.SpawnShip(assets.ShipPrefab, assets.AgentPilot, 0,
                 Session.Frame.Place(start), GamePlane.Rotation, rocks.Field);
             var evader = units.SpawnShip(assets.ShipPrefab, assets.BaselinePilot, 1,
