@@ -1,6 +1,6 @@
-using Game;
-using Game.Diagnostics;
-using Movement.MPC;
+using AI.Navigation.MPC;
+using AI.Navigation.MPC.Field;
+using Diagnostics;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;

@@ -3,14 +3,16 @@ using System.Collections;
 using AI;
 using AI.Context;
 using AI.Strategy;
-using Game;
-using Game.Capture;
-using Game.RLHarness;
+using Capture;
+using RL.Arena;
+using RL.SolverRig;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Scenarios
 {

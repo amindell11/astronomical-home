@@ -1,4 +1,4 @@
-namespace Movement.MPC
+namespace AI.Navigation.MPC
 {
     // Solver-owned terminal term: beyond-horizon route knowledge from the ship's baked field,
     // charged once at the rollout's end state — outside the terminal ramp, never saturated.

@@ -1,7 +1,6 @@
 using System;
 using AI.Scanning;
 using Movement;
-using Movement.MPC;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;

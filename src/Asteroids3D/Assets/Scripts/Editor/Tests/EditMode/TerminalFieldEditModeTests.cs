@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using AI.Navigation.MPC;
 using AI.Navigation.MPC.Field;
 using AI.Scanning;
-using Game.RLHarness;
+using RL.SolverRig;
 using Movement;
-using Movement.MPC;
 using NUnit.Framework;
 using Ships;
 using Unity.Collections;
