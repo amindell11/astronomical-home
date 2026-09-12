@@ -77,6 +77,7 @@ namespace Tests.EditMode
                 view = new TerminalFieldView
                 {
                     distances = distances,
+                    occupied = occupied,
                     valid = 1,
                     resolution = n,
                     spacing = spacing,
@@ -222,6 +223,110 @@ namespace Tests.EditMode
             Assert.That(v.DetourExcess(beyond), Is.EqualTo(v.DetourExcess(edge) + 7f).Within(Tolerance));
             var corner = new float2(-3f, -4f);
             Assert.That(v.DetourExcess(corner), Is.EqualTo(v.DetourExcess(float2.zero) + 5f).Within(Tolerance));
+        }
+
+        [Test]
+        public void RandomTerrain_MatchesAnIndependentDijkstraOracle()
+        {
+            const int n = 12;
+            const float h = 2f;
+            var rng = new System.Random(8073);
+            var discs = new float3[24];
+            for (var trial = 0; trial < 200; trial++)
+            {
+                for (var i = 0; i < discs.Length; i++)
+                    discs[i] = new float3((float)rng.NextDouble() * 24f, (float)rng.NextDouble() * 24f, (float)rng.NextDouble() * 1.5f);
+                var goal = new float2((float)rng.NextDouble() * 24f, (float)rng.NextDouble() * 24f);
+                using var baked = new Baked(n, h, float2.zero, goal, discs);
+                var expected = DijkstraOracle(baked);
+                for (var i = 0; i < expected.Length; i++)
+                {
+                    if (double.IsPositiveInfinity(expected[i]))
+                        Assert.That(math.isfinite(baked.view.CellDistance(i % n, i / n)), Is.False, $"trial {trial}, cell {i}");
+                    else
+                        Assert.That(baked.view.CellDistance(i % n, i / n), Is.EqualTo(expected[i]).Within(2e-3f), $"trial {trial}, cell {i}");
+                }
+            }
+        }
+
+        /// <summary>An all-pairs relaxation written from the brief, not from the job: the same seed rule, edge costs and corner-cutting ban, in double precision.</summary>
+        private static double[] DijkstraOracle(Baked baked)
+        {
+            var v = baked.view;
+            var n = v.resolution;
+            var distance = new double[n * n];
+            var done = new bool[distance.Length];
+            Array.Fill(distance, double.PositiveInfinity);
+
+            var seed = -1;
+            var nearest = double.PositiveInfinity;
+            for (var i = 0; i < distance.Length; i++)
+            {
+                if (baked.occupied[i] != 0) continue;
+                var c = v.CellCentre(i % n, i / n);
+                var d = Math.Sqrt(((double)c.x - v.goal.x) * ((double)c.x - v.goal.x) + ((double)c.y - v.goal.y) * ((double)c.y - v.goal.y));
+                if (d >= nearest) continue;
+                seed = i;
+                nearest = d;
+            }
+            if (seed < 0) return distance;
+            distance[seed] = nearest;
+
+            for (var pass = 0; pass < distance.Length; pass++)
+            {
+                var current = -1;
+                var best = double.PositiveInfinity;
+                for (var i = 0; i < distance.Length; i++)
+                    if (!done[i] && distance[i] < best) { best = distance[i]; current = i; }
+                if (current < 0) break;
+                done[current] = true;
+                for (var next = 0; next < distance.Length; next++)
+                {
+                    if (done[next] || baked.occupied[next] != 0) continue;
+                    var dx = next % n - current % n;
+                    var dy = next / n - current / n;
+                    if (Math.Abs(dx) > 1 || Math.Abs(dy) > 1 || (dx == 0 && dy == 0)) continue;
+                    if (dx != 0 && dy != 0 && (baked.occupied[current + dx] != 0 || baked.occupied[current + dy * n] != 0)) continue;
+                    distance[next] = Math.Min(distance[next], best + v.spacing * Math.Sqrt(dx * dx + dy * dy));
+                }
+            }
+            return distance;
+        }
+
+        [Test]
+        public void FreePointBesideARock_DoesNotPayTheUnreachableBound()
+        {
+            const int n = 13;
+            const float h = 1f;
+            using var baked = new Baked(n, h, float2.zero, new float2(12f, 6f), new float3(6f, 6f, 0.25f));
+            Assert.That(baked.occupied[6 + 6 * n], Is.EqualTo(1));
+            Assert.That(math.isfinite(baked.view.CellDistance(6, 6)), Is.False, "the rock's own cell is unreachable");
+            Assert.That(baked.view.UnreachableBound, Is.GreaterThan(10f), "the bound the naive sampler would blend in is large");
+            Assert.That(baked.view.DetourExcess(new float2(5.5f, 6f)), Is.LessThan(3f),
+                "a free point beside a rock must not inherit a fraction of the unreachable bound");
+        }
+
+        [Test]
+        public void GridPlacement_IsRetained_SoAFixedPointKeepsItsExcessAsTheShipSteps()
+        {
+            var scenario = Array.Find(RigBingoCard.Rows(), row => row.name == "minefield-transit").scenario;
+            var scanner = new ObstacleScanner(null, dynamics.maxSpeed, 0f, settings.horizonSeconds, new RigObstacleField(scenario.obstacles));
+            using var field = new TerminalField(settings, dynamics, scanner);
+
+            var goal = new float2(0f, 90f);
+            var probe = new float2(0f, 35f);
+            var first = 0f;
+            var worst = 0f;
+            for (var i = 0; i <= 80; i++)
+            {
+                field.Update(new float2(i * 0.1f, 20f), true, goal, 1f);
+                var sample = field.View.DetourExcess(probe);
+                if (i == 0) first = sample;
+                worst = math.max(worst, math.abs(sample - first));
+            }
+            Assert.That(field.BakeCount, Is.EqualTo(81), "every step is a bake at this cadence");
+            Assert.That(worst, Is.LessThan(1e-4f),
+                $"static terrain changed by {worst:F3} m, so the grid slid under the rocks as the ship moved");
         }
 
         [Test]

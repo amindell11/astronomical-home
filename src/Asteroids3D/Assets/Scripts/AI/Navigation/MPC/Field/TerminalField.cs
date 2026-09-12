@@ -38,7 +38,6 @@ namespace AI.Navigation.MPC.Field
         public TerminalFieldView View => view;
         public int BakeCount { get; private set; }
         public int LastDiscCount { get; private set; }
-        internal NativeArray<byte> Occupied => occupied;
 
         public TerminalField(MpcSettings settings, Dynamics dynamics, ObstacleScanner scanner)
         {
@@ -65,7 +64,7 @@ namespace AI.Navigation.MPC.Field
             seedIndexOut = new NativeArray<int>(1, Allocator.Persistent);
             maxFiniteOut = new NativeArray<float>(1, Allocator.Persistent);
             discs = new NativeArray<float3>(scratch.Length * 3, Allocator.Persistent);
-            view = new TerminalFieldView { distances = distances, resolution = resolution };
+            view = new TerminalFieldView { distances = distances, occupied = occupied, resolution = resolution };
         }
 
         /// <summary>Advances the bake clock by one solve's simulation time. No goal invalidates the view; a goal bakes on first sight, every bake interval, and early when ship or goal leaves the grid.</summary>
@@ -90,14 +89,37 @@ namespace AI.Navigation.MPC.Field
         /// <summary><see cref="Update"/> is the production entry; this one serves the tests and the microbench.</summary>
         public void Bake(float2 shipPos, float2 goal)
         {
-            centre = 0.5f * (shipPos + goal);
-            var content = math.cmax(math.abs(shipPos - centre)) + reach + clearance;
-            var spacing = math.max(minSpacing, 2f * content / (resolution - 1 - 2 * PaddingCells));
-            halfSpan = (resolution - 1) * spacing * 0.5f;
-            var origin = centre - halfSpan;
+            // Re-placing every bake slides the lattice under static rocks, so the excess at a fixed point
+            // moves with the ship and the optimizer chases a cost that is no longer the one it sees.
+            float spacing;
+            float2 origin;
+            if (KeepsPlacement(shipPos, goal))
+            {
+                spacing = view.spacing;
+                origin = view.origin;
+            }
+            else
+            {
+                centre = 0.5f * (shipPos + goal);
+                var content = math.cmax(math.abs(shipPos - centre)) + reach + clearance;
+                spacing = math.max(minSpacing, 2f * content / (resolution - 1 - 2 * PaddingCells));
+                halfSpan = (resolution - 1) * spacing * 0.5f;
+                origin = centre - halfSpan;
+            }
 
             var discCount = Gather(halfSpan + 0.5f * spacing + clearance);
             RunBake(discCount, spacing, origin, goal);
+        }
+
+        private bool KeepsPlacement(float2 shipPos, float2 goal)
+        {
+            if (view.valid == 0) return false;
+            var padding = PaddingCells * view.spacing;
+            var lower = view.origin + padding;
+            var upper = view.origin + view.spacing * (resolution - 1) - padding;
+            var span = reach + clearance;
+            return math.all(shipPos - span >= lower) && math.all(shipPos + span <= upper)
+                && math.all(goal >= lower) && math.all(goal <= upper);
         }
 
         /// <summary>The bake job alone over the gathered discs; the microbench times this apart from <see cref="Gather"/>.</summary>
@@ -123,6 +145,7 @@ namespace AI.Navigation.MPC.Field
             view = new TerminalFieldView
             {
                 distances = distances,
+                occupied = occupied,
                 valid = 1,
                 resolution = resolution,
                 spacing = spacing,

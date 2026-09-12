@@ -39,7 +39,7 @@ namespace AI
 
             var n = view.resolution;
             var h = view.spacing;
-            var occupied = field.Occupied;
+            var occupied = view.occupied;
 
             var maxExcess = 0f;
             for (var y = 0; y < n; y++)

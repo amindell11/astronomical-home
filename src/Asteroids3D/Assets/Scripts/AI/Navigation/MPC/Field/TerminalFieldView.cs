@@ -9,6 +9,7 @@ namespace AI.Navigation.MPC.Field
         private const float OctileDiagonal = math.SQRT2 - 1f;
 
         [ReadOnly] public NativeArray<float> distances;
+        [ReadOnly] public NativeArray<byte> occupied;
         public int valid;
         public int resolution;
         public float spacing;
@@ -36,11 +37,28 @@ namespace AI.Navigation.MPC.Field
             return spacing * (math.max(a, b) + OctileDiagonal * math.min(a, b)) + seedToGoal;
         }
 
+        // An occupied cell one step from a reachable neighbour carries that neighbour's excess plus the edge,
+        // not the unreachable bound: bilinear interpolation blends its corners into free points beside a rock.
         public float CellExcess(int x, int y)
         {
             var d = CellDistance(x, y);
-            if (!math.isfinite(d)) d = UnreachableBound;
-            return math.max(0f, d - EmptyDistance(x, y));
+            if (math.isfinite(d)) return math.max(0f, d - EmptyDistance(x, y));
+
+            var best = UnreachableBound;
+            if (occupied[x + y * resolution] == 0) return best;
+            for (var dy = -1; dy <= 1; dy++)
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                var nx = x + dx;
+                var ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= resolution || ny >= resolution) continue;
+                var nd = CellDistance(nx, ny);
+                if (!math.isfinite(nd)) continue;
+                var edge = spacing * (dx != 0 && dy != 0 ? math.SQRT2 : 1f);
+                best = math.min(best, math.max(0f, nd - EmptyDistance(nx, ny)) + edge);
+            }
+            return best;
         }
 
         /// <summary>Bilinear detour excess at a plane point; outside the cell-centre domain, the clamped sample plus the distance back in.</summary>
