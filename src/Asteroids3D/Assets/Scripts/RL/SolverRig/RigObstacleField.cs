@@ -15,6 +15,18 @@ namespace RL.SolverRig
 
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer)
         {
+            Gather(centerPlane, halfExtent);
+            return ObstacleSelection.KeepNearest(candidates, centerPlane, buffer);
+        }
+
+        public int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref DetectedObstacle[] buffer)
+        {
+            Gather(centerPlane, halfExtent);
+            return ObstacleSelection.CopyAll(candidates, ref buffer);
+        }
+
+        private void Gather(Vector2 centerPlane, float halfExtent)
+        {
             candidates.Clear();
             foreach (var circle in circles)
             {
@@ -24,7 +36,6 @@ namespace RL.SolverRig
                     GamePlane.PlanePointToWorld(new Vector2(circle.center.x, circle.center.y)),
                     circle.radius, collider: null));
             }
-            return ObstacleSelection.KeepNearest(candidates, centerPlane, buffer);
         }
     }
 }

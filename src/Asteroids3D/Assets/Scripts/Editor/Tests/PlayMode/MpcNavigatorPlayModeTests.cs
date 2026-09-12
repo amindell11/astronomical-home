@@ -103,6 +103,12 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         public Vector3 position;
         public float radius;
         public Collider collider;
+        public int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref AI.Scanning.DetectedObstacle[] buffer)
+        {
+            if (buffer == null || buffer.Length == 0) buffer = new AI.Scanning.DetectedObstacle[1];
+            return QueryObstacles(centerPlane, halfExtent, buffer);
+        }
+
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
         {
             if (buffer == null || buffer.Length == 0) return 0;

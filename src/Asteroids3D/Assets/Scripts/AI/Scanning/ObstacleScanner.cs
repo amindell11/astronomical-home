@@ -157,17 +157,11 @@ namespace AI.Scanning
         /// <summary>Back to the pre-first-scan state; stale results must not outlive a reset (episode boundaries rebuild the field).</summary>
         public void Clear() => DetectedCount = 0;
 
-        /// <summary>Caller-centred query into a caller-owned buffer. A full buffer cannot tell "exactly full" from "truncated", so it doubles and re-queries until the field returns fewer entries than it can hold; the fixed ship-centred <see cref="Scan"/> is untouched.</summary>
+        /// <summary>Caller-centred query into a caller-owned buffer the field grows to fit one complete gather; the fixed ship-centred <see cref="Scan"/> is untouched.</summary>
         public int QueryAround(Vector2 centerPlane, float halfExtent, ref DetectedObstacle[] buffer)
         {
             if (field == null) return 0;
-            var count = field.QueryObstacles(centerPlane, halfExtent, buffer);
-            while (count == buffer.Length)
-            {
-                buffer = new DetectedObstacle[buffer.Length * 2];
-                count = field.QueryObstacles(centerPlane, halfExtent, buffer);
-            }
-            return count;
+            return field.QueryAllObstacles(centerPlane, halfExtent, ref buffer);
         }
     }
 }

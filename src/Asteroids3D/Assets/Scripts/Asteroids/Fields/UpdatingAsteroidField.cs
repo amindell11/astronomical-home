@@ -455,11 +455,25 @@ namespace Asteroids.Fields
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
         {
             if (!initialized || buffer == null || buffer.Length == 0) return 0;
+            Gather(centerPlane, halfExtent);
+            return AI.Scanning.ObstacleSelection.KeepNearest(queryScratch, centerPlane, buffer);
+        }
+
+        /// <summary>The same gather as <see cref="QueryObstacles"/> without the nearest-first truncation: a caller that needs the whole region owns the buffer and the field grows it.</summary>
+        public int QueryAllObstacles(Vector2 centerPlane, float halfExtent, ref AI.Scanning.DetectedObstacle[] buffer)
+        {
+            Gather(centerPlane, halfExtent);
+            return AI.Scanning.ObstacleSelection.CopyAll(queryScratch, ref buffer);
+        }
+
+        private void Gather(Vector2 centerPlane, float halfExtent)
+        {
+            queryScratch.Clear();
+            if (!initialized) return;
             var relCenter = centerPlane - fieldOriginPlane;
             var sweep = halfExtent + maxTrackedRadius;
             var cellMin = Model.Layout.CellOf(relCenter - new Vector2(sweep, sweep));
             var cellMax = Model.Layout.CellOf(relCenter + new Vector2(sweep, sweep));
-            queryScratch.Clear();
             for (var cx = cellMin.x; cx <= cellMax.x; cx++)
             for (var cy = cellMin.y; cy <= cellMax.y; cy++)
             {
@@ -474,7 +488,6 @@ namespace Asteroids.Fields
                     queryScratch.Add(BuildObstacle(ast));
                 }
             }
-            return AI.Scanning.ObstacleSelection.KeepNearest(queryScratch, centerPlane, buffer);
         }
 
         /// <summary>

@@ -49,6 +49,16 @@ namespace AI.Scanning
             return keep;
         }
 
+        /// <summary>Copies every candidate into <paramref name="dst"/>, growing it to the next power of two when it cannot hold them; returns the number written.</summary>
+        public static int CopyAll(List<DetectedObstacle> candidates, ref DetectedObstacle[] dst)
+        {
+            var n = candidates.Count;
+            if (n == 0) return 0;
+            if (dst == null || n > dst.Length) dst = new DetectedObstacle[Mathf.NextPowerOfTwo(n)];
+            candidates.CopyTo(dst);
+            return n;
+        }
+
         private static float DistSq(Vector2 a, Vector2 b)
         {
             var dx = a.x - b.x;
