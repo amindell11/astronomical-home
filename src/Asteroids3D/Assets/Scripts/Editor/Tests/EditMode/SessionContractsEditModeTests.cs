@@ -149,8 +149,7 @@ namespace Tests.EditMode
                 "the player is the host's, not the session's — a session holds no rig");
             Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
                 "Session must expose its in-plane Frame");
-            // Presentation policy rides SessionProfile to the sector and spawn seams (plus the
-            // interim GameSettings.PresentationEnabled global for ship rigs), never Session state.
+            // Presentation policy rides SessionProfile to the sector and spawn seams, never Session state.
         }
 
         [Test]

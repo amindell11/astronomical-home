@@ -3,11 +3,11 @@ using UnityEngine;
 namespace Substrate.Presentation
 {
     /// <summary>
-    /// Applies a session's presentation policy to a spawned world object: <see cref="IPresentationPart"/>
-    /// behaviours toggle themselves, then every renderer, particle system, and audio source under the
-    /// root is switched generically — new presentation hardware on a prefab is covered without opting in.
-    /// Pooled instances cross sessions, so owning seams re-apply per checkout (never once per Awake)
-    /// and cache the captured parts per instance.
+    /// Applies a session's presentation policy to a spawned world object: every renderer, particle
+    /// system, and audio source under the root is switched generically — new presentation hardware on
+    /// a prefab is covered without opting in — and <see cref="IPresentationPart"/> behaviours run
+    /// afterwards, so a part settles the hardware it owns. Pooled instances cross sessions, so owning
+    /// seams re-apply per checkout (never once per Awake) and cache the captured parts per instance.
     /// </summary>
     public static class PresentationApplier
     {
@@ -31,9 +31,6 @@ namespace Substrate.Presentation
 
         public static void Apply(in Parts parts, bool visible)
         {
-            foreach (var part in parts.Behaviours)
-                part.ApplyPresentation(visible);
-
             foreach (var renderer in parts.Renderers)
                 renderer.enabled = visible;
 
@@ -56,6 +53,9 @@ namespace Substrate.Presentation
                 if (!visible) source.Stop();
                 source.enabled = visible;
             }
+
+            foreach (var part in parts.Behaviours)
+                part.ApplyPresentation(visible);
         }
 
         public static void Apply(GameObject root, bool visible) => Apply(Capture(root), visible);
