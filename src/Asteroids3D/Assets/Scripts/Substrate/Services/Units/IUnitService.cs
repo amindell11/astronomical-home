@@ -4,7 +4,6 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using Ships.Registry;
-using Substrate.Services.Projectiles;
 
 namespace Substrate.Services.Units
 {
@@ -15,9 +14,6 @@ namespace Substrate.Services.Units
 
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
-
-        /// <summary>Projectile registry ships arm their weapons with; arming throws while unset.</summary>
-        void SetProjectiles(IProjectileService projectiles);
 
         /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it.</summary>
         Ship SpawnShip(
@@ -46,7 +42,7 @@ namespace Substrate.Services.Units
         /// <summary>Drop all queued (delayed) respawns without reviving their ships.</summary>
         public void CancelPendingRespawns();
 
-        /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount.</summary>
+        /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts and apply the session's presentation policy to its hardware, weapon mounts included; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount.</summary>
         void WireShipDependencies(Ship ship, IObstacleField field);
     }
 }

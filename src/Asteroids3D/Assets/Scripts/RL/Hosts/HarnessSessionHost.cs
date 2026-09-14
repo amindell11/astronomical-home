@@ -57,8 +57,6 @@ namespace RL.Hosts
 
         private IEnumerator Start()
         {
-            // Before any ship spawns — embedded visual rigs self-gate on this at Awake. Presentation exists only when recording.
-            Utils.GameSettings.SetPresentationEnabled(spec.Presentation);
             PacingContract.Apply();
             // An exception inside a nested coroutine kills it silently; the batch would then hang until the caller's lease expires.
             Application.logMessageReceived += ExitOnException;
