@@ -11,8 +11,8 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
 using Ships.Registry;
+using Substrate.Services;
 using Substrate.Services.Units;
-using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
 
 namespace Tests.PlayMode
@@ -59,7 +59,7 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
-            unitService.SetProjectiles(new ProjectileService(servicesGo.transform));
+            ShipServices.Compose(unitService, servicesGo.transform, presentationEnabled: false);
 
             observer = TestAssets.NewObserverCam();
             var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

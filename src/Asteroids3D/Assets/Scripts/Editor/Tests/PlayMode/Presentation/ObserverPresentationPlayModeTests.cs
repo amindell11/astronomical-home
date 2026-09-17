@@ -9,8 +9,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
+using Substrate.Services;
 using Substrate.Services.Units;
-using Substrate.Services.Projectiles;
 
 namespace Tests.PlayMode
 {
@@ -82,7 +82,7 @@ namespace Tests.PlayMode
 
             servicesHost = new GameObject("[TestServices]");
             unitService = servicesHost.AddComponent<UnitService>();
-            unitService.SetProjectiles(new ProjectileService(servicesHost.transform, presentation));
+            ShipServices.Compose(unitService, servicesHost.transform, presentation);
 
             // Inactive host: Awake and the state machine never run, so the camera build is exercised alone.
             hostGo = new GameObject("TestHost");

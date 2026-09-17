@@ -10,8 +10,8 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Services;
 using Substrate.Services.Units;
-using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Activation;
@@ -42,7 +42,7 @@ namespace Tests.PlayMode
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            _unitService.SetProjectiles(new ProjectileService(unitServiceGO.transform));
+            ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
