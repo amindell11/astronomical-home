@@ -10,6 +10,7 @@ using UnityEngine.TestTools;
 using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
+using Substrate;
 #endif
 
 namespace Tests.PlayMode

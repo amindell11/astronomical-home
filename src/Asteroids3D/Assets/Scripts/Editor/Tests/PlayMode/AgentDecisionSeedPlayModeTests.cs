@@ -1,12 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
-using Game.Services.Units;
+using Substrate.Services.Units;
 
 namespace Tests.PlayMode
 {

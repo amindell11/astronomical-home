@@ -1,9 +1,9 @@
 using System;
 using Damage;
-using Game;
 using Movement;
 using UnityEngine;
 using Utils;
+using Substrate;
 
 namespace Combat.Projectiles
 {

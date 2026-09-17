@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using Ships;
 using UnityEditor;
 using UnityEngine;
+using Substrate;
 
 namespace Combat.Weapons
 {

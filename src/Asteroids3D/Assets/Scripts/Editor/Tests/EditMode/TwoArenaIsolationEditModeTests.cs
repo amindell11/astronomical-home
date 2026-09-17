@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using AI.Scanning;
-using Game;
-using Game.Sessions;
+using Substrate.Sessions;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
+using Substrate;
 
 namespace Tests.EditMode
 {

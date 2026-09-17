@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Movement;
 using NUnit.Framework;
-using Player;
+using Game.Player;
 using Ships;
 using Ships.Command;
 using Tests.PlayMode.Common;

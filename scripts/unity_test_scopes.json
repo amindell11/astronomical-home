@@ -102,8 +102,7 @@
     },
     "sectors": {
       "paths": [
-        "src/Asteroids3D/Assets/Scripts/Game/Sectors/**",
-        "src/Asteroids3D/Assets/Scripts/Game/Encounters/**",
+        "src/Asteroids3D/Assets/Scripts/Substrate/Sectors/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorActivationEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorManifestSyncEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EncounterLifecycleEditModeTests.cs*",
@@ -120,7 +119,7 @@
     "objectives": {
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Objectives/**",
-        "src/Asteroids3D/Assets/Scripts/Game/Services/Objectives/**",
+        "src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Objective*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/KeyPickupObjectivePlayModeTests.cs*"
       ]

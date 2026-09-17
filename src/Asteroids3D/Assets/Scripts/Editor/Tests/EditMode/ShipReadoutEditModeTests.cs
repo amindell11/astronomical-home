@@ -1,5 +1,5 @@
 using System;
-using Game.Diagnostics;
+using Diagnostics;
 using NUnit.Framework;
 using UnityEngine;
 

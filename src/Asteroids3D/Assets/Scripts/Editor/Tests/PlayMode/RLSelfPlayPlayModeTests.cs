@@ -1,15 +1,14 @@
 #if UNITY_EDITOR
 using System.Collections;
-using Game;
-using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
@@ -41,8 +40,7 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[SelfPlayArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            projectiles = new ProjectileService(arenaHost.transform);
-            unitService.SetProjectiles(projectiles);
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,

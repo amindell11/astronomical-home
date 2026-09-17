@@ -1,6 +1,5 @@
-using Game;
 using UnityEngine;
-using Utils;
+using Substrate;
 
 namespace AI.Scanning
 {

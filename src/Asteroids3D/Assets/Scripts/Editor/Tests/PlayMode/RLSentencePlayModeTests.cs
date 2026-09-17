@@ -2,13 +2,12 @@
 using System;
 using System.Collections;
 using System.IO;
-using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Hosts;
@@ -33,11 +32,9 @@ namespace Tests.PlayMode
         public void SetUp()
         {
             AudioListener.pause = true;
-            GameSettings.SetPresentationEnabled(false);
             arenaHost = new GameObject("[SentenceArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            projectiles = new ProjectileService(arenaHost.transform);
-            unitService.SetProjectiles(projectiles);
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: false);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             PacingContract.Apply();
@@ -50,7 +47,6 @@ namespace Tests.PlayMode
         {
             projectiles?.ReturnAllToPool();
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
-            GameSettings.SetPresentationEnabled(true);
             if (Directory.Exists(outDir)) Directory.Delete(outDir, true);
             AudioListener.pause = false;
         }

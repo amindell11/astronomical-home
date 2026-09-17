@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Game.Diagnostics;
+using Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     internal sealed class GameViewCaptureTransaction
     {

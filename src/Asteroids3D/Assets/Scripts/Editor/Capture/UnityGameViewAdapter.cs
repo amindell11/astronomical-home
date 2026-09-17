@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     internal sealed class UnityGameViewAdapter
     {

@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;

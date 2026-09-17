@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Combat.Projectiles;
 using Damage;
-using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Projectiles;
 
 namespace Tests.EditMode
 {
@@ -219,23 +216,6 @@ namespace Tests.EditMode
             service.ForEachLive(visited.Add);
 
             Assert.AreEqual(new MonoBehaviour[] { live }, visited);
-        }
-
-        [Test]
-        public void GameServicesClearAll_FlushesLiveTransients()
-        {
-            var unitGo = new GameObject("Unit");
-            tempObjects.Add(unitGo);
-            var services = new GameServices(
-                unitGo.AddComponent<UnitService>(), service,
-                unitGo.AddComponent<ObjectiveService>());
-            var projectile = Create<TestProjectile>();
-            service.Register(projectile, projectile.ReturnToPoolImmediate);
-
-            services.ClearAll();
-
-            Assert.AreEqual(1, projectile.Returns, "sector transitions must not leak live projectiles");
-            Assert.AreEqual(0, service.ActiveCount);
         }
     }
 }

@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using Game.Capture.GameView;
+using Capture.GameView;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

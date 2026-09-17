@@ -1,12 +1,12 @@
 using AI;
 using Combat;
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using Ships.Command;
 using UnityEditor;
 using UnityEngine;
 using Utils;
 using Combat.Targeting;
+using Substrate;
 
 namespace Ships
 {
