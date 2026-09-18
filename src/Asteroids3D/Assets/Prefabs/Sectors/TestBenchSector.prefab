@@ -68,6 +68,7 @@ MonoBehaviour:
   - {fileID: 5063900345841166789}
   modules: []
   obstacleField: {fileID: 2929633249234037234}
+  startPointMarker: {fileID: 0}
 --- !u!1001 &1862518206806735493
 PrefabInstance:
   m_ObjectHideFlags: 0
