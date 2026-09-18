@@ -17,8 +17,8 @@ namespace Substrate.Sectors
         public event Action<SectorResult> OnSectorComplete;
 
         [Header("Manifest — press Sync in the inspector to reconcile with placed children")]
-        [Tooltip("Hand-placed content children wired into services in place at load.")]
-        [SerializeField] private AdoptEntry[] adopted = Array.Empty<AdoptEntry>();
+        [Tooltip("Hand-placed ship children wired into the unit service in place at load.")]
+        [SerializeField] private AdoptedShip[] adopted = Array.Empty<AdoptedShip>();
 
         [Tooltip("Procedural spawner children (e.g. RingSpawner) built in list order at load.")]
         [SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
@@ -37,7 +37,7 @@ namespace Substrate.Sectors
         protected SectorBuildContext Context { get; private set; }
 
         /// <summary>Baked adopt manifest (read-only view for editor/tests).</summary>
-        public IReadOnlyList<AdoptEntry> Adopted => adopted;
+        public IReadOnlyList<AdoptedShip> Adopted => adopted;
 
         /// <summary>Baked spawner manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorSpawner> Spawners => spawners;
@@ -77,7 +77,7 @@ namespace Substrate.Sectors
             yield return OnBeforeContent();
 
             foreach (var t in adopted)
-                Adopt(t);
+                AdoptShip(t);
 
             foreach (var t in spawners)
                 if (t) yield return t.Build(Context);
@@ -113,12 +113,9 @@ namespace Substrate.Sectors
             for (var i = spawners.Length - 1; i >= 0; i--)
                 if (spawners[i]) yield return spawners[i].Teardown(Context);
 
-            // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts are deliberately left alone.
+            // Despawn adopted ships so NPCs don't accumulate across restarts.
             foreach (var entry in adopted)
-            {
-                var ship = entry.target as Ship;
-                if (ship) Units.DespawnShip(ship);
-            }
+                if (entry.target) Units.DespawnShip(entry.target);
 
             yield return OnAfterTeardown();
         }
@@ -128,17 +125,11 @@ namespace Substrate.Sectors
             OnSectorComplete?.Invoke(result);
         }
 
-        private void Adopt(AdoptEntry entry)
+        private void AdoptShip(AdoptedShip entry)
         {
-            var target = entry.target;
-            if (!target) return;
+            var ship = entry.target;
+            if (!ship) return;
 
-            var ship = target as Ship;
-            if (ship) AdoptShip(ship, entry);
-        }
-
-        private void AdoptShip(Ship ship, AdoptEntry entry)
-        {
             ship.teamNumber = entry.team;
             var adoptedShip = Units.AdoptShip(ship, Context.Field);
             if (!adoptedShip) return;
@@ -163,7 +154,7 @@ namespace Substrate.Sectors
             SectorManifestSync.ComputeDrift(transform, adopted, spawners, modules, obstacleField);
 
         /// <summary>Test/editor seam mirroring what the inspector Sync writes; null arguments leave that slice untouched.</summary>
-        internal void SetManifest(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
+        internal void SetManifest(AdoptedShip[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
             Asteroids.Fields.UpdatingAsteroidField obstacleField = null)
         {
             if (adopted != null) this.adopted = adopted;
