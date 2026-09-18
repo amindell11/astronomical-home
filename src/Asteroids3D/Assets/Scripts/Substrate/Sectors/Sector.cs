@@ -153,13 +153,12 @@ namespace Substrate.Sectors
 
         /// <summary>Test/editor seam mirroring what the inspector Sync writes; null arguments leave that slice untouched.</summary>
         internal void SetManifest(AdoptedShip[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
-            Asteroids.Fields.UpdatingAsteroidField obstacleField = null, StartPointMarker startPointMarker = null)
+            Asteroids.Fields.UpdatingAsteroidField obstacleField = null)
         {
             if (adopted != null) this.adopted = adopted;
             if (spawners != null) this.spawners = spawners;
             if (modules != null) this.modules = modules;
             if (obstacleField) this.obstacleField = obstacleField;
-            if (startPointMarker) this.startPointMarker = startPointMarker;
         }
 #endif
 

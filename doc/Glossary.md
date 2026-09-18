@@ -368,7 +368,7 @@ Format: **term** — definition. *(authority)*
   and the session resets to the sector's start point. The player in the
   interactive game, possibly an AI in a scenario.
   *(`Session.LoadSector(hero)`, `SectorBuildContext.Hero`)*
-- **start point** — where a sector begins: an authored pose the sector declares,
+- **start point** — where a sector begins: an authored plane position the sector declares,
   baked by the manifest sync from an optional marker child (the sector root
   otherwise). A fact of the sector, not of whoever flies: the field carves its
   permanent clearing around it even with no hero. *(`Sector.StartPoint`)*
