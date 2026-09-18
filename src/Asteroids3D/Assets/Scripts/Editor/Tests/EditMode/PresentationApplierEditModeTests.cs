@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using Combat.Projectiles;
 using Damage;
-using Game.Presentation;
-using Game.Services;
+using Substrate.Presentation;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Tests.EditMode
 {
@@ -38,6 +37,18 @@ namespace Tests.EditMode
             {
                 LastApplied = visible;
                 enabled = visible;
+            }
+        }
+
+        /// <summary>A part that owns a renderer the generic sweep also touches.</summary>
+        private sealed class OwningPart : MonoBehaviour, IPresentationPart
+        {
+            public MeshRenderer Owned;
+
+            public void ApplyPresentation(bool visible)
+            {
+                enabled = visible;
+                Owned.enabled = false;
             }
         }
 
@@ -88,6 +99,18 @@ namespace Tests.EditMode
             Assert.IsTrue(root.GetComponentInChildren<AudioSource>(true).enabled);
         }
 
+        [Test]
+        public void ApplyOn_PartsRunLast_OwnedHardwareStaysOff()
+        {
+            var root = Track(new GameObject("OwnedHardware"));
+            var owned = root.AddComponent<MeshRenderer>();
+            root.AddComponent<OwningPart>().Owned = owned;
+
+            PresentationApplier.Apply(root, true);
+
+            Assert.IsFalse(owned.enabled, "the sweep ran before the part, so the part has the last word");
+        }
+
         /// <summary>Pool-free ProjectileBase so Register works without touching SimplePool statics.</summary>
         private class TestProjectile : ProjectileBase
         {
@@ -136,6 +159,9 @@ namespace Tests.EditMode
             "Assets/Prefabs/Weapons/GrenadeCharge.prefab",
             "Assets/Prefabs/Weapons/ConcussionWave.prefab",
             "Assets/Prefabs/Asteroid/Asteroid3D.prefab",
+            "Assets/Prefabs/Ships/Ship_1.prefab",
+            "Assets/Prefabs/Weapons/Railgun.prefab",
+            "Assets/Prefabs/Weapons/Missiles.prefab",
         };
 
         [Test]
@@ -154,7 +180,8 @@ namespace Tests.EditMode
             foreach (var ps in instance.GetComponentsInChildren<ParticleSystem>(true))
                 Assert.IsFalse(ps.isPlaying, $"{path}: particle system '{ps.name}' still playing");
             foreach (var part in instance.GetComponentsInChildren<IPresentationPart>(true))
-                Assert.IsFalse(((Behaviour)part).enabled, $"{path}: part '{part.GetType().Name}' still enabled");
+                Assert.IsFalse(((Behaviour)part).isActiveAndEnabled,
+                    $"{path}: part '{part.GetType().Name}' still live");
         }
     }
 }

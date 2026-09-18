@@ -1,7 +1,7 @@
 using System;
 using Asteroids;
-using Game;
 using UnityEngine;
+using Substrate;
 
 namespace AI.Strategy
 {

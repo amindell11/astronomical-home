@@ -1,11 +1,11 @@
 using System;
 using AI.Context;
 using Combat;
-using Game;
 using Movement;
 using Ships.Command;
 using UnityEngine;
 using Combat.Targeting;
+using Substrate;
 
 namespace AI
 {

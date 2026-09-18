@@ -1,5 +1,5 @@
 using System.Collections;
-using Game.Play;
+using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;

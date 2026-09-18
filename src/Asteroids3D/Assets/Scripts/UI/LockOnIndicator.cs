@@ -1,7 +1,7 @@
 using Combat.Targeting;
-using Game;
 using Ships.Presentation;
 using UnityEngine;
+using Substrate;
 
 namespace UI
 {

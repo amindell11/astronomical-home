@@ -1,11 +1,11 @@
 using System;
-using Game;
 using Asteroids.Fields;
 using Asteroids.Fields.Core;
 using Ships.Command;
 using UnityEngine;
 using RL.Episodes;
 using RL.Reward;
+using Substrate;
 
 namespace RL.Arena
 {

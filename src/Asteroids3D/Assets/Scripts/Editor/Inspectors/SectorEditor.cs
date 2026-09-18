@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Sectors
+namespace Substrate.Sectors
 {
     /// <summary>
     /// Custom inspector for all <see cref="Sector"/> types. Adds the edit-time Sync/reconcile

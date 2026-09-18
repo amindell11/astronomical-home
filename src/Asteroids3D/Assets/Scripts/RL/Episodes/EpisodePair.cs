@@ -1,17 +1,16 @@
 using System;
-using Game;
 using AI;
 using AI.Scanning;
-using Game.Services;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Opponents;
 using RL.Reward;
 using RL.Runtime;
+using Substrate;
 
 namespace RL.Episodes
 {

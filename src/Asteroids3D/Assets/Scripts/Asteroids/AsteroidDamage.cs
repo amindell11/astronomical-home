@@ -1,7 +1,7 @@
 using Asteroids.Fragnetics;
 using Damage;
 using UnityEngine;
-using Utils;
+using Substrate;
 
 namespace Asteroids
 {

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Game.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
-using Game.Services.Objectives;
+using Substrate.Services.Objectives;
 
 namespace Tests.EditMode
 {

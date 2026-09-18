@@ -1,12 +1,12 @@
-using Game;
-using Game.Sectors;
+using Substrate.Sectors;
 using NUnit.Framework;
 using Objectives;
 using Ships;
 using UnityEditor;
 using UnityEngine;
-using Game.Sectors.Elements;
-using Game.Sectors.Activation;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Activation;
+using Substrate;
 
 namespace Tests.EditMode
 {
@@ -155,7 +155,7 @@ namespace Tests.EditMode
                 "The chaser's activate module must listen for the token the rule publishes.");
 
             Assert.AreEqual(2, sector.Adopted.Count);
-            var chaser = sector.Adopted[0].target as Ship;
+            var chaser = sector.Adopted[0].target;
             Assert.IsNotNull(chaser, "The first adopted ship must be the chaser.");
             Assert.AreSame(chaser.gameObject, activate.gameObject,
                 "The activate module must sit on the chaser itself — the actee subscribes.");
@@ -168,7 +168,7 @@ namespace Tests.EditMode
             var sector = LoadSector();
             var zone = new SerializedObject(sector.Modules[0]).FindProperty("extractionZone")
                 .objectReferenceValue as ExtractionZone;
-            var chaser = sector.Adopted[0].target as Ship;
+            var chaser = sector.Adopted[0].target;
 
             Assert.AreSame(chaser.transform, new SerializedObject(zone).FindProperty("blocker").objectReferenceValue,
                 "The zone must observe the chaser as its serialized blocker.");

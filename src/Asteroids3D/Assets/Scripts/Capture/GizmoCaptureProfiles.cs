@@ -8,7 +8,7 @@ using Ships;
 using Ships.Damage;
 using Ships.Movement;
 
-namespace Game.Capture
+namespace Capture
 {
     /// <summary>
     /// Single home for gizmo-capture-profile knowledge: which component types a

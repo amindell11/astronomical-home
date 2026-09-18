@@ -1,6 +1,6 @@
 using Asteroids.Spawning;
 using UnityEngine;
-using Utils;
+using Substrate;
 
 namespace Asteroids.Fields
 {

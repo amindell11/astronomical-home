@@ -19,7 +19,7 @@ the matching doc when its branch fires:
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
 - Memory reads/writes → `doc/agents/memory.md` (holds nothing repo-critical: working memory + taste only).
-- Machine/tooling facts (remote box, LFS budget, editor-analytics churn, pool
+- Machine/tooling facts (remote box, editor-analytics churn, pool
   capacity, MCP setup) → `doc/agents/environment.md`.
 - Answering "why is it like this" / "was X tried" → the `design-lookup` agent (searches issues + PR bodies, returns cited answers, never the record).
 - Changing a script's outputs, or calling one script from another →

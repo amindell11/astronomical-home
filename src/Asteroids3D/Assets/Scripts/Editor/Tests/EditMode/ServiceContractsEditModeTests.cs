@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Game.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
+using Substrate.Services.Units;
+using Substrate.Services.Objectives;
 
 namespace Tests.EditMode
 {
@@ -35,18 +33,6 @@ namespace Tests.EditMode
             var go = new GameObject($"Test_{typeof(T).Name}");
             tempObjects.Add(go);
             return go.AddComponent<T>();
-        }
-
-        [Test]
-        public void GameServices_Constructor_ThrowsOnNullService()
-        {
-            var unit = CreateMonoBehaviourService<UnitService>();
-            var obj = CreateMonoBehaviourService<ObjectiveService>();
-            var proj = new ProjectileService(unit.transform);
-
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, obj));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null));
         }
 
         [Test]
@@ -174,16 +160,6 @@ namespace Tests.EditMode
 
             Assert.AreEqual(0, raised,
                 "A cleared spine tracker must be detached from the service forwarder.");
-        }
-
-        [Test]
-        public void GameServices_ClearAll_ClearsAllServices()
-        {
-            var unit = CreateMonoBehaviourService<UnitService>();
-            var obj = CreateMonoBehaviourService<ObjectiveService>();
-            var services = new GameServices(unit, new ProjectileService(unit.transform), obj);
-
-            Assert.DoesNotThrow(() => services.ClearAll());
         }
 
         private sealed class StubKeyTracker : IKeyTracker

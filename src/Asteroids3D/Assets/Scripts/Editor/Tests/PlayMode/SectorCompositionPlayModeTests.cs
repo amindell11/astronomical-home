@@ -2,19 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using AI;
-using Game;
-using Game.Sectors;
-using Game.Services;
+using Substrate.Sectors;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
-using Game.Services.Objectives;
-using Game.Sectors.Elements;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Objectives;
+using Substrate.Sectors.Elements;
+using Substrate;
 
 namespace Tests.PlayMode
 {
@@ -28,7 +27,7 @@ namespace Tests.PlayMode
             public bool IsBuilt => IsSetUp;
             protected override IEnumerator OnAfterTeardown()
             {
-                Services.UnitService.Clear();
+                Units.Clear();
                 yield break;
             }
         }
@@ -54,7 +53,7 @@ namespace Tests.PlayMode
         }
 
         private UnitService _unitService;
-        private GameServices _services;
+        private ObjectiveService _objectiveService;
         private SectorSettings _config;
         private readonly List<GameObject> _created = new();
 
@@ -67,12 +66,9 @@ namespace Tests.PlayMode
             _unitService = unitServiceGO.AddComponent<UnitService>();
 
             var objectiveServiceGO = TrackGO(new GameObject("ObjectiveService"));
-            var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
+            _objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
-            var projectiles = new ProjectileService(unitServiceGO.transform);
-            _unitService.SetProjectiles(projectiles);
-            _services = new GameServices(
-                _unitService, projectiles, objectiveService);
+            ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
 
@@ -106,7 +102,7 @@ namespace Tests.PlayMode
             // Author content under an INACTIVE sector — mirrors Session's inactive holder so authored ships don't Awake before adoption.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.Initialize(_services, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
             return sector;
         }
 
@@ -116,11 +112,11 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
-            sector.Initialize(_services, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
             return sector;
         }
 
-        private static void SetManifest(Sector sector, AdoptEntry[] adopted, SectorSpawner[] spawners)
+        private static void SetManifest(Sector sector, AdoptedShip[] adopted, SectorSpawner[] spawners)
             => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
@@ -145,8 +141,8 @@ namespace Tests.PlayMode
             return m;
         }
 
-        private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
-            new AdoptEntry { target = target, team = team, startActive = startActive };
+        private static AdoptedShip Entry(Ship target, int team = 0, bool startActive = true) =>
+            new AdoptedShip { target = target, team = team, startActive = startActive };
 
         [UnityTest]
         public IEnumerator Adopt_AllShipEntries_RegisteredAtPoses()
@@ -157,7 +153,7 @@ namespace Tests.PlayMode
 
             var sector = CreateTestSector();
             var positions = new[] { new Vector3(5, 0, 0), new Vector3(-5, 0, 0), new Vector3(0, 0, 5) };
-            var entries = new List<AdoptEntry>();
+            var entries = new List<AdoptedShip>();
             foreach (var pos in positions)
                 entries.Add(Entry(AddAdoptedShipChild(sector.transform, ship, cmdr, localPos: pos)));
             SetManifest(sector, entries.ToArray(), null);
@@ -375,7 +371,7 @@ namespace Tests.PlayMode
 
             var point = new Vector2(17f, -9f);
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
-            Assert.IsTrue(Respawn.Wire(s, policy, _services.UnitService), "FixedPoint policy must wire a respawn.");
+            Assert.IsTrue(Respawn.Wire(s, policy, _unitService), "FixedPoint policy must wire a respawn.");
 
             TestDamage.Kill(s);
 
@@ -400,7 +396,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(s);
 
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
-            Assert.IsFalse(Respawn.Wire(s, policy, _services.UnitService), "A None policy must wire nothing.");
+            Assert.IsFalse(Respawn.Wire(s, policy, _unitService), "A None policy must wire nothing.");
 
             TestDamage.Kill(s);
 
