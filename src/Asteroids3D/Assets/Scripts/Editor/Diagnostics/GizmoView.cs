@@ -4,7 +4,7 @@ using Ships;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Diagnostics
+namespace Diagnostics
 {
     internal enum GizmoScope { All, Selected, Team }
 

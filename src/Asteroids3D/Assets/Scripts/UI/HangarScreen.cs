@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Ships;
+using Ships.Loadout;
 using Ships.Weapons;
 using UnityEngine;
 using UnityEngine.EventSystems;

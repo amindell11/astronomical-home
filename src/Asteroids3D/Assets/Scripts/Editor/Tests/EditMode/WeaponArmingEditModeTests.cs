@@ -1,10 +1,9 @@
 using System;
-using Game.Services;
 using NUnit.Framework;
 using Ships.Command;
 using Ships.Weapons;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
 
 namespace Tests.EditMode
 {

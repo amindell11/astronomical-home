@@ -3,20 +3,20 @@ using System.Collections;
 using System.Reflection;
 using AI;
 using AI.Scanning;
-using Game;
-using Game.Services;
+using Substrate.Services;
 using NUnit.Framework;
 using Ships;
 using Unity.MLAgents;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
 using RL.Hosts;
 using RL.Reward;
+using Substrate;
 
 namespace Tests.PlayMode
 {

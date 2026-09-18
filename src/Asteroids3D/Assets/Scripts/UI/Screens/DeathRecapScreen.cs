@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Damage;
-using Player;
+using Game.Player;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,7 +12,7 @@ namespace UI.Screens
     /// <summary>
     /// Post-death recap panel rendered from the damage ledger: what killed you, and what hurt
     /// you this life, aggregated per source. Code-built (no prefab) so headless paths never
-    /// touch it; the host creates it during <see cref="Game.Play.GameState.DeathRecap"/>.
+    /// touch it; the host creates it during <see cref="Game.GameState.DeathRecap"/>.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class DeathRecapScreen : MonoBehaviour

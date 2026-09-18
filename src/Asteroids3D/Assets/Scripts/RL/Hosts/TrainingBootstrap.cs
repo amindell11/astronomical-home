@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using Game.Capture;
+using Capture;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -14,7 +14,7 @@ namespace RL.Hosts
     public static class TrainingBootstrap
     {
         private const string GameViewCaptureType =
-            "Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor";
+            "Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor";
         private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         private const string EvalOpponentAssetPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(

@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Capture.GameView
+namespace Capture.GameView
 {
     [Serializable]
     internal sealed class CaptureRecoveryState

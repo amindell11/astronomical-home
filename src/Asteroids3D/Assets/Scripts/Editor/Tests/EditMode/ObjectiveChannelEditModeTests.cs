@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Game.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Game.Services.Objectives;
+using Substrate.Services.Objectives;
 
 namespace Tests.EditMode
 {

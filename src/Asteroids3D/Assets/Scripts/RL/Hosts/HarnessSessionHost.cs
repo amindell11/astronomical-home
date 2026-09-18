@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.IO;
-using Game.Capture;
-using Game.Services;
+using Capture;
+using Substrate.Services;
 using UnityEngine;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
@@ -46,7 +46,7 @@ namespace RL.Hosts
             if (episodeCapture == null && spec != null && spec.record.enabled)
             {
                 var type = System.Type.GetType(
-                    "Game.Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor", throwOnError: true);
+                    "Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor", throwOnError: true);
                 var module = ScriptableObject.CreateInstance(type);
                 module.hideFlags = HideFlags.HideAndDontSave;
                 captureModule = module;
@@ -57,8 +57,6 @@ namespace RL.Hosts
 
         private IEnumerator Start()
         {
-            // Before any ship spawns — embedded visual rigs self-gate on this at Awake. Presentation exists only when recording.
-            Utils.GameSettings.SetPresentationEnabled(spec.Presentation);
             PacingContract.Apply();
             // An exception inside a nested coroutine kills it silently; the batch would then hang until the caller's lease expires.
             Application.logMessageReceived += ExitOnException;

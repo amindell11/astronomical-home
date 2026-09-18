@@ -1,10 +1,9 @@
 using AI;
-using Game;
-using Game.Services;
 using Movement;
 using Ships;
 using UnityEngine;
-using Game.Services.Projectiles;
+using Substrate.Services.Projectiles;
+using Substrate;
 
 namespace Tests.PlayMode.Common
 {

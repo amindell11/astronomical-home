@@ -1,8 +1,8 @@
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using AI.Strategy;
+using Substrate;
 
 namespace AI
 {

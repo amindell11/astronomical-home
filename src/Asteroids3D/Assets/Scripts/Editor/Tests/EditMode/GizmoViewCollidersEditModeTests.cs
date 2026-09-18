@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
 using System;
-using Game.Diagnostics;
+using Diagnostics;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -24,6 +24,8 @@ namespace Tests.EditMode
         [SetUp]
         public void SetUp()
         {
+            // Enumeration initializes the native annotation registry before the per-type snapshot.
+            GizmoUtility.GetGizmoInfo();
             priorColliders = GizmoView.CollidersOn;
             priorEnabled = new bool[ColliderTypes.Length];
             for (var i = 0; i < ColliderTypes.Length; i++)

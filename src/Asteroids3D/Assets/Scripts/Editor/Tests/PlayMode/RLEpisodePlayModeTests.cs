@@ -5,21 +5,21 @@ using System.Collections.Generic;
 using System.IO;
 using AI;
 using AI.Observation;
-using Game;
-using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.Services.Units;
-using Game.Services.Projectiles;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
 using RL.Hosts;
 using RL.Opponents;
 using RL.Reward;
 using RL.Runtime;
+using Substrate;
 
 namespace Tests.PlayMode
 {
@@ -48,10 +48,9 @@ namespace Tests.PlayMode
             AudioListener.pause = true;
             arenaHost = new GameObject("[EpisodeArena]");
             unitService = arenaHost.AddComponent<UnitService>();
-            projectiles = new ProjectileService(arenaHost.transform);
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
-            unitService.SetProjectiles(projectiles);
             AssertNoForeignDebris();
 
             savedTimeScale = Time.timeScale;

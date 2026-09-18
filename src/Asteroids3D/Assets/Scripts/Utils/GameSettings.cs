@@ -3,14 +3,14 @@ using UnityEngine;
 namespace Utils
 {
     /// <summary>
-    /// Game-wide presentation policy, composed per session by a game-tier caller (<c>Session</c>,
-    /// or an RL host for a headless run). Never persisted, so a headless run cannot leak into play.
+    /// Game-wide presentation policy, set per session by <c>Session.Compose</c> from its profile.
+    /// Never persisted, so a headless run cannot leak into play.
     /// </summary>
     public static class GameSettings
     {
         /// <summary>
-        /// Off makes every ship's embedded visual rig self-disable and suppresses one-shot effects —
-        /// renderer-, audio- and particle-free while the ship remains fully simulated.
+        /// Off skips <c>GameSessionHost</c>'s hangar screen and death recap; ships and transients are
+        /// darkened by their own spawn seams, not by this flag.
         /// </summary>
         public static bool PresentationEnabled { get; private set; } = true;
 

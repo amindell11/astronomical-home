@@ -2,12 +2,12 @@
 using System.Collections;
 using AI.Scanning;
 using Asteroids.Fields;
-using Game;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Substrate;
 
 namespace Tests.PlayMode
 {

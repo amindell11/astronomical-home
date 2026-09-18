@@ -5,8 +5,8 @@ using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-using Utils;
 using Ships.Registry;
+using Substrate;
 
 namespace Tests.EditMode
 {

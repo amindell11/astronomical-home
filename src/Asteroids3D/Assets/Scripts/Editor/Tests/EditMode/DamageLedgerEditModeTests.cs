@@ -1,8 +1,8 @@
 using Damage;
 using NUnit.Framework;
-using Player;
-using Ships;
+using Game.Player;
 using Ships.Damage;
+using Ships.Loadout;
 using UI;
 using UnityEngine;
 using UI.Screens;

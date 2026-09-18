@@ -1,8 +1,8 @@
-using Game;
-using Game.Diagnostics;
+using Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Utils;
+using Substrate;
 
 namespace Ships.Movement
 {
