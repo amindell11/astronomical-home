@@ -116,7 +116,7 @@ namespace Tests.PlayMode
             return sector;
         }
 
-        private static void SetManifest(Sector sector, AdoptEntry[] adopted, SectorSpawner[] spawners)
+        private static void SetManifest(Sector sector, AdoptedShip[] adopted, SectorSpawner[] spawners)
             => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
@@ -141,8 +141,8 @@ namespace Tests.PlayMode
             return m;
         }
 
-        private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
-            new AdoptEntry { target = target, team = team, startActive = startActive };
+        private static AdoptedShip Entry(Ship target, int team = 0, bool startActive = true) =>
+            new AdoptedShip { target = target, team = team, startActive = startActive };
 
         [UnityTest]
         public IEnumerator Adopt_AllShipEntries_RegisteredAtPoses()
@@ -153,7 +153,7 @@ namespace Tests.PlayMode
 
             var sector = CreateTestSector();
             var positions = new[] { new Vector3(5, 0, 0), new Vector3(-5, 0, 0), new Vector3(0, 0, 5) };
-            var entries = new List<AdoptEntry>();
+            var entries = new List<AdoptedShip>();
             foreach (var pos in positions)
                 entries.Add(Entry(AddAdoptedShipChild(sector.transform, ship, cmdr, localPos: pos)));
             SetManifest(sector, entries.ToArray(), null);

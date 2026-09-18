@@ -108,10 +108,10 @@ namespace Substrate.Sessions
             if (onSectorComplete != null)
                 sector.OnSectorComplete += onSectorComplete;
 
-            // The sector only DECLARES its start via PlayerStart; the session does the entry reset.
+            // The sector only DECLARES its start point; the session does the entry reset.
             // It must precede Setup: the obstacle field lays out and anchors against the placed hero.
             if (hero)
-                Units.RespawnShip(hero.Id, sector.PlayerStart, 0f);
+                Units.RespawnShip(hero.Id, sector.StartPoint, 0f);
 
             yield return sector.Setup();
 

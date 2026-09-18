@@ -54,6 +54,7 @@ MonoBehaviour:
   - {fileID: 5940152637587894856}
   modules: []
   obstacleField: {fileID: 4359794750649610879}
+  startPointMarker: {fileID: 0}
 --- !u!1 &6420115723280658274
 GameObject:
   m_ObjectHideFlags: 0

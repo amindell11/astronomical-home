@@ -25,7 +25,7 @@ namespace Asteroids.Fields
         public AsteroidFieldModel Model { get; private set; }
 
         private Transform streamAnchor;
-        private Vector2? playerStartPlane;
+        private Vector2? startPointPlane;
         private float densityScale = 1f;
         private float lethalityScale = 1f;
         private ExclusionVolume[] hostExclusionsPlane;
@@ -76,10 +76,10 @@ namespace Asteroids.Fields
             streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : null;
 
         /// <summary>
-        /// The sector's static authored player start (absolute plane space); generation carves a
+        /// The sector's static authored start point (absolute plane space); generation carves a
         /// permanent clearing around it. Only static authored positions may feed the deterministic baseline.
         /// </summary>
-        public void SetPlayerStart(Vector2 absolutePlanePosition) => playerStartPlane = absolutePlanePosition;
+        public void SetStartPoint(Vector2 absolutePlanePosition) => startPointPlane = absolutePlanePosition;
 
         /// <summary>
         /// Benchmark/tooling override of the authored seed. Takes effect on the next
@@ -173,20 +173,20 @@ namespace Asteroids.Fields
         }
 
         /// <summary>
-        /// The player start is static and authored, so it is safe to bake as a
+        /// The start point is static and authored, so it is safe to bake as a
         /// generation-time cull (a persistent clearing); host clearings ride the
         /// same mechanism. Spec positions are field-relative; both sources
         /// arrive in absolute plane space.
         /// </summary>
         private ExclusionVolume[] BuildExclusionVolumes()
         {
-            var startCount = playerStartPlane.HasValue && settings.startClearRadius > 0f ? 1 : 0;
+            var startCount = startPointPlane.HasValue && settings.startClearRadius > 0f ? 1 : 0;
             var hostCount = hostExclusionsPlane?.Length ?? 0;
             if (startCount + hostCount == 0) return null;
 
             var volumes = new ExclusionVolume[startCount + hostCount];
             if (startCount > 0)
-                volumes[0] = new ExclusionVolume { Center = playerStartPlane.Value - fieldOriginPlane, Radius = settings.startClearRadius };
+                volumes[0] = new ExclusionVolume { Center = startPointPlane.Value - fieldOriginPlane, Radius = settings.startClearRadius };
             for (var i = 0; i < hostCount; i++)
                 volumes[startCount + i] = new ExclusionVolume
                 {
