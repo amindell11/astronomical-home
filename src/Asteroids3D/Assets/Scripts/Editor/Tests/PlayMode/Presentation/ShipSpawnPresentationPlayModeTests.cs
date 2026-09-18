@@ -107,8 +107,10 @@ namespace Tests.PlayMode
 
             var damageAudio = ship.GetComponentInChildren<ShipDamageAudio>(true);
             Assert.IsNotNull(damageAudio, "test premise: Ship_1 embeds damage audio");
-            // The premise is the presentation seam; a light checkout leaves the authored clip absent.
-            syntheticDeathClip = AudioClip.Create("SyntheticDeath", 64, 1, 44100, false);
+            // The checkout may lack the authored clip; one second outlives the pool's clip.length release.
+            const int sampleRate = 44100;
+            syntheticDeathClip = AudioClip.Create("SyntheticDeath", sampleRate, 1, sampleRate, false);
+            Assert.IsTrue(syntheticDeathClip, "test premise: the audio system creates the synthetic clip");
             var serialized = new SerializedObject(damageAudio);
             serialized.FindProperty("deathClip").objectReferenceValue = syntheticDeathClip;
             serialized.ApplyModifiedPropertiesWithoutUndo();
