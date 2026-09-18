@@ -29,7 +29,7 @@ namespace Substrate.Sectors.Activation
                 yield break;
             }
 
-            if (ctx.Player) playerBody = ctx.Player.Body;
+            if (ctx.Hero) playerBody = ctx.Hero.Body;
             bus = ctx.Bus;
             // Trigger events can precede Setup (player parked in the volume at build) — push the buffered level.
             bus?.Set(signalToken, occupancy.Contains(playerBody));

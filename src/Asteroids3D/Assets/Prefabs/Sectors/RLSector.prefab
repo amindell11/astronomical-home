@@ -66,6 +66,7 @@ MonoBehaviour:
   spawners: []
   modules: []
   obstacleField: {fileID: 0}
+  startPointMarker: {fileID: 0}
 --- !u!1001 &405733312791809307
 PrefabInstance:
   m_ObjectHideFlags: 0

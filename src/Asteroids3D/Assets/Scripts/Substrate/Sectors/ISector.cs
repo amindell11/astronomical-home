@@ -11,7 +11,7 @@ namespace Substrate.Sectors
     {
         event Action<SectorResult> OnSectorComplete;
         void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            SectorSettings config, SessionFrame frame, Ship player);
+            SectorSettings config, SessionFrame frame, Ship hero);
         IEnumerator Setup();
         IEnumerator Teardown();
     }

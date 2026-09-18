@@ -26,7 +26,7 @@ namespace Asteroids.Fields
         public float minSpacing;
 
         [Header("Exclusions")]
-        [Tooltip("Permanent baseline clearing carved around the sector's player start (units; 0 disables). Baked into generation like fieldRadius, so it survives reloads — a home you can fly back to, not one that refills.")]
+        [Tooltip("Permanent baseline clearing carved around the sector's start point (units; 0 disables). Baked into generation like fieldRadius, so it survives reloads — a home you can fly back to, not one that refills.")]
         public float startClearRadius = 35f;
 
         [Header("Noise Profile")]
