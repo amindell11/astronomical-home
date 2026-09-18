@@ -103,6 +103,7 @@ Shader "Custom/StarField"
                 float layerSeed)
             {
                 float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
+                float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
                 float2 cell = floor(fieldPosition);
                 float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
                 float4 random = Hash42(seededCell);
@@ -113,7 +114,6 @@ Shader "Custom/StarField"
                 float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
                 float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
                 float distanceToCenter = length(frac(fieldPosition) - center);
-                float antialiasWidth = max(fwidth(distanceToCenter), 0.0001);
                 float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
                 float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
                 float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
