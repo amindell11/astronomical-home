@@ -113,9 +113,9 @@ Shader "Custom/StarField"
                 float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
                 float distanceToCenter = length(frac(fieldPosition) - center);
                 float antialiasWidth = max(fwidth(distanceToCenter), 0.0001);
-                float core = 1.0 - smoothstep(radius - antialiasWidth, radius + antialiasWidth, distanceToCenter);
+                float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
                 float haloRadius = radius * _HaloSize;
-                float halo = 1.0 - smoothstep(haloRadius - antialiasWidth, haloRadius + antialiasWidth, distanceToCenter);
+                float halo = 1.0 - smoothstep(0.0, haloRadius + antialiasWidth, distanceToCenter);
                 float intensity = core + halo * _HaloStrength;
 
                 if (intensity <= 0)
