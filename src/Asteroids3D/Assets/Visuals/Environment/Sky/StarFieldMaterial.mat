@@ -42,7 +42,8 @@ Material:
     - _StarSizeMax: 0.045
     - _StarSizeMin: 0.012
     - _TwinkleAmount: 0.2
-    - _TwinkleSpeed: 0.5
+    - _TwinkleDurationMax: 18
+    - _TwinkleDurationMin: 10
     - _WarmColorShare: 0.25
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
