@@ -71,7 +71,7 @@ namespace Tests.EditMode
             var b = AddSpawner("B", root.transform);
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0]);
+                new AdoptedShip[0], new SectorSpawner[0]);
 
             Assert.AreEqual(2, result.AppendedSpawner);
             Assert.AreEqual(2, result.Spawners.Length);
@@ -88,7 +88,7 @@ namespace Tests.EditMode
             var detached = NewGO("Detached").AddComponent<StubSpawner>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[] { detached });
+                new AdoptedShip[0], new SectorSpawner[] { detached });
 
             Assert.AreEqual(1, result.OrphanedSpawner, "Detached spawner entry must be reported as orphan.");
             Assert.AreEqual(1, result.Spawners.Length);
@@ -105,7 +105,7 @@ namespace Tests.EditMode
             var c = AddSpawner("C", root.transform);
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[] { c, a });
+                new AdoptedShip[0], new SectorSpawner[] { c, a });
 
             Assert.AreEqual(3, result.Spawners.Length);
             Assert.AreEqual(c, result.Spawners[0], "Existing order must be preserved (C first).");
@@ -125,7 +125,7 @@ namespace Tests.EditMode
             var detached = NewGO("Detached").AddComponent<StubModule>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0],
+                new AdoptedShip[0], new SectorSpawner[0],
                 new SectorModule[] { b, detached });
 
             Assert.AreEqual(1, result.AppendedModule, "Module 'a' is new and must be appended.");
@@ -147,7 +147,7 @@ namespace Tests.EditMode
             var hidden = NewGO("Hidden", spawner.transform).AddComponent<StubModule>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+                new AdoptedShip[0], new SectorSpawner[0], new SectorModule[0]);
 
             CollectionAssert.Contains(result.Modules, child, "Module on a child GameObject must be collected.");
             CollectionAssert.DoesNotContain(result.Modules, hidden,
@@ -165,7 +165,7 @@ namespace Tests.EditMode
             var hidden = NewGO("Hidden", spawner.transform).AddComponent<StubModule>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+                new AdoptedShip[0], new SectorSpawner[0], new SectorModule[0]);
 
             CollectionAssert.Contains(result.Modules, onNode,
                 "A module carried by a recognised content node must be collected.");
@@ -173,7 +173,7 @@ namespace Tests.EditMode
                 "The node's subtree stays owned — no descent.");
 
             var drift = SectorManifestSync.ComputeDrift(root.transform,
-                new AdoptEntry[0], new SectorSpawner[] { spawner }, new SectorModule[] { onNode });
+                new AdoptedShip[0], new SectorSpawner[] { spawner }, new SectorModule[] { onNode });
             Assert.IsFalse(drift.HasDrift, "A synced on-node module must not read as drift.");
         }
 
@@ -185,7 +185,7 @@ namespace Tests.EditMode
             var field = spawner.gameObject.AddComponent<UpdatingAsteroidField>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+                new AdoptedShip[0], new SectorSpawner[0], new SectorModule[0]);
 
             Assert.AreSame(field, result.ObstacleField,
                 "The asteroid field carried by a recognised node must reach the manifest.");
@@ -200,13 +200,27 @@ namespace Tests.EditMode
             var stale = NewGO("Stale").AddComponent<UpdatingAsteroidField>();
             var manifest = new SectorSpawner[] { spawner };
 
-            Assert.AreEqual(1, SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest).UnsyncedChildren,
+            Assert.AreEqual(1, SectorManifestSync.ComputeDrift(root.transform, new AdoptedShip[0], manifest).UnsyncedChildren,
                 "An authored field with an empty slot is unsynced.");
-            var driftStale = SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest, null, stale);
+            var driftStale = SectorManifestSync.ComputeDrift(root.transform, new AdoptedShip[0], manifest, null, stale);
             Assert.AreEqual(1, driftStale.UnsyncedChildren);
             Assert.AreEqual(1, driftStale.OrphanedEntries, "A slot pointing at a field not in the hierarchy is orphaned.");
-            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, new AdoptEntry[0], manifest, null, field).HasDrift,
+            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, new AdoptedShip[0], manifest, null, field).HasDrift,
                 "A slot bound to the authored field is in sync.");
+        }
+
+        [Test]
+        public void BareFieldNode_IsTrackedByTheSlot_NeverAdopted()
+        {
+            var root = NewGO("Root");
+            var field = NewGO("Field", root.transform).AddComponent<UpdatingAsteroidField>();
+
+            var result = SectorManifestSync.Reconcile(root.transform, new AdoptedShip[0], new SectorSpawner[0]);
+
+            Assert.IsEmpty(result.Adopted, "Only ships are adopted.");
+            Assert.AreSame(field, result.ObstacleField);
+            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, result.Adopted, result.Spawners, null, field).HasDrift,
+                "A bare field bound to the slot is in sync.");
         }
 
         [Test]
@@ -218,7 +232,7 @@ namespace Tests.EditMode
             var detached = NewGO("Detached").AddComponent<StubModule>();
 
             var drift = SectorManifestSync.ComputeDrift(root.transform,
-                new AdoptEntry[0], new SectorSpawner[0],
+                new AdoptedShip[0], new SectorSpawner[0],
                 new SectorModule[] { a, detached });
 
             Assert.AreEqual(1, drift.UnsyncedChildren, "Second root module is recognised but unsynced.");
@@ -236,7 +250,7 @@ namespace Tests.EditMode
             var detached = NewGO("Detached").AddComponent<StubSpawner>();
 
             var drift = SectorManifestSync.ComputeDrift(root.transform,
-                new AdoptEntry[0], new SectorSpawner[] { a, detached });
+                new AdoptedShip[0], new SectorSpawner[] { a, detached });
 
             Assert.AreEqual(1, drift.UnsyncedChildren, "B is recognised but not in the manifest.");
             Assert.AreEqual(1, drift.OrphanedEntries, "Detached entry points at a node not in the hierarchy.");
