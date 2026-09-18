@@ -27,7 +27,8 @@ Shader "Custom/StarField"
 
         [Header(Motion)]
         _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
-        _TwinkleSpeed ("Twinkle Speed", Range(0, 10)) = 0.5
+        _TwinkleDurationMin ("Minimum Twinkle Duration (seconds)", Range(0.1, 60)) = 10
+        _TwinkleDurationMax ("Maximum Twinkle Duration (seconds)", Range(0.1, 60)) = 18
     }
 
     SubShader
@@ -84,7 +85,8 @@ Shader "Custom/StarField"
                 float _HaloSize;
                 float _HaloStrength;
                 float _TwinkleAmount;
-                float _TwinkleSpeed;
+                float _TwinkleDurationMin;
+                float _TwinkleDurationMax;
             CBUFFER_END
 
             float4 Hash42(float2 value)
@@ -125,7 +127,10 @@ Shader "Custom/StarField"
                     return 0;
 
                 float phase = random.y * TWO_PI;
-                float speed = _TwinkleSpeed * lerp(0.7, 1.3, appearance.w);
+                float minimumDuration = max(0.1, min(_TwinkleDurationMin, _TwinkleDurationMax));
+                float maximumDuration = max(minimumDuration, max(_TwinkleDurationMin, _TwinkleDurationMax));
+                float duration = lerp(minimumDuration, maximumDuration, appearance.w);
+                float speed = TWO_PI / duration;
                 float twinkleWave = sin(_Time.y * speed + phase) * 0.5 + 0.5;
                 float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
                 haloRadius *= 1.0 + (twinkleWave - 0.5) * _TwinkleAmount * 0.5;
