@@ -17,6 +17,8 @@ namespace Substrate.Sectors.Elements
             public readonly SectorModule[] Modules;
             /// <summary>The single authored asteroid field, or null; a second one is an authoring error and throws at bake.</summary>
             public readonly UpdatingAsteroidField ObstacleField;
+            /// <summary>The single authored start point marker, or null (the sector begins at its root); a second one throws at bake.</summary>
+            public readonly StartPointMarker StartPointMarker;
             public readonly int AppendedAdopt;
             public readonly int AppendedSpawner;
             public readonly int AppendedModule;
@@ -25,7 +27,7 @@ namespace Substrate.Sectors.Elements
             public readonly int OrphanedModule;
 
             public ReconcileResult(AdoptedShip[] adopted, SectorSpawner[] spawners, SectorModule[] modules,
-                UpdatingAsteroidField obstacleField,
+                UpdatingAsteroidField obstacleField, StartPointMarker startPointMarker,
                 int appendedAdopt, int appendedSpawner, int appendedModule,
                 int orphanedAdopt, int orphanedSpawner, int orphanedModule)
             {
@@ -33,6 +35,7 @@ namespace Substrate.Sectors.Elements
                 Spawners = spawners;
                 Modules = modules;
                 ObstacleField = obstacleField;
+                StartPointMarker = startPointMarker;
                 AppendedAdopt = appendedAdopt;
                 AppendedSpawner = appendedSpawner;
                 AppendedModule = appendedModule;
@@ -185,7 +188,7 @@ namespace Substrate.Sectors.Elements
 
             return new ReconcileResult(
                 keptAdopt.ToArray(), keptSpawners.ToArray(), keptModules.ToArray(),
-                SingleObstacleField(collected),
+                SingleObstacleField(collected), SingleStartPointMarker(root),
                 appendedAdopt, appendedSpawner, appendedModule,
                 orphanedAdopt, orphanedSpawner, orphanedModule);
         }
@@ -203,6 +206,15 @@ namespace Substrate.Sectors.Elements
                 found = field;
             }
             return found;
+        }
+
+        private static StartPointMarker SingleStartPointMarker(Transform root)
+        {
+            var markers = root.GetComponentsInChildren<StartPointMarker>(true);
+            if (markers.Length > 1)
+                throw new InvalidOperationException(
+                    $"Sector authors two start point markers ('{markers[0].name}', '{markers[1].name}'); a sector begins at one point.");
+            return markers.Length == 1 ? markers[0] : null;
         }
 
         /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnToken on an adopted ship) are collected, its subtree is not.</summary>
@@ -226,10 +238,11 @@ namespace Substrate.Sectors.Elements
             }
         }
 
-        /// <summary>Read-only drift check: recognised children not yet in the manifest, manifest entries pointing at deleted/unrecognised targets, and an obstacle-field slot that disagrees with the authored field.</summary>
+        /// <summary>Read-only drift check: recognised children not yet in the manifest, manifest entries pointing at deleted/unrecognised targets, and an obstacle-field or start-point slot that disagrees with what is authored.</summary>
         public static DriftReport ComputeDrift(
             Transform root, IReadOnlyList<AdoptedShip> adopted, IReadOnlyList<SectorSpawner> spawners,
-            IReadOnlyList<SectorModule> modules = null, UpdatingAsteroidField obstacleField = null)
+            IReadOnlyList<SectorModule> modules = null, UpdatingAsteroidField obstacleField = null,
+            StartPointMarker startPointMarker = null)
         {
             var collected = new List<Component>();
             Collect(root, collected);
@@ -269,6 +282,13 @@ namespace Substrate.Sectors.Elements
             {
                 if (liveField) unsynced++;
                 if (obstacleField) orphaned++;
+            }
+
+            var liveMarker = SingleStartPointMarker(root);
+            if (liveMarker != startPointMarker)
+            {
+                if (liveMarker) unsynced++;
+                if (startPointMarker) orphaned++;
             }
 
             return new DriftReport(unsynced, orphaned);

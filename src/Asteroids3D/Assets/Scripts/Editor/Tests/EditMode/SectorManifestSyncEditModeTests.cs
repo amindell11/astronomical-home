@@ -210,6 +210,43 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void StartPointMarker_IsBakedIntoTheSlot_AndDriftTracksIt()
+        {
+            var root = NewGO("Root");
+            var marker = NewGO("Start", NewGO("PlainContainer", root.transform).transform).AddComponent<StartPointMarker>();
+            var none = new SectorSpawner[0];
+
+            var result = SectorManifestSync.Reconcile(root.transform, new AdoptedShip[0], none);
+
+            Assert.AreSame(marker, result.StartPointMarker);
+            Assert.AreEqual(1, SectorManifestSync.ComputeDrift(root.transform, new AdoptedShip[0], none).UnsyncedChildren,
+                "An authored marker with an empty slot is unsynced.");
+            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, new AdoptedShip[0], none, null, null, marker).HasDrift);
+
+            NewGO("SecondStart", root.transform).AddComponent<StartPointMarker>();
+            Assert.Throws<System.InvalidOperationException>(
+                () => SectorManifestSync.Reconcile(root.transform, new AdoptedShip[0], none),
+                "A sector begins at one point.");
+        }
+
+        [Test]
+        public void SectorStartPoint_ReadsTheBakedMarker_RootOtherwise()
+        {
+            var root = NewGO("Root");
+            root.transform.position = new Vector3(3f, 0f, 4f);
+            var sector = root.AddComponent<Substrate.Sectors.Sector>();
+            var marker = NewGO("Start", root.transform).AddComponent<StartPointMarker>();
+            marker.transform.position = new Vector3(-20f, 0f, 15f);
+
+            Assert.AreEqual(Substrate.GamePlane.WorldPointToPlane(root.transform.position), sector.StartPoint,
+                "An unbaked sector begins at its root.");
+
+            sector.SyncManifest();
+
+            Assert.AreEqual(Substrate.GamePlane.WorldPointToPlane(marker.transform.position), sector.StartPoint);
+        }
+
+        [Test]
         public void BareFieldNode_IsTrackedByTheSlot_NeverAdopted()
         {
             var root = NewGO("Root");
