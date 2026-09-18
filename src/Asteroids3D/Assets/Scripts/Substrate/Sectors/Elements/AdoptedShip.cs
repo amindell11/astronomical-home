@@ -7,7 +7,7 @@ namespace Substrate.Sectors.Elements
     /// <summary>
     /// A baked, serialized reference to a hand-placed ship child of a sector prefab, wired into
     /// the unit service in place at load (the ship you placed IS the runtime ship).
-    /// Annotations are authored in the sector's inspector list, never on a per-child wrapper.
+    /// Annotations are authored in the sector's inspector list.
     /// Pose comes from the child's transform.
     /// </summary>
     [Serializable]

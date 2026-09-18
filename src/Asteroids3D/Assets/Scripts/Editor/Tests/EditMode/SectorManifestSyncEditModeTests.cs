@@ -210,6 +210,20 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void BareFieldNode_IsTrackedByTheSlot_NeverAdopted()
+        {
+            var root = NewGO("Root");
+            var field = NewGO("Field", root.transform).AddComponent<UpdatingAsteroidField>();
+
+            var result = SectorManifestSync.Reconcile(root.transform, new AdoptedShip[0], new SectorSpawner[0]);
+
+            Assert.IsEmpty(result.Adopted, "Only ships are adopted.");
+            Assert.AreSame(field, result.ObstacleField);
+            Assert.IsFalse(SectorManifestSync.ComputeDrift(root.transform, result.Adopted, result.Spawners, null, field).HasDrift,
+                "A bare field bound to the slot is in sync.");
+        }
+
+        [Test]
         public void ComputeDrift_CountsModuleDrift()
         {
             var root = NewGO("Root");

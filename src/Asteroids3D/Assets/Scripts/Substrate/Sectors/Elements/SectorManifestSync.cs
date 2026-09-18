@@ -190,7 +190,7 @@ namespace Substrate.Sectors.Elements
                 orphanedAdopt, orphanedSpawner, orphanedModule);
         }
 
-        /// <summary>The field ON a recognised node (the field prefab's spawner wins recognition, so the crawl never yields the field itself).</summary>
+        /// <summary>The field ON a recognised node: it usually rides a spawner node, which wins recognition; a bare field node yields the field itself.</summary>
         private static UpdatingAsteroidField SingleObstacleField(List<Component> collected)
         {
             UpdatingAsteroidField found = null;
