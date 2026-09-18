@@ -100,6 +100,7 @@ Shader "Custom/StarField"
                 float parallax,
                 float density,
                 float sizeScale,
+                float brightnessScale,
                 float layerSeed)
             {
                 float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
@@ -138,7 +139,7 @@ Shader "Custom/StarField"
                     ? smoothstep(1.0 - _WarmColorShare, 1.0, random.z)
                     : 0;
                 float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
-                return color * intensity * brightness * twinkle * _Brightness;
+                return color * intensity * brightness * brightnessScale * twinkle * _Brightness;
             }
 
             Varyings Vert(Attributes input)
@@ -172,7 +173,8 @@ Shader "Custom/StarField"
                     cameraPosition,
                     _ParallaxFar,
                     farDensity,
-                    0.8,
+                    0.65,
+                    0.6,
                     19.19);
                 float3 nearStars = EvaluateLayer(
                     planePosition,
@@ -180,6 +182,7 @@ Shader "Custom/StarField"
                     _ParallaxNear,
                     nearDensity,
                     1.25,
+                    1.0,
                     73.73);
 
                 return half4(farStars + nearStars, 0);
