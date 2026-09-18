@@ -37,7 +37,7 @@ namespace Substrate.Sectors.Elements
             objectives = ctx.Objectives;
             bus = ctx.Bus;
 
-            var playerBody = ctx.Player ? ctx.Player.Body : null;
+            var playerBody = ctx.Hero ? ctx.Hero.Body : null;
             keyPickup.Initialize(playerBody);
             extractionZone.BindPlayer(playerBody);
 
