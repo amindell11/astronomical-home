@@ -79,6 +79,7 @@ MonoBehaviour:
   - {fileID: 8244661234500110007}
   - {fileID: 8244661234500110003}
   obstacleField: {fileID: 3489777994965811818}
+  startPointMarker: {fileID: 0}
 --- !u!114 &1122334455667788991
 MonoBehaviour:
   m_ObjectHideFlags: 0

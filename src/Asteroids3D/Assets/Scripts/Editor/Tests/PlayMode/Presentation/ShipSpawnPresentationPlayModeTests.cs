@@ -4,6 +4,7 @@ using Audio;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
+using Ships.Audio;
 using Ships.Presentation;
 using Substrate.Presentation;
 using Substrate.Services;
@@ -31,6 +32,7 @@ namespace Tests.PlayMode
 
         private GameObject servicesHost;
         private UnitService units;
+        private AudioClip syntheticDeathClip;
 
         public override void TearDown()
         {
@@ -39,6 +41,8 @@ namespace Tests.PlayMode
             DestroyTestObject(servicesHost);
             servicesHost = null;
             DestroyPooledAudio();
+            if (syntheticDeathClip) Object.DestroyImmediate(syntheticDeathClip);
+            syntheticDeathClip = null;
             base.TearDown();
         }
 
@@ -100,6 +104,14 @@ namespace Tests.PlayMode
         {
             var ship = SpawnShip(presentationEnabled: true);
             yield return null;
+
+            var damageAudio = ship.GetComponentInChildren<ShipDamageAudio>(true);
+            Assert.IsNotNull(damageAudio, "test premise: Ship_1 embeds damage audio");
+            // The premise is the presentation seam; a light checkout leaves the authored clip absent.
+            syntheticDeathClip = AudioClip.Create("SyntheticDeath", 64, 1, 44100, false);
+            var serialized = new SerializedObject(damageAudio);
+            serialized.FindProperty("deathClip").objectReferenceValue = syntheticDeathClip;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
 
             var before = ActivePooledAudioCount();
             TestDamage.Kill(ship);

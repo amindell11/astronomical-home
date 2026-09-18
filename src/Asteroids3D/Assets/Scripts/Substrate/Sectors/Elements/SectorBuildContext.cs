@@ -9,7 +9,7 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Build/teardown context for spawners and modules — no static lookups. The frame, the sector's
-    /// obstacle field and the player are injected at runtime from the host through the session
+    /// obstacle field and the hero are injected at runtime from the host through the session
     /// (all null for headless/RL), the dependencies that cannot be dragged as serialized references.
     /// </summary>
     public readonly struct SectorBuildContext
@@ -22,12 +22,12 @@ namespace Substrate.Sectors.Elements
         public readonly SessionFrame Frame;
         /// <summary>The field AI ships spawned into this sector sense; null for a sector without rocks.</summary>
         public readonly IObstacleField Field;
-        public readonly Ship Player;
+        public readonly Ship Hero;
         public readonly SectorEventBus Bus;
 
         public SectorBuildContext(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
             Sector sector, SessionFrame frame, IObstacleField field = null,
-            Ship player = null, SectorEventBus bus = null)
+            Ship hero = null, SectorEventBus bus = null)
         {
             Units = units;
             Objectives = objectives;
@@ -35,7 +35,7 @@ namespace Substrate.Sectors.Elements
             Sector = sector;
             Frame = frame;
             Field = field;
-            Player = player;
+            Hero = hero;
             Bus = bus;
         }
     }
