@@ -104,7 +104,8 @@ Shader "Custom/StarField"
             {
                 float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
                 float2 cell = floor(fieldPosition);
-                float4 random = Hash42(cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed));
+                float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
+                float4 random = Hash42(seededCell);
 
                 if (random.x >= density)
                     return 0;
@@ -114,21 +115,30 @@ Shader "Custom/StarField"
                 float distanceToCenter = length(frac(fieldPosition) - center);
                 float antialiasWidth = max(fwidth(distanceToCenter), 0.0001);
                 float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
-                float haloRadius = radius * _HaloSize;
+                float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
+                float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
+                float haloRadius = radius * _HaloSize * lerp(0.75, 1.25, appearance.y);
+                float haloStrength = _HaloStrength * lerp(0.65, 1.25, appearance.z);
+                float maxHaloRadius = haloRadius * (1.0 + 0.25 * _TwinkleAmount);
+                if (distanceToCenter > max(radius, maxHaloRadius) + antialiasWidth)
+                    return 0;
+
+                float phase = random.y * TWO_PI;
+                float speed = _TwinkleSpeed * lerp(0.7, 1.3, appearance.w);
+                float twinkleWave = sin(_Time.y * speed + phase) * 0.5 + 0.5;
+                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
+                haloRadius *= 1.0 + (twinkleWave - 0.5) * _TwinkleAmount * 0.5;
                 float halo = 1.0 - smoothstep(0.0, haloRadius + antialiasWidth, distanceToCenter);
-                float intensity = core + halo * _HaloStrength;
+                float intensity = core + halo * haloStrength;
 
                 if (intensity <= 0)
                     return 0;
 
-                float phase = random.y * TWO_PI;
-                float twinkleWave = sin(_Time.y * _TwinkleSpeed + phase) * 0.5 + 0.5;
-                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
                 float warmBlend = _WarmColorShare > 0
                     ? smoothstep(1.0 - _WarmColorShare, 1.0, random.z)
                     : 0;
                 float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
-                return color * intensity * twinkle * _Brightness;
+                return color * intensity * brightness * twinkle * _Brightness;
             }
 
             Varyings Vert(Attributes input)
