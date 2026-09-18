@@ -25,12 +25,6 @@ jobs:
           free -g
           df -h /
 
-      # The editor image is ~5 GB compressed; hosted runners ship toolchains we never use.
-      - name: Free disk
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          df -h /
-
       - uses: actions/checkout@v4
         with:
           lfs: false
@@ -55,10 +49,20 @@ jobs:
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: all
-          customParameters: -testCategory "!RequiresGraphics"
+          customParameters: -testCategory !RequiresGraphics
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: headless-suite
           artifactsPath: spike-artifacts
+
+      # A run that selects nothing exits green; a zero total is a broken selection, not a pass.
+      - name: Refuse an empty run
+        if: always()
+        run: |
+          for f in spike-artifacts/editmode-results.xml spike-artifacts/playmode-results.xml; do
+            total="$(grep -o -m1 '<test-run [^>]*' "$f" | grep -o ' total="[0-9]*"' | grep -o '[0-9]*')"
+            echo "$f total=$total"
+            [ "${total:-0}" -gt 0 ] || { echo "::error::$f ran zero tests"; exit 1; }
+          done
 
       - name: Library size
         if: always()
