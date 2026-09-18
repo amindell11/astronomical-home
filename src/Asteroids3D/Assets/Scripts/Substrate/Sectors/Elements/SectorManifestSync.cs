@@ -95,8 +95,9 @@ namespace Substrate.Sectors.Elements
             var collectedShips = new HashSet<Ship>();
             foreach (var c in collected)
             {
-                if (IsSpawner(c)) collectedSpawners.Add(c);
-                else if (c is Ship ship) collectedShips.Add(ship);
+                if (IsSpawner(c)) { collectedSpawners.Add(c); continue; }
+                var ship = c as Ship;
+                if (ship) collectedShips.Add(ship);
             }
 
             var keptAdopt = new List<AdoptedShip>();
@@ -118,7 +119,8 @@ namespace Substrate.Sectors.Elements
             var appendedAdopt = 0;
             foreach (var c in collected)
             {
-                if (!(c is Ship ship) || referencedAdopt.Contains(ship)) continue;
+                var ship = c as Ship;
+                if (!ship || referencedAdopt.Contains(ship)) continue;
                 keptAdopt.Add(new AdoptedShip
                 {
                     target = ship,
@@ -248,7 +250,7 @@ namespace Substrate.Sectors.Elements
                 }
 
             // A bare field node is tracked by the obstacle-field slot below, not by a manifest list.
-            var unsynced = collected.Count(c => !(c is UpdatingAsteroidField) && !referenced.Contains(c));
+            var unsynced = collected.Count(c => !(c as UpdatingAsteroidField) && !referenced.Contains(c));
 
             // Modules drift (root components) folded into the same badge counts.
             var liveModules = CollectModules(root);
