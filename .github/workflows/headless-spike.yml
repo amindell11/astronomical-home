@@ -1,0 +1,72 @@
+name: headless-spike
+
+# Measure-only: never merged. Dispatch by hand or push to the spike branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [spike/headless-ci]
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: headless-spike
+  cancel-in-progress: true
+
+jobs:
+  headless:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Runner facts
+        run: |
+          nproc
+          free -g
+          df -h /
+
+      # The editor image is ~5 GB compressed; hosted runners ship toolchains we never use.
+      - name: Free disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      # Light checkout: meshes, models and fixtures only. Textures, skies and audio stay pointer files.
+      - name: LFS light pull
+        run: |
+          git lfs install --local
+          git lfs pull --include="*.fbx,*.obj,*.onnx,*.ttf" --exclude=""
+          echo "smudged:  $(git lfs ls-files | grep -c ' \* ' || true)"
+          echo "pointers: $(git lfs ls-files | grep -c ' - ' || true)"
+          du -sh .git/lfs
+
+      - name: Headless suite
+        id: tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: src/Asteroids3D
+          unityVersion: 6000.1.8f1
+          testMode: all
+          customParameters: -testCategory "!RequiresGraphics"
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: headless-suite
+          artifactsPath: spike-artifacts
+
+      - name: Library size
+        if: always()
+        run: sudo du -sh src/Asteroids3D/Library || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: headless-spike-results
+          path: spike-artifacts
+          retention-days: 14
