@@ -201,7 +201,7 @@ $ExitProfile = 26
 $ExitRecordUnreadable = 27
 $ExitLowMemory = 28
 $RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
-# Both are measured peak private bytes - a full-suite batch run, a long-lived editor - rounded up.
+# Both are measured peak private bytes - a full-suite batch run, an interactive editor - rounded up.
 $BootDemandBatchGB = 3.0
 $BootDemandEditorGB = 6.0
 $BootMemoryMarginGB = 1.0
