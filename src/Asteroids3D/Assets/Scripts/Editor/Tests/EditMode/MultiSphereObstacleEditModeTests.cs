@@ -73,7 +73,10 @@ namespace Tests.EditMode
         }
 
         // Runs one solve so ConvertObstacles fires, then returns the resulting obstacle count.
-        private static int RunConvert(DetectedObstacle[] buffer, int count, bool multiSphere)
+        private static int RunConvert(DetectedObstacle[] buffer, int count, bool multiSphere) =>
+            RunConvert(buffer, count, multiSphere, out _);
+
+        private static int RunConvert(DetectedObstacle[] buffer, int count, bool multiSphere, out ObstacleData firstRow)
         {
             var settings = UnityEngine.ScriptableObject.CreateInstance<MpcSettings>();
             settings.samples = 1;
@@ -94,6 +97,7 @@ namespace Tests.EditMode
                     new float2(5f, 0f),
                     float2.zero, float2.zero, float.NaN, 0f, default, 0f, default, default, default, default,
                     1, 0f, 2, default);
+                firstRow = solver.Obstacles[0];
                 return solver.ObstacleCount;
             }
             finally
@@ -117,6 +121,20 @@ namespace Tests.EditMode
             var buffer = new[] { Rod() };
             Assert.AreEqual(1, RunConvert(buffer, 1, multiSphere: false),
                 "Kill switch off must write one single-circle row per rock");
+        }
+
+        [Test]
+        public void ConvertObstacles_K1_RowIsTheLobe_WhenMultiSphere_AndThePrimaryCircle_WhenKillSwitchOff()
+        {
+            var buffer = new[] { Rod(lobeCount: 1) };
+
+            Assert.AreEqual(1, RunConvert(buffer, 1, multiSphere: true, out var lobeRow));
+            Assert.AreEqual(-D, lobeRow.position.x, 1e-5f);
+            Assert.AreEqual(R, lobeRow.radius, 1e-5f);
+
+            Assert.AreEqual(1, RunConvert(buffer, 1, multiSphere: false, out var primaryRow));
+            Assert.AreEqual(0f, primaryRow.position.x, 1e-5f);
+            Assert.AreEqual(SingleR, primaryRow.radius, 1e-5f);
         }
 
         [Test]

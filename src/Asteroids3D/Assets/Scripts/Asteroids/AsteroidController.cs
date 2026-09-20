@@ -26,7 +26,7 @@ namespace Asteroids
         public float Volume { get; private set; }
         public float Radius { get; private set; }
         /// <summary>Baked mesh-local covering spheres (1..3) for this asteroid's mesh, or null
-        /// when the mesh has no multi-lobe bake (≤1 lobe) — downstream falls back to the single
+        /// when the mesh has no lobe bake — downstream falls back to the single
         /// <see cref="Radius"/> circle. Rides in from the shared <see cref="AsteroidSpawnSettings.MeshInfo"/>.</summary>
         public AsteroidSpawnSettings.MeshInfo.LobeSphere[] Lobes { get; private set; }
         public Rigidbody Rb { get; private set; }

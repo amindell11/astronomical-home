@@ -73,7 +73,7 @@ namespace Tests.EditMode
             var target = new TargetView(true, new Vector2(0f, 5f), Vector2.zero, Vector2.up, 1f, 1f);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, target, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, target, null, 0, default, true, 0f);
 
             Assert.IsTrue(obs.hasTarget);
             Assert.That(obs.target.relPosition.x, Is.EqualTo(0f).Within(Eps));
@@ -88,7 +88,7 @@ namespace Tests.EditMode
             var target = new TargetView(true, new Vector2(4f, 0f), Vector2.zero, Vector2.up, 1f, 1f);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, target, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, target, null, 0, default, true, 0f);
 
             Assert.That(obs.target.relPosition.x, Is.EqualTo(4f).Within(Eps));
             Assert.That(obs.target.relPosition.y, Is.EqualTo(0f).Within(Eps));
@@ -101,7 +101,7 @@ namespace Tests.EditMode
             var target = new TargetView(true, new Vector2(5f, 0f), Vector2.zero, Vector2.up, 1f, 1f);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, target, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, target, null, 0, default, true, 0f);
 
             // 5 units along world +X, which is now straight ahead → ego (0, 5).
             Assert.That(obs.target.relPosition.x, Is.EqualTo(0f).Within(Eps));
@@ -115,7 +115,7 @@ namespace Tests.EditMode
             var target = new TargetView(true, new Vector2(0f, 8f), new Vector2(0f, 5f), Vector2.up, 1f, 1f);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, target, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, target, null, 0, default, true, 0f);
 
             Assert.That(obs.target.relVelocity.x, Is.EqualTo(0f).Within(Eps));
             Assert.That(obs.target.relVelocity.y, Is.EqualTo(3f).Within(Eps));
@@ -125,7 +125,7 @@ namespace Tests.EditMode
         public void NoTarget_LeavesHasTargetFalse()
         {
             var obs = new TacticalObservation();
-            ObservationExtractor.Populate(obs, ShipAt(Vector2.zero), TargetView.None, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, ShipAt(Vector2.zero), TargetView.None, null, 0, default, true, 0f);
             Assert.IsFalse(obs.hasTarget);
         }
 
@@ -139,13 +139,13 @@ namespace Tests.EditMode
             self.MaxYawRate = 90f;
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, true, 0f);
 
             Assert.That(obs.self.speedPct, Is.EqualTo(0.5f).Within(Eps));
             Assert.That(obs.self.yawRatePct, Is.EqualTo(0.5f).Within(Eps));
 
             self.Kinematics = Pose(Vector2.zero, Vector2.zero, 0f, -180f); // beyond max → clamps to -1
-            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, true, 0f);
             Assert.That(obs.self.yawRatePct, Is.EqualTo(-1f).Within(Eps));
         }
 
@@ -161,7 +161,7 @@ namespace Tests.EditMode
             };
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, threats, 1, default, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, threats, 1, default, true, 0f);
 
             Assert.That(obs.threats.Count, Is.EqualTo(1));
             var th = obs.threats[0];
@@ -182,7 +182,7 @@ namespace Tests.EditMode
             };
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, threats, 1, default, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, threats, 1, default, true, 0f);
 
             Assert.That(obs.threats.Count, Is.EqualTo(1));
         }
@@ -201,11 +201,30 @@ namespace Tests.EditMode
             var scan = new ObstacleScan(new[] { lobed }, 1);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, scan, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, scan, true, 0f);
 
             Assert.That(obs.obstacles.Count, Is.EqualTo(2));
             Assert.That(obs.obstacles[0].relPosition.y, Is.EqualTo(4f).Within(Eps));
             Assert.That(obs.obstacles[1].relPosition.y, Is.EqualTo(6f).Within(Eps));
+        }
+
+        [Test]
+        public void Obstacles_LobedObstacle_EmitsPrimaryCircle_WhenKillSwitchOff()
+        {
+            var self = ShipAt(Vector2.zero);
+            var lobed = new DetectedObstacle(
+                new Vector3(0f, 5f, 0f), 2f, null,
+                new DetectedObstacle.PlaneCircle(new Vector2(0f, 4f), 1f),
+                new DetectedObstacle.PlaneCircle(new Vector2(0f, 6f), 1f),
+                default, 2);
+            var scan = new ObstacleScan(new[] { lobed }, 1);
+            var obs = new TacticalObservation();
+
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, scan, false, 0f);
+
+            Assert.That(obs.obstacles.Count, Is.EqualTo(1));
+            Assert.That(obs.obstacles[0].relPosition.y, Is.EqualTo(5f).Within(Eps));
+            Assert.That(obs.obstacles[0].radius, Is.EqualTo(2f).Within(Eps));
         }
 
         [Test]
@@ -216,7 +235,7 @@ namespace Tests.EditMode
             var scan = new ObstacleScan(new[] { plain }, 1);
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, scan, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, scan, true, 0f);
 
             Assert.That(obs.obstacles.Count, Is.EqualTo(1));
             Assert.That(obs.obstacles[0].relPosition.y, Is.EqualTo(7f).Within(Eps));
@@ -232,11 +251,11 @@ namespace Tests.EditMode
             var threats = new[] { new ThreatContact(new Vector2(0f, 3f), Vector2.zero, ThreatKind.Missile) };
             var obs = new TacticalObservation();
 
-            ObservationExtractor.Populate(obs, self, new TargetView(true, new Vector2(0f, 2f), Vector2.zero, Vector2.up, 1f, 1f), threats, 1, default, 0f);
+            ObservationExtractor.Populate(obs, self, new TargetView(true, new Vector2(0f, 2f), Vector2.zero, Vector2.up, 1f, 1f), threats, 1, default, true, 0f);
             Assert.That(obs.threats.Count, Is.EqualTo(1));
             Assert.IsTrue(obs.hasTarget);
 
-            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, 0f);
+            ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, true, 0f);
             Assert.That(obs.threats.Count, Is.EqualTo(0));
             Assert.IsFalse(obs.hasTarget);
         }

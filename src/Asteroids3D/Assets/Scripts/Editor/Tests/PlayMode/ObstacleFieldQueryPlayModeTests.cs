@@ -99,6 +99,26 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator QueryObstacles_EveryRockCarriesItsBakedLobes_SingleLobeIncluded()
+    {
+        var field = SpawnHarnessField();
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+
+        var buffer = new DetectedObstacle[2048];
+        var count = field.QueryObstacles(Vector2.zero, 200f, buffer);
+        Assert.Greater(count, 0);
+
+        var sawSingleLobe = false;
+        for (var i = 0; i < count; i++)
+        {
+            Assert.AreEqual(buffer[i].source.Lobes.Length, buffer[i].lobeCount);
+            sawSingleLobe |= buffer[i].lobeCount == 1;
+        }
+        Assert.IsTrue(sawSingleLobe, "The shipped mesh set includes K=1 rocks; none were reported");
+    }
+
+    [UnityTest]
     public IEnumerator DensityScale_ScalesGeneratedCount()
     {
         var field = SpawnHarnessField();
