@@ -3,16 +3,6 @@
 Companion to the global `pr-prep` skill. When `/pr-prep` runs in this repo, apply
 these concrete bindings on top of the generic phases.
 
-## Open with the goal, in plain language
-
-(Also in the global skill; repeated here so it's versioned with the repo.)
-Your first message to the user — before any design discussion — states the
-high-level goal of the PR in the simplest terms possible, assuming **no prior
-knowledge of the plan**: what problem it solves and what is different once it
-lands. Define every key term inline at first use, in the simplest concise form.
-One paragraph, two at most. Conciseness and clarity are the bar — this is
-orientation, not a plan summary.
-
 ## Where things live
 
 - **Plans** — the arc's GitHub issue (label `arc`) is the global skill's "plan
@@ -30,12 +20,10 @@ orientation, not a plan summary.
   prepping doesn't collide with a concurrent slot.
 - **Design philosophy** — root `AGENTS.md`. Two sections are load-bearing during
   triage:
-  - *Dependency & wiring philosophy* — drives the **seams & wiring** lens. New
-    per-ship deps enter through `Initialize(...)`, never ad-hoc setters; config
-    lives at the level that uses it; don't thread world/session state through
-    per-ship wiring. A decision that would touch bootstrap + a service interface
-    + Commander/UnitService + the consuming component at once is a **fork (③)**,
-    not a no-brainer — surface it.
+  - *Dependency & wiring philosophy* — drives the **seams & wiring** lens. A
+    decision that trips its mid-diff smell (one dependency touching bootstrap +
+    a service interface + Commander/UnitService + the consuming component) is a
+    **fork (③)**, not a no-brainer — surface it.
   - *Fix ladder* — when a plan's PR patches a symptom, one of your
     forks is often "narrow fix vs structural fix that kills the class." Raise it.
 
