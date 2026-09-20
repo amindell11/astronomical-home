@@ -7,15 +7,17 @@ description: Coordinate access to this repository's shared Unity editors. Use be
 
 Use `scripts/unity_access.ps1` as the authority for Unity process coordination. Ownership is **per project**: runs on different worktree projects overlap freely, and only Unity **startup** serializes through a machine-wide boot lane (concurrent boots were the deadlock hazard — postmortem D6). Prefer batch tests, wait in FIFO order when your project is busy, and leave owners, the boot lane, and the queue clean.
 
-Every Unity boot — batch or editor — costs ~2.5–4 GB working set, and the machine sustains about two editors. Boot only when free physical RAM is ≥ ~10 GB (`(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB` → GB). Below that, propose the Alastor remote-gate fallback to the user (it needs their go-ahead, below); otherwise report the memory pressure and wait for an editor to exit.
+Every Unity boot — batch or editor — costs ~2.5–4 GB working set, and the machine sustains about two editors. Boot only when free physical RAM is ≥ ~10 GB (`(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB` → GB). Below that, check whether Alastor is available and, if it is, propose the remote-gate fallback to the user (below); otherwise report the memory pressure and wait for an editor to exit.
 
 Run commands from the repository root with PowerShell.
 
 ## Alastor remote-gate fallback
 
-**Ask the user before touching Alastor** — every session, even for read-only SSH checks; a past approval does not carry over. The lane has no cross-session checkout guard (#588), so an unannounced run can trample another session's.
+When Mordechai is below the local RAM floor and a full batch gate is needed:
 
-When Mordechai is below the local RAM floor and a full batch gate is needed, and the user has said yes: inspect its available RAM, `unity_access.ps1 -Action Status -Json`, and remote `git status`. If its lane is clear, run `scripts/remote_gate.sh <branch>` from the local branch being tested; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
+1. **Check availability first — read-only SSH checks need no permission.** Inspect Alastor's available RAM, `unity_access.ps1 -Action Status -Json`, remote `git status`, and any live Unity or `rg-*` gate run.
+2. **Then ask the user**, reporting what you found. Anything heavy on Alastor — a test run, a gate, an editor boot — needs the user's go-ahead each time; a past approval does not carry over. The lane has no cross-session checkout guard (#588), so an unannounced run can trample another session's. Don't suggest Alastor before step 1 shows it is usable.
+3. On a yes, run `scripts/remote_gate.sh <branch>` from the local branch being tested; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
 
 `remote_gate.sh` force-checks out the target commit on Alastor. Preserve any remote dirty state first (back up and restore the exact changed files) or get explicit authority to discard it. A passing remote summary is valid test evidence, but it does not record merge-grade proof in `agent_worktree_pool.sh`; include it in the PR and let the pool's merge protocol run its required gate when local capacity is available.
 
