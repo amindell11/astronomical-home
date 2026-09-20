@@ -371,8 +371,7 @@ function Get-UnityProcesses {
     catch { throw "Unity process enumeration failed: $($_.Exception.Message)" }
 }
 
-# Workers are the other half of an editor's memory (Get-RelevantUnityProcesses drops them by design),
-# and they name their editor only through ParentProcessId - their command line carries no owner.
+# A worker names its editor only through ParentProcessId - its command line carries no owner.
 function Get-UnityWorkerMemory {
     param([array]$Processes, [int]$ParentProcessId)
     $privateKb = 0.0
@@ -1017,7 +1016,6 @@ function Attach-Process {
     param([string]$RecordEditorProfile = "")
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
-    # The profile describes this lock's own holder, so it lives on the record rather than nowhere.
     if (-not [string]::IsNullOrWhiteSpace($RecordEditorProfile)) {
         if ($owner -is [System.Collections.IDictionary]) { $owner["editorProfile"] = $RecordEditorProfile }
         else { $owner | Add-Member -NotePropertyName editorProfile -NotePropertyValue $RecordEditorProfile -Force }

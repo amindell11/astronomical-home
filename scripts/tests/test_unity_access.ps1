@@ -257,8 +257,7 @@ try {
     $mainProject = Join-Path $Primary "src\Asteroids3D"
     $agentProject = Join-Path $Root "agent-1\src\Asteroids3D"
 
-    # Where the editor boot demand constant gets measured: the editor's own peak plus its workers',
-    # which name their editor through ParentProcessId alone.
+    # Where the editor boot demand constant gets measured: the editor's own peak plus its workers'.
     $gb = 1048576
     Write-Snapshot @(
         [ordered]@{ processId = 44001; parentProcessId = 7; commandLine = "Unity.exe -projectPath `"$agentProject`""
