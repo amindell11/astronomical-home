@@ -27,7 +27,8 @@ Shader "Custom/StarField"
 
         [Header(Motion)]
         _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
-        _TwinkleSpeed ("Twinkle Speed", Range(0, 10)) = 0.5
+        _TwinkleDurationMin ("Minimum Twinkle Duration (seconds)", Range(0.1, 60)) = 10
+        _TwinkleDurationMax ("Maximum Twinkle Duration (seconds)", Range(0.1, 60)) = 18
     }
 
     SubShader
@@ -84,7 +85,8 @@ Shader "Custom/StarField"
                 float _HaloSize;
                 float _HaloStrength;
                 float _TwinkleAmount;
-                float _TwinkleSpeed;
+                float _TwinkleDurationMin;
+                float _TwinkleDurationMax;
             CBUFFER_END
 
             float4 Hash42(float2 value)
@@ -100,11 +102,14 @@ Shader "Custom/StarField"
                 float parallax,
                 float density,
                 float sizeScale,
+                float brightnessScale,
                 float layerSeed)
             {
                 float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
+                float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
                 float2 cell = floor(fieldPosition);
-                float4 random = Hash42(cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed));
+                float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
+                float4 random = Hash42(seededCell);
 
                 if (random.x >= density)
                     return 0;
@@ -112,23 +117,34 @@ Shader "Custom/StarField"
                 float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
                 float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
                 float distanceToCenter = length(frac(fieldPosition) - center);
-                float antialiasWidth = max(fwidth(distanceToCenter), 0.0001);
-                float core = 1.0 - smoothstep(radius - antialiasWidth, radius + antialiasWidth, distanceToCenter);
-                float haloRadius = radius * _HaloSize;
-                float halo = 1.0 - smoothstep(haloRadius - antialiasWidth, haloRadius + antialiasWidth, distanceToCenter);
-                float intensity = core + halo * _HaloStrength;
+                float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
+                float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
+                float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
+                float haloRadius = radius * _HaloSize * lerp(0.75, 1.25, appearance.y);
+                float haloStrength = _HaloStrength * lerp(0.65, 1.25, appearance.z);
+                float maxHaloRadius = haloRadius * (1.0 + 0.25 * _TwinkleAmount);
+                if (distanceToCenter > max(radius, maxHaloRadius) + antialiasWidth)
+                    return 0;
+
+                float phase = random.y * TWO_PI;
+                float minimumDuration = max(0.1, min(_TwinkleDurationMin, _TwinkleDurationMax));
+                float maximumDuration = max(minimumDuration, max(_TwinkleDurationMin, _TwinkleDurationMax));
+                float duration = lerp(minimumDuration, maximumDuration, appearance.w);
+                float speed = TWO_PI / duration;
+                float twinkleWave = sin(_Time.y * speed + phase) * 0.5 + 0.5;
+                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
+                haloRadius *= 1.0 + (twinkleWave - 0.5) * _TwinkleAmount * 0.5;
+                float halo = 1.0 - smoothstep(0.0, haloRadius + antialiasWidth, distanceToCenter);
+                float intensity = core + halo * haloStrength;
 
                 if (intensity <= 0)
                     return 0;
 
-                float phase = random.y * TWO_PI;
-                float twinkleWave = sin(_Time.y * _TwinkleSpeed + phase) * 0.5 + 0.5;
-                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
                 float warmBlend = _WarmColorShare > 0
                     ? smoothstep(1.0 - _WarmColorShare, 1.0, random.z)
                     : 0;
                 float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
-                return color * intensity * twinkle * _Brightness;
+                return color * intensity * brightness * brightnessScale * twinkle * _Brightness;
             }
 
             Varyings Vert(Attributes input)
@@ -162,7 +178,8 @@ Shader "Custom/StarField"
                     cameraPosition,
                     _ParallaxFar,
                     farDensity,
-                    0.8,
+                    0.65,
+                    0.6,
                     19.19);
                 float3 nearStars = EvaluateLayer(
                     planePosition,
@@ -170,6 +187,7 @@ Shader "Custom/StarField"
                     _ParallaxNear,
                     nearDensity,
                     1.25,
+                    1.0,
                     73.73);
 
                 return half4(farStars + nearStars, 0);
