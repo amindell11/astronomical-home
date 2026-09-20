@@ -1,0 +1,123 @@
+name: headless-suite
+
+# No pull_request trigger: fork PRs must never run this workflow or reach its secrets.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['task/**']
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+concurrency:
+  group: headless-suite-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STATUS_API: repos/${{ github.repository }}/statuses/${{ github.sha }}
+  STATUS_CONTEXT: merge-proof/headless
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  headless:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Status pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="headless suite running"
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: LFS cache key
+        id: lfs-key
+        run: |
+          oids="$(git lfs ls-files -l -I "*.fbx,*.FBX,*.obj,*.onnx,*.ttf" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
+          echo "key=lfs-$oids" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: ${{ steps.lfs-key.outputs.key }}
+          restore-keys: lfs-
+
+      # Light checkout: a full LFS pull per push would spend the monthly bandwidth allowance.
+      - name: LFS light pull
+        run: |
+          git lfs install --local
+          git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf" --exclude=""
+          du -sh .git/lfs
+
+      # customParameters reaches Unity verbatim: a quoted category matches nothing and an empty run exits green.
+      - name: Headless suite
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: src/Asteroids3D
+          unityVersion: 6000.1.8f1
+          testMode: all
+          customParameters: -testCategory !RequiresGraphics
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: headless-suite
+          artifactsPath: headless-artifacts
+
+      # Mirrors the fullness half of Get-CoverageVerdict in scripts/unity_test_agent.ps1.
+      - name: Fullness guards
+        id: guards
+        run: |
+          refuse() { echo "reason=$1" >> "$GITHUB_OUTPUT"; echo "::error::$1"; exit 1; }
+          total=0; passed=0; skipped=0
+          for mode in editmode playmode; do
+            f="headless-artifacts/$mode-results.xml"
+            [ -f "$f" ] || refuse "$mode results missing"
+            run="$(grep -o -m1 '<test-run [^>]*' "$f" || true)"
+            attr() { echo "$run" | grep -o " $1=\"[0-9]*\"" | grep -o '[0-9]*' || true; }
+            t="$(attr total)"; p="$(attr passed)"; x="$(attr failed)"; s="$(attr skipped)"
+            echo "$mode total=$t passed=$p failed=$x skipped=$s"
+            [ "${t:-0}" -gt 0 ] || refuse "$mode total=${t:-unreadable}"
+            [ "${x:-1}" -eq 0 ] || refuse "$mode failed=${x:-unreadable}"
+            total=$((total + t)); passed=$((passed + ${p:-0})); skipped=$((skipped + ${s:-0}))
+          done
+          echo "trailer=total=$total passed=$passed skipped=$skipped" >> "$GITHUB_OUTPUT"
+
+      - name: Status success
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRAILER: ${{ steps.guards.outputs.trailer }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=success -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="tree=$(git rev-parse 'HEAD^{tree}') $TRAILER"
+
+      - name: Status failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REASON: ${{ steps.guards.outputs.reason || 'headless suite failed - see run' }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=failure -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="$REASON"
+
+      - name: Status error
+        if: cancelled()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=error -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="run cancelled or timed out"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: headless-suite-results
+          path: headless-artifacts
+          retention-days: 14

@@ -197,6 +197,10 @@ Format: **term** — definition. *(authority)*
   sanctioned merge path.
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run. Scoped runs never produce one.
+- **headless suite** — the merge gate's test selection run with no GPU and
+  without the heavy art/audio files (light LFS checkout). A test that needs
+  one of those files cannot live in it.
+  *(.github/workflows/headless-suite.yml)*
 - **inert diff** — a behaviour-neutral delta (docs-only, comment-only) that
   extends existing proof without a fresh run.
 - **consent / merge instruction** — an explicit "merge it". Praise is not
@@ -643,4 +647,3 @@ Format: **term** — definition. *(authority)*
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
-| stdio-vs-durable-server trap | *(died with the CoplayDev MCP decommission — `unity` CLI routes per project path)* |
