@@ -39,7 +39,7 @@ jobs:
       - name: LFS cache key
         id: lfs-key
         run: |
-          oids="$(git lfs ls-files -l -I "*.fbx,*.obj,*.onnx,*.ttf" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
+          oids="$(git lfs ls-files -l -I "*.fbx,*.FBX,*.obj,*.onnx,*.ttf" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
           echo "key=lfs-$oids" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
@@ -52,7 +52,7 @@ jobs:
       - name: LFS light pull
         run: |
           git lfs install --local
-          git lfs pull --include="*.fbx,*.obj,*.onnx,*.ttf" --exclude=""
+          git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf" --exclude=""
           du -sh .git/lfs
 
       # customParameters reaches Unity verbatim: a quoted category matches nothing and an empty run exits green.
