@@ -58,6 +58,7 @@ param(
     [switch]$ValidateScope,
     [string]$ScopeMapPath = "",
     [switch]$SkipUnityAccess,
+    [switch]$AllowLowMemory,
     [string]$UnityAccessLease = "",
     [int]$UnityAccessWaitSec = 60,
     [string]$UnityAccessStateRoot = "",
@@ -119,6 +120,7 @@ if ($Routed.IsPresent) {
         "-RerunFailedFrom" = -not [string]::IsNullOrWhiteSpace($RerunFailedFrom)
         "-ValidateScope" = $ValidateScope.IsPresent
         "-SkipUnityAccess" = $SkipUnityAccess.IsPresent
+        "-AllowLowMemory" = $AllowLowMemory.IsPresent
     }
     $routedBad = @($routedIncompatible.Keys | Where-Object { $routedIncompatible[$_] })
     if ($routedBad.Count -gt 0) {
@@ -181,6 +183,7 @@ function Invoke-UnityAccess {
         "-WaitSeconds", $waitSeconds
     ))
     if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
+    if ($Action -eq "BootAcquire" -and $AllowLowMemory.IsPresent) { $arguments += @("-AllowLowMemory") }
 
     $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
     $result = $call.result
@@ -191,6 +194,9 @@ function Invoke-UnityAccess {
         if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
             $blocker = @($result.blockers | Select-Object -First 1)
             throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
+        }
+        if ($null -ne $result -and $result.status -eq "boot_refused_low_memory") {
+            throw "Unity access refused the boot: $($result.commitHeadroomGB) GB commit headroom, below the required $($result.requiredHeadroomGB) GB. Free memory and rerun, or pass -AllowLowMemory once the user has approved this specific boot."
         }
         throw "Unity access $Action failed (exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }

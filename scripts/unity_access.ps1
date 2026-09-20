@@ -24,6 +24,7 @@
         22 ownership_mismatch                             23 editor_did_not_exit
         24 adopt_* (all four refusals)                    25 boot_lane_wedged
         26 editor_profile_failed                          27 record_unreadable
+        28 boot_refused_low_memory
          1 coordinator_error (see FAILURE below)
 
       Status        (needs no -Lease) -> the state object, no "status" field, always exit 0.
@@ -39,7 +40,14 @@
                                             infra_error and is where CLI commands route).
       Contract      (needs no -Lease) -> status "contract" plus the constants a caller must match
                     exactly: bootCompletePattern, ticketTtlSeconds, ownerTtlSeconds,
-                    bootTtlSeconds. Hard-coding any of them keeps a copy that drifts.
+                    bootTtlSeconds, bootDemandBatchGB, bootDemandEditorGB, bootMemoryMarginGB.
+                    Hard-coding any of them keeps a copy that drifts.
+      BootAdmission (needs no -Lease) -Mode -> boot_admitted | boot_not_admitted, both exit 0 (a
+                    "no" from a query is not a failure; branch on status). Read-only memory
+                    admission: may a boot of that mode start now? Fields: mode, commitHeadroomGB,
+                    requiredHeadroomGB (= demand for the mode + margin), availablePhysicalGB.
+                    Only commit headroom decides; available physical RAM is reported, never blocks.
+                    This action ignores -AllowLowMemory.
       Request       -Lease [-Slot|-ProjectPath] [-Mode] -> queued.
       Acquire       -Lease [-Slot|-ProjectPath] [-Mode] [-WaitSeconds] ->
                     acquired | waiting | blocked_user_editor | blocked_unmanaged_unity.
@@ -51,15 +59,23 @@
       Release       -Lease [-CloseEditor [-EditorCloseWaitSeconds]] -> released | editor_did_not_exit.
                     Also frees this lease's boot lane and cancels its queued ticket.
       Cancel        -Lease -> cancelled.
-      BootAcquire   -Lease [-WaitSeconds] -> boot_acquired | boot_waiting | boot_lane_wedged |
-                    ownership_mismatch | blocked_*. -WaitSeconds defaults to 300.
+      BootAcquire   -Lease [-WaitSeconds] [-AllowLowMemory] -> boot_acquired | boot_waiting |
+                    boot_lane_wedged | boot_refused_low_memory | ownership_mismatch | blocked_*.
+                    -WaitSeconds defaults to 300. Memory admission is enforced here, on the owner
+                    record's mode, once the lane is free and unblocked; a renew is not re-checked.
+                    boot_refused_low_memory returns immediately - memory is not a queue.
+                    -AllowLowMemory admits anyway: the boot record and the boot_acquired result
+                    carry memoryOverride plus the readings, and one line goes to stderr. Pass it
+                    only after the user approved that specific boot.
       BootRelease   -Lease -> boot_released | ownership_mismatch | boot_lane_wedged.
-      StartEditor   -Lease -Slot|-ProjectPath [-EditorArgs] [-EditorProfile] [-UnityPath] ->
+      StartEditor   -Lease -Slot|-ProjectPath [-EditorArgs] [-EditorProfile] [-UnityPath]
+                    [-AllowLowMemory] ->
                     attached (carrying a .profile receipt) | editor_profile_failed |
                     any Acquire or BootAcquire status. -UnityPath overrides the
                     editor resolved from the project's own ProjectVersion.txt
                     (scripts/lib/unity_editor.ps1).
-      RunBatch      -Lease -BatchScript [-BatchArguments] [-BatchLogPath] [-BatchBootSeconds] ->
+      RunBatch      -Lease -BatchScript [-BatchArguments] [-BatchLogPath] [-BatchBootSeconds]
+                    [-AllowLowMemory] ->
                     batch_complete | any Acquire or BootAcquire status.
 
       TRAP - batch_complete exits 0 even when the child failed. The child's exit code rides in the
@@ -91,8 +107,10 @@
         acquiredAt, updatedAt. Read it back through Status.owners[].
       <StateRoot>/queue/<timestamp>-<guid>.json - lease, slot, mode, projectPath, requestedAt,
         updatedAt. Read it back through Status.queue[] (position is 1-based, per project).
-      <StateRoot>/boot/boot.json - lease, projectPath, processId, acquiredAt. Read it back through
-        Status.boot; an unowned dir that cannot be removed surfaces as Status.bootWedged.
+      <StateRoot>/boot/boot.json - lease, projectPath, processId, acquiredAt, plus memoryOverride
+        and the three readings when -AllowLowMemory admitted a boot that would have been refused.
+        Read it back through Status.boot; an unowned dir that cannot be removed surfaces as
+        Status.bootWedged.
       <StateRoot>/owner/owner.json is the retired single-owner record, honored until it clears.
 
 .NOTES
@@ -102,11 +120,14 @@
     a read-style co-lease is not planned.
 
     -ProcessSnapshotPath replaces live process enumeration with a JSON file (tests only).
+    -MemorySnapshotPath replaces the live memory reading with a JSON file carrying
+    FreeVirtualMemory and FreePhysicalMemory in KB, as Win32_OperatingSystem reports them
+    (tests only).
     -PrimaryRoot overrides the git-derived primary worktree - the thing that makes "the user's main
     editor" and slot-to-project resolution machine-dependent; tests inject it to stay hermetic.
 #>
 param(
-    [ValidateSet("Status", "Contract", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Contract", "BootAdmission", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -123,6 +144,8 @@ param(
     [string]$StateRoot = "",
     [string]$PrimaryRoot = "",
     [string]$ProcessSnapshotPath = "",
+    [string]$MemorySnapshotPath = "",
+    [switch]$AllowLowMemory,
     [string]$UnityPath = "",
     [switch]$CloseEditor,
     [string[]]$EditorArgs = @(),
@@ -144,6 +167,7 @@ $ErrorActionPreference = "Stop"
 #   Path & root helpers       Resolve-FullPath, Get-PrimaryRoot, Normalize-Path, Get-ProjectKey
 #   Lock records              Read-Record, Get-RecordOrReap, Write-JsonFile, Move-RecordDirIntoPlace
 #   Discovery                 Get-WorktreePath, Unity process enumeration, Get-DateValue, Get-MemberValue
+#   Memory admission          Get-MemoryReading, Get-BootAdmission, Get-BootAdmissionValue
 #   Ticket queue              Remove-TicketFile .. Ensure-Ticket
 #   Editor profile receipts   Get-EditorProfileQuality .. Test-EditorProfileReceipt
 #   Owner liveness & records  Get-ProcessStartTime .. Get-TrackedPids
@@ -165,7 +189,12 @@ $ExitAdoptRefused = 24
 $ExitBootWedged = 25
 $ExitProfile = 26
 $ExitRecordUnreadable = 27
+$ExitLowMemory = 28
 $RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
+# Batch is the measured peak private bytes of a full-suite run, rounded up; editor stays provisional.
+$BootDemandBatchGB = 3.0
+$BootDemandEditorGB = 4.0
+$BootMemoryMarginGB = 1.0
 $statusExitCodes = @{
     ownership_mismatch = $ExitOwnership
     editor_did_not_exit = $ExitIncomplete
@@ -180,6 +209,7 @@ $statusExitCodes = @{
     adopt_refused_user_editor = $ExitAdoptRefused
     adopt_project_owned = $ExitAdoptRefused
     record_unreadable = $ExitRecordUnreadable
+    boot_refused_low_memory = $ExitLowMemory
     coordinator_error = 1
 }
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -368,6 +398,59 @@ function Get-MemberValue {
     param([object]$Object, [string]$Name)
     if ($null -eq $Object -or $null -eq $Object.PSObject.Properties[$Name]) { return $null }
     return $Object.PSObject.Properties[$Name].Value
+}
+
+# ---- Memory admission ------------------------------------------------------
+# Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of.
+function Get-MemoryReading {
+    if (-not [string]::IsNullOrWhiteSpace($MemorySnapshotPath)) {
+        $snapshotPath = Resolve-FullPath $MemorySnapshotPath
+        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
+        try { $source = [System.IO.File]::ReadAllText($snapshotPath) | ConvertFrom-Json }
+        catch { throw "Memory snapshot unreadable: $snapshotPath - $($_.Exception.Message)" }
+    }
+    else {
+        try { $source = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop }
+        catch { throw "Memory reading failed: $($_.Exception.Message)" }
+    }
+    $headroomKb = 0.0
+    $availableKb = 0.0
+    # Admitting by default on a reading we cannot parse is exactly the boot this exists to stop.
+    if (-not [double]::TryParse([string](Get-MemberValue $source "FreeVirtualMemory"), [ref]$headroomKb)) {
+        throw "Memory reading has no usable FreeVirtualMemory value."
+    }
+    if (-not [double]::TryParse([string](Get-MemberValue $source "FreePhysicalMemory"), [ref]$availableKb)) {
+        throw "Memory reading has no usable FreePhysicalMemory value."
+    }
+    return [pscustomobject]@{
+        commitHeadroomGB = [Math]::Round($headroomKb / 1048576.0, 2)
+        availablePhysicalGB = [Math]::Round($availableKb / 1048576.0, 2)
+    }
+}
+
+function Get-BootAdmission {
+    param([string]$RequestedMode)
+    $reading = Get-MemoryReading
+    $demand = if ($RequestedMode -eq "editor") { $BootDemandEditorGB } else { $BootDemandBatchGB }
+    $required = $demand + $BootMemoryMarginGB
+    return [pscustomobject]@{
+        mode = $RequestedMode
+        commitHeadroomGB = $reading.commitHeadroomGB
+        requiredHeadroomGB = $required
+        availablePhysicalGB = $reading.availablePhysicalGB
+        admitted = ($reading.commitHeadroomGB -ge $required)
+    }
+}
+
+function Get-BootAdmissionValue {
+    $admission = Get-BootAdmission $Mode
+    return [ordered]@{
+        status = $(if ($admission.admitted) { "boot_admitted" } else { "boot_not_admitted" })
+        mode = $admission.mode
+        commitHeadroomGB = $admission.commitHeadroomGB
+        requiredHeadroomGB = $admission.requiredHeadroomGB
+        availablePhysicalGB = $admission.availablePhysicalGB
+    }
 }
 
 # ---- Ticket queue ----------------------------------------------------------
@@ -666,6 +749,9 @@ function Get-ContractValue {
         ticketTtlSeconds = $TicketTtlSeconds
         ownerTtlSeconds = $OwnerTtlSeconds
         bootTtlSeconds = $BootTtlSeconds
+        bootDemandBatchGB = $BootDemandBatchGB
+        bootDemandEditorGB = $BootDemandEditorGB
+        bootMemoryMarginGB = $BootMemoryMarginGB
     }
 }
 
@@ -810,11 +896,34 @@ function Try-AcquireBoot {
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 
+    # Checked at the lane grant, not on renew: a renew's boot is already underway.
+    $admission = Get-BootAdmission ([string]$owner.mode)
+    $overridden = $false
+    if (-not $admission.admitted) {
+        if (-not $AllowLowMemory.IsPresent) {
+            return [ordered]@{
+                status = "boot_refused_low_memory"
+                mode = $admission.mode
+                commitHeadroomGB = $admission.commitHeadroomGB
+                requiredHeadroomGB = $admission.requiredHeadroomGB
+                availablePhysicalGB = $admission.availablePhysicalGB
+            }
+        }
+        $overridden = $true
+        [Console]::Error.WriteLine("unity_access BootAcquire: -AllowLowMemory admitted a $($admission.mode) boot with $($admission.commitHeadroomGB) GB commit headroom, below the required $($admission.requiredHeadroomGB) GB.")
+    }
+
     $record = [ordered]@{
         lease = $Lease
         projectPath = [string]$owner.projectPath
         processId = 0
         acquiredAt = [datetime]::UtcNow.ToString("o")
+    }
+    if ($overridden) {
+        $record.memoryOverride = $true
+        $record.commitHeadroomGB = $admission.commitHeadroomGB
+        $record.requiredHeadroomGB = $admission.requiredHeadroomGB
+        $record.availablePhysicalGB = $admission.availablePhysicalGB
     }
     $claim = Move-RecordDirIntoPlace $BootRoot "boot.json" $record
     if (-not $claim.moved) {
@@ -823,7 +932,14 @@ function Try-AcquireBoot {
         # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
         return [ordered]@{ status = "boot_lane_wedged"; error = $claim.error; bootRoot = $BootRoot }
     }
-    return [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
+    $result = [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
+    if ($overridden) {
+        $result.memoryOverride = $true
+        $result.commitHeadroomGB = $admission.commitHeadroomGB
+        $result.requiredHeadroomGB = $admission.requiredHeadroomGB
+        $result.availablePhysicalGB = $admission.availablePhysicalGB
+    }
+    return $result
 }
 
 function Acquire-Boot {
@@ -831,7 +947,8 @@ function Acquire-Boot {
     do {
         # boot_lane_wedged retries too: only a wedge that outlives the wait reaches the caller.
         $result = Try-AcquireBoot
-        if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
+        # Memory is not a queue: idle processes may never free commit, so waiting could stall forever.
+        if ($result.status -in @("boot_acquired", "ownership_mismatch", "boot_refused_low_memory")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
         Start-Sleep -Seconds ([Math]::Max(1, $PollSeconds))
     } while ($true)
@@ -1100,6 +1217,7 @@ $result = try {
     switch ($Action) {
     "Status" { Get-StatusValue }
     "Contract" { Get-ContractValue }
+    "BootAdmission" { Get-BootAdmissionValue }
     "Request" { Require-Lease; Request-Access }
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }

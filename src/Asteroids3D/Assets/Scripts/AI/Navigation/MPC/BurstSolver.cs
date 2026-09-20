@@ -6,7 +6,8 @@ using Unity.Mathematics;
 
 namespace AI.Navigation.MPC
 {
-    [BurstCompile]
+    // Synchronous: the Editor's managed fallback is a second float path that flips marginal plans.
+    [BurstCompile(CompileSynchronously = true)]
     public struct GenerateCandidatesJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<Control> warmStart;
@@ -82,7 +83,7 @@ namespace AI.Navigation.MPC
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(CompileSynchronously = true)]
     public struct EvaluateCandidatesJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<Control> candidates;

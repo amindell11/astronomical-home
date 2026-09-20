@@ -38,6 +38,7 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push.
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
 - `./scripts/agent_worktree_pool.sh merge <slot>` — the ONLY merge path; see Step 6.
+- `./scripts/agent_worktree_pool.sh merge <slot> --remote` — same merge gate, but a needed test run happens on the hosted headless suite instead of booting Unity here; see Step 6.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
@@ -265,6 +266,20 @@ proof over docs-only deltas with no run; it downgrades C#-comment-only deltas
 to an EditMode Smoke compile refresh. The same exact landing tree must pass the
 ReSharper ratchet. Scoped runs (`-ScopeType Auto`) are fine for iteration but
 record no merge proof.
+
+Remote proof: a green `merge-proof/headless` status on the landing commit,
+stamping the landing tree, is full-suite proof — the gate uses it on its own,
+with no run. When a run IS needed, local is the default; `--remote` makes the
+gate push its landing commit to the PR branch (or dispatch the workflow when it
+is already there) and wait on that exact commit. That early push is the gate's
+own act — the same integration commit it pushes at the end of every merge — and
+does not reopen the user's approval. `--remote` removes the TEST boot only: a
+merge that changes C# still boots Unity once for the ReSharper solution sync.
+A landing diff touching `.github/` cannot use remote proof (local run
+required). On a `failure`/`error` verdict the gate refuses at once and prints
+the recovery (`gh run rerun <id>` when the run died before the suite started).
+Just before `gh pr merge`, both paths re-check base: "base moved during the
+merge gate" means re-run `merge`.
 
 ## Step 7 — Finalize
 
