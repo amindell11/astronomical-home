@@ -663,3 +663,5 @@ reflection helper. How to choose the seam:
 | PlayMode tests ignored at runtime | `AssetDatabase` unavailable outside editor | Wrap in `#if UNITY_EDITOR` and add `Assert.Ignore(...)` fallback |
 | Test flaky / timing-dependent | `WaitForSeconds` without condition check | Convert to polling loop with timeout (see pattern above) |
 | `-TestCategory Foo` runs nothing | Domain typo or fixture missing its domain tag | Check the domain table above; every fixture needs exactly one |
+
+<!-- throwaway: end-to-end merge --remote exercise for #569 PR-3b; this PR is a draft and never merges -->
