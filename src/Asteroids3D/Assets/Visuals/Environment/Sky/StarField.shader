@@ -25,7 +25,11 @@ Shader "Custom/StarField"
         _HaloSize ("Halo Size", Range(1, 4)) = 2
         _HaloStrength ("Halo Strength", Range(0, 1)) = 0.2
 
+        _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
+        _Softness ("Softness", Range(0, 1)) = 0
+
         [Header(Motion)]
+        _TwinkleNoise ("Twinkle Noise", Range(0, 1)) = 0
         _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
         _TwinkleDurationMin ("Minimum Twinkle Duration (seconds)", Range(0.1, 60)) = 10
         _TwinkleDurationMax ("Maximum Twinkle Duration (seconds)", Range(0.1, 60)) = 18
@@ -84,6 +88,9 @@ Shader "Custom/StarField"
                 float _Brightness;
                 float _HaloSize;
                 float _HaloStrength;
+                float _ShapeVariation;
+                float _Softness;
+                float _TwinkleNoise;
                 float _TwinkleAmount;
                 float _TwinkleDurationMin;
                 float _TwinkleDurationMax;
@@ -94,6 +101,23 @@ Shader "Custom/StarField"
                 float4 p = frac(value.xyxy * float4(0.1031, 0.1030, 0.0973, 0.1099));
                 p += dot(p, p.wzxy + 33.33);
                 return frac((p.xxyz + p.yzzw) * p.zywx);
+            }
+
+            float StarSupport(float radius, float haloRadius, float antialiasWidth)
+            {
+                float blurScale = _Softness > 0 ? 1.2 : 1.0;
+                float haloSupport = haloRadius * (blurScale + 0.2 * _ShapeVariation);
+                return (max(radius * blurScale, haloSupport) + antialiasWidth) *
+                    (1.0 + 0.4 * _ShapeVariation);
+            }
+
+            float LightFalloff(float distanceToCenter, float radius, float antialiasWidth)
+            {
+                float original = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
+                float normalizedDistance = distanceToCenter / (radius * 1.2 + antialiasWidth);
+                float soft = max(0.0, (exp2(-6.0 * normalizedDistance * normalizedDistance) - 0.015625) /
+                    0.984375);
+                return lerp(original, soft, _Softness);
             }
 
             float3 EvaluateCell(
@@ -114,24 +138,38 @@ Shader "Custom/StarField"
                 float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
                 float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
                 float distanceToCenter = length(positionInCell - center);
-                float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
                 float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
                 float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
                 float haloRadius = radius * _HaloSize * lerp(0.75, 1.25, appearance.y);
                 float haloStrength = _HaloStrength * lerp(0.65, 1.25, appearance.z);
                 float maxHaloRadius = haloRadius * (1.0 + 0.25 * _TwinkleAmount);
-                if (distanceToCenter > max(radius, maxHaloRadius) + antialiasWidth)
+                if (distanceToCenter > StarSupport(radius, maxHaloRadius, antialiasWidth))
                     return 0;
+
+                float4 shape = Hash42(seededCell + float2(269.5, 183.3));
+                float angle = shape.x * TWO_PI;
+                float2 axis = float2(cos(angle), sin(angle));
+                float2 offset = positionInCell - center;
+                float2 local = float2(dot(offset, axis), dot(offset, float2(-axis.y, axis.x)));
+                float stretch = 1.0 + 0.4 * _ShapeVariation * shape.y;
+                local *= float2(1.0 / stretch, stretch);
+                float core = LightFalloff(length(local), radius, antialiasWidth);
 
                 float phase = random.y * TWO_PI;
                 float minimumDuration = max(0.1, min(_TwinkleDurationMin, _TwinkleDurationMax));
                 float maximumDuration = max(minimumDuration, max(_TwinkleDurationMin, _TwinkleDurationMax));
                 float duration = lerp(minimumDuration, maximumDuration, appearance.w);
                 float speed = TWO_PI / duration;
-                float twinkleWave = sin(_Time.y * speed + phase) * 0.5 + 0.5;
+                float cycle = _Time.y * speed + phase;
+                float regularWave = sin(cycle) * 0.5 + 0.5;
+                float noisyWave = 0.5 + 0.25 * sin(cycle) +
+                    0.15 * sin(cycle * 3.0 + shape.z * TWO_PI) +
+                    0.1 * sin(cycle * 5.0 + shape.w * TWO_PI);
+                float twinkleWave = lerp(regularWave, noisyWave, _TwinkleNoise);
                 float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
                 haloRadius *= 1.0 + (twinkleWave - 0.5) * _TwinkleAmount * 0.5;
-                float halo = 1.0 - smoothstep(0.0, haloRadius + antialiasWidth, distanceToCenter);
+                float2 haloOffset = (shape.zw - 0.5) * (0.28 * _ShapeVariation * haloRadius);
+                float halo = LightFalloff(length(local - haloOffset), haloRadius, antialiasWidth);
                 float intensity = core + halo * haloStrength;
 
                 if (intensity <= 0)
@@ -157,7 +195,7 @@ Shader "Custom/StarField"
                 float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
                 float maximumRadius = max(_StarSizeMin, _StarSizeMax) * sizeScale;
                 float maximumHaloRadius = maximumRadius * _HaloSize * 1.25 * (1.0 + 0.25 * _TwinkleAmount);
-                float support = max(maximumRadius, maximumHaloRadius) + antialiasWidth;
+                float support = StarSupport(maximumRadius, maximumHaloRadius, antialiasWidth);
                 float centerOffset = 0.5 * _PositionJitter;
 
                 [branch]

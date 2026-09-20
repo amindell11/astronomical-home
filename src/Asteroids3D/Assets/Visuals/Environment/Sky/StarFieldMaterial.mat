@@ -38,12 +38,15 @@ Material:
     - _ParallaxNear: 0.479
     - _PositionJitter: 0.547
     - _Seed: 0
+    - _ShapeVariation: 0.8
+    - _Softness: 0.75
     - _StarDensity: 1
     - _StarSizeMax: 0.016
     - _StarSizeMin: 0.012
     - _TwinkleAmount: 1
     - _TwinkleDurationMax: 18
     - _TwinkleDurationMin: 10
+    - _TwinkleNoise: 0.75
     - _WarmColorShare: 0.25
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}

@@ -30,6 +30,9 @@ namespace Tests.EditMode.Rendering
             material.SetFloat("_StarSizeMax", radius);
             material.SetFloat("_HaloSize", haloSize);
             material.SetFloat("_HaloStrength", 1);
+            material.SetFloat("_ShapeVariation", 1);
+            material.SetFloat("_Softness", 1);
+            material.SetFloat("_TwinkleNoise", 1);
             material.SetFloat("_PositionJitter", jitter);
             material.SetFloat("_TwinkleAmount", twinkle);
             material.SetFloat("_TwinkleDurationMin", 4);
