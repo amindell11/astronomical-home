@@ -220,6 +220,7 @@ $BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 . (Join-Path $PSScriptRoot "lib/repo_root.ps1")
 . (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 . (Join-Path $PSScriptRoot "lib/process_tree.ps1")
+. (Join-Path $PSScriptRoot "lib/memory_reading.ps1")
 
 # ---- Path & root helpers ---------------------------------------------------
 function Resolve-FullPath {
@@ -403,29 +404,12 @@ function Get-MemberValue {
 # ---- Memory admission ------------------------------------------------------
 # Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of.
 function Get-MemoryReading {
-    if (-not [string]::IsNullOrWhiteSpace($MemorySnapshotPath)) {
-        $snapshotPath = Resolve-FullPath $MemorySnapshotPath
-        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
-        try { $source = [System.IO.File]::ReadAllText($snapshotPath) | ConvertFrom-Json }
-        catch { throw "Memory snapshot unreadable: $snapshotPath - $($_.Exception.Message)" }
-    }
-    else {
-        try { $source = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop }
-        catch { throw "Memory reading failed: $($_.Exception.Message)" }
-    }
-    $headroomKb = 0.0
-    $availableKb = 0.0
-    # Admitting by default on a reading we cannot parse is exactly the boot this exists to stop.
-    if (-not [double]::TryParse([string](Get-MemberValue $source "FreeVirtualMemory"), [ref]$headroomKb)) {
-        throw "Memory reading has no usable FreeVirtualMemory value."
-    }
-    if (-not [double]::TryParse([string](Get-MemberValue $source "FreePhysicalMemory"), [ref]$availableKb)) {
-        throw "Memory reading has no usable FreePhysicalMemory value."
-    }
-    return [pscustomobject]@{
-        commitHeadroomGB = [Math]::Round($headroomKb / 1048576.0, 2)
-        availablePhysicalGB = [Math]::Round($availableKb / 1048576.0, 2)
-    }
+    if ([string]::IsNullOrWhiteSpace($MemorySnapshotPath)) { return Get-SystemMemoryReading }
+    $snapshotPath = Resolve-FullPath $MemorySnapshotPath
+    if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
+    try { $source = [System.IO.File]::ReadAllText($snapshotPath) | ConvertFrom-Json }
+    catch { throw "Memory snapshot unreadable: $snapshotPath - $($_.Exception.Message)" }
+    return ConvertTo-MemoryReading -Source $source
 }
 
 function Get-BootAdmission {

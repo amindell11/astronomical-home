@@ -16,6 +16,33 @@ past `agent-7` without asking the user.** A fresh slot is Unity-cold (full asset
 import + Burst compile, plus the AnnotationManager trap in #401) — prefer a warm
 slot for iteration-heavy work.
 
+## Retuning the Unity boot demand constants
+
+`unity_access.ps1` refuses a boot whose commit headroom is below the demand
+constant for the mode plus the margin (`-Action Contract` publishes all three).
+They are hand-tuned from evidence, not self-calibrating — post the numbers in a
+comment on #578 with each retune.
+
+**Batch** — every test-agent run stamps a `memory` block into its summary. List
+the upper-bracket tree peak per run across the pool:
+
+```powershell
+Get-ChildItem D:\amind\git\agent-*\results\unity-tests-agent\*-summary.json -Exclude latest-summary.json |
+  ForEach-Object { $s = Get-Content $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json
+    foreach ($p in @($s.memory.processes)) { [pscustomobject]@{ run = $_.Name; peakGB = $p.treeSumOfPeaksPrivateGB } } } |
+  Sort-Object peakGB -Descending | Select-Object -First 20
+```
+
+**Editor** — the test agent never holds one, so collect by hand:
+`unity_access.ps1 -Action Status -ProjectPath <slot>/src/Asteroids3D -Json`
+against a slot whose editor has been up a while; add the root process's peak to
+the import-worker sum.
+
+The rule for both: the constant is the **maximum observed upper-bracket peak,
+rounded up to the next 0.5 GB**; retune when that maximum moves by 0.5 GB or
+more. Summaries accumulate across slot resets (`results/` is ignored and
+`git clean -fd` leaves it), so the history is already on disk.
+
 ## Alastor — second Windows box (remote Unity lane)
 
 `ssh alastor` (→ `desir@Alastor.local`; Windows PowerShell 5.1, no `||`/`&&`).

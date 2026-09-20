@@ -19,6 +19,20 @@
                        with unavailableReason; elapsedSec remains available. UTC clock changes can
                        invalidate the partition. runs[].startedAt/finishedAt are raw XML timestamps.
       transport      - present and "routed" only for a -Routed warm-editor run.
+      memory         - { processes[]; unavailableReason }. One processes[] entry per Unity launch,
+                       in launch order: pid, rootPeakPrivateGB / rootPeakWorkingSetGB (kernel peaks
+                       of the launched process), treePeakSampledPrivateGB /
+                       treePeakSampledWorkingSetGB (max over 5 s samples of the summed CURRENT
+                       usage of the process tree - a LOWER bound), treeSumOfPeaksPrivateGB (sum of
+                       each tree member's kernel peak - an UPPER bound, since peaks need not
+                       coincide), commitHeadroomAtLaunchGB / commitHeadroomMinGB,
+                       availablePhysicalAtLaunchGB / availablePhysicalMinGB,
+                       bootLaneReleasedAtSec and treePeakAtSec (seconds from launch), samples,
+                       samplesFailed, unavailableReason. Private bytes understates shared
+                       allocations; the headroom readings are the cross-check. Numbers are null
+                       with a reason when no sample caught the tree; a -Routed run stamps an empty
+                       processes[] with the reason. Retuning the coordinator's demand constants
+                       from these: doc/agents/environment.md.
       coverage       - { verdict = "full"|"partial"; reason = "<machine-readable why>" }. THE
                        coverage verdict: "full" means this run covered the whole suite cold,
                        unfiltered and green, and is therefore merge-grade. Readers trust this
@@ -70,10 +84,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $runnerStartedAt = [DateTimeOffset]::UtcNow
 $processTimings = @()
+$memoryProcesses = @()
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
 . (Join-Path $PSScriptRoot "unity_access_client.ps1")
 . (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 . (Join-Path $PSScriptRoot "lib/process_tree.ps1")
+. (Join-Path $PSScriptRoot "lib/memory_reading.ps1")
 
 # ---- Section map -------------------------------------------------------------
 #   Parameter validation      flag combinations that can never run
@@ -486,6 +502,129 @@ function Get-RunWallTiming {
     return $timing
 }
 
+# Private bytes is the per-process counter closest to a process's share of commit charge; it
+# understates shared sections, which is why the system readings ride along as the cross-check.
+# Sampled sums are a lower bound (peaks need not coincide), summed kernel peaks an upper bound.
+function Get-ProcessTreeMemory {
+    param(
+        [int]$RootProcessId,
+        $RootPeakPrivateBytes,
+        $RootPeakWorkingSetBytes,
+        [array]$Samples,
+        [int]$SamplesFailed,
+        $LaunchReading,
+        $BootLaneReleasedAtSec
+    )
+
+    $toGbFromKb = { param($kb) [Math]::Round($kb / 1048576.0, 3) }
+    $toGbFromBytes = { param($bytes) [Math]::Round($bytes / 1073741824.0, 3) }
+    $memory = [ordered]@{
+        pid = $RootProcessId
+        rootPeakPrivateGB = $(if ($null -eq $RootPeakPrivateBytes) { $null } else { & $toGbFromBytes $RootPeakPrivateBytes })
+        rootPeakWorkingSetGB = $(if ($null -eq $RootPeakWorkingSetBytes) { $null } else { & $toGbFromBytes $RootPeakWorkingSetBytes })
+        treePeakSampledPrivateGB = $null
+        treePeakSampledWorkingSetGB = $null
+        treeSumOfPeaksPrivateGB = $null
+        commitHeadroomAtLaunchGB = $(if ($null -eq $LaunchReading) { $null } else { $LaunchReading.commitHeadroomGB })
+        commitHeadroomMinGB = $null
+        availablePhysicalAtLaunchGB = $(if ($null -eq $LaunchReading) { $null } else { $LaunchReading.availablePhysicalGB })
+        availablePhysicalMinGB = $null
+        bootLaneReleasedAtSec = $(if ($null -eq $BootLaneReleasedAtSec) { $null } else { [Math]::Round([double]$BootLaneReleasedAtSec, 3) })
+        treePeakAtSec = $null
+        samples = 0
+        samplesFailed = $SamplesFailed
+        unavailableReason = ""
+    }
+
+    $peakByProcess = @{}
+    $good = 0
+    foreach ($sample in $Samples) {
+        $byId = @{}
+        $childrenOf = @{}
+        foreach ($record in @($sample.processes)) {
+            $byId[[int]$record.processId] = $record
+            $parent = [int]$record.parentProcessId
+            if (-not $childrenOf.ContainsKey($parent)) { $childrenOf[$parent] = @() }
+            $childrenOf[$parent] += , $record
+        }
+        if (-not $byId.ContainsKey($RootProcessId)) { continue }
+        $good++
+
+        $pending = @($byId[$RootProcessId])
+        $seen = @{}
+        $privateKb = 0.0
+        $workingSetBytes = 0.0
+        while ($pending.Count -gt 0) {
+            $node = $pending[0]
+            $pending = @($pending | Select-Object -Skip 1)
+            $nodeId = [int]$node.processId
+            if ($seen.ContainsKey($nodeId)) { continue }
+            $seen[$nodeId] = $true
+            $privateKb += [double]$node.privateKb
+            $workingSetBytes += [double]$node.workingSetBytes
+            $key = "$nodeId|$(([datetime]$node.creationDate).Ticks)"
+            if (-not $peakByProcess.ContainsKey($key) -or $peakByProcess[$key] -lt [double]$node.peakPrivateKb) {
+                $peakByProcess[$key] = [double]$node.peakPrivateKb
+            }
+            if (-not $childrenOf.ContainsKey($nodeId)) { continue }
+            foreach ($child in $childrenOf[$nodeId]) {
+                # A pid recycled onto a process older than its claimed parent is a different lineage.
+                if ([datetime]$child.creationDate -lt [datetime]$node.creationDate) { continue }
+                $pending += , $child
+            }
+        }
+
+        if ($null -eq $memory.treePeakSampledPrivateGB -or $privateKb -gt $memory.treePeakSampledPrivateGB) {
+            $memory.treePeakSampledPrivateGB = $privateKb
+            $memory.treePeakAtSec = [Math]::Round([double]$sample.atSec, 3)
+        }
+        if ($null -eq $memory.treePeakSampledWorkingSetGB -or $workingSetBytes -gt $memory.treePeakSampledWorkingSetGB) {
+            $memory.treePeakSampledWorkingSetGB = $workingSetBytes
+        }
+        if ($null -eq $memory.commitHeadroomMinGB -or [double]$sample.commitHeadroomGB -lt $memory.commitHeadroomMinGB) {
+            $memory.commitHeadroomMinGB = [double]$sample.commitHeadroomGB
+        }
+        if ($null -eq $memory.availablePhysicalMinGB -or [double]$sample.availablePhysicalGB -lt $memory.availablePhysicalMinGB) {
+            $memory.availablePhysicalMinGB = [double]$sample.availablePhysicalGB
+        }
+    }
+
+    $memory.samples = $good
+    if ($good -eq 0) {
+        $memory.unavailableReason = "no sample caught the Unity process tree"
+        return $memory
+    }
+    $memory.treePeakSampledPrivateGB = & $toGbFromKb $memory.treePeakSampledPrivateGB
+    $memory.treePeakSampledWorkingSetGB = & $toGbFromBytes $memory.treePeakSampledWorkingSetGB
+    $sumOfPeaksKb = 0.0
+    foreach ($value in $peakByProcess.Values) { $sumOfPeaksKb += $value }
+    $memory.treeSumOfPeaksPrivateGB = & $toGbFromKb $sumOfPeaksKb
+    $memory.commitHeadroomMinGB = [Math]::Round($memory.commitHeadroomMinGB, 2)
+    $memory.availablePhysicalMinGB = [Math]::Round($memory.availablePhysicalMinGB, 2)
+    return $memory
+}
+
+function Get-ProcessTreeSample {
+    param([int]$RootProcessId, [double]$AtSec)
+    $processes = @(Get-CimInstance -Query "SELECT ProcessId,ParentProcessId,CreationDate,PageFileUsage,PeakPageFileUsage,WorkingSetSize FROM Win32_Process" -ErrorAction Stop | ForEach-Object {
+        [ordered]@{
+            processId = [int]$_.ProcessId
+            parentProcessId = [int]$_.ParentProcessId
+            creationDate = $(if ($null -eq $_.CreationDate) { [datetime]::MinValue } else { [datetime]$_.CreationDate })
+            privateKb = [double]$_.PageFileUsage
+            peakPrivateKb = [double]$_.PeakPageFileUsage
+            workingSetBytes = [double]$_.WorkingSetSize
+        }
+    })
+    $reading = Get-SystemMemoryReading
+    return [ordered]@{
+        atSec = $AtSec
+        processes = $processes
+        commitHeadroomGB = $reading.commitHeadroomGB
+        availablePhysicalGB = $reading.availablePhysicalGB
+    }
+}
+
 function Invoke-UnityProcess {
     param(
         [string]$UnityExe,
@@ -518,12 +657,35 @@ function Invoke-UnityProcess {
         $bootDeadline = (Get-Date).AddSeconds($Script:BootWatchTimeoutSec)
         $bootPollDue = Get-Date
         $completionSeenAt = $null
+        $launchReading = $null
+        try { $launchReading = Get-SystemMemoryReading } catch { }
+        $samples = @()
+        $samplesFailed = 0
+        $samplePollDue = Get-Date
+        $bootLaneReleasedAtSec = $null
+        $rootPeakPrivateBytes = $null
+        $rootPeakWorkingSetBytes = $null
+        $memoryArgs = @{ RootProcessId = [int]$proc.Id; LaunchReading = $launchReading }
 
         while (-not $proc.HasExited) {
+            # .NET throws once the process is gone, so the last successful read is that process's peak.
+            try {
+                $proc.Refresh()
+                $rootPeakPrivateBytes = $proc.PeakPagedMemorySize64
+                $rootPeakWorkingSetBytes = $proc.PeakWorkingSet64
+            }
+            catch { }
+            if ((Get-Date) -ge $samplePollDue) {
+                try { $samples += , (Get-ProcessTreeSample -RootProcessId $proc.Id -AtSec ([DateTimeOffset]::UtcNow - $launchedAt).TotalSeconds) }
+                catch { $samplesFailed++ }
+                $samplePollDue = (Get-Date).AddSeconds(5)
+            }
+
             if ($bootHeld -and (Get-Date) -ge $bootPollDue) {
                 if ((Get-Date) -ge $bootDeadline -or (Test-UnityBootComplete -LogPath $processLog)) {
                     Exit-UnityBootLane -ProjectFullPath $processProject
                     $bootHeld = $false
+                    $bootLaneReleasedAtSec = ([DateTimeOffset]::UtcNow - $launchedAt).TotalSeconds
                 }
                 $bootPollDue = (Get-Date).AddSeconds(2)
             }
@@ -549,6 +711,9 @@ function Invoke-UnityProcess {
                     timedOut = -not $hungAfterResults
                     killedAfterResults = $hungAfterResults
                     pid = [int]$proc.Id
+                    memory = (Get-ProcessTreeMemory @memoryArgs -RootPeakPrivateBytes $rootPeakPrivateBytes `
+                        -RootPeakWorkingSetBytes $rootPeakWorkingSetBytes -Samples $samples `
+                        -SamplesFailed $samplesFailed -BootLaneReleasedAtSec $bootLaneReleasedAtSec)
                 }
             }
 
@@ -566,6 +731,9 @@ function Invoke-UnityProcess {
             timedOut = $false
             killedAfterResults = $false
             pid = [int]$proc.Id
+            memory = (Get-ProcessTreeMemory @memoryArgs -RootPeakPrivateBytes $rootPeakPrivateBytes `
+                -RootPeakWorkingSetBytes $rootPeakWorkingSetBytes -Samples $samples `
+                -SamplesFailed $samplesFailed -BootLaneReleasedAtSec $bootLaneReleasedAtSec)
         }
     }
     finally {
@@ -1401,6 +1569,7 @@ try {
         $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec `
             -CompletionFiles @($xmlEdit, $xmlPlay)
         $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
+        $memoryProcesses += , $invoke.memory
         $unityExit = [int]$invoke.exitCode
 
         # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
@@ -1464,6 +1633,7 @@ try {
 
             $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
+            $memoryProcesses += , $invoke.memory
             $unityExit = [int]$invoke.exitCode
 
             $parsed = Parse-UnityResultXml -XmlPath $xmlPath -Platform $platform -LogPath $logPath -UnityExitCode $unityExit @parseOptions
@@ -1534,6 +1704,10 @@ $summary = [ordered]@{
 }
 $summary.wallTiming = Get-RunWallTiming -StartedAt $runnerStartedAt -FinishedAt ([DateTimeOffset]::UtcNow) -Runs $runs -Processes $processTimings -Routed $Routed.IsPresent
 $summary.coverage = Get-CoverageVerdict -Runs $runs -Selection $selection -OverallStatus $overallStatus
+$summary.memory = [ordered]@{
+    processes = @($memoryProcesses)
+    unavailableReason = $(if ($Routed.IsPresent) { "resident-editor transport launches no process to sample" } else { "" })
+}
 if ($Routed.IsPresent) {
     # Warm-run marker; the coverage stamp already reports routed runs as partial (the merge gate stays cold-process).
     $summary.transport = "routed"
