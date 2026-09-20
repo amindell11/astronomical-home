@@ -96,18 +96,15 @@ Shader "Custom/StarField"
                 return frac((p.xxyz + p.yzzw) * p.zywx);
             }
 
-            float3 EvaluateLayer(
-                float2 planePosition,
-                float2 cameraPosition,
-                float parallax,
+            float3 EvaluateCell(
+                float2 cell,
+                float2 positionInCell,
+                float antialiasWidth,
                 float density,
                 float sizeScale,
                 float brightnessScale,
                 float layerSeed)
             {
-                float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
-                float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
-                float2 cell = floor(fieldPosition);
                 float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
                 float4 random = Hash42(seededCell);
 
@@ -116,7 +113,7 @@ Shader "Custom/StarField"
 
                 float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
                 float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
-                float distanceToCenter = length(frac(fieldPosition) - center);
+                float distanceToCenter = length(positionInCell - center);
                 float core = 1.0 - smoothstep(0.0, radius + antialiasWidth, distanceToCenter);
                 float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
                 float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
@@ -145,6 +142,42 @@ Shader "Custom/StarField"
                     : 0;
                 float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
                 return color * intensity * brightness * brightnessScale * twinkle * _Brightness;
+            }
+
+            float3 EvaluateLayer(
+                float2 planePosition,
+                float2 cameraPosition,
+                float parallax,
+                float density,
+                float sizeScale,
+                float brightnessScale,
+                float layerSeed)
+            {
+                float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
+                float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
+                float maximumRadius = max(_StarSizeMin, _StarSizeMax) * sizeScale;
+                float maximumHaloRadius = maximumRadius * _HaloSize * 1.25 * (1.0 + 0.25 * _TwinkleAmount);
+                float support = max(maximumRadius, maximumHaloRadius) + antialiasWidth;
+                float centerOffset = 0.5 * _PositionJitter;
+
+                [branch]
+                if (support <= 0.5 - centerOffset)
+                    return EvaluateCell(floor(fieldPosition), frac(fieldPosition), antialiasWidth,
+                        density, sizeScale, brightnessScale, layerSeed);
+
+                int2 firstCell = (int2)ceil(fieldPosition - 0.5 - centerOffset - support);
+                int2 lastCell = (int2)floor(fieldPosition - 0.5 + centerOffset + support);
+                float3 stars = 0;
+                [loop]
+                for (int y = firstCell.y; y <= lastCell.y; y++)
+                [loop]
+                for (int x = firstCell.x; x <= lastCell.x; x++)
+                {
+                    float2 cell = float2(x, y);
+                    stars += EvaluateCell(cell, fieldPosition - cell, antialiasWidth,
+                        density, sizeScale, brightnessScale, layerSeed);
+                }
+                return stars;
             }
 
             Varyings Vert(Attributes input)
