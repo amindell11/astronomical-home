@@ -15,7 +15,13 @@ Shader "Custom/StarField"
         [Header(Depth)]
         _ParallaxFar ("Far Parallax", Range(0, 2)) = 0.2
         _ParallaxNear ("Near Parallax", Range(0, 2)) = 0.9
-        _NearLayerShare ("Near Layer Share", Range(0, 1)) = 0.35
+        _NearLayerShare ("Near Half Share", Range(0, 1)) = 0.35
+
+        _DepthElongation ("Extra Far Elongation", Range(0, 1)) = 0.35
+
+        [Header(Zoom)]
+        _SizeZoomResponse ("Size Response to Zoom", Range(0, 1)) = 1
+        _SpacingZoomResponse ("Spacing Response to Zoom", Range(0, 1)) = 1
 
         [Header(Appearance)]
         [HDR] _ColorCool ("Cool Star Color", Color) = (0.65, 0.8, 1, 1)
@@ -82,6 +88,9 @@ Shader "Custom/StarField"
                 float _ParallaxFar;
                 float _ParallaxNear;
                 float _NearLayerShare;
+                float _DepthElongation;
+                float _SizeZoomResponse;
+                float _SpacingZoomResponse;
                 float4 _ColorCool;
                 float4 _ColorWarm;
                 float _WarmColorShare;
@@ -103,12 +112,12 @@ Shader "Custom/StarField"
                 return frac((p.xxyz + p.yzzw) * p.zywx);
             }
 
-            float StarSupport(float radius, float haloRadius, float antialiasWidth)
+            float StarSupport(float radius, float haloRadius, float antialiasWidth, float elongation)
             {
                 float blurScale = _Softness > 0 ? 1.2 : 1.0;
                 float haloSupport = haloRadius * (blurScale + 0.2 * _ShapeVariation);
                 return (max(radius * blurScale, haloSupport) + antialiasWidth) *
-                    (1.0 + 0.4 * _ShapeVariation);
+                    (1.0 + elongation);
             }
 
             float LightFalloff(float distanceToCenter, float radius, float antialiasWidth)
@@ -127,7 +136,8 @@ Shader "Custom/StarField"
                 float density,
                 float sizeScale,
                 float brightnessScale,
-                float layerSeed)
+                float layerSeed,
+                float elongation)
             {
                 float2 seededCell = cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed);
                 float4 random = Hash42(seededCell);
@@ -143,7 +153,7 @@ Shader "Custom/StarField"
                 float haloRadius = radius * _HaloSize * lerp(0.75, 1.25, appearance.y);
                 float haloStrength = _HaloStrength * lerp(0.65, 1.25, appearance.z);
                 float maxHaloRadius = haloRadius * (1.0 + 0.25 * _TwinkleAmount);
-                if (distanceToCenter > StarSupport(radius, maxHaloRadius, antialiasWidth))
+                if (distanceToCenter > StarSupport(radius, maxHaloRadius, antialiasWidth, elongation))
                     return 0;
 
                 float4 shape = Hash42(seededCell + float2(269.5, 183.3));
@@ -151,7 +161,7 @@ Shader "Custom/StarField"
                 float2 axis = float2(cos(angle), sin(angle));
                 float2 offset = positionInCell - center;
                 float2 local = float2(dot(offset, axis), dot(offset, float2(-axis.y, axis.x)));
-                float stretch = 1.0 + 0.4 * _ShapeVariation * shape.y;
+                float stretch = 1.0 + elongation * shape.y;
                 local *= float2(1.0 / stretch, stretch);
                 float core = LightFalloff(length(local), radius, antialiasWidth);
 
@@ -189,19 +199,23 @@ Shader "Custom/StarField"
                 float density,
                 float sizeScale,
                 float brightnessScale,
-                float layerSeed)
+                float layerSeed,
+                float depth,
+                float zoomSizeScale)
             {
+                sizeScale *= zoomSizeScale;
                 float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
                 float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
                 float maximumRadius = max(_StarSizeMin, _StarSizeMax) * sizeScale;
                 float maximumHaloRadius = maximumRadius * _HaloSize * 1.25 * (1.0 + 0.25 * _TwinkleAmount);
-                float support = StarSupport(maximumRadius, maximumHaloRadius, antialiasWidth);
+                float elongation = _ShapeVariation * (0.4 + _DepthElongation * depth);
+                float support = StarSupport(maximumRadius, maximumHaloRadius, antialiasWidth, elongation);
                 float centerOffset = 0.5 * _PositionJitter;
 
                 [branch]
                 if (support <= 0.5 - centerOffset)
                     return EvaluateCell(floor(fieldPosition), frac(fieldPosition), antialiasWidth,
-                        density, sizeScale, brightnessScale, layerSeed);
+                        density, sizeScale, brightnessScale, layerSeed, elongation);
 
                 int2 firstCell = (int2)ceil(fieldPosition - 0.5 - centerOffset - support);
                 int2 lastCell = (int2)floor(fieldPosition - 0.5 + centerOffset + support);
@@ -213,7 +227,7 @@ Shader "Custom/StarField"
                 {
                     float2 cell = float2(x, y);
                     stars += EvaluateCell(cell, fieldPosition - cell, antialiasWidth,
-                        density, sizeScale, brightnessScale, layerSeed);
+                        density, sizeScale, brightnessScale, layerSeed, elongation);
                 }
                 return stars;
             }
@@ -242,26 +256,28 @@ Shader "Custom/StarField"
                     dot(cameraPositionWS, planeRight),
                     dot(cameraPositionWS, planeUp));
 
-                float nearDensity = _StarDensity * _NearLayerShare;
-                float farDensity = _StarDensity * (1.0 - _NearLayerShare);
-                float3 farStars = EvaluateLayer(
-                    planePosition,
-                    cameraPosition,
-                    _ParallaxFar,
-                    farDensity,
-                    0.65,
-                    0.6,
-                    19.19);
-                float3 nearStars = EvaluateLayer(
-                    planePosition,
-                    cameraPosition,
-                    _ParallaxNear,
-                    nearDensity,
-                    1.25,
-                    1.0,
-                    73.73);
+                // Preserve authored scale at the main camera's initial orthographic size.
+                float zoom = 7.0 * abs(UNITY_MATRIX_P._m11);
+                planePosition = cameraPosition + (planePosition - cameraPosition) *
+                    pow(zoom, 1.0 - _SpacingZoomResponse);
+                float zoomSizeScale = pow(zoom, _SizeZoomResponse - _SpacingZoomResponse);
 
-                return half4(farStars + nearStars, 0);
+                float nearDensity = _StarDensity * _NearLayerShare * 0.5;
+                float farDensity = _StarDensity * (1.0 - _NearLayerShare) * 0.5;
+                float3 farStars = EvaluateLayer(
+                    planePosition, cameraPosition, _ParallaxFar,
+                    farDensity, 0.65, 0.6, 19.19, 1.0, zoomSizeScale);
+                float3 middleFarStars = EvaluateLayer(
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 1.0 / 3.0),
+                    farDensity, 0.85, 0.7333333, 37.37, 2.0 / 3.0, zoomSizeScale);
+                float3 middleNearStars = EvaluateLayer(
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 2.0 / 3.0),
+                    nearDensity, 1.05, 0.8666667, 55.55, 1.0 / 3.0, zoomSizeScale);
+                float3 nearStars = EvaluateLayer(
+                    planePosition, cameraPosition, _ParallaxNear,
+                    nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
+
+                return half4(farStars + middleFarStars + middleNearStars + nearStars, 0);
             }
             ENDHLSL
         }
