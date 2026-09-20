@@ -26,7 +26,7 @@ namespace RL.Runtime
         // so training and gameplay read it from here rather than each spelling it out.
         public const string ObstacleSensorName = "AsteroidBuffer";
 
-        // SpawnSettings.asset ceiling: largest mesh volume 121.41 at massScale 2.5 → radius ≈ 4.17.
+        // Frozen with the trained policy; an EditMode test pins it to SpawnSettings.asset's MaxSpawnRadius.
         public const float SpawnSettingsMaxAsteroidRadius = 4.17f;
 
         /// <summary>Sets the schema-shape bits both compose sites share (obs vector size, hybrid ActionSpec, obstacle attention-buffer dims). Behavior name/type/model stay per-site.</summary>

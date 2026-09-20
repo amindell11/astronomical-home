@@ -11,6 +11,7 @@ namespace Asteroids.Spawning
     public readonly struct AsteroidAttributes
     {
         public readonly AsteroidSpawnSettings.MeshInfo MeshInfo;
+        public readonly int MeshIndex;
         public readonly float Mass;
         public readonly float Scale;
         public readonly Vector3 Velocity;
@@ -18,12 +19,14 @@ namespace Asteroids.Spawning
 
         public AsteroidAttributes(
             AsteroidSpawnSettings.MeshInfo meshInfo,
+            int meshIndex,
             float mass,
             float scale,
             Vector3 velocity,
             Vector3 angularVelocity)
         {
             MeshInfo = meshInfo;
+            MeshIndex = meshIndex;
             Mass = mass;
             Scale = scale;
             Velocity = velocity;

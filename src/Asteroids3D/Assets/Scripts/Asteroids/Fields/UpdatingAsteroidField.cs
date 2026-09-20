@@ -336,7 +336,7 @@ namespace Asteroids.Fields
                 Id = id,
                 PlanePosition = planePos,
                 Rotation = ast.transform.rotation,
-                MeshIndex = MeshIndexOf(ast),
+                MeshIndex = ast.MeshIndex,
                 Mass = ast.Mass,
                 Scale = ast.transform.localScale.x,
                 HealthFraction = HealthFractionOf(ast)
@@ -354,9 +354,10 @@ namespace Asteroids.Fields
         private void SpawnFromSpec(Vector2Int chunk, in FieldAsteroidSpec spec)
         {
             var spawnSettings = AsteroidSpawner.Settings;
-            var meshInfo = spawnSettings.meshInfos[Mathf.Clamp(spec.MeshIndex, 0, spawnSettings.meshInfos.Length - 1)];
+            var meshIndex = Mathf.Clamp(spec.MeshIndex, 0, spawnSettings.meshInfos.Length - 1);
             var attrs = new AsteroidAttributes(
-                meshInfo,
+                spawnSettings.meshInfos[meshIndex],
+                meshIndex,
                 spec.Mass,
                 spec.Scale,
                 GamePlane.PlaneDirToWorld(spec.PlaneVelocity),
@@ -521,14 +522,6 @@ namespace Asteroids.Fields
             var damage = ast.Damage;
             if (!damage || damage.MaxHealth <= 0f) return 1f;
             return Mathf.Clamp01(damage.Health / damage.MaxHealth);
-        }
-
-        private int MeshIndexOf(AsteroidController ast)
-        {
-            var meshInfos = AsteroidSpawner.Settings.meshInfos;
-            for (var i = 0; i < meshInfos.Length; i++)
-                if (meshInfos[i].mesh == ast.CurrentMesh) return i;
-            return 0;
         }
     }
 }

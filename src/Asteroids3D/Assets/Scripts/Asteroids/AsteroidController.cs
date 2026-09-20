@@ -41,6 +41,7 @@ namespace Asteroids
         /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
         public Collider SimpleCollider => cheapCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
+        public int MeshIndex { get; private set; }
         public event Action<Vector3> OnDestroyed;
         public event Action OnInitialized;
 
@@ -60,6 +61,7 @@ namespace Asteroids
             AsteroidSpawner asteroidSpawner,
             Fragger fragger,
             AsteroidSpawnSettings.MeshInfo meshInfo,
+            int meshIndex,
             float mass,
             float scale,
             Vector3 velocity,
@@ -71,7 +73,8 @@ namespace Asteroids
             Physics.autoSyncTransforms = false;
 
             SpawnEpoch++;
-            meshFilter.mesh = meshInfo.mesh;
+            meshFilter.sharedMesh = meshInfo.mesh;
+            MeshIndex = meshIndex;
             AsteroidSpawner = asteroidSpawner;
             Fragger = fragger;
             Lobes = meshInfo.cachedLobes is { Length: > 0 } lobes ? lobes : null;
@@ -118,9 +121,8 @@ namespace Asteroids
         private void UpdateMeshCollider(AsteroidSpawnSettings.MeshInfo meshInfo)
         {
             if (!meshCollider) return;
-            var targetColliderMesh = meshInfo.colliderMesh ? meshInfo.colliderMesh : meshInfo.mesh;
-            if (meshCollider.sharedMesh != targetColliderMesh)
-                meshCollider.sharedMesh = targetColliderMesh;
+            if (meshCollider.sharedMesh != meshInfo.colliderMesh)
+                meshCollider.sharedMesh = meshInfo.colliderMesh;
             meshCollider.enabled = false;
         }
 
