@@ -20,7 +20,7 @@ mkdir -p "$LOCK_ROOT"
 #   Acquire / release / prepare
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
-#   Script tests              cmd_run_script_tests, landing_diff_touches_scripts
+#   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
 #   Merge gate                cmd_merge
@@ -121,7 +121,7 @@ Commands:
       --oneline prints one compact line for a merge still in flight and
       nothing otherwise (what worktree_dashboard.sh consumes).
 
-  merge <slot> [base_ref] [-- unity_test_agent.ps1 args...]
+  merge <slot> [base_ref] [--remote] [-- unity_test_agent.ps1 args...]
       Gated squash-merge of the slot's open PR. Merges base (default:
       origin/main) in if it moved, then re-runs the full suite unless
       the exact resulting tree has recorded full-coverage proof — so
@@ -827,10 +827,10 @@ cmd_run_script_tests() {
 }
 
 # 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
-# swallowed git error would read as "no scripts/ change" and skip the gate.
-landing_diff_touches_scripts() {
-  local path="$1" base_ref="$2" head_ref="$3" changed rc=0
-  changed="$(git -C "$path" diff --name-only "$base_ref" "$head_ref" -- scripts)" || rc=$?
+# swallowed git error would read as "no change under <dir>" and skip the gate.
+landing_diff_touches() {
+  local path="$1" base_ref="$2" head_ref="$3" dir="$4" changed rc=0
+  changed="$(git -C "$path" diff --name-only "$base_ref" "$head_ref" -- "$dir")" || rc=$?
   if [[ "$rc" -ne 0 ]]; then
     echo "merge: could not compute the landing diff $base_ref..$head_ref (git exit $rc)." >&2
     return 2
@@ -1040,9 +1040,11 @@ merge_phase_budget() {
     base-merge) echo 15 ;;
     proof-check) echo 5 ;;
     tests) echo 480 ;;
+    remote-proof) echo 900 ;;
     resharper) echo 360 ;;
     script-tests) echo 360 ;;
     push) echo 30 ;;
+    base-recheck) echo 15 ;;
     gh-merge) echo 20 ;;
     *) echo 0 ;;
   esac
@@ -1288,18 +1290,164 @@ cmd_merge_progress() {
   echo "  unity: $(basename "$log") last written ${age}s ago"
 }
 
+# ---- Remote proof ----------------------------------------------------------
+# The hosted headless suite stamps its verdict as a commit status; the gate trusts that one
+# field and checks only what it owns: the stamped tree is the landing tree (script-contracts.md sec.3).
+REMOTE_PROOF_CONTEXT="merge-proof/headless"
+REMOTE_PROOF_WORKFLOW="headless-suite.yml"
+REMOTE_NO_RUN_SECONDS="${WORKTREE_POOL_REMOTE_NO_RUN_SECONDS:-120}"
+REMOTE_QUEUED_SECONDS="${WORKTREE_POOL_REMOTE_QUEUED_SECONDS:-180}"
+REMOTE_RUN_SECONDS="${WORKTREE_POOL_REMOTE_RUN_SECONDS:-900}"
+REMOTE_POLL_SECONDS="${WORKTREE_POOL_REMOTE_POLL_SECONDS:-15}"
+
+# Prints "<state>\t<description>\t<target_url>" for the NEWEST status in the context (the API lists
+# a context's whole history, newest first); state "absent" when there is none. Non-zero = GitHub could not be asked.
+remote_status() {
+  local sha="$1" slug
+  slug="$(repo_slug)"
+  if [[ -z "$slug" ]]; then
+    echo "merge: cannot derive the GitHub repo from remote.origin.url." >&2
+    return 1
+  fi
+  gh api "repos/$slug/commits/$sha/statuses?per_page=100" --jq \
+    "[.[] | select(.context == \"$REMOTE_PROOF_CONTEXT\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | @tsv"
+}
+
+# Prints "<status>\t<run id>" for the newest headless-suite run on a commit; status "none" when there is none.
+remote_run() {
+  local sha="$1"
+  gh run list --workflow "$REMOTE_PROOF_WORKFLOW" --commit "$sha" --limit 1 --json databaseId,status --jq \
+    '.[0] // {status: "none", databaseId: ""} | [.status, .databaseId] | @tsv'
+}
+
+run_id_from_url() {
+  local url="$1" id
+  [[ "$url" == */actions/runs/* ]] || return 0
+  id="${url##*/actions/runs/}"
+  printf '%s' "${id%%[!0-9]*}"
+}
+
+# Records merge-grade proof from a green status on the landing commit. Everything else is no proof
+# (fail closed): returns 1 with the reason on stdout.
+accept_remote_proof() {
+  local slot="$1" sha="$2" tree="$3"
+  local status state description url ldir
+  if ! status="$(remote_status "$sha")"; then
+    echo "no remote proof: could not read the $REMOTE_PROOF_CONTEXT status of $sha from GitHub"
+    return 1
+  fi
+  IFS=$'\t' read -r state description url <<< "$status"
+  if [[ "$state" != "success" ]]; then
+    echo "no remote proof: $REMOTE_PROOF_CONTEXT on $sha is '${state:-unreadable}', not success"
+    return 1
+  fi
+  if [[ ! "$description" =~ (^|[[:space:]])tree=([0-9a-f]{40})([[:space:]]|$) ]]; then
+    echo "no remote proof: the $REMOTE_PROOF_CONTEXT trailer on $sha names no tree ('$description')"
+    return 1
+  fi
+  if [[ "${BASH_REMATCH[2]}" != "$tree" ]]; then
+    echo "no remote proof: the $REMOTE_PROOF_CONTEXT trailer on $sha stamps tree ${BASH_REMATCH[2]}, the landing tree is $tree"
+    return 1
+  fi
+  ldir="$(lock_dir_for "$slot")"
+  mkdir -p "$ldir"
+  printf '%s\n' "$tree" > "$ldir/tested_tree"
+  write_tested_scope "$ldir" "$tree" "remote-run" "$tree" "$description run=$url"
+}
+
+# Liveness-based wait: the status is the verdict, run liveness only says whether one is coming.
+# The run is read BEFORE the status so a run that completes between the reads has already posted.
+wait_for_remote_verdict() {
+  local slot="$1" sha="$2" task_branch="$3"
+  local started=$SECONDS phase_status="" phase_since=$SECONDS
+  local run run_status run_id status state description url
+  while :; do
+    if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha")"; then
+      echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
+      return 1
+    fi
+    IFS=$'\t' read -r run_status run_id <<< "$run"
+    IFS=$'\t' read -r state description url <<< "$status"
+    case "$state" in
+      success) return 0 ;;
+      failure|error)
+        [[ -n "$run_id" ]] || run_id="$(run_id_from_url "$url")"
+        echo "merge: $REMOTE_PROOF_CONTEXT on $sha is '$state' ($description) — not merging." >&2
+        echo "  Run: $url" >&2
+        echo "  Red tests: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
+        echo "  'gh run rerun $run_id' re-posts a verdict on the same commit; then re-run 'merge $slot --remote'." >&2
+        return 1 ;;
+      pending|absent) ;;
+      *)
+        echo "merge: $REMOTE_PROOF_CONTEXT on $sha has unknown state '$state' — no remote proof; not merging." >&2
+        return 1 ;;
+    esac
+    [[ "$run_status" == "$phase_status" ]] || { phase_status="$run_status"; phase_since=$SECONDS; }
+    case "$run_status" in
+      in_progress)
+        if (( SECONDS - phase_since > REMOTE_RUN_SECONDS )); then
+          echo "merge: headless-suite run $run_id has been in progress over ${REMOTE_RUN_SECONDS}s with no verdict — not merging. 'gh run cancel $run_id', then 'gh run rerun $run_id'." >&2
+          return 1
+        fi ;;
+      queued|requested|waiting|pending)
+        if (( SECONDS - phase_since > REMOTE_QUEUED_SECONDS )); then
+          echo "merge: headless-suite run $run_id has sat queued over ${REMOTE_QUEUED_SECONDS}s — not merging. Re-run 'merge $slot --remote' to keep waiting, or drop --remote for the local run." >&2
+          return 1
+        fi ;;
+      *)
+        if [[ "$state" == "pending" ]]; then
+          echo "merge: $REMOTE_PROOF_CONTEXT on $sha is pending but no headless-suite run is live — no verdict is coming; not merging." >&2
+          echo "  'gh run rerun ${run_id:-<run-id>}' (or 'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch'), then re-run 'merge $slot --remote'." >&2
+          return 1
+        fi
+        if (( SECONDS - started > REMOTE_NO_RUN_SECONDS )); then
+          echo "merge: no headless-suite run exists for $sha ${REMOTE_NO_RUN_SECONDS}s after the gate asked for one — not merging." >&2
+          echo "  'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch', then re-run 'merge $slot --remote'." >&2
+          return 1
+        fi ;;
+    esac
+    sleep "$REMOTE_POLL_SECONDS"
+  done
+}
+
+# Causes a hosted run for the landing commit unless a verdict is already there or coming, then waits.
+run_remote_for_proof() {
+  local slot="$1" path="$2" sha="$3" task_branch="$4"
+  local remote_tip run status
+  remote_tip="$(git -C "$path" ls-remote origin "refs/heads/$task_branch" | cut -f1)"
+  if [[ "$remote_tip" != "$sha" ]]; then
+    echo "Pushing landing commit $sha to $task_branch — the push starts the hosted headless suite."
+    git -C "$path" push origin "$slot:refs/heads/$task_branch"
+  else
+    if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha")"; then
+      echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
+      return 1
+    fi
+    run="${run%%$'\t'*}"
+    if [[ "${status%%$'\t'*}" == "absent" && ( "$run" == "none" || "$run" == "completed" ) ]]; then
+      echo "Landing commit $sha is already on $task_branch with no verdict — dispatching the hosted headless suite."
+      gh workflow run "$REMOTE_PROOF_WORKFLOW" --ref "$task_branch"
+    fi
+  fi
+  wait_for_remote_verdict "$slot" "$sha" "$task_branch"
+}
+
 # ---- Merge gate ------------------------------------------------------------
 cmd_merge() {
   local slot="$1"
   shift || true
 
-  local base_ref="origin/main"
-  if [[ -n "${1:-}" && ${1:-} != "--" ]]; then
-    base_ref="$1"
+  local base_ref="origin/main" remote=0
+  while [[ -n "${1:-}" && ${1:-} != "--" ]]; do
+    if [[ "$1" == "--remote" ]]; then remote=1; else base_ref="$1"; fi
     shift
-  fi
+  done
   [[ ${1:-} != "--" ]] || shift
   local test_args=("$@")
+  if [[ "$remote" -eq 1 && ${#test_args[@]} -gt 0 ]]; then
+    echo "merge: --remote takes no test-runner args — the hosted headless suite has one fixed selection." >&2
+    return 1
+  fi
 
   merge_journal_open "$slot" "$base_ref"
   # Fires on every exit path, including a set -e abort, so no failure leaves the
@@ -1351,41 +1499,83 @@ cmd_merge() {
 
   # Skip the re-test only on provenance-corroborated FULL-suite proof for this exact tree: scoped runs never count, and ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
   merge_phase_begin proof-check
-  local current_tree proof_tree
+  local current_tree proof_tree landing_sha delta="none"
   current_tree="$(git -C "$path" rev-parse "$slot^{tree}")"
+  landing_sha="$(git -C "$path" rev-parse "$slot")"
   proof_tree="$(verified_proof_tree "$slot")"
   if [[ -n "$proof_tree" && "$proof_tree" == "$current_tree" ]]; then
-    echo "Tree $current_tree already passed the full suite — skipping re-run."
-    merge_phase_begin tests
-    merge_journal_note "skipped - tree already fully proven"
+    delta="proven"
   elif [[ -n "$proof_tree" ]]; then
-    case "$(classify_diff_since_proof "$path" "$proof_tree" "$current_tree")" in
-      doc)
-        echo "Markdown-only delta since fully-tested tree $proof_tree — extending proof without a run."
+    delta="$(classify_diff_since_proof "$path" "$proof_tree" "$current_tree")"
+  fi
+
+  # A PR can edit the workflow that proves it (a push runs the branch's copy), so such a landing needs the local run.
+  local github_diff_rc=0 remote_reason=""
+  landing_diff_touches "$path" "$base_ref" "$slot" .github || github_diff_rc=$?
+  [[ "$github_diff_rc" -ne 2 ]] || return 1
+  if [[ "$github_diff_rc" -eq 0 ]]; then
+    remote_reason="no remote proof: the landing diff touches .github/, so this merge needs the local run"
+    if [[ "$remote" -eq 1 ]]; then
+      echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
+      return 1
+    fi
+  fi
+
+  case "$delta" in
+    proven)
+      echo "Tree $current_tree already passed the full suite — skipping re-run."
+      merge_phase_begin tests
+      merge_journal_note "skipped - tree already fully proven"
+      ;;
+    doc)
+      echo "Markdown-only delta since fully-tested tree $proof_tree — extending proof without a run."
+      merge_phase_begin tests
+      merge_journal_note "skipped - markdown-only delta, proof extended"
+      extend_proof "$slot" "$current_tree" "inherit-doc" "$proof_tree"
+      ;;
+    *)
+      if [[ -n "$remote_reason" ]]; then
+        :
+      elif [[ "$(git -C "$path" ls-remote origin "refs/heads/$task_branch" | cut -f1)" != "$landing_sha" ]]; then
+        remote_reason="no remote proof: landing commit $landing_sha is not on GitHub yet"
+      elif remote_reason="$(accept_remote_proof "$slot" "$landing_sha" "$current_tree")"; then
+        echo "Landing commit $landing_sha carries a green $REMOTE_PROOF_CONTEXT status for tree $current_tree — remote proof, skipping the run."
         merge_phase_begin tests
-        merge_journal_note "skipped - markdown-only delta, proof extended"
-        extend_proof "$slot" "$current_tree" "inherit-doc" "$proof_tree"
-        ;;
-      comment)
-        echo "C# comment/whitespace-only delta since fully-tested tree $proof_tree — compile-level smoke refresh."
-        merge_phase_begin tests
-        merge_journal_note "comment-only delta - EditMode smoke refresh"
-        clear_run_summary "$path"
-        cmd_run_tests_clean "$slot" -Mode EditMode -ScopeType Smoke
-        extend_proof "$slot" "$current_tree" "inherit-smoke" "$proof_tree"
-        ;;
-      *)
-        echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
-        merge_phase_begin tests
-        merge_journal_note "code delta since proof - full suite"
-        run_tests_for_proof "$slot" "$path" "${test_args[@]}"
-        ;;
-    esac
-  else
-    echo "No full-suite proof for tree $current_tree — running the full suite before merge."
-    merge_phase_begin tests
-    merge_journal_note "no proof for landing tree - full suite"
-    run_tests_for_proof "$slot" "$path" "${test_args[@]}"
+        merge_journal_note "skipped - remote proof on the landing commit"
+        delta="proven"
+      fi
+      ;;
+  esac
+  if [[ "$delta" != "proven" && "$delta" != "doc" ]]; then
+    echo "$remote_reason."
+    if [[ "$remote" -eq 1 ]]; then
+      # A comment-only delta's usual refresh is a local smoke boot, so under --remote it is a code delta.
+      echo "Running the hosted headless suite on landing commit $landing_sha before merge."
+      merge_phase_begin remote-proof
+      merge_journal_note "hosted headless suite on $landing_sha"
+      run_remote_for_proof "$slot" "$path" "$landing_sha" "$task_branch"
+      remote_reason="$(accept_remote_proof "$slot" "$landing_sha" "$current_tree")" || {
+        echo "merge: $remote_reason; not merging." >&2
+        return 1
+      }
+    elif [[ "$delta" == "comment" ]]; then
+      echo "C# comment/whitespace-only delta since fully-tested tree $proof_tree — compile-level smoke refresh."
+      merge_phase_begin tests
+      merge_journal_note "comment-only delta - EditMode smoke refresh"
+      clear_run_summary "$path"
+      cmd_run_tests_clean "$slot" -Mode EditMode -ScopeType Smoke
+      extend_proof "$slot" "$current_tree" "inherit-smoke" "$proof_tree"
+    elif [[ -n "$proof_tree" ]]; then
+      echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
+      merge_phase_begin tests
+      merge_journal_note "code delta since proof - full suite"
+      run_tests_for_proof "$slot" "$path" "${test_args[@]}"
+    else
+      echo "No full-suite proof for tree $current_tree — running the full suite before merge."
+      merge_phase_begin tests
+      merge_journal_note "no proof for landing tree - full suite"
+      run_tests_for_proof "$slot" "$path" "${test_args[@]}"
+    fi
   fi
   if [[ "$(verified_proof_tree "$slot")" != "$current_tree" ]]; then
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
@@ -1395,7 +1585,7 @@ cmd_merge() {
   cmd_run_resharper "$slot" "$base_ref"
 
   local scripts_diff_rc=0
-  landing_diff_touches_scripts "$path" "$base_ref" "$slot" || scripts_diff_rc=$?
+  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
   [[ "$scripts_diff_rc" -ne 2 ]] || return 1
   # Depth is bounded: the suite runs the SLOT's scripts/tests, and a test fixture's slot carries none.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
@@ -1407,6 +1597,14 @@ cmd_merge() {
   merge_phase_begin push
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
+
+  # The gate's own minutes (more under --remote) are a window for base to move under a proven tree.
+  merge_phase_begin base-recheck
+  git -C "$path" fetch origin "$base_branch"
+  if ! git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
+    echo "merge: base moved during the merge gate — re-run 'merge $slot'." >&2
+    return 1
+  fi
 
   # GitHub recomputes mergeability asynchronously after the gate's push; a merge call inside that window fails "not mergeable" — brief retries ride it out.
   merge_phase_begin gh-merge

@@ -196,7 +196,13 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
-  full run. Scoped runs never produce one.
+  full run, produced on this machine or as **remote proof**. Scoped runs never
+  produce one.
+- **remote proof** — merge-grade proof whose green run happened on a
+  GitHub-hosted runner: a `success` `merge-proof/headless` commit status on the
+  landing commit whose trailer stamps the landing tree. The merge gate never
+  accepts it for a landing diff that touches `.github/` — that PR can edit the
+  workflow that proves it. *(`accept_remote_proof`, agent_worktree_pool.sh)*
 - **headless suite** — the merge gate's test selection run with no GPU and
   without the heavy art/audio files (light LFS checkout). A test that needs
   one of those files cannot live in it.
