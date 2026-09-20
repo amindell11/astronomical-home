@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AI.Observation;
 using AI.Scanning;
 using Asteroids;
+using Asteroids.Spawning;
 using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
@@ -12,6 +13,7 @@ using Tests.Common;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
+using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
 using RL.Episodes;
@@ -19,7 +21,7 @@ using RL.Runtime;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: the sentence action decode (10 continuous + 8 discrete branches, every channel clamped, referents resolved against the observed roster), the vocabulary/curriculum action mask, the 76-float combat observation layout (28 legacy channels + 6 rock-slot blocks), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the brain's sentence objective shape (all five slots armed per decision, manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: the sentence action decode (10 continuous + 8 discrete branches, every channel clamped, referents resolved against the observed roster), the vocabulary/curriculum action mask, the 76-float combat observation layout (28 legacy channels + 6 rock-slot blocks), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the brain's sentence objective shape (all five slots armed per decision, manual fire, never the legacy world facing or aimbot) and one-shot boost semantics, plus the frozen asteroid-radius normalizer against the shipped spawn settings.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -445,6 +447,18 @@ namespace Tests.EditMode
             };
             for (var i = 0; i < expected.Length; i++)
                 Assert.AreEqual(expected[i], dest[i], 1e-4f, $"token float {i}");
+        }
+
+        [Test]
+        public void SpawnSettingsMaxAsteroidRadius_MatchesTheShippedSpawnSettings()
+        {
+            const string path = "Assets/Settings/Asteroids/SpawnSettings.asset";
+            var settings = AssetDatabase.LoadAssetAtPath<AsteroidSpawnSettings>(path);
+            Assert.IsNotNull(settings, $"{path} must load");
+
+            // Tolerance is half the constant's last printed digit: 4.17 is what trained, not an exact value.
+            Assert.AreEqual(AgentObservations.SpawnSettingsMaxAsteroidRadius, settings.MaxSpawnRadius, 0.005f,
+                "the radius channel's normalizer drifted from the asset the frozen policy trained on — report, don't retune");
         }
 
         [Test]
