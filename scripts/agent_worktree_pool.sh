@@ -136,9 +136,18 @@ Commands:
       diff touches scripts/. Do not call 'gh pr merge' directly.
       Either path accepts remote proof on the landing commit: a green
       merge-proof/headless status whose trailer stamps the landing tree.
-      --remote takes a needed run to that hosted suite instead of booting
-      Unity here, and is refused when the landing diff touches .github/,
-      since such a PR can edit the workflow that proves it.
+      When a run is needed, its producer is chosen in this order:
+        --remote            hosted headless suite; memory admission not asked
+        -- <runner args>    local run; memory admission not asked
+        neither             the access coordinator's BootAdmission verdict:
+                            boot_admitted -> local run, boot_not_admitted ->
+                            hosted suite, anything else -> refused
+      A hosted run is refused when the landing diff touches .github/, since
+      such a PR can edit the workflow that proves it; with boot_not_admitted
+      too, only a user-approved 'merge <slot> -- -AllowLowMemory' lands it.
+      Hosted ladder: the ReSharper ratchet runs BEFORE the hosted wait
+      (... proof-check resharper remote-proof ...), since changed C# under
+      Assets/Scripts still boots Unity here once for its solution sync.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -1397,7 +1406,7 @@ wait_for_remote_verdict() {
         fi ;;
       queued|requested|waiting|pending)
         if (( SECONDS - phase_since > REMOTE_QUEUED_SECONDS )); then
-          echo "merge: headless-suite run $run_id has sat queued over ${REMOTE_QUEUED_SECONDS}s — not merging. Re-run 'merge $slot --remote' to keep waiting, or drop --remote for the local run." >&2
+          echo "merge: headless-suite run $run_id has sat queued over ${REMOTE_QUEUED_SECONDS}s — not merging. Re-run 'merge $slot --remote' to keep waiting, or pin the local run with 'merge $slot -- -Mode Both -ScopeType Workspace'." >&2
           return 1
         fi ;;
       *)
@@ -1436,6 +1445,23 @@ run_remote_for_proof() {
     fi
   fi
   wait_for_remote_verdict "$slot" "$sha" "$task_branch"
+}
+
+# The access coordinator owns memory admission; the gate reads its status word, measuring nothing (script-contracts.md sec.3).
+ADMISSION_READER='
+. (Join-Path $env:POOL_SCRIPT_DIR "unity_access_client.ps1")
+$call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "BootAdmission", "-Mode", "batch")
+if ($call.stderr) { [Console]::Error.WriteLine($call.stderr) }
+if ($call.exitCode -ne 0 -or $null -eq $call.result) { [Console]::Error.WriteLine("BootAdmission exit=" + $call.exitCode + " stdout=" + $call.stdout); exit 1 }
+[Console]::Error.WriteLine("memory admission: " + $call.stdout)
+Write-Output "$($call.result.status)"
+'
+
+# Prints the batch-boot admission status word; non-zero = the coordinator could not be asked.
+boot_admission_status() {
+  local out
+  out="$(POOL_SCRIPT_DIR="$SCRIPT_DIR" powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ADMISSION_READER")" || return 1
+  printf '%s\n' "${out//$'\r'/}"
 }
 
 # ---- Merge gate ------------------------------------------------------------
@@ -1548,13 +1574,45 @@ cmd_merge() {
       fi
       ;;
   esac
+  local ratchet_done=0
   if [[ "$delta" != "proven" && "$delta" != "doc" ]]; then
     echo "$remote_reason."
+    # A producer the user named (--remote, or runner args = the local runner) always beats the verdict.
+    if [[ "$remote" -eq 0 && ${#test_args[@]} -eq 0 ]]; then
+      local admission
+      if ! admission="$(boot_admission_status)"; then
+        echo "merge: the Unity access coordinator gave no memory admission verdict (its output is above) — not merging." >&2
+        echo "  Fix the coordinator, or name the producer: 'merge $slot --remote' (hosted run) or 'merge $slot -- <runner args>' (local run)." >&2
+        return 1
+      fi
+      case "$admission" in
+        boot_admitted)
+          merge_journal_note "memory admission boot_admitted - local run" ;;
+        boot_not_admitted)
+          if [[ "$github_diff_rc" -eq 0 ]]; then
+            echo "merge: not merging — memory admission would refuse a batch Unity boot (boot_not_admitted), and the landing diff touches .github/, so remote proof is barred." >&2
+            echo "  With the user's approval of that boot: 'merge $slot -- -AllowLowMemory'. It covers the TEST boot only, not the ReSharper solution-sync boot." >&2
+            return 1
+          fi
+          echo "Memory admission would refuse a batch Unity boot (boot_not_admitted) — the test run goes to the hosted headless suite."
+          echo "The ReSharper ratchet runs first: a solution-sync boot it needs faces the same memory pressure."
+          merge_journal_note "memory admission boot_not_admitted - hosted run"
+          remote=1 ;;
+        *)
+          echo "merge: memory admission status '$admission' is not one the gate knows — not merging." >&2
+          echo "  Name the producer: 'merge $slot --remote' (hosted run) or 'merge $slot -- <runner args>' (local run)." >&2
+          return 1 ;;
+      esac
+    fi
     if [[ "$remote" -eq 1 && "$github_diff_rc" -eq 0 ]]; then
       echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
       return 1
     elif [[ "$remote" -eq 1 ]]; then
-      # A comment-only delta's usual refresh is a local smoke boot, so under --remote it is a code delta.
+      # Ratchet first: its boot fails in seconds, the hosted wait costs minutes and LFS bandwidth.
+      merge_phase_begin resharper
+      cmd_run_resharper "$slot" "$base_ref"
+      ratchet_done=1
+      # A comment-only delta's usual refresh is a local smoke boot, so on the hosted path it is a code delta.
       echo "Running the hosted headless suite on landing commit $landing_sha before merge."
       merge_phase_begin remote-proof
       merge_journal_note "hosted headless suite on $landing_sha"
@@ -1586,8 +1644,10 @@ cmd_merge() {
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
     return 1
   fi
-  merge_phase_begin resharper
-  cmd_run_resharper "$slot" "$base_ref"
+  if [[ "$ratchet_done" -eq 0 ]]; then
+    merge_phase_begin resharper
+    cmd_run_resharper "$slot" "$base_ref"
+  fi
 
   local scripts_diff_rc=0
   landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
