@@ -50,7 +50,8 @@ sometimes as a JSON string — parse both.
   rejects `..`, lands under `Assets/` — triggering imports and polluting the tree.
   Delete the folder (e.g. `Assets/Screenshots`) when done.
 - `screenshot` takes `--output` and accepts absolute paths — prefer it when it can do
-  the job.
+  the job. `--view scene` ignores scene-camera changes made over the CLI; to frame a
+  subject yourself, render through your own camera (game-capture skill → "Asset stills").
 
 ## eval / eval_file
 

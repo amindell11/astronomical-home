@@ -1,6 +1,6 @@
 ---
 name: game-capture
-description: Record footage of any game situation, with native gizmo diagnostics drawn over it, and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, or recording RL episodes.
+description: Record footage of any game situation, with native gizmo diagnostics drawn over it, and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, recording RL episodes — or showing a visual finding (mesh, collider, layout) as a still.
 metadata:
   project: astronomical-home
 ---
@@ -168,6 +168,13 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   field lit (the "magenta asteroid" leak). With presentation off, the environment
   silhouette comes from **collider gizmos** (the Gizmo View Colliders toggle / the capture
   transaction's `CollidersOn`), not unlit meshes.
+- **Asset stills (edit mode, own camera)** — a finding about something visual (mesh,
+  collider, layout) ships as a picture when an editor is already held or the user asks;
+  otherwise offer the picture in one line and let the user spend the boot. Worked
+  example: `cli-eval/asset_still_scene.cs` then `asset_still_render.cs` (overlays are
+  line-topology meshes, since gizmos never reach an own-camera render) → PNG in the
+  scratchpad → SendUserFile. Load an empty scene before closing the editor so nothing
+  prompts to save. The lane is young: extend the snippets as uses accumulate.
 - **Sub-second subjects are out of reach**: a select→capture round-trip is ~0.5–1 s, so
   laser bolts and projectiles-in-flight cannot be stilled from outside — that needs an
   editor-side atomic `[CliCommand]`, `capture.gizmo_still` (carded #446).
