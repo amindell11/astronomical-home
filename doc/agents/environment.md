@@ -23,13 +23,16 @@ constant for the mode plus the margin (`-Action Contract` publishes all three).
 They are hand-tuned from evidence, not self-calibrating — post the numbers in a
 comment on #578 with each retune.
 
-**Batch** — every test-agent run stamps a `memory` block into its summary. List
-the upper-bracket tree peak per run across the pool:
+**Batch** — every test-agent run stamps a `memory` block into its summary. The
+tree's summed kernel peaks are read at 5 s cadence, so a run whose last seconds
+went unsampled can report less than the root's own exact peak; take the larger
+of the two per run:
 
 ```powershell
 Get-ChildItem D:\amind\git\agent-*\results\unity-tests-agent\*-summary.json -Exclude latest-summary.json |
   ForEach-Object { $s = Get-Content $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json
-    foreach ($p in @($s.memory.processes)) { [pscustomobject]@{ run = $_.Name; peakGB = $p.treeSumOfPeaksPrivateGB } } } |
+    foreach ($p in @($s.memory.processes)) { [pscustomobject]@{ run = $_.Name
+      peakGB = [Math]::Max($p.treeSumOfPeaksPrivateGB, $p.rootPeakPrivateGB) } } } |
   Sort-Object peakGB -Descending | Select-Object -First 20
 ```
 
