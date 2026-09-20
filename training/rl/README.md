@@ -313,7 +313,9 @@ Proven across run 1 (2M curriculum) and the 500k retrain. Read before any launch
   step 1968, then four workers died on `ArgumentNullException` from
   `AsteroidController.MeanVertexRadius`, with ML-Agents reporting the survivors as
   merely stuck. Rebuild the player exe after any code merge.
-- Clear `<slot>/src/Asteroids3D/Library/BurstCache/`; keep ≥ ~10 GB free RAM.
+- Clear `<slot>/src/Asteroids3D/Library/BurstCache/`; for memory, ask
+  `scripts/unity_access.ps1 -Action BootAdmission -Mode batch -Json` rather than
+  judging free RAM by hand.
 - Pick a unique run id and assert `results/rl-training/<run-id>` does not exist.
   A first launch never uses `--force`.
 - Base port 5006 is single-occupancy machine-wide — check the work ledger and for

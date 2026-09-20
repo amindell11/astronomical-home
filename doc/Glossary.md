@@ -612,6 +612,15 @@ Format: **term** — definition. *(authority)*
   TTL; pid-less ones expire and orphan live editors. A **wedged** boot lane — an
   unowned boot dir the cleanup cannot delete — reports `boot_lane_wedged`
   (exit 25), never free.
+- **memory admission** — the coordinator's yes/no on whether a Unity boot may
+  start, given memory. Asked read-only through `-Action BootAdmission`, enforced
+  when the boot lane is granted; the refusal is `boot_refused_low_memory`
+  (exit 28), and `-AllowLowMemory` overrides it for one invocation, only after
+  the user approved that specific boot. (Retired: "RAM floor".)
+  *(Get-BootAdmission, scripts/unity_access.ps1)*
+- **commit headroom** — commit limit minus commit charge: what a dying Unity
+  boot runs out of, and the only reading memory admission blocks on. Available
+  physical RAM rides along in the verdict and never refuses a boot.
 - **coordinator Adopt** — seize an untracked live Unity process into fresh
   ownership. Refuses the user's hand-opened editor.
 - **tracked vs user editor** — coordinator-owned versus user-owned. A user editor
@@ -641,6 +650,7 @@ Format: **term** — definition. *(authority)*
 | pursuit gap, pursuit ceiling, pursuit-gradient hole | **Evader hole** (deficit) or **pursuit gradient** (mechanism) |
 | entry gate | **entry bar** |
 | single-boot gate | **single-boot mode** |
+| RAM floor | **memory admission** (the verdict decides; no hand-evaluated floor) |
 | main tree | **primary tree** (or prim tree / primary) |
 | program, package, series (as a work grouping) | **arc**, **slice**, or **pass** |
 | ARC COMPLETE | **SHIPPED** or **CLOSED** |
