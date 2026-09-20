@@ -6,6 +6,8 @@ param(
     [string]$UnityPath = "",
     [int]$UnityAccessWaitSec = 900,
     [int]$UnitySyncTimeoutSec = 600,
+    # The solution is already on disk (the hosted job's test boot wrote it): no Unity boot here.
+    [switch]$SolutionReady,
     [switch]$Audit
 )
 
@@ -178,7 +180,7 @@ if ($MyInvocation.InvocationName -eq '.') { return }
 
 $repoRoot = Get-RepoRoot -ProbePath $PSScriptRoot
 $solutionRoot = Resolve-FullPath $ProjectPath $repoRoot
-if ([string]::IsNullOrWhiteSpace($UnityPath)) { $UnityPath = Resolve-UnityEditorPath -ProjectPath $solutionRoot }
+if (-not $SolutionReady.IsPresent -and [string]::IsNullOrWhiteSpace($UnityPath)) { $UnityPath = Resolve-UnityEditorPath -ProjectPath $solutionRoot }
 $outputRoot = Resolve-FullPath $OutDir $repoRoot
 $solution = Join-Path $solutionRoot "Asteroids3D.sln"
 $settings = Join-Path $repoRoot "scripts/resharper-unity.DotSettings"
@@ -201,7 +203,7 @@ if ($changedLines.Count -eq 0 -and -not $Audit.IsPresent) {
     exit 0
 }
 
-Sync-UnitySolution $repoRoot $solutionRoot $outputRoot $UnityPath $UnityAccessWaitSec $UnitySyncTimeoutSec
+if (-not $SolutionReady.IsPresent) { Sync-UnitySolution $repoRoot $solutionRoot $outputRoot $UnityPath $UnityAccessWaitSec $UnitySyncTimeoutSec }
 if (-not (Test-Path -LiteralPath $solution -PathType Leaf)) { throw "Unity did not generate $solution" }
 
 & dotnet tool restore --tool-manifest (Join-Path $repoRoot ".config/dotnet-tools.json")

@@ -198,11 +198,17 @@ Format: **term** — definition. *(authority)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
-- **remote proof** — merge-grade proof whose green run happened on a
-  GitHub-hosted runner: a `success` `merge-proof/headless` commit status on the
-  landing commit whose trailer stamps the landing tree. The merge gate never
-  accepts it for a landing diff that touches `.github/` — that PR can edit the
-  workflow that proves it. *(`accept_remote_proof`, agent_worktree_pool.sh)*
+- **remote proof** — proof the merge gate accepts from a GitHub-hosted run, as
+  `success` commit statuses on the landing commit: `merge-proof/headless`
+  (merge-grade test proof; trailer stamps the landing tree) and
+  `merge-proof/resharper` (the **hosted ratchet**). The merge gate never
+  accepts either for a landing diff that touches `.github/` — that PR can edit
+  the workflow that proves it. *(`verified_remote_status`, agent_worktree_pool.sh)*
+- **hosted ratchet** — the ReSharper ratchet run inside the hosted
+  headless-suite job, on the solution files that job's test boot wrote. Its
+  trailer stamps the landing tree AND the base tree it diffed against, so a
+  moved or non-main base is no proof and the local ReSharper ratchet runs.
+  *(.github/workflows/headless-suite.yml)*
 - **headless suite** — the merge gate's test selection run with no GPU and
   without the heavy art/audio files (light LFS checkout). A test that needs
   one of those files cannot live in it.

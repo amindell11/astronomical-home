@@ -22,6 +22,7 @@ export RESHARPER_EXIT_FILE="$TMP/resharper.exit"
 export GH_MERGE_LOG="$TMP/gh-merge.log"
 export GH_DISPATCH_LOG="$TMP/gh-dispatch.log"
 export GH_STATUS_SEQ="$TMP/gh-status.seq"
+export GH_RATCHET_SEQ="$TMP/gh-ratchet.seq"
 export GH_RUN_SEQ="$TMP/gh-run.seq"
 export ADMISSION_SEQ="$TMP/admission.seq"
 export ADMISSION_LOG="$TMP/admission.log"
@@ -150,7 +151,8 @@ case "$1 $2" in
   "pr merge") echo "$*" >> "$GH_MERGE_LOG" ;;
   "api repos/pool-test/repo/commits/"*)
     [[ "${GH_API_FAIL:-0}" != 1 ]] || { echo "gh stub: HTTP 502" >&2; exit 1; }
-    next_answer "$GH_STATUS_SEQ" $'absent\037\037' ;;
+    if [[ "$*" == *merge-proof/resharper* ]]; then seq="$GH_RATCHET_SEQ"; else seq="$GH_STATUS_SEQ"; fi
+    next_answer "$seq" $'absent\037\037' ;;
   "run list") next_answer "$GH_RUN_SEQ" $'none\t' ;;
   "workflow run") echo "$*" >> "$GH_DISPATCH_LOG" ;;
   *) echo "gh stub: unmodelled call: $*" >&2; exit 97 ;;
@@ -576,8 +578,12 @@ new_commit() {
 }
 push_slot() { git -C "$TMP/agent-1" push -q origin "agent-1:refs/heads/$TASK_BRANCH"; }
 statuses() { printf '%s\n' "$@" > "$GH_STATUS_SEQ"; }
+ratchets() { printf '%s\n' "$@" > "$GH_RATCHET_SEQ"; }
 runs() { printf '%s\n' "$@" > "$GH_RUN_SEQ"; }
 green() { printf 'success\037tree=%s total=5 passed=5 skipped=0\037%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
+base_tree() { git -C "$TMP/agent-1" rev-parse 'origin/main^{tree}'; }
+ratchet_status() { printf '%s\037%s\037%s/%s' "$1" "$2" "$RUN_URL" "$3"; }
+rgreen() { ratchet_status success "tree=$(slot_tree) baseTree=$(base_tree) files=1 unity=9 blocking=0" "$1"; }
 # Refusals must come from the liveness rules, not from minutes of real waiting.
 gate_merge() {
   WORKTREE_POOL_REMOTE_POLL_SECONDS=1 WORKTREE_POOL_REMOTE_NO_RUN_SECONDS="${NO_RUN:-120}" \
@@ -631,6 +637,51 @@ pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "
 [[ "$(proof_kind)" == "full-run" ]] || fail "fallback proof must come from the local run (got $(proof_kind))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fallback should merge on local proof"
 
+# Hosted ratchet, fail closed: tests are proven once, so every case dies in the resharper phase with no
+# wait. Default path: the reason is named and the (red) local ratchet runs; --remote: refused, no ratchet run.
+new_commit ratchet-fail-closed
+push_slot
+statuses "$(green 42)"
+echo 1 > "$RESHARPER_EXIT_FILE"
+merges_before="$(gh_merges)"
+ZERO="$(printf '%040d' 0)"
+expect_ratchet_fail_closed() {
+  local reason="$1" label="$2"
+  resharper_before="$(resharper_runs)"
+  if pool merge agent-1 > "$TMP/merge.out" 2>&1; then fail "$label: fixture ratchet is red, merge must fail"; fi
+  expect_output "$reason" "$label: the gate must say why the hosted ratchet is no proof"
+  [[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "$label: the default path must run the local ratchet once (got $(resharper_runs))"
+  if remote_merge; then fail "$label: --remote must refuse"; fi
+  expect_output "the hosted path runs no local ReSharper ratchet" "$label: the --remote refusal must say why"
+  expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "$label: the --remote refusal must name the rerun"
+  [[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "$label: --remote must not run the local ratchet (got $(resharper_runs))"
+}
+ratchets $'absent\037\037'
+expect_ratchet_fail_closed "merge-proof/resharper on $(slot_sha) is 'absent', not success" "absent ratchet status"
+ratchets "$(ratchet_status failure "1 blocking finding(s) on changed lines - see run" 42)"
+expect_ratchet_fail_closed "is 'failure', not success" "red ratchet status"
+ratchets "$(ratchet_status error "run cancelled or timed out" 42)"
+expect_ratchet_fail_closed "is 'error', not success" "errored ratchet status"
+ratchets "$(ratchet_status neutral whatever 42)"
+expect_ratchet_fail_closed "is 'neutral', not success" "unknown ratchet state"
+ratchets "$(ratchet_status success "baseTree=$(base_tree) skipped=1" 42)"
+expect_ratchet_fail_closed "names no tree (" "ratchet trailer without tree="
+ratchets "$(ratchet_status success "tree=$(slot_tree) skipped=1" 42)"
+expect_ratchet_fail_closed "names no baseTree (" "ratchet trailer without baseTree="
+ratchets "$(ratchet_status success "tree=$ZERO baseTree=$(base_tree)" 42)"
+expect_ratchet_fail_closed "stamps tree $ZERO" "ratchet tree mismatch"
+ratchets "$(ratchet_status success "tree=$(slot_tree) baseTree=$ZERO" 42)"
+expect_ratchet_fail_closed "stamps baseTree $ZERO" "ratchet baseTree mismatch"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "no hosted-ratchet fail-closed case may reach gh pr merge"
+# Green for this tree and base: accepted on the default path, the (still red) local ratchet never runs.
+ratchets "$(rgreen 42)"
+resharper_before="$(resharper_runs)"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "a green hosted ratchet should merge"; }
+expect_output "hosted ratchet accepted, no local ratchet run" "the gate should say it used the hosted ratchet"
+[[ "$(resharper_runs)" == "$resharper_before" ]] || fail "an accepted hosted ratchet must not run the local one (got $(resharper_runs))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "an accepted hosted ratchet should reach gh pr merge"
+echo 0 > "$RESHARPER_EXIT_FILE"
+
 # --remote takes no runner args.
 if pool merge agent-1 --remote -- -Mode EditMode > "$TMP/merge.out" 2>&1; then fail "--remote must refuse test-runner args"; fi
 expect_output "--remote takes no test-runner args" "--remote arg refusal must say why"
@@ -663,25 +714,30 @@ expect_output "is 'error' (headless suite cancelled)" "an error verdict must be 
 
 # After the rerun: pending with a live run is waited on, not re-dispatched.
 statuses "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(green 43)"
+# The ratchet verdict lands two polls after the suite's: a wait that returns on the first green is refused below.
+pending_ratchet="$(ratchet_status pending "hosted ratchet running" 43)"
+ratchets "$pending_ratchet" "$pending_ratchet" "$pending_ratchet" "$(rgreen 43)"
 runs "$(printf 'in_progress\t43')"
-merges_before="$(gh_merges)"; queries_before="$(admission_queries)"
+merges_before="$(gh_merges)"; queries_before="$(admission_queries)"; resharper_before="$(resharper_runs)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the rerun goes green"; }
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a live run must not be re-dispatched"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green rerun should reach gh pr merge"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "--remote proof must be kind=remote-run (got $(proof_kind))"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check resharper remote-proof script-tests push base-recheck gh-merge " ]] \
-  || fail "--remote runs the ratchet before remote-proof and opens it once (got '$(phase_order)')"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+  || fail "--remote waits on the hosted run, then accepts the hosted ratchet (got '$(phase_order)')"
+[[ "$(resharper_runs)" == "$resharper_before" ]] || fail "--remote must never run the local ratchet (got $(resharper_runs))"
 [[ "$(admission_queries)" == "$queries_before" ]] || fail "--remote names the producer, so memory admission must not be asked"
 
 # --remote with the landing commit not on GitHub: the gate pushes it, and the push is the trigger.
 new_commit remote-push
 statuses "$(printf 'pending\037headless suite running\037%s/44' "$RUN_URL")" "$(green 44)"
+ratchets "$(rgreen 44)"
 runs "$(printf 'in_progress\t44')"
 merges_before="$(gh_merges)"; resharper_before="$(resharper_runs)"
 [[ "$(remote_tip)" != "$(slot_sha)" ]] || fail "fixture: the landing commit should start unpushed"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should push, wait, and merge"; }
-[[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "--remote must invoke the ratchet exactly once (got $(resharper_runs))"
+[[ "$(resharper_runs)" == "$resharper_before" ]] || fail "--remote must never run the local ratchet (got $(resharper_runs))"
 [[ "$(remote_tip)" == "$(slot_sha)" ]] || fail "--remote must push the landing commit"
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a push triggers the workflow; no dispatch"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "pushed --remote run should merge"
@@ -690,6 +746,7 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should push, wait, an
 new_commit remote-dispatch
 push_slot
 statuses $'absent\037\037' $'absent\037\037' "$(green 45)"
+ratchets "$(rgreen 45)"
 runs $'none\t' "$(printf 'in_progress\t45')"
 merges_before="$(gh_merges)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should dispatch, wait, and merge"; }
@@ -728,6 +785,7 @@ if remote_merge; then fail "--remote must refuse a green status for another tree
 expect_output "stamps tree 0000000000000000000000000000000000000000" "the post-wait tree check must say why"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a wrong-tree verdict must not reach gh pr merge"
 statuses "$(green 46)"
+ratchets "$(rgreen 46)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "fixture: clear the pending landing commit"; }
 
 # Under --remote a comment-only delta is a code delta: hosted run, no local smoke boot.
@@ -739,6 +797,7 @@ sed -i 's/reworded again/reworded for remote/' "$TMP/agent-1/code.cs"
 git -C "$TMP/agent-1" add code.cs
 git -C "$TMP/agent-1" commit -qm "comment-only edit for --remote"
 statuses "$(printf 'pending\037headless suite running\037%s/47' "$RUN_URL")" "$(green 47)"
+ratchets "$(rgreen 47)"
 runs "$(printf 'in_progress\t47')"
 runs_before="$(runner_runs)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "comment-only --remote merge should complete"; }
@@ -773,19 +832,19 @@ echo 0 > "$RUNNER_EXIT_FILE"
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "runner args must take the local run (got $(runner_runs))"
 [[ "$(admission_queries)" == "$queries_before" ]] || fail "runner args name the producer, so memory admission must not be asked"
 
-# Not admitted: the hosted run, ratchet first and once, no local boot for tests.
+# Not admitted: the hosted run proves tests and the ratchet, no local boot of either kind.
 statuses "$(printf 'pending\037headless suite running\037%s/49' "$RUN_URL")" "$(green 49)"
+ratchets "$(rgreen 49)"
 runs "$(printf 'in_progress\t49')"
 runs_before="$(runner_runs)"
 gate_merge || { cat "$TMP/merge.out" >&2; fail "boot_not_admitted should merge on the hosted run"; }
 expect_output "boot_not_admitted) — the test run goes to the hosted headless suite" "the gate must say why it went remote"
-expect_output "faces the same memory pressure" "the gate must warn about the ratchet's boot"
 [[ "$(admission_queries)" == $((queries_before + 1)) ]] || fail "an owed run with no named producer asks memory admission once (got $(admission_queries))"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "boot_not_admitted must not run the local suite (got $(runner_runs))"
-[[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "the hosted path must invoke the ratchet exactly once (got $(resharper_runs))"
+[[ "$(resharper_runs)" == "$resharper_before" ]] || fail "the hosted path must never run the local ratchet (got $(resharper_runs))"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "the automatic hosted run must record kind=remote-run (got $(proof_kind))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "the automatic hosted run should reach gh pr merge"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check resharper remote-proof script-tests push base-recheck gh-merge " ]] \
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
   || fail "the automatic hosted path takes the remote ladder (got '$(phase_order)')"
 grep -q 'memory admission boot_not_admitted - hosted run' "$(journal_for)" || fail "the journal must note the verdict and the chosen producer"
 
@@ -794,6 +853,7 @@ sed -i 's/reworded for remote/reworded for fallback/' "$TMP/agent-1/code.cs"
 git -C "$TMP/agent-1" add code.cs
 git -C "$TMP/agent-1" commit -qm "comment-only edit under boot_not_admitted"
 statuses "$(printf 'pending\037headless suite running\037%s/50' "$RUN_URL")" "$(green 50)"
+ratchets "$(rgreen 50)"
 runs "$(printf 'in_progress\t50')"
 gate_merge || { cat "$TMP/merge.out" >&2; fail "comment-only delta under boot_not_admitted should merge on the hosted run"; }
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "boot_not_admitted must not smoke-boot a comment-only delta (got $(runner_runs))"
@@ -827,6 +887,7 @@ git -C "$TMP/agent-1" add .github
 git -C "$TMP/agent-1" commit -qm "edit the proving workflow"
 push_slot
 statuses "$(green 48)"
+ratchets "$(rgreen 48)"
 merges_before="$(gh_merges)"
 if remote_merge; then fail "--remote must refuse a landing diff touching .github/"; fi
 expect_output "--remote refused — the landing diff touches .github/" "the .github refusal must say why"
@@ -839,8 +900,9 @@ expect_output "memory admission would refuse a batch Unity boot (boot_not_admitt
 expect_output "merge agent-1 -- -AllowLowMemory'. It covers the TEST boot only" "the refusal must name the approved-boot way out and its limit"
 [[ "$(runner_runs)" == "$runs_before" && "$(gh_merges)" == "$merges_before" ]] || fail "the double refusal must not run tests or reach gh pr merge"
 admission boot_admitted
-runs_before="$(runner_runs)"
+runs_before="$(runner_runs)"; resharper_before="$(resharper_runs)"
 pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail ".github landing diff should merge on the local run"; }
+[[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail ".github landing diff bars the green hosted ratchet too: the local one runs (got $(resharper_runs))"
 expect_output "the landing diff touches .github/, so this merge needs the local run" "the default path must say why it ignored the green status"
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail ".github landing diff must run the local suite (got $(runner_runs))"
 [[ "$(proof_kind)" == "full-run" ]] || fail ".github landing diff must merge on local proof (got $(proof_kind))"
@@ -848,4 +910,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + memory-admission producer choice"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice"
