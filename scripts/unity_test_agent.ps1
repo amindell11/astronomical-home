@@ -95,7 +95,7 @@ $memoryProcesses = @()
 #   Parameter validation      flag combinations that can never run
 #   Unity access coordination Get-UnityAccessSlot .. Test-UnityBootComplete (lease + boot lane)
 #   Parsers & formatting      Get-ArgumentValue .. Get-TopStackFrame, Write-AutoSelection
-#   Cold transport            Test-ScopeFilterMatchesTests, Invoke-UnityProcess (boot, watchdog, kill)
+#   Cold transport            Test-ScopeFilterMatchesTests, Invoke-UnityProcess (boot, watchdog, kill, memory sampling)
 #   Run records & results     New-RunRecord, New-FailureEntry, Parse-UnityResultXml, Get-CoverageVerdict
 #   Routed transport          attach to a resident editor via the unity CLI pipeline
 #   Setup                     paths, output dir, scratch-scenario staging
@@ -605,7 +605,7 @@ function Get-ProcessTreeMemory {
 }
 
 function Get-ProcessTreeSample {
-    param([int]$RootProcessId, [double]$AtSec)
+    param([double]$AtSec)
     $processes = @(Get-CimInstance -Query "SELECT ProcessId,ParentProcessId,CreationDate,PageFileUsage,PeakPageFileUsage,WorkingSetSize FROM Win32_Process" -ErrorAction Stop | ForEach-Object {
         [ordered]@{
             processId = [int]$_.ProcessId
@@ -676,7 +676,7 @@ function Invoke-UnityProcess {
             }
             catch { }
             if ((Get-Date) -ge $samplePollDue) {
-                try { $samples += , (Get-ProcessTreeSample -RootProcessId $proc.Id -AtSec ([DateTimeOffset]::UtcNow - $launchedAt).TotalSeconds) }
+                try { $samples += , (Get-ProcessTreeSample -AtSec ([DateTimeOffset]::UtcNow - $launchedAt).TotalSeconds) }
                 catch { $samplesFailed++ }
                 $samplePollDue = (Get-Date).AddSeconds(5)
             }

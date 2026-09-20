@@ -402,7 +402,6 @@ function Get-MemberValue {
 }
 
 # ---- Memory admission ------------------------------------------------------
-# Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of.
 function Get-MemoryReading {
     if ([string]::IsNullOrWhiteSpace($MemorySnapshotPath)) { return Get-SystemMemoryReading }
     $snapshotPath = Resolve-FullPath $MemorySnapshotPath
