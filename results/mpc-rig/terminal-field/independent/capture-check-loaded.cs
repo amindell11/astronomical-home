@@ -1,0 +1,1 @@
+var type = System.Type.GetType("Tests.PlayMode.Scenarios.TerminalFieldChaseScenario, Tests.PlayMode", true); var scenario = System.Activator.CreateInstance(type); var config = type.GetProperty("Config").GetValue(scenario); return new { scope = config.GetType().GetField("gizmoScope").GetValue(config).ToString(), assembly = type.Assembly.Location };

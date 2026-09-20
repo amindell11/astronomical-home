@@ -1,0 +1,90 @@
+{
+  "repeatsPresent": 3,
+  "requiredRepeats": 3,
+  "reports": [
+    {
+      "source": "results\\mpc-rig\\terminal-field\\independent\\revised-validation\\validation-20260910-005615-217\\transit.csv",
+      "arms": {
+        "3.0": {
+          "arrivals": 20,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": []
+        },
+        "0.0": {
+          "arrivals": 16,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": [
+            1234,
+            2001,
+            3104,
+            3115
+          ]
+        }
+      },
+      "checks": {
+        "arrival": true,
+        "benefit": true,
+        "collisionSteps": true,
+        "collisionEpisodes": true
+      }
+    },
+    {
+      "source": "results\\mpc-rig\\terminal-field\\independent\\revised-validation\\validation-20260910-005707-968\\transit.csv",
+      "arms": {
+        "3.0": {
+          "arrivals": 20,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": []
+        },
+        "0.0": {
+          "arrivals": 16,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": [
+            1234,
+            2001,
+            3104,
+            3115
+          ]
+        }
+      },
+      "checks": {
+        "arrival": true,
+        "benefit": true,
+        "collisionSteps": true,
+        "collisionEpisodes": true
+      }
+    },
+    {
+      "source": "results\\mpc-rig\\terminal-field\\independent\\revised-validation\\validation-20260910-005800-758\\transit.csv",
+      "arms": {
+        "3.0": {
+          "arrivals": 20,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": []
+        },
+        "0.0": {
+          "arrivals": 16,
+          "collisionSteps": 0,
+          "collisionEpisodes": 0,
+          "failedSeeds": [
+            1234,
+            2001,
+            3104,
+            3115
+          ]
+        }
+      },
+      "checks": {
+        "arrival": true,
+        "benefit": true,
+        "collisionSteps": true,
+        "collisionEpisodes": true
+      }
+    }
+  ]
+}

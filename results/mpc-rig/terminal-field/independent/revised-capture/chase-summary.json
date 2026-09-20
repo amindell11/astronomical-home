@@ -1,0 +1,272 @@
+[
+  {
+    "arm": "on",
+    "source": "results\\mpc-rig\\terminal-field\\independent\\revised-capture\\chase-on-20260910-012124-783.csv",
+    "frames": 400,
+    "seconds": 39.9999858276644,
+    "finalGap": 9.944542,
+    "closingMetres": 40.055458,
+    "pathMetres": 431.1915,
+    "pathPerClosingMetre": 10.764862556308806,
+    "collisionSteps": 7.0,
+    "stallWindows": 9,
+    "stallSeconds": 18,
+    "windows": [
+      {
+        "endSeconds": 2.0,
+        "closingMetres": 0.9023899999999969,
+        "stalled": false,
+        "meanSpeed": 5.780243732
+      },
+      {
+        "endSeconds": 4.0,
+        "closingMetres": 1.216940000000001,
+        "stalled": false,
+        "meanSpeed": 12.23721493
+      },
+      {
+        "endSeconds": 6.0,
+        "closingMetres": -5.978020000000001,
+        "stalled": true,
+        "meanSpeed": 12.5737531
+      },
+      {
+        "endSeconds": 8.0,
+        "closingMetres": 14.643510000000006,
+        "stalled": false,
+        "meanSpeed": 11.4767291
+      },
+      {
+        "endSeconds": 10.0,
+        "closingMetres": 16.739799999999995,
+        "stalled": false,
+        "meanSpeed": 9.79437809
+      },
+      {
+        "endSeconds": 12.0,
+        "closingMetres": 6.792840000000002,
+        "stalled": false,
+        "meanSpeed": 10.55970219
+      },
+      {
+        "endSeconds": 14.0,
+        "closingMetres": -6.167270000000002,
+        "stalled": true,
+        "meanSpeed": 12.579244599999999
+      },
+      {
+        "endSeconds": 16.0,
+        "closingMetres": 9.27602,
+        "stalled": false,
+        "meanSpeed": 14.3531621
+      },
+      {
+        "endSeconds": 18.0,
+        "closingMetres": -6.516309999999999,
+        "stalled": true,
+        "meanSpeed": 9.97411734
+      },
+      {
+        "endSeconds": 20.0,
+        "closingMetres": -9.99172,
+        "stalled": true,
+        "meanSpeed": 6.52355874
+      },
+      {
+        "endSeconds": 22.0,
+        "closingMetres": 4.5403400000000005,
+        "stalled": false,
+        "meanSpeed": 11.10998472
+      },
+      {
+        "endSeconds": 24.0,
+        "closingMetres": 4.11506,
+        "stalled": false,
+        "meanSpeed": 14.3534232
+      },
+      {
+        "endSeconds": 26.0,
+        "closingMetres": 0.5245099999999994,
+        "stalled": false,
+        "meanSpeed": 14.5874418
+      },
+      {
+        "endSeconds": 28.0,
+        "closingMetres": 9.67326,
+        "stalled": false,
+        "meanSpeed": 15.7778377
+      },
+      {
+        "endSeconds": 30.0,
+        "closingMetres": 6.996065,
+        "stalled": false,
+        "meanSpeed": 10.21462245
+      },
+      {
+        "endSeconds": 32.0,
+        "closingMetres": -2.694258,
+        "stalled": true,
+        "meanSpeed": 6.59630021
+      },
+      {
+        "endSeconds": 34.0,
+        "closingMetres": -2.5850799999999996,
+        "stalled": true,
+        "meanSpeed": 8.74374109
+      },
+      {
+        "endSeconds": 36.0,
+        "closingMetres": -0.6329910000000005,
+        "stalled": true,
+        "meanSpeed": 6.45178024
+      },
+      {
+        "endSeconds": 38.0,
+        "closingMetres": 0.17986900000000006,
+        "stalled": true,
+        "meanSpeed": 8.10396035
+      },
+      {
+        "endSeconds": 40.0,
+        "closingMetres": -0.9794970000000003,
+        "stalled": true,
+        "meanSpeed": 13.7786275
+      }
+    ]
+  },
+  {
+    "arm": "off",
+    "source": "results\\mpc-rig\\terminal-field\\independent\\revised-capture\\chase-off-20260910-011842-678.csv",
+    "frames": 400,
+    "seconds": 39.9999858276644,
+    "finalGap": 25.87489,
+    "closingMetres": 24.12511,
+    "pathMetres": 464.7068,
+    "pathPerClosingMetre": 19.26237020266436,
+    "collisionSteps": 13.0,
+    "stallWindows": 8,
+    "stallSeconds": 16,
+    "windows": [
+      {
+        "endSeconds": 2.0,
+        "closingMetres": 1.2196799999999968,
+        "stalled": false,
+        "meanSpeed": 5.615671177
+      },
+      {
+        "endSeconds": 4.0,
+        "closingMetres": 4.3463000000000065,
+        "stalled": false,
+        "meanSpeed": 12.6134876
+      },
+      {
+        "endSeconds": 6.0,
+        "closingMetres": -4.213240000000006,
+        "stalled": true,
+        "meanSpeed": 10.78005852
+      },
+      {
+        "endSeconds": 8.0,
+        "closingMetres": 9.263160000000006,
+        "stalled": false,
+        "meanSpeed": 11.8530491
+      },
+      {
+        "endSeconds": 10.0,
+        "closingMetres": 7.060849999999995,
+        "stalled": false,
+        "meanSpeed": 6.93296308
+      },
+      {
+        "endSeconds": 12.0,
+        "closingMetres": -8.924419999999998,
+        "stalled": true,
+        "meanSpeed": 6.75447067
+      },
+      {
+        "endSeconds": 14.0,
+        "closingMetres": -7.19755,
+        "stalled": true,
+        "meanSpeed": 9.62934638
+      },
+      {
+        "endSeconds": 16.0,
+        "closingMetres": 0.9013300000000015,
+        "stalled": false,
+        "meanSpeed": 13.1238333
+      },
+      {
+        "endSeconds": 18.0,
+        "closingMetres": 9.85978,
+        "stalled": false,
+        "meanSpeed": 14.5518564
+      },
+      {
+        "endSeconds": 20.0,
+        "closingMetres": -6.664490000000001,
+        "stalled": true,
+        "meanSpeed": 9.21560042
+      },
+      {
+        "endSeconds": 22.0,
+        "closingMetres": -0.9687200000000047,
+        "stalled": true,
+        "meanSpeed": 9.84104128
+      },
+      {
+        "endSeconds": 24.0,
+        "closingMetres": 5.282380000000003,
+        "stalled": false,
+        "meanSpeed": 14.8592177
+      },
+      {
+        "endSeconds": 26.0,
+        "closingMetres": -2.370440000000002,
+        "stalled": true,
+        "meanSpeed": 11.03362691
+      },
+      {
+        "endSeconds": 28.0,
+        "closingMetres": 5.563769999999998,
+        "stalled": false,
+        "meanSpeed": 12.492687
+      },
+      {
+        "endSeconds": 30.0,
+        "closingMetres": 6.562900000000003,
+        "stalled": false,
+        "meanSpeed": 14.0789252
+      },
+      {
+        "endSeconds": 32.0,
+        "closingMetres": 10.158349999999999,
+        "stalled": false,
+        "meanSpeed": 16.7444378
+      },
+      {
+        "endSeconds": 34.0,
+        "closingMetres": 1.529510000000002,
+        "stalled": false,
+        "meanSpeed": 12.7066335
+      },
+      {
+        "endSeconds": 36.0,
+        "closingMetres": -5.12049,
+        "stalled": true,
+        "meanSpeed": 9.97897844
+      },
+      {
+        "endSeconds": 38.0,
+        "closingMetres": -5.210180000000001,
+        "stalled": true,
+        "meanSpeed": 12.9689128
+      },
+      {
+        "endSeconds": 40.0,
+        "closingMetres": 3.0466300000000004,
+        "stalled": false,
+        "meanSpeed": 16.5393206
+      }
+    ]
+  }
+]

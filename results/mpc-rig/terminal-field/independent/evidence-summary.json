@@ -1,0 +1,339 @@
+{
+  "transit": [
+    {
+      "source": "validation-20260909-103717-413",
+      "arms": {
+        "0.0": {
+          "episodes": 20,
+          "arrivals": 16,
+          "collisionSteps": 0.0
+        },
+        "0.03": {
+          "episodes": 20,
+          "arrivals": 18,
+          "collisionSteps": 0.0
+        }
+      }
+    },
+    {
+      "source": "validation-20260909-103845-369",
+      "arms": {
+        "0.0": {
+          "episodes": 20,
+          "arrivals": 16,
+          "collisionSteps": 0.0
+        },
+        "0.03": {
+          "episodes": 20,
+          "arrivals": 18,
+          "collisionSteps": 0.0
+        }
+      }
+    },
+    {
+      "source": "validation-20260909-103914-579",
+      "arms": {
+        "0.0": {
+          "episodes": 20,
+          "arrivals": 16,
+          "collisionSteps": 0.0
+        },
+        "0.03": {
+          "episodes": 20,
+          "arrivals": 18,
+          "collisionSteps": 0.0
+        }
+      }
+    }
+  ],
+  "solver": [
+    {
+      "source": "solver-loop-d2-20260909-104116-756.csv",
+      "baselineMeanMs": 0.2212996,
+      "fieldMeanMs": 0.3167856,
+      "extraMeanMs": 0.09548599999999999,
+      "extraPercent": 43.14784120712374
+    },
+    {
+      "source": "solver-loop-d2.5-20260909-104119-388.csv",
+      "baselineMeanMs": 0.1906821,
+      "fieldMeanMs": 0.2597441,
+      "extraMeanMs": 0.06906199999999998,
+      "extraPercent": 36.2183970073751
+    }
+  ],
+  "chase": [
+    {
+      "arm": "on",
+      "source": "chase-on-20260909-111526-693.csv",
+      "frameDirectory": "D:\\amind\\git\\astronomical-home\\results\\mpc-rig\\terminal-field\\independent\\capture\\frames\\20260909-041526-terminal-field-dense-chase-on",
+      "frames": 400,
+      "seconds": 39.9999858276644,
+      "finalGap": 24.63481,
+      "closingMetres": 25.36519,
+      "pathMetres": 445.9401,
+      "pathPerClosingMetre": 17.580790839729566,
+      "collisionSteps": 33.0,
+      "stallSeconds": 20,
+      "stallWindows": 10,
+      "windows": [
+        {
+          "endSeconds": 2.0,
+          "closingMetres": 1.1738199999999992,
+          "stalled": false,
+          "meanSpeed": 5.594286087
+        },
+        {
+          "endSeconds": 4.0,
+          "closingMetres": 2.395769999999999,
+          "stalled": false,
+          "meanSpeed": 11.6080381
+        },
+        {
+          "endSeconds": 6.0,
+          "closingMetres": -3.5766399999999976,
+          "stalled": true,
+          "meanSpeed": 11.30946459
+        },
+        {
+          "endSeconds": 8.0,
+          "closingMetres": 8.27769,
+          "stalled": false,
+          "meanSpeed": 10.47072567
+        },
+        {
+          "endSeconds": 10.0,
+          "closingMetres": 13.05206,
+          "stalled": false,
+          "meanSpeed": 9.17619266
+        },
+        {
+          "endSeconds": 12.0,
+          "closingMetres": 6.273,
+          "stalled": false,
+          "meanSpeed": 9.94802673
+        },
+        {
+          "endSeconds": 14.0,
+          "closingMetres": -1.677340000000001,
+          "stalled": true,
+          "meanSpeed": 12.6090614
+        },
+        {
+          "endSeconds": 16.0,
+          "closingMetres": 1.1824000000000012,
+          "stalled": false,
+          "meanSpeed": 11.5802325
+        },
+        {
+          "endSeconds": 18.0,
+          "closingMetres": 8.9811,
+          "stalled": false,
+          "meanSpeed": 7.9998748299999995
+        },
+        {
+          "endSeconds": 20.0,
+          "closingMetres": 12.301459999999999,
+          "stalled": false,
+          "meanSpeed": 10.85985038
+        },
+        {
+          "endSeconds": 22.0,
+          "closingMetres": -2.988989,
+          "stalled": true,
+          "meanSpeed": 11.64848581
+        },
+        {
+          "endSeconds": 24.0,
+          "closingMetres": -2.33122,
+          "stalled": true,
+          "meanSpeed": 14.4022462
+        },
+        {
+          "endSeconds": 26.0,
+          "closingMetres": 1.3753469999999997,
+          "stalled": false,
+          "meanSpeed": 14.8137161
+        },
+        {
+          "endSeconds": 28.0,
+          "closingMetres": -3.7533450000000004,
+          "stalled": true,
+          "meanSpeed": 10.86641401
+        },
+        {
+          "endSeconds": 30.0,
+          "closingMetres": -2.947742999999999,
+          "stalled": true,
+          "meanSpeed": 10.34481299
+        },
+        {
+          "endSeconds": 32.0,
+          "closingMetres": 1.85473,
+          "stalled": false,
+          "meanSpeed": 9.97457654
+        },
+        {
+          "endSeconds": 34.0,
+          "closingMetres": -0.16594000000000086,
+          "stalled": true,
+          "meanSpeed": 11.4700512
+        },
+        {
+          "endSeconds": 36.0,
+          "closingMetres": -0.29371999999999865,
+          "stalled": true,
+          "meanSpeed": 14.2077293
+        },
+        {
+          "endSeconds": 38.0,
+          "closingMetres": -5.18427,
+          "stalled": true,
+          "meanSpeed": 12.553075
+        },
+        {
+          "endSeconds": 40.0,
+          "closingMetres": -8.582980000000003,
+          "stalled": true,
+          "meanSpeed": 11.5079512
+        }
+      ]
+    },
+    {
+      "arm": "off",
+      "source": "chase-off-20260909-111658-306.csv",
+      "frameDirectory": "D:\\amind\\git\\astronomical-home\\results\\mpc-rig\\terminal-field\\independent\\capture\\frames\\20260909-041658-terminal-field-dense-chase-off",
+      "frames": 400,
+      "seconds": 39.9999858276644,
+      "finalGap": 26.82742,
+      "closingMetres": 23.17258,
+      "pathMetres": 462.3648,
+      "pathPerClosingMetre": 19.953099741159594,
+      "collisionSteps": 13.0,
+      "stallSeconds": 16,
+      "stallWindows": 8,
+      "windows": [
+        {
+          "endSeconds": 2.0,
+          "closingMetres": 1.2196799999999968,
+          "stalled": false,
+          "meanSpeed": 5.615671177
+        },
+        {
+          "endSeconds": 4.0,
+          "closingMetres": 4.3463000000000065,
+          "stalled": false,
+          "meanSpeed": 12.6134876
+        },
+        {
+          "endSeconds": 6.0,
+          "closingMetres": -4.213240000000006,
+          "stalled": true,
+          "meanSpeed": 10.78005852
+        },
+        {
+          "endSeconds": 8.0,
+          "closingMetres": 9.263160000000006,
+          "stalled": false,
+          "meanSpeed": 11.8530491
+        },
+        {
+          "endSeconds": 10.0,
+          "closingMetres": 7.060849999999995,
+          "stalled": false,
+          "meanSpeed": 6.93296308
+        },
+        {
+          "endSeconds": 12.0,
+          "closingMetres": -8.924419999999998,
+          "stalled": true,
+          "meanSpeed": 6.75447067
+        },
+        {
+          "endSeconds": 14.0,
+          "closingMetres": -7.19755,
+          "stalled": true,
+          "meanSpeed": 9.62934638
+        },
+        {
+          "endSeconds": 16.0,
+          "closingMetres": 0.9013300000000015,
+          "stalled": false,
+          "meanSpeed": 13.1238333
+        },
+        {
+          "endSeconds": 18.0,
+          "closingMetres": 9.85978,
+          "stalled": false,
+          "meanSpeed": 14.5518564
+        },
+        {
+          "endSeconds": 20.0,
+          "closingMetres": -6.664490000000001,
+          "stalled": true,
+          "meanSpeed": 9.21560042
+        },
+        {
+          "endSeconds": 22.0,
+          "closingMetres": -0.9687200000000047,
+          "stalled": true,
+          "meanSpeed": 9.84104128
+        },
+        {
+          "endSeconds": 24.0,
+          "closingMetres": 5.282380000000003,
+          "stalled": false,
+          "meanSpeed": 14.8592177
+        },
+        {
+          "endSeconds": 26.0,
+          "closingMetres": -2.370440000000002,
+          "stalled": true,
+          "meanSpeed": 11.03362691
+        },
+        {
+          "endSeconds": 28.0,
+          "closingMetres": 5.563769999999998,
+          "stalled": false,
+          "meanSpeed": 12.492687
+        },
+        {
+          "endSeconds": 30.0,
+          "closingMetres": 6.562900000000003,
+          "stalled": false,
+          "meanSpeed": 14.0789252
+        },
+        {
+          "endSeconds": 32.0,
+          "closingMetres": 10.254719999999999,
+          "stalled": false,
+          "meanSpeed": 16.7901778
+        },
+        {
+          "endSeconds": 34.0,
+          "closingMetres": 1.6701300000000003,
+          "stalled": false,
+          "meanSpeed": 12.4006435
+        },
+        {
+          "endSeconds": 36.0,
+          "closingMetres": 0.5324500000000008,
+          "stalled": false,
+          "meanSpeed": 12.1995803
+        },
+        {
+          "endSeconds": 38.0,
+          "closingMetres": -6.994160000000001,
+          "stalled": true,
+          "meanSpeed": 12.0767202
+        },
+        {
+          "endSeconds": 40.0,
+          "closingMetres": -2.011849999999999,
+          "stalled": true,
+          "meanSpeed": 14.3008841
+        }
+      ]
+    }
+  ]
+}

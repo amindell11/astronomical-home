@@ -1,0 +1,93 @@
+{
+    "generatedAt":  "2026-09-09T02:33:44.0256827-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.EditMode.TerminalFieldTests;Tests.EditMode.TerminalFieldRigTests.RefinedWeightSweep;Tests.EditMode.TerminalFieldRigTests.NoPosAndFieldZeroed_PreserveControlTraces;Tests.EditMode.MultiSphereObstacleEditModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  19,
+                   "passed":  15,
+                   "failed":  4,
+                   "skipped":  0,
+                   "durationSec":  17.65
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-023307-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-023307-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "unknown",
+                     "total":  19,
+                     "passed":  15,
+                     "failed":  4,
+                     "skipped":  0,
+                     "durationSec":  17.6502103,
+                     "failures":  [
+                                      {
+                                          "name":  "ConvertObstacles_AtomicAdmit_K3RockRejectedWhole_EvenWhenSomeLobesFit",
+                                          "fullName":  "Tests.EditMode.MultiSphereObstacleEditModeTests.ConvertObstacles_AtomicAdmit_K3RockRejectedWhole_EvenWhenSomeLobesFit",
+                                          "durationSec":  0.035082,
+                                          "message":  "System.InvalidOperationException : The UNKNOWN_OBJECT_TYPE EvaluateCandidatesJob.costInput.terminalField.distances has not been assigned or constructed. All containers must be valid when scheduling a job.",
+                                          "topStack":  "at (wrapper managed-to-native) Unity.Jobs.LowLevel.Unsafe.JobsUtility.ScheduleParallelFor_Injected(Unity.Jobs.LowLevel.Unsafe.JobsUtility/JobScheduleParameters\u0026,int,int,Unity.Jobs.JobHandle\u0026)"
+                                      },
+                                      {
+                                          "name":  "ConvertObstacles_AtomicAdmit_LastK2RockAllOrNothing",
+                                          "fullName":  "Tests.EditMode.MultiSphereObstacleEditModeTests.ConvertObstacles_AtomicAdmit_LastK2RockAllOrNothing",
+                                          "durationSec":  0.000773,
+                                          "message":  "System.InvalidOperationException : The UNKNOWN_OBJECT_TYPE EvaluateCandidatesJob.costInput.terminalField.distances has not been assigned or constructed. All containers must be valid when scheduling a job.",
+                                          "topStack":  "at (wrapper managed-to-native) Unity.Jobs.LowLevel.Unsafe.JobsUtility.ScheduleParallelFor_Injected(Unity.Jobs.LowLevel.Unsafe.JobsUtility/JobScheduleParameters\u0026,int,int,Unity.Jobs.JobHandle\u0026)"
+                                      },
+                                      {
+                                          "name":  "ConvertObstacles_K2_Collapses_To1Row_WhenKillSwitchOff",
+                                          "fullName":  "Tests.EditMode.MultiSphereObstacleEditModeTests.ConvertObstacles_K2_Collapses_To1Row_WhenKillSwitchOff",
+                                          "durationSec":  0.001826,
+                                          "message":  "System.InvalidOperationException : The UNKNOWN_OBJECT_TYPE EvaluateCandidatesJob.costInput.terminalField.distances has not been assigned or constructed. All containers must be valid when scheduling a job.",
+                                          "topStack":  "at (wrapper managed-to-native) Unity.Jobs.LowLevel.Unsafe.JobsUtility.ScheduleParallelFor_Injected(Unity.Jobs.LowLevel.Unsafe.JobsUtility/JobScheduleParameters\u0026,int,int,Unity.Jobs.JobHandle\u0026)"
+                                      },
+                                      {
+                                          "name":  "ConvertObstacles_K2_Expands_To2Rows_WhenMultiSphere",
+                                          "fullName":  "Tests.EditMode.MultiSphereObstacleEditModeTests.ConvertObstacles_K2_Expands_To2Rows_WhenMultiSphere",
+                                          "durationSec":  0.001249,
+                                          "message":  "System.InvalidOperationException : The UNKNOWN_OBJECT_TYPE EvaluateCandidatesJob.costInput.terminalField.distances has not been assigned or constructed. All containers must be valid when scheduling a job.",
+                                          "topStack":  "at (wrapper managed-to-native) Unity.Jobs.LowLevel.Unsafe.JobsUtility.ScheduleParallelFor_Injected(Unity.Jobs.LowLevel.Unsafe.JobsUtility/JobScheduleParameters\u0026,int,int,Unity.Jobs.JobHandle\u0026)"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "Tests.EditMode.TerminalFieldTests;Tests.EditMode.TerminalFieldRigTests.RefinedWeightSweep;Tests.EditMode.TerminalFieldRigTests.NoPosAndFieldZeroed_PreserveControlTraces;Tests.EditMode.MultiSphereObstacleEditModeTests",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   }
+                 }
+             ],
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 }
+}

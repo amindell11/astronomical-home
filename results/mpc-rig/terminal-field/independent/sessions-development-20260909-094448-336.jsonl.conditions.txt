@@ -1,0 +1,1 @@
+terminalWeight=2; developmentRow=Orbit; density=2; firstSeed=3401; seedCount=3

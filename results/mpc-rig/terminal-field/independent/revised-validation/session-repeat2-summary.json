@@ -1,0 +1,302 @@
+{
+  "source": "results\\mpc-rig\\terminal-field\\independent\\revised-validation\\sessions-validation-20260910-040142-550.jsonl",
+  "integratedDummyPolicy": true,
+  "recordCount": 360,
+  "rows": [
+    {
+      "row": "cover-take",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 4,
+          "medianError": 6.8780107498168945,
+          "medianIntegratedError": 484.65863037109375,
+          "medianCloseout": 31.960540771484375,
+          "collisionEpisodes": 13,
+          "collisionSteps": 186
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 2,
+          "medianError": 5.069913387298584,
+          "medianIntegratedError": 320.8290100097656,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 13,
+          "collisionSteps": 325
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 2,
+          "medianError": 6.983711242675781,
+          "medianIntegratedError": 538.8228149414062,
+          "medianCloseout": 51.380985260009766,
+          "collisionEpisodes": 10,
+          "collisionSteps": 170
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 2,
+          "medianError": 6.3293776512146,
+          "medianIntegratedError": 420.3363037109375,
+          "medianCloseout": 25.460391998291016,
+          "collisionEpisodes": 11,
+          "collisionSteps": 157
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": false,
+        "collisionEpisodes": true,
+        "collisionSteps": true
+      },
+      "movementMetric": "mean-error-m",
+      "legacyAverageMovementPass": null
+    },
+    {
+      "row": "drift-hold",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 0.0,
+          "medianIntegratedError": 0.0,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 1,
+          "collisionSteps": 526
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 0.0,
+          "medianIntegratedError": 0.0,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 1,
+          "collisionSteps": 520
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 0.0,
+          "medianIntegratedError": 0.0,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 1,
+          "collisionSteps": 228
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 0.0,
+          "medianIntegratedError": 0.0,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 1,
+          "collisionSteps": 213
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": true,
+        "collisionEpisodes": true,
+        "collisionSteps": false
+      },
+      "movementMetric": "mean-error-m",
+      "legacyAverageMovementPass": null
+    },
+    {
+      "row": "dummy-closeout",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 11.490752220153809,
+          "medianIntegratedError": 228.57752990722656,
+          "medianCloseout": 11.460071563720703,
+          "collisionEpisodes": 3,
+          "collisionSteps": 19
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 12,
+          "medianError": 18.271728515625,
+          "medianIntegratedError": 454.31671142578125,
+          "medianCloseout": 19.22024917602539,
+          "collisionEpisodes": 1,
+          "collisionSteps": 30
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 11.156808853149414,
+          "medianIntegratedError": 241.73085021972656,
+          "medianCloseout": 10.90005874633789,
+          "collisionEpisodes": 3,
+          "collisionSteps": 20
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 13,
+          "medianError": 17.356828689575195,
+          "medianIntegratedError": 454.31671142578125,
+          "medianCloseout": 16.440185546875,
+          "collisionEpisodes": 3,
+          "collisionSteps": 6
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": true,
+        "collisionEpisodes": false,
+        "collisionSteps": true,
+        "closeout": true
+      },
+      "movementMetric": "integrated-error-m*s",
+      "legacyAverageMovementPass": true
+    },
+    {
+      "row": "fire-lane-dodge",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 0,
+          "medianError": 18.8231258392334,
+          "medianIntegratedError": 480.393310546875,
+          "medianCloseout": 11.300067901611328,
+          "collisionEpisodes": 7,
+          "collisionSteps": 22
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 0,
+          "medianError": 18.893146514892578,
+          "medianIntegratedError": 443.1625061035156,
+          "medianCloseout": 9.94003677368164,
+          "collisionEpisodes": 5,
+          "collisionSteps": 58
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 0,
+          "medianError": 17.73752784729004,
+          "medianIntegratedError": 471.9342041015625,
+          "medianCloseout": 11.160064697265625,
+          "collisionEpisodes": 4,
+          "collisionSteps": 81
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 0,
+          "medianError": 18.573749542236328,
+          "medianIntegratedError": 614.1634521484375,
+          "medianCloseout": 14.140132904052734,
+          "collisionEpisodes": 4,
+          "collisionSteps": 84
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": true,
+        "collisionEpisodes": false,
+        "collisionSteps": true
+      },
+      "movementMetric": "mean-error-m",
+      "legacyAverageMovementPass": null
+    },
+    {
+      "row": "kite",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 1,
+          "medianError": 2.5661656856536865,
+          "medianIntegratedError": 153.9180145263672,
+          "medianCloseout": 42.60078430175781,
+          "collisionEpisodes": 13,
+          "collisionSteps": 272
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 2,
+          "medianError": 2.0637314319610596,
+          "medianIntegratedError": 142.820068359375,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 11,
+          "collisionSteps": 246
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 1,
+          "medianError": 2.240936040878296,
+          "medianIntegratedError": 148.97755432128906,
+          "medianCloseout": 39.3407096862793,
+          "collisionEpisodes": 10,
+          "collisionSteps": 113
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 3,
+          "medianError": 2.2307188510894775,
+          "medianIntegratedError": 132.68287658691406,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 12,
+          "collisionSteps": 186
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": true,
+        "collisionEpisodes": false,
+        "collisionSteps": false
+      },
+      "movementMetric": "mean-error-m",
+      "legacyAverageMovementPass": null
+    },
+    {
+      "row": "orbit",
+      "arms": {
+        "0": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 7.026612758636475,
+          "medianIntegratedError": 829.1429443359375,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 15,
+          "collisionSteps": 980
+        },
+        "1": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 6.129528045654297,
+          "medianIntegratedError": 723.283447265625,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 15,
+          "collisionSteps": 1341
+        },
+        "2": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 7.037850379943848,
+          "medianIntegratedError": 830.4675903320312,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 15,
+          "collisionSteps": 987
+        },
+        "3": {
+          "episodes": 15,
+          "successes": 15,
+          "medianError": 8.944417953491211,
+          "medianIntegratedError": 1055.4375,
+          "medianCloseout": 119.99995422363281,
+          "collisionEpisodes": 15,
+          "collisionSteps": 1358
+        }
+      },
+      "pairedChecks": {
+        "success": true,
+        "movement": true,
+        "collisionEpisodes": true,
+        "collisionSteps": true
+      },
+      "movementMetric": "mean-error-m",
+      "legacyAverageMovementPass": null
+    }
+  ]
+}

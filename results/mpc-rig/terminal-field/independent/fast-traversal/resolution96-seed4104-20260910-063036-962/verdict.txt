@@ -1,0 +1,1 @@
+fieldOnMedian=20.21058; fieldOffMedian=20.76025; ratio=0.973523; fieldOnCollisionSteps=0; accepted=False

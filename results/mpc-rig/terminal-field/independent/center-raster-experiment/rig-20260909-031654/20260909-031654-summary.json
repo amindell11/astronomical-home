@@ -1,0 +1,66 @@
+{
+    "generatedAt":  "2026-09-09T03:17:22.8431656-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.EditMode.TerminalFieldRigTests.DevelopmentWeightSweep;Tests.EditMode.TerminalFieldRigTests.FarGoalSpacingProbe;Tests.EditMode.TerminalFieldRigTests.NoPosAndFieldZeroed_PreserveControlTraces",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  3,
+                   "passed":  3,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  10.891
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-031654-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-031654-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  3,
+                     "passed":  3,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  10.891072,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "Tests.EditMode.TerminalFieldRigTests.DevelopmentWeightSweep;Tests.EditMode.TerminalFieldRigTests.FarGoalSpacingProbe;Tests.EditMode.TerminalFieldRigTests.NoPosAndFieldZeroed_PreserveControlTraces",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   }
+                 }
+             ],
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=EditMode"
+                 }
+}

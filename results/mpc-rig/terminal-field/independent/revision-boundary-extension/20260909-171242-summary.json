@@ -1,0 +1,72 @@
+{
+    "generatedAt":  "2026-09-09T17:13:05.4224774-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.EditMode.TerminalFieldTests.FreePointBesideRock_DoesNotInheritDisconnectedFallback",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  0,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  2.619
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-171242-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260909-171242-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "unknown",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  2.618621,
+                     "failures":  [
+                                      {
+                                          "name":  "FreePointBesideRock_DoesNotInheritDisconnectedFallback",
+                                          "fullName":  "Tests.EditMode.TerminalFieldTests.FreePointBesideRock_DoesNotInheritDisconnectedFallback",
+                                          "durationSec":  2.445525,
+                                          "message":  "Expected: less than 3.0f But was: 16.4350281f",
+                                          "topStack":  "at Tests.EditMode.TerminalFieldTests.FreePointBesideRock_DoesNotInheritDisconnectedFallback () [0x0007e] in D:\\amind\\git\\agent-2\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\TerminalField\\TerminalFieldTests.cs:39"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "Tests.EditMode.TerminalFieldTests.FreePointBesideRock_DoesNotInheritDisconnectedFallback",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   }
+                 }
+             ],
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 }
+}

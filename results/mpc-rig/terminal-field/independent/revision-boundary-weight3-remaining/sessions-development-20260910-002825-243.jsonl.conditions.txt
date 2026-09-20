@@ -1,0 +1,1 @@
+terminalWeight=3; developmentRow=Orbit,Kite,CoverTake,FireLaneDodge,DriftHold; density=2; firstSeed=3401; seedCount=3

@@ -1,0 +1,1 @@
+maxSpeed=25; shipRadius=1; seconds=30; goalRange=1500; Burst=True

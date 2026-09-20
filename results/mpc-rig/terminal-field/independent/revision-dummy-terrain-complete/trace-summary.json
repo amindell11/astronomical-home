@@ -1,0 +1,56 @@
+[
+  {
+    "seed": 3401,
+    "arm": 0,
+    "samples": 60,
+    "maxEndpointPenalty": 8.969672,
+    "positiveEndpointSamples": 31,
+    "lastPositivePenaltyTime": 14.02013,
+    "lastTraceTime": 23.62035
+  },
+  {
+    "seed": 3401,
+    "arm": 1,
+    "samples": 80,
+    "maxEndpointPenalty": 268.6058,
+    "positiveEndpointSamples": 35,
+    "lastPositivePenaltyTime": 20.82029,
+    "lastTraceTime": 31.62053
+  },
+  {
+    "seed": 3402,
+    "arm": 0,
+    "samples": 45,
+    "maxEndpointPenalty": 9.013931,
+    "positiveEndpointSamples": 7,
+    "lastPositivePenaltyTime": 11.22007,
+    "lastTraceTime": 17.62021
+  },
+  {
+    "seed": 3402,
+    "arm": 1,
+    "samples": 47,
+    "maxEndpointPenalty": 65.35161,
+    "positiveEndpointSamples": 7,
+    "lastPositivePenaltyTime": 13.22011,
+    "lastTraceTime": 18.42023
+  },
+  {
+    "seed": 3403,
+    "arm": 0,
+    "samples": 99,
+    "maxEndpointPenalty": 87.59598,
+    "positiveEndpointSamples": 52,
+    "lastPositivePenaltyTime": 38.8207,
+    "lastTraceTime": 39.22071
+  },
+  {
+    "seed": 3403,
+    "arm": 1,
+    "samples": 91,
+    "maxEndpointPenalty": 312.6817,
+    "positiveEndpointSamples": 43,
+    "lastPositivePenaltyTime": 29.62049,
+    "lastTraceTime": 36.02063
+  }
+]

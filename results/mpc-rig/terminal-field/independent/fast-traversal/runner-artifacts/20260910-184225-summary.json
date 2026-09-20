@@ -1,0 +1,66 @@
+{
+    "generatedAt":  "2026-09-10T18:42:48.1547089-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.EditMode.TerminalField.TerminalFieldCausalTests.ResolutionPlateau",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  1,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  3.635
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260910-184225-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20260910-184225-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  1,
+                     "passed":  1,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  3.6350743,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "Tests.EditMode.TerminalField.TerminalFieldCausalTests.ResolutionPlateau",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   }
+                 }
+             ],
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=EditMode"
+                 }
+}

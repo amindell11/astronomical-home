@@ -1,0 +1,146 @@
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TerminalField/TerminalFieldTraversalTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TerminalField/TerminalFieldTraversalTests.cs
+index 1fe8cf06..25e7450d 100644
+--- a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TerminalField/TerminalFieldTraversalTests.cs
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TerminalField/TerminalFieldTraversalTests.cs
+@@ -159,7 +159,7 @@ private static void Run(bool heldOut, int resolution = 0, uint seedOverride = 0,
+             }
+         }
+ 
+-        private static RigScenario Course(float maxSpeed, uint seed)
++        internal static RigScenario Course(float maxSpeed, uint seed)
+         {
+             var reach = maxSpeed * Seconds;
+             var rng = new Unity.Mathematics.Random(seed);
+@@ -189,7 +189,7 @@ private static RigScenario Course(float maxSpeed, uint seed)
+             };
+         }
+ 
+-        private static bool Hits(float2 start, float2 end, float2 center, float radius)
++        internal static bool Hits(float2 start, float2 end, float2 center, float radius)
+         {
+             var delta = end - start;
+             var lengthSq = math.lengthsq(delta);
+diff --git a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/MpcSolverRig.cs b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/MpcSolverRig.cs
+index 2d4760d5..70739370 100644
+--- a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/MpcSolverRig.cs
++++ b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/MpcSolverRig.cs
+@@ -27,6 +27,7 @@ public struct RigResult
+         public int collisionSteps;
+         public float pathLength;
+         public float finalRange;
++        public float2 finalPosition;
+         public float threatStepFraction;
+         public float incumbentWinFraction;
+         public float meanIncumbentRank;
+@@ -37,17 +38,17 @@ public struct RigResult
+     public static class MpcSolverRig
+     {
+         public static RigResult Run(MpcSettings settings, Dynamics dynamics, in RigScenario scenario, uint seed,
+-            List<RigTraceRow> trace = null)
++            List<RigTraceRow> trace = null, Action<Mpc, int> beforePlan = null)
+         {
+             if (!(scenario.posWidthOverride > 0f))
+-                return RunInner(settings, dynamics, in scenario, seed, trace);
++                return RunInner(settings, dynamics, in scenario, seed, trace, beforePlan);
+ 
+             // Per-row posWidth runs on an in-memory clone; the asset file is never written (brief §blindsiders).
+             var clone = UnityEngine.Object.Instantiate(settings);
+             try
+             {
+                 clone.posWidth = scenario.posWidthOverride;
+-                return RunInner(clone, dynamics, in scenario, seed, trace);
++                return RunInner(clone, dynamics, in scenario, seed, trace, beforePlan);
+             }
+             finally
+             {
+@@ -56,7 +57,7 @@ public static RigResult Run(MpcSettings settings, Dynamics dynamics, in RigScena
+         }
+ 
+         private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in RigScenario scenario, uint seed,
+-            List<RigTraceRow> trace)
++            List<RigTraceRow> trace, Action<Mpc, int> beforePlan)
+         {
+             var obstacleField = new RigObstacleField(scenario.obstacles);
+             var scanner = new ObstacleScanner(null, dynamics.maxSpeed, 0f, settings.horizonSeconds,
+@@ -96,7 +97,7 @@ private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in Ri
+                 var referent1 = referent1Runner.Step(scenario.simDt, state.pos);
+                 var referent2 = referent2Runner.Step(scenario.simDt, state.pos);
+ 
+-                var count = obstacleField.QueryObstacles(new Vector2(state.pos.x, state.pos.y), scanner.HalfExtent, scanner.DetectedBuffer);
++                var count = obstacleField.QueryObstacles(new Vector2(state.pos.x, state.pos.y), scenario.obstacleScanHalfExtent > 0f ? scenario.obstacleScanHalfExtent : scanner.HalfExtent, scanner.DetectedBuffer);
+                 var scan = new ObstacleScan(scanner.DetectedBuffer, count);
+                 var inputs = new MpcInputs
+                 {
+@@ -116,8 +117,12 @@ private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in Ri
+                     obstacleScan = scan,
+                     enableObstacleAvoidance = scan.count > 0,
+                 };
++                beforePlan?.Invoke(mpc, i);
+                 var prevControl = mpc.LastControl;
++                var priorBakes = mpc.TerminalField.BakeCount;
++                var planStart = System.Diagnostics.Stopwatch.GetTimestamp();
+                 var result = mpc.Plan(in inputs);
++                var planMs = (System.Diagnostics.Stopwatch.GetTimestamp() - planStart) * 1000f / System.Diagnostics.Stopwatch.Frequency;
+                 var applied = new Control { thrust = result.thrust, strafe = result.strafe, yawTorque = result.yawTorque };
+ 
+                 // Selection internals: candidate 0 is the noise-free incumbent (shifted warm start); rank 0 = it won argmin.
+@@ -171,6 +176,8 @@ private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in Ri
+                     trace.Add(new RigTraceRow
+                     {
+                         t = i * scenario.simDt,
++                        planMilliseconds = planMs,
++                        fieldBaked = mpc.TerminalField.BakeCount != priorBakes,
+                         posX = state.pos.x,
+                         posY = state.pos.y,
+                         velX = state.vel.x,
+@@ -250,6 +257,7 @@ private static RigResult RunInner(MpcSettings settings, Dynamics dynamics, in Ri
+                 collisionSteps = collisionSteps,
+                 pathLength = pathLength,
+                 finalRange = lastRange,
++                finalPosition = state.pos,
+                 threatStepFraction = overall.steps > 0 ? threatSteps / (float)overall.steps : 0f,
+                 incumbentWinFraction = overall.steps > 0 ? incumbentWins / (float)overall.steps : 0f,
+                 meanIncumbentRank = overall.steps > 0 ? rankSum / (float)overall.steps : 0f,
+diff --git a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigScenario.cs b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigScenario.cs
+index b32148d5..c31a8015 100644
+--- a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigScenario.cs
++++ b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigScenario.cs
+@@ -65,6 +65,7 @@ public struct RigScenario
+         public float posWidthOverride; // > 0 runs on an in-memory MpcSettings clone; the asset is never written
+         public float projectileSpeed;
+         public float simDt;
++        public float obstacleScanHalfExtent;
+         public float warmupSeconds;
+         public float durationSeconds;
+ 
+diff --git a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigTraceRow.cs b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigTraceRow.cs
+index 92810f7a..6701fefb 100644
+--- a/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigTraceRow.cs
++++ b/src/Asteroids3D/Assets/Scripts/RL/SolverRig/RigTraceRow.cs
+@@ -9,6 +9,8 @@ namespace RL.SolverRig
+     public struct RigTraceRow
+     {
+         public float t;
++        public float planMilliseconds;
++        public bool fieldBaked;
+         public float posX;
+         public float posY;
+         public float velX;
+@@ -51,7 +53,7 @@ public static class RigTraceCsv
+             "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg," +
+             "range,underThreat,solveCost,incumbentRank,incumbentCost,emitYawDeltaFromIncumbent," +
+             "costVelocityTrack,costFacing,costFacingPrior,costPos,costLane,costYawRate,costObstacle,costCollision," +
+-            "costMomentum,costEffort,costSmoothness,costTotal,costTerminalField,fieldSpacing,fieldBakeCount,fieldEndpointX,fieldEndpointY";
++            "costMomentum,costEffort,costSmoothness,costTotal,costTerminalField,fieldSpacing,fieldBakeCount,fieldEndpointX,fieldEndpointY,planMilliseconds,fieldBaked";
+ 
+         public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
+         {
+@@ -68,7 +70,7 @@ public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
+                     F(r.emitYawDeltaFromIncumbent),
+                     F(r.costVelocityTrack), F(r.costFacing), F(r.costFacingPrior), F(r.costPos), F(r.costLane),
+                     F(r.costYawRate), F(r.costObstacle), F(r.costCollision),
+-                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal), F(r.costTerminalField), F(r.fieldSpacing), r.fieldBakeCount.ToString(CultureInfo.InvariantCulture), F(r.fieldEndpointX), F(r.fieldEndpointY)));
++                    F(r.costMomentum), F(r.costEffort), F(r.costSmoothness), F(r.costTotal), F(r.costTerminalField), F(r.fieldSpacing), r.fieldBakeCount.ToString(CultureInfo.InvariantCulture), F(r.fieldEndpointX), F(r.fieldEndpointY), F(r.planMilliseconds), r.fieldBaked ? "1" : "0"));
+             File.WriteAllText(path, sb.ToString());
+         }
+ 

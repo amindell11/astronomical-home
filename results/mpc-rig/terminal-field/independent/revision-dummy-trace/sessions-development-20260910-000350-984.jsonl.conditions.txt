@@ -1,0 +1,1 @@
+terminalWeight=0.4; developmentRow=DummyCloseout; density=2; firstSeed=3401; seedCount=3

@@ -1,0 +1,1 @@
+BurstEnabled=True; SynchronousCompilation=true; maxSpeed=25; shipRadius=1; horizon=1.7; bakeInterval=0.4; resolution=48; minimumSpacing=4

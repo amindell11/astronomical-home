@@ -1,0 +1,42 @@
+{
+    "status":  "passed",
+    "baseRef":  "origin/main",
+    "changedFiles":  36,
+    "unityFindings":  373,
+    "touchedFileFindings":  7,
+    "blockingFindings":  0,
+    "findingsByRule":  [
+                           {
+                               "ruleId":  "Unity.PerformanceCriticalCodeInvocation",
+                               "count":  283
+                           },
+                           {
+                               "ruleId":  "Unity.NoNullPropagation",
+                               "count":  41
+                           },
+                           {
+                               "ruleId":  "Unity.NoNullPatternMatching",
+                               "count":  16
+                           },
+                           {
+                               "ruleId":  "Unity.PerformanceCriticalCodeNullComparison",
+                               "count":  14
+                           },
+                           {
+                               "ruleId":  "Unity.PreferAddressByIdToGraphicsParams",
+                               "count":  14
+                           },
+                           {
+                               "ruleId":  "Unity.NoNullCoalescing",
+                               "count":  3
+                           },
+                           {
+                               "ruleId":  "Unity.UnknownLayer",
+                               "count":  1
+                           },
+                           {
+                               "ruleId":  "Unity.InefficientMultiplicationOrder",
+                               "count":  1
+                           }
+                       ]
+}

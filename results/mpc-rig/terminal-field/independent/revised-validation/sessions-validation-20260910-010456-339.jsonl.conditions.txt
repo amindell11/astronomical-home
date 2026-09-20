@@ -1,0 +1,1 @@
+terminalWeight=3; developmentRow=all; density=2; firstSeed=3201; seedCount=15
