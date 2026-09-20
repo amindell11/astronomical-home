@@ -109,7 +109,8 @@
         updatedAt. Read it back through Status.queue[] (position is 1-based, per project).
       <StateRoot>/boot/boot.json - lease, projectPath, processId, acquiredAt, plus memoryOverride
         and the three readings when -AllowLowMemory admitted a boot that would have been refused.
-        Read it back through Status.boot; an unowned dir that cannot be removed surfaces as Status.bootWedged.
+        Read it back through Status.boot; an unowned dir that cannot be removed surfaces as
+        Status.bootWedged.
       <StateRoot>/owner/owner.json is the retired single-owner record, honored until it clears.
 
 .NOTES
@@ -400,10 +401,8 @@ function Get-MemberValue {
 }
 
 # ---- Memory admission ------------------------------------------------------
-# Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of; the
-# same Win32_OperatingSystem reading also carries available physical RAM, which is reported only.
+# Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of.
 function Get-MemoryReading {
-    $source = $null
     if (-not [string]::IsNullOrWhiteSpace($MemorySnapshotPath)) {
         $snapshotPath = Resolve-FullPath $MemorySnapshotPath
         if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
@@ -429,7 +428,6 @@ function Get-MemoryReading {
     }
 }
 
-# The one admission decision: the read-only action and the boot lane both come through here.
 function Get-BootAdmission {
     param([string]$RequestedMode)
     $reading = Get-MemoryReading
@@ -898,8 +896,7 @@ function Try-AcquireBoot {
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 
-    # The lane grant is the earliest point where the answer is true and serialized; a renew above
-    # already holds the lane and its boot is underway.
+    # Checked at the lane grant, not on renew: a renew's boot is already underway.
     $admission = Get-BootAdmission ([string]$owner.mode)
     $overridden = $false
     if (-not $admission.admitted) {
@@ -950,8 +947,7 @@ function Acquire-Boot {
     do {
         # boot_lane_wedged retries too: only a wedge that outlives the wait reaches the caller.
         $result = Try-AcquireBoot
-        # Memory is not a queue: commit held by idle processes may never free, so a refusal waiting
-        # here could stall forever.
+        # Memory is not a queue: idle processes may never free commit, so waiting could stall forever.
         if ($result.status -in @("boot_acquired", "ownership_mismatch", "boot_refused_low_memory")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
         Start-Sleep -Seconds ([Math]::Max(1, $PollSeconds))

@@ -616,7 +616,7 @@ Format: **term** — definition. *(authority)*
   start, given memory. Asked read-only through `-Action BootAdmission`, enforced
   when the boot lane is granted; the refusal is `boot_refused_low_memory`
   (exit 28), and `-AllowLowMemory` overrides it for one invocation, only after
-  the user approved that specific boot. (Retired: "RAM floor".)
+  the user approved that specific boot.
   *(Get-BootAdmission, scripts/unity_access.ps1)*
 - **commit headroom** — commit limit minus commit charge: what a dying Unity
   boot runs out of, and the only reading memory admission blocks on. Available

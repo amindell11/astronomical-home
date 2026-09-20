@@ -18,6 +18,7 @@ When Mordechai will not admit a boot and a full batch gate is needed:
 1. **Check availability first — read-only SSH checks need no permission.** Inspect Alastor's available RAM, `unity_access.ps1 -Action Status -Json`, remote `git status`, and any live Unity or `rg-*` gate run.
 2. **Then ask the user**, reporting what you found. Anything heavy on Alastor — a test run, a gate, an editor boot — needs the user's go-ahead each time; a past approval does not carry over. The lane has no cross-session checkout guard (#588), so an unannounced run can trample another session's. Don't suggest Alastor before step 1 shows it is usable.
 3. On a yes, run `scripts/remote_gate.sh <branch>` from the local branch being tested; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
+
 `remote_gate.sh` force-checks out the target commit on Alastor. Preserve any remote dirty state first (back up and restore the exact changed files) or get explicit authority to discard it. A passing remote summary is valid test evidence, but it does not record merge-grade proof in `agent_worktree_pool.sh`; include it in the PR and let the pool's merge protocol run its required gate when local capacity is available.
 
 ## Choose the least disruptive path
