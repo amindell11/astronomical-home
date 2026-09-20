@@ -42,12 +42,6 @@ Dispatch is `scripts/remote_gate.sh`; the lane is proven at local parity
   either direction; suspect AP client isolation) — this blocks #463. Fix candidates:
   Ethernet, or Tailscale.
 
-## GitHub LFS budget exhausted (since 2026-08-27)
-
-Fresh clones and CI fail at checkout with `smudge filter lfs failed`. Workaround:
-`scp -r .git/lfs/objects <host>:<repo>/.git/lfs/` from a machine with a warm
-cache, then `git checkout -f HEAD`. Delete this section when the quota is raised.
-
 ## Sentis rewrites scripting defines on every editor load
 
 `com.unity.ai.inference` (pulled in by `com.unity.ml-agents`) has an

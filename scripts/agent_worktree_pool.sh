@@ -63,9 +63,14 @@ Commands:
       if it isn't free (or safely reclaimable) acquire FAILS — no
       silent fallback to auto-pick.
       Output: SLOT=<name> PATH=<abs-path>
+      Lease mutation uses Perl flock on a stable per-slot .mutation file.
+      Concurrent mutation returns nonzero. The OS lock releases when its
+      last inheriting process exits.
+      Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
-      Release slot lock (e.g., agent-1).
+      Release slot lock (e.g., agent-1). Uses the same mutation lock and Perl
+      requirement as acquire; contention exits nonzero without releasing.
 
   prepare <slot> [base_ref]
       Reset slot branch/worktree to base ref (default: origin/main)
@@ -82,7 +87,11 @@ Commands:
   run-script-tests [dir]
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
       (powershell.exe) under dir (default: the primary worktree). Prints
-      one PASS/FAIL line per file and stops at the first failure.
+      one PASS/FAIL line per file and stops at the first failure (exit 1).
+      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
+      SCRIPT_TEST_TOTAL_SECONDS=<wall seconds> includes the failed final file.
+      During a merge, journal event script-test (phase script-tests) carries
+      file, sec and exit for each completed file.
       Non-hermetic files are SKIPped unless
       SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. The merge
       gate runs this when the landing diff touches scripts/.
@@ -128,7 +137,10 @@ Commands:
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
-      origin/main), clean the worktree, and release the lock.
+      origin/main), delete the task branch, and release the lock. Requires a
+      clean slot at the merged PR head, the merge commit in the fetched base,
+      and no later remote task-branch commits. Missing or failed evidence
+      exits nonzero before cleanup; preserve additional work before retrying.
 
   review-comments <slot> [base]
       Show open PR URL and unresolved review threads/comments for slot.
@@ -404,6 +416,24 @@ cs_diff_is_comment_only() {
 }
 
 # ---- Locks -----------------------------------------------------------------
+with_slot_mutation() {
+  local slot="$1"
+  shift
+  command -v perl >/dev/null 2>&1 || { echo 'Pool mutation requires Perl flock support.' >&2; return 1; }
+  # The execed mutator inherits the lock; launcher death cannot expose a surviving child.
+  perl -e '
+    use strict;
+    use warnings;
+    use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
+    my $path = shift @ARGV;
+    open my $lock, ">>", $path or die "Pool mutation lock $path: $!\n";
+    flock($lock, LOCK_EX | LOCK_NB) or exit 1;
+    fcntl($lock, F_SETFD, 0) or die "Pool mutation lock inheritance: $!\n";
+    exec @ARGV or die "Pool mutation exec: $!\n";
+  ' "$LOCK_ROOT/$slot.mutation" bash -c 'source "$1"; shift; "$@"' \
+    pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
 write_lock() {
   local slot="$1" lease="$2" path="$3"
   local ldir
@@ -518,7 +548,9 @@ cmd_status() {
 }
 
 # ---- Acquire / release / prepare -------------------------------------------
-try_lock_slot() {
+try_lock_slot() { with_slot_mutation "$1" claim_free_slot "$@"; }
+
+claim_free_slot() {
   local slot="$1" lease="$2" path="$3"
   local ldir
   ldir="$(lock_dir_for "$slot")"
@@ -528,9 +560,11 @@ try_lock_slot() {
 }
 
 # Reclaim only past-TTL locks whose slot holds no unpushed work (never clobber a dead lock's WIP — the CLOBBER HAZARD).
-try_reclaim_slot() {
+try_reclaim_slot() { with_slot_mutation "$1" reclaim_stale_slot "$@"; }
+
+reclaim_stale_slot() {
   local slot="$1" lease="$2" path="$3"
-  local ldir age tomb stamp_before stamp_after
+  local ldir age
   ldir="$(lock_dir_for "$slot")"
   age="$(lock_age_seconds "$ldir")"
   [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] || return 1
@@ -538,21 +572,8 @@ try_reclaim_slot() {
     echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
     return 1
   fi
-  # Single winner: the stale dir is renamed aside and only one racer's rename can succeed.
-  # A rename that landed on a rival's already-fresh lock (stamp differs from the one age-checked)
-  # is put back — reclaim must never clobber a live lock.
-  # Tombstones are dead state; only sweep ones far too old to belong to an in-flight racer.
-  find "$(dirname "$ldir")" -maxdepth 1 -name "$(basename "$ldir").tomb.*" -mmin +60 -exec rm -rf {} + 2>/dev/null || true
-  stamp_before="$(cat "$ldir/timestamp" 2>/dev/null || true)"
-  tomb="${ldir}.tomb.$$-$(date +%s%N)"
-  mv "$ldir" "$tomb" 2>/dev/null || return 1
-  stamp_after="$(cat "$tomb/timestamp" 2>/dev/null || true)"
-  if [[ "$stamp_after" != "$stamp_before" ]]; then
-    [[ -d "$ldir" ]] || mv "$tomb" "$ldir" 2>/dev/null || true
-    return 1
-  fi
-  rm -rf "$tomb"
-  mkdir "$ldir" 2>/dev/null || return 1
+  rm -rf "$ldir"
+  mkdir "$ldir"
   write_lock "$slot" "$lease" "$path"
   echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
   echo "SLOT=$slot PATH=$path"
@@ -585,7 +606,9 @@ cmd_acquire() {
   return 1
 }
 
-cmd_release() {
+cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
+
+release_slot() {
   local slot="$1"
   local ldir path
   ldir="$(lock_dir_for "$slot")"
@@ -763,9 +786,11 @@ cmd_run_resharper() {
 }
 
 # ---- Script tests ----------------------------------------------------------
+# run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
+# SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
 cmd_run_script_tests() {
   local dir="${1:-$ROOT}"
-  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0
+  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
@@ -782,17 +807,22 @@ cmd_run_script_tests() {
     fi
     ran=1
     rc=0
+    started=$SECONDS
     case "$file" in
       *.sh) bash "$file" || rc=$? ;;
       *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
     esac
+    journal_event script-test script-tests "file=$base" "sec=$((SECONDS - started))" "exit=$rc"
+    echo "SCRIPT_TEST_FILE=$base SECONDS=$((SECONDS - started)) EXIT=$rc"
     if [[ "$rc" -eq 0 ]]; then
       echo "PASS $base"
     else
       echo "FAIL $base (exit $rc)"
+      echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
       return 1
     fi
   done
+  echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
   [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
 }
 
@@ -1005,15 +1035,15 @@ MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}
 # passes must still land.
 merge_phase_budget() {
   case "$1" in
-    preflight) echo 30 ;;
-    fetch) echo 60 ;;
-    base-merge) echo 60 ;;
-    proof-check) echo 15 ;;
-    tests) echo 1200 ;;
-    resharper) echo 300 ;;
-    script-tests) echo 420 ;;
-    push) echo 90 ;;
-    gh-merge) echo 90 ;;
+    preflight) echo 10 ;;
+    fetch) echo 15 ;;
+    base-merge) echo 15 ;;
+    proof-check) echo 5 ;;
+    tests) echo 480 ;;
+    resharper) echo 360 ;;
+    script-tests) echo 360 ;;
+    push) echo 30 ;;
+    gh-merge) echo 20 ;;
     *) echo 0 ;;
   esac
 }
@@ -1024,10 +1054,12 @@ MERGE_RUN_START=0
 MERGE_PHASE=""
 MERGE_PHASE_START=0
 
-# Values are ours (phase names, hashes, PR numbers, short status words); drop the
-# two characters that would need escaping rather than emit invalid JSON.
+# Journal fields omit quotes, backslashes and control characters.
 json_scrub() {
-  printf '%s' "$1" | tr -d '"\\' | tr -d '[:cntrl:]'
+  local scrubbed="${!1}"
+  scrubbed="${scrubbed//\"/}"
+  scrubbed="${scrubbed//\\/}"
+  printf -v "$1" '%s' "${scrubbed//[[:cntrl:]]/}"
 }
 
 # Journalling must never be able to fail a merge.
@@ -1040,20 +1072,26 @@ journal_event() {
   [[ -n "$MERGE_JOURNAL" ]] || return 0
   local event="$1" phase="$2"
   shift 2
-  local now frag="" kv key val
-  now="$(date +%s)"
+  local now stamp line field frag="" kv key val
+  printf -v now '%(%s)T' -1
+  TZ=UTC printf -v stamp '%(%Y-%m-%dT%H:%M:%SZ)T' "$now"
+  json_scrub event
+  json_scrub phase
   for kv in "$@"; do
     key="${kv%%=*}"
     val="${kv#*=}"
+    json_scrub key
     if [[ "$val" =~ ^-?[0-9]+$ ]]; then
-      frag+="$(printf ',"%s":%s' "$(json_scrub "$key")" "$val")"
+      printf -v field ',"%s":%s' "$key" "$val"
     else
-      frag+="$(printf ',"%s":"%s"' "$(json_scrub "$key")" "$(json_scrub "$val")")"
+      json_scrub val
+      printf -v field ',"%s":"%s"' "$key" "$val"
     fi
+    frag+="$field"
   done
-  journal_line "$(printf '{"ts":"%s","t":%s,"event":"%s","phase":"%s"%s}' \
-    "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$((now - MERGE_RUN_START))" \
-    "$(json_scrub "$event")" "$(json_scrub "$phase")" "$frag")"
+  printf -v line '{"ts":"%s","t":%s,"event":"%s","phase":"%s"%s}' \
+    "$stamp" "$((now - MERGE_RUN_START))" "$event" "$phase" "$frag"
+  journal_line "$line"
 }
 
 merge_journal_open() {
@@ -1395,17 +1433,43 @@ cmd_merge() {
 cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
-
-  local task_branch
+  local path task_branch evidence state pr_head merge_commit remote_head
+  path="$(slot_path "$slot")" || return 1
   task_branch="$(task_branch_for "$slot")"
-  if [[ -n "$task_branch" ]]; then
-    git -C "$ROOT" push origin --delete "$task_branch" 2>/dev/null || true
-  fi
+  require_gh || return 1
+  [[ -n "$task_branch" ]] || { echo "finalize: no task branch for $slot; preserve the slot and resolve its lease." >&2; return 1; }
+  require_clean_slot "$slot" "$path" finalize || return 1
 
-  # --force: post-merge reset is intentional discard — the squash subsumed the slot's commits and the remote task branch is gone.
+  evidence="$(gh pr list --head "$task_branch" --base "${base_ref#origin/}" --state all --limit 1 \
+    --json state,headRefOid,mergeCommit --jq '.[0] | [.state, .headRefOid, .mergeCommit.oid] | @tsv')" || return 1
+  IFS=$'\t' read -r state pr_head merge_commit <<< "$evidence"
+  if [[ "$state" != MERGED || ! "$pr_head" =~ ^[0-9a-f]{40}$ || ! "$merge_commit" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "finalize: merged PR evidence unavailable for $task_branch; preserve the slot and verify the PR." >&2
+    return 1
+  fi
+  if [[ "$(git -C "$path" rev-parse HEAD)" != "$pr_head" ]]; then
+    echo "finalize: $slot HEAD differs from the merged PR head; preserve its additional work first." >&2
+    return 1
+  fi
+  git -C "$path" fetch origin || return 1
+  if ! git -C "$path" merge-base --is-ancestor "$merge_commit" "$base_ref"; then
+    echo "finalize: $base_ref does not contain the PR merge commit; preserve the slot and verify the base." >&2
+    return 1
+  fi
+  remote_head="$(git -C "$path" ls-remote --exit-code origin "refs/heads/$task_branch")" || {
+    [[ $? == 2 ]] || return 1
+    remote_head=""
+  }
+  remote_head="${remote_head%%$'\t'*}"
+  if [[ -n "$remote_head" && "$remote_head" != "$pr_head" ]]; then
+    echo "finalize: $task_branch changed after the PR merged; preserve its additional work first." >&2
+    return 1
+  fi
+  if [[ -n "$remote_head" ]]; then
+    git -C "$path" push --force-with-lease="refs/heads/$task_branch:$pr_head" origin --delete "$task_branch" || return 1
+  fi
   cmd_prepare "$slot" "$base_ref" --force
   cmd_release "$slot"
-
   echo "Finalized $slot: reset to $base_ref and released lock."
 }
 

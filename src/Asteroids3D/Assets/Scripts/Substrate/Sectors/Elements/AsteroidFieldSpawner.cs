@@ -15,9 +15,9 @@ namespace Substrate.Sectors.Elements
             if (field is Asteroids.Fields.UpdatingAsteroidField updating)
             {
                 // Unity lifetime check, NOT `?.` — the context can hold a destroyed ship and `?.` would pass it through to .transform.
-                updating.SetAnchor(ctx.Player ? ctx.Player.transform : null);
+                updating.SetAnchor(ctx.Hero ? ctx.Hero.transform : null);
                 // Declared even in spectator/headless runs so the layout is identical regardless of who is flying.
-                if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
+                if (ctx.Sector) updating.SetStartPoint(ctx.Sector.StartPoint);
             }
             yield break;
         }

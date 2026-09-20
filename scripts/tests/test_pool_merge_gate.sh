@@ -434,7 +434,7 @@ pool merge agent-1 >/dev/null
 # Every phase-end carries a duration and its budget — that pairing IS the profiling data.
 ends="$(grep -c '"event":"phase-end"' "$(journal_for)")"
 [[ "$ends" == 8 ]] || fail "every started phase should also end (got $ends)"
-grep -q '"phase":"tests","sec":[0-9]*,"status":"ok","budget":1200' "$(journal_for)" \
+grep -q '"phase":"tests","sec":[0-9]*,"status":"ok","budget":480' "$(journal_for)" \
   || fail "phase-end should carry sec + status + budget"
 
 # A failed merge must close the open phase rather than leave it dangling, and must
