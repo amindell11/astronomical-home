@@ -32,4 +32,4 @@ MonoBehaviour:
   loadRadius: 87.5
   unloadRadiusMultiplier: 1.5
   maxSpawnsPerFrame: 10
-  maxAsteroids: 600
+  maxAsteroids: 1600
