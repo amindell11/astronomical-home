@@ -257,18 +257,21 @@ namespace Tests.PlayMode
             {
                 // Combat, not Steering: its damage-bar drawer needs only a live ship, while steering
                 // diagnostics stay empty for subjects no UnitService registered an opponent for.
-                capture.Begin(ToggleConfig(clipName), GizmoCaptureProfile.Combat, new[] { subjectA, subjectB },
-                    projectiles);
+                var config = ToggleConfig(clipName);
+                capture.Begin(config, GizmoCaptureProfile.Combat, new[] { subjectA, subjectB }, projectiles);
                 var profileAnnotations = EnabledAnnotations();
                 Assert.IsNotEmpty(profileAnnotations, "Begin leaves exactly the profile's component types enabled");
                 if (!profileEnabled) SetAnnotations(profileAnnotations, false);
                 yield return StepFrames(capture, ToggleWindowSteps);
+                Assert.AreEqual(config.everyFixedSteps * Time.fixedDeltaTime, Time.captureDeltaTime * Time.timeScale, 1e-6f,
+                    $"{clipName}: filming renders one frame per everyFixedSteps fixed steps");
             }
             finally
             {
                 capture.End();
                 UnityEngine.Object.DestroyImmediate((UnityEngine.Object)capture);
             }
+            PacingContract.AssertHolds();
         }
 
         private CaptureConfig ToggleConfig(string clipName) => new()
