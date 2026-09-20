@@ -198,9 +198,9 @@ Format: **term** — definition. *(authority)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run. Scoped runs never produce one.
 - **headless suite** — the merge gate's test selection run with no GPU and
-  without the heavy art/audio files (light LFS checkout: textures, skies and
-  audio stay pointer files). A test that needs one of those files cannot live
-  in it. *(.github/workflows/headless-suite.yml)*
+  without the heavy art/audio files (light LFS checkout). A test that needs
+  one of those files cannot live in it.
+  *(.github/workflows/headless-suite.yml)*
 - **inert diff** — a behaviour-neutral delta (docs-only, comment-only) that
   extends existing proof without a fresh run.
 - **consent / merge instruction** — an explicit "merge it". Praise is not

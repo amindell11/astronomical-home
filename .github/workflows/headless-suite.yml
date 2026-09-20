@@ -48,7 +48,7 @@ jobs:
           key: ${{ steps.lfs-key.outputs.key }}
           restore-keys: lfs-
 
-      # Light checkout: meshes, models and fixtures only. Textures, skies and audio stay pointer files.
+      # Light checkout: a full LFS pull per push would spend the monthly bandwidth allowance.
       - name: LFS light pull
         run: |
           git lfs install --local
@@ -71,7 +71,7 @@ jobs:
           checkName: headless-suite
           artifactsPath: headless-artifacts
 
-      # Mirrors Get-CoverageVerdict in scripts/unity_test_agent.ps1: both modes present, each total > 0, zero failed.
+      # Mirrors the fullness half of Get-CoverageVerdict in scripts/unity_test_agent.ps1.
       - name: Fullness guards
         id: guards
         run: |
