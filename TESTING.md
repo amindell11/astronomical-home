@@ -665,3 +665,4 @@ reflection helper. How to choose the seam:
 | `-TestCategory Foo` runs nothing | Domain typo or fixture missing its domain tag | Check the domain table above; every fixture needs exactly one |
 
 <!-- throwaway: end-to-end merge --remote exercise for #569 PR-3b; this PR is a draft and never merges -->
+<!-- second throwaway line: leaves the landing commit unpushed so the gate does the push -->
