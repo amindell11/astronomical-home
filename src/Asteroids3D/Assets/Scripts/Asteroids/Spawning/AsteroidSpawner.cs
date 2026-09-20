@@ -100,7 +100,7 @@ namespace Asteroids.Spawning
         public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs)
         {
             var ast = SpawnAtPose(pose);
-            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, lethalityScale);
+            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.MeshIndex, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, lethalityScale);
             registry.Register(ast);
             return ast;
         }

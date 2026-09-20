@@ -8,9 +8,10 @@ using UnityEngine;
 namespace Asteroids
 {
     /// <summary>
-    /// Refuses to build a player whose asteroid geometry bake no longer matches the meshes
-    /// it came from: every shipped <see cref="AsteroidSpawnSettings.MeshInfo"/> is
-    /// re-derived and compared, and a mismatch fails the build.
+    /// Refuses to build a player whose asteroid geometry no longer matches the meshes it
+    /// came from: every shipped <see cref="AsteroidSpawnSettings.MeshInfo"/> has its bake
+    /// re-derived and compared, and its colliderMesh pinned to a sub-asset of the render
+    /// mesh's own model file. Any mismatch fails the build.
     ///
     /// The runtime deliberately carries no check of its own. With the bake automatic
     /// (<see cref="AsteroidVolumePostprocessor"/>) and the build gated here, bad data
@@ -72,6 +73,20 @@ namespace Asteroids
             }
 
             where = $"{where} '{info.mesh.name}'";
+
+            if (info.colliderMesh == null)
+            {
+                problems.Add($"{where}: null colliderMesh — required, no runtime fallback.");
+            }
+            else
+            {
+                var colliderPath = AssetDatabase.GetAssetPath(info.colliderMesh);
+                var meshPath = AssetDatabase.GetAssetPath(info.mesh);
+                if (colliderPath != meshPath)
+                    problems.Add(
+                        $"{where}: colliderMesh lives in '{colliderPath}', not the render mesh's " +
+                        $"model file '{meshPath}' — it must be a sub-asset of the same model.");
+            }
 
             if (!AsteroidMeshVolume.TryCompute(info.mesh, out var volume, out _))
             {

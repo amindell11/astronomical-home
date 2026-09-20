@@ -18,14 +18,14 @@ namespace Asteroids.Spawning
 
             public Mesh mesh;
 
-            [Tooltip("Optional pre-cooked collider mesh. If null the mesh itself is used.")]
+            [Tooltip("Required pre-cooked collider mesh, a sub-asset of the same model file as the mesh above.")]
             public Mesh colliderMesh;
 
             public float cachedVolume;
 
             [Tooltip("Baked covering spheres along the mesh's principal axis (1..3). " +
                      "K=1 reproduces the single mean-vertex circle (center≈origin). " +
-                     "Nothing reads these for gameplay yet.")]
+                     "Shipped to obstacle-scan consumers through AsteroidController.Lobes.")]
             public LobeSphere[] cachedLobes;
 
             [Tooltip("λ1/λ2 — ratio of the two largest principal extents (debug/report).")]
@@ -36,7 +36,7 @@ namespace Asteroids.Spawning
         [SerializeField] public float density = 1f;
 
         [Header("Mesh Assets")]
-        [Tooltip("Array of asteroid meshes with optional collider overrides and pre-cached volume")]
+        [Tooltip("Array of asteroid meshes with their collider meshes and pre-cached volume")]
         public MeshInfo[] meshInfos;
 
         [Header("Randomization Ranges")]
