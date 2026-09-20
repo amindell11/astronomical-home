@@ -34,9 +34,8 @@ namespace AI.Scanning
         // Remaining health fraction (0,1]; 1 for undamageable sources. RL obs consume it; solver inputs never read it.
         public readonly float healthPct;
 
-        // Up to three baked covering circles carrying the obstacle's shape. lobeCount == 0 means
-        // "use the primary circle only" (every non-lobe ctor), so ships and legacy callers are
-        // unchanged. Consumers decide between lobes and primary circle through UsesLobes.
+        // Up to three baked covering circles carrying the obstacle's shape.
+        // lobeCount == 0 means the primary circle is all this obstacle has.
         public readonly PlaneCircle lobe0;
         public readonly PlaneCircle lobe1;
         public readonly PlaneCircle lobe2;

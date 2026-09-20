@@ -374,7 +374,7 @@ namespace AI.Navigation.MPC
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
 
-            // Expand rocks into their baked lobes when multi-sphere is on, admitting each rock atomically (all lobes or none) so the buffer never holds a partial obstacle; kill switch off writes one primary-circle row per rock.
+            // Admit each rock atomically (all lobes or none) so the buffer never holds a partial obstacle.
             var written = 0;
             for (var i = 0; i < rawCount; i++)
             {

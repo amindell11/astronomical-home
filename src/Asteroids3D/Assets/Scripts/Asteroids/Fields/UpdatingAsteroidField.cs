@@ -481,8 +481,7 @@ namespace Asteroids.Fields
         /// Projects an asteroid's baked mesh-local lobes to the plane (unconditionally — cheap;
         /// the MPC kill switch, not the field, decides whether to consume them). The primary
         /// circle stays the volume-derived <see cref="AsteroidController.Radius"/>, so selection
-        /// and the single-sphere fallback never depend on the bake. An unbaked rock uses the
-        /// plain single-circle ctor.
+        /// and the single-sphere fallback never depend on the bake.
         /// </summary>
         private static AI.Scanning.DetectedObstacle BuildObstacle(AsteroidController ast)
         {
