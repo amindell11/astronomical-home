@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # Regression for the merge gate's proof chain: proof binds to the landing tree,
-# failed runs stop the PR path, inert deltas skip the full suite, and the phase
-# journal records the ladder for both outcomes.
+# failed runs stop the PR path, inert deltas skip the full suite, the phase
+# journal records the ladder for both outcomes, and remote proof is accepted only
+# from a green merge-proof/headless status stamping the landing tree.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -18,9 +19,13 @@ export RUNNER_EXIT_FILE="$TMP/runner.exit"
 export RESHARPER_LOG="$TMP/resharper.log"
 export RESHARPER_EXIT_FILE="$TMP/resharper.exit"
 export GH_MERGE_LOG="$TMP/gh-merge.log"
+export GH_DISPATCH_LOG="$TMP/gh-dispatch.log"
+export GH_STATUS_SEQ="$TMP/gh-status.seq"
+export GH_RUN_SEQ="$TMP/gh-run.seq"
 : > "$RUNNER_LOG"
 : > "$RESHARPER_LOG"
 : > "$GH_MERGE_LOG"
+: > "$GH_DISPATCH_LOG"
 echo 0 > "$RUNNER_EXIT_FILE"
 echo 0 > "$RESHARPER_EXIT_FILE"
 
@@ -113,12 +118,26 @@ exit "$ec"
 EOF
 chmod +x "$STUB_BIN/powershell.exe"
 
+# Fails CLOSED: a call the stub does not model is an error, never an empty answer the gate could read as "no status".
+# The *_SEQ files script successive answers (already --jq shaped), one line per call; the last line sticks.
 cat > "$STUB_BIN/gh" <<'EOF'
 #!/usr/bin/env bash
+next_answer() {
+  local file="$1" default="$2"
+  if [[ ! -s "$file" ]]; then printf '%s\n' "$default"; return 0; fi
+  head -n 1 "$file"
+  [[ "$(wc -l < "$file")" -le 1 ]] || sed -i 1d "$file"
+}
 case "$1 $2" in
   "pr list") [[ "$*" == *"--json number"* ]] && echo 7 ;;
   "pr create") echo "https://example.test/pr/7" ;;
   "pr merge") echo "$*" >> "$GH_MERGE_LOG" ;;
+  "api repos/pool-test/repo/commits/"*)
+    [[ "${GH_API_FAIL:-0}" != 1 ]] || { echo "gh stub: HTTP 502" >&2; exit 1; }
+    next_answer "$GH_STATUS_SEQ" $'absent\037\037' ;;
+  "run list") next_answer "$GH_RUN_SEQ" $'none\t' ;;
+  "workflow run") echo "$*" >> "$GH_DISPATCH_LOG" ;;
+  *) echo "gh stub: unmodelled call: $*" >&2; exit 97 ;;
 esac
 exit 0
 EOF
@@ -136,6 +155,9 @@ recorded_tree() { cat "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_tree" 2>/dev
 
 git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/primary"
+# repo_slug reads a GitHub URL off origin; insteadOf keeps the transport on the local bare repo.
+git -C "$TMP/primary" config remote.origin.url "https://github.com/pool-test/repo.git"
+git -C "$TMP/primary" config "url.$TMP/origin.git.insteadOf" "https://github.com/pool-test/repo.git"
 git -C "$TMP/primary" config user.email pool-test@example.test
 git -C "$TMP/primary" config user.name "Pool Test"
 echo base > "$TMP/primary/file.txt"
@@ -427,13 +449,13 @@ run_status() { sed -n 's/.*"event":"run-end".*"status":"\([^"]*\)".*/\1/p' "$(jo
 echo 0 > "$RESHARPER_EXIT_FILE"
 pool merge agent-1 >/dev/null
 [[ -n "$(journal_for)" ]] || fail "merge must write a journal"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check tests resharper push gh-merge " ]] \
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check tests resharper push base-recheck gh-merge " ]] \
   || fail "journal should record the full phase ladder (got '$(phase_order)')"
 [[ "$(run_status)" == "merged" ]] || fail "successful merge should close the journal as merged (got $(run_status))"
 
 # Every phase-end carries a duration and its budget — that pairing IS the profiling data.
 ends="$(grep -c '"event":"phase-end"' "$(journal_for)")"
-[[ "$ends" == 8 ]] || fail "every started phase should also end (got $ends)"
+[[ "$ends" == 9 ]] || fail "every started phase should also end (got $ends)"
 grep -q '"phase":"tests","sec":[0-9]*,"status":"ok","budget":480' "$(journal_for)" \
   || fail "phase-end should carry sec + status + budget"
 
@@ -518,4 +540,223 @@ git -C "$TMP/agent-1" commit -qm "drop red coordinator suite member"
 pool merge agent-1 > "$TMP/merge.out"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green script suite should merge (got $(gh_merges))"
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger"
+# --- remote proof ------------------------------------------------------------
+TASK_BRANCH="task/merge-gate-test"
+RUN_URL="https://github.com/pool-test/repo/actions/runs"
+slot_sha() { git -C "$TMP/agent-1" rev-parse agent-1; }
+remote_tip() { git -C "$TMP/primary" ls-remote origin "refs/heads/$TASK_BRANCH" | cut -f1; }
+dispatches() { grep -c 'workflow run' "$GH_DISPATCH_LOG" || true; }
+proof_kind() { sed -n 's/^kind=//p' "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_scope"; }
+new_commit() {
+  echo "$1" > "$TMP/agent-1/$1.txt"
+  git -C "$TMP/agent-1" add "$1.txt"
+  git -C "$TMP/agent-1" commit -qm "$1"
+}
+push_slot() { git -C "$TMP/agent-1" push -q origin "agent-1:refs/heads/$TASK_BRANCH"; }
+statuses() { printf '%s\n' "$@" > "$GH_STATUS_SEQ"; }
+runs() { printf '%s\n' "$@" > "$GH_RUN_SEQ"; }
+green() { printf 'success\037tree=%s total=5 passed=5 skipped=0\037%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
+# Refusals must come from the liveness rules, not from minutes of real waiting.
+remote_merge() {
+  WORKTREE_POOL_REMOTE_POLL_SECONDS=1 WORKTREE_POOL_REMOTE_NO_RUN_SECONDS="${NO_RUN:-120}" \
+    WORKTREE_POOL_REMOTE_QUEUED_SECONDS="${QUEUED:-180}" pool merge agent-1 --remote > "$TMP/merge.out" 2>&1
+}
+expect_output() { grep -q -- "$1" "$TMP/merge.out" || { cat "$TMP/merge.out" >&2; fail "$2"; }; }
+
+# A green status already on the landing commit is proof: no run of either kind.
+new_commit remote-existing
+push_slot
+statuses "$(green 41)"
+runs_before="$(runner_runs)"; merges_before="$(gh_merges)"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "existing remote proof should merge"; }
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "existing remote proof must skip the local run (got $(runner_runs))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "existing remote proof should reach gh pr merge"
+[[ "$(proof_kind)" == "remote-run" ]] || fail "remote proof must be recorded as kind=remote-run (got $(proof_kind))"
+[[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "remote proof must record the landing tree"
+expect_output "remote proof, skipping the run" "the gate should say it used remote proof"
+[[ "$(phase_order)" == *"proof-check tests resharper"* ]] || fail "a skipped run keeps the default ladder (got '$(phase_order)')"
+
+# Fail closed, default path: each unusable status names its reason and the gate turns to the local run.
+# The runner is red here so each case stops at the tests phase; one green fallback closes the block.
+expect_local_fallback() {
+  local reason="$1" label="$2"
+  runs_before="$(runner_runs)"
+  if pool merge agent-1 > "$TMP/merge.out" 2>&1; then fail "$label: fixture runner is red, merge must fail"; fi
+  expect_output "$reason" "$label: the gate must say why there is no remote proof"
+  [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "$label: must fall back to one local run (got $(runner_runs))"
+}
+new_commit remote-fail-closed
+push_slot
+merges_before="$(gh_merges)"
+echo 1 > "$RUNNER_EXIT_FILE"
+statuses "$(printf 'success\037tree=%040d total=5 passed=5 skipped=0\037%s/42' 0 "$RUN_URL")"
+expect_local_fallback "stamps tree 0000000000000000000000000000000000000000, the landing tree is $(slot_tree)" "tree mismatch"
+statuses "$(printf 'success\037all green, trust me\037%s/42' "$RUN_URL")"
+expect_local_fallback "names no tree ('all green, trust me')" "unparsable trailer"
+statuses "$(printf 'neutral\037whatever\037%s/42' "$RUN_URL")"
+expect_local_fallback "is 'neutral', not success" "unknown state"
+statuses $'absent\037\037'
+expect_local_fallback "is 'absent', not success" "absent status"
+statuses "$(green 42)"
+GH_API_FAIL=1 expect_local_fallback "could not read the merge-proof/headless status" "gh error"
+new_commit remote-unpushed
+expect_local_fallback "is not on GitHub yet" "unpushed landing commit"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "no fail-closed case may reach gh pr merge"
+echo 0 > "$RUNNER_EXIT_FILE"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "the local run should still merge"; }
+[[ "$(proof_kind)" == "full-run" ]] || fail "fallback proof must come from the local run (got $(proof_kind))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fallback should merge on local proof"
+
+# --remote takes no runner args.
+if pool merge agent-1 --remote -- -Mode EditMode > "$TMP/merge.out" 2>&1; then fail "--remote must refuse test-runner args"; fi
+expect_output "--remote takes no test-runner args" "--remote arg refusal must say why"
+
+# --remote, red verdict: refuse at once and name the rerun recovery.
+new_commit remote-red
+push_slot
+statuses "$(printf 'failure\037headless suite failed - see run\037%s/43' "$RUN_URL")"
+runs "$(printf 'completed\t43')"
+runs_before="$(runner_runs)"; merges_before="$(gh_merges)"; dispatches_before="$(dispatches)"
+if remote_merge; then fail "--remote must refuse a failure status"; fi
+expect_output "is 'failure' (headless suite failed - see run)" "a red verdict must be quoted"
+expect_output "gh run rerun 43" "a red verdict must name the rerun recovery"
+[[ "$(dispatches)" == "$dispatches_before" ]] || fail "a red verdict must not dispatch a new run"
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "a red verdict must not reach gh pr merge"
+grep -q '"phase":"remote-proof".*"status":"failed"' "$(journal_for)" || fail "the journal should name remote-proof as the phase that died"
+
+# An empty description must not shift the run URL out of its field.
+statuses "$(printf 'failure\037\037%s/43' "$RUN_URL")"
+runs $'none\t'
+if remote_merge; then fail "--remote must refuse a failure status with no description"; fi
+expect_output "gh run rerun 43" "the run id must survive an empty description"
+expect_output "Run: $RUN_URL/43" "the run URL must survive an empty description"
+runs "$(printf 'completed\t43')"
+
+statuses "$(printf 'error\037headless suite cancelled\037%s/43' "$RUN_URL")"
+if remote_merge; then fail "--remote must refuse an error status"; fi
+expect_output "is 'error' (headless suite cancelled)" "an error verdict must be quoted"
+
+# After the rerun: pending with a live run is waited on, not re-dispatched.
+statuses "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(green 43)"
+runs "$(printf 'in_progress\t43')"
+merges_before="$(gh_merges)"
+remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the rerun goes green"; }
+[[ "$(dispatches)" == "$dispatches_before" ]] || fail "a live run must not be re-dispatched"
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green rerun should reach gh pr merge"
+[[ "$(proof_kind)" == "remote-run" ]] || fail "--remote proof must be kind=remote-run (got $(proof_kind))"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+  || fail "--remote swaps the tests phase for remote-proof (got '$(phase_order)')"
+
+# --remote with the landing commit not on GitHub: the gate pushes it, and the push is the trigger.
+new_commit remote-push
+statuses "$(printf 'pending\037headless suite running\037%s/44' "$RUN_URL")" "$(green 44)"
+runs "$(printf 'in_progress\t44')"
+merges_before="$(gh_merges)"
+[[ "$(remote_tip)" != "$(slot_sha)" ]] || fail "fixture: the landing commit should start unpushed"
+remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should push, wait, and merge"; }
+[[ "$(remote_tip)" == "$(slot_sha)" ]] || fail "--remote must push the landing commit"
+[[ "$(dispatches)" == "$dispatches_before" ]] || fail "a push triggers the workflow; no dispatch"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "pushed --remote run should merge"
+
+# --remote with the commit already pushed and no verdict coming: dispatch on the task branch.
+new_commit remote-dispatch
+push_slot
+statuses $'absent\037\037' $'absent\037\037' "$(green 45)"
+runs $'none\t' "$(printf 'in_progress\t45')"
+merges_before="$(gh_merges)"
+remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should dispatch, wait, and merge"; }
+[[ "$(dispatches)" == $((dispatches_before + 1)) ]] || fail "pushed + no verdict must dispatch once (got $(dispatches))"
+grep -q -- "workflow run headless-suite.yml --ref $TASK_BRANCH" "$GH_DISPATCH_LOG" || fail "dispatch must target the task branch"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "dispatched --remote run should merge"
+
+# Liveness refusals.
+new_commit remote-no-run
+push_slot
+statuses $'absent\037\037'
+runs $'none\t'
+merges_before="$(gh_merges)"
+if NO_RUN=0 remote_merge; then fail "--remote must refuse when no run ever appears"; fi
+expect_output "no headless-suite run exists for $(slot_sha)" "the no-run refusal must name the commit"
+expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "the no-run refusal must name the recovery"
+
+runs $'none\t' "$(printf 'queued\t46')"
+if QUEUED=0 remote_merge; then fail "--remote must refuse a run stuck queued"; fi
+expect_output "run 46 has sat queued" "the queued refusal must name the run"
+
+statuses "$(printf 'pending\037headless suite running\037%s/46' "$RUN_URL")"
+runs "$(printf 'completed\t46')"
+if remote_merge; then fail "--remote must refuse pending with no live run"; fi
+expect_output "is pending but no headless-suite run is live" "the dead-pending refusal must say so"
+expect_output "gh run rerun 46" "the dead-pending refusal must name the recovery"
+
+runs "$(printf 'in_progress\t46')"
+GH_API_FAIL=1 remote_merge && fail "--remote must refuse when GitHub cannot be asked"
+expect_output "could not ask GitHub about $(slot_sha)" "the gh-error refusal must say so"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "no liveness refusal may reach gh pr merge"
+
+# A green status whose trailer stamps another tree is still no proof after the wait.
+statuses "$(printf 'success\037tree=%040d total=5 passed=5 skipped=0\037%s/46' 0 "$RUN_URL")"
+if remote_merge; then fail "--remote must refuse a green status for another tree"; fi
+expect_output "stamps tree 0000000000000000000000000000000000000000" "the post-wait tree check must say why"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "a wrong-tree verdict must not reach gh pr merge"
+statuses "$(green 46)"
+remote_merge || { cat "$TMP/merge.out" >&2; fail "fixture: clear the pending landing commit"; }
+
+# Under --remote a comment-only delta is a code delta: hosted run, no local smoke boot.
+git -C "$TMP/agent-1" rm -q src/Asteroids3D/Assets/CallerProbe.cs
+git -C "$TMP/agent-1" commit -qm "drop caller-info probe"
+statuses $'absent\037\037'
+pool merge agent-1 >/dev/null
+sed -i 's/reworded again/reworded for remote/' "$TMP/agent-1/code.cs"
+git -C "$TMP/agent-1" add code.cs
+git -C "$TMP/agent-1" commit -qm "comment-only edit for --remote"
+statuses "$(printf 'pending\037headless suite running\037%s/47' "$RUN_URL")" "$(green 47)"
+runs "$(printf 'in_progress\t47')"
+runs_before="$(runner_runs)"
+remote_merge || { cat "$TMP/merge.out" >&2; fail "comment-only --remote merge should complete"; }
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must not smoke-boot a comment-only delta (got $(runner_runs))"
+[[ "$(proof_kind)" == "remote-run" ]] || fail "comment-only --remote proof must be a full remote run (got $(proof_kind))"
+
+# Base moving while the gate works is caught before gh-merge; no auto-loop.
+cat > "$TMP/agent-1/scripts/tests/test_probe.sh" <<'PROBE'
+#!/usr/bin/env bash
+echo probe >> "$PROBE_MARKER"
+[[ -z "${PROBE_HOOK:-}" ]] || bash -c "$PROBE_HOOK"
+exit "$(cat "$PROBE_EXIT_FILE")"
+PROBE
+git -C "$TMP/agent-1" add scripts/tests/test_probe.sh
+git -C "$TMP/agent-1" commit -qm "probe can move base mid-gate"
+statuses $'absent\037\037'
+merges_before="$(gh_merges)"
+export PROBE_HOOK="echo mid-gate > '$TMP/primary/mid_gate.txt' && git -C '$TMP/primary' add mid_gate.txt && git -C '$TMP/primary' commit -qm 'base moves mid-gate' && git -C '$TMP/primary' push -q origin main"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 && fail "merge must refuse when base moved during the gate"
+unset PROBE_HOOK
+expect_output "base moved during the merge gate — re-run 'merge agent-1'" "the base re-check must say what to do"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "a moved base must not reach gh pr merge"
+grep -q '"phase":"base-recheck".*"status":"failed"' "$(journal_for)" || fail "the journal should name base-recheck as the phase that died"
+pool merge agent-1 >/dev/null
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "re-running merge after a moved base should integrate and merge"
+
+# A landing diff touching .github/ can edit the workflow that proves it: remote proof is refused on both paths.
+mkdir -p "$TMP/agent-1/.github/workflows"
+echo "name: edited" > "$TMP/agent-1/.github/workflows/headless-suite.yml"
+git -C "$TMP/agent-1" add .github
+git -C "$TMP/agent-1" commit -qm "edit the proving workflow"
+push_slot
+statuses "$(green 48)"
+merges_before="$(gh_merges)"
+if remote_merge; then fail "--remote must refuse a landing diff touching .github/"; fi
+expect_output "--remote refused — the landing diff touches .github/" "the .github refusal must say why"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "the .github refusal must not reach gh pr merge"
+runs_before="$(runner_runs)"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail ".github landing diff should merge on the local run"; }
+expect_output "the landing diff touches .github/, so this merge needs the local run" "the default path must say why it ignored the green status"
+[[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail ".github landing diff must run the local suite (got $(runner_runs))"
+[[ "$(proof_kind)" == "full-run" ]] || fail ".github landing diff must merge on local proof (got $(proof_kind))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail ".github landing diff should merge on local proof"
+# With the landing tree already proven no run is needed, so --remote has nothing to refuse.
+remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
+
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal)"
