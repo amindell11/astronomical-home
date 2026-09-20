@@ -58,6 +58,19 @@ namespace Asteroids.Spawning
 
         [Tooltip("Maximum size the asteroid object pool can grow to")]
         public int maxPoolSize = 100;
+
+        /// <summary>Radius of the largest mesh at the top of <see cref="massScaleRange"/>; fragments only shrink from it.</summary>
+        public float MaxSpawnRadius
+        {
+            get
+            {
+                var maxVolume = 0f;
+                foreach (var info in meshInfos)
+                    maxVolume = Mathf.Max(maxVolume, info.cachedVolume);
+                return AsteroidGeometry.RadiusFromVolume(maxVolume * massScaleRange.y);
+            }
+        }
+
         public void ValidateSettings()
         {
             // Validation removed from production code

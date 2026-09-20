@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AI.Observation;
 using AI.Scanning;
 using Asteroids;
+using Asteroids.Spawning;
 using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
@@ -12,6 +13,7 @@ using Tests.Common;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
+using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
 using RL.Episodes;
@@ -445,6 +447,18 @@ namespace Tests.EditMode
             };
             for (var i = 0; i < expected.Length; i++)
                 Assert.AreEqual(expected[i], dest[i], 1e-4f, $"token float {i}");
+        }
+
+        [Test]
+        public void SpawnSettingsMaxAsteroidRadius_MatchesTheShippedSpawnSettings()
+        {
+            const string path = "Assets/Settings/Asteroids/SpawnSettings.asset";
+            var settings = AssetDatabase.LoadAssetAtPath<AsteroidSpawnSettings>(path);
+            Assert.IsNotNull(settings, $"{path} must load");
+
+            // Half a unit in the constant's last printed digit: the policy trained under 4.17, not the exact value.
+            Assert.AreEqual(AgentObservations.SpawnSettingsMaxAsteroidRadius, settings.MaxSpawnRadius, 0.005f,
+                "the radius channel's normalizer drifted from the asset the frozen policy trained on — report, don't retune");
         }
 
         [Test]
