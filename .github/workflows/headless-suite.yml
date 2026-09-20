@@ -46,8 +46,7 @@ jobs:
       - name: Fetch base
         run: git fetch --no-tags origin main:refs/remotes/origin/main
 
-      # No solution exists before the boot, so the real script ends right after its own diff:
-      # a "skipped" summary = no changed C#; any other end (it throws) = the ratchet is owed.
+      # Pre-boot there is no solution: a "skipped" summary = no changed C#, a throw = ratchet owed.
       - name: Ratchet diff
         id: rdiff
         run: |
@@ -151,7 +150,7 @@ jobs:
               git config --global --add safe.directory /github/workspace
               pwsh -NoProfile -File scripts/resharper_ratchet.ps1 -BaseRef origin/main -SolutionReady
             ' || rc=$?
-          sudo chown -R "$(id -u):$(id -g)" results src/Asteroids3D/Library/ReSharperCaches
+          sudo chown -R "$(id -u):$(id -g)" results src/Asteroids3D/Library/ReSharperCaches || true
           summary=results/resharper-ratchet/summary.json
           [ -f "$summary" ] || refuse "hosted ratchet did not finish (exit $rc) - see run"
           cat "$summary"

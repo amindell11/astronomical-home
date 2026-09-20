@@ -1377,7 +1377,6 @@ verified_remote_status() {
   printf '%s run=%s\n' "$description" "$url"
 }
 
-# Records merge-grade test proof from the hosted headless suite's status on the landing commit.
 accept_remote_proof() {
   local slot="$1" sha="$2" tree="$3"
   local evidence ldir
@@ -1388,7 +1387,6 @@ accept_remote_proof() {
   write_tested_scope "$ldir" "$tree" "remote-run" "$tree" "$evidence"
 }
 
-# Records ReSharper ratchet proof from the hosted ratchet's status on the landing commit.
 accept_remote_resharper_proof() {
   local slot="$1" path="$2" sha="$3" base_ref="$4"
   verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" \
