@@ -25,15 +25,12 @@ namespace Asteroids.Spawning
         /// </summary>
         public AsteroidAttributes RollForMass(float mass, Vector3 velocity, Vector3 angularVelocity)
         {
-            var meshIndex = GetRandomMeshIndex(settings.meshInfos);
-            var meshInfo = meshIndex >= 0 ? settings.meshInfos[meshIndex] : default;
+            var meshInfos = settings.meshInfos;
+            var meshIndex = meshInfos is { Length: > 0 } ? Random.Range(0, meshInfos.Length) : -1;
+            var meshInfo = meshIndex >= 0 ? meshInfos[meshIndex] : default;
             var (finalMass, scale) = CalculateMassAndScale(meshInfo, mass);
             return new AsteroidAttributes(meshInfo, meshIndex, finalMass, scale, velocity, angularVelocity);
         }
-
-        /// <returns>-1 when the settings ship no meshes at all.</returns>
-        private static int GetRandomMeshIndex(AsteroidSpawnSettings.MeshInfo[] meshInfos) =>
-            meshInfos is { Length: > 0 } ? Random.Range(0, meshInfos.Length) : -1;
 
         private (float finalMass, float finalScale) CalculateMassAndScale(
             AsteroidSpawnSettings.MeshInfo meshInfo, float? mass = null)

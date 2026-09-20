@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Asteroids
 {
     /// <summary>
-    /// Refuses to build a player whose asteroid geometry bake no longer matches the meshes
-    /// it came from: every shipped <see cref="AsteroidSpawnSettings.MeshInfo"/> is
-    /// re-derived and compared, and a mismatch fails the build. It also pins the collider
-    /// wiring: every entry needs a colliderMesh from the render mesh's own model file.
+    /// Refuses to build a player whose asteroid geometry no longer matches the meshes it
+    /// came from: every shipped <see cref="AsteroidSpawnSettings.MeshInfo"/> has its bake
+    /// re-derived and compared, and its colliderMesh pinned to a sub-asset of the render
+    /// mesh's own model file. Any mismatch fails the build.
     ///
     /// The runtime deliberately carries no check of its own. With the bake automatic
     /// (<see cref="AsteroidVolumePostprocessor"/>) and the build gated here, bad data
