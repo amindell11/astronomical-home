@@ -257,6 +257,30 @@ try {
     $mainProject = Join-Path $Primary "src\Asteroids3D"
     $agentProject = Join-Path $Root "agent-1\src\Asteroids3D"
 
+    # Where the editor boot demand constant gets measured: the editor's own peak plus its workers',
+    # which name their editor through ParentProcessId alone.
+    $gb = 1048576
+    Write-Snapshot @(
+        [ordered]@{ processId = 44001; parentProcessId = 7; commandLine = "Unity.exe -projectPath `"$agentProject`""
+            privateKb = 5 * $gb; peakPrivateKb = 6 * $gb },
+        [ordered]@{ processId = 44002; parentProcessId = 44001; commandLine = "Unity.exe -name `"AssetImportWorker0`" -projectPath `"$agentProject`""
+            privateKb = 1 * $gb; peakPrivateKb = [int](1.5 * $gb) },
+        [ordered]@{ processId = 44003; parentProcessId = 44001; commandLine = "Unity.exe -name AssetImportWorker1 -projectPath `"$agentProject`""
+            privateKb = 0.5 * $gb; peakPrivateKb = 1 * $gb },
+        [ordered]@{ processId = 44004; parentProcessId = 9; commandLine = "Unity.exe -name `"AssetImportWorker0`" -projectPath `"$agentProject`""
+            privateKb = 4 * $gb; peakPrivateKb = 4 * $gb })
+    $memoryStatus = Invoke-Coordinator -Action Status -ProjectPath $agentProject
+    $editorEntry = @($memoryStatus.value.projectProcesses | Where-Object { $_.processId -eq 44001 })
+    Assert-Equal $memoryStatus.value.projectProcesses.Count 1 "workers never appear as project processes"
+    Assert-Equal $editorEntry[0].privateGB 5 "the editor's own private bytes"
+    Assert-Equal $editorEntry[0].peakPrivateGB 6 "the editor's kernel-maintained peak"
+    Assert-Equal $editorEntry[0].workersPrivateGB 1.5 "workers sum by parent, quoted and bare -name alike"
+    Assert-Equal $editorEntry[0].workersPeakPrivateGB 2.5 "worker peaks sum separately from the editor's"
+    Assert-Equal $editorEntry[0].batch $false "an interactive editor is still reported as such"
+    $otherStatus = Invoke-Coordinator -Action Status -ProjectPath $projB
+    Assert-Equal @($otherStatus.value.projectProcesses).Count 0 "a project with no Unity process reports none"
+    Write-Snapshot @()
+
     Write-Snapshot @([ordered]@{ processId = 41001; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
     $crossProject = Invoke-Coordinator -Action Acquire -Lease cross-project -ProjectPath $agentProject
     Assert-Equal $crossProject.code 0 "cross-project editor batch exit"
@@ -482,7 +506,30 @@ try {
     $highResult = [string](@($highOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
     Assert-Equal $highResult.status "attached" "StartEditor accepts explicit HighFidelity"
     Assert-Equal $highResult.profile.observedQuality "High Fidelity" "StartEditor verifies HighFidelity quality"
+    Assert-Equal $highResult.owner.editorProfile "HighFidelity" "the attach records the launched editor profile"
     [void](Invoke-Coordinator -Action Release -Lease highprofile)
+
+    # The record outlives the launch only while its editor does, so the echo is asserted on one that stays up.
+    $lingeringRecorder = Join-Path $Root "lingering-profile-recorder.cmd"
+    [System.IO.File]::WriteAllText($lingeringRecorder, "@echo off`r`necho {`"requestedProfile`":`"%ASTRONOMICAL_EDITOR_PROFILE%`",`"observedQuality`":`"Performant`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`nping -n 60 127.0.0.1 > nul`r`n", $Utf8NoBom)
+    $lingerOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action StartEditor -Lease lingerprofile -Slot agent-1 -ProjectPath $projA -UnityPath $lingeringRecorder -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -MemorySnapshotPath $Memory -WaitSeconds 1 -ProfileWaitSeconds 10 -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 0 "StartEditor lingering-editor exit"
+    $lingerResult = [string](@($lingerOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $lingerResult.status "attached" "StartEditor attaches the lingering editor"
+    $lingerPid = [int]$lingerResult.owner.processId
+    Write-Snapshot @(
+        [ordered]@{ processId = $lingerPid; parentProcessId = 7; commandLine = "Unity.exe -projectPath `"$projA`""
+            privateKb = 3 * $gb; peakPrivateKb = 4 * $gb },
+        [ordered]@{ processId = 44010; parentProcessId = $lingerPid; commandLine = "Unity.exe -name `"AssetImportWorker0`" -projectPath `"$projA`""
+            privateKb = 1 * $gb; peakPrivateKb = 2 * $gb })
+    $profileStatus = Invoke-Coordinator -Action Status -ProjectPath $projA
+    Assert-Equal (Get-OwnerByLease $profileStatus "lingerprofile").editorProfile "LowMemory" "the owner record keeps the launched editor profile"
+    Assert-Equal $profileStatus.value.projectOwner.editorProfile "LowMemory" "Status echoes the profile for the requested project"
+    Assert-Equal $profileStatus.value.projectProcesses[0].peakPrivateGB 4 "the leased editor's peak rides beside its profile"
+    Assert-Equal $profileStatus.value.projectProcesses[0].workersPeakPrivateGB 2 "its workers' peaks are summed separately"
+    $lingerRelease = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease lingerprofile -Slot agent-1 -ProjectPath $projA -CloseEditor -EditorCloseWaitSeconds 20 -StateRoot $State -PrimaryRoot $Primary -ProcessSnapshotPath $Snapshot -MemorySnapshotPath $Memory -Json 2>&1)
+    Assert-Equal ([string](@($lingerRelease | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json).status "released" "the lingering editor is closed with its lease"
+    Write-Snapshot @()
 
     $badReceiptRecorder = Join-Path $Root "bad-profile-recorder.cmd"
     [System.IO.File]::WriteAllText($badReceiptRecorder, "@echo off`r`necho {`"requestedProfile`":`"LowMemory`",`"observedQuality`":`"High Fidelity`"} > `"%ASTRONOMICAL_EDITOR_PROFILE_RECEIPT%`"`r`n", $Utf8NoBom)
