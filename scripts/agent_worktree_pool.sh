@@ -1447,8 +1447,7 @@ run_remote_for_proof() {
   wait_for_remote_verdict "$slot" "$sha" "$task_branch"
 }
 
-# The access coordinator owns memory admission; the gate reads its one status word and measures nothing
-# (script-contracts.md sec.3). The pool's own client copy: admission is a stateless machine reading.
+# The access coordinator owns memory admission; the gate reads its status word, measuring nothing (script-contracts.md sec.3).
 ADMISSION_READER='
 . (Join-Path $env:POOL_SCRIPT_DIR "unity_access_client.ps1")
 $call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "BootAdmission", "-Mode", "batch")

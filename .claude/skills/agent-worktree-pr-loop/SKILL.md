@@ -285,13 +285,13 @@ commit. That early push is the gate's own act — the same integration commit it
 pushes at the end of every merge — and does not reopen the user's approval.
 The hosted run removes the TEST boot only: changed C# under `Assets/Scripts`
 still boots Unity here once for the ReSharper solution sync, so on the hosted
-path the ratchet runs BEFORE the wait and a C# merge under low memory fails in
-seconds (exit 28) instead of after it. Docs, scripts, YAML, assets and C#
-outside `Assets/Scripts` land. A landing diff touching `.github/` cannot use
-remote proof; with `boot_not_admitted` too the gate refuses, and the way out is
-`merge <slot> -- -AllowLowMemory` once the user approves that specific boot —
-it covers the test boot only, not the ratchet's. On a `failure`/`error` verdict the gate refuses at once and prints
-the recovery (`gh run rerun <id>` when the run died before the suite started).
+path the ratchet runs BEFORE the wait, so a C# merge under low memory dies on
+that refused sync boot in seconds instead of after it. Docs, scripts, YAML,
+assets and C# outside `Assets/Scripts` land. A landing diff touching `.github/`
+cannot use remote proof; with `boot_not_admitted` too the gate refuses, and the
+way out is `merge <slot> -- -AllowLowMemory` once the user approves that
+specific boot — it covers the test boot only, not the ratchet's. On a
+`failure`/`error` verdict the gate refuses at once and prints the recovery (`gh run rerun <id>` when the run died before the suite started).
 Just before `gh pr merge`, both paths re-check base: "base moved during the
 merge gate" means re-run `merge`.
 
