@@ -221,10 +221,12 @@ moves in this same PR. Flip the ledger row to in-review with the PR number.
 
 ## Step 5 — Review round-trip
 
-The automated review bot is currently DISABLED — do not wait for a bot round;
-present the PR for the user's review as soon as submit is green. (If the bot
-is re-enabled, restore the old protocol: wait for and triage its round before
-requesting user review, and never request merge approval mid-round.)
+The Codex review bot (`chatgpt-codex-connector`) reviews every PR on open,
+usually within a few minutes: it posts inline findings, or reacts 👍 when it
+has none. Check `review-comments <slot>` for its round and triage it before
+presenting the PR for the user's review — but wait at most one minute: if
+nothing has landed by then, present the PR, and the pre-merge comment check
+(Step 6) catches a late round. It does not re-review pushes on its own.
 
 Run EVERY review comment (bot or human) through the AGENTS.md fix ladder —
 its entry gate is the triage:
