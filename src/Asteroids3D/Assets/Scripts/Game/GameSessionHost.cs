@@ -13,7 +13,6 @@ using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
-using Substrate.Sectors.Elements;
 
 namespace Game
 {
@@ -32,8 +31,9 @@ namespace Game
     [RequireComponent(typeof(ObjectiveService))]
     public class GameSessionHost : MonoBehaviour
     {
+        // Values are pinned: scenes serialize the numbers, so renumbering rewrites authored data.
         /// <summary>Session policy for what happens when the persistent player ship dies.</summary>
-        public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
+        public enum PlayerDeathBehavior { None = 0, RestartSector = 2 }
 
         [Header("Session")]
         [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
@@ -62,12 +62,9 @@ namespace Game
         [SerializeField] private LoadoutConfig loadoutCatalog;
 
         [Header("Death Policy")]
-        [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
-                 "RespawnInPlace revives via playerRespawn; None does nothing.")]
+        [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +
+                 "reloads the active sector; None does nothing.")]
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
-
-        [Tooltip("Used when deathBehavior = RespawnInPlace.")]
-        [SerializeField] private RespawnPolicy playerRespawn;
 
         [Header("Death Recap")]
         [Tooltip("Seconds the death recap holds before auto-continuing; the Continue button skips " +
@@ -198,12 +195,6 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         TransitionTo(GameState.DeathRecap);
                     };
-                case PlayerDeathBehavior.RespawnInPlace:
-                    var policy = playerRespawn;
-                    if (!policy.Enabled) return null;
-                    // No live producer transform here, so the authored point resolves against the frame origin.
-                    return (victim, _) => session.Units.WaitAndRespawnShip(
-                        victim, Respawn.Resolve(policy, session.Frame.Offset), 0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:
                     return null;
