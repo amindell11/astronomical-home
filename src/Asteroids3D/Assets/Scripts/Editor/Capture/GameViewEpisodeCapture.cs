@@ -31,6 +31,7 @@ namespace Capture.GameView
         private RecorderController controller;
         private RecorderControllerSettings controllerSettings;
         private ImageRecorderSettings recorderSettings;
+        private IDisposable pacing;
         private Object[] appliedSelection = Array.Empty<Object>();
         private string frameDir;
         private int activationFrame;
@@ -63,6 +64,7 @@ namespace Capture.GameView
             try
             {
                 artifacts = new CaptureArtifacts(config);
+                pacing = CapturePacing.Locked(config.everyFixedSteps);
                 cost = new CaptureCost();
                 frameDir = artifacts.FrameDir;
                 BuildSelection();
@@ -109,10 +111,13 @@ namespace Capture.GameView
 
             var failures = new List<Exception>();
             CaptureRecoveryJournal.Attempt(() => controller?.StopRecording(), failures);
+            // Stopping the Recorder zeroes Time.captureFramerate, so the caller's pacing is restored after it.
+            CaptureRecoveryJournal.Attempt(() => pacing?.Dispose(), failures);
             CaptureRecoveryJournal.Attempt(() => artifacts?.Complete(cost), failures);
             CaptureRecoveryJournal.Attempt(() => transaction?.Restore(), failures);
             CaptureRecoveryJournal.Attempt(DestroyOwnedObjects, failures);
             controller = null;
+            pacing = null;
             transaction = null;
             artifacts = null;
             cost = null;
@@ -192,9 +197,9 @@ namespace Capture.GameView
         {
             controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
             controllerSettings.SetRecordModeToManual();
-            controllerSettings.FrameRatePlayback = FrameRatePlayback.Variable;
-            // Recorder cadence follows simulation; captureEveryNthFrame controls PNG cadence.
-            controllerSettings.FrameRate = 1f / Time.fixedDeltaTime;
+            controllerSettings.FrameRatePlayback = FrameRatePlayback.Constant;
+            // Constant playback films every rendered frame, so PNG cadence is the render cadence.
+            controllerSettings.FrameRate = 1f / (Time.fixedDeltaTime * config.everyFixedSteps);
             controllerSettings.CapFrameRate = false;
             controllerSettings.ExitPlayMode = false;
 
@@ -208,11 +213,6 @@ namespace Capture.GameView
                 OutputWidth = config.width,
                 OutputHeight = config.height,
             };
-            var serialized = new SerializedObject(recorderSettings);
-            var cadence = serialized.FindProperty("captureEveryNthFrame") ??
-                          throw new MissingFieldException("Unity Recorder 5.1.2 captureEveryNthFrame");
-            cadence.intValue = config.everyFixedSteps;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
             recorderSettings.OutputFile = Path.Combine(frameDir, "f_0") + DefaultWildcard.Frame;
 
             controllerSettings.AddRecorderSettings(recorderSettings);

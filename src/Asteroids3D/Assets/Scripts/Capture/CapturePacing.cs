@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Capture
 {
-    /// <summary>Locked frame pacing for capture runs: 1 fixed step per rendered frame, so recorded clips are deterministic and assemble to real-time playback whatever the wall-clock speed.</summary>
+    /// <summary>Locked frame pacing for capture runs: a whole number of fixed steps per rendered frame, so recorded clips are deterministic and assemble to real-time playback whatever the wall-clock speed.</summary>
     public static class CapturePacing
     {
-        public static IDisposable Locked() => new Scope();
+        public static IDisposable Locked(int fixedStepsPerFrame = 1) => new Scope(fixedStepsPerFrame);
 
         private sealed class Scope : IDisposable
         {
             private readonly float savedTimeScale = Time.timeScale;
             private readonly float savedCaptureDelta = Time.captureDeltaTime;
 
-            internal Scope()
+            internal Scope(int fixedStepsPerFrame)
             {
                 Time.timeScale = 1f;
-                Time.captureDeltaTime = Time.fixedDeltaTime;
+                Time.captureDeltaTime = Time.fixedDeltaTime * fixedStepsPerFrame;
             }
 
             public void Dispose()
