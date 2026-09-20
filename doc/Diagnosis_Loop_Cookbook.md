@@ -39,9 +39,9 @@
 - `unity` CLI (`eval`/`eval_file`, `console`, scene/gameobject queries) against
   an editor acquired through unity-access; always pass `--project-path`, gate
   on `unity command editor_status` (never `unity status`).
-- DDOL-scene invisibility during play was observed on the retired MCP tools and
-  is unverified for the CLI — a probe that cannot see its subject is not a
-  red-capable loop; verify visibility or pick another seam.
+- DDOL-scene visibility during play is unverified for the CLI — a probe that
+  cannot see its subject is not a red-capable loop; verify visibility or pick
+  another seam.
 
 ## Visual loop (spatial sim bugs)
 
