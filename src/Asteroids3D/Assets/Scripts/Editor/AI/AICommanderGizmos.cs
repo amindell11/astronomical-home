@@ -50,7 +50,8 @@ namespace AI
                 : TargetView.None;
 
             ObservationExtractor.Populate(Snapshot, self, target,
-                scanner.Contacts, scanner.Count, commander.Scout.ObstacleScan, Time.time);
+                scanner.Contacts, scanner.Count, commander.Scout.ObstacleScan,
+                commander.Navigator.mpcSettings.multiSphereObstacles, Time.time);
 
             var kin = self.Kinematics;
             var frame = new EgoFrame(kin.pos, kin.Forward);

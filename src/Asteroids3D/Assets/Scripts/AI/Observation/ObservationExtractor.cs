@@ -59,7 +59,7 @@ namespace AI.Observation
             IShipStatus self,
             in TargetView target,
             ThreatContact[] threats, int threatCount,
-            ObstacleScan obstacles,
+            ObstacleScan obstacles, bool multiSphereObstacles,
             float time)
         {
             obs.Clear();
@@ -87,7 +87,7 @@ namespace AI.Observation
             for (var i = 0; i < obstacles.count; i++)
             {
                 var o = buffer[i];
-                if (o.lobeCount > 0)
+                if (o.UsesLobes(multiSphereObstacles))
                 {
                     for (var l = 0; l < o.lobeCount; l++)
                     {

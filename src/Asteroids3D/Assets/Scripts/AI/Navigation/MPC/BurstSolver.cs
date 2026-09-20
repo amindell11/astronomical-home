@@ -374,7 +374,7 @@ namespace AI.Navigation.MPC
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
 
-            // Expand elongated rocks into their tighter lobes when multi-sphere is on, admitting each rock atomically (all lobes or none) so the buffer never holds a partial obstacle; kill switch off writes one primary-circle row per rock.
+            // Expand rocks into their baked lobes when multi-sphere is on, admitting each rock atomically (all lobes or none) so the buffer never holds a partial obstacle; kill switch off writes one primary-circle row per rock.
             var written = 0;
             for (var i = 0; i < rawCount; i++)
             {
@@ -382,7 +382,7 @@ namespace AI.Navigation.MPC
                 var rb = obs.collider ? obs.collider.attachedRigidbody : null;
                 var weight = (rb ? rb.mass : shipMass) * invShipMass;
 
-                if (multiSphereObstacles && obs.lobeCount > 1)
+                if (obs.UsesLobes(multiSphereObstacles))
                 {
                     if (written + obs.lobeCount > obstacles.Length) break;
                     for (var k = 0; k < obs.lobeCount; k++)

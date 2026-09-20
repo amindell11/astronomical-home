@@ -34,9 +34,9 @@ namespace AI.Scanning
         // Remaining health fraction (0,1]; 1 for undamageable sources. RL obs consume it; solver inputs never read it.
         public readonly float healthPct;
 
-        // Up to three tighter covering circles for an elongated obstacle. lobeCount == 0 means
+        // Up to three baked covering circles carrying the obstacle's shape. lobeCount == 0 means
         // "use the primary circle only" (every non-lobe ctor), so ships and legacy callers are
-        // unchanged. When lobeCount > 1 a multi-sphere-aware consumer may prefer these.
+        // unchanged. Consumers decide between lobes and primary circle through UsesLobes.
         public readonly PlaneCircle lobe0;
         public readonly PlaneCircle lobe1;
         public readonly PlaneCircle lobe2;
@@ -91,6 +91,8 @@ namespace AI.Scanning
             this.lobe2 = lobe2;
             this.lobeCount = Mathf.Clamp(lobeCount, 0, 3);
         }
+
+        public bool UsesLobes(bool multiSphereObstacles) => multiSphereObstacles && lobeCount > 0;
 
         /// <summary>Lobe by index (0..lobeCount-1). Caller guarantees the range.</summary>
         public PlaneCircle Lobe(int i) => i == 0 ? lobe0 : i == 1 ? lobe1 : lobe2;
