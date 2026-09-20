@@ -30,29 +30,32 @@ Material:
     m_Ints: []
     m_Floats:
     - _Brightness: 0.49
-    - _CellScale: 0.94
+    - _CellScale: 3.03
     - _DepthElongation: 0.687
     - _HaloSize: 4
     - _HaloStrength: 0.055
-    - _NearLayerShare: 0.603
-    - _ParallaxFar: 0.205
-    - _ParallaxNear: 0.633
+    - _NearLayerShare: 0.441
+    - _ParallaxFar: 0.071
+    - _ParallaxNear: 0.309
+    - _ParallaxScale: 1
     - _PositionJitter: 0.572
     - _Seed: 0
     - _ShapeVariation: 0.8
-    - _SizeZoomResponse: 1
+    - _SizeZoomResponse: 0
     - _Softness: 0.75
-    - _SpacingZoomResponse: 1
-    - _StarDensity: 0.916
-    - _StarSizeMax: 0.0822
-    - _StarSizeMin: 0.0225
+    - _SpacingZoomResponse: 0.131
+    - _StarDensity: 0.43
+    - _StarSizeMax: 0.1073
+    - _StarSizeMin: 0.0354
     - _TwinkleAmount: 1
     - _TwinkleDurationMax: 26.2
     - _TwinkleDurationMin: 5.3
     - _TwinkleNoise: 0.848
     - _WarmColorShare: 0.25
+    - _ZoomReferenceSize: 7
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
     - _ColorWarm: {r: 1, g: 0.82, b: 0.58, a: 1}
+    - _ParallaxCorrectionWS: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
