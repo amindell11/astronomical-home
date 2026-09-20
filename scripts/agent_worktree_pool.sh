@@ -1305,7 +1305,8 @@ REMOTE_QUEUED_SECONDS="${WORKTREE_POOL_REMOTE_QUEUED_SECONDS:-180}"
 REMOTE_RUN_SECONDS="${WORKTREE_POOL_REMOTE_RUN_SECONDS:-900}"
 REMOTE_POLL_SECONDS="${WORKTREE_POOL_REMOTE_POLL_SECONDS:-15}"
 
-# Prints "<state>\t<description>\t<target_url>" for the NEWEST status in the context (the API lists
+# Prints "<state><US><description><US><target_url>" — US (\x1f), since tab-splitting collapses an empty
+# description — for the NEWEST status in the context (the API lists
 # a context's whole history, newest first); state "absent" when there is none. Non-zero = GitHub could not be asked.
 remote_status() {
   local sha="$1" slug
@@ -1315,7 +1316,7 @@ remote_status() {
     return 1
   fi
   gh api "repos/$slug/commits/$sha/statuses?per_page=100" --jq \
-    "[.[] | select(.context == \"$REMOTE_PROOF_CONTEXT\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | @tsv"
+    "[.[] | select(.context == \"$REMOTE_PROOF_CONTEXT\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | join(\"\")"
 }
 
 # Prints "<status>\t<run id>" for the newest headless-suite run on a commit; status "none" when there is none.
@@ -1341,7 +1342,7 @@ accept_remote_proof() {
     echo "no remote proof: could not read the $REMOTE_PROOF_CONTEXT status of $sha from GitHub"
     return 1
   fi
-  IFS=$'\t' read -r state description url <<< "$status"
+  IFS=$'\x1f' read -r state description url <<< "$status"
   if [[ "$state" != "success" ]]; then
     echo "no remote proof: $REMOTE_PROOF_CONTEXT on $sha is '${state:-unreadable}', not success"
     return 1
@@ -1372,7 +1373,7 @@ wait_for_remote_verdict() {
       return 1
     fi
     IFS=$'\t' read -r run_status run_id <<< "$run"
-    IFS=$'\t' read -r state description url <<< "$status"
+    IFS=$'\x1f' read -r state description url <<< "$status"
     case "$state" in
       success) return 0 ;;
       failure|error)
@@ -1429,7 +1430,7 @@ run_remote_for_proof() {
       return 1
     fi
     run="${run%%$'\t'*}"
-    if [[ "${status%%$'\t'*}" == "absent" && ( "$run" == "none" || "$run" == "completed" ) ]]; then
+    if [[ "${status%%$'\x1f'*}" == "absent" && ( "$run" == "none" || "$run" == "completed" ) ]]; then
       echo "Landing commit $sha is already on $task_branch with no verdict — dispatching the hosted headless suite."
       gh workflow run "$REMOTE_PROOF_WORKFLOW" --ref "$task_branch"
     fi

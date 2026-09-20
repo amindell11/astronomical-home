@@ -134,7 +134,7 @@ case "$1 $2" in
   "pr merge") echo "$*" >> "$GH_MERGE_LOG" ;;
   "api repos/pool-test/repo/commits/"*)
     [[ "${GH_API_FAIL:-0}" != 1 ]] || { echo "gh stub: HTTP 502" >&2; exit 1; }
-    next_answer "$GH_STATUS_SEQ" $'absent\t\t' ;;
+    next_answer "$GH_STATUS_SEQ" $'absent\037\037' ;;
   "run list") next_answer "$GH_RUN_SEQ" $'none\t' ;;
   "workflow run") echo "$*" >> "$GH_DISPATCH_LOG" ;;
   *) echo "gh stub: unmodelled call: $*" >&2; exit 97 ;;
@@ -555,7 +555,7 @@ new_commit() {
 push_slot() { git -C "$TMP/agent-1" push -q origin "agent-1:refs/heads/$TASK_BRANCH"; }
 statuses() { printf '%s\n' "$@" > "$GH_STATUS_SEQ"; }
 runs() { printf '%s\n' "$@" > "$GH_RUN_SEQ"; }
-green() { printf 'success\ttree=%s total=5 passed=5 skipped=0\t%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
+green() { printf 'success\037tree=%s total=5 passed=5 skipped=0\037%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
 # Refusals must come from the liveness rules, not from minutes of real waiting.
 remote_merge() {
   WORKTREE_POOL_REMOTE_POLL_SECONDS=1 WORKTREE_POOL_REMOTE_NO_RUN_SECONDS="${NO_RUN:-120}" \
@@ -589,13 +589,13 @@ new_commit remote-fail-closed
 push_slot
 merges_before="$(gh_merges)"
 echo 1 > "$RUNNER_EXIT_FILE"
-statuses "$(printf 'success	tree=%040d total=5 passed=5 skipped=0	%s/42' 0 "$RUN_URL")"
+statuses "$(printf 'success\037tree=%040d total=5 passed=5 skipped=0\037%s/42' 0 "$RUN_URL")"
 expect_local_fallback "stamps tree 0000000000000000000000000000000000000000, the landing tree is $(slot_tree)" "tree mismatch"
-statuses "$(printf 'success	all green, trust me	%s/42' "$RUN_URL")"
+statuses "$(printf 'success\037all green, trust me\037%s/42' "$RUN_URL")"
 expect_local_fallback "names no tree ('all green, trust me')" "unparsable trailer"
-statuses "$(printf 'neutral	whatever	%s/42' "$RUN_URL")"
+statuses "$(printf 'neutral\037whatever\037%s/42' "$RUN_URL")"
 expect_local_fallback "is 'neutral', not success" "unknown state"
-statuses $'absent		'
+statuses $'absent\037\037'
 expect_local_fallback "is 'absent', not success" "absent status"
 statuses "$(green 42)"
 GH_API_FAIL=1 expect_local_fallback "could not read the merge-proof/headless status" "gh error"
@@ -614,7 +614,7 @@ expect_output "--remote takes no test-runner args" "--remote arg refusal must sa
 # --remote, red verdict: refuse at once and name the rerun recovery.
 new_commit remote-red
 push_slot
-statuses "$(printf 'failure\theadless suite failed - see run\t%s/43' "$RUN_URL")"
+statuses "$(printf 'failure\037headless suite failed - see run\037%s/43' "$RUN_URL")"
 runs "$(printf 'completed\t43')"
 runs_before="$(runner_runs)"; merges_before="$(gh_merges)"; dispatches_before="$(dispatches)"
 if remote_merge; then fail "--remote must refuse a failure status"; fi
@@ -625,12 +625,20 @@ expect_output "gh run rerun 43" "a red verdict must name the rerun recovery"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a red verdict must not reach gh pr merge"
 grep -q '"phase":"remote-proof".*"status":"failed"' "$(journal_for)" || fail "the journal should name remote-proof as the phase that died"
 
-statuses "$(printf 'error\theadless suite cancelled\t%s/43' "$RUN_URL")"
+# An empty description must not shift the run URL out of its field.
+statuses "$(printf 'failure\037\037%s/43' "$RUN_URL")"
+runs $'none\t'
+if remote_merge; then fail "--remote must refuse a failure status with no description"; fi
+expect_output "gh run rerun 43" "the run id must survive an empty description"
+expect_output "Run: $RUN_URL/43" "the run URL must survive an empty description"
+runs "$(printf 'completed\t43')"
+
+statuses "$(printf 'error\037headless suite cancelled\037%s/43' "$RUN_URL")"
 if remote_merge; then fail "--remote must refuse an error status"; fi
 expect_output "is 'error' (headless suite cancelled)" "an error verdict must be quoted"
 
 # After the rerun: pending with a live run is waited on, not re-dispatched.
-statuses "$(printf 'pending\theadless suite running\t%s/43' "$RUN_URL")" "$(printf 'pending\theadless suite running\t%s/43' "$RUN_URL")" "$(green 43)"
+statuses "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(green 43)"
 runs "$(printf 'in_progress\t43')"
 merges_before="$(gh_merges)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the rerun goes green"; }
@@ -643,7 +651,7 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the
 
 # --remote with the landing commit not on GitHub: the gate pushes it, and the push is the trigger.
 new_commit remote-push
-statuses "$(printf 'pending\theadless suite running\t%s/44' "$RUN_URL")" "$(green 44)"
+statuses "$(printf 'pending\037headless suite running\037%s/44' "$RUN_URL")" "$(green 44)"
 runs "$(printf 'in_progress\t44')"
 merges_before="$(gh_merges)"
 [[ "$(remote_tip)" != "$(slot_sha)" ]] || fail "fixture: the landing commit should start unpushed"
@@ -655,7 +663,7 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should push, wait, an
 # --remote with the commit already pushed and no verdict coming: dispatch on the task branch.
 new_commit remote-dispatch
 push_slot
-statuses $'absent\t\t' $'absent\t\t' "$(green 45)"
+statuses $'absent\037\037' $'absent\037\037' "$(green 45)"
 runs $'none\t' "$(printf 'in_progress\t45')"
 merges_before="$(gh_merges)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should dispatch, wait, and merge"; }
@@ -666,7 +674,7 @@ grep -q -- "workflow run headless-suite.yml --ref $TASK_BRANCH" "$GH_DISPATCH_LO
 # Liveness refusals.
 new_commit remote-no-run
 push_slot
-statuses $'absent\t\t'
+statuses $'absent\037\037'
 runs $'none\t'
 merges_before="$(gh_merges)"
 if NO_RUN=0 remote_merge; then fail "--remote must refuse when no run ever appears"; fi
@@ -677,7 +685,7 @@ runs $'none\t' "$(printf 'queued\t46')"
 if QUEUED=0 remote_merge; then fail "--remote must refuse a run stuck queued"; fi
 expect_output "run 46 has sat queued" "the queued refusal must name the run"
 
-statuses "$(printf 'pending\theadless suite running\t%s/46' "$RUN_URL")"
+statuses "$(printf 'pending\037headless suite running\037%s/46' "$RUN_URL")"
 runs "$(printf 'completed\t46')"
 if remote_merge; then fail "--remote must refuse pending with no live run"; fi
 expect_output "is pending but no headless-suite run is live" "the dead-pending refusal must say so"
@@ -689,7 +697,7 @@ expect_output "could not ask GitHub about $(slot_sha)" "the gh-error refusal mus
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "no liveness refusal may reach gh pr merge"
 
 # A green status whose trailer stamps another tree is still no proof after the wait.
-statuses "$(printf 'success\ttree=%040d total=5 passed=5 skipped=0\t%s/46' 0 "$RUN_URL")"
+statuses "$(printf 'success\037tree=%040d total=5 passed=5 skipped=0\037%s/46' 0 "$RUN_URL")"
 if remote_merge; then fail "--remote must refuse a green status for another tree"; fi
 expect_output "stamps tree 0000000000000000000000000000000000000000" "the post-wait tree check must say why"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a wrong-tree verdict must not reach gh pr merge"
@@ -699,12 +707,12 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "fixture: clear the pending lan
 # Under --remote a comment-only delta is a code delta: hosted run, no local smoke boot.
 git -C "$TMP/agent-1" rm -q src/Asteroids3D/Assets/CallerProbe.cs
 git -C "$TMP/agent-1" commit -qm "drop caller-info probe"
-statuses $'absent\t\t'
+statuses $'absent\037\037'
 pool merge agent-1 >/dev/null
 sed -i 's/reworded again/reworded for remote/' "$TMP/agent-1/code.cs"
 git -C "$TMP/agent-1" add code.cs
 git -C "$TMP/agent-1" commit -qm "comment-only edit for --remote"
-statuses "$(printf 'pending\theadless suite running\t%s/47' "$RUN_URL")" "$(green 47)"
+statuses "$(printf 'pending\037headless suite running\037%s/47' "$RUN_URL")" "$(green 47)"
 runs "$(printf 'in_progress\t47')"
 runs_before="$(runner_runs)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "comment-only --remote merge should complete"; }
@@ -720,7 +728,7 @@ exit "$(cat "$PROBE_EXIT_FILE")"
 PROBE
 git -C "$TMP/agent-1" add scripts/tests/test_probe.sh
 git -C "$TMP/agent-1" commit -qm "probe can move base mid-gate"
-statuses $'absent\t\t'
+statuses $'absent\037\037'
 merges_before="$(gh_merges)"
 export PROBE_HOOK="echo mid-gate > '$TMP/primary/mid_gate.txt' && git -C '$TMP/primary' add mid_gate.txt && git -C '$TMP/primary' commit -qm 'base moves mid-gate' && git -C '$TMP/primary' push -q origin main"
 pool merge agent-1 > "$TMP/merge.out" 2>&1 && fail "merge must refuse when base moved during the gate"
