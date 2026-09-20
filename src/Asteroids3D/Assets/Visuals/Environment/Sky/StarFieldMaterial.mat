@@ -29,19 +29,19 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Brightness: 1.5
-    - _CellScale: 0.8
-    - _HaloSize: 2
-    - _HaloStrength: 0.2
-    - _NearLayerShare: 0.35
-    - _ParallaxFar: 0.2
-    - _ParallaxNear: 0.9
-    - _PositionJitter: 0.5
+    - _Brightness: 0.49
+    - _CellScale: 0.21
+    - _HaloSize: 4
+    - _HaloStrength: 0.055
+    - _NearLayerShare: 0.464
+    - _ParallaxFar: 0.076
+    - _ParallaxNear: 0.479
+    - _PositionJitter: 0.547
     - _Seed: 0
-    - _StarDensity: 0.12
-    - _StarSizeMax: 0.045
+    - _StarDensity: 1
+    - _StarSizeMax: 0.016
     - _StarSizeMin: 0.012
-    - _TwinkleAmount: 0.2
+    - _TwinkleAmount: 1
     - _TwinkleDurationMax: 18
     - _TwinkleDurationMin: 10
     - _WarmColorShare: 0.25
