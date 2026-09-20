@@ -19,8 +19,10 @@
                        with unavailableReason; elapsedSec remains available. UTC clock changes can
                        invalidate the partition. runs[].startedAt/finishedAt are raw XML timestamps.
       transport      - present and "routed" only for a -Routed warm-editor run.
-      memory         - { processes[]; unavailableReason }. One processes[] entry per Unity launch,
-                       in launch order: pid, rootPeakPrivateGB / rootPeakWorkingSetGB (kernel peaks
+      memory         - { processes[]; unavailableReason }. One processes[] entry per Unity TEST
+                       launch, in launch order, mirroring what wallTiming times; the -ValidateScope
+                       probe boot runs no tests and is not recorded. Per entry:
+                       pid, rootPeakPrivateGB / rootPeakWorkingSetGB (kernel peaks
                        of the launched process), treePeakSampledPrivateGB /
                        treePeakSampledWorkingSetGB (max over 5 s samples of the summed CURRENT
                        usage of the process tree - a LOWER bound), treeSumOfPeaksPrivateGB (sum of
