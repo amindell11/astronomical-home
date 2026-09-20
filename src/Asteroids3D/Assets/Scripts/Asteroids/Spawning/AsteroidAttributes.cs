@@ -11,7 +11,6 @@ namespace Asteroids.Spawning
     public readonly struct AsteroidAttributes
     {
         public readonly AsteroidSpawnSettings.MeshInfo MeshInfo;
-        /// <summary>Index of <see cref="MeshInfo"/> in the settings array it was drawn from.</summary>
         public readonly int MeshIndex;
         public readonly float Mass;
         public readonly float Scale;

@@ -41,7 +41,6 @@ namespace Asteroids
         /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
         public Collider SimpleCollider => cheapCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
-        /// <summary>Index into the shared settings' meshInfos this rock was built from.</summary>
         public int MeshIndex { get; private set; }
         public event Action<Vector3> OnDestroyed;
         public event Action OnInitialized;
