@@ -134,6 +134,11 @@ Commands:
       sanctioned merge path; it also requires the exact landing tree to pass
       the ReSharper ratchet, plus the scripts/tests suite when the landing
       diff touches scripts/. Do not call 'gh pr merge' directly.
+      Either path accepts remote proof on the landing commit: a green
+      merge-proof/headless status whose trailer stamps the landing tree.
+      --remote takes a needed run to that hosted suite instead of booting
+      Unity here, and is refused when the landing diff touches .github/,
+      since such a PR can edit the workflow that proves it.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -1515,10 +1520,6 @@ cmd_merge() {
   [[ "$github_diff_rc" -ne 2 ]] || return 1
   if [[ "$github_diff_rc" -eq 0 ]]; then
     remote_reason="no remote proof: the landing diff touches .github/, so this merge needs the local run"
-    if [[ "$remote" -eq 1 ]]; then
-      echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
-      return 1
-    fi
   fi
 
   case "$delta" in
@@ -1548,7 +1549,10 @@ cmd_merge() {
   esac
   if [[ "$delta" != "proven" && "$delta" != "doc" ]]; then
     echo "$remote_reason."
-    if [[ "$remote" -eq 1 ]]; then
+    if [[ "$remote" -eq 1 && "$github_diff_rc" -eq 0 ]]; then
+      echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
+      return 1
+    elif [[ "$remote" -eq 1 ]]; then
       # A comment-only delta's usual refresh is a local smoke boot, so under --remote it is a code delta.
       echo "Running the hosted headless suite on landing commit $landing_sha before merge."
       merge_phase_begin remote-proof

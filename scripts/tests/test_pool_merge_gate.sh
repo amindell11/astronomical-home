@@ -576,44 +576,36 @@ pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "
 expect_output "remote proof, skipping the run" "the gate should say it used remote proof"
 [[ "$(phase_order)" == *"proof-check tests resharper"* ]] || fail "a skipped run keeps the default ladder (got '$(phase_order)')"
 
-# Fail closed, default path: each unusable status names its reason and the local run happens instead.
+# Fail closed, default path: each unusable status names its reason and the gate turns to the local run.
+# The runner is red here so each case stops at the tests phase; one green fallback closes the block.
 expect_local_fallback() {
   local reason="$1" label="$2"
-  runs_before="$(runner_runs)"; merges_before="$(gh_merges)"
-  pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "$label: the local run should still merge"; }
+  runs_before="$(runner_runs)"
+  if pool merge agent-1 > "$TMP/merge.out" 2>&1; then fail "$label: fixture runner is red, merge must fail"; fi
   expect_output "$reason" "$label: the gate must say why there is no remote proof"
   [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "$label: must fall back to one local run (got $(runner_runs))"
-  [[ "$(proof_kind)" == "full-run" ]] || fail "$label: proof must come from the local run (got $(proof_kind))"
-  [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "$label: should merge on local proof"
 }
-new_commit remote-wrong-tree
+new_commit remote-fail-closed
 push_slot
-statuses "$(printf 'success\ttree=%040d total=5 passed=5 skipped=0\t%s/42' 0 "$RUN_URL")"
+merges_before="$(gh_merges)"
+echo 1 > "$RUNNER_EXIT_FILE"
+statuses "$(printf 'success	tree=%040d total=5 passed=5 skipped=0	%s/42' 0 "$RUN_URL")"
 expect_local_fallback "stamps tree 0000000000000000000000000000000000000000, the landing tree is $(slot_tree)" "tree mismatch"
-
-new_commit remote-bad-trailer
-push_slot
-statuses "$(printf 'success\tall green, trust me\t%s/42' "$RUN_URL")"
+statuses "$(printf 'success	all green, trust me	%s/42' "$RUN_URL")"
 expect_local_fallback "names no tree ('all green, trust me')" "unparsable trailer"
-
-new_commit remote-unknown-state
-push_slot
-statuses "$(printf 'neutral\twhatever\t%s/42' "$RUN_URL")"
+statuses "$(printf 'neutral	whatever	%s/42' "$RUN_URL")"
 expect_local_fallback "is 'neutral', not success" "unknown state"
-
-new_commit remote-absent
-push_slot
-statuses $'absent\t\t'
+statuses $'absent		'
 expect_local_fallback "is 'absent', not success" "absent status"
-
-new_commit remote-gh-error
-push_slot
 statuses "$(green 42)"
 GH_API_FAIL=1 expect_local_fallback "could not read the merge-proof/headless status" "gh error"
-
 new_commit remote-unpushed
-statuses "$(green 42)"
 expect_local_fallback "is not on GitHub yet" "unpushed landing commit"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "no fail-closed case may reach gh pr merge"
+echo 0 > "$RUNNER_EXIT_FILE"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "the local run should still merge"; }
+[[ "$(proof_kind)" == "full-run" ]] || fail "fallback proof must come from the local run (got $(proof_kind))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fallback should merge on local proof"
 
 # --remote takes no runner args.
 if pool merge agent-1 --remote -- -Mode EditMode > "$TMP/merge.out" 2>&1; then fail "--remote must refuse test-runner args"; fi
@@ -750,6 +742,13 @@ merges_before="$(gh_merges)"
 if remote_merge; then fail "--remote must refuse a landing diff touching .github/"; fi
 expect_output "--remote refused — the landing diff touches .github/" "the .github refusal must say why"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "the .github refusal must not reach gh pr merge"
-expect_local_fallback "the landing diff touches .github/, so this merge needs the local run" ".github landing diff"
+runs_before="$(runner_runs)"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail ".github landing diff should merge on the local run"; }
+expect_output "the landing diff touches .github/, so this merge needs the local run" "the default path must say why it ignored the green status"
+[[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail ".github landing diff must run the local suite (got $(runner_runs))"
+[[ "$(proof_kind)" == "full-run" ]] || fail ".github landing diff must merge on local proof (got $(proof_kind))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail ".github landing diff should merge on local proof"
+# With the landing tree already proven no run is needed, so --remote has nothing to refuse.
+remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
 echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal)"
