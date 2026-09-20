@@ -23,13 +23,13 @@ env:
 jobs:
   headless:
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 15
     steps:
       - name: Status pending
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
+          gh api --silent "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="headless suite running"
 
       - uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TRAILER: ${{ steps.guards.outputs.trailer }}
         run: |
-          gh api "$STATUS_API" -f state=success -f context="$STATUS_CONTEXT" \
+          gh api --silent "$STATUS_API" -f state=success -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="tree=$(git rev-parse 'HEAD^{tree}') $TRAILER"
 
       - name: Status failure
@@ -104,7 +104,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REASON: ${{ steps.guards.outputs.reason || 'headless suite failed - see run' }}
         run: |
-          gh api "$STATUS_API" -f state=failure -f context="$STATUS_CONTEXT" \
+          gh api --silent "$STATUS_API" -f state=failure -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="$REASON"
 
       - name: Status error
@@ -112,7 +112,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api "$STATUS_API" -f state=error -f context="$STATUS_CONTEXT" \
+          gh api --silent "$STATUS_API" -f state=error -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="run cancelled or timed out"
 
       - uses: actions/upload-artifact@v4
