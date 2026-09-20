@@ -10,7 +10,7 @@ namespace Asteroids
     /// <summary>
     /// Bakes a small set of covering spheres ("lobes") along a mesh's principal
     /// axis — the asteroid shape channel the MPC consumes via
-    /// <c>BurstSolver.ConvertObstacles</c>. Pure UnityEngine (no UnityEditor
+    /// <c>SolverBuffers.ConvertObstacles</c>. Pure UnityEngine (no UnityEditor
     /// dependency) so it can be driven from an editor menu or headless.
     ///
     /// Deterministic by construction (RL reproducibility): identical mesh in →
