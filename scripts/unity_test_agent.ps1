@@ -25,9 +25,10 @@
                        pid, rootPeakPrivateGB / rootPeakWorkingSetGB (kernel peaks
                        of the launched process), treePeakSampledPrivateGB /
                        treePeakSampledWorkingSetGB (max over 5 s samples of the summed CURRENT
-                       usage of the process tree - a LOWER bound), treeSumOfPeaksPrivateGB (sum of
-                       each tree member's kernel peak - an UPPER bound, since peaks need not
-                       coincide), commitHeadroomAtLaunchGB / commitHeadroomMinGB,
+                       usage of the process tree - a LOWER bound), treeSumOfPeaksPrivateGB (the
+                       root's tick-exact peak plus each descendant's sampled kernel peak - an
+                       UPPER bound, and never below rootPeakPrivateGB, so it is the one number to
+                       retune a demand constant from), commitHeadroomAtLaunchGB / commitHeadroomMinGB,
                        availablePhysicalAtLaunchGB / availablePhysicalMinGB,
                        bootLaneReleasedAtSec and treePeakAtSec (seconds from launch), samples,
                        samplesFailed, unavailableReason. Private bytes understates shared
@@ -506,7 +507,8 @@ function Get-RunWallTiming {
 
 # Private bytes is the per-process counter closest to a process's share of commit charge; it
 # understates shared sections, which is why the system readings ride along as the cross-check.
-# Sampled sums are a lower bound (peaks need not coincide), summed kernel peaks an upper bound.
+# Sampled sums are a lower bound (peaks need not coincide), summed kernel peaks an upper bound -
+# the root's contribution to that sum is its tick-exact peak, never its coarser sampled one.
 function Get-ProcessTreeMemory {
     param(
         [int]$RootProcessId,
@@ -565,8 +567,13 @@ function Get-ProcessTreeMemory {
             $privateKb += [double]$node.privateKb
             $workingSetBytes += [double]$node.workingSetBytes
             $key = "$nodeId|$(([datetime]$node.creationDate).Ticks)"
-            if (-not $peakByProcess.ContainsKey($key) -or $peakByProcess[$key] -lt [double]$node.peakPrivateKb) {
-                $peakByProcess[$key] = [double]$node.peakPrivateKb
+            # The root's 500 ms tick sees peaks the 5 s sample can miss entirely on a short run.
+            $nodePeakKb = [double]$node.peakPrivateKb
+            if ($nodeId -eq $RootProcessId -and $null -ne $RootPeakPrivateBytes) {
+                $nodePeakKb = [double]$RootPeakPrivateBytes / 1024.0
+            }
+            if (-not $peakByProcess.ContainsKey($key) -or $peakByProcess[$key] -lt $nodePeakKb) {
+                $peakByProcess[$key] = $nodePeakKb
             }
             if (-not $childrenOf.ContainsKey($nodeId)) { continue }
             foreach ($child in $childrenOf[$nodeId]) {

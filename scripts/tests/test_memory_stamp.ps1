@@ -47,7 +47,7 @@ Assert-Equal 3.0 $m.rootPeakPrivateGB 'root peak private'
 Assert-Equal 2.0 $m.rootPeakWorkingSetGB 'root peak working set'
 Assert-Equal 2.5 $m.treePeakSampledPrivateGB 'sampled tree peak (lower bracket)'
 Assert-Equal 1.4 $m.treePeakSampledWorkingSetGB 'sampled tree working set'
-Assert-Equal 3.75 $m.treeSumOfPeaksPrivateGB 'summed kernel peaks (upper bracket)'
+Assert-Equal 4.25 $m.treeSumOfPeaksPrivateGB 'summed kernel peaks (upper bracket)'
 Assert-Equal 10 $m.treePeakAtSec 'seconds from launch to tree peak'
 Assert-Equal 42.5 $m.bootLaneReleasedAtSec 'seconds from launch to boot-lane release'
 Assert-Equal 25.0 $m.commitHeadroomAtLaunchGB 'headroom at launch'
@@ -61,13 +61,22 @@ Assert-Equal '' $m.unavailableReason 'no unavailable reason'
 $m = Get-ProcessTreeMemory @base -Samples @(
     (New-Sample 5 @((New-Record 100 4 1.0 1.0 1.0 10), (New-Record 200 100 4.0 4.0 4.0 -5))))
 Assert-Equal 1.0 $m.treePeakSampledPrivateGB 'pid reuse excluded from the tree'
-Assert-Equal 1.0 $m.treeSumOfPeaksPrivateGB 'pid reuse excluded from the peak sum'
+Assert-Equal 3.0 $m.treeSumOfPeaksPrivateGB 'pid reuse excluded from the peak sum'
 
 # A process that only ever appeared in an early sample still counts toward the upper bracket.
 $m = Get-ProcessTreeMemory @base -Samples @(
     (New-Sample 5 @((New-Record 100 4 1.0 1.0 1.0), (New-Record 200 100 1.0 2.0 1.0 1))),
     (New-Sample 10 @((New-Record 100 4 1.0 1.0 1.0))))
-Assert-Equal 3.0 $m.treeSumOfPeaksPrivateGB 'departed child retained in the peak sum'
+Assert-Equal 5.0 $m.treeSumOfPeaksPrivateGB 'departed child retained in the peak sum'
+
+# A short run whose last seconds went unsampled: the root's tick-exact peak carries the bracket.
+$shortRun = @{} + $base
+$shortRun.RootPeakPrivateBytes = 2147483648
+$m = Get-ProcessTreeMemory @shortRun -Samples @(
+    (New-Sample 5 @((New-Record 100 4 0.5 0.6 0.4), (New-Record 200 100 0.5 0.5 0.4 1))))
+Assert-Equal 2.0 $m.rootPeakPrivateGB 'root tick-exact peak'
+Assert-Equal 2.5 $m.treeSumOfPeaksPrivateGB 'the upper bracket takes the root tick-exact peak over its sampled one'
+if ($m.treeSumOfPeaksPrivateGB -lt $m.rootPeakPrivateGB) { throw 'Upper bracket fell below the root peak' }
 
 # Failed and zero-sample runs: nulls with a reason, never a fabricated number.
 $failedOnly = @{} + $base
