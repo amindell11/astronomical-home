@@ -647,4 +647,3 @@ Format: **term** — definition. *(authority)*
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
-| stdio-vs-durable-server trap | *(died with the CoplayDev MCP decommission — `unity` CLI routes per project path)* |
