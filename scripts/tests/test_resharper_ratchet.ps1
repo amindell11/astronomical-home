@@ -73,6 +73,24 @@ try {
     Assert-True $extraMutationRejected "analytics churn allowlist rejects another change in ProjectSettings"
     Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "unexpected tracked mutations are restored before failure"
 
+    # -SolutionReady: a repo with no ProjectVersion.txt and no coordinator cannot resolve an editor or
+    # sync, so reaching the missing-solution throw proves both were skipped.
+    $scriptsCopy = Join-Path $temp "scripts"
+    New-Item -ItemType Directory -Force -Path (Join-Path $scriptsCopy "lib") | Out-Null
+    foreach ($name in @("resharper_ratchet.ps1", "unity_access_client.ps1", "lib/repo_root.ps1", "lib/unity_editor.ps1")) {
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot "..\$name") -Destination (Join-Path $scriptsCopy $name)
+    }
+    & git -C $temp add .
+    & git -C $temp commit -qm scripts
+    [System.IO.File]::WriteAllText($source, "line1`nchanged2`nline3`nline4`n", (New-Object System.Text.UTF8Encoding($false)))
+    $shell = (Get-Process -Id $PID).Path
+    # Windows PowerShell turns a child's stderr into a terminating error under "Stop".
+    $ErrorActionPreference = "Continue"
+    $ready = (& $shell -NoProfile -File (Join-Path $scriptsCopy "resharper_ratchet.ps1") -BaseRef HEAD -SolutionReady 2>&1 | Out-String)
+    $ErrorActionPreference = "Stop"
+    Assert-True ($LASTEXITCODE -ne 0) "-SolutionReady still fails without a solution"
+    Assert-True ($ready -match "Unity did not generate") "-SolutionReady skips editor resolution and the sync, then names the missing solution (got: $ready)"
+
     Write-Host "PASS: ReSharper changed-line ratchet"
 }
 finally {

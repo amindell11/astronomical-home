@@ -135,7 +135,10 @@ Commands:
       the ReSharper ratchet, plus the scripts/tests suite when the landing
       diff touches scripts/. Do not call 'gh pr merge' directly.
       Either path accepts remote proof on the landing commit: a green
-      merge-proof/headless status whose trailer stamps the landing tree.
+      merge-proof/headless status whose trailer stamps the landing tree, and
+      for the ReSharper ratchet a green merge-proof/resharper status (the
+      hosted ratchet) stamping the landing tree AND the gate's base tree.
+      A base other than main never matches, so it takes the local ratchet.
       When a run is needed, its producer is chosen in this order:
         --remote            hosted headless suite; memory admission not asked
         -- <runner args>    local run; memory admission not asked
@@ -145,9 +148,10 @@ Commands:
       A hosted run is refused when the landing diff touches .github/, since
       such a PR can edit the workflow that proves it; with boot_not_admitted
       too, only a user-approved 'merge <slot> -- -AllowLowMemory' lands it.
-      Hosted ladder: the ReSharper ratchet runs BEFORE the hosted wait
-      (... proof-check resharper remote-proof ...), since changed C# under
-      Assets/Scripts still boots Unity here once for its solution sync.
+      Hosted ladder (... proof-check remote-proof resharper ...): one hosted
+      run posts both statuses, the gate waits for both, and the resharper
+      phase accepts the hosted ratchet with no local ratchet run and no Unity
+      boot here; without an acceptable merge-proof/resharper it refuses.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -1308,24 +1312,26 @@ cmd_merge_progress() {
 # The hosted headless suite stamps its verdict as a commit status; the gate trusts that one
 # field and checks only what it owns: the stamped tree is the landing tree (script-contracts.md sec.3).
 REMOTE_PROOF_CONTEXT="merge-proof/headless"
+REMOTE_RESHARPER_CONTEXT="merge-proof/resharper"
 REMOTE_PROOF_WORKFLOW="headless-suite.yml"
 REMOTE_NO_RUN_SECONDS="${WORKTREE_POOL_REMOTE_NO_RUN_SECONDS:-120}"
 REMOTE_QUEUED_SECONDS="${WORKTREE_POOL_REMOTE_QUEUED_SECONDS:-180}"
-REMOTE_RUN_SECONDS="${WORKTREE_POOL_REMOTE_RUN_SECONDS:-900}"
+# Coupled to timeout-minutes in .github/workflows/headless-suite.yml: the hosted job may run this long.
+REMOTE_RUN_SECONDS="${WORKTREE_POOL_REMOTE_RUN_SECONDS:-1200}"
 REMOTE_POLL_SECONDS="${WORKTREE_POOL_REMOTE_POLL_SECONDS:-15}"
 
 # Prints "<state><US><description><US><target_url>" — US (\x1f), since tab-splitting collapses an empty
 # description — for the NEWEST status in the context (the API lists
 # a context's whole history, newest first); state "absent" when there is none. Non-zero = GitHub could not be asked.
 remote_status() {
-  local sha="$1" slug
+  local sha="$1" context="$2" slug
   slug="$(repo_slug)"
   if [[ -z "$slug" ]]; then
     echo "merge: cannot derive the GitHub repo from remote.origin.url." >&2
     return 1
   fi
   gh api "repos/$slug/commits/$sha/statuses?per_page=100" --jq \
-    "[.[] | select(.context == \"$REMOTE_PROOF_CONTEXT\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | join(\"\")"
+    "[.[] | select(.context == \"$context\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | join(\"\")"
 }
 
 # Prints "<status>\t<run id>" for the newest headless-suite run on a commit; status "none" when there is none.
@@ -1342,61 +1348,89 @@ run_id_from_url() {
   printf '%s' "${id%%[!0-9]*}"
 }
 
-# Records merge-grade proof from a green status on the landing commit. Everything else is no proof
-# (fail closed): returns 1 with the reason on stdout.
-accept_remote_proof() {
-  local slot="$1" sha="$2" tree="$3"
-  local status state description url ldir
-  if ! status="$(remote_status "$sha")"; then
-    echo "no remote proof: could not read the $REMOTE_PROOF_CONTEXT status of $sha from GitHub"
+# A green status in <context> on the commit whose trailer stamps every given <key>=<tree> prints
+# "<description> run=<url>". Everything else is no proof (fail closed): returns 1 with the reason on stdout.
+verified_remote_status() {
+  local sha="$1" context="$2"
+  shift 2
+  local status state description url stamp key
+  if ! status="$(remote_status "$sha" "$context")"; then
+    echo "no remote proof: could not read the $context status of $sha from GitHub"
     return 1
   fi
   IFS=$'\x1f' read -r state description url <<< "$status"
   if [[ "$state" != "success" ]]; then
-    echo "no remote proof: $REMOTE_PROOF_CONTEXT on $sha is '${state:-unreadable}', not success"
+    echo "no remote proof: $context on $sha is '${state:-unreadable}', not success"
     return 1
   fi
-  if [[ ! "$description" =~ (^|[[:space:]])tree=([0-9a-f]{40})([[:space:]]|$) ]]; then
-    echo "no remote proof: the $REMOTE_PROOF_CONTEXT trailer on $sha names no tree ('$description')"
-    return 1
-  fi
-  if [[ "${BASH_REMATCH[2]}" != "$tree" ]]; then
-    echo "no remote proof: the $REMOTE_PROOF_CONTEXT trailer on $sha stamps tree ${BASH_REMATCH[2]}, the landing tree is $tree"
-    return 1
-  fi
+  for stamp in "$@"; do
+    key="${stamp%%=*}"
+    if [[ ! "$description" =~ (^|[[:space:]])$key=([0-9a-f]{40})([[:space:]]|$) ]]; then
+      echo "no remote proof: the $context trailer on $sha names no $key ('$description')"
+      return 1
+    fi
+    if [[ "${BASH_REMATCH[2]}" != "${stamp#*=}" ]]; then
+      echo "no remote proof: the $context trailer on $sha stamps $key ${BASH_REMATCH[2]}, the landing $key is ${stamp#*=}"
+      return 1
+    fi
+  done
+  printf '%s run=%s\n' "$description" "$url"
+}
+
+accept_remote_proof() {
+  local slot="$1" sha="$2" tree="$3"
+  local evidence ldir
+  evidence="$(verified_remote_status "$sha" "$REMOTE_PROOF_CONTEXT" "tree=$tree")" || { echo "$evidence"; return 1; }
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir"
   printf '%s\n' "$tree" > "$ldir/tested_tree"
-  write_tested_scope "$ldir" "$tree" "remote-run" "$tree" "$description run=$url"
+  write_tested_scope "$ldir" "$tree" "remote-run" "$tree" "$evidence"
 }
 
-# Liveness-based wait: the status is the verdict, run liveness only says whether one is coming.
-# The run is read BEFORE the status so a run that completes between the reads has already posted.
+accept_remote_resharper_proof() {
+  local slot="$1" path="$2" sha="$3" base_ref="$4"
+  verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" \
+    "tree=$(git -C "$path" rev-parse 'HEAD^{tree}')" "baseTree=$(git -C "$path" rev-parse "$base_ref^{tree}")" || return 1
+  record_resharper_proof "$slot" "$path" "$base_ref"
+}
+
+# Liveness-based wait: the two statuses are the verdicts, run liveness only says whether they are coming.
+# The run is read BEFORE the statuses so a run that completes between the reads has already posted.
 wait_for_remote_verdict() {
   local slot="$1" sha="$2" task_branch="$3"
   local started=$SECONDS phase_status="" phase_since=$SECONDS
-  local run run_status run_id status state description url
+  local run run_status run_id context status state description url owed
   while :; do
-    if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha")"; then
+    if ! run="$(remote_run "$sha")"; then
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
     IFS=$'\t' read -r run_status run_id <<< "$run"
-    IFS=$'\x1f' read -r state description url <<< "$status"
-    case "$state" in
-      success) return 0 ;;
-      failure|error)
-        [[ -n "$run_id" ]] || run_id="$(run_id_from_url "$url")"
-        echo "merge: $REMOTE_PROOF_CONTEXT on $sha is '$state' ($description) — not merging." >&2
-        echo "  Run: $url" >&2
-        echo "  Red tests: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
-        echo "  'gh run rerun $run_id' re-posts a verdict on the same commit; then re-run 'merge $slot --remote'." >&2
-        return 1 ;;
-      pending|absent) ;;
-      *)
-        echo "merge: $REMOTE_PROOF_CONTEXT on $sha has unknown state '$state' — no remote proof; not merging." >&2
-        return 1 ;;
-    esac
+    owed=""
+    for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT"; do
+      if ! status="$(remote_status "$sha" "$context")"; then
+        echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
+        return 1
+      fi
+      IFS=$'\x1f' read -r state description url <<< "$status"
+      case "$state" in
+        success) ;;
+        failure|error)
+          [[ -n "$run_id" ]] || run_id="$(run_id_from_url "$url")"
+          echo "merge: $context on $sha is '$state' ($description) — not merging." >&2
+          echo "  Run: $url" >&2
+          echo "  Red tests or ratchet findings: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
+          echo "  'gh run rerun $run_id' re-posts both verdicts on the same commit; then re-run 'merge $slot --remote'." >&2
+          return 1 ;;
+        pending) owed=pending ;;
+        absent) owed="${owed:-absent}" ;;
+        *)
+          echo "merge: $context on $sha has unknown state '$state' — no remote proof; not merging." >&2
+          return 1 ;;
+      esac
+    done
+    [[ -n "$owed" ]] || return 0
+    state="$owed"
     [[ "$run_status" == "$phase_status" ]] || { phase_status="$run_status"; phase_since=$SECONDS; }
     case "$run_status" in
       in_progress)
@@ -1411,7 +1445,7 @@ wait_for_remote_verdict() {
         fi ;;
       *)
         if [[ "$state" == "pending" ]]; then
-          echo "merge: $REMOTE_PROOF_CONTEXT on $sha is pending but no headless-suite run is live — no verdict is coming; not merging." >&2
+          echo "merge: a merge-proof status on $sha is pending but no headless-suite run is live — no verdict is coming; not merging." >&2
           echo "  'gh run rerun ${run_id:-<run-id>}' (or 'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch'), then re-run 'merge $slot --remote'." >&2
           return 1
         fi
@@ -1434,7 +1468,7 @@ run_remote_for_proof() {
     echo "Pushing landing commit $sha to $task_branch — the push starts the hosted headless suite."
     git -C "$path" push origin "$slot:refs/heads/$task_branch"
   else
-    if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha")"; then
+    if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha" "$REMOTE_PROOF_CONTEXT")"; then
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
@@ -1574,7 +1608,6 @@ cmd_merge() {
       fi
       ;;
   esac
-  local ratchet_done=0
   if [[ "$delta" != "proven" && "$delta" != "doc" ]]; then
     echo "$remote_reason."
     # A producer the user named (--remote, or runner args = the local runner) always beats the verdict.
@@ -1595,7 +1628,6 @@ cmd_merge() {
             return 1
           fi
           echo "Memory admission would refuse a batch Unity boot (boot_not_admitted) — the test run goes to the hosted headless suite."
-          echo "The ReSharper ratchet runs first: a solution-sync boot it needs faces the same memory pressure."
           merge_journal_note "memory admission boot_not_admitted - hosted run"
           remote=1 ;;
         *)
@@ -1608,10 +1640,6 @@ cmd_merge() {
       echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
       return 1
     elif [[ "$remote" -eq 1 ]]; then
-      # Ratchet first: its boot fails in seconds, the hosted wait costs minutes and LFS bandwidth.
-      merge_phase_begin resharper
-      cmd_run_resharper "$slot" "$base_ref"
-      ratchet_done=1
       # A comment-only delta's usual refresh is a local smoke boot, so on the hosted path it is a code delta.
       echo "Running the hosted headless suite on landing commit $landing_sha before merge."
       merge_phase_begin remote-proof
@@ -1644,8 +1672,20 @@ cmd_merge() {
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
     return 1
   fi
-  if [[ "$ratchet_done" -eq 0 ]]; then
-    merge_phase_begin resharper
+  merge_phase_begin resharper
+  local ratchet_reason="${remote_reason:-no remote proof: landing commit $landing_sha is not on GitHub yet}"
+  if resharper_proof_matches "$slot" "$path" "$base_ref"; then
+    echo "Tree already passed the ReSharper ratchet against $base_ref — skipping re-run."
+  elif [[ "$github_diff_rc" -ne 0 && "$(git -C "$path" ls-remote origin "refs/heads/$task_branch" | cut -f1)" == "$landing_sha" ]] \
+    && ratchet_reason="$(accept_remote_resharper_proof "$slot" "$path" "$landing_sha" "$base_ref")"; then
+    echo "Landing commit $landing_sha carries a green $REMOTE_RESHARPER_CONTEXT status for this tree and base — hosted ratchet accepted, no local ratchet run."
+    merge_journal_note "hosted ratchet accepted on the landing commit"
+  elif [[ "$remote" -eq 1 ]]; then
+    echo "merge: $ratchet_reason; the hosted path runs no local ReSharper ratchet — not merging." >&2
+    echo "  'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch' re-posts both verdicts; then re-run 'merge $slot --remote'." >&2
+    return 1
+  else
+    echo "$ratchet_reason."
     cmd_run_resharper "$slot" "$base_ref"
   fi
 
