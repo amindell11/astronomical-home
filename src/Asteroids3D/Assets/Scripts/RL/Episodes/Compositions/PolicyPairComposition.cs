@@ -11,7 +11,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    internal sealed class PolicyPairComposition : ISessionComposition
+    internal sealed class PolicyPairComposition : IHarnessComposition
     {
         public EpisodeLoopDriver Driver { get; }
         public EpisodePair Pair { get; }

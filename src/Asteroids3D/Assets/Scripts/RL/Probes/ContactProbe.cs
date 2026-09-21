@@ -141,7 +141,7 @@ namespace RL.Probes
     }
 
     /// <summary>The ram-bench contact instrument as a session probe: one <see cref="ContactSampler"/> per episode at the pair's bumper-derived contact range, rows grouped by the block's opponent label, and a per-opponent aggregate as the summary sidecar.</summary>
-    public sealed class ContactProbe : ISessionProbe
+    public sealed class ContactProbe : IHarnessProbe
     {
         public const string ProbeName = "contact";
         /// <summary>Tight tolerance on the summed bumper radii — actual touch, not orbit.</summary>

@@ -76,7 +76,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
-| **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameSessionHost`), not a driver. |
+| **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
@@ -366,18 +366,19 @@ Format: **term** — definition. *(authority)*
   cycles sectors; a *host* paces it and hands each load the *hero* it built —
   the session owns no rig and no policy. The RL harness does not use it; it
   composes the same per-ship services through `ShipServices.Compose`.
-- **host** — the scene component that wraps a session-shaped thing and is the
-  outside world's interface to it: the *game session host* (`GameSessionHost`,
-  `Game/`) builds the viewport (the observer camera, with the starfield
-  backdrop and reverb zone riding it) and the optional *player rig*, and owns
-  the clock, hangar, death recap and reset policy over one `Session`; the
-  *harness session host* (`HarnessSessionHost`) sequences compositions and
-  episode blocks for a lane client. Always qualified — bare "host" also names
-  the pool worktree machine.
+- **host** — the scene entry point that owns pacing and lifecycle for one
+  client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
+  observer camera, with the starfield backdrop and reverb zone riding it) and
+  the optional *player rig*, and owns the clock, hangar, death recap and reset
+  policy over one `Session`; the *harness host* (`HarnessHost`) sequences
+  compositions and episode blocks for a lane client; the *training host*
+  (`TrainingHost`) fans arenas out and drives one episode loop each while
+  mlagents-learn attaches. Always qualified — bare "host" also names the pool
+  worktree machine.
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
   the pending loadout, the damage ledger and the death hook. Built once by the
-  game session host against the viewport it owns, injected into every sector
+  game host against the viewport it owns, injected into every sector
   load, torn down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
 - **hero** — the main character of a session: the ship a sector lays out around
@@ -575,7 +576,7 @@ Format: **term** — definition. *(authority)*
 - **death recap** — the post-death summary rendered from the damage ledger at
   the host-owned `GameState.DeathRecap` hold; presentation-gated, so a headless
   host falls straight through to Restart.
-  *(DeathRecapScreen, GameSessionHost.HandleDeathRecap)*
+  *(DeathRecapScreen, GameHost.HandleDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type
@@ -613,7 +614,7 @@ Format: **term** — definition. *(authority)*
   named. *(eval_lane.py)*
 - **player eval lane** — the eval lane under player executionMode (a leased
   editor convert step builds the session's model bundle, the dedicated headless
-  exe runs the sim lease-free), NOT a new `SessionLane`. Player scores are an
+  exe runs the sim lease-free), NOT a new `HarnessLane`. Player scores are an
   uncalibrated executionMode until bundle v2; the editor eval stays the
   verdict-bearing reference. *(eval_lane.py --exec player, EvalPlayerBoot)*
 - **checkpoint watch** — the discover → per-step-dir → replay-or-run loop

@@ -11,7 +11,7 @@ using RL.Reward;
 namespace RL.Episodes.Compositions
 {
     /// <summary>Checkpoint-vs-scripted-roster composition: the canonical pair driven by a pinned checkpoint InferenceOnly, against an <see cref="OpponentRoster"/> the caller installs per episode. The arena, projectile service and asteroid field are the host's — unlike the training compositions, one eval session composes them once and only the pair per seed.</summary>
-    internal sealed class InferenceRosterComposition : ISessionComposition
+    internal sealed class InferenceRosterComposition : IHarnessComposition
     {
         public EpisodeLoopDriver Driver { get; }
         public EpisodePair Pair { get; }

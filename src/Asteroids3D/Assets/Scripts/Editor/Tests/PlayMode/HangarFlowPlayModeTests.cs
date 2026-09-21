@@ -10,7 +10,7 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Guards the hangar's non-interactive path: when presentation is off (headless/RL) the host's
-    /// <see cref="GameSessionHost.RunHangar"/> step must apply the standing loadout and finish on its
+    /// <see cref="GameHost.RunHangar"/> step must apply the standing loadout and finish on its
     /// own — never instantiate the screen or block waiting for a Launch click.
     /// </summary>
     [Category("UI")]
@@ -36,7 +36,7 @@ namespace Tests.PlayMode
             // pumped in isolation. RequireComponent adds the sibling services on AddComponent.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
-            var host = hostGo.AddComponent<GameSessionHost>();
+            var host = hostGo.AddComponent<GameHost>();
 
             // A bare rig: no player was built, no screen prefab assigned — both gate conditions hold.
             rigGo = new GameObject("TestRig");

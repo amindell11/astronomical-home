@@ -12,8 +12,8 @@ using RL.Probes;
 
 namespace RL.Hosts
 {
-    /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
-    public enum SessionLane { Eval, Capture, Sentence }
+    /// <summary>Which lane client the host runs; every other axis of a harness run is a spec field.</summary>
+    public enum HarnessLane { Eval, Capture, Sentence }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -82,9 +82,9 @@ namespace RL.Hosts
         }
     }
 
-    /// <summary>A harness session's fully-resolved configuration, parsed from the environment ONCE at the batch boundary — before play mode — so a malformed value fails there instead of inside a running episode loop. Carried into play mode as a serialized field on <see cref="HarnessSessionHost"/>.</summary>
+    /// <summary>A harness run's fully-resolved configuration, parsed from the environment ONCE at the batch boundary — before play mode — so a malformed value fails there instead of inside a running episode loop. Carried into play mode as a serialized field on <see cref="HarnessHost"/>.</summary>
     [Serializable]
-    public sealed class SessionSpec
+    public sealed class HarnessSpec
     {
         public const string RosterToken = "roster";
         public const string MirrorToken = "mirror";
@@ -96,7 +96,7 @@ namespace RL.Hosts
         public const int DefaultRecordHeight = 540;
         public const int DefaultRecordEvery = 5;
 
-        public SessionLane lane;
+        public HarnessLane lane;
         public ModelAsset model;
         public string onnxSourcePath;
         public int[] seeds;
@@ -136,7 +136,7 @@ namespace RL.Hosts
         };
 
         // A null source selects the smoke fixture; graphics detection is injected for tests.
-        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
+        public static HarnessSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
             Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice)
         {
             // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
@@ -147,7 +147,7 @@ namespace RL.Hosts
         }
 
         // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
-        public static SessionSpec ParsePlayerEval(Func<string, string> getEnv,
+        public static HarnessSpec ParsePlayerEval(Func<string, string> getEnv,
             Func<string, string, ModelAsset> loadBundleAsset, Func<bool> hasGraphicsDevice)
         {
             var bundlePath = getEnv("RL_HARNESS_BUNDLE");
@@ -160,7 +160,7 @@ namespace RL.Hosts
                 hasGraphicsDevice, player: true);
         }
 
-        private static SessionSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
+        private static HarnessSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
             Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
@@ -178,9 +178,9 @@ namespace RL.Hosts
             if (sentence != null && getEnv("RL_HARNESS_LANE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_SENTENCE implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
-            var lane = sentence != null ? SessionLane.Sentence
+            var lane = sentence != null ? HarnessLane.Sentence
                 : ParseLane(getEnv("RL_HARNESS_LANE"));
-            var spec = new SessionSpec
+            var spec = new HarnessSpec
             {
                 lane = lane,
                 onnxSourcePath = source,
@@ -196,7 +196,7 @@ namespace RL.Hosts
             spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            if (player && spec.lane != SessionLane.Eval)
+            if (player && spec.lane != HarnessLane.Eval)
                 throw new ArgumentException(
                     "The capture lane is editor-only; a player boot runs the eval lane (leave RL_HARNESS_LANE unset).");
             if (sentence != null)
@@ -214,17 +214,17 @@ namespace RL.Hosts
             return spec;
         }
 
-        private static SessionLane ParseLane(string value)
+        private static HarnessLane ParseLane(string value)
         {
-            if (string.IsNullOrEmpty(value) || Matches(value, EvalLaneToken)) return SessionLane.Eval;
-            if (Matches(value, CaptureLaneToken)) return SessionLane.Capture;
+            if (string.IsNullOrEmpty(value) || Matches(value, EvalLaneToken)) return HarnessLane.Eval;
+            if (Matches(value, CaptureLaneToken)) return HarnessLane.Capture;
             throw new ArgumentException($"RL_HARNESS_LANE='{value}' is not \"{EvalLaneToken}\" or \"{CaptureLaneToken}\".");
         }
 
         // The capture client is the frozen "once" protocol: one seed, one opponent block. Roster stratification is an eval concept.
         private void ValidateLane()
         {
-            if (lane != SessionLane.Capture) return;
+            if (lane != HarnessLane.Capture) return;
             if (seeds.Length != 1)
                 throw new ArgumentException(
                     $"RL_HARNESS_LANE=capture films exactly one seed; RL_HARNESS_SEEDS resolved to {seeds.Length}.");
@@ -248,7 +248,7 @@ namespace RL.Hosts
         private void ValidateCaptureSelector()
         {
             if (gizmoProfile == GizmoCaptureProfile.None) return;
-            if (lane != SessionLane.Capture)
+            if (lane != HarnessLane.Capture)
                 throw new ArgumentException("RL_HARNESS_GIZMOS is available only on RL_HARNESS_LANE=capture.");
             if (!record.enabled)
                 throw new ArgumentException("RL_HARNESS_GIZMOS needs RL_HARNESS_RECORD to select filmed episodes.");
@@ -392,12 +392,12 @@ namespace RL.Hosts
         }
 
         /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes. The default set is per-lane: a probe reading an instrument the lane's brains don't carry would just throw.</summary>
-        private static ProbeSpec[] ParseProbes(string value, SessionLane lane)
+        private static ProbeSpec[] ParseProbes(string value, HarnessLane lane)
         {
             if (value == null)
                 return lane switch
                 {
-                    SessionLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
+                    HarnessLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
                     _ => new[]
                     {
                         ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
@@ -418,7 +418,7 @@ namespace RL.Hosts
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
             // The sentence brain exposes no policy readout (facing).
-            if (lane == SessionLane.Sentence)
+            if (lane == HarnessLane.Sentence)
                 foreach (var entry in entries)
                     if (entry.name == FacingProbe.ProbeName)
                         throw ProbeError(entry.name,
@@ -440,12 +440,12 @@ namespace RL.Hosts
             var token = rawToken.Trim();
             var open = token.IndexOf('(');
             var name = (open < 0 ? token : token.Substring(0, open)).Trim();
-            if (!SessionProbes.IsRegistered(name))
-                throw ProbeError(rawToken, $"registered probes: {SessionProbes.RegisteredNames}");
+            if (!HarnessProbes.IsRegistered(name))
+                throw ProbeError(rawToken, $"registered probes: {HarnessProbes.RegisteredNames}");
             if (open < 0) return ProbeSpec.Named(name);
             if (token[token.Length - 1] != ')')
                 throw ProbeError(rawToken, "expected 'name(key=value,…)'");
-            var knownKeys = SessionProbes.KnownKeys(name);
+            var knownKeys = HarnessProbes.KnownKeys(name);
             var keys = new List<string>();
             var values = new List<float>();
             foreach (var parameter in token.Substring(open + 1, token.Length - open - 2).Split(','))

@@ -10,7 +10,7 @@ namespace Capture
     /// so it survives domain reloads, dies with the editor, and can never refire —
     /// <see cref="ConsumeRequest"/> clears it on read. The boot-frozen
     /// -captureScenario argument stays the cold-run path. Queued over the CLI via
-    /// the capture_request_scenario command (CaptureLaneSession).
+    /// the capture_request_scenario command (CaptureLane).
     /// </summary>
     public static class CaptureDispatch
     {

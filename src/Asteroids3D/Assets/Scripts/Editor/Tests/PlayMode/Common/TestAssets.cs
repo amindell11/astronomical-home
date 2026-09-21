@@ -94,7 +94,7 @@ public static class TestAssets
 #endif
     }
 
-    /// <summary>A live observer camera built from the authored prefab the game session host spawns.</summary>
+    /// <summary>A live observer camera built from the authored prefab the game host spawns.</summary>
     public static Cameras.ObserverCam NewObserverCam()
     {
 #if UNITY_EDITOR

@@ -20,9 +20,9 @@ namespace RL.Hosts.PlayerEval
                 if (!assets)
                     throw new InvalidOperationException(
                         "EvalPlayerBoot.assets is unset — assign the HarnessAssets catalog on the RLHarnessEval scene's [EvalPlayerBoot].");
-                var spec = SessionSpec.ParsePlayerEval(Environment.GetEnvironmentVariable, LoadBundleAsset,
+                var spec = HarnessSpec.ParsePlayerEval(Environment.GetEnvironmentVariable, LoadBundleAsset,
                     () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
-                var host = new GameObject("[HarnessSessionHost]").AddComponent<HarnessSessionHost>();
+                var host = new GameObject("[HarnessHost]").AddComponent<HarnessHost>();
                 host.spec = spec;
                 host.assets = assets;
             }

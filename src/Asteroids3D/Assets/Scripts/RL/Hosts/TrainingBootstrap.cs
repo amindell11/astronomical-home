@@ -40,14 +40,14 @@ namespace RL.Hosts
             EnterTrainingPlayMode();
         }
 
-        /// <summary>Harness-session batch entry (scripted eval at the gate shape): RL_HARNESS_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_HARNESS_EPISODES_PER_SEED the per-seed episode count, RL_HARNESS_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds), RL_HARNESS_DENSITY a field-density override for stretch/diagnostic runs (default: the canonical eval env), RL_HARNESS_OPPONENT the opponent grammar ("roster" default / an archetype name / "mirror" / a checkpoint path ending .onnx, imported into the second fixture slot), RL_HARNESS_PROBES the comma-separated probe selection (default: "gate,combat"), RL_HARNESS_OUT_DIR the caller-owned absolute artifact dir (the lane launcher names it, then reads back the summary from it). The environment parses HERE so a malformed value fails before play mode; HarnessSessionHost exits the editor with code 0 when the summary artifact is written.</summary>
-        public static void RunHarnessSession()
+        /// <summary>Harness-run batch entry (scripted eval at the gate shape): RL_HARNESS_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_HARNESS_EPISODES_PER_SEED the per-seed episode count, RL_HARNESS_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds), RL_HARNESS_DENSITY a field-density override for stretch/diagnostic runs (default: the canonical eval env), RL_HARNESS_OPPONENT the opponent grammar ("roster" default / an archetype name / "mirror" / a checkpoint path ending .onnx, imported into the second fixture slot), RL_HARNESS_PROBES the comma-separated probe selection (default: "gate,combat"), RL_HARNESS_OUT_DIR the caller-owned absolute artifact dir (the lane launcher names it, then reads back the summary from it). The environment parses HERE so a malformed value fails before play mode; HarnessHost exits the editor with code 0 when the summary artifact is written.</summary>
+        public static void RunHarness()
         {
-            var spec = SessionSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
+            var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
                 ResolveEvalOpponent, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var host = new GameObject("[HarnessSessionHost]").AddComponent<HarnessSessionHost>();
+            var host = new GameObject("[HarnessHost]").AddComponent<HarnessHost>();
             host.assets = AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             host.spec = spec;
             host.exitEditorWhenComplete = true;
@@ -56,7 +56,7 @@ namespace RL.Hosts
             EditorApplication.EnterPlaymode();
         }
 
-        private static void AttachGameViewCapture(HarnessSessionHost host)
+        private static void AttachGameViewCapture(HarnessHost host)
         {
             var type = Type.GetType(GameViewCaptureType, throwOnError: true);
             if (!typeof(ScriptableObject).IsAssignableFrom(type) || !typeof(IEpisodeCapture).IsAssignableFrom(type))

@@ -31,8 +31,8 @@ namespace RL.Probes
         }
     }
 
-    /// <summary>A session-scoped instrument selected by name (see <see cref="SessionProbes"/>): the host drives one Begin/Sample*/End cycle per episode and appends the returned row, then the lane client asks for the run's summary sidecar.</summary>
-    public interface ISessionProbe : IDisposable
+    /// <summary>A run-scoped instrument selected by name (see <see cref="HarnessProbes"/>): the host drives one Begin/Sample*/End cycle per episode and appends the returned row, then the lane client asks for the run's summary sidecar.</summary>
+    public interface IHarnessProbe : IDisposable
     {
         string Name { get; }
         void Begin(in ProbeContext context);
@@ -52,9 +52,9 @@ namespace RL.Probes
     }
 
     /// <summary>The probe name registry — the selection grammar behind RL_HARNESS_PROBES. Each entry pairs its factory (taking the per-probe key→float param map) with the param keys it accepts, so the parse can refuse an unknown key before play mode.</summary>
-    public static class SessionProbes
+    public static class HarnessProbes
     {
-        private static readonly Dictionary<string, (Func<IReadOnlyDictionary<string, float>, ISessionProbe> factory,
+        private static readonly Dictionary<string, (Func<IReadOnlyDictionary<string, float>, IHarnessProbe> factory,
             string[] knownKeys)> Factories = new()
         {
             [ArchetypeGateProbe.ProbeName] = (_ => new ArchetypeGateProbe(), Array.Empty<string>()),
@@ -76,7 +76,7 @@ namespace RL.Probes
                 ? entry.knownKeys
                 : throw new ArgumentException($"No probe named '{name}'; registered probes: {RegisteredNames}.");
 
-        public static ISessionProbe Create(string name, IReadOnlyDictionary<string, float> parameters = null) =>
+        public static IHarnessProbe Create(string name, IReadOnlyDictionary<string, float> parameters = null) =>
             Factories.TryGetValue(name, out var entry)
                 ? entry.factory(parameters)
                 : throw new ArgumentException($"No probe named '{name}'; registered probes: {RegisteredNames}.");

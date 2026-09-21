@@ -15,7 +15,7 @@ namespace Capture
     /// profile selects for drawing (<see cref="Resolve"/>) and whether footage
     /// under it carries presentation (<see cref="PresentationFor"/>). Presentation
     /// must be decided pre-spawn — visual/audio rigs self-gate at Awake — so both
-    /// capture lanes (SessionSpec.Presentation, the scenario runner's
+    /// capture lanes (HarnessSpec.Presentation, the scenario runner's
     /// SessionProfile) consult this rule before composing a session.
     /// </summary>
     public static class GizmoCaptureProfiles

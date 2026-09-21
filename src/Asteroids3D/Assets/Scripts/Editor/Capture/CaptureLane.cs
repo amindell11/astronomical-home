@@ -18,7 +18,7 @@ namespace Capture.GameView
     /// injectable store so tests never touch the production lane.
     /// </summary>
     [InitializeOnLoad]
-    internal static class CaptureLaneSession
+    internal static class CaptureLane
     {
         internal sealed class LaneStore
         {
@@ -33,7 +33,7 @@ namespace Capture.GameView
         }
 
         private static readonly LaneStore Production = new(
-            "Game.Capture.CaptureLaneSession.Active",
+            "Game.Capture.CaptureLane.Active",
             Path.GetFullPath(Path.Combine(
                 Application.dataPath, "..", "Library", "NativeGizmoCapture", "lane_session.json")));
 
@@ -44,7 +44,7 @@ namespace Capture.GameView
             public int epoOptions;
         }
 
-        static CaptureLaneSession()
+        static CaptureLane()
         {
             EditorApplication.delayCall += () => RecoverAbandoned(Production);
         }

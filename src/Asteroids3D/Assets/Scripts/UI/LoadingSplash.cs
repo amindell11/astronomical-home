@@ -5,21 +5,21 @@ namespace UI
 {
     /// <summary>
     /// Full-screen splash canvas covering the non-interactive game states — boot, session compose,
-    /// and sector load/unload. Instantiated once by <see cref="GameSessionHost"/> at boot and driven
+    /// and sector load/unload. Instantiated once by <see cref="GameHost"/> at boot and driven
     /// by its state transitions; the hangar and live-sector states hide it.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class LoadingSplash : MonoBehaviour
     {
         private Canvas canvas;
-        private GameSessionHost host;
+        private GameHost host;
 
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
         }
 
-        public void Initialize(GameSessionHost host)
+        public void Initialize(GameHost host)
         {
             this.host = host;
             host.OnGameStateChanged += HandleGameStateChanged;
