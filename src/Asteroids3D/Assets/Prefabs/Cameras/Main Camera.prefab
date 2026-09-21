@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5632753623841755562}
   - component: {fileID: 3319033054378169574}
-  - component: {fileID: 2308608825893993831}
   m_Layer: 0
   m_Name: StarField
   m_TagString: Untagged
@@ -88,19 +87,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2308608825893993831
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 260261610858564697}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b39ae02aaa9c31a4ab51ee327139c7d4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  viewCamera: {fileID: 644815711663818637}
 --- !u!1 &1323184197967554683
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,7 +13,6 @@ Shader "Custom/StarField"
         _PositionJitter ("Position Jitter", Range(0, 0.6)) = 0.5
 
         [HideInInspector] _ZoomReferenceSize ("Zoom Reference Size", Float) = 7
-        [HideInInspector][PerRendererData] _ParallaxCorrectionWS ("Parallax Correction", Vector) = (0, 0, 0, 0)
 
         [Header(Depth)]
         _ParallaxScale ("Overall Parallax Scale", Range(0, 2)) = 1
@@ -79,7 +78,7 @@ Shader "Custom/StarField"
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float3 positionWS : TEXCOORD0;
+                float4 projectedPosition : TEXCOORD0;
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -90,7 +89,7 @@ Shader "Custom/StarField"
                 float _StarSizeMax;
                 float _PositionJitter;
                 float _ZoomReferenceSize;
-                float4 _ParallaxCorrectionWS;
+                float _ParallaxScale;
                 float _ParallaxFar;
                 float _ParallaxNear;
                 float _NearLayerShare;
@@ -210,7 +209,7 @@ Shader "Custom/StarField"
                 float zoomSizeScale)
             {
                 sizeScale *= zoomSizeScale;
-                float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
+                float2 fieldPosition = (planePosition + cameraPosition * ((1.0 + parallax) * _ParallaxScale)) * _CellScale;
                 float antialiasWidth = max(length(fwidth(fieldPosition)), 0.0001);
                 float maximumRadius = max(_StarSizeMin, _StarSizeMax) * sizeScale;
                 float maximumHaloRadius = maximumRadius * _HaloSize * 1.25 * (1.0 + 0.25 * _TwinkleAmount);
@@ -241,8 +240,8 @@ Shader "Custom/StarField"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionHCS = TransformWorldToHClip(output.positionWS);
+                output.positionHCS = TransformObjectToHClip(input.positionOS);
+                output.projectedPosition = output.positionHCS;
                 return output;
             }
 
@@ -256,7 +255,6 @@ Shader "Custom/StarField"
                     unity_ObjectToWorld._m01,
                     unity_ObjectToWorld._m11,
                     unity_ObjectToWorld._m21));
-                float2 planePosition = float2(dot(input.positionWS, planeRight), dot(input.positionWS, planeUp));
                 float3 cameraPositionWS = GetCameraPositionWS();
                 float2 cameraPosition = float2(
                     dot(cameraPositionWS, planeRight),
@@ -264,26 +262,28 @@ Shader "Custom/StarField"
 
                 // Preserve authored scale at the main camera's initial orthographic size.
                 float zoom = _ZoomReferenceSize * abs(UNITY_MATRIX_P._m11);
-                float2 cameraTravel = cameraPosition + float2(
-                    dot(_ParallaxCorrectionWS.xyz, planeRight),
-                    dot(_ParallaxCorrectionWS.xyz, planeUp));
-                planePosition = cameraTravel + (planePosition - cameraPosition) *
-                    pow(zoom, 1.0 - _SpacingZoomResponse);
+                float2 screenPosition = input.projectedPosition.xy / input.projectedPosition.w;
+                float2 referencePosition = screenPosition * _ZoomReferenceSize * float2(
+                    abs(UNITY_MATRIX_P._m11) / UNITY_MATRIX_P._m00, sign(UNITY_MATRIX_P._m11));
+                float3 referenceOffsetWS = UNITY_MATRIX_V[0].xyz * referencePosition.x +
+                    UNITY_MATRIX_V[1].xyz * referencePosition.y;
+                float2 planePosition = float2(dot(referenceOffsetWS, planeRight), dot(referenceOffsetWS, planeUp)) *
+                    pow(zoom, -_SpacingZoomResponse);
                 float zoomSizeScale = pow(zoom, _SizeZoomResponse - _SpacingZoomResponse);
 
                 float nearDensity = _StarDensity * _NearLayerShare * 0.5;
                 float farDensity = _StarDensity * (1.0 - _NearLayerShare) * 0.5;
                 float3 farStars = EvaluateLayer(
-                    planePosition, cameraTravel, _ParallaxFar,
+                    planePosition, cameraPosition, _ParallaxFar,
                     farDensity, 0.65, 0.6, 19.19, 1.0, zoomSizeScale);
                 float3 middleFarStars = EvaluateLayer(
-                    planePosition, cameraTravel, lerp(_ParallaxFar, _ParallaxNear, 1.0 / 3.0),
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 1.0 / 3.0),
                     farDensity, 0.85, 0.7333333, 37.37, 2.0 / 3.0, zoomSizeScale);
                 float3 middleNearStars = EvaluateLayer(
-                    planePosition, cameraTravel, lerp(_ParallaxFar, _ParallaxNear, 2.0 / 3.0),
+                    planePosition, cameraPosition, lerp(_ParallaxFar, _ParallaxNear, 2.0 / 3.0),
                     nearDensity, 1.05, 0.8666667, 55.55, 1.0 / 3.0, zoomSizeScale);
                 float3 nearStars = EvaluateLayer(
-                    planePosition, cameraTravel, _ParallaxNear,
+                    planePosition, cameraPosition, _ParallaxNear,
                     nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
 
                 return half4(farStars + middleFarStars + middleNearStars + nearStars, 0);

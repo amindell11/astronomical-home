@@ -41,6 +41,9 @@ namespace Tests.EditMode.Rendering
             material.SetFloat("_NearLayerShare", nearShare);
             material.SetFloat("_ParallaxNear", 0);
             material.SetFloat("_ParallaxFar", 0);
+            material.SetFloat("_ParallaxScale", 1);
+            material.SetFloat("_SpacingZoomResponse", 1);
+            material.SetFloat("_SizeZoomResponse", 1);
             material.SetFloat("_Brightness", 1);
             material.SetColor("_ColorCool", Color.white);
             material.SetColor("_ColorWarm", Color.white);
@@ -76,7 +79,8 @@ namespace Tests.EditMode.Rendering
                     commands.ClearRenderTarget(true, true, Color.black);
                     commands.SetViewProjectionMatrices(view, GL.GetGPUProjectionMatrix(
                         Matrix4x4.Ortho(-halfStripWidth, halfStripWidth, -8, 8, 0.1f, 100), true));
-                    commands.SetGlobalVector("_WorldSpaceCameraPos", new Vector4(0, 0, -10, 1));
+                    commands.SetGlobalVector("_WorldSpaceCameraPos",
+                        rotation.inverse.MultiplyPoint3x4(new Vector3(border, 0, -10)));
                     commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
                     commands.DrawMesh(mesh, Matrix4x4.identity, material);
                     Graphics.ExecuteCommandBuffer(commands);

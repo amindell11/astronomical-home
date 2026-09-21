@@ -29,29 +29,29 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Brightness: 0.49
-    - _CellScale: 3.03
+    - _Brightness: 1.06
+    - _CellScale: 3.79
     - _DepthElongation: 0.687
     - _HaloSize: 4
-    - _HaloStrength: 0.055
+    - _HaloStrength: 0.053
     - _NearLayerShare: 0.441
     - _ParallaxFar: 0.071
     - _ParallaxNear: 0.309
-    - _ParallaxScale: 1
+    - _ParallaxScale: 0.099
     - _PositionJitter: 0.572
     - _Seed: 0
-    - _ShapeVariation: 0.8
+    - _ShapeVariation: 0.571
     - _SizeZoomResponse: 0
-    - _Softness: 0.75
-    - _SpacingZoomResponse: 0.131
-    - _StarDensity: 0.43
-    - _StarSizeMax: 0.1073
-    - _StarSizeMin: 0.0354
+    - _Softness: 0.628
+    - _SpacingZoomResponse: 0
+    - _StarDensity: 0.323
+    - _StarSizeMax: 0.0573
+    - _StarSizeMin: 0.002
     - _TwinkleAmount: 1
     - _TwinkleDurationMax: 26.2
     - _TwinkleDurationMin: 5.3
-    - _TwinkleNoise: 0.848
-    - _WarmColorShare: 0.25
+    - _TwinkleNoise: 0.887
+    - _WarmColorShare: 0.287
     - _ZoomReferenceSize: 7
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
