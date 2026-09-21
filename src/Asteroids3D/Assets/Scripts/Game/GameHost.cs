@@ -24,12 +24,12 @@ namespace Game
     /// every sector and the player rig frame themselves against — and the optional
     /// <see cref="PlayerRig"/>, handing the player to the session at each sector load. The session
     /// orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
-    /// The RL harness's <c>HarnessSessionHost</c> is the other host shape, over the harness's own
+    /// The RL harness's <c>HarnessHost</c> is the other host shape, over the harness's own
     /// composition rather than a session.
     /// </summary>
     [RequireComponent(typeof(UnitService))]
     [RequireComponent(typeof(ObjectiveService))]
-    public class GameSessionHost : MonoBehaviour
+    public class GameHost : MonoBehaviour
     {
         // Values are pinned: scenes serialize the numbers, so renumbering rewrites authored data.
         /// <summary>Session policy for what happens when the persistent player ship dies.</summary>

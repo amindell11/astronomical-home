@@ -10,9 +10,9 @@ using RL.Probes;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the harness session boundary: the environment parses ONCE, before play mode, so every illegal value fails there instead of silently reshaping a running eval.</summary>
+    /// <summary>Pins the harness parse boundary: the environment parses ONCE, before play mode, so every illegal value fails there instead of silently reshaping a running eval.</summary>
     [Category("AI")]
-    public class RLSessionSpecEditModeTests
+    public class RLHarnessSpecEditModeTests
     {
         private bool candidateResolved;
         private string candidateSource;
@@ -28,12 +28,12 @@ namespace Tests.EditMode
             bundleLoads.Clear();
         }
 
-        private SessionSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
+        private HarnessSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
 
-        private SessionSpec Parse(bool hasGraphics, params string[] keyValuePairs)
+        private HarnessSpec Parse(bool hasGraphics, params string[] keyValuePairs)
         {
             var env = ToEnv(keyValuePairs);
-            return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
+            return HarnessSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
                 s =>
                 {
                     candidateResolved = true;
@@ -47,10 +47,10 @@ namespace Tests.EditMode
                 }, () => hasGraphics);
         }
 
-        private SessionSpec ParsePlayer(params string[] keyValuePairs)
+        private HarnessSpec ParsePlayer(params string[] keyValuePairs)
         {
             var env = ToEnv(keyValuePairs);
-            return SessionSpec.ParsePlayerEval(k => env.TryGetValue(k, out var v) ? v : null,
+            return HarnessSpec.ParsePlayerEval(k => env.TryGetValue(k, out var v) ? v : null,
                 (bundle, asset) =>
                 {
                     bundleLoads.Add((bundle, asset));
@@ -72,14 +72,14 @@ namespace Tests.EditMode
         {
             var spec = Parse();
 
-            Assert.AreEqual(SessionLane.Eval, spec.lane);
+            Assert.AreEqual(HarnessLane.Eval, spec.lane);
             Assert.IsTrue(candidateResolved && candidateSource == null,
                 "no RL_HARNESS_ONNX: the boundary resolves a null source (the smoke fixture)");
             Assert.AreEqual("ShipCombat-smoke", spec.CandidateStem);
             Assert.IsNull(spec.onnxSourcePath);
             Assert.AreEqual(EvalProtocol.HeldOutSeeds, spec.seeds);
             Assert.AreEqual("held-out", spec.tag);
-            Assert.AreEqual(SessionSpec.DefaultEpisodesPerSeed, spec.episodesPerSeed);
+            Assert.AreEqual(HarnessSpec.DefaultEpisodesPerSeed, spec.episodesPerSeed);
             Assert.AreEqual(EvalProtocol.CanonicalFieldDensityScale, spec.fieldDensityScale);
             Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
             Assert.IsNull(spec.opponentOnnxSourcePath);
@@ -204,9 +204,9 @@ namespace Tests.EditMode
         [Test]
         public void FacingProbe_RefusesANonFiniteOrNegativeAuthorityScaleAtCreation()
         {
-            Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
+            Assert.Throws<ArgumentException>(() => HarnessProbes.Create(FacingProbe.ProbeName,
                 new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = -1f }));
-            Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
+            Assert.Throws<ArgumentException>(() => HarnessProbes.Create(FacingProbe.ProbeName,
                 new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = float.NaN }));
         }
 
@@ -214,7 +214,7 @@ namespace Tests.EditMode
         public void SentenceGrammar_SelectsTheLaneAndItsRows()
         {
             var all = Parse("RL_HARNESS_SENTENCE", "all");
-            Assert.AreEqual(SessionLane.Sentence, all.lane);
+            Assert.AreEqual(HarnessLane.Sentence, all.lane);
             Assert.AreEqual(SentenceRows.SessionRows, all.sentenceRows);
             StringAssert.StartsWith("sentence-", all.tag, "sentence artifacts must never pass as an eval");
 
@@ -315,9 +315,9 @@ namespace Tests.EditMode
         public void RecordSizeAndCadence_DefaultAndOverride()
         {
             var def = Parse("RL_HARNESS_RECORD", "all").record;
-            Assert.AreEqual(SessionSpec.DefaultRecordWidth, def.width);
-            Assert.AreEqual(SessionSpec.DefaultRecordHeight, def.height);
-            Assert.AreEqual(SessionSpec.DefaultRecordEvery, def.everyFixedSteps);
+            Assert.AreEqual(HarnessSpec.DefaultRecordWidth, def.width);
+            Assert.AreEqual(HarnessSpec.DefaultRecordHeight, def.height);
+            Assert.AreEqual(HarnessSpec.DefaultRecordEvery, def.everyFixedSteps);
 
             var custom = Parse("RL_HARNESS_RECORD", "all", "RL_HARNESS_RECORD_SIZE", "1280x720",
                 "RL_HARNESS_RECORD_EVERY", "3").record;
@@ -353,9 +353,9 @@ namespace Tests.EditMode
         [Test]
         public void LaneSelector_DefaultsEvalAndSelectsCapture()
         {
-            Assert.AreEqual(SessionLane.Eval, Parse().lane);
-            Assert.AreEqual(SessionLane.Eval, Parse("RL_HARNESS_LANE", "eval").lane);
-            Assert.AreEqual(SessionLane.Capture,
+            Assert.AreEqual(HarnessLane.Eval, Parse().lane);
+            Assert.AreEqual(HarnessLane.Eval, Parse("RL_HARNESS_LANE", "eval").lane);
+            Assert.AreEqual(HarnessLane.Capture,
                 Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "aggressor").lane);
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_LANE", "film"), "unknown lane");
         }

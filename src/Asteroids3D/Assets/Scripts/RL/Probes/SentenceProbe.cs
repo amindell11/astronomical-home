@@ -229,7 +229,7 @@ namespace RL.Probes
     /// a per-decision CSV sidecar (every weight, referent/frame choice, trigger branch, and the
     /// weight-entropy) written beside the summary — the raw stream fork 6's failure diagnosis and
     /// the rig's sentence replay read.</summary>
-    public sealed class SentenceProbe : ISessionProbe
+    public sealed class SentenceProbe : IHarnessProbe
     {
         public const string ProbeName = "sentence";
         private const string DecisionsCsvSuffix = "-decisions.csv";

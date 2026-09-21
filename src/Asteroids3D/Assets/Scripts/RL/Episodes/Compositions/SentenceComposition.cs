@@ -10,7 +10,7 @@ using RL.Reward;
 namespace RL.Episodes.Compositions
 {
     /// <summary>The Stage A3 sentence-session composition: the measured ship on the agent slot plays one row's fixed sentence through an installed <see cref="SentenceBrain"/> (the controller probe reads that slot's solver), against the row's scripted opponent installed per episode through the roster primitive. Both ships are scripted, so the driver paces with a null agent and episodes end by rule.</summary>
-    internal sealed class SentenceComposition : ISessionComposition
+    internal sealed class SentenceComposition : IHarnessComposition
     {
         public EpisodeLoopDriver Driver { get; }
         public EpisodePair Pair { get; }

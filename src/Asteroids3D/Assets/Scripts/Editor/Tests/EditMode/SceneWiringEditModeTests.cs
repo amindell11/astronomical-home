@@ -8,7 +8,7 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Each bootstrap scene must carry a session root the host can actually compose against: a
-    /// <see cref="GameSessionHost"/> whose GameObject also holds the two services the session
+    /// <see cref="GameHost"/> whose GameObject also holds the two services the session
     /// constructor requires. A host without them NREs at first transition, so this is a
     /// load-bearing wiring invariant.
     /// </summary>
@@ -22,18 +22,18 @@ namespace Tests.EditMode
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
-                GameSessionHost host = null;
+                GameHost host = null;
                 foreach (var root in scene.GetRootGameObjects())
                 {
-                    host = root.GetComponentInChildren<GameSessionHost>(true);
+                    host = root.GetComponentInChildren<GameHost>(true);
                     if (host) break;
                 }
 
-                Assert.IsNotNull(host, $"{scenePath} must contain a GameSessionHost");
+                Assert.IsNotNull(host, $"{scenePath} must contain a GameHost");
                 Assert.IsNotNull(host.GetComponent<UnitService>(),
-                    $"{scenePath}: the GameSessionHost's GameObject must also carry a UnitService");
+                    $"{scenePath}: the GameHost's GameObject must also carry a UnitService");
                 Assert.IsNotNull(host.GetComponent<ObjectiveService>(),
-                    $"{scenePath}: the GameSessionHost's GameObject must also carry an ObjectiveService");
+                    $"{scenePath}: the GameHost's GameObject must also carry an ObjectiveService");
             }
             finally
             {

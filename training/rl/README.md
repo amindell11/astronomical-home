@@ -183,8 +183,8 @@ eval BEFORE the held-out set is opened; any RewardSpec change resets the
 protocol.
 
 It runs as a coordinator batch child (`harness_child.ps1`, which carries the
-environment into `-executeMethod RL.Hosts.TrainingBootstrap.RunHarnessSession`).
-The `RL_HARNESS_*` family is the session grammar, parsed once by `SessionSpec` (C#)
+environment into `-executeMethod RL.Hosts.TrainingBootstrap.RunHarness`).
+The `RL_HARNESS_*` family is the harness-run grammar, parsed once by `HarnessSpec` (C#)
 at the batch boundary — a retired `RL_EVAL_*` name present in the environment
 throws there, naming its replacement:
 
@@ -223,7 +223,7 @@ cd training/rl
 ```
 
 Point `--project` at a free pool slot (like the eval gate); values pass through
-as strings — `SessionSpec` is the single grammar authority.
+as strings — `HarnessSpec` is the single grammar authority.
 
 The eval environment defaults to `EvalProtocol.EvalSpec` — asteroid field on at
 the curriculum's terminal density, pinned against `ppo_ship_combat.yaml` by

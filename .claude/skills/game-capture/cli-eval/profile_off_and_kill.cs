@@ -1,6 +1,6 @@
-var hosts = UnityEngine.Object.FindObjectsByType<Game.GameSessionHost>(UnityEngine.FindObjectsSortMode.None);
-if (hosts.Length != 1) return "GameSessionHost count=" + hosts.Length;
-var pf = typeof(Game.GameSessionHost).GetField("sessionProfile",
+var hosts = UnityEngine.Object.FindObjectsByType<Game.GameHost>(UnityEngine.FindObjectsSortMode.None);
+if (hosts.Length != 1) return "GameHost count=" + hosts.Length;
+var pf = typeof(Game.GameHost).GetField("sessionProfile",
     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 var profile = (Substrate.Sessions.SessionProfile)pf.GetValue(hosts[0]);
 profile.presentation = false;

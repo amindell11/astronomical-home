@@ -3,7 +3,7 @@ unity-access coordinator, and reads the summary back from the dir it named.
 
 The child env is composed from explicit parameters only: every inherited RL_HARNESS_* AND
 retired RL_EVAL_* variable is stripped first, so an inherited override can never move a run
-off what the caller asked for. Values pass through as strings — the C# SessionSpec parser is
+off what the caller asked for. Values pass through as strings — the C# HarnessSpec parser is
 the single grammar authority and throws at boot, so a bad value fails loud on first run.
 
 As a CLI this is the manual scripted eval at the gate shape (it replaced rl_eval.ps1):
@@ -70,7 +70,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
     Every parameter besides the plumbing maps 1:1 onto an RL_HARNESS_* variable; None means
-    "leave unset" and takes the SessionSpec default (no onnx = the committed smoke fixture).
+    "leave unset" and takes the HarnessSpec default (no onnx = the committed smoke fixture).
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     log = out_dir / "editor.log"

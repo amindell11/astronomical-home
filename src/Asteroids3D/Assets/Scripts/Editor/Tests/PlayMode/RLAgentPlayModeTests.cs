@@ -207,7 +207,7 @@ namespace Tests.PlayMode
             spec.maxSeparation = 24f;
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
-            var sessionSpec = new SessionSpec
+            var harnessSpec = new HarnessSpec
             {
                 model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 seeds = seeds,
@@ -222,7 +222,7 @@ namespace Tests.PlayMode
                 },
             };
             CheckpointEvaluator.Summary summary = default;
-            yield return CheckpointEvaluator.Run(NewHost(sessionSpec), sessionSpec, spec, s => summary = s);
+            yield return CheckpointEvaluator.Run(NewHost(harnessSpec), harnessSpec, spec, s => summary = s);
 
             Assert.AreEqual(CheckpointEvaluator.SchemaId, summary.schema);
             // Stratified eval: one standalone block per opponent, and no blended aggregate anywhere.
@@ -287,7 +287,7 @@ namespace Tests.PlayMode
                 Assert.Greater(row.decisions, 0, "facing: a detached IPolicyReadout observes no decisions");
 
             // Mirror block: same substrate, checkpoint vs itself, self-fingerprinted rows.
-            var mirrorSpec = new SessionSpec
+            var mirrorSpec = new HarnessSpec
             {
                 model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 seeds = new[] { seeds[0] },
@@ -311,7 +311,7 @@ namespace Tests.PlayMode
             // Checkpoint-opponent block: the smoke fixture imported into the second slot is a DISTINCT
             // asset, so both per-side ModelRunners genuinely exist in this one Academy session.
             var opponentAssetPath = TrainingBootstrap.ImportEvalOpponent(ShipAgentFactory.SmokeFixturePath);
-            var slot2Spec = new SessionSpec
+            var slot2Spec = new HarnessSpec
             {
                 model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 opponentKind = OpponentKind.Checkpoint,
@@ -345,13 +345,13 @@ namespace Tests.PlayMode
         }
 
         /// <summary>Host on an inactive GameObject so its Start never fires — the test composes the arena and drives the client coroutine itself.</summary>
-        private HarnessSessionHost NewHost(SessionSpec sessionSpec)
+        private HarnessHost NewHost(HarnessSpec harnessSpec)
         {
-            var hostObject = new GameObject("[HarnessSessionHost]");
+            var hostObject = new GameObject("[HarnessHost]");
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
-            var host = hostObject.AddComponent<HarnessSessionHost>();
-            host.Initialize(sessionSpec, assets, unitService, projectiles);
+            var host = hostObject.AddComponent<HarnessHost>();
+            host.Initialize(harnessSpec, assets, unitService, projectiles);
             return host;
         }
 

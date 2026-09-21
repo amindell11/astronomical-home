@@ -213,7 +213,7 @@ namespace RL.Probes
     }
 
     /// <summary>The gate instrument as a session probe: one <see cref="ArchetypeGateSampler"/> per episode, rows grouped by the block's opponent label, and a per-opponent aggregate as the summary sidecar.</summary>
-    public sealed class ArchetypeGateProbe : ISessionProbe
+    public sealed class ArchetypeGateProbe : IHarnessProbe
     {
         public const string ProbeName = "gate";
 

@@ -9,7 +9,7 @@ namespace Utils
     public static class GameSettings
     {
         /// <summary>
-        /// Off skips <c>GameSessionHost</c>'s hangar screen and death recap; ships and transients are
+        /// Off skips <c>GameHost</c>'s hangar screen and death recap; ships and transients are
         /// darkened by their own spawn seams, not by this flag.
         /// </summary>
         public static bool PresentationEnabled { get; private set; } = true;

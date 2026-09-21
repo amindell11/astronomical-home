@@ -55,9 +55,9 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator SentenceBlock_RunsHeadlessAndTheControllerProbeSamplesTheSolver()
         {
-            var spec = new SessionSpec
+            var spec = new HarnessSpec
             {
-                lane = SessionLane.Sentence,
+                lane = HarnessLane.Sentence,
                 seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
                 tag = "sentence-test",
                 episodesPerSeed = 2,
@@ -66,10 +66,10 @@ namespace Tests.PlayMode
                 sentenceRows = new[] { SentenceRow.DriftHold },
                 outDir = outDir,
             };
-            var hostObject = new GameObject("[HarnessSessionHost]");
+            var hostObject = new GameObject("[HarnessHost]");
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
-            var host = hostObject.AddComponent<HarnessSessionHost>();
+            var host = hostObject.AddComponent<HarnessHost>();
             host.Initialize(spec, assets, unitService, projectiles);
 
             // Drift-hold never kills: the episode must end by the shortened timeout rule, not test patience.

@@ -24,7 +24,7 @@ namespace Tests.PlayMode
     /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
     /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
     /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
-    /// <see cref="GameSessionHost.RunHangar"/>, so the flow is driven there.
+    /// <see cref="GameHost.RunHangar"/>, so the flow is driven there.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
@@ -78,7 +78,7 @@ namespace Tests.PlayMode
             // Supply screen + catalog to an inactive host (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
-            var host = hostGo.AddComponent<GameSessionHost>();
+            var host = hostGo.AddComponent<GameHost>();
             SetPrivate(host, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
             SetPrivate(host, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
 

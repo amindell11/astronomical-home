@@ -16,14 +16,14 @@ namespace Tests.EditMode
 
         private bool savedEpoEnabled;
         private EnterPlayModeOptions savedEpoOptions;
-        private CaptureLaneSession.LaneStore store;
+        private CaptureLane.LaneStore store;
 
         [SetUp]
         public void SetUp()
         {
             savedEpoEnabled = EditorSettings.enterPlayModeOptionsEnabled;
             savedEpoOptions = EditorSettings.enterPlayModeOptions;
-            store = new CaptureLaneSession.LaneStore(
+            store = new CaptureLane.LaneStore(
                 "Tests.EditMode.CaptureLane.Active",
                 Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "Temp",
                     "CaptureLaneEditModeTests", "lane_session.json")));
@@ -75,13 +75,13 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach(store);
+            CaptureLane.Attach(store);
             Assert.IsTrue(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload,
                 EditorSettings.enterPlayModeOptions);
             Assert.IsTrue(File.Exists(store.journalPath), "attach journals the prior values");
 
-            CaptureLaneSession.Release(store);
+            CaptureLane.Release(store);
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.None, EditorSettings.enterPlayModeOptions);
             Assert.IsFalse(File.Exists(store.journalPath), "release consumes the journal");
@@ -93,9 +93,9 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach(store);
-            CaptureLaneSession.Attach(store);
-            CaptureLaneSession.Release(store);
+            CaptureLane.Attach(store);
+            CaptureLane.Attach(store);
+            CaptureLane.Release(store);
 
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled,
                 "re-attach must not journal the already-flipped values");
@@ -108,11 +108,11 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach(store);
+            CaptureLane.Attach(store);
             // A hard-killed lane leaves the journal but no SessionState (it dies with the editor).
             SessionState.EraseBool(store.activeMarker);
 
-            CaptureLaneSession.RecoverAbandoned(store);
+            CaptureLane.RecoverAbandoned(store);
             Assert.IsFalse(EditorSettings.enterPlayModeOptionsEnabled);
             Assert.AreEqual(EnterPlayModeOptions.None, EditorSettings.enterPlayModeOptions);
             Assert.IsFalse(File.Exists(store.journalPath));
@@ -124,8 +124,8 @@ namespace Tests.EditMode
             EditorSettings.enterPlayModeOptionsEnabled = false;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.None;
 
-            CaptureLaneSession.Attach(store);
-            CaptureLaneSession.RecoverAbandoned(store);
+            CaptureLane.Attach(store);
+            CaptureLane.RecoverAbandoned(store);
 
             Assert.IsTrue(EditorSettings.enterPlayModeOptionsEnabled,
                 "a mid-lane domain reload re-runs recovery, which must not undo the live lane");

@@ -93,6 +93,6 @@ caught from outside the editor — that needs an editor-side `[CliCommand]` prim
 
 `capture_lane_attach` / `capture_lane_release` (journaled no-reload play for a
 lane session) and `capture_request_scenario` (one-shot scenario dispatch to the
-routed capture runner) are this repo's `[CliCommand]`s on `CaptureLaneSession`.
+routed capture runner) are this repo's `[CliCommand]`s on `CaptureLane`.
 Recipe and constraints: game-capture skill §"Warm lane (attach to a resident
 editor)".

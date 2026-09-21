@@ -11,9 +11,9 @@ using RL.Probes;
 namespace RL.Hosts.Lanes
 {
     /// <summary>The Stage A3 sentence lane client: for each seed, one composition per selected session bingo row — the measured ship plays the row's fixed hand-authored sentence against the row's staged opponent under the canonical eval arena. The controller probe's sidecar is the instrument; this summary just fingerprints the run.</summary>
-    public sealed class SentenceLane : ISessionClient
+    public sealed class SentenceLane : ILaneClient
     {
-        IEnumerator ISessionClient.Run(HarnessSessionHost host, SessionSpec spec) => RunLane(host, spec);
+        IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
 
         public const string SchemaId = "rl-sentence-summary-v1";
 
@@ -37,7 +37,7 @@ namespace RL.Hosts.Lanes
             public ProbeArtifacts[] probes;
         }
 
-        public static IEnumerator RunLane(HarnessSessionHost host, SessionSpec spec)
+        public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
         {
             var baseSpec = EvalProtocol.EvalSpec(spec.fieldDensityScale);
 

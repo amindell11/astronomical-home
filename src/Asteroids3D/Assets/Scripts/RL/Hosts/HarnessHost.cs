@@ -16,10 +16,10 @@ using RL.Reward;
 
 namespace RL.Hosts
 {
-    /// <summary>Scene entry point for offline harness sessions, composed by TrainingBootstrap.RunHarnessSession in batch mode. It owns the measurement arena and two primitives — <see cref="NewComposition"/> (one per seed, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
-    public sealed class HarnessSessionHost : MonoBehaviour
+    /// <summary>Scene entry point for one offline harness run, composed by TrainingBootstrap.RunHarness in batch mode. It owns the measurement arena and two primitives — <see cref="NewComposition"/> (one per seed, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
+    public sealed class HarnessHost : MonoBehaviour
     {
-        [SerializeField] internal SessionSpec spec;
+        [SerializeField] internal HarnessSpec spec;
         [SerializeField] internal HarnessAssets assets;
         [SerializeField] internal ScriptableObject captureModule;
         [SerializeField] internal bool exitEditorWhenComplete;
@@ -30,7 +30,7 @@ namespace RL.Hosts
         internal IProjectileService Projectiles { get; private set; }
 
         private UnitService units;
-        private ISessionProbe[] probes;
+        private IHarnessProbe[] probes;
         private IEpisodeCapture episodeCapture;
         internal bool HasEpisodeCapture => episodeCapture != null;
 
@@ -72,10 +72,10 @@ namespace RL.Hosts
 #endif
         }
 
-        internal void Initialize(SessionSpec sessionSpec, HarnessAssets harnessAssets, UnitService unitService,
+        internal void Initialize(HarnessSpec harnessSpec, HarnessAssets harnessAssets, UnitService unitService,
             IProjectileService projectiles, IEpisodeCapture capture = null)
         {
-            spec = sessionSpec;
+            spec = harnessSpec;
             assets = harnessAssets;
             units = unitService;
             Projectiles = projectiles;
@@ -84,12 +84,12 @@ namespace RL.Hosts
                 episodeCapture = capture;
                 captureModule = capture as ScriptableObject;
             }
-            probes = new ISessionProbe[sessionSpec.probes.Length];
+            probes = new IHarnessProbe[harnessSpec.probes.Length];
             for (var i = 0; i < probes.Length; i++)
-                probes[i] = SessionProbes.Create(sessionSpec.probes[i].name, sessionSpec.probes[i].ToParameters());
+                probes[i] = HarnessProbes.Create(harnessSpec.probes[i].name, harnessSpec.probes[i].ToParameters());
         }
 
-        internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field)
+        internal IHarnessComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field)
         {
             return opponent switch
             {
@@ -102,12 +102,12 @@ namespace RL.Hosts
             };
         }
 
-        internal ISessionComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
+        internal IHarnessComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
             SentenceRow row) =>
             new SentenceComposition(units, Offset, Projectiles, assets, in seedSpec, field, row);
 
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
-        internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
+        internal IEnumerator RunBlock(IHarnessComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
             ResolveEpisodeCapture();
@@ -185,11 +185,11 @@ namespace RL.Hosts
 
         private IEnumerator RunLane() => Client(spec.lane).Run(this, spec);
 
-        private static ISessionClient Client(SessionLane lane) => lane switch
+        private static ILaneClient Client(HarnessLane lane) => lane switch
         {
-            SessionLane.Eval => new CheckpointEvaluator(),
-            SessionLane.Capture => new CaptureClient(),
-            SessionLane.Sentence => new SentenceLane(),
+            HarnessLane.Eval => new CheckpointEvaluator(),
+            HarnessLane.Capture => new CaptureClient(),
+            HarnessLane.Sentence => new SentenceLane(),
             _ => throw new NotSupportedException($"No lane client for {lane}."),
         };
 
@@ -215,7 +215,7 @@ namespace RL.Hosts
         private void ExitOnException(string condition, string stackTrace, LogType type)
         {
             if (type != LogType.Exception || !exitEditorWhenComplete) return;
-            Debug.LogError($"[HarnessSessionHost] fatal: {condition}\n{stackTrace}");
+            Debug.LogError($"[HarnessHost] fatal: {condition}\n{stackTrace}");
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.Exit(1);
 #else

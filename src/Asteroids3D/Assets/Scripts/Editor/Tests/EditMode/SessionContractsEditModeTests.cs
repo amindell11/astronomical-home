@@ -101,18 +101,18 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameSessionHost_HasCurrentStateProperty()
+        public void GameHost_HasCurrentStateProperty()
         {
-            var prop = typeof(GameSessionHost).GetProperty("CurrentState");
-            Assert.IsNotNull(prop, "GameSessionHost must expose CurrentState");
+            var prop = typeof(GameHost).GetProperty("CurrentState");
+            Assert.IsNotNull(prop, "GameHost must expose CurrentState");
             Assert.AreEqual(typeof(GameState), prop.PropertyType);
         }
 
         [Test]
-        public void GameSessionHost_HasOnGameStateChangedEvent()
+        public void GameHost_HasOnGameStateChangedEvent()
         {
-            var ev = typeof(GameSessionHost).GetEvent("OnGameStateChanged");
-            Assert.IsNotNull(ev, "GameSessionHost must declare OnGameStateChanged event");
+            var ev = typeof(GameHost).GetEvent("OnGameStateChanged");
+            Assert.IsNotNull(ev, "GameHost must declare OnGameStateChanged event");
         }
 
         [Test]
