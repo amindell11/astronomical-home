@@ -37,6 +37,21 @@ Shader "Custom/StarField"
         _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
         _Softness ("Softness", Range(0, 1)) = 0
 
+
+        [Header(Nebula)]
+        _NebulaStrength ("Nebula Strength", Range(0, 0.3)) = 0
+        _NebulaScale ("Nebula Scale", Range(0.01, 0.3)) = 0.085
+        _NebulaSpeed ("Nebula Evolution Speed", Range(0, 0.05)) = 0.008
+        _NebulaParallax ("Nebula Parallax", Range(0, 1)) = 0.025
+        _NebulaCool ("Nebula Cool Color", Color) = (0.18, 0.48, 0.65, 1)
+        _NebulaWarm ("Nebula Warm Color", Color) = (0.5, 0.2, 0.38, 1)
+
+        [Header(Shooting Stars)]
+        _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
+        _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 18
+        _ShootingParallax ("Shooting Star Parallax", Range(0, 1)) = 0.1
+        _ShootingColor ("Shooting Star Color", Color) = (0.65, 0.8, 1, 1)
+
         [Header(Motion)]
         _TwinkleNoise ("Twinkle Noise", Range(0, 1)) = 0
         _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
@@ -108,6 +123,16 @@ Shader "Custom/StarField"
                 float _TwinkleAmount;
                 float _TwinkleDurationMin;
                 float _TwinkleDurationMax;
+                float _NebulaStrength;
+                float _NebulaScale;
+                float _NebulaSpeed;
+                float _NebulaParallax;
+                float4 _NebulaCool;
+                float4 _NebulaWarm;
+                float _ShootingBrightness;
+                float _ShootingInterval;
+                float _ShootingParallax;
+                float4 _ShootingColor;
             CBUFFER_END
 
             float4 Hash42(float2 value)
@@ -117,6 +142,67 @@ Shader "Custom/StarField"
                 return frac((p.xxyz + p.yzzw) * p.zywx);
             }
 
+            float CloudNoise(float2 position)
+            {
+                float2 cell = floor(position);
+                float2 blend = frac(position);
+                blend = blend * blend * (3.0 - 2.0 * blend);
+                return lerp(lerp(Hash42(cell).x, Hash42(cell + float2(1, 0)).x, blend.x),
+                    lerp(Hash42(cell + float2(0, 1)).x, Hash42(cell + 1).x, blend.x), blend.y);
+            }
+
+            float3 Nebula(float2 position)
+            {
+                [branch]
+                if (_NebulaStrength <= 0) return 0;
+                float time = _Time.y * _NebulaSpeed;
+                float2 p = position * _NebulaScale + _Seed * float2(13.7, 29.3);
+                float2 warp = float2(CloudNoise(p * 0.6 + float2(time, 0)),
+                    CloudNoise(p * 0.6 + float2(17.3, -time))) - 0.5;
+                float2 cloudPosition = p + warp * 2.5;
+                float broad = CloudNoise(cloudPosition);
+                float detail = CloudNoise(cloudPosition * 2.1 + 31.7);
+                float fine = CloudNoise(cloudPosition * 4.3 - 19.1);
+                float cloud = broad * 0.6 + detail * 0.28 + fine * 0.12;
+                float coverage = smoothstep(0.42, 0.78, cloud);
+                float filaments = pow(saturate(1.0 - abs(detail * 2.0 - 1.0)), 3.0);
+                float3 color = lerp(_NebulaCool.rgb, _NebulaWarm.rgb, smoothstep(0.3, 0.7, broad));
+                return color * coverage * (0.35 + filaments * 0.65) * _NebulaStrength;
+            }
+
+            float3 ShootingStars(float2 position)
+            {
+                [branch]
+                if (_ShootingBrightness <= 0) return 0;
+                const float regionSize = 32.0;
+                float2 region = floor(position / regionSize);
+                float4 regionRandom = Hash42(region + _Seed * float2(31.3, 17.7));
+                float time = _Time.y + regionRandom.x * _ShootingInterval;
+                float cycle = floor(time / _ShootingInterval);
+                float4 random = Hash42(region + cycle * float2(73.1, 91.7) + _Seed + 173.3);
+                float age = time - cycle * _ShootingInterval - lerp(0.1, 0.6, random.x) * _ShootingInterval;
+                float duration = lerp(0.9, 1.5, random.y);
+                [branch]
+                if (random.w > 0.65 || age <= 0 || age >= duration) return 0;
+
+                float life = age / duration;
+                float angle = lerp(-0.9, -0.3, random.z) + step(0.5, regionRandom.z) * PI;
+                float2 direction = float2(cos(angle), sin(angle));
+                float2 center = (region + 0.5 + (regionRandom.yz - 0.5) * 0.2) * regionSize;
+                float2 head = center + direction * lerp(-4.0, 4.0, life);
+                float2 offset = position - head;
+                float along = dot(offset, direction);
+                float across = abs(dot(offset, float2(-direction.y, direction.x)));
+                float tail = saturate(1.0 + along / 3.0);
+                float aa = max(length(fwidth(position)), 0.001);
+                float width = 0.012 * tail;
+                float streak = (1.0 - smoothstep(width, width + aa, across)) * tail * tail *
+                    (1.0 - smoothstep(0.0, aa, along));
+                float glow = exp2(-length(offset) * 35.0);
+                float fade = smoothstep(0.0, 0.2, life) * (1.0 - smoothstep(0.65, 1.0, life));
+                // The complete trail fits inside its region, so cell boundaries remain dark.
+                return _ShootingColor.rgb * (streak + glow * 0.4) * fade * _ShootingBrightness;
+            }
             float StarSupport(float radius, float haloRadius, float antialiasWidth, float elongation)
             {
                 float blurScale = _Softness > 0 ? 1.2 : 1.0;
@@ -286,7 +372,9 @@ Shader "Custom/StarField"
                     planePosition, cameraPosition, _ParallaxNear,
                     nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
 
-                return half4(farStars + middleFarStars + middleNearStars + nearStars, 0);
+                float3 atmosphere = Nebula(planePosition + cameraPosition * _NebulaParallax) +
+                    ShootingStars(planePosition + cameraPosition * _ShootingParallax);
+                return half4(farStars + middleFarStars + middleNearStars + nearStars + atmosphere, 0);
             }
             ENDHLSL
         }
