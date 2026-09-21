@@ -24,7 +24,10 @@ namespace Tests.EditMode.Rendering
             previousTarget = RenderTexture.active;
             previousTime = Shader.GetGlobalVector("_Time");
             previousCamera = Shader.GetGlobalVector("_WorldSpaceCameraPos");
-            material = new Material(Shader.Find("Custom/StarField"));
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat"));
+            material.SetFloat("_NebulaStrength", 0);
+            material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_StarDensity", 0);
             mesh = new Mesh
             {
@@ -76,7 +79,7 @@ namespace Tests.EditMode.Rendering
             var quietFrames = 0;
             var movingFrames = 0;
             Color[] previous = null;
-            for (var step = 0; step < 100; step++)
+            for (var step = 0; step < 240; step++)
             {
                 var frame = Render(step * 0.25f);
                 if (frame.Max(c => c.r) > 0.003f) litFrames++;
@@ -99,7 +102,7 @@ namespace Tests.EditMode.Rendering
             commands.ClearRenderTarget(true, true, Color.black);
             commands.SetViewProjectionMatrices(
                 Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.Translate(-cameraPosition),
-                GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-32, 32, -32, 32, 0.1f, 100), true));
+                GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-12.444f, 12.444f, -7, 7, 0.1f, 100), true));
             commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
             commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
             commands.DrawMesh(mesh, Matrix4x4.identity, material);

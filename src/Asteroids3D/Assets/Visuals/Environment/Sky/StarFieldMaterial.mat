@@ -34,7 +34,7 @@ Material:
     - _NebulaSpeed: 0.008
     - _NebulaParallax: 0.025
     - _ShootingBrightness: 0.65
-    - _ShootingInterval: 18
+    - _ShootingInterval: 12
     - _ShootingParallax: 0.1
     - _Brightness: 1.06
     - _CellScale: 3.79

@@ -48,7 +48,7 @@ Shader "Custom/StarField"
 
         [Header(Shooting Stars)]
         _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
-        _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 18
+        _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 12
         _ShootingParallax ("Shooting Star Parallax", Range(0, 1)) = 0.1
         _ShootingColor ("Shooting Star Color", Color) = (0.65, 0.8, 1, 1)
 
@@ -170,12 +170,9 @@ Shader "Custom/StarField"
                 return color * coverage * (0.35 + filaments * 0.65) * _NebulaStrength;
             }
 
-            float3 ShootingStars(float2 position)
+            float3 ShootingRegion(float2 position, float2 region, float aa)
             {
-                [branch]
-                if (_ShootingBrightness <= 0) return 0;
-                const float regionSize = 32.0;
-                float2 region = floor(position / regionSize);
+                const float regionSize = 24.0;
                 float4 regionRandom = Hash42(region + _Seed * float2(31.3, 17.7));
                 float time = _Time.y + regionRandom.x * _ShootingInterval;
                 float cycle = floor(time / _ShootingInterval);
@@ -188,21 +185,36 @@ Shader "Custom/StarField"
                 float life = age / duration;
                 float angle = lerp(-0.9, -0.3, random.z) + step(0.5, regionRandom.z) * PI;
                 float2 direction = float2(cos(angle), sin(angle));
-                float2 center = (region + 0.5 + (regionRandom.yz - 0.5) * 0.2) * regionSize;
+                float2 center = (region + regionRandom.yz) * regionSize;
                 float2 head = center + direction * lerp(-4.0, 4.0, life);
                 float2 offset = position - head;
                 float along = dot(offset, direction);
                 float across = abs(dot(offset, float2(-direction.y, direction.x)));
                 float tail = saturate(1.0 + along / 3.0);
-                float aa = max(length(fwidth(position)), 0.001);
+
                 float width = 0.012 * tail;
                 float streak = (1.0 - smoothstep(width, width + aa, across)) * tail * tail *
                     (1.0 - smoothstep(0.0, aa, along));
                 float glow = exp2(-length(offset) * 35.0);
                 float fade = smoothstep(0.0, 0.2, life) * (1.0 - smoothstep(0.65, 1.0, life));
-                // The complete trail fits inside its region, so cell boundaries remain dark.
+
                 return _ShootingColor.rgb * (streak + glow * 0.4) * fade * _ShootingBrightness;
             }
+            float3 ShootingStars(float2 position)
+            {
+                [branch]
+                if (_ShootingBrightness <= 0) return 0;
+                float2 region = floor(position / 24.0);
+                float aa = max(length(fwidth(position)), 0.001);
+                float3 light = 0;
+                [unroll]
+                for (int y = -1; y <= 1; y++)
+                [unroll]
+                for (int x = -1; x <= 1; x++)
+                    light += ShootingRegion(position, region + float2(x, y), aa);
+                return light;
+            }
+
             float StarSupport(float radius, float haloRadius, float antialiasWidth, float elongation)
             {
                 float blurScale = _Softness > 0 ? 1.2 : 1.0;
