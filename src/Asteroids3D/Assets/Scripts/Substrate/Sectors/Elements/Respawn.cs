@@ -26,8 +26,7 @@ namespace Substrate.Sectors.Elements
 
         /// <summary>
         /// Plane-space revive position: a random point within <c>radius</c> of
-        /// <paramref name="producerBase"/> + <c>point</c>. A caller with no live producer transform
-        /// (the host's player policy) passes the session frame's offset as the base.
+        /// <paramref name="producerBase"/> + <c>point</c>.
         /// </summary>
         public static Vector2 Resolve(RespawnPolicy policy, Vector2 producerBase = default) =>
             producerBase + policy.point + Random.insideUnitCircle * policy.radius;

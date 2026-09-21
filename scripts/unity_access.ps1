@@ -37,7 +37,14 @@
                       projectProcesses[]  - live Unity processes on it, each with processId,
                                             projectPath, normalizedProjectPath and batch (false =
                                             an interactive editor, which makes a batch run
-                                            infra_error and is where CLI commands route).
+                                            infra_error and is where CLI commands route), plus
+                                            privateGB / peakPrivateGB (that process, kernel-
+                                            maintained for its whole lifetime, so one late read is
+                                            its exact peak) and workersPrivateGB /
+                                            workersPeakPrivateGB (its AssetImportWorker children,
+                                            summed - they come and go, so they stay a separate
+                                            number). This is where the editor boot demand constant
+                                            is measured: doc/agents/environment.md.
       Contract      (needs no -Lease) -> status "contract" plus the constants a caller must match
                     exactly: bootCompletePattern, ticketTtlSeconds, ownerTtlSeconds,
                     bootTtlSeconds, bootDemandBatchGB, bootDemandEditorGB, bootMemoryMarginGB.
@@ -104,7 +111,8 @@
     OWNED STATE SCHEMAS (this script writes them; nothing else may read them)
       <StateRoot>/owners/<projectKey>/owner.json - lease, slot, mode, projectPath, projectKey,
         processId (0 until Attach), holderProcessId + holderStartTime (the coordinator holding it),
-        acquiredAt, updatedAt. Read it back through Status.owners[].
+        acquiredAt, updatedAt, and editorProfile on a StartEditor lease. Read it back through
+        Status.owners[].
       <StateRoot>/queue/<timestamp>-<guid>.json - lease, slot, mode, projectPath, requestedAt,
         updatedAt. Read it back through Status.queue[] (position is 1-based, per project).
       <StateRoot>/boot/boot.json - lease, projectPath, processId, acquiredAt, plus memoryOverride
@@ -119,7 +127,9 @@
     that the project has a live editor owner, then runs beside it. Accepted as dev-loop behavior;
     a read-style co-lease is not planned.
 
-    -ProcessSnapshotPath replaces live process enumeration with a JSON file (tests only).
+    -ProcessSnapshotPath replaces live process enumeration with a JSON file (tests only); its
+    records carry the same fields the live query reads - processId, parentProcessId, commandLine,
+    privateKb, peakPrivateKb.
     -MemorySnapshotPath replaces the live memory reading with a JSON file carrying
     FreeVirtualMemory and FreePhysicalMemory in KB, as Win32_OperatingSystem reports them
     (tests only).
@@ -191,9 +201,9 @@ $ExitProfile = 26
 $ExitRecordUnreadable = 27
 $ExitLowMemory = 28
 $RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
-# Batch is the measured peak private bytes of a full-suite run, rounded up; editor stays provisional.
+# Both are measured peak private bytes - a full-suite batch run, an interactive editor - rounded up.
 $BootDemandBatchGB = 3.0
-$BootDemandEditorGB = 4.0
+$BootDemandEditorGB = 6.0
 $BootMemoryMarginGB = 1.0
 $statusExitCodes = @{
     ownership_mismatch = $ExitOwnership
@@ -220,6 +230,7 @@ $BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 . (Join-Path $PSScriptRoot "lib/repo_root.ps1")
 . (Join-Path $PSScriptRoot "lib/unity_editor.ps1")
 . (Join-Path $PSScriptRoot "lib/process_tree.ps1")
+. (Join-Path $PSScriptRoot "lib/memory_reading.ps1")
 
 # ---- Path & root helpers ---------------------------------------------------
 function Resolve-FullPath {
@@ -349,15 +360,40 @@ function Get-UnityProcesses {
     }
     try {
         return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
-            [pscustomobject]@{ processId = [int]$_.ProcessId; commandLine = [string]$_.CommandLine }
+            [pscustomobject]@{
+                processId = [int]$_.ProcessId
+                parentProcessId = [int]$_.ParentProcessId
+                commandLine = [string]$_.CommandLine
+                privateKb = [double]$_.PageFileUsage
+                peakPrivateKb = [double]$_.PeakPageFileUsage
+            }
         })
     }
     catch { throw "Unity process enumeration failed: $($_.Exception.Message)" }
 }
 
+# A worker names its editor only through ParentProcessId - its command line carries no owner.
+function Get-UnityWorkerMemory {
+    param([array]$Processes, [int]$ParentProcessId)
+    $privateKb = 0.0
+    $peakKb = 0.0
+    foreach ($process in $Processes) {
+        if ([string]$process.commandLine -notmatch '(?i)-name\s+"?AssetImportWorker') { continue }
+        if ([int](Get-MemberValue $process "parentProcessId") -ne $ParentProcessId) { continue }
+        $privateKb += [double](Get-MemberValue $process "privateKb")
+        $peakKb += [double](Get-MemberValue $process "peakPrivateKb")
+    }
+    return [pscustomobject]@{
+        workersPrivateGB = [Math]::Round($privateKb / 1048576.0, 3)
+        workersPeakPrivateGB = [Math]::Round($peakKb / 1048576.0, 3)
+    }
+}
+
 function Get-RelevantUnityProcesses {
+    param([array]$Processes = $null)
+    if ($null -eq $Processes) { $Processes = @(Get-UnityProcesses) }
     $result = @()
-    foreach ($process in @(Get-UnityProcesses)) {
+    foreach ($process in $Processes) {
         $command = [string]$process.commandLine
         if ([string]::IsNullOrWhiteSpace($command)) { continue }
         if ($command -match '(?i)-name\s+"?AssetImportWorker') { continue }
@@ -369,6 +405,8 @@ function Get-RelevantUnityProcesses {
             projectPath = Resolve-FullPath $path
             normalizedProjectPath = Normalize-Path $path
             batch = ($command -match '(?i)-batchmode')
+            privateKb = [double](Get-MemberValue $process "privateKb")
+            peakPrivateKb = [double](Get-MemberValue $process "peakPrivateKb")
         }
     }
     return $result
@@ -401,31 +439,13 @@ function Get-MemberValue {
 }
 
 # ---- Memory admission ------------------------------------------------------
-# Commit headroom (commit limit minus commit charge) is what a dying Unity boot runs out of.
 function Get-MemoryReading {
-    if (-not [string]::IsNullOrWhiteSpace($MemorySnapshotPath)) {
-        $snapshotPath = Resolve-FullPath $MemorySnapshotPath
-        if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
-        try { $source = [System.IO.File]::ReadAllText($snapshotPath) | ConvertFrom-Json }
-        catch { throw "Memory snapshot unreadable: $snapshotPath - $($_.Exception.Message)" }
-    }
-    else {
-        try { $source = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop }
-        catch { throw "Memory reading failed: $($_.Exception.Message)" }
-    }
-    $headroomKb = 0.0
-    $availableKb = 0.0
-    # Admitting by default on a reading we cannot parse is exactly the boot this exists to stop.
-    if (-not [double]::TryParse([string](Get-MemberValue $source "FreeVirtualMemory"), [ref]$headroomKb)) {
-        throw "Memory reading has no usable FreeVirtualMemory value."
-    }
-    if (-not [double]::TryParse([string](Get-MemberValue $source "FreePhysicalMemory"), [ref]$availableKb)) {
-        throw "Memory reading has no usable FreePhysicalMemory value."
-    }
-    return [pscustomobject]@{
-        commitHeadroomGB = [Math]::Round($headroomKb / 1048576.0, 2)
-        availablePhysicalGB = [Math]::Round($availableKb / 1048576.0, 2)
-    }
+    if ([string]::IsNullOrWhiteSpace($MemorySnapshotPath)) { return Get-SystemMemoryReading }
+    $snapshotPath = Resolve-FullPath $MemorySnapshotPath
+    if (-not (Test-Path -LiteralPath $snapshotPath)) { throw "Memory snapshot not found: $snapshotPath" }
+    try { $source = [System.IO.File]::ReadAllText($snapshotPath) | ConvertFrom-Json }
+    catch { throw "Memory snapshot unreadable: $snapshotPath - $($_.Exception.Message)" }
+    return ConvertTo-MemoryReading -Source $source
 }
 
 function Get-BootAdmission {
@@ -733,8 +753,14 @@ function Get-StatusValue {
         $state.requestedProjectPath = $ResolvedProject
         $state.requestedNormalizedProjectPath = $target
         $state.projectOwner = @($owners | Where-Object { [string]$_.normalizedProjectPath -eq $target }) | Select-Object -First 1
-        $state.projectProcesses = @(Get-RelevantUnityProcesses | Where-Object { $_.normalizedProjectPath -eq $target } | ForEach-Object {
-            [ordered]@{ processId = $_.processId; projectPath = $_.projectPath; normalizedProjectPath = $_.normalizedProjectPath; batch = $_.batch }
+        $all = @(Get-UnityProcesses)
+        $state.projectProcesses = @(Get-RelevantUnityProcesses -Processes $all | Where-Object { $_.normalizedProjectPath -eq $target } | ForEach-Object {
+            $workers = Get-UnityWorkerMemory -Processes $all -ParentProcessId $_.processId
+            [ordered]@{ processId = $_.processId; projectPath = $_.projectPath; normalizedProjectPath = $_.normalizedProjectPath; batch = $_.batch
+                privateGB = [Math]::Round($_.privateKb / 1048576.0, 3)
+                peakPrivateGB = [Math]::Round($_.peakPrivateKb / 1048576.0, 3)
+                workersPrivateGB = $workers.workersPrivateGB
+                workersPeakPrivateGB = $workers.workersPeakPrivateGB }
         })
     }
     return $state
@@ -970,8 +996,13 @@ function Release-Boot {
 
 # ---- Attach / adopt / release ----------------------------------------------
 function Attach-Process {
+    param([string]$RecordEditorProfile = "")
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
+    if (-not [string]::IsNullOrWhiteSpace($RecordEditorProfile)) {
+        if ($owner -is [System.Collections.IDictionary]) { $owner["editorProfile"] = $RecordEditorProfile }
+        else { $owner | Add-Member -NotePropertyName editorProfile -NotePropertyValue $RecordEditorProfile -Force }
+    }
     $owner.processId = $ProcessId
     $owner.updatedAt = [datetime]::UtcNow.ToString("o")
     Write-JsonFile (Get-OwnerRecordPath ([string]$owner.projectKey)) $owner
@@ -1111,7 +1142,7 @@ function Start-TrackedEditor {
             return [ordered]@{ status = "editor_profile_failed"; profile = $profile }
         }
         $script:ProcessId = $process.Id
-        $attached = Attach-Process
+        $attached = Attach-Process -RecordEditorProfile $EditorProfile
         $attached.profile = $profile
         return $attached
     }

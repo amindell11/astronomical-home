@@ -5,12 +5,12 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Producer-owned respawn rule, authored beside the spawn/adopt that creates a ship. Carried by
-    /// <see cref="RingSpawner"/> (revives its products), <see cref="AdoptedShip"/> (revives an adopted
-    /// ship), and the game session host (revives the player). <see cref="Respawn.Wire"/> turns it into an
-    /// <c>OnDeath → WaitAndRespawnShip</c> subscription. Revive at a random point within
-    /// <see cref="radius"/> of the resolved anchor, after <see cref="delay"/> seconds. The anchor is
-    /// producer-relative: the producer's position snapshotted at spawn time plus <see cref="point"/>
-    /// as an offset — so a default (zero) point revives the ship exactly where it started.
+    /// <see cref="RingSpawner"/> (revives its products) and <see cref="AdoptedShip"/> (revives an
+    /// adopted ship). <see cref="Respawn.Wire"/> turns it into an <c>OnDeath → WaitAndRespawnShip</c>
+    /// subscription. Revive at a random point within <see cref="radius"/> of the resolved anchor,
+    /// after <see cref="delay"/> seconds. The anchor is producer-relative: the producer's position
+    /// snapshotted at spawn time plus <see cref="point"/> as an offset — so a default (zero) point
+    /// revives the ship exactly where it started.
     /// </summary>
     [Serializable]
     public struct RespawnPolicy

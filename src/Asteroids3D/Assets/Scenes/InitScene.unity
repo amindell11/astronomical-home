@@ -182,11 +182,6 @@ MonoBehaviour:
     type: 3}
   loadoutCatalog: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
   deathBehavior: 2
-  playerRespawn:
-    origin: 1
-    point: {x: 0, y: 0}
-    radius: 0
-    delay: 2
   recapHoldSeconds: 8
 --- !u!114 &217078675
 MonoBehaviour:

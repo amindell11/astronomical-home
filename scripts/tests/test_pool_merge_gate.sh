@@ -3,8 +3,9 @@ set -euo pipefail
 
 # Regression for the merge gate's proof chain: proof binds to the landing tree,
 # failed runs stop the PR path, inert deltas skip the full suite, the phase
-# journal records the ladder for both outcomes, and remote proof is accepted only
-# from a green merge-proof/headless status stamping the landing tree.
+# journal records the ladder for both outcomes, remote proof is accepted only
+# from a green merge-proof/headless status stamping the landing tree, and an owed run with no
+# named producer goes local or hosted on the memory admission verdict.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -22,6 +23,11 @@ export GH_MERGE_LOG="$TMP/gh-merge.log"
 export GH_DISPATCH_LOG="$TMP/gh-dispatch.log"
 export GH_STATUS_SEQ="$TMP/gh-status.seq"
 export GH_RUN_SEQ="$TMP/gh-run.seq"
+export ADMISSION_SEQ="$TMP/admission.seq"
+export ADMISSION_LOG="$TMP/admission.log"
+: > "$ADMISSION_LOG"
+# Every local-run case below models an admitted boot; the fallback block rescripts it.
+echo boot_admitted > "$ADMISSION_SEQ"
 : > "$RUNNER_LOG"
 : > "$RESHARPER_LOG"
 : > "$GH_MERGE_LOG"
@@ -40,6 +46,16 @@ cat > "$STUB_BIN/powershell.exe" <<'EOF'
 if [[ "$*" == *resharper_ratchet.ps1* ]]; then
   echo "run $*" >> "$RESHARPER_LOG"
   exit "$(cat "$RESHARPER_EXIT_FILE")"
+fi
+# Memory admission answers from a scripted sequence (one line per query, the last sticks) and fails CLOSED when none is set.
+if [[ "$*" == *BootAdmission* ]]; then
+  echo "query" >> "$ADMISSION_LOG"
+  [[ -s "$ADMISSION_SEQ" ]] || { echo "stub: no admission answer scripted" >&2; exit 97; }
+  answer="$(head -n 1 "$ADMISSION_SEQ")"
+  [[ "$(wc -l < "$ADMISSION_SEQ")" -le 1 ]] || sed -i 1d "$ADMISSION_SEQ"
+  [[ "$answer" != query_error ]] || { echo "coordinator stub: state file locked" >&2; exit 1; }
+  echo "$answer"
+  exit 0
 fi
 if [[ "$*" != *unity_test_agent.ps1* ]]; then
   real="$(type -pa powershell.exe | grep -vF "$STUB_BIN" | head -n 1)"
@@ -149,6 +165,8 @@ export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
 fail() { echo "FAIL: $1" >&2; exit 1; }
 runner_runs() { grep -c '^run' "$RUNNER_LOG" || true; }
 resharper_runs() { grep -c '^run' "$RESHARPER_LOG" || true; }
+admission_queries() { grep -c '^query' "$ADMISSION_LOG" || true; }
+admission() { printf '%s\n' "$@" > "$ADMISSION_SEQ"; }
 gh_merges() { grep -c 'squash' "$GH_MERGE_LOG" || true; }
 slot_tree() { git -C "$TMP/agent-1" rev-parse 'agent-1^{tree}'; }
 recorded_tree() { cat "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_tree" 2>/dev/null || true; }
@@ -241,8 +259,10 @@ pool merge agent-1 >/dev/null
 runs_before="$(runner_runs)"
 resharper_before="$(resharper_runs)"
 merges_before="$(gh_merges)"
+queries_before="$(admission_queries)"
 pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "proven tree should skip the re-run (got $(runner_runs))"
+[[ "$(admission_queries)" == "$queries_before" ]] || fail "a proven tree owes no run, so memory admission must not be asked"
 [[ "$(resharper_runs)" == "$resharper_before" ]] || fail "proven ReSharper tree/base pair should skip the re-run (got $(resharper_runs))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fast path should still merge (got $(gh_merges))"
 
@@ -306,8 +326,10 @@ git -C "$TMP/agent-1" add NOTES.md doc/design.md
 git -C "$TMP/agent-1" commit -qm "docs only"
 runs_before="$(runner_runs)"
 merges_before="$(gh_merges)"
+queries_before="$(admission_queries)"
 pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "docs-only delta must not invoke the runner (got $(runner_runs))"
+[[ "$(admission_queries)" == "$queries_before" ]] || fail "a docs-only delta owes no run, so memory admission must not be asked"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "docs-only delta should merge (got $(gh_merges))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "docs-only delta should extend proof to the landing tree"
 [[ "$(scope_field kind)" == "inherit-doc" ]] || fail "docs-only extension should record inherit-doc provenance"
@@ -557,18 +579,20 @@ statuses() { printf '%s\n' "$@" > "$GH_STATUS_SEQ"; }
 runs() { printf '%s\n' "$@" > "$GH_RUN_SEQ"; }
 green() { printf 'success\037tree=%s total=5 passed=5 skipped=0\037%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
 # Refusals must come from the liveness rules, not from minutes of real waiting.
-remote_merge() {
+gate_merge() {
   WORKTREE_POOL_REMOTE_POLL_SECONDS=1 WORKTREE_POOL_REMOTE_NO_RUN_SECONDS="${NO_RUN:-120}" \
-    WORKTREE_POOL_REMOTE_QUEUED_SECONDS="${QUEUED:-180}" pool merge agent-1 --remote > "$TMP/merge.out" 2>&1
+    WORKTREE_POOL_REMOTE_QUEUED_SECONDS="${QUEUED:-180}" pool merge agent-1 "$@" > "$TMP/merge.out" 2>&1
 }
+remote_merge() { gate_merge --remote; }
 expect_output() { grep -q -- "$1" "$TMP/merge.out" || { cat "$TMP/merge.out" >&2; fail "$2"; }; }
 
 # A green status already on the landing commit is proof: no run of either kind.
 new_commit remote-existing
 push_slot
 statuses "$(green 41)"
-runs_before="$(runner_runs)"; merges_before="$(gh_merges)"
+runs_before="$(runner_runs)"; merges_before="$(gh_merges)"; queries_before="$(admission_queries)"
 pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "existing remote proof should merge"; }
+[[ "$(admission_queries)" == "$queries_before" ]] || fail "existing remote proof owes no run, so memory admission must not be asked"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "existing remote proof must skip the local run (got $(runner_runs))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "existing remote proof should reach gh pr merge"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "remote proof must be recorded as kind=remote-run (got $(proof_kind))"
@@ -640,22 +664,24 @@ expect_output "is 'error' (headless suite cancelled)" "an error verdict must be 
 # After the rerun: pending with a live run is waited on, not re-dispatched.
 statuses "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(printf 'pending\037headless suite running\037%s/43' "$RUN_URL")" "$(green 43)"
 runs "$(printf 'in_progress\t43')"
-merges_before="$(gh_merges)"
+merges_before="$(gh_merges)"; queries_before="$(admission_queries)"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the rerun goes green"; }
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a live run must not be re-dispatched"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green rerun should reach gh pr merge"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "--remote proof must be kind=remote-run (got $(proof_kind))"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
-  || fail "--remote swaps the tests phase for remote-proof (got '$(phase_order)')"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check resharper remote-proof script-tests push base-recheck gh-merge " ]] \
+  || fail "--remote runs the ratchet before remote-proof and opens it once (got '$(phase_order)')"
+[[ "$(admission_queries)" == "$queries_before" ]] || fail "--remote names the producer, so memory admission must not be asked"
 
 # --remote with the landing commit not on GitHub: the gate pushes it, and the push is the trigger.
 new_commit remote-push
 statuses "$(printf 'pending\037headless suite running\037%s/44' "$RUN_URL")" "$(green 44)"
 runs "$(printf 'in_progress\t44')"
-merges_before="$(gh_merges)"
+merges_before="$(gh_merges)"; resharper_before="$(resharper_runs)"
 [[ "$(remote_tip)" != "$(slot_sha)" ]] || fail "fixture: the landing commit should start unpushed"
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should push, wait, and merge"; }
+[[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "--remote must invoke the ratchet exactly once (got $(resharper_runs))"
 [[ "$(remote_tip)" == "$(slot_sha)" ]] || fail "--remote must push the landing commit"
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a push triggers the workflow; no dispatch"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "pushed --remote run should merge"
@@ -719,6 +745,61 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "comment-only --remote merge sh
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must not smoke-boot a comment-only delta (got $(runner_runs))"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "comment-only --remote proof must be a full remote run (got $(proof_kind))"
 
+# --- automatic producer choice from memory admission ---------------------------
+# One owed run serves every refusal: each stops at proof-check, before any run or wait.
+new_commit admission-fallback
+runs_before="$(runner_runs)"; merges_before="$(gh_merges)"; resharper_before="$(resharper_runs)"
+admission query_error
+if gate_merge; then fail "a failed admission query must refuse the merge"; fi
+expect_output "coordinator stub: state file locked" "the query-error refusal must pass the coordinator's stderr through"
+expect_output "gave no memory admission verdict" "the query-error refusal must say so"
+expect_output "merge agent-1 --remote" "the query-error refusal must name the hosted chooser"
+expect_output "merge agent-1 -- <runner args>" "the query-error refusal must name the local chooser"
+admission boot_perhaps
+if gate_merge; then fail "an unknown admission status must refuse the merge"; fi
+expect_output "memory admission status 'boot_perhaps' is not one the gate knows" "the unknown-status refusal must quote the status"
+: > "$ADMISSION_SEQ"
+if gate_merge; then fail "fixture: an unscripted admission answer must fail closed"; fi
+grep -q '"phase":"proof-check".*"status":"failed"' "$(journal_for)" || fail "admission refusals must die in proof-check"
+[[ "$(runner_runs)" == "$runs_before" && "$(resharper_runs)" == "$resharper_before" && "$(gh_merges)" == "$merges_before" ]] \
+  || fail "an admission refusal must not run tests, the ratchet, or gh pr merge"
+
+# Runner args name the local producer: no query, even when the answer would be no.
+admission boot_not_admitted
+queries_before="$(admission_queries)"
+echo 1 > "$RUNNER_EXIT_FILE"
+if gate_merge -- -Mode Both -ScopeType Workspace; then fail "fixture runner is red, merge must fail"; fi
+echo 0 > "$RUNNER_EXIT_FILE"
+[[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "runner args must take the local run (got $(runner_runs))"
+[[ "$(admission_queries)" == "$queries_before" ]] || fail "runner args name the producer, so memory admission must not be asked"
+
+# Not admitted: the hosted run, ratchet first and once, no local boot for tests.
+statuses "$(printf 'pending\037headless suite running\037%s/49' "$RUN_URL")" "$(green 49)"
+runs "$(printf 'in_progress\t49')"
+runs_before="$(runner_runs)"
+gate_merge || { cat "$TMP/merge.out" >&2; fail "boot_not_admitted should merge on the hosted run"; }
+expect_output "boot_not_admitted) — the test run goes to the hosted headless suite" "the gate must say why it went remote"
+expect_output "faces the same memory pressure" "the gate must warn about the ratchet's boot"
+[[ "$(admission_queries)" == $((queries_before + 1)) ]] || fail "an owed run with no named producer asks memory admission once (got $(admission_queries))"
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "boot_not_admitted must not run the local suite (got $(runner_runs))"
+[[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "the hosted path must invoke the ratchet exactly once (got $(resharper_runs))"
+[[ "$(proof_kind)" == "remote-run" ]] || fail "the automatic hosted run must record kind=remote-run (got $(proof_kind))"
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "the automatic hosted run should reach gh pr merge"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check resharper remote-proof script-tests push base-recheck gh-merge " ]] \
+  || fail "the automatic hosted path takes the remote ladder (got '$(phase_order)')"
+grep -q 'memory admission boot_not_admitted - hosted run' "$(journal_for)" || fail "the journal must note the verdict and the chosen producer"
+
+# Not admitted + comment-only delta: a code delta on the hosted path, no smoke boot.
+sed -i 's/reworded for remote/reworded for fallback/' "$TMP/agent-1/code.cs"
+git -C "$TMP/agent-1" add code.cs
+git -C "$TMP/agent-1" commit -qm "comment-only edit under boot_not_admitted"
+statuses "$(printf 'pending\037headless suite running\037%s/50' "$RUN_URL")" "$(green 50)"
+runs "$(printf 'in_progress\t50')"
+gate_merge || { cat "$TMP/merge.out" >&2; fail "comment-only delta under boot_not_admitted should merge on the hosted run"; }
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "boot_not_admitted must not smoke-boot a comment-only delta (got $(runner_runs))"
+[[ "$(proof_kind)" == "remote-run" ]] || fail "comment-only delta under boot_not_admitted must be a full remote run (got $(proof_kind))"
+admission boot_admitted
+
 # Base moving while the gate works is caught before gh-merge; no auto-loop.
 cat > "$TMP/agent-1/scripts/tests/test_probe.sh" <<'PROBE'
 #!/usr/bin/env bash
@@ -750,6 +831,14 @@ merges_before="$(gh_merges)"
 if remote_merge; then fail "--remote must refuse a landing diff touching .github/"; fi
 expect_output "--remote refused — the landing diff touches .github/" "the .github refusal must say why"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "the .github refusal must not reach gh pr merge"
+# Not admitted AND remote proof barred: no producer is left, and the refusal names both reasons and the way out.
+admission boot_not_admitted
+runs_before="$(runner_runs)"
+if gate_merge; then fail "boot_not_admitted with a .github/ landing diff must refuse"; fi
+expect_output "memory admission would refuse a batch Unity boot (boot_not_admitted), and the landing diff touches .github/" "the refusal must name both reasons"
+expect_output "merge agent-1 -- -AllowLowMemory'. It covers the TEST boot only" "the refusal must name the approved-boot way out and its limit"
+[[ "$(runner_runs)" == "$runs_before" && "$(gh_merges)" == "$merges_before" ]] || fail "the double refusal must not run tests or reach gh pr merge"
+admission boot_admitted
 runs_before="$(runner_runs)"
 pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail ".github landing diff should merge on the local run"; }
 expect_output "the landing diff touches .github/, so this merge needs the local run" "the default path must say why it ignored the green status"
@@ -759,4 +848,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal)"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + memory-admission producer choice"
