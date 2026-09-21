@@ -71,6 +71,39 @@ namespace Tests.EditMode.Rendering
             Assert.That(Render(60).Max(c => c.maxColorComponent), Is.Zero);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(bool foreground)
+        {
+            material.SetFloat("_NebulaStrength", 0.12f);
+            material.SetFloat("_NebulaForeground", foreground ? 1 : 0);
+            material.SetFloat("_SpacingZoomResponse", 1);
+            foreach (var time in new[] { 0f, 30f })
+            {
+                var baseline = Render(time, 40);
+                Assert.Less(Difference(baseline, Render(time, 40, 3.5f)), 0.0001f);
+                Assert.Less(Difference(baseline, Render(time, 40, 28)), 0.0001f);
+            }
+            material.SetFloat("_NebulaZoomResponse", 1);
+            Assert.Greater(Difference(Render(0), Render(0, 0, 28)), 0.0001f);
+        }
+
+        [Test]
+        public void ForegroundWisps_AreSparseFaintAndMoveWithoutDrawingStars()
+        {
+            Object.DestroyImmediate(material);
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Environment/Sky/ForegroundNebulaMaterial.mat"));
+            var baseline = Render(0);
+            Assert.Greater(baseline.Max(c => c.r), 0.0001f);
+            Assert.Less(baseline.Max(c => c.maxColorComponent), 0.02f);
+            Assert.Greater(baseline.Count(c => c.r < 0.0001f), baseline.Length / 2);
+            Assert.Greater(Difference(baseline, Render(60)), 0.0001f);
+            Assert.Greater(Difference(baseline, Render(0, 70)), 0.0001f);
+            material.SetFloat("_NebulaStrength", 0);
+            Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
+        }
+
         [Test]
         public void ShootingStars_AppearMoveAndLeaveQuietIntervals()
         {
@@ -94,7 +127,7 @@ namespace Tests.EditMode.Rendering
             Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
         }
 
-        private Color[] Render(float time, float cameraX = 0)
+        private Color[] Render(float time, float cameraX = 0, float halfHeight = 7)
         {
             var cameraPosition = new Vector3(cameraX, 0, -10);
             commands.Clear();
@@ -102,7 +135,7 @@ namespace Tests.EditMode.Rendering
             commands.ClearRenderTarget(true, true, Color.black);
             commands.SetViewProjectionMatrices(
                 Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.Translate(-cameraPosition),
-                GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-12.444f, 12.444f, -7, 7, 0.1f, 100), true));
+                GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfHeight * 16 / 9, halfHeight * 16 / 9, -halfHeight, halfHeight, 0.1f, 100), true));
             commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
             commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
             commands.DrawMesh(mesh, Matrix4x4.identity, material);

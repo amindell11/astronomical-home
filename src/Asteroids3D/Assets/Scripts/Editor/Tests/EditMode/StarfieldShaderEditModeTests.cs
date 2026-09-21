@@ -68,6 +68,8 @@ namespace Tests.EditMode
             const float halfHeight = 7f;
             const float cellScale = 0.8f;
             var material = new Material(LoadMaterial());
+            material.SetFloat("_NebulaStrength", 0);
+            material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_Seed", 0f);
             material.SetFloat("_StarDensity", 0.12f);
             material.SetFloat("_CellScale", cellScale);
@@ -150,6 +152,8 @@ namespace Tests.EditMode
         public void Material_TwinkleDurationIsAFullCycleInSeconds()
         {
             var material = new Material(LoadMaterial());
+            material.SetFloat("_NebulaStrength", 0);
+            material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_TwinkleDurationMin", 4);
             material.SetFloat("_TwinkleDurationMax", 4);
             material.SetFloat("_TwinkleAmount", 1);
