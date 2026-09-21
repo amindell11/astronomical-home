@@ -16,10 +16,12 @@ namespace RL.Episodes.Compositions
         public EpisodePair Pair { get; }
 
         private readonly OpponentRoster roster;
+        private readonly Vector2 arenaCenter;
 
         public SentenceComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
             HarnessAssets assets, in RewardSpec spec, HarnessField field, SentenceRow row)
         {
+            arenaCenter = offset;
             Pair = EpisodePair.Spawn(units, offset, field?.Field, projectiles, in spec, (commander, baselineShip) =>
             {
                 var brain = commander.InstallBrain<SentenceBrain>();
@@ -30,8 +32,7 @@ namespace RL.Episodes.Compositions
             Driver = new EpisodeLoopDriver(Pair, agent: null, offset, field);
         }
 
-        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,
-            Vector2 arenaCenter)
+        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex)
         {
             var draw = roster.Install(opponent.archetype, in spec, episodeIndex, arenaCenter);
             // Rows must carry the row token, not the archetype — probe pools and JSONL reads key on it.

@@ -117,7 +117,7 @@ namespace RL.Hosts
             for (var episode = 0; episode < episodes; episode++)
             {
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
-                var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Offset);
+                var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode);
                 var context = new ProbeContext(composition.Pair, Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
                 var pair = composition.Pair;
