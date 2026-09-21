@@ -378,8 +378,8 @@ Format: **term** — definition. *(authority)*
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
   the pending loadout, the damage ledger and the death hook. Built once by the
-  game host against the viewport it owns, injected into every sector
-  load, torn down at session exit. A host with no rig assigned has no player.
+  game host against the viewport it owns, injected into every sector load, torn
+  down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
 - **hero** — the main character of a session: the ship a sector lays out around
   and the session resets to the sector's start point. The player in the
