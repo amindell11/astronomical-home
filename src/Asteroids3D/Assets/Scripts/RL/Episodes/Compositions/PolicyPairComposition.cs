@@ -30,8 +30,7 @@ namespace RL.Episodes.Compositions
             Driver = new EpisodeLoopDriver(Pair, agentA, offset, field, roster: null, opponentAgent: agentB);
         }
 
-        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,
-            Vector2 arenaCenter) =>
+        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex) =>
             new() { archetype = opponent.Label };
 
         public void Dispose()
