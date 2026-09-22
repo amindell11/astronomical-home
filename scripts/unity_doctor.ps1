@@ -113,7 +113,7 @@ if (Test-Path -LiteralPath $unityAccessScript) {
         elseif ($liveBlockers.Count -gt 0) {
             Add-Check "unity-access" "WARN" "Untracked Unity process(es) present: $((@($liveBlockers | ForEach-Object { $_.processId })) -join ','). Batch requests block on untracked batch processes and same-project editors."
         }
-        elseif ($owners.Count -eq 0 -and $null -eq $unityAccess.legacyOwner) {
+        elseif ($owners.Count -eq 0 -and $null -eq $unityAccess.legacyOwner -and @($unityAccess.blockers).Count -eq 0) {
             Add-Check "unity-access" "OK" "All Unity projects free."
         }
         if (@($unityAccess.queue).Count -gt 0) {

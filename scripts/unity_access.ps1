@@ -389,7 +389,8 @@ function Get-UnityProcesses {
         # that exits between the two reads is simply windowless with an unknown start time.
         $handles = @{}
         foreach ($live in @(Get-Process -Name Unity -ErrorAction SilentlyContinue)) {
-            $handles[[int]$live.Id] = [pscustomobject]@{ window = [long]$live.MainWindowHandle; startTime = $live.StartTime.ToUniversalTime().ToString("o") }
+            try { $handles[[int]$live.Id] = [pscustomobject]@{ window = [long]$live.MainWindowHandle; startTime = $live.StartTime.ToUniversalTime().ToString("o") } }
+            catch { }
         }
         return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
             $joined = $handles[[int]$_.ProcessId]
