@@ -12,6 +12,8 @@ namespace Combat.Targeting
 {
     public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
     {
+        private const float ScanInterval = 0.1f;
+
         [Header("Lock-On Settings")]
         [Tooltip("Full width (degrees) of the cone around the fire point in which a target can be acquired and held.")]
         [SerializeField] internal float lockOnConeAngle = 30f;
@@ -21,7 +23,6 @@ namespace Combat.Targeting
         [SerializeField] private float lockExpiry = 3f;
         [Tooltip("Max distance from the fire point at which a target can be locked.")]
         [SerializeField] internal float maxLockDistance = 100f;
-        private const float ScanInterval = 0.1f;
 
         [SerializeField] internal Transform firePoint;
         [SerializeField] internal WeaponBase<Missile> weapon;

@@ -22,8 +22,8 @@ namespace Combat.Weapons.Conditions
     /// semantics: charge accumulates while the trigger is held, the weapon fires on release at
     /// or above <see cref="minChargeToFire"/>, or automatically the moment full charge is
     /// reached while still held — which is also how the AI fires charge weapons, since it
-    /// holds rather than timing a release. An unfired release drops the
-    /// charge; firing consumes it (<see cref="ProcessFire"/>).
+    /// holds rather than timing a release. An unfired release drops the charge; firing
+    /// consumes it (<see cref="ProcessFire"/>).
     /// </summary>
     public class ChargeTime : WeaponCondition, IChargeReadout
     {
