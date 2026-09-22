@@ -33,8 +33,7 @@ namespace Asteroids.Fragnetics
         }
         public (Vector3 linear, Vector3 angular) CalculateInitialMomentum(AsteroidData ast, HitData hit)
         {
-	        // World space throughout. The mass the split discards leaves with its momentum share;
-	        // the projectile is absorbed whole.
+	        // Discarded mass leaves with its momentum share; the projectile is absorbed whole.
 	        var retained = asteroidFragSettings.massLossFactor;
 	        var totalLinearMomentum = retained * ast.Mass * ast.Velocity + hit.Mass * hit.Velocity;
 

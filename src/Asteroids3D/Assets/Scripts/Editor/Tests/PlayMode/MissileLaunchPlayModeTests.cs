@@ -26,6 +26,9 @@ namespace Tests.PlayMode
         private const float InitialSpeed = 7f;
         private const float HomingSpeed = 30f;
 
+        // Fast enough that InitialSpeed + inheritance overshoots the homing cap.
+        private const float OverCapShooterSpeed = 34f;
+
         private static readonly Vector2 Aim = Vector2.up;
         private static readonly Vector2 Across = Vector2.right;
 
@@ -48,7 +51,7 @@ namespace Tests.PlayMode
 
         [TestCase(25f, 0f, InitialSpeed, 0f, TestName = "Strafing_LaunchesAlongTheAim")]
         [TestCase(0f, -25f, InitialSpeed, 0f, TestName = "DriftingBackward_LaunchesForwardAtInitialSpeed")]
-        [TestCase(0f, 34f, InitialSpeed + 34f, 0f, TestName = "FlyingForward_AddsTheShooterSpeed")]
+        [TestCase(0f, OverCapShooterSpeed, InitialSpeed + OverCapShooterSpeed, 0f, TestName = "FlyingForward_AddsTheShooterSpeed")]
         public void Launch_InheritsOnlyTheShooterMotionAlongTheAim(
             float shooterAcross, float shooterAlong, float expectedAlong, float expectedAcross)
         {
@@ -63,7 +66,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator FlyingForwardFasterThanHoming_IsCappedAtHomingSpeedNextStep()
         {
-            Fire(0f, 34f);
+            Fire(0f, OverCapShooterSpeed);
             yield return new WaitForFixedUpdate();
 
             var speed = missile.GetComponent<Rigidbody>().linearVelocity.magnitude;
