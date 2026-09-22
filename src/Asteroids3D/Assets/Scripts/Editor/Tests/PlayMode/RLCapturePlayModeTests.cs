@@ -344,12 +344,12 @@ namespace Tests.PlayMode
             }
         }
 
-/// <summary>With the selector set in the environment the windowed run IS the production capture lane, resolving through SessionSpec exactly as a batch session would; otherwise it films the pinned spec.</summary>
-        private SessionSpec SpecFor(string backendSelector, Func<SessionSpec> pinned)
+/// <summary>With the selector set in the environment the windowed run IS the production capture lane, resolving through HarnessSpec exactly as a batch session would; otherwise it films the pinned spec.</summary>
+        private HarnessSpec SpecFor(string backendSelector, Func<HarnessSpec> pinned)
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(backendSelector))) return pinned();
 
-            var spec = SessionSpec.ParseEval(Environment.GetEnvironmentVariable,
+            var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable,
                 source => LoadModel(source == null
                     ? ShipAgentFactory.SmokeFixturePath
                     : TrainingBootstrap.ImportEvalCandidate(source)),
@@ -362,9 +362,9 @@ namespace Tests.PlayMode
             return spec;
         }
 
-        private SessionSpec PinnedPlainSpec() => new()
+        private HarnessSpec PinnedPlainSpec() => new()
         {
-            lane = SessionLane.Capture,
+            lane = HarnessLane.Capture,
             model = LoadModel(ShipAgentFactory.SmokeFixturePath),
             seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
             tag = "capture-test",
@@ -376,9 +376,9 @@ namespace Tests.PlayMode
             record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
         };
 
-        private SessionSpec PinnedNativeSpec() => new()
+        private HarnessSpec PinnedNativeSpec() => new()
         {
-            lane = SessionLane.Capture,
+            lane = HarnessLane.Capture,
             model = LoadModel(ShipAgentFactory.SmokeFixturePath),
             seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
             tag = "native-capture-test",
@@ -392,7 +392,7 @@ namespace Tests.PlayMode
         };
 
         /// <summary>The episode log, told apart from each probe's own JSONL by the spec that selected those probes.</summary>
-        private static string EpisodeJsonlIn(SessionSpec spec)
+        private static string EpisodeJsonlIn(HarnessSpec spec)
         {
             var probeLogs = Array.ConvertAll(spec.probes, probe => $"-{probe.name}.jsonl");
             var episode = Directory.GetFiles(spec.outDir, "*.jsonl")
@@ -402,7 +402,7 @@ namespace Tests.PlayMode
             return episode[0];
         }
 
-        private static void AssertClipsFilmed(SessionSpec spec)
+        private static void AssertClipsFilmed(HarnessSpec spec)
         {
             var frameDirs = Directory.GetDirectories(Path.Combine(spec.outDir, "frames"));
             Assert.AreEqual(spec.episodesPerSeed, frameDirs.Length, "one clip dir per episode, under the out dir");
@@ -420,12 +420,12 @@ namespace Tests.PlayMode
             UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(assetPath);
 
         // Host on an inactive GameObject so its Start never fires — the test drives the client directly.
-        private HarnessSessionHost NewHost(SessionSpec spec)
+        private HarnessHost NewHost(HarnessSpec spec)
         {
-            var hostObject = new GameObject("[HarnessSessionHost]");
+            var hostObject = new GameObject("[HarnessHost]");
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
-            var host = hostObject.AddComponent<HarnessSessionHost>();
+            var host = hostObject.AddComponent<HarnessHost>();
             projectiles = ShipServices.Compose(unitService, arenaHost.transform, spec.Presentation);
             host.Initialize(spec, assets, unitService, projectiles, TestAssets.NewNativeCapture());
             Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");

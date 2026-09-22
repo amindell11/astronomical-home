@@ -11,7 +11,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    internal sealed class PolicyPairComposition : ISessionComposition
+    internal sealed class PolicyPairComposition : IHarnessComposition
     {
         public EpisodeLoopDriver Driver { get; }
         public EpisodePair Pair { get; }
@@ -30,8 +30,7 @@ namespace RL.Episodes.Compositions
             Driver = new EpisodeLoopDriver(Pair, agentA, offset, field, roster: null, opponentAgent: agentB);
         }
 
-        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,
-            Vector2 arenaCenter) =>
+        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex) =>
             new() { archetype = opponent.Label };
 
         public void Dispose()

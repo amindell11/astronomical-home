@@ -18,7 +18,7 @@ namespace Tests.PlayMode
     /// The viewport the host builds is the only presentation the session itself spawns: with
     /// presentation off the observer camera's authored children (the starfield backdrop) go dark and
     /// the camera stops clearing to the skybox. Driven through
-    /// <see cref="GameSessionHost.BuildObserver"/> on an inactive host, so no state machine runs.
+    /// <see cref="GameHost.BuildObserver"/> on an inactive host, so no state machine runs.
     /// </summary>
     [TestFixture]
     [Category("Presentation")]
@@ -87,10 +87,10 @@ namespace Tests.PlayMode
             // Inactive host: Awake and the state machine never run, so the camera build is exercised alone.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
-            var host = hostGo.AddComponent<GameSessionHost>();
+            var host = hostGo.AddComponent<GameHost>();
             var prefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             Assert.IsNotNull(prefab, $"observer camera prefab loads from {ObserverCamPrefabPath}");
-            typeof(GameSessionHost)
+            typeof(GameHost)
                 .GetField("observerCamPrefab", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(host, prefab);
 

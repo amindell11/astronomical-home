@@ -8,9 +8,9 @@ using RL.Hosts;
 namespace RL.Hosts.Lanes
 {
     /// <summary>The capture lane client: one composition on the single seed against one opponent block, filming episodesPerSeed episodes (RunBlock records the spec's selection). No summary artifact — the JSONL rows fingerprint the clips, and nothing named *-summary.json is written so the eval gate's glob stays unambiguous.</summary>
-    internal sealed class CaptureClient : ISessionClient
+    internal sealed class CaptureClient : ILaneClient
     {
-        public IEnumerator Run(HarnessSessionHost host, SessionSpec spec)
+        public IEnumerator Run(HarnessHost host, HarnessSpec spec)
         {
             var baseSpec = EvalProtocol.EvalSpec(spec.fieldDensityScale);
             baseSpec.runSeed = spec.seeds[0];
@@ -31,7 +31,7 @@ namespace RL.Hosts.Lanes
             Debug.Log($"[CaptureClient] filmed {spec.episodesPerSeed} episodes vs {block.Label} → {jsonlPath}");
         }
 
-        private static OpponentSpec Block(SessionSpec spec) => spec.opponentKind switch
+        private static OpponentSpec Block(HarnessSpec spec) => spec.opponentKind switch
         {
             OpponentKind.Archetype => OpponentSpec.Pinned(spec.opponentArchetype),
             OpponentKind.Mirror => OpponentSpec.Mirror,

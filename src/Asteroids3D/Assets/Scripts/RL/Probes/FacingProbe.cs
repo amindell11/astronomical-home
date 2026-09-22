@@ -242,7 +242,7 @@ namespace RL.Probes
     }
 
     /// <summary>The manual-aim facing instrument: one <see cref="FacingSampler"/> per episode on the measured agent's <see cref="IPolicyReadout"/> brain, an optional facing-authority sweep (wFacing scales the <see cref="PolicyBrain"/> override, measured agent only), and per-opponent pooled aggregates as the summary sidecar.</summary>
-    public sealed class FacingProbe : ISessionProbe
+    public sealed class FacingProbe : IHarnessProbe
     {
         public const string ProbeName = "facing";
         public const string AuthorityScaleKey = "wFacing";

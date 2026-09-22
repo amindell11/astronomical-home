@@ -18,12 +18,16 @@ concurrency:
 env:
   STATUS_API: repos/${{ github.repository }}/statuses/${{ github.sha }}
   STATUS_CONTEXT: merge-proof/headless
+  RATCHET_CONTEXT: merge-proof/resharper
+  # Same editor as unityVersion below; the hosted ratchet needs its reference assemblies, not a licence.
+  EDITOR_IMAGE: unityci/editor:ubuntu-6000.1.8f1-linux-il2cpp-3
   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   headless:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Coupled to REMOTE_RUN_SECONDS in scripts/agent_worktree_pool.sh: the merge gate waits this long.
+    timeout-minutes: 20
     steps:
       - name: Status pending
         env:
@@ -31,10 +35,24 @@ jobs:
         run: |
           gh api --silent "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="headless suite running"
+          gh api --silent "$STATUS_API" -f state=pending -f context="$RATCHET_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="hosted ratchet running"
 
       - uses: actions/checkout@v4
         with:
           lfs: false
+          fetch-depth: 0
+
+      - name: Fetch base
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+
+      # Pre-boot there is no solution: a "skipped" summary = no changed C#, a throw = ratchet owed.
+      - name: Ratchet diff
+        id: rdiff
+        run: |
+          pwsh -NoProfile -File scripts/resharper_ratchet.ps1 -BaseRef origin/main -SolutionReady || true
+          status="$(jq -r '.status // empty' results/resharper-ratchet/summary.json 2>/dev/null || true)"
+          [ "$status" != skipped ] || echo "skipped=1" >> "$GITHUB_OUTPUT"
 
       - name: LFS cache key
         id: lfs-key
@@ -66,7 +84,7 @@ jobs:
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: all
-          customParameters: -testCategory !RequiresGraphics
+          customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: headless-suite
           artifactsPath: headless-artifacts
@@ -107,17 +125,72 @@ jobs:
           gh api --silent "$STATUS_API" -f state=failure -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="$REASON"
 
+      # Its own verdict even on a red suite: the test boot wrote the solution, so no Unity runs here.
+      - name: Hosted ratchet
+        id: ratchet
+        if: ${{ !cancelled() }}
+        env:
+          SKIPPED: ${{ steps.rdiff.outputs.skipped }}
+        run: |
+          refuse() { echo "reason=$1" >> "$GITHUB_OUTPUT"; echo "::error::$1"; exit 1; }
+          if [ "$SKIPPED" = 1 ]; then echo "trailer=skipped=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          [ -f src/Asteroids3D/Asteroids3D.sln ] || refuse "no solution - the test boot died before writing it"
+          rc=0
+          docker run --rm -v "$GITHUB_WORKSPACE:/github/workspace" -w /github/workspace \
+            -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e DOTNET_NOLOGO=1 "$EDITOR_IMAGE" bash -lc '
+              set -euo pipefail
+              curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/di.sh
+              bash /tmp/di.sh --channel 9.0 --install-dir /tmp/dotnet --no-path
+              bash /tmp/di.sh --channel 8.0 --runtime dotnet --install-dir /tmp/dotnet --no-path
+              mkdir -p /tmp/pwsh
+              curl -sSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell-7.4.6-linux-x64.tar.gz | tar -xz -C /tmp/pwsh
+              chmod +x /tmp/pwsh/pwsh
+              export DOTNET_ROOT=/tmp/dotnet PATH=/tmp/dotnet:/tmp/pwsh:$PATH
+              # The container is root on a runner-owned mount: every git call fails without this.
+              git config --global --add safe.directory /github/workspace
+              pwsh -NoProfile -File scripts/resharper_ratchet.ps1 -BaseRef origin/main -SolutionReady
+            ' || rc=$?
+          sudo chown -R "$(id -u):$(id -g)" results src/Asteroids3D/Library/ReSharperCaches || true
+          summary=results/resharper-ratchet/summary.json
+          [ -f "$summary" ] || refuse "hosted ratchet did not finish (exit $rc) - see run"
+          cat "$summary"
+          [ "$(jq -r .status "$summary")" = passed ] && [ "$rc" -eq 0 ] \
+            || refuse "$(jq -r '.blockingFindings // "?"' "$summary") blocking finding(s) on changed lines - see run"
+          echo "trailer=$(jq -r '"files=\(.changedFiles) unity=\(.unityFindings) blocking=\(.blockingFindings)"' "$summary")" >> "$GITHUB_OUTPUT"
+
+      - name: Ratchet status success
+        if: ${{ !cancelled() && steps.ratchet.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRAILER: ${{ steps.ratchet.outputs.trailer }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=success -f context="$RATCHET_CONTEXT" -f target_url="$RUN_URL" \
+            -f description="tree=$(git rev-parse 'HEAD^{tree}') baseTree=$(git rev-parse 'origin/main^{tree}') $TRAILER"
+
+      - name: Ratchet status failure
+        if: ${{ !cancelled() && steps.ratchet.outcome != 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REASON: ${{ steps.ratchet.outputs.reason || 'hosted ratchet failed - see run' }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=failure -f context="$RATCHET_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="$REASON"
+
       - name: Status error
         if: cancelled()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api --silent "$STATUS_API" -f state=error -f context="$STATUS_CONTEXT" \
-            -f target_url="$RUN_URL" -f description="run cancelled or timed out"
+          for context in "$STATUS_CONTEXT" "$RATCHET_CONTEXT"; do
+            gh api --silent "$STATUS_API" -f state=error -f context="$context" \
+              -f target_url="$RUN_URL" -f description="run cancelled or timed out"
+          done
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: headless-suite-results
-          path: headless-artifacts
+          path: |
+            headless-artifacts
+            results/resharper-ratchet
           retention-days: 14

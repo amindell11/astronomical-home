@@ -283,11 +283,13 @@ A hosted run: the gate pushes its landing commit to the PR branch (or
 dispatches the workflow when it is already there) and waits on that exact
 commit. That early push is the gate's own act — the same integration commit it
 pushes at the end of every merge — and does not reopen the user's approval.
-The hosted run removes the TEST boot only: changed C# under `Assets/Scripts`
-still boots Unity here once for the ReSharper solution sync, so on the hosted
-path the ratchet runs BEFORE the wait, so a C# merge under low memory dies on
-that refused sync boot in seconds instead of after it. Docs, scripts, YAML,
-assets and C# outside `Assets/Scripts` land. A landing diff touching `.github/`
+One hosted run posts two verdicts and the gate waits for both:
+`merge-proof/headless` (tests) and `merge-proof/resharper` (the hosted ratchet,
+stamping the landing tree and the base tree). The hosted path runs no local
+ReSharper ratchet and boots no Unity here; without an acceptable
+`merge-proof/resharper` it refuses and names the rerun. The local path accepts
+a green `merge-proof/resharper` for the landing tree and base the same way,
+otherwise it runs the local ratchet. A landing diff touching `.github/`
 cannot use remote proof; with `boot_not_admitted` too the gate refuses, and the
 way out is `merge <slot> -- -AllowLowMemory` once the user approves that
 specific boot — it covers the test boot only, not the ratchet's. On a

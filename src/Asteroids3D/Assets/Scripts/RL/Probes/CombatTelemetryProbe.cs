@@ -427,7 +427,7 @@ namespace RL.Probes
     }
 
     /// <summary>The rules-change balance instrument as a session probe: one <see cref="CombatTelemetrySampler"/> per episode, rows grouped by the block's opponent label, and a per-opponent means/counts aggregate as the summary sidecar.</summary>
-    public sealed class CombatTelemetryProbe : ISessionProbe
+    public sealed class CombatTelemetryProbe : IHarnessProbe
     {
         public const string ProbeName = "combat";
 

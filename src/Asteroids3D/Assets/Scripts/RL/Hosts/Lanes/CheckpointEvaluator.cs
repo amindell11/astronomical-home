@@ -13,9 +13,9 @@ using RL.Reward;
 namespace RL.Hosts.Lanes
 {
     /// <summary>The eval lane client: sequences the host's primitives over the frozen eval protocol — a fresh composition per seed so every RNG stream replays from that seed, then one equal episode block per opponent (the roster's five archetypes by default, stratification being sequencing rather than a mixture draw) — and aggregates per-opponent W/L/D with the Wilson 95% lower bound on win-rate (draws are non-wins, deliberately NO blended aggregate). Writes per-episode JSONL plus a summary artifact under results/rl-eval/; the spec's probes write their own sidecars alongside.</summary>
-    public sealed class CheckpointEvaluator : ISessionClient
+    public sealed class CheckpointEvaluator : ILaneClient
     {
-        IEnumerator ISessionClient.Run(HarnessSessionHost host, SessionSpec spec) => RunLane(host, spec);
+        IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
 
         public const string ResultsFolder = "rl-eval";
         public const string SchemaId = "rl-eval-summary-v2";
@@ -62,43 +62,43 @@ namespace RL.Hosts.Lanes
         }
 
         /// <summary>The host's lane entry: the canonical eval environment (training's terminal lesson), then the protocol.</summary>
-        public static IEnumerator RunLane(HarnessSessionHost host, SessionSpec spec) =>
+        public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec) =>
             Run(host, spec, EvalProtocol.EvalSpec(spec.fieldDensityScale));
 
-        public static IEnumerator Run(HarnessSessionHost host, SessionSpec sessionSpec, RewardSpec baseSpec,
+        public static IEnumerator Run(HarnessHost host, HarnessSpec harnessSpec, RewardSpec baseSpec,
             Action<Summary> onDone = null)
         {
-            var jsonlPath = EpisodeJsonl.NewRunPath(sessionSpec.tag, ResultsFolder, sessionSpec.outDir);
+            var jsonlPath = EpisodeJsonl.NewRunPath(harnessSpec.tag, ResultsFolder, harnessSpec.outDir);
             var summary = new Summary
             {
                 schema = SchemaId,
-                checkpoint = sessionSpec.CandidateStem,
-                checkpointSource = sessionSpec.onnxSourcePath,
-                opponentCheckpoint = sessionSpec.opponentLabel,
-                opponentCheckpointSource = sessionSpec.opponentOnnxSourcePath,
-                seeds = (int[])sessionSpec.seeds.Clone(),
-                episodesPerSeed = sessionSpec.episodesPerSeed,
+                checkpoint = harnessSpec.CandidateStem,
+                checkpointSource = harnessSpec.onnxSourcePath,
+                opponentCheckpoint = harnessSpec.opponentLabel,
+                opponentCheckpointSource = harnessSpec.opponentOnnxSourcePath,
+                seeds = (int[])harnessSpec.seeds.Clone(),
+                episodesPerSeed = harnessSpec.episodesPerSeed,
                 useAsteroidField = baseSpec.useAsteroidField,
                 fieldDensityScale = baseSpec.fieldDensityScale,
                 episodesJsonl = jsonlPath,
             };
 
-            var blocks = Blocks(sessionSpec);
+            var blocks = Blocks(harnessSpec);
             var outcomes = new List<(string opponent, string outcome)>();
             var field = baseSpec.useAsteroidField
                 ? HarnessField.Spawn(host.Offset, host.Assets, baseSpec.fieldDensityScale,
-                    presentationEnabled: sessionSpec.Presentation)
+                    presentationEnabled: harnessSpec.Presentation)
                 : null;
 
-            foreach (var seed in sessionSpec.seeds)
+            foreach (var seed in harnessSpec.seeds)
             {
                 var spec = baseSpec;
                 spec.runSeed = seed;
-                var composition = host.NewComposition(in spec, sessionSpec.opponentKind, field);
+                var composition = host.NewComposition(in spec, harnessSpec.opponentKind, field);
                 foreach (var block in blocks)
                 {
                     var label = block.Label;
-                    yield return host.RunBlock(composition, block, sessionSpec.episodesPerSeed, spec, jsonlPath,
+                    yield return host.RunBlock(composition, block, harnessSpec.episodesPerSeed, spec, jsonlPath,
                         result => outcomes.Add((label, result.outcome)));
                 }
 
@@ -121,7 +121,7 @@ namespace RL.Hosts.Lanes
         }
 
         /// <summary>The block sequence one seed's composition runs: the roster stratifies into equal per-archetype blocks; a pinned archetype, the mirror, or the checkpoint opponent is a single block.</summary>
-        private static OpponentSpec[] Blocks(SessionSpec spec) => spec.opponentKind switch
+        private static OpponentSpec[] Blocks(HarnessSpec spec) => spec.opponentKind switch
         {
             OpponentKind.Roster => Array.ConvertAll(EvalArchetypes, OpponentSpec.Pinned),
             OpponentKind.Archetype => new[] { OpponentSpec.Pinned(spec.opponentArchetype) },

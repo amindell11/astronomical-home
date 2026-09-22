@@ -255,7 +255,7 @@ namespace RL.Probes
     }
 
     /// <summary>The MPC-retune controller instrument: per fixed step it reads the measured agent's applied control off the live solver (<see cref="Mpc.LastControl"/>), recomputes the anchor yaw from both ships' kinematics, classifies the step as obstacle threat or clear against the solver's live obstacle buffer, and feeds one <see cref="ControllerSampler"/> per episode; per-opponent pooled aggregates land in the summary sidecar.</summary>
-    public sealed class ControllerProbe : ISessionProbe
+    public sealed class ControllerProbe : IHarnessProbe
     {
         public const string ProbeName = "controller";
         public const string YawRateDeadbandKey = "deadbandDegPerSec";
