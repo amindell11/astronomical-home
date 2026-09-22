@@ -807,7 +807,7 @@ cmd_run_resharper() {
 # ---- Script tests ----------------------------------------------------------
 # run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
 # SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
-# Internal: $1 is a resolved worktree path (the dispatch arm and the merge gate own slot resolution).
+# Internal: callers supply a resolved worktree path.
 cmd_run_script_tests() {
   local dir="$1"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS

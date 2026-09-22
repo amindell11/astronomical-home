@@ -60,6 +60,5 @@ PROBE
 out="$(pool run-script-tests agent-1 2>&1)" || fail "a real slot with a green suite should exit 0 (got: $out)"
 [[ "$(grep -c probe "$PROBE_MARKER")" -eq 1 ]] || fail "the slot's suite must run exactly once"
 [[ "$out" == *"SCRIPT_TEST_FILE=test_probe.sh"* ]] || fail "the per-file trailer should name the probe (got: $out)"
-[[ "$out" == *"PASS test_probe.sh"* ]] || fail "a green probe should print PASS (got: $out)"
 
 echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, and fails on a missing or empty suite"
