@@ -150,7 +150,7 @@ namespace AI
                 var color = CostColor(severity);
                 if (i % nav.labelStep == 0)
                     Label(pos + LabelOffset,
-                        $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1}{SentenceTerms(breakdown)})",
+                        $"Cost: {breakdown.total:F1}\n(O:{breakdown.obstacle + breakdown.collision:F1}{SentenceTerms(nav.sentence, breakdown)})",
                         Color.white);
 
                 Line(prevPos, pos, color);
@@ -165,14 +165,14 @@ namespace AI
             }
         }
 
-        // Silent under an unarmed sentence, so the label stays narrow where the terms are zero.
-        private static string SentenceTerms(in CostBreakdown breakdown)
+        // Signed, and only for armed slots: the legacy velocity tracker is not a sentence term.
+        private static string SentenceTerms(in IntentSentence sentence, in CostBreakdown breakdown)
         {
             var terms = "";
-            if (breakdown.facing > 0.05f) terms += $" F:{breakdown.facing:F1}";
-            if (breakdown.pos > 0.05f) terms += $" P:{breakdown.pos:F1}";
-            if (breakdown.lane > 0.05f) terms += $" L:{breakdown.lane:F1}";
-            if (breakdown.velocityTrack > 0.05f) terms += $" V:{breakdown.velocityTrack:F1}";
+            if (sentence.aim.armed && Mathf.Abs(breakdown.facing) > 0.05f) terms += $" F:{breakdown.facing:F1}";
+            if (sentence.pos.armed && Mathf.Abs(breakdown.pos) > 0.05f) terms += $" P:{breakdown.pos:F1}";
+            if (sentence.lane.armed && Mathf.Abs(breakdown.lane) > 0.05f) terms += $" L:{breakdown.lane:F1}";
+            if (sentence.vel.armed && Mathf.Abs(breakdown.velocityTrack) > 0.05f) terms += $" V:{breakdown.velocityTrack:F1}";
             return terms;
         }
 
