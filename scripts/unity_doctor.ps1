@@ -102,14 +102,18 @@ if (Test-Path -LiteralPath $unityAccessScript) {
         if ($null -ne $unityAccess.boot) {
             Add-Check "unity-access" "INFO" "Boot lane held by lease=$($unityAccess.boot.lease) (a Unity process is starting up)."
         }
-        if (@($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) {
-            $userEditor = @($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" })[0]
+        foreach ($zombie in @($unityAccess.blockers | Where-Object { $_.kind -eq "zombie_unity" })) {
+            Add-Check "unity-access" "WARN" "Zombie Unity editor (pid=$($zombie.processId), project=$($zombie.projectPath)): no window, lockfile gone, age=$($zombie.ageSeconds)s -- a hung teardown that never exits. Reap it: .\scripts\unity_access.ps1 -Action Reap -ProcessId $($zombie.processId) -Json"
+        }
+        $liveBlockers = @($unityAccess.blockers | Where-Object { $_.kind -ne "zombie_unity" })
+        if (@($liveBlockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) {
+            $userEditor = @($liveBlockers | Where-Object { $_.kind -eq "user_editor" })[0]
             Add-Check "unity-access" "WARN" "Untracked main-worktree editor is user-owned (pid=$($userEditor.processId)); main-project and editor-mode requests queue behind it -- ask the user to close it."
         }
-        elseif (@($unityAccess.blockers).Count -gt 0) {
-            Add-Check "unity-access" "WARN" "Untracked Unity process(es) present: $((@($unityAccess.blockers | ForEach-Object { $_.processId })) -join ','). Batch requests block on untracked batch processes and same-project editors."
+        elseif ($liveBlockers.Count -gt 0) {
+            Add-Check "unity-access" "WARN" "Untracked Unity process(es) present: $((@($liveBlockers | ForEach-Object { $_.processId })) -join ','). Batch requests block on untracked batch processes and same-project editors."
         }
-        elseif ($owners.Count -eq 0 -and $null -eq $unityAccess.legacyOwner) {
+        elseif ($owners.Count -eq 0 -and $null -eq $unityAccess.legacyOwner -and @($unityAccess.blockers).Count -eq 0) {
             Add-Check "unity-access" "OK" "All Unity projects free."
         }
         if (@($unityAccess.queue).Count -gt 0) {

@@ -20,15 +20,25 @@
     ACTIONS, STATUSES, EXIT CODES
       Every action returns a JSON object. Non-Status results always carry a "status" field, and the
       exit code is a function of that status alone (0 for any status not listed here).
-        20 waiting / boot_waiting / blocked_user_editor   21 blocked_unmanaged_unity
+        20 waiting / boot_waiting / blocked_user_editor   21 blocked_unmanaged_unity / blocked_zombie_unity
         22 ownership_mismatch                             23 editor_did_not_exit
         24 adopt_* (all four refusals)                    25 boot_lane_wedged
         26 editor_profile_failed                          27 record_unreadable
-        28 boot_refused_low_memory
+        28 boot_refused_low_memory                        29 reap_refused_not_zombie / reap_did_not_exit
          1 coordinator_error (see FAILURE below)
 
       Status        (needs no -Lease) -> the state object, no "status" field, always exit 0.
                     Fields: stateRoot, owners[], legacyOwner, boot, bootWedged, queue[], blockers[].
+                    A blocker carries kind, processId, projectPath, batch. Kinds: unmanaged_unity
+                    (an untracked live Unity), user_editor (an untracked windowed editor on the
+                    primary tree - the user's), zombie_unity (dead-but-running: a non-batch
+                    editor with no main window, whose project has no Temp/UnityLockfile - Unity
+                    deletes it on shutdown - and which is older than zombieBootWindowSeconds; a
+                    hung Unity 6 teardown never exits on its own). All three signals are required
+                    together; a zombie blocker also carries windowless, lockfileMissing and
+                    ageSeconds. ageSeconds is process lifetime, not time in that state: the last
+                    seconds of an ordinary shutdown look the same, so the verdict is a snapshot
+                    and only Reap, which reconfirms it, acts on it.
                     Every owner carries normalizedProjectPath - THE key for "is this owner on my
                     project" (this script's own normalization; compare against it, never re-derive).
                     With -ProjectPath, Status also answers "who owns this path":
@@ -47,7 +57,8 @@
                                             is measured: doc/agents/environment.md.
       Contract      (needs no -Lease) -> status "contract" plus the constants a caller must match
                     exactly: bootCompletePattern, ticketTtlSeconds, ownerTtlSeconds,
-                    bootTtlSeconds, bootDemandBatchGB, bootDemandEditorGB, bootMemoryMarginGB.
+                    bootTtlSeconds, bootDemandBatchGB, bootDemandEditorGB, bootMemoryMarginGB,
+                    zombieBootWindowSeconds.
                     Hard-coding any of them keeps a copy that drifts.
       BootAdmission (needs no -Lease) -Mode -> boot_admitted | boot_not_admitted, both exit 0 (a
                     "no" from a query is not a failure; branch on status). Read-only memory
@@ -57,12 +68,25 @@
                     This action ignores -AllowLowMemory.
       Request       -Lease [-Slot|-ProjectPath] [-Mode] -> queued.
       Acquire       -Lease [-Slot|-ProjectPath] [-Mode] [-WaitSeconds] ->
-                    acquired | waiting | blocked_user_editor | blocked_unmanaged_unity.
+                    acquired | waiting | blocked_user_editor | blocked_unmanaged_unity |
+                    blocked_zombie_unity (a zombie is among the blockers and no user editor is;
+                    it never clears by waiting - Reap it).
       Wait          as Acquire, but -WaitSeconds defaults to 60.
       Attach        -Lease -ProcessId -> attached | ownership_mismatch.
       AttachBatchChild -Lease -> attached | batch_child_absent | ownership_mismatch.
       Adopt         -Lease -ProcessId -> adopted | adopt_no_process | adopt_already_tracked |
                     adopt_refused_user_editor | adopt_project_owned.
+      Reap          (needs no -Lease) -ProcessId [-ReapConfirmSeconds] [-EditorCloseWaitSeconds] ->
+                    reaped | reap_refused_not_zombie | reap_did_not_exit.
+                    Refuses any pid Status does not classify zombie_unity, tracked or not - a live
+                    editor is closed through Release -CloseEditor or by its owner. Otherwise waits
+                    -ReapConfirmSeconds (default 15) and classifies again: an editor that was
+                    merely finishing an ordinary shutdown has exited by then and returns reaped
+                    with exitedUnaided true; one still windowless, lockfile-less and running is
+                    killed with its tree (UnityCrashHandler64, UnityPackageManager and
+                    AssetImportWorker children) and waited for. A pid that stops classifying
+                    zombie_unity on the second look is refused. Operator-invoked only: Acquire
+                    reports a zombie, it never reaps one.
       Release       -Lease [-CloseEditor [-EditorCloseWaitSeconds]] -> released | editor_did_not_exit.
                     Also frees this lease's boot lane and cancels its queued ticket.
       Cancel        -Lease -> cancelled.
@@ -129,7 +153,8 @@
 
     -ProcessSnapshotPath replaces live process enumeration with a JSON file (tests only); its
     records carry the same fields the live query reads - processId, parentProcessId, commandLine,
-    privateKb, peakPrivateKb.
+    privateKb, peakPrivateKb, mainWindowHandle (0 = no window), startTime (ISO 8601; absent =
+    age unknown, which never classifies a zombie).
     -MemorySnapshotPath replaces the live memory reading with a JSON file carrying
     FreeVirtualMemory and FreePhysicalMemory in KB, as Win32_OperatingSystem reports them
     (tests only).
@@ -137,7 +162,7 @@
     editor" and slot-to-project resolution machine-dependent; tests inject it to stay hermetic.
 #>
 param(
-    [ValidateSet("Status", "Contract", "BootAdmission", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Contract", "BootAdmission", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Reap", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -151,6 +176,7 @@ param(
     [int]$OwnerTtlSeconds = 300,
     [int]$BootTtlSeconds = 180,
     [int]$EditorCloseWaitSeconds = 30,
+    [int]$ReapConfirmSeconds = 15,
     [string]$StateRoot = "",
     [string]$PrimaryRoot = "",
     [string]$ProcessSnapshotPath = "",
@@ -181,11 +207,11 @@ $ErrorActionPreference = "Stop"
 #   Ticket queue              Remove-TicketFile .. Ensure-Ticket
 #   Editor profile receipts   Get-EditorProfileQuality .. Test-EditorProfileReceipt
 #   Owner liveness & records  Get-ProcessStartTime .. Get-TrackedPids
-#   Blockers                  Get-Blockers, Get-BlockedStatus
+#   Blockers                  Test-ZombieUnity, Get-Blockers, Get-BlockedStatus
 #   Status & Contract         Add-NormalizedProjectPath, Get-StatusValue, Get-ContractValue
 #   Project lease             Get-QueuePosition, Request/Try-Acquire/Acquire-Access, Write-OwnerHeartbeat
 #   Boot lane                 Start-BootLaneSidecar, Try-AcquireBoot, Acquire-Boot, Release-Boot
-#   Attach / adopt / release  Attach-Process, Attach-BatchChild, Adopt-Process, Cancel-Request, Release-Access
+#   Attach / adopt / release  Attach-Process, Attach-BatchChild, Adopt-Process, Reap-Process, Cancel-Request, Release-Access
 #   Composite actions         Start-TrackedEditor, Run-TrackedBatch
 #   Result channel & dispatch Require-Lease, Write-Result, state roots, action switch, exit
 # ------------------------------------------------------------------------------
@@ -200,15 +226,22 @@ $ExitBootWedged = 25
 $ExitProfile = 26
 $ExitRecordUnreadable = 27
 $ExitLowMemory = 28
+$ExitReapRefused = 29
 $RecordUnreadableTag = "UNITY_ACCESS_RECORD_UNREADABLE"
 # Both are measured peak private bytes - a full-suite batch run, an interactive editor - rounded up.
 $BootDemandBatchGB = 3.0
 $BootDemandEditorGB = 6.0
 $BootMemoryMarginGB = 1.0
+# A Hub-launched editor shows its window ~40-60 s after the process appears; before that a
+# windowless, lockfile-less editor is booting, not dead.
+$ZombieBootWindowSeconds = 120
 $statusExitCodes = @{
     ownership_mismatch = $ExitOwnership
     editor_did_not_exit = $ExitIncomplete
     blocked_unmanaged_unity = $ExitUnmanaged
+    blocked_zombie_unity = $ExitUnmanaged
+    reap_refused_not_zombie = $ExitReapRefused
+    reap_did_not_exit = $ExitReapRefused
     waiting = $ExitWaiting
     boot_waiting = $ExitWaiting
     boot_lane_wedged = $ExitBootWedged
@@ -359,13 +392,23 @@ function Get-UnityProcesses {
         return @($snapshot)
     }
     try {
+        # CIM has no window handle; Get-Process has no command line. Joined by pid, and a process
+        # that exits between the two reads is simply windowless with an unknown start time.
+        $handles = @{}
+        foreach ($live in @(Get-Process -Name Unity -ErrorAction SilentlyContinue)) {
+            try { $handles[[int]$live.Id] = [pscustomobject]@{ window = [long]$live.MainWindowHandle; startTime = $live.StartTime.ToUniversalTime().ToString("o") } }
+            catch { }
+        }
         return @(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction Stop | ForEach-Object {
+            $joined = $handles[[int]$_.ProcessId]
             [pscustomobject]@{
                 processId = [int]$_.ProcessId
                 parentProcessId = [int]$_.ParentProcessId
                 commandLine = [string]$_.CommandLine
                 privateKb = [double]$_.PageFileUsage
                 peakPrivateKb = [double]$_.PeakPageFileUsage
+                mainWindowHandle = if ($null -ne $joined) { $joined.window } else { 0 }
+                startTime = if ($null -ne $joined) { $joined.startTime } else { "" }
             }
         })
     }
@@ -407,6 +450,8 @@ function Get-RelevantUnityProcesses {
             batch = ($command -match '(?i)-batchmode')
             privateKb = [double](Get-MemberValue $process "privateKb")
             peakPrivateKb = [double](Get-MemberValue $process "peakPrivateKb")
+            mainWindowHandle = [long](Get-MemberValue $process "mainWindowHandle")
+            startTime = [string](Get-MemberValue $process "startTime")
         }
     }
     return $result
@@ -679,6 +724,21 @@ function Get-TrackedPids {
 }
 
 # ---- Blockers --------------------------------------------------------------
+# Three signals, all required: a windowless editor may be booting, a missing lockfile alone is a
+# force-kill leftover, and age alone says nothing. Together they are a hung Unity 6 teardown.
+function Test-ZombieUnity {
+    param([object]$Process)
+    $verdict = [ordered]@{ zombie = $false; windowless = $false; lockfileMissing = $false; ageSeconds = -1 }
+    if ($Process.batch) { return $verdict }
+    $verdict.windowless = ($Process.mainWindowHandle -eq 0)
+    $verdict.lockfileMissing = -not (Test-Path -LiteralPath (Join-Path $Process.projectPath "Temp/UnityLockfile"))
+    if (-not [string]::IsNullOrWhiteSpace($Process.startTime)) {
+        $verdict.ageSeconds = [int]([datetime]::UtcNow - (Get-DateValue $Process.startTime)).TotalSeconds
+    }
+    $verdict.zombie = $verdict.windowless -and $verdict.lockfileMissing -and $verdict.ageSeconds -gt $ZombieBootWindowSeconds
+    return $verdict
+}
+
 function Get-Blockers {
     param([string]$RequestedProject = "", [string]$RequestedMode = "")
     $mainProject = Normalize-Path (Join-Path $PrimaryRoot "src/Asteroids3D")
@@ -689,14 +749,22 @@ function Get-Blockers {
         if ($tracked -contains $process.processId) { continue }
         # Untracked batch processes may be mid-boot (the D6 hazard) so they block everywhere; untracked editors are long-lived and only contend on their own project. Editor-mode requests stay machine-wide strict.
         if ($RequestedMode -eq "batch" -and -not $process.batch -and -not [string]::IsNullOrWhiteSpace($requested) -and $process.normalizedProjectPath -ne $requested) { continue }
-        $kind = "unmanaged_unity"
-        if (-not $process.batch -and $process.normalizedProjectPath -eq $mainProject) { $kind = "user_editor" }
-        $blockers += [ordered]@{
-            kind = $kind
+        $blocker = [ordered]@{
+            kind = "unmanaged_unity"
             processId = $process.processId
             projectPath = $process.projectPath
             batch = $process.batch
         }
+        $zombie = Test-ZombieUnity $process
+        if ($zombie.zombie) {
+            # Checked before user_editor: a corpse on the primary tree is not the user's editor.
+            $blocker.kind = "zombie_unity"
+            $blocker.windowless = $zombie.windowless
+            $blocker.lockfileMissing = $zombie.lockfileMissing
+            $blocker.ageSeconds = $zombie.ageSeconds
+        }
+        elseif (-not $process.batch -and $process.normalizedProjectPath -eq $mainProject) { $blocker.kind = "user_editor" }
+        $blockers += $blocker
     }
     return $blockers
 }
@@ -704,6 +772,7 @@ function Get-Blockers {
 function Get-BlockedStatus {
     param([object[]]$Blockers)
     if (@($Blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { return "blocked_user_editor" }
+    if (@($Blockers | Where-Object { $_.kind -eq "zombie_unity" }).Count -gt 0) { return "blocked_zombie_unity" }
     return "blocked_unmanaged_unity"
 }
 
@@ -778,6 +847,7 @@ function Get-ContractValue {
         bootDemandBatchGB = $BootDemandBatchGB
         bootDemandEditorGB = $BootDemandEditorGB
         bootMemoryMarginGB = $BootMemoryMarginGB
+        zombieBootWindowSeconds = $ZombieBootWindowSeconds
     }
 }
 
@@ -1061,6 +1131,33 @@ function Adopt-Process {
     return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
 }
 
+function Get-ZombieBlocker {
+    $target = @(Get-Blockers | Where-Object { $_.processId -eq $ProcessId })
+    if ($target.Count -eq 0) { return $null }
+    return $target[0]
+}
+
+function Reap-Process {
+    $first = Get-ZombieBlocker
+    if ($null -eq $first -or $first.kind -ne "zombie_unity") {
+        return [ordered]@{ status = "reap_refused_not_zombie"; processId = $ProcessId; blocker = $first }
+    }
+    # The signals also hold during the last seconds of an ordinary shutdown; a hung teardown is
+    # the one that is still here after the wait.
+    if (Wait-ProcessExit $ProcessId $ReapConfirmSeconds) {
+        return [ordered]@{ status = "reaped"; processId = $ProcessId; blocker = $first; exitedUnaided = $true }
+    }
+    $second = Get-ZombieBlocker
+    if ($null -eq $second -or $second.kind -ne "zombie_unity") {
+        return [ordered]@{ status = "reap_refused_not_zombie"; processId = $ProcessId; blocker = $second }
+    }
+    Stop-ProcessTree -ProcessId $ProcessId
+    if (-not (Wait-ProcessExit $ProcessId $EditorCloseWaitSeconds)) {
+        return [ordered]@{ status = "reap_did_not_exit"; processId = $ProcessId; blocker = $second }
+    }
+    return [ordered]@{ status = "reaped"; processId = $ProcessId; blocker = $second; exitedUnaided = $false }
+}
+
 function Cancel-Request {
     $ticket = Find-Ticket $Lease
     if ($null -ne $ticket) { Remove-TicketFile $ticket.file }
@@ -1213,7 +1310,11 @@ function Write-Result {
         else { Write-Host "Boot lane: free" }
         if (@($Result.queue).Count -gt 0) { Write-Host "Queue: $((@($Result.queue) | ForEach-Object { "$($_.position):$($_.slot)" }) -join ', ')" }
         else { Write-Host "Queue: empty" }
-        foreach ($blocker in @($Result.blockers)) { Write-Host "Blocker: $($blocker.kind) pid=$($blocker.processId) project=$($blocker.projectPath)" }
+        foreach ($blocker in @($Result.blockers)) {
+            $line = "Blocker: $($blocker.kind) pid=$($blocker.processId) project=$($blocker.projectPath)"
+            if ($blocker.kind -eq "zombie_unity") { $line += " (windowless, lockfile gone, age=$($blocker.ageSeconds)s; reap: unity_access.ps1 -Action Reap -ProcessId $($blocker.processId))" }
+            Write-Host $line
+        }
         return
     }
     Write-Host "$($Action): $([string]$Result.status)"
@@ -1255,6 +1356,7 @@ $result = try {
     "Attach" { Require-Lease; if ($ProcessId -le 0) { throw "Attach requires -ProcessId." }; Attach-Process }
     "AttachBatchChild" { Require-Lease; Attach-BatchChild }
     "Adopt" { Require-Lease; if ($ProcessId -le 0) { throw "Adopt requires -ProcessId." }; Adopt-Process }
+    "Reap" { if ($ProcessId -le 0) { throw "Reap requires -ProcessId." }; Reap-Process }
     "Release" { Require-Lease; Release-Access }
     "Cancel" { Require-Lease; Cancel-Request }
     "BootAcquire" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 300 }; Acquire-Boot }
