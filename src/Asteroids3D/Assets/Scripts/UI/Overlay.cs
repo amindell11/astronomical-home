@@ -18,6 +18,7 @@ namespace UI
         private UILaserAudio laserAudio;
         private UIBoostAudio boostAudio;
         private BoostGaugeUI boostGauge;
+        private HitDirectionUI hitDirection;
         private WeaponReadoutBuilder readoutBuilder;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
@@ -31,6 +32,7 @@ namespace UI
             laserAudio = GetComponentInChildren<UILaserAudio>();
             boostAudio = GetComponentInChildren<UIBoostAudio>();
             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
+            hitDirection = GetComponentInChildren<HitDirectionUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
         }
@@ -59,6 +61,9 @@ namespace UI
 
             if (boostGauge)
                 boostGauge.Initialize(binding.Status);
+
+            if (hitDirection)
+                hitDirection.Initialize(binding.Status, binding.Damage);
 
             if (boostAudio)
                 boostAudio.Initialize(binding.Status);
