@@ -41,6 +41,7 @@ function Invoke-Coordinator {
         [int]$BootTtlSeconds = 180,
         [int]$OwnerTtlSeconds = 300,
         [string]$MemorySnapshotPath = "",
+        [int]$ProcessId = 0,
         [switch]$AllowLowMemory
     )
     if ([string]::IsNullOrWhiteSpace($MemorySnapshotPath)) { $MemorySnapshotPath = $Memory }
@@ -59,6 +60,7 @@ function Invoke-Coordinator {
     if ([string]::IsNullOrWhiteSpace($ProjectPath)) { $ProjectPath = $Shared }
     $arguments += @("-ProjectPath", $ProjectPath)
     if ($WaitSeconds -gt 0) { $arguments += @("-WaitSeconds", $WaitSeconds) }
+    if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
     if ($AllowLowMemory.IsPresent) { $arguments += @("-AllowLowMemory") }
     # Every call goes through the sanctioned client, so the whole suite is also a standing proof of
     # the machine channel: one JSON line on stdout, parsed whole, never sniffed for.
@@ -308,6 +310,61 @@ try {
     Assert-Equal $sameProject.code 21 "same-project editor exit"
     Assert-Equal $sameProject.value.status "blocked_unmanaged_unity" "editor on the requested project blocks batch"
     [void](Invoke-Coordinator -Action Cancel -Lease same-project)
+
+    # A zombie needs all three signals: no window, no Temp/UnityLockfile on its project, older than
+    # the boot window. Odd pids can never be live on Windows, so Reap's kill hits nothing real.
+    $contract = Invoke-Coordinator -Action Contract
+    Assert-Equal $contract.value.zombieBootWindowSeconds 120 "contract publishes the zombie boot window"
+    $aged = [datetime]::UtcNow.AddSeconds(-600).ToString("o")
+    $young = [datetime]::UtcNow.AddSeconds(-30).ToString("o")
+    Write-Snapshot @([ordered]@{ processId = 41007; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $aged })
+    $zombie = Invoke-Coordinator -Action Acquire -Lease zombie -ProjectPath $mainProject
+    Assert-Equal $zombie.code 21 "zombie block exit"
+    Assert-Equal $zombie.value.status "blocked_zombie_unity" "a windowless, lockfile-less, aged editor on the primary tree is a zombie, not the user's editor"
+    Assert-Equal $zombie.value.blockers[0].kind "zombie_unity" "zombie blocker kind"
+    Assert-True ([bool]$zombie.value.blockers[0].windowless -and [bool]$zombie.value.blockers[0].lockfileMissing -and [int]$zombie.value.blockers[0].ageSeconds -ge 600) "zombie blocker carries its evidence"
+    [void](Invoke-Coordinator -Action Cancel -Lease zombie)
+    $zombieStatus = Invoke-Coordinator -Action Status
+    Assert-Equal $zombieStatus.value.blockers[0].kind "zombie_unity" "Status names the zombie"
+
+    Write-Snapshot @([ordered]@{ processId = 41007; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $young })
+    $booting = Invoke-Coordinator -Action Acquire -Lease booting -ProjectPath $mainProject
+    Assert-Equal $booting.value.status "blocked_user_editor" "a young windowless editor is still booting, not a zombie"
+    [void](Invoke-Coordinator -Action Cancel -Lease booting)
+
+    Write-Snapshot @([ordered]@{ processId = 41007; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
+    $ageless = Invoke-Coordinator -Action Acquire -Lease ageless -ProjectPath $mainProject
+    Assert-Equal $ageless.value.status "blocked_user_editor" "an unknown start time never classifies a zombie"
+    [void](Invoke-Coordinator -Action Cancel -Lease ageless)
+
+    Write-Snapshot @([ordered]@{ processId = 41009; commandLine = "Unity.exe -batchMode -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $aged })
+    $batchAged = Invoke-Coordinator -Action Acquire -Lease batch-aged -ProjectPath $agentProject
+    Assert-Equal $batchAged.value.status "blocked_unmanaged_unity" "a batch process is never a zombie"
+    [void](Invoke-Coordinator -Action Cancel -Lease batch-aged)
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $agentProject "Temp") | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $agentProject "Temp\UnityLockfile"), "", $Utf8NoBom)
+    Write-Snapshot @([ordered]@{ processId = 41011; commandLine = "Unity.exe -projectPath `"$agentProject`""; mainWindowHandle = 0; startTime = $aged })
+    $lockfileHeld = Invoke-Coordinator -Action Acquire -Lease lockfile-held -ProjectPath $agentProject
+    Assert-Equal $lockfileHeld.value.status "blocked_unmanaged_unity" "a held lockfile keeps a windowless aged editor live"
+    [void](Invoke-Coordinator -Action Cancel -Lease lockfile-held)
+    Write-Snapshot @([ordered]@{ processId = 41011; commandLine = "Unity.exe -projectPath `"$agentProject`""; mainWindowHandle = 12345; startTime = $aged })
+    $windowed = Invoke-Coordinator -Action Acquire -Lease windowed -ProjectPath $agentProject
+    Assert-Equal $windowed.value.status "blocked_unmanaged_unity" "a windowed editor with its lockfile is a live untracked editor"
+    Assert-Equal $windowed.value.blockers[0].kind "unmanaged_unity" "live untracked editor kind"
+    [void](Invoke-Coordinator -Action Cancel -Lease windowed)
+    $refused = Invoke-Coordinator -Action Reap -ProcessId 41011
+    Assert-Equal $refused.code 29 "reap refusal exit"
+    Assert-Equal $refused.value.status "reap_refused_not_zombie" "Reap refuses a live editor"
+    $absent = Invoke-Coordinator -Action Reap -ProcessId 41013
+    Assert-Equal $absent.value.status "reap_refused_not_zombie" "Reap refuses a pid Status does not know"
+    Remove-Item -LiteralPath (Join-Path $agentProject "Temp") -Recurse -Force
+
+    Write-Snapshot @([ordered]@{ processId = 41007; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $aged })
+    $reaped = Invoke-Coordinator -Action Reap -ProcessId 41007
+    Assert-Equal $reaped.code 0 "reap exit"
+    Assert-Equal $reaped.value.status "reaped" "Reap kills a zombie and reports it gone"
+    Assert-Equal $reaped.value.blocker.kind "zombie_unity" "reap result carries the classification it acted on"
 
     Write-Snapshot @()
     $bootBlockedOwn = Invoke-Coordinator -Action Acquire -Lease boot-blocked -ProjectPath $projA
