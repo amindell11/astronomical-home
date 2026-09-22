@@ -11,8 +11,8 @@ Nth frame while keeping real-time playback.
 --web is the chat/artifact preset: mp4 downscaled to <=854 px wide at crf 30.
 
 The frame dir is this step's intermediate: a written clip is decoded back and
-checked to hold the frames handed to the encoder, and only then is the frame dir
-deleted. --keep-frames leaves it in place when the raw frames are the deliverable.
+checked to hold the frames handed to the encoder (mp4: decoded frame count; gif:
+total playback length), and only then is the frame dir deleted. --keep-frames leaves it in place when the raw frames are the deliverable.
 
 Exit codes: 0 = every matched directory encoded and verified; nonzero = the
 message on stderr names the directory and whether the encode or the read-back
@@ -112,13 +112,19 @@ def assemble_gif(frame_dir, frames, out_fps, scale, colors):
         images.append(image.quantize(colors=colors))
 
     out_path = frame_dir.rstrip("/\\") + ".gif"
+    frame_ms = int(1000 / out_fps)
     images[0].save(out_path, save_all=True, append_images=images[1:],
-                   duration=int(1000 / out_fps), loop=0, optimize=True)
+                   duration=frame_ms, loop=0, optimize=True)
 
+    # Pillow folds identical neighbours into one stored frame, so playback length is the invariant.
+    expected_ms = len(frames) * frame_ms
     with Image.open(out_path) as written:
-        decoded = written.n_frames
-    if decoded != len(frames):
-        sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected {len(frames)}; "
+        decoded_ms = 0
+        for index in range(written.n_frames):
+            written.seek(index)
+            decoded_ms += written.info["duration"]
+    if decoded_ms != expected_ms:
+        sys.exit(f"read-back of {out_path} plays {decoded_ms} ms, expected {expected_ms} ms; "
                  f"clip and frames kept in {frame_dir}")
     return out_path
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# #303: the frame dir is assemble.py's intermediate. It goes only after the clip reads back with the
+# The frame dir is assemble.py's intermediate. It goes only after the clip reads back with the
 # expected frame count; --keep-frames or any read-back failure leaves it (and the clip) in place.
 # ffmpeg is emulated by fixtures/fake_imageio_ffmpeg, so this needs no wheel and no real encode.
 
