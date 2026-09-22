@@ -43,7 +43,7 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 ## 4. Enforcement
 
 `scripts/tests/` runs in the merge gate whenever the landing diff touches `scripts/**`
-(`agent_worktree_pool.sh run-script-tests`). Tests keep their state inside a temp dir
+(`agent_worktree_pool.sh run-script-tests <slot>`). Tests keep their state inside a temp dir
 and inject every root the script would otherwise take from this machine; the
 non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
 

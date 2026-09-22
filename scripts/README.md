@@ -48,4 +48,4 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 
 ## tests/
 
-`scripts/tests/test_*.sh` and `test_*.ps1`, run by `./scripts/agent_worktree_pool.sh run-script-tests` and by the merge gate whenever the landing diff touches `scripts/**`. Hermetic: state stays in a temp dir; every machine root is injected.
+`scripts/tests/test_*.sh` and `test_*.ps1`, run by `./scripts/agent_worktree_pool.sh run-script-tests <slot>` and by the merge gate whenever the landing diff touches `scripts/**`. Hermetic: state stays in a temp dir; every machine root is injected.
