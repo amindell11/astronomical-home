@@ -16,9 +16,9 @@ namespace Combat.Weapons
         [SerializeField, Min(0f)] private float damage = 45f;
         [Tooltip("Max beam length.")]
         [SerializeField, Min(0f)] private float range = 60f;
-        [Tooltip("Nominal impact speed reported to damage handling (knockback/VFX plausibility).")]
+        [Tooltip("Impact speed the beam reports on hit; with impactMass it sets the momentum share and impact direction when the beam breaks an asteroid.")]
         [SerializeField, Min(0f)] private float impactSpeed = 120f;
-        [Tooltip("Mass reported to damage handling.")]
+        [Tooltip("Impact mass the beam reports on hit; with impactSpeed it sets how much momentum fragments take when the beam breaks an asteroid.")]
         [SerializeField, Min(0f)] private float impactMass = 0.05f;
         [Tooltip("Layers the beam can hit. -1 = Ship | Asteroid.")]
         [SerializeField] private LayerMask hitMask = -1;
