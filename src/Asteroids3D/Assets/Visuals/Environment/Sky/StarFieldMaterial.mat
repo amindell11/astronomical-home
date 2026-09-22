@@ -41,6 +41,9 @@ Material:
     - _PositionJitter: 0.572
     - _Seed: 0
     - _ShapeVariation: 0.571
+    - _ShootingBrightness: 0.65
+    - _ShootingInterval: 12
+    - _ShootingParallax: 0.1
     - _SizeZoomResponse: 0
     - _Softness: 0.628
     - _SpacingZoomResponse: 0
@@ -56,6 +59,6 @@ Material:
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
     - _ColorWarm: {r: 1, g: 0.82, b: 0.58, a: 1}
-    - _ParallaxCorrectionWS: {r: 0, g: 0, b: 0, a: 0}
+    - _ShootingColor: {r: 0.65, g: 0.8, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
