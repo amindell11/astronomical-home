@@ -8,6 +8,11 @@ drives image-based lighting.
 The shipped asset `Assets/Visuals/Environment/Sky/nebulaCustom0.hdr` was produced
 by this script.
 
+The approved glow variant is saved at
+`Assets/Visuals/Environment/Sky/nebulaGlow0.hdr`: 8192x4096, 64 samples,
+seed 7319, tiny-star brightness 0, anchor brightness 1, and nebula-core
+emission 1.5. It retains the large focal stars and uses Unity bloom.
+
 ## Requirements
 
 Blender 5.1+ with Cycles (OptiX/CUDA/HIP GPU auto-detected, CPU fallback). No
