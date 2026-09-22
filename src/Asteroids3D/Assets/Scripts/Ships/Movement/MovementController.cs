@@ -11,9 +11,6 @@ namespace Ships.Movement
     public class MovementController : MonoBehaviour, IPilot
     {
 
-        [Header("Debug")]
-        public bool enableDebugLogs;
-
         [Header("Movement Gizmos")]
         public float movementGizmoScale = 3f;
 
