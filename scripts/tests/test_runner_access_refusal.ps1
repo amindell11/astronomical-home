@@ -1,8 +1,8 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# Regression for #582: a Unity access refusal on the direct (cold) path is a verdict, not a crash. It
-# lands as an infra_error summary + STATUS= trailer + exit 2, the contract the pool reads, while a
+# A Unity access refusal on the direct (cold) path is a verdict, not a crash: it lands as an
+# infra_error summary + STATUS= trailer + exit 2, the contract the pool reads, while a
 # coordinator that answers with no status at all is still the wrapper failing. Hermetic: the agent
 # runs from a copy of scripts/ whose unity_access.ps1 is a stub speaking the coordinator's published
 # channel (one JSON line on stdout, the status's exit code), so no coordinator, Unity or machine state
