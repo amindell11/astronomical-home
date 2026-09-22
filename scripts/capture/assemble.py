@@ -10,13 +10,24 @@ Nth frame while keeping real-time playback.
 
 --web is the chat/artifact preset: mp4 downscaled to <=854 px wide at crf 30.
 
-mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg). The repo venvs are
-uv-managed with no pip module: uv pip install --python <venv-python> imageio-ffmpeg
+The frame dir is this step's intermediate: a written clip is decoded back and
+checked to hold the frames handed to the encoder (mp4: decoded frame count; gif:
+total playback length), and only then is the frame dir deleted. --keep-frames
+leaves it in place when the raw frames are the deliverable.
+
+Exit codes: 0 = every matched directory encoded and verified; nonzero = the
+message on stderr names the directory and whether the encode or the read-back
+failed. A clip that did not verify keeps both itself and its frames on disk.
+
+mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg, not ffprobe). The repo venvs
+are uv-managed with no pip module: uv pip install --python <venv-python> imageio-ffmpeg
 """
 import argparse
 import glob
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 
@@ -33,20 +44,39 @@ def load_manifest(frame_dir):
         return {}
 
 
-def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
-    import imageio_ffmpeg
-
-    out_path = frame_dir.rstrip("/\\") + ".mp4"
-    list_path = out_path + ".frames.txt"
+def write_concat_list(list_path, frames, out_fps):
     with open(list_path, "w", encoding="utf-8") as f:
         for frame in frames:
             f.write("file '%s'\n" % os.path.abspath(frame).replace("\\", "/"))
             f.write("duration %.6f\n" % (1.0 / out_fps))
         # concat demuxer ignores the last entry's duration unless the file is repeated
         f.write("file '%s'\n" % os.path.abspath(frames[-1]).replace("\\", "/"))
+    return len(frames) + 1
+
+
+def decoded_frame_count(ffmpeg_exe, clip_path):
+    """Frames ffmpeg actually decodes from the clip, or the reason it could not."""
+    cmd = [ffmpeg_exe, "-hide_banner", "-nostats", "-i", clip_path, "-map", "0:v:0", "-f", "null", "-"]
+    result = subprocess.run(cmd, capture_output=True)
+    stderr = result.stderr.decode(errors="replace")
+    if result.returncode != 0:
+        return None, "ffmpeg could not decode it:\n" + stderr[-2000:]
+    counts = re.findall(r"frame=\s*(\d+)", stderr)
+    if not counts:
+        return None, "ffmpeg reported no frame count:\n" + stderr[-2000:]
+    return int(counts[-1]), None
+
+
+def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
+    import imageio_ffmpeg
+
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    out_path = frame_dir.rstrip("/\\") + ".mp4"
+    list_path = out_path + ".frames.txt"
+    expected = write_concat_list(list_path, frames, out_fps)
 
     cmd = [
-        imageio_ffmpeg.get_ffmpeg_exe(), "-y",
+        ffmpeg_exe, "-y",
         "-f", "concat", "-safe", "0", "-i", list_path,
         "-vf", "scale=trunc(iw*%s/2)*2:trunc(ih*%s/2)*2" % (scale, scale),
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
@@ -59,6 +89,14 @@ def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
         sys.exit("ffmpeg failed:\n" + error.stderr.decode(errors="replace")[-2000:])
     finally:
         os.remove(list_path)
+
+    decoded, failure = decoded_frame_count(ffmpeg_exe, out_path)
+    if failure is not None:
+        sys.exit(f"read-back of {out_path} failed; frames kept in {frame_dir}: {failure}")
+    # Floor, not equality: -r pads the concat stream to constant rate at some fps.
+    if decoded < expected:
+        sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected at least {expected}; "
+                 f"clip and frames kept in {frame_dir}")
     return out_path
 
 
@@ -75,8 +113,20 @@ def assemble_gif(frame_dir, frames, out_fps, scale, colors):
         images.append(image.quantize(colors=colors))
 
     out_path = frame_dir.rstrip("/\\") + ".gif"
+    frame_ms = int(1000 / out_fps)
     images[0].save(out_path, save_all=True, append_images=images[1:],
-                   duration=int(1000 / out_fps), loop=0, optimize=True)
+                   duration=frame_ms, loop=0, optimize=True)
+
+    # Pillow folds identical neighbours into one stored frame, so playback length is the invariant.
+    expected_ms = len(frames) * frame_ms
+    with Image.open(out_path) as written:
+        decoded_ms = 0
+        for index in range(written.n_frames):
+            written.seek(index)
+            decoded_ms += written.info["duration"]
+    if decoded_ms != expected_ms:
+        sys.exit(f"read-back of {out_path} plays {decoded_ms} ms, expected {expected_ms} ms; "
+                 f"clip and frames kept in {frame_dir}")
     return out_path
 
 
@@ -103,6 +153,8 @@ def assemble(frame_dir, args):
     else:
         out_path = assemble_gif(frame_dir, frames, out_fps, scale, args.colors)
     print(f"{out_path}  {os.path.getsize(out_path) / 1e6:.1f} MB  {len(frames)} frames @ {out_fps:g} fps")
+    if not args.keep_frames:
+        shutil.rmtree(frame_dir)
     return True
 
 
@@ -122,6 +174,8 @@ def main():
     parser.add_argument("--colors", type=int, default=128, help="gif palette size")
     parser.add_argument("--web", action="store_true",
                         help=f"chat/artifact preset: mp4 <= {WEB_MAX_WIDTH} px wide at crf {WEB_CRF}")
+    parser.add_argument("--keep-frames", action="store_true",
+                        help="leave the frame dir in place after a verified encode (raw frames are the deliverable)")
     args = parser.parse_args()
     if args.step < 1:
         parser.error("--step must be >= 1")
