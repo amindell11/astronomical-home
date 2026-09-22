@@ -7,7 +7,6 @@ namespace Game.Player
     {
         private const string VerticalAxis = "Vertical";
         private const string HorizontalAxis = "Horizontal";
-        private const string RotationAxis = "Rotation";
         private const string BoostButton = "Boost";
         private const string Fire1Button = "Fire1";
         private const string Fire2Button = "Fire2";
@@ -15,7 +14,6 @@ namespace Game.Player
 
         public float Thrust => Input.GetAxis(VerticalAxis);
         public float Strafe => Input.GetAxis(HorizontalAxis);
-        public float Rotation => Input.GetAxis(RotationAxis);
         public bool BoostDown => Input.GetButtonDown(BoostButton);
         // Both triggers report the held (level) state; the weapon decides auto vs semi-auto,
         // and PlayerCommander derives the press edge for semi-auto weapons.

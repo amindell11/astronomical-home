@@ -10,9 +10,6 @@ namespace Ships.Movement
     [DefaultExecutionOrder(50)]
     public class MovementController : MonoBehaviour, IPilot
     {
-        [Header("Movement Gizmos")]
-        public float movementGizmoScale = 3f;
-
         private Rigidbody  rb;
         private Booster booster;
         internal ResolvedShipStats settings;

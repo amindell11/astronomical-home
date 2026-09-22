@@ -105,7 +105,7 @@ namespace Tests.PlayMode
             var enemy = CreateEnemy(arena, ship.transform.position + Vector3.up * 6f);
             var railgun = MountWeapon<Railguns>(RailgunPrefabPath, ship);
 
-            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
+            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             railgun.HandleTrigger(pressed: false, held: true, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
