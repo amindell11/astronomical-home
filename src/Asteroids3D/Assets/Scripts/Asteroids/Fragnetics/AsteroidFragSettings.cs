@@ -28,6 +28,10 @@ namespace Asteroids.Fragnetics
         public float baseSeparationSpeed = 5f;
     
         [SerializeField]
+        [Tooltip("Separation speed floor (m/s) so a weak hit still visibly splits the rock")]
+        public float minSeparationSpeed = 0f;
+
+        [SerializeField]
         [Tooltip("Maximum random rotation speed added to fragments in degrees/sec")]
         public float spinVariation = 30f;
         

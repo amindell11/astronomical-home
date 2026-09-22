@@ -33,12 +33,14 @@ namespace Asteroids.Fragnetics
         }
         public (Vector3 linear, Vector3 angular) CalculateInitialMomentum(AsteroidData ast, HitData hit)
         {
-	        // Work consistently in world space for both momentum accumulation and correction.
-	        var totalLinearMomentum = ast.Mass * ast.Velocity + hit.Mass * hit.Velocity;
+	        // World space throughout. The mass the split discards leaves with its momentum share;
+	        // the projectile is absorbed whole.
+	        var retained = asteroidFragSettings.massLossFactor;
+	        var totalLinearMomentum = retained * ast.Mass * ast.Velocity + hit.Mass * hit.Velocity;
 
 	        var localAngularVelocity = Quaternion.Inverse(ast.Rotation) * ast.AngularVelocity;
 	        var localAngularMomentum = Vector3.Scale(ast.InertiaTensor, localAngularVelocity);
-	        var asteroidAngularMomentum = ast.Rotation * localAngularMomentum;
+	        var asteroidAngularMomentum = retained * (ast.Rotation * localAngularMomentum);
 
 	        var r = hit.HitPoint - ast.Position;
 	        var projectileAngularMomentum = Vector3.Cross(r, hit.Mass * hit.Velocity);
@@ -170,7 +172,8 @@ namespace Asteroids.Fragnetics
 	        var outward = (pos - center).normalized;
 	        var random = UnityEngine.Random.insideUnitSphere.normalized;
 	        var dir = (s.outwardBias * outward + s.bulletBias * bulletDir + s.randomBias * random).normalized;
-            var speed = s.baseSeparationSpeed * momentumPerMass * UnityEngine.Random.Range(0.8f, 1.2f);
+            var speed = Mathf.Max(s.baseSeparationSpeed * momentumPerMass, s.minSeparationSpeed)
+                        * UnityEngine.Random.Range(0.8f, 1.2f);
 	        return dir * speed;
         }
         
