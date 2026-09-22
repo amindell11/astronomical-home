@@ -33,7 +33,7 @@ Material:
     - _NebulaParallax: 0.025
     - _NebulaScale: 0.085
     - _NebulaSpeed: 0.008
-    - _NebulaStrength: 0.12
+    - _NebulaStrength: 0.27
     - _NebulaZoomResponse: 0
     - _Seed: 0
     - _ZoomReferenceSize: 7
