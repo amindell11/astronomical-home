@@ -36,7 +36,9 @@
                     deletes it on shutdown - and which is older than zombieBootWindowSeconds; a
                     hung Unity 6 teardown never exits on its own). All three signals are required
                     together; a zombie blocker also carries windowless, lockfileMissing and
-                    ageSeconds. Recovery is -Action Reap.
+                    ageSeconds. ageSeconds is process lifetime, not time in that state: the last
+                    seconds of an ordinary shutdown look the same, so the verdict is a snapshot
+                    and only Reap, which reconfirms it, acts on it.
                     Every owner carries normalizedProjectPath - THE key for "is this owner on my
                     project" (this script's own normalization; compare against it, never re-derive).
                     With -ProjectPath, Status also answers "who owns this path":
@@ -74,13 +76,17 @@
       AttachBatchChild -Lease -> attached | batch_child_absent | ownership_mismatch.
       Adopt         -Lease -ProcessId -> adopted | adopt_no_process | adopt_already_tracked |
                     adopt_refused_user_editor | adopt_project_owned.
-      Reap          (needs no -Lease) -ProcessId [-EditorCloseWaitSeconds] ->
+      Reap          (needs no -Lease) -ProcessId [-ReapConfirmSeconds] [-EditorCloseWaitSeconds] ->
                     reaped | reap_refused_not_zombie | reap_did_not_exit.
-                    Kills the process tree of a blocker Status classifies zombie_unity (editor plus
-                    UnityCrashHandler64, UnityPackageManager and AssetImportWorker children) and
-                    waits for the editor to go. Refuses any other pid, tracked or not - a live
-                    editor is closed through Release -CloseEditor or by its owner. Operator-
-                    invoked only: Acquire reports a zombie, it never reaps one.
+                    Refuses any pid Status does not classify zombie_unity, tracked or not - a live
+                    editor is closed through Release -CloseEditor or by its owner. Otherwise waits
+                    -ReapConfirmSeconds (default 15) and classifies again: an editor that was
+                    merely finishing an ordinary shutdown has exited by then and returns reaped
+                    with exitedUnaided true; one still windowless, lockfile-less and running is
+                    killed with its tree (UnityCrashHandler64, UnityPackageManager and
+                    AssetImportWorker children) and waited for. A pid that stops classifying
+                    zombie_unity on the second look is refused. Operator-invoked only: Acquire
+                    reports a zombie, it never reaps one.
       Release       -Lease [-CloseEditor [-EditorCloseWaitSeconds]] -> released | editor_did_not_exit.
                     Also frees this lease's boot lane and cancels its queued ticket.
       Cancel        -Lease -> cancelled.
@@ -170,6 +176,7 @@ param(
     [int]$OwnerTtlSeconds = 300,
     [int]$BootTtlSeconds = 180,
     [int]$EditorCloseWaitSeconds = 30,
+    [int]$ReapConfirmSeconds = 15,
     [string]$StateRoot = "",
     [string]$PrimaryRoot = "",
     [string]$ProcessSnapshotPath = "",
@@ -1124,17 +1131,31 @@ function Adopt-Process {
     return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
 }
 
-function Reap-Process {
+function Get-ZombieBlocker {
     $target = @(Get-Blockers | Where-Object { $_.processId -eq $ProcessId })
-    if ($target.Count -eq 0 -or $target[0].kind -ne "zombie_unity") {
-        $found = if ($target.Count -gt 0) { $target[0] } else { $null }
-        return [ordered]@{ status = "reap_refused_not_zombie"; processId = $ProcessId; blocker = $found }
+    if ($target.Count -eq 0) { return $null }
+    return $target[0]
+}
+
+function Reap-Process {
+    $first = Get-ZombieBlocker
+    if ($null -eq $first -or $first.kind -ne "zombie_unity") {
+        return [ordered]@{ status = "reap_refused_not_zombie"; processId = $ProcessId; blocker = $first }
+    }
+    # The signals also hold during the last seconds of an ordinary shutdown; a hung teardown is
+    # the one that is still here after the wait.
+    if (Wait-ProcessExit $ProcessId $ReapConfirmSeconds) {
+        return [ordered]@{ status = "reaped"; processId = $ProcessId; blocker = $first; exitedUnaided = $true }
+    }
+    $second = Get-ZombieBlocker
+    if ($null -eq $second -or $second.kind -ne "zombie_unity") {
+        return [ordered]@{ status = "reap_refused_not_zombie"; processId = $ProcessId; blocker = $second }
     }
     Stop-ProcessTree -ProcessId $ProcessId
     if (-not (Wait-ProcessExit $ProcessId $EditorCloseWaitSeconds)) {
-        return [ordered]@{ status = "reap_did_not_exit"; processId = $ProcessId; blocker = $target[0] }
+        return [ordered]@{ status = "reap_did_not_exit"; processId = $ProcessId; blocker = $second }
     }
-    return [ordered]@{ status = "reaped"; processId = $ProcessId; blocker = $target[0] }
+    return [ordered]@{ status = "reaped"; processId = $ProcessId; blocker = $second; exitedUnaided = $false }
 }
 
 function Cancel-Request {

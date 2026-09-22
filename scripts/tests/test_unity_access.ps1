@@ -42,6 +42,7 @@ function Invoke-Coordinator {
         [int]$OwnerTtlSeconds = 300,
         [string]$MemorySnapshotPath = "",
         [int]$ProcessId = 0,
+        [int]$ReapConfirmSeconds = -1,
         [switch]$AllowLowMemory
     )
     if ([string]::IsNullOrWhiteSpace($MemorySnapshotPath)) { $MemorySnapshotPath = $Memory }
@@ -61,6 +62,7 @@ function Invoke-Coordinator {
     $arguments += @("-ProjectPath", $ProjectPath)
     if ($WaitSeconds -gt 0) { $arguments += @("-WaitSeconds", $WaitSeconds) }
     if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
+    if ($ReapConfirmSeconds -ge 0) { $arguments += @("-ReapConfirmSeconds", $ReapConfirmSeconds) }
     if ($AllowLowMemory.IsPresent) { $arguments += @("-AllowLowMemory") }
     # Every call goes through the sanctioned client, so the whole suite is also a standing proof of
     # the machine channel: one JSON line on stdout, parsed whole, never sniffed for.
@@ -360,11 +362,32 @@ try {
     Assert-Equal $absent.value.status "reap_refused_not_zombie" "Reap refuses a pid Status does not know"
     Remove-Item -LiteralPath (Join-Path $agentProject "Temp") -Recurse -Force
 
+    # An odd pid is never live, so Wait-ProcessExit returns at once and the verdict is exitedUnaided:
+    # the shape of an editor that was finishing an ordinary shutdown when Status looked.
     Write-Snapshot @([ordered]@{ processId = 41007; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $aged })
-    $reaped = Invoke-Coordinator -Action Reap -ProcessId 41007
+    $reaped = Invoke-Coordinator -Action Reap -ProcessId 41007 -ReapConfirmSeconds 1
     Assert-Equal $reaped.code 0 "reap exit"
-    Assert-Equal $reaped.value.status "reaped" "Reap kills a zombie and reports it gone"
+    Assert-Equal $reaped.value.status "reaped" "Reap reports a zombie gone"
+    Assert-True ([bool]$reaped.value.exitedUnaided) "an editor gone before the reconfirmation left unaided"
     Assert-Equal $reaped.value.blocker.kind "zombie_unity" "reap result carries the classification it acted on"
+
+    # A live pid that classifies zombie on the first look and not on the second is refused, never killed.
+    # A sleeping shell stands in for the editor, so a missed rewrite kills nothing that matters.
+    $standIn = Start-Process powershell -ArgumentList "-NoProfile", "-Command", "Start-Sleep 120" -WindowStyle Hidden -PassThru
+    $self = $standIn.Id
+    Write-Snapshot @([ordered]@{ processId = $self; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 0; startTime = $aged })
+    $rewrite = Start-Job -ScriptBlock {
+        param($path, $selfPid, $project)
+        Start-Sleep -Seconds 1
+        $record = @([ordered]@{ processId = $selfPid; commandLine = "Unity.exe -projectPath `"$project`""; mainWindowHandle = 12345; startTime = [datetime]::UtcNow.AddSeconds(-600).ToString("o") })
+        [System.IO.File]::WriteAllText($path, ($record | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding($false)))
+    } -ArgumentList $Snapshot, $self, $mainProject
+    $reconfirmed = Invoke-Coordinator -Action Reap -ProcessId $self -ReapConfirmSeconds 10
+    Receive-Job $rewrite -Wait -AutoRemoveJob | Out-Null
+    Assert-Equal $reconfirmed.code 29 "reconfirmation refusal exit"
+    Assert-Equal $reconfirmed.value.status "reap_refused_not_zombie" "a zombie verdict that does not survive the reconfirmation is refused"
+    Assert-Equal $reconfirmed.value.blocker.kind "user_editor" "the second look sees a windowed primary-tree editor as the user's"
+    Stop-Process -Id $self -Force -ErrorAction SilentlyContinue
 
     Write-Snapshot @()
     $bootBlockedOwn = Invoke-Coordinator -Action Acquire -Lease boot-blocked -ProjectPath $projA
