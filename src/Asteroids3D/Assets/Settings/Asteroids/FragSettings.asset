@@ -17,6 +17,7 @@ MonoBehaviour:
   maxFragments: 5
   highCountBias: 0.52
   baseSeparationSpeed: 0.65
+  minSeparationSpeed: 1.5
   spinVariation: 1
   momentumCoupling: 0.32
   outwardBias: 0.76

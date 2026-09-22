@@ -72,9 +72,10 @@ namespace Combat.Projectiles
 
         public override void Launch(Vector3 direction)
         {            
+            var aim = GamePlane.WorldDirToPlane(direction);
             var shooterVelocity = GamePlane.WorldDirToPlane(Shooter?.Velocity ?? Vector3.zero);
-            var launchVelocity = GamePlane.WorldDirToPlane(direction) * initialSpeed + shooterVelocity;
-            rb.linearVelocity = GamePlane.PlaneDirToWorld(launchVelocity);
+            var inheritedAlongAim = Mathf.Max(0f, Vector2.Dot(shooterVelocity, aim));
+            rb.linearVelocity = GamePlane.PlaneDirToWorld(aim * (initialSpeed + inheritedAlongAim));
             base.Launch(direction);
         }
 
