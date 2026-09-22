@@ -13,13 +13,6 @@ namespace Game.Player
     [DefaultExecutionOrder(-30)]
     public class PlayerCommander : Commander
     {
-        [Header("Settings")]
-        [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
-        [SerializeField] internal bool useMouseDirection = false;
-
-        [Header("Gizmo Settings")]
-        [SerializeField] internal float mouseGizmoScale = 3f;
-
         private IShipStatus context;
         private IPilot pilot;
         private IWeapons weapons;
@@ -52,7 +45,6 @@ namespace Game.Player
 
         private float thrustInput;
         private float strafeInput;
-        private float rotationInput;
         private bool primaryHeld;
         private bool secondaryHeld;
         private bool prevPrimaryHeld;
@@ -66,13 +58,12 @@ namespace Game.Player
 
             thrustInput = playerInput.Thrust;
             strafeInput = playerInput.Strafe;
-            rotationInput = playerInput.Rotation;
             boostInput |= playerInput.BoostDown;
             primaryHeld = playerInput.PrimaryFire;
             secondaryHeld = playerInput.SecondaryFire;
             wantsRotate = playerInput.WantsToRotate;
 
-            if (useMouseDirection && wantsRotate && hasScreenProjector)
+            if (wantsRotate && hasScreenProjector)
             {
                 var mouseWorldPos = playerInput.GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - context.Transform.position).normalized;
@@ -88,7 +79,6 @@ namespace Game.Player
 
             thrustInput = 0f;
             strafeInput = 0f;
-            rotationInput = 0f;
             boostInput = false;
             wantsRotate = false;
             primaryHeld = false;
@@ -111,9 +101,7 @@ namespace Game.Player
                 thrust = thrustInput,
                 strafe = strafeInput,
                 boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
-                yawTorque = useMouseDirection
-                    ? (wantsRotate ? GetMouseRotationTorque() : 0f)
-                    : rotationInput,
+                yawTorque = wantsRotate ? GetMouseRotationTorque() : 0f,
             };
             boostInput = false;
             pilot.Drive(cmd);
