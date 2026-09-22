@@ -148,7 +148,9 @@ namespace AI
         // Decision churn needs two decisions of history, which only a readout-capable brain keeps.
         private static string Churn(AICommander commander)
         {
-            if (!commander.Brain || commander.Brain is not IPolicyReadout readout || readout.Count < 2) return "-";
+            if (!commander.Brain) return "-";
+            var readout = commander.Brain as IPolicyReadout;
+            if (readout == null || readout.Count < 2) return "-";
             var a = readout.ActionFromNewest(0);
             var prev = readout.ActionFromNewest(1);
             return prev.aimReferent == a.aimReferent
