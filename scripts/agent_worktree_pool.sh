@@ -84,10 +84,11 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
-  run-script-tests [dir]
+  run-script-tests <slot>
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
-      (powershell.exe) under dir (default: the primary worktree). Prints
-      one PASS/FAIL line per file and stops at the first failure (exit 1).
+      (powershell.exe) in that slot's worktree. Prints one PASS/FAIL line
+      per file and stops at the first failure (exit 1). An unknown slot,
+      a missing scripts/tests, or one with no test files also exits 1.
       Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
       SCRIPT_TEST_TOTAL_SECONDS=<wall seconds> includes the failed final file.
       During a merge, journal event script-test (phase script-tests) carries
@@ -806,15 +807,16 @@ cmd_run_resharper() {
 # ---- Script tests ----------------------------------------------------------
 # run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
 # SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
+# Internal: $1 is a resolved worktree path (the dispatch arm and the merge gate own slot resolution).
 cmd_run_script_tests() {
-  local dir="${1:-$ROOT}"
+  local dir="$1"
   local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
   if [[ ! -d "$tests_dir" ]]; then
-    echo "run-script-tests: no $tests_dir — nothing to run." >&2
-    return 0
+    echo "run-script-tests: $tests_dir is missing — the suite did not run." >&2
+    return 1
   fi
   for file in "$tests_dir"/test_*.sh "$tests_dir"/test_*.ps1; do
     [[ -f "$file" ]] || continue
@@ -841,7 +843,7 @@ cmd_run_script_tests() {
     fi
   done
   echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
-  [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
+  [[ "$ran" -eq 1 ]] || { echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2; return 1; }
 }
 
 # 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
@@ -1692,7 +1694,7 @@ cmd_merge() {
   local scripts_diff_rc=0
   landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
   [[ "$scripts_diff_rc" -ne 2 ]] || return 1
-  # Depth is bounded: the suite runs the SLOT's scripts/tests, and a test fixture's slot carries none.
+  # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     merge_phase_begin script-tests
     merge_journal_note "landing diff touches scripts/ - running the script suite"
@@ -1886,7 +1888,7 @@ main() {
     exit 1
   fi
 
-  local cmd="$1"
+  local cmd="$1" path
   shift || true
 
   case "$cmd" in
@@ -1899,7 +1901,9 @@ main() {
     run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
     run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
-      cmd_run_script_tests "$@"
+      require_slot_arg "run-script-tests requires <slot>" "$#"
+      path="$(slot_path "$1")" || { echo "run-script-tests: unknown slot '$1'" >&2; exit 1; }
+      cmd_run_script_tests "$path"
       ;;
     create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
     submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
