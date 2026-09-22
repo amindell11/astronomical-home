@@ -35,12 +35,6 @@ Material:
     - _HaloSize: 4
     - _HaloStrength: 0.053
     - _NearLayerShare: 0.441
-    - _NebulaForeground: 0
-    - _NebulaParallax: 0.025
-    - _NebulaScale: 0.085
-    - _NebulaSpeed: 0.008
-    - _NebulaStrength: 0.12
-    - _NebulaZoomResponse: 0
     - _ParallaxFar: 0.071
     - _ParallaxNear: 0.309
     - _ParallaxScale: 0.099
@@ -65,9 +59,6 @@ Material:
     m_Colors:
     - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
     - _ColorWarm: {r: 1, g: 0.82, b: 0.58, a: 1}
-    - _NebulaCool: {r: 0.18, g: 0.48, b: 0.65, a: 1}
-    - _NebulaWarm: {r: 0.5, g: 0.2, b: 0.38, a: 1}
-    - _ParallaxCorrectionWS: {r: 0, g: 0, b: 0, a: 0}
     - _ShootingColor: {r: 0.65, g: 0.8, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

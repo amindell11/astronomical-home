@@ -37,17 +37,6 @@ Shader "Custom/StarField"
         _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
         _Softness ("Softness", Range(0, 1)) = 0
 
-
-        [Header(Nebula)]
-        _NebulaStrength ("Nebula Strength", Range(0, 0.3)) = 0
-        _NebulaScale ("Nebula Scale", Range(0.01, 0.3)) = 0.085
-        _NebulaSpeed ("Nebula Motion Speed", Range(0, 0.05)) = 0.008
-        _NebulaParallax ("Nebula Parallax", Range(0, 1)) = 0.025
-        _NebulaZoomResponse ("Nebula Response to Zoom", Range(0, 1)) = 0
-        [Toggle] _NebulaForeground ("Foreground Wisps Only", Float) = 0
-        _NebulaCool ("Nebula Cool Color", Color) = (0.18, 0.48, 0.65, 1)
-        _NebulaWarm ("Nebula Warm Color", Color) = (0.5, 0.2, 0.38, 1)
-
         [Header(Shooting Stars)]
         _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
         _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 12
@@ -85,18 +74,7 @@ Shader "Custom/StarField"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float4 projectedPosition : TEXCOORD0;
-            };
+            #include "SkyCommon.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
                 float _Seed;
@@ -125,67 +103,11 @@ Shader "Custom/StarField"
                 float _TwinkleAmount;
                 float _TwinkleDurationMin;
                 float _TwinkleDurationMax;
-                float _NebulaStrength;
-                float _NebulaScale;
-                float _NebulaSpeed;
-                float _NebulaParallax;
-                float _NebulaZoomResponse;
-                float _NebulaForeground;
-                float4 _NebulaCool;
-                float4 _NebulaWarm;
                 float _ShootingBrightness;
                 float _ShootingInterval;
                 float _ShootingParallax;
                 float4 _ShootingColor;
             CBUFFER_END
-
-            float4 Hash42(float2 value)
-            {
-                float4 p = frac(value.xyxy * float4(0.1031, 0.1030, 0.0973, 0.1099));
-                p += dot(p, p.wzxy + 33.33);
-                return frac((p.xxyz + p.yzzw) * p.zywx);
-            }
-
-            float CloudNoise(float2 position)
-            {
-                float2 cell = floor(position);
-                float2 blend = frac(position);
-                blend = blend * blend * (3.0 - 2.0 * blend);
-                return lerp(lerp(Hash42(cell).x, Hash42(cell + float2(1, 0)).x, blend.x),
-                    lerp(Hash42(cell + float2(0, 1)).x, Hash42(cell + 1).x, blend.x), blend.y);
-            }
-
-            float3 NebulaLayer(float2 position, float2 drift, float layerSeed, float coverageStart)
-            {
-                float time = _Time.y * _NebulaSpeed;
-                float2 p = position * _NebulaScale + (_Seed + layerSeed) * float2(13.7, 29.3) + time * drift;
-                float2 warp = float2(CloudNoise(p * 0.6 + float2(time, 0)),
-                    CloudNoise(p * 0.6 + float2(17.3, -time))) - 0.5;
-                float2 cloudPosition = p + warp * 2.5;
-                float broad = CloudNoise(cloudPosition);
-                float detail = CloudNoise(cloudPosition * 2.1 + 31.7);
-                float fine = CloudNoise(cloudPosition * 4.3 - 19.1);
-                float cloud = broad * 0.6 + detail * 0.28 + fine * 0.12;
-                float coverage = smoothstep(coverageStart, 0.78, cloud);
-                float filaments = pow(saturate(1.0 - abs(detail * 2.0 - 1.0)), 3.0);
-                if (_NebulaForeground > 0.5) coverage *= smoothstep(0.8, 0.95, filaments);
-                float3 color = lerp(_NebulaCool.rgb, _NebulaWarm.rgb, smoothstep(0.3, 0.7, broad));
-                return color * coverage * (0.35 + filaments * 0.65) * _NebulaStrength;
-            }
-
-            float3 Nebula(float2 position, float2 cameraPosition)
-            {
-                [branch]
-                if (_NebulaStrength <= 0) return 0;
-                if (_NebulaForeground > 0.5)
-                    return NebulaLayer(position + cameraPosition * _NebulaParallax,
-                        float2(0.7, -0.5), 7.3, 0.66);
-                float3 farClouds = NebulaLayer((position + cameraPosition * _NebulaParallax * 0.5) * 0.7,
-                    float2(0.35, 0.15), 0, 0.42);
-                float3 nearWisps = NebulaLayer(position + cameraPosition * _NebulaParallax,
-                    float2(-0.25, 0.45), 3.7, 0.48);
-                return farClouds * 0.6 + nearWisps * 0.4;
-            }
 
             float3 ShootingRegion(float2 position, float2 region, float aa)
             {
@@ -352,43 +274,12 @@ Shader "Custom/StarField"
                 return stars;
             }
 
-            Varyings Vert(Attributes input)
-            {
-                Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS);
-                output.projectedPosition = output.positionHCS;
-                return output;
-            }
-
             half4 Frag(Varyings input) : SV_Target
             {
-                float3 planeRight = normalize(float3(
-                    unity_ObjectToWorld._m00,
-                    unity_ObjectToWorld._m10,
-                    unity_ObjectToWorld._m20));
-                float3 planeUp = normalize(float3(
-                    unity_ObjectToWorld._m01,
-                    unity_ObjectToWorld._m11,
-                    unity_ObjectToWorld._m21));
-                float3 cameraPositionWS = GetCameraPositionWS();
-                float2 cameraPosition = float2(
-                    dot(cameraPositionWS, planeRight),
-                    dot(cameraPositionWS, planeUp));
-
-                // Preserve authored scale at the main camera's initial orthographic size.
-                float zoom = _ZoomReferenceSize * abs(UNITY_MATRIX_P._m11);
-                float2 screenPosition = input.projectedPosition.xy / input.projectedPosition.w;
-                float2 referencePosition = screenPosition * _ZoomReferenceSize * float2(
-                    abs(UNITY_MATRIX_P._m11) / UNITY_MATRIX_P._m00, sign(UNITY_MATRIX_P._m11));
-                float3 referenceOffsetWS = UNITY_MATRIX_V[0].xyz * referencePosition.x +
-                    UNITY_MATRIX_V[1].xyz * referencePosition.y;
-                float2 referencePlanePosition = float2(dot(referenceOffsetWS, planeRight), dot(referenceOffsetWS, planeUp));
-                float2 nebulaPosition = referencePlanePosition * pow(zoom, -_NebulaZoomResponse);
-                [branch]
-                if (_NebulaForeground > 0.5)
-                    return half4(Nebula(nebulaPosition, cameraPosition), 0);
-                float2 planePosition = referencePlanePosition * pow(zoom, -_SpacingZoomResponse);
-                float zoomSizeScale = pow(zoom, _SizeZoomResponse - _SpacingZoomResponse);
+                SkyCoordinates coordinates = GetSkyCoordinates(input.projectedPosition, _ZoomReferenceSize);
+                float2 planePosition = coordinates.planePosition * pow(coordinates.zoom, -_SpacingZoomResponse);
+                float2 cameraPosition = coordinates.cameraPosition;
+                float zoomSizeScale = pow(coordinates.zoom, _SizeZoomResponse - _SpacingZoomResponse);
 
                 float nearDensity = _StarDensity * _NearLayerShare * 0.5;
                 float farDensity = _StarDensity * (1.0 - _NearLayerShare) * 0.5;
@@ -405,9 +296,8 @@ Shader "Custom/StarField"
                     planePosition, cameraPosition, _ParallaxNear,
                     nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
 
-                float3 atmosphere = Nebula(nebulaPosition, cameraPosition) +
-                    ShootingStars(planePosition + cameraPosition * _ShootingParallax);
-                return half4(farStars + middleFarStars + middleNearStars + nearStars + atmosphere, 0);
+                float3 shootingStars = ShootingStars(planePosition + cameraPosition * _ShootingParallax);
+                return half4(farStars + middleFarStars + middleNearStars + nearStars + shootingStars, 0);
             }
             ENDHLSL
         }

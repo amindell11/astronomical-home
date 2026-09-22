@@ -25,10 +25,8 @@ namespace Tests.EditMode.Rendering
             previousTime = Shader.GetGlobalVector("_Time");
             previousCamera = Shader.GetGlobalVector("_WorldSpaceCameraPos");
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat"));
+                "Assets/Visuals/Environment/Sky/NebulaMaterial.mat"));
             material.SetFloat("_NebulaStrength", 0);
-            material.SetFloat("_ShootingBrightness", 0);
-            material.SetFloat("_StarDensity", 0);
             mesh = new Mesh
             {
                 vertices = new[] { new Vector3(-100, -100), new Vector3(100, -100),
@@ -57,6 +55,22 @@ namespace Tests.EditMode.Rendering
         }
 
         [Test]
+        public void CameraAtmosphere_SeparatesMaterialsAndPreservesDrawOrder()
+        {
+            var camera = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Cameras/Main Camera.prefab");
+            var stars = camera.transform.Find("StarField").GetComponent<SpriteRenderer>().sharedMaterial;
+            var background = camera.transform.Find("BackgroundNebula").GetComponent<SpriteRenderer>().sharedMaterial;
+            var foreground = camera.transform.Find("ForegroundNebula").GetComponent<SpriteRenderer>().sharedMaterial;
+            Assert.That(stars.HasProperty("_NebulaStrength"), Is.False);
+            Assert.That(background.HasProperty("_StarDensity"), Is.False);
+            Assert.That(foreground.shader, Is.EqualTo(background.shader));
+            Assert.That(foreground, Is.Not.EqualTo(background));
+            Assert.That(stars.renderQueue, Is.EqualTo(2950));
+            Assert.That(background.renderQueue, Is.EqualTo(2960));
+            Assert.That(foreground.renderQueue, Is.EqualTo(2990));
+        }
+
+        [Test]
         public void Nebula_HasDarkGapsEvolvesAndReturnsAfterCameraTravel()
         {
             Assert.That(Render(0).Max(c => c.maxColorComponent), Is.Zero);
@@ -77,7 +91,6 @@ namespace Tests.EditMode.Rendering
         {
             material.SetFloat("_NebulaStrength", 0.12f);
             material.SetFloat("_NebulaForeground", foreground ? 1 : 0);
-            material.SetFloat("_SpacingZoomResponse", 1);
             foreach (var time in new[] { 0f, 30f })
             {
                 var baseline = Render(time, 40);
@@ -89,11 +102,16 @@ namespace Tests.EditMode.Rendering
         }
 
         [Test]
-        public void ForegroundWisps_AreSparseFaintAndMoveWithoutDrawingStars()
+        public void ForegroundWisps_AtLowStrengthAreSparseFaintAndMoveWithoutDrawingStars()
         {
             Object.DestroyImmediate(material);
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
                 "Assets/Visuals/Environment/Sky/ForegroundNebulaMaterial.mat"));
+            material.SetFloat("_NebulaForeground", 1);
+            material.SetFloat("_NebulaStrength", 0.025f);
+            material.SetFloat("_NebulaScale", 0.085f);
+            material.SetFloat("_NebulaSpeed", 0.008f);
+            material.SetFloat("_NebulaParallax", 0.07f);
             var baseline = Render(0);
             Assert.Greater(baseline.Max(c => c.r), 0.0001f);
             Assert.Less(baseline.Max(c => c.maxColorComponent), 0.02f);
@@ -107,6 +125,10 @@ namespace Tests.EditMode.Rendering
         [Test]
         public void ShootingStars_AppearMoveAndLeaveQuietIntervals()
         {
+            Object.DestroyImmediate(material);
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat"));
+            material.SetFloat("_StarDensity", 0);
             material.SetFloat("_ShootingBrightness", 0.65f);
             var litFrames = 0;
             var quietFrames = 0;

@@ -23,7 +23,6 @@ namespace Tests.EditMode.Rendering
                 "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat");
             Assert.IsNotNull(source);
             var material = new Material(source);
-            material.SetFloat("_NebulaStrength", 0);
             material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_Seed", 0);
             material.SetFloat("_StarDensity", 1);

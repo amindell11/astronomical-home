@@ -7,17 +7,16 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ForegroundNebulaMaterial
+  m_Name: NebulaMaterial
   m_Shader: {fileID: 4800000, guid: 1af0987870b4c154392851c7d14257dc, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords:
-  - _NEBULAFOREGROUND_ON
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2990
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -30,11 +29,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _NebulaForeground: 1
-    - _NebulaParallax: 0.133
-    - _NebulaScale: 0.053
-    - _NebulaSpeed: 0.0198
-    - _NebulaStrength: 0.22
+    - _NebulaForeground: 0
+    - _NebulaParallax: 0.025
+    - _NebulaScale: 0.085
+    - _NebulaSpeed: 0.008
+    - _NebulaStrength: 0.12
     - _NebulaZoomResponse: 0
     - _Seed: 0
     - _ZoomReferenceSize: 7
