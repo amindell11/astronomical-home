@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regression for #612: run-script-tests takes <slot> like every sibling verb, and a slot whose
-# suite cannot run (no scripts/tests, or none with test files) fails instead of reporting success.
+# run-script-tests takes <slot> like every sibling verb, and a slot whose suite cannot run
+# (no scripts/tests, or none with test files) fails instead of reporting success.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
