@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 using UnityEditor;
 #endif
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Combat.Projectiles
 {
     /// <summary>
     /// Launch velocity of the shipped missile prefab from a moving shooter: the missile inherits only
@@ -37,9 +37,11 @@ namespace Tests.PlayMode
 
         private sealed class StubShooter : MonoBehaviour, IShooter
         {
+            private Rigidbody body;
             public Vector3 Velocity { get; set; }
-            public Rigidbody Body => GetComponent<Rigidbody>();
+            public Rigidbody Body => body;
             public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
+            private void Awake() => body = GetComponent<Rigidbody>();
         }
 
         public override void TearDown()
