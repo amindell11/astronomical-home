@@ -26,7 +26,7 @@ namespace Ships.Movement
             if (!Application.isPlaying) return;
 
             var origin = mover.transform.position;
-            var scale = mover.movementGizmoScale;
+            const float scale = 3f;
             var settings = mover.settings;
 
             if (mover.dbgThrust.sqrMagnitude > MinForce)
