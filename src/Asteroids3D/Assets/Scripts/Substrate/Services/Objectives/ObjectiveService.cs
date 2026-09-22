@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Substrate.Services.Objectives
 {
     /// <summary>Owns the spine tracker plus open local trackers and ticks them itself via Update.</summary>
-    public class ObjectiveService : MonoBehaviour, IObjectiveService, IObjectiveTrackerAdapter
+    public class ObjectiveService : MonoBehaviour, IObjectiveService
     {
         private readonly List<LocalObjectiveHandle> locals = new();
         private readonly List<LocalObjectiveHandle> tickBuffer = new();
@@ -18,18 +18,9 @@ namespace Substrate.Services.Objectives
         public Transform SpineTarget { get; private set; }
         public IReadOnlyList<LocalObjectiveHandle> Locals => locals;
 
-        ObjectiveType IObjectiveTrackerAdapter.CurrentState => SpineTracker?.CurrentState ?? ObjectiveType.Explore;
-
-        event Action<ObjectiveType, ObjectiveType> IObjectiveTrackerAdapter.OnStateChanged
-        {
-            add { OnSpineStateChanged += value; }
-            remove { OnSpineStateChanged -= value; }
-        }
-
         public event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
         public event Action<string> OnSpineStepChanged;
         public event Action<Transform> OnSpineTargetChanged;
-        public event Action OnLocalsChanged;
 
         public SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
@@ -66,13 +57,11 @@ namespace Substrate.Services.Objectives
         {
             var handle = new LocalObjectiveHandle(new ObjectiveTracker(mission, builders), target, CloseLocal);
             locals.Add(handle);
-            OnLocalsChanged?.Invoke();
             return handle;
         }
 
         public void ClearAll()
         {
-            // Drain until empty: OnLocalsChanged handlers may close other handles or open new ones mid-sweep.
             while (locals.Count > 0)
                 locals[locals.Count - 1].Close();
             CloseSpineCore();
@@ -115,8 +104,7 @@ namespace Substrate.Services.Objectives
 
         private void CloseLocal(LocalObjectiveHandle handle)
         {
-            if (locals.Remove(handle))
-                OnLocalsChanged?.Invoke();
+            locals.Remove(handle);
         }
 
         private void ForwardSpineStateChanged(ObjectiveType from, ObjectiveType to)
