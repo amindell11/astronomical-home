@@ -36,6 +36,7 @@ render self-validates that the output actually contains >1.0 radiance.
 | `--samples` | 32 | Cycles adaptive samples (no denoise, to avoid panorama-seam artifacts). |
 | `--format` | EXR | `EXR` (32-bit float) or `HDR` (Radiance RGBE). |
 | `--seed` | 7319 | Varies the sparse-star layer; the nebula palette/structure are seed-extendable for per-sector variety. |
+| `--star-brightness` | 1 | Non-negative multiplier for both star layers and HDR anchor stars; `0` renders only nebula and deep-space wash. Changing it also changes sky-derived lighting. |
 | `--out` | script dir | Output basename (extension added automatically). |
 
 ## Design notes

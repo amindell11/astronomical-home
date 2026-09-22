@@ -33,6 +33,9 @@ WIDTH = int(_ARGS.get("width", 2048))
 HEIGHT = int(_ARGS.get("height", 1024))
 SAMPLES = int(_ARGS.get("samples", 32))
 SEED = float(_ARGS.get("seed", 7319.0))
+STAR_BRIGHTNESS = float(_ARGS.get("star-brightness", 1.0))
+if not math.isfinite(STAR_BRIGHTNESS) or STAR_BRIGHTNESS < 0.0:
+    raise ValueError("--star-brightness must be finite and non-negative")
 FORMAT = _ARGS.get("format", "EXR").upper()
 _EXT = {"EXR": ".exr", "HDR": ".hdr"}[FORMAT]
 _OUT_BASE = os.path.abspath(os.path.splitext(_ARGS.get("out", os.path.join(OUTPUT_DIR, "skybox_merged")))[0])
@@ -118,7 +121,7 @@ def build_world():
     star_ramp_a.color_ramp.elements[0].position = 0.748
     star_ramp_a.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
     star_ramp_a.color_ramp.elements[1].position = 0.750
-    star_ramp_a.color_ramp.elements[1].color = (2.8, 3.6, 5.2, 1.0)
+    star_ramp_a.color_ramp.elements[1].color = tuple(c * STAR_BRIGHTNESS for c in (2.8, 3.6, 5.2)) + (1.0,)
 
     # Sparse stars: soft warm-white, for gentle color variety across the field.
     star_noise_b = new_node(nodes, "ShaderNodeTexNoise", "Warm Sparse Stars", -850, 540)
@@ -132,7 +135,7 @@ def build_world():
     star_ramp_b.color_ramp.elements[0].position = 0.785
     star_ramp_b.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
     star_ramp_b.color_ramp.elements[1].position = 0.787
-    star_ramp_b.color_ramp.elements[1].color = (4.2, 3.6, 2.4, 1.0)
+    star_ramp_b.color_ramp.elements[1].color = tuple(c * STAR_BRIGHTNESS for c in (4.2, 3.6, 2.4)) + (1.0,)
 
     add_stars = new_node(nodes, "ShaderNodeMixRGB", "Add Star Layers", -260, 370)
     add_stars.blend_type = "ADD"
@@ -239,6 +242,9 @@ def build_nebula_volume():
 
 
 def build_anchor_stars():
+    if STAR_BRIGHTNESS == 0.0:
+        return
+
     anchors = [
         ((0.78, -0.36, 0.51), 0.055, (0.55, 0.72, 1.00), 420.0),
         ((-0.43, -0.81, 0.40), 0.070, (1.00, 0.47, 0.17), 260.0),
@@ -251,7 +257,7 @@ def build_anchor_stars():
         bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=radius, location=pos)
         star = bpy.context.object
         star.name = f"HDR Anchor Star {i:02d}"
-        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength))
+        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength * STAR_BRIGHTNESS))
 
 
 def configure_scene():
@@ -353,6 +359,7 @@ def save_and_verify():
         f"resolution={WIDTH}x{HEIGHT}\n"
         f"engine={scene.render.engine}\n"
         f"samples={SAMPLES}\n"
+        f"star_brightness={STAR_BRIGHTNESS}\n"
         f"render_seconds={elapsed:.3f}\n"
         f"max_rgb={max_rgb:.9g}\n"
         f"pct_pixels_above_1={100.0 * above1 / total:.4f}\n"
