@@ -187,12 +187,12 @@ function Add-StateRootArgument {
     return $Arguments + @("-StateRoot", $UnityAccessStateRoot)
 }
 
-# The coordinator's answer as data: refusal is $null when it granted the request, otherwise the
-# verdict it stamped (status + message), which travels up to the summary as infra_error runs.
-# An answer with no status is the coordinator itself failing, and that still throws.
-function Request-UnityAccess {
+# Acquire and BootAcquire gate a launch, so their refusal comes back as a message ($null when
+# granted) and travels up to the summary as infra_error runs; any other action's failure throws.
+# No status, or the coordinator's own coordinator_error, is the coordinator failing: that throws too.
+function Invoke-UnityAccess {
     param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
-    if ($SkipUnityAccess.IsPresent) { return [ordered]@{ result = $null; refusal = $null } }
+    if ($SkipUnityAccess.IsPresent) { return $null }
 
     $slot = Get-UnityAccessSlot $ProjectFullPath
     $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
@@ -210,13 +210,13 @@ function Request-UnityAccess {
 
     $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
     $result = $call.result
-    if ($call.exitCode -eq 0) { return [ordered]@{ result = $result; refusal = $null } }
+    if ($call.exitCode -eq 0) { return $null }
 
     if ($Action -in @("Acquire", "Wait")) {
         [void](Invoke-UnityAccessCoordinator -CoordinatorArgs @(Add-StateRootArgument @("-Action", "Cancel", "-Lease", $lease)))
     }
     $status = [string](Get-JsonProp $result 'status')
-    if ([string]::IsNullOrWhiteSpace($status)) {
+    if ([string]::IsNullOrWhiteSpace($status) -or $status -eq "coordinator_error") {
         throw "Unity access $Action failed (exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
     $message = switch ($status) {
@@ -229,20 +229,13 @@ function Request-UnityAccess {
         }
         default { "Unity access $Action refused (status=$status, exit=$($call.exitCode)): $($call.stdout) $($call.stderr)" }
     }
-    return [ordered]@{ result = $result; refusal = [ordered]@{ status = $status; message = $message } }
+    if ($Action -in @("Acquire", "BootAcquire")) { return $message }
+    throw $message
 }
 
-function Invoke-UnityAccess {
-    param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
-    $answer = Request-UnityAccess @PSBoundParameters
-    if ($null -ne $answer.refusal) { throw $answer.refusal.message }
-    return $answer.result
-}
-
-# $null once the project is held; otherwise the coordinator's refusal.
 function Enter-UnityAccess {
     param([string]$ProjectFullPath)
-    return (Request-UnityAccess -Action "Acquire" -ProjectFullPath $ProjectFullPath).refusal
+    return Invoke-UnityAccess -Action "Acquire" -ProjectFullPath $ProjectFullPath
 }
 
 function Attach-UnityAccess {
@@ -257,9 +250,7 @@ function Exit-UnityAccess {
 
 function Enter-UnityBootLane {
     param([string]$ProjectFullPath)
-    if ($SkipUnityAccess.IsPresent) { return [ordered]@{ held = $false; refusal = $null } }
-    $answer = Request-UnityAccess -Action "BootAcquire" -ProjectFullPath $ProjectFullPath -WaitSecondsOverride $Script:BootAcquireWaitSec
-    return [ordered]@{ held = ($null -eq $answer.refusal); refusal = $answer.refusal }
+    return Invoke-UnityAccess -Action "BootAcquire" -ProjectFullPath $ProjectFullPath -WaitSecondsOverride $Script:BootAcquireWaitSec
 }
 
 function Exit-UnityBootLane {
@@ -447,7 +438,7 @@ function Test-ScopeFilterMatchesTests {
         )
 
         $probe = Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args
-        if ($null -ne $probe.refusal) { throw $probe.refusal.message }
+        if ($null -ne $probe.refusal) { throw $probe.refusal }
 
         if (Test-Path -LiteralPath $xmlPath) {
             [xml]$xml = Get-Content -LiteralPath $xmlPath -Raw
@@ -671,9 +662,9 @@ function Invoke-UnityProcess {
     $bootHeld = $false
 
     try {
-        $lane = Enter-UnityBootLane -ProjectFullPath $processProject
-        if ($null -ne $lane.refusal) { return [ordered]@{ refusal = $lane.refusal } }
-        $bootHeld = $lane.held
+        $refusal = Enter-UnityBootLane -ProjectFullPath $processProject
+        if ($null -ne $refusal) { return [ordered]@{ refusal = $refusal } }
+        $bootHeld = -not $SkipUnityAccess.IsPresent
         $launchedAt = [DateTimeOffset]::UtcNow
         $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
         Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
@@ -1601,7 +1592,7 @@ try {
         $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec `
             -CompletionFiles @($xmlEdit, $xmlPlay)
         if ($null -ne $invoke.refusal) {
-            $runs = @(New-RefusalRuns -Platforms $platforms -Selection $selection -Reason $invoke.refusal.message)
+            $runs = @(New-RefusalRuns -Platforms $platforms -Selection $selection -Reason $invoke.refusal)
         }
         else {
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
@@ -1670,8 +1661,7 @@ try {
 
             $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
             if ($null -ne $invoke.refusal) {
-                # One verdict covers the platforms not yet launched; asking again would only be refused again.
-                $runs += New-RefusalRuns -Platforms @($platforms | Select-Object -Skip $runs.Count) -Selection $selection -Reason $invoke.refusal.message
+                $runs += New-RefusalRuns -Platforms @($platforms | Select-Object -Skip $runs.Count) -Selection $selection -Reason $invoke.refusal
                 break
             }
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }

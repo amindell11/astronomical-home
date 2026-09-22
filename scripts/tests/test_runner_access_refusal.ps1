@@ -1,12 +1,10 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# A Unity access refusal on the direct (cold) path is a verdict, not a crash: it lands as an
-# infra_error summary + STATUS= trailer + exit 2, the contract the pool reads, while a
-# coordinator that answers with no status at all is still the wrapper failing. Hermetic: the agent
-# runs from a copy of scripts/ whose unity_access.ps1 is a stub speaking the coordinator's published
-# channel (one JSON line on stdout, the status's exit code), so no coordinator, Unity or machine state
-# is consulted, and the fake Unity executable proves nothing was ever launched.
+# A Unity access refusal on the direct (cold) path lands as an infra_error summary + STATUS= trailer
+# + exit 2; a coordinator failure stays a wrapper failure. The agent runs from a copy of scripts/
+# whose unity_access.ps1 is a stub speaking the coordinator's published channel, so no coordinator,
+# Unity or machine state is consulted; the fake Unity executable proves nothing was launched.
 
 $Root = Join-Path $env:TEMP ("runner-refusal-" + [guid]::NewGuid().ToString("N"))
 $Scripts = Join-Path $Root "scripts"
@@ -31,7 +29,7 @@ switch ($Action) {
     "BootAcquire" {
         switch ($env:RUNNER_REFUSAL_STUB) {
             "boot-low-memory" { $answer = [ordered]@{ status = "boot_refused_low_memory"; commitHeadroomGB = 2.5; requiredHeadroomGB = 4 }; $exit = 28 }
-            "coordinator-crash" { $answer = $null; $exit = 99 }
+            "coordinator-error" { $answer = [ordered]@{ status = "coordinator_error"; error = "state dir reaped" }; $exit = 1 }
             default { $answer = [ordered]@{ status = "boot_acquired" } }
         }
     }
@@ -100,32 +98,28 @@ function Assert-Refusal {
     if (Test-Path -LiteralPath $Launched) { throw "${Case}: Unity was launched despite the refusal" }
 }
 
-# Boot lane refused on the per-platform path: the project lease is released, nothing launches.
-$run = Invoke-Agent -Stub "boot-low-memory" -AgentArgs @("-Mode", "EditMode", "-TestFilter", "Probe")
-Assert-Refusal -Case "boot refusal (EditMode)" -Run $run -Platforms @("EditMode") -NoteFragment "2.5 GB commit headroom"
-if (($run.calls -join ",") -ne "Acquire,BootAcquire,Release") { throw "boot refusal must release the project lease it holds (calls: $($run.calls -join ','))" }
-
 # Boot lane refused on the single-boot (gate) shape: both platforms carry the verdict.
 $run = Invoke-Agent -Stub "boot-low-memory" -AgentArgs @("-Mode", "Both")
-Assert-Refusal -Case "boot refusal (single boot)" -Run $run -Platforms @("EditMode", "PlayMode") -NoteFragment "pass -AllowLowMemory"
+Assert-Refusal -Case "boot refusal (single boot)" -Run $run -Platforms @("EditMode", "PlayMode") -NoteFragment "2.5 GB commit headroom"
 
 # Project acquire refused (a wait that expired): cancelled, and every planned platform carries it.
 $run = Invoke-Agent -Stub "acquire-waiting" -AgentArgs @("-Mode", "Both")
 Assert-Refusal -Case "acquire refusal" -Run $run -Platforms @("EditMode", "PlayMode") -NoteFragment "status=waiting"
 if (($run.calls -join ",") -ne "Acquire,Cancel") { throw "a refused acquire must be cancelled and hold nothing (calls: $($run.calls -join ','))" }
 
-# Per-platform loop with two platforms: the first refusal covers the rest, the coordinator is asked once.
+# Per-platform loop with two platforms: the first refusal covers the rest, the coordinator is asked
+# once, and the project lease it held is released.
 $run = Invoke-Agent -Stub "boot-low-memory" -AgentArgs @("-Mode", "Both", "-OrderedTestListFile", $OrderedList)
-Assert-Refusal -Case "boot refusal (two-platform loop)" -Run $run -Platforms @("EditMode", "PlayMode") -NoteFragment "refused the boot"
-if (@($run.calls | Where-Object { $_ -eq "BootAcquire" }).Count -ne 1) { throw "the loop must stop at the first refusal (calls: $($run.calls -join ','))" }
+Assert-Refusal -Case "boot refusal (two-platform loop)" -Run $run -Platforms @("EditMode", "PlayMode") -NoteFragment "2.5 GB commit headroom"
+if (($run.calls -join ",") -ne "Acquire,BootAcquire,Release") { throw "the loop must stop at the first refusal and release the lease (calls: $($run.calls -join ','))" }
 
-# No status at all is the coordinator failing, not a verdict: no summary and no trailer (an unhandled
-# throw under -File exits 1, so the summary's absence is what tells this apart from red tests).
-$run = Invoke-Agent -Stub "coordinator-crash" -AgentArgs @("-Mode", "EditMode", "-TestFilter", "Probe")
-if ($run.exit -eq 0) { throw "a coordinator crash must not exit 0`n$($run.text)" }
-if ($run.text -match '(?m)^STATUS=') { throw "a coordinator crash must not print a STATUS trailer`n$($run.text)" }
-if ($run.text -notlike "*Unity access BootAcquire failed (exit=99)*") { throw "a coordinator crash must name the action and exit`n$($run.text)" }
-if (Test-Path -LiteralPath $run.summary) { throw "a coordinator crash must not write a summary" }
+# coordinator_error is the coordinator's own failure, not a verdict: no summary and no trailer (an
+# unhandled throw under -File exits 1, so the summary's absence is what tells it from red tests).
+$run = Invoke-Agent -Stub "coordinator-error" -AgentArgs @("-Mode", "EditMode", "-TestFilter", "Probe")
+if ($run.exit -eq 0) { throw "a coordinator failure must not exit 0`n$($run.text)" }
+if ($run.text -match '(?m)^STATUS=') { throw "a coordinator failure must not print a STATUS trailer`n$($run.text)" }
+if ($run.text -notlike "*Unity access BootAcquire failed (exit=1)*") { throw "a coordinator failure must name the action and exit`n$($run.text)" }
+if (Test-Path -LiteralPath $run.summary) { throw "a coordinator failure must not write a summary" }
 
 Remove-Item -LiteralPath $Root -Recurse -Force -ErrorAction SilentlyContinue
-Write-Host "PASS: direct-path access refusals land as infra_error summaries with exit 2; a coordinator crash stays a wrapper failure"
+Write-Host "PASS: direct-path access refusals land as infra_error summaries with exit 2; coordinator_error stays a wrapper failure"
