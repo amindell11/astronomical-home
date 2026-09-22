@@ -87,7 +87,7 @@ namespace Tests.PlayMode
         {
             var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
             // 10 physics steps to full, independent of the project's fixed timestep.
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f, autoFireAtFull: true);
+            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
             var fired = 0;
             laser.OnFire += () => fired++;
 
@@ -105,7 +105,7 @@ namespace Tests.PlayMode
         public void ChargeWeapon_ReleaseFires_WithChargeScaledDamage()
         {
             var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
 
             // Hold for half the charge time, then release.
             for (var i = 0; i < 5; i++)
@@ -155,7 +155,7 @@ namespace Tests.PlayMode
             var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             var target = CreateTarget(railgun.transform.position + Vector3.up * 5f);
 
-            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
+            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             var fired = 0;
             railgun.OnFire += () => fired++;
 
@@ -207,7 +207,7 @@ namespace Tests.PlayMode
 
             var enemy = CreateTarget(ship.transform.position + Vector3.up * 6f);
 
-            mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
+            mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             mounted.HandleTrigger(pressed: false, held: true, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");

@@ -37,6 +37,12 @@ Shader "Custom/StarField"
         _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
         _Softness ("Softness", Range(0, 1)) = 0
 
+        [Header(Shooting Stars)]
+        _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
+        _ShootingInterval ("Shooting Star Interval (seconds per region)", Range(6, 60)) = 12
+        _ShootingParallax ("Shooting Star Parallax", Range(0, 1)) = 0.1
+        _ShootingColor ("Shooting Star Color", Color) = (0.65, 0.8, 1, 1)
+
         [Header(Motion)]
         _TwinkleNoise ("Twinkle Noise", Range(0, 1)) = 0
         _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
@@ -68,18 +74,7 @@ Shader "Custom/StarField"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float4 projectedPosition : TEXCOORD0;
-            };
+            #include "SkyCommon.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
                 float _Seed;
@@ -108,13 +103,55 @@ Shader "Custom/StarField"
                 float _TwinkleAmount;
                 float _TwinkleDurationMin;
                 float _TwinkleDurationMax;
+                float _ShootingBrightness;
+                float _ShootingInterval;
+                float _ShootingParallax;
+                float4 _ShootingColor;
             CBUFFER_END
 
-            float4 Hash42(float2 value)
+            float3 ShootingRegion(float2 position, float2 region, float aa)
             {
-                float4 p = frac(value.xyxy * float4(0.1031, 0.1030, 0.0973, 0.1099));
-                p += dot(p, p.wzxy + 33.33);
-                return frac((p.xxyz + p.yzzw) * p.zywx);
+                const float regionSize = 24.0;
+                float4 regionRandom = Hash42(region + _Seed * float2(31.3, 17.7));
+                float time = _Time.y + regionRandom.x * _ShootingInterval;
+                float cycle = floor(time / _ShootingInterval);
+                float4 random = Hash42(region + cycle * float2(73.1, 91.7) + _Seed + 173.3);
+                float age = time - cycle * _ShootingInterval - lerp(0.1, 0.6, random.x) * _ShootingInterval;
+                float duration = lerp(0.9, 1.5, random.y);
+                [branch]
+                if (random.w > 0.65 || age <= 0 || age >= duration) return 0;
+
+                float life = age / duration;
+                float angle = lerp(-0.9, -0.3, random.z) + step(0.5, regionRandom.z) * PI;
+                float2 direction = float2(cos(angle), sin(angle));
+                float2 center = (region + regionRandom.yz) * regionSize;
+                float2 head = center + direction * lerp(-4.0, 4.0, life);
+                float2 offset = position - head;
+                float along = dot(offset, direction);
+                float across = abs(dot(offset, float2(-direction.y, direction.x)));
+                float tail = saturate(1.0 + along / 3.0);
+
+                float width = 0.012 * tail;
+                float streak = (1.0 - smoothstep(width, width + aa, across)) * tail * tail *
+                    (1.0 - smoothstep(0.0, aa, along));
+                float glow = exp2(-length(offset) * 35.0);
+                float fade = smoothstep(0.0, 0.2, life) * (1.0 - smoothstep(0.65, 1.0, life));
+
+                return _ShootingColor.rgb * (streak + glow * 0.4) * fade * _ShootingBrightness;
+            }
+            float3 ShootingStars(float2 position)
+            {
+                [branch]
+                if (_ShootingBrightness <= 0) return 0;
+                float2 region = floor(position / 24.0);
+                float aa = max(length(fwidth(position)), 0.001);
+                float3 light = 0;
+                [unroll]
+                for (int y = -1; y <= 1; y++)
+                [unroll]
+                for (int x = -1; x <= 1; x++)
+                    light += ShootingRegion(position, region + float2(x, y), aa);
+                return light;
             }
 
             float StarSupport(float radius, float haloRadius, float antialiasWidth, float elongation)
@@ -237,39 +274,12 @@ Shader "Custom/StarField"
                 return stars;
             }
 
-            Varyings Vert(Attributes input)
-            {
-                Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS);
-                output.projectedPosition = output.positionHCS;
-                return output;
-            }
-
             half4 Frag(Varyings input) : SV_Target
             {
-                float3 planeRight = normalize(float3(
-                    unity_ObjectToWorld._m00,
-                    unity_ObjectToWorld._m10,
-                    unity_ObjectToWorld._m20));
-                float3 planeUp = normalize(float3(
-                    unity_ObjectToWorld._m01,
-                    unity_ObjectToWorld._m11,
-                    unity_ObjectToWorld._m21));
-                float3 cameraPositionWS = GetCameraPositionWS();
-                float2 cameraPosition = float2(
-                    dot(cameraPositionWS, planeRight),
-                    dot(cameraPositionWS, planeUp));
-
-                // Preserve authored scale at the main camera's initial orthographic size.
-                float zoom = _ZoomReferenceSize * abs(UNITY_MATRIX_P._m11);
-                float2 screenPosition = input.projectedPosition.xy / input.projectedPosition.w;
-                float2 referencePosition = screenPosition * _ZoomReferenceSize * float2(
-                    abs(UNITY_MATRIX_P._m11) / UNITY_MATRIX_P._m00, sign(UNITY_MATRIX_P._m11));
-                float3 referenceOffsetWS = UNITY_MATRIX_V[0].xyz * referencePosition.x +
-                    UNITY_MATRIX_V[1].xyz * referencePosition.y;
-                float2 planePosition = float2(dot(referenceOffsetWS, planeRight), dot(referenceOffsetWS, planeUp)) *
-                    pow(zoom, -_SpacingZoomResponse);
-                float zoomSizeScale = pow(zoom, _SizeZoomResponse - _SpacingZoomResponse);
+                SkyCoordinates coordinates = GetSkyCoordinates(input.projectedPosition, _ZoomReferenceSize);
+                float2 planePosition = coordinates.planePosition * pow(coordinates.zoom, -_SpacingZoomResponse);
+                float2 cameraPosition = coordinates.cameraPosition;
+                float zoomSizeScale = pow(coordinates.zoom, _SizeZoomResponse - _SpacingZoomResponse);
 
                 float nearDensity = _StarDensity * _NearLayerShare * 0.5;
                 float farDensity = _StarDensity * (1.0 - _NearLayerShare) * 0.5;
@@ -286,7 +296,8 @@ Shader "Custom/StarField"
                     planePosition, cameraPosition, _ParallaxNear,
                     nearDensity, 1.25, 1.0, 73.73, 0.0, zoomSizeScale);
 
-                return half4(farStars + middleFarStars + middleNearStars + nearStars, 0);
+                float3 shootingStars = ShootingStars(planePosition + cameraPosition * _ShootingParallax);
+                return half4(farStars + middleFarStars + middleNearStars + nearStars + shootingStars, 0);
             }
             ENDHLSL
         }
