@@ -12,7 +12,8 @@ Nth frame while keeping real-time playback.
 
 The frame dir is this step's intermediate: a written clip is decoded back and
 checked to hold the frames handed to the encoder (mp4: decoded frame count; gif:
-total playback length), and only then is the frame dir deleted. --keep-frames leaves it in place when the raw frames are the deliverable.
+total playback length), and only then is the frame dir deleted. --keep-frames
+leaves it in place when the raw frames are the deliverable.
 
 Exit codes: 0 = every matched directory encoded and verified; nonzero = the
 message on stderr names the directory and whether the encode or the read-back
