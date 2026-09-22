@@ -9,8 +9,8 @@ metadata:
 
 Record PNG frame dumps of a game situation through the Editor's Game View, with
 native gizmos drawn over it, then assemble them into mp4/gif. **The footage is the
-deliverable** — always end by reading a mid-clip PNG yourself and handing the user
-the clip path.
+deliverable** — always read a mid-clip PNG yourself before assembling (the encode
+step deletes the frames on a verified clip) and end by handing the user the clip path.
 
 Capture needs a rendering Game View — a **windowed Editor** booted by the test runner
 (`-WithGraphics -Windowed`), or a **resident GUI editor** via the warm lane. This is
@@ -192,6 +192,12 @@ frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
 replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
 needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
+The frame dir is the encode step's intermediate: `assemble.py` reads the clip
+back, checks its length, and deletes the frame dir on a verified encode — so the
+mid-clip PNG eyeball happens **before** this command, not after. Pass
+`--keep-frames` when the raw PNGs are the deliverable (stills, contact sheets)
+or a re-encode at another `--step`/`--fps` is likely; a failed read-back keeps
+everything and exits nonzero.
 
 ## Deliver
 
@@ -231,9 +237,10 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 - **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
   AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
   unlock if ever needed.
-- **Eyeball a mid-clip PNG (Read the file) before claiming success** — compile-green
-  says nothing about render output; v1's overlay failed only at render time. For label
-  checks, confirm the label *changes* across frames.
+- **Eyeball a mid-clip PNG (Read the file) before assembling** — compile-green
+  says nothing about render output, a frame-count read-back cannot see a blank
+  render, and the frames are gone once the clip verifies. For label checks,
+  confirm the label *changes* across frames.
 - Scratch scenarios are staged into `Tests/PlayMode/Scratch/` only for the run and
   auto-removed; if a run died hard, the next run sweeps leftovers. Don't put files
   there yourself.

@@ -43,6 +43,15 @@ rounded up to the next 0.5 GB**; retune when that maximum moves by 0.5 GB or
 more. Summaries accumulate across slot resets (`results/` is ignored and
 `git clean -fd` leaves it), so the history is already on disk.
 
+## Hub-launched editors
+
+`unity open` and a Unity Hub click launch outside the coordinator by
+construction (`-useHub -hubIPC`, parent = Unity Hub): the process is untracked
+from birth, and on this machine such editors have hung in Unity 6 teardown
+after a clean project load — windowless, lockfile gone, never exiting. The
+coordinator names that state `zombie_unity`; `-Action Reap` clears it
+(unity-access skill → Queue and blockers).
+
 ## Alastor — second Windows box (remote Unity lane)
 
 `ssh alastor` (→ `desir@Alastor.local`; Windows PowerShell 5.1, no `||`/`&&`).
