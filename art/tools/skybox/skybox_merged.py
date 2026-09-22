@@ -34,8 +34,13 @@ HEIGHT = int(_ARGS.get("height", 1024))
 SAMPLES = int(_ARGS.get("samples", 32))
 SEED = float(_ARGS.get("seed", 7319.0))
 STAR_BRIGHTNESS = float(_ARGS.get("star-brightness", 1.0))
-if not math.isfinite(STAR_BRIGHTNESS) or STAR_BRIGHTNESS < 0.0:
-    raise ValueError("--star-brightness must be finite and non-negative")
+ANCHOR_BRIGHTNESS = float(_ARGS.get("anchor-brightness", 1.0))
+NEBULA_CORE_EMISSION = float(_ARGS.get("nebula-core-emission", 1.0))
+for flag, value in (("star-brightness", STAR_BRIGHTNESS),
+                    ("anchor-brightness", ANCHOR_BRIGHTNESS),
+                    ("nebula-core-emission", NEBULA_CORE_EMISSION)):
+    if not math.isfinite(value) or value < 0.0:
+        raise ValueError(f"--{flag} must be finite and non-negative")
 FORMAT = _ARGS.get("format", "EXR").upper()
 _EXT = {"EXR": ".exr", "HDR": ".hdr"}[FORMAT]
 _OUT_BASE = os.path.abspath(os.path.splitext(_ARGS.get("out", os.path.join(OUTPUT_DIR, "skybox_merged")))[0])
@@ -234,7 +239,28 @@ def build_nebula_volume():
     links.new(socket(threshold, ("Color",), True), density_scale.inputs[0])
     links.new(socket(density_scale, ("Value",), True), socket(volume, ("Density",)))
     links.new(socket(density_scale, ("Value",), True), emission_scale.inputs[0])
-    links.new(socket(emission_scale, ("Value",), True), socket(volume, ("Emission Strength", "Blackbody Intensity")))
+    core_gain = new_node(nodes, "ShaderNodeMath", "Density-Weighted Core Gain", 140, -430)
+    core_gain.operation = "MULTIPLY_ADD"
+    max_density = threshold.color_ramp.elements[1].color[0] * density_scale.inputs[1].default_value
+    luminance_weights = (0.2126, 0.7152, 0.0722)
+    max_luminance = max(sum(e.color[i] * w for i, w in enumerate(luminance_weights))
+                        for e in palette.color_ramp.elements)
+    emitted_luminance = new_node(nodes, "ShaderNodeVectorMath", "Nebula Color Luminance", -100, -500)
+    emitted_luminance.operation = "DOT_PRODUCT"
+    emitted_luminance.inputs[1].default_value = luminance_weights
+    core_mask = new_node(nodes, "ShaderNodeMath", "Bright Dense Core Mask", 140, -600)
+    core_mask.operation = "MULTIPLY"
+    core_gain.inputs[1].default_value = (NEBULA_CORE_EMISSION - 1.0) / (max_density * max_luminance)
+    core_gain.inputs[2].default_value = 1.0
+    core_emission = new_node(nodes, "ShaderNodeMath", "Core Emission", 330, -300)
+    core_emission.operation = "MULTIPLY"
+    links.new(socket(palette, ("Color",), True), emitted_luminance.inputs[0])
+    links.new(socket(density_scale, ("Value",), True), core_mask.inputs[0])
+    links.new(socket(emitted_luminance, ("Value",), True), core_mask.inputs[1])
+    links.new(socket(core_mask, ("Value",), True), core_gain.inputs[0])
+    links.new(socket(emission_scale, ("Value",), True), core_emission.inputs[0])
+    links.new(socket(core_gain, ("Value",), True), core_emission.inputs[1])
+    links.new(socket(core_emission, ("Value",), True), socket(volume, ("Emission Strength", "Blackbody Intensity")))
     links.new(socket(noise_large, ("Fac", "Factor"), True), socket(palette, ("Fac", "Factor")))
     links.new(socket(palette, ("Color",), True), socket(volume, ("Emission Color", "Blackbody Tint")))
     links.new(socket(volume, ("Volume",), True), socket(out, ("Volume",)))
@@ -242,7 +268,7 @@ def build_nebula_volume():
 
 
 def build_anchor_stars():
-    if STAR_BRIGHTNESS == 0.0:
+    if ANCHOR_BRIGHTNESS == 0.0:
         return
 
     anchors = [
@@ -257,7 +283,7 @@ def build_anchor_stars():
         bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=radius, location=pos)
         star = bpy.context.object
         star.name = f"HDR Anchor Star {i:02d}"
-        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength * STAR_BRIGHTNESS))
+        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength * ANCHOR_BRIGHTNESS))
 
 
 def configure_scene():
@@ -360,6 +386,8 @@ def save_and_verify():
         f"engine={scene.render.engine}\n"
         f"samples={SAMPLES}\n"
         f"star_brightness={STAR_BRIGHTNESS}\n"
+        f"anchor_brightness={ANCHOR_BRIGHTNESS}\n"
+        f"nebula_core_emission={NEBULA_CORE_EMISSION}\n"
         f"render_seconds={elapsed:.3f}\n"
         f"max_rgb={max_rgb:.9g}\n"
         f"pct_pixels_above_1={100.0 * above1 / total:.4f}\n"
