@@ -446,7 +446,8 @@ function Test-ScopeFilterMatchesTests {
             "-testFilter", $TestFilter
         )
 
-        [void](Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args)
+        $probe = Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args
+        if ($null -ne $probe.refusal) { throw $probe.refusal.message }
 
         if (Test-Path -LiteralPath $xmlPath) {
             [xml]$xml = Get-Content -LiteralPath $xmlPath -Raw
@@ -665,7 +666,6 @@ function Invoke-UnityProcess {
 
     $processProject = Get-ArgumentValue -Arguments $Arguments -Name "-projectPath"
     $processLog = Get-ArgumentValue -Arguments $Arguments -Name "-logFile"
-    # A refusal returns before any launch: the caller turns it into infra_error runs.
     $refusal = Enter-UnityAccess -ProjectFullPath $processProject
     if ($null -ne $refusal) { return [ordered]@{ refusal = $refusal } }
     $bootHeld = $false
@@ -1291,7 +1291,7 @@ function Invoke-RoutedPlatformRun {
     return $run
 }
 
-# A refusal is a real verdict, not a crash: one infra_error run per platform carries it to the summary.
+# A refusal is a verdict, not a crash: one infra_error run per platform.
 function New-RefusalRuns {
     param([string[]]$Platforms, [object]$Selection, [string]$Reason)
 
