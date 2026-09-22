@@ -192,6 +192,10 @@ frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
 replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
 needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
+The frame dir is the encode step's intermediate: `assemble.py` reads the clip
+back, checks its frame count, and deletes the frame dir on a verified encode.
+Pass `--keep-frames` when the raw PNGs are the deliverable (stills, contact
+sheets); a failed read-back keeps everything and exits nonzero.
 
 ## Deliver
 
