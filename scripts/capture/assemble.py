@@ -10,15 +10,13 @@ Nth frame while keeping real-time playback.
 
 --web is the chat/artifact preset: mp4 downscaled to <=854 px wide at crf 30.
 
-The frame dir is this step's intermediate: after a clip is written it is decoded
-back and its frame count checked against the frames handed to the encoder, and
-only then is the frame dir deleted. --keep-frames leaves it in place when the raw
-frames are the deliverable. A clip that fails the read-back stays on disk beside
-its frames and the run exits nonzero naming the mismatch.
+The frame dir is this step's intermediate: a written clip is decoded back and
+checked to hold the frames handed to the encoder, and only then is the frame dir
+deleted. --keep-frames leaves it in place when the raw frames are the deliverable.
 
 Exit codes: 0 = every matched directory encoded and verified; nonzero = the
-message on stderr says which directory, encode or read-back failed. Nothing is
-deleted for a clip that did not verify.
+message on stderr names the directory and whether the encode or the read-back
+failed. A clip that did not verify keeps both itself and its frames on disk.
 
 mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg, not ffprobe). The repo venvs
 are uv-managed with no pip module: uv pip install --python <venv-python> imageio-ffmpeg
@@ -94,8 +92,9 @@ def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
     decoded, failure = decoded_frame_count(ffmpeg_exe, out_path)
     if failure is not None:
         sys.exit(f"read-back of {out_path} failed; frames kept in {frame_dir}: {failure}")
-    if decoded != expected:
-        sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected {expected}; "
+    # Floor, not equality: -r pads the concat stream to constant rate at some fps.
+    if decoded < expected:
+        sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected at least {expected}; "
                  f"clip and frames kept in {frame_dir}")
     return out_path
 
@@ -117,7 +116,7 @@ def assemble_gif(frame_dir, frames, out_fps, scale, colors):
                    duration=int(1000 / out_fps), loop=0, optimize=True)
 
     with Image.open(out_path) as written:
-        decoded = getattr(written, "n_frames", 1)
+        decoded = written.n_frames
     if decoded != len(frames):
         sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected {len(frames)}; "
                  f"clip and frames kept in {frame_dir}")

@@ -7,7 +7,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ASSEMBLE="$SCRIPT_DIR/../capture/assemble.py"
-export PYTHONPATH="$SCRIPT_DIR/fixtures/fake_imageio_ffmpeg${PYTHONPATH:+:$PYTHONPATH}"
+# Set, not appended: the separator is platform-specific and the fixture is all assemble.py needs.
+export PYTHONPATH="$SCRIPT_DIR/fixtures/fake_imageio_ffmpeg"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -47,9 +48,15 @@ run "$dir" --keep-frames
 dir="$(make_frames short)"
 FAKE_FFMPEG_READBACK=2 run "$dir"
 [[ "$rc" -ne 0 ]] || fail "a short read-back must exit nonzero (got 0: $out)"
-[[ "$out" == *"decoded 2 frames, expected 5"* ]] || fail "the failure must name both counts (got: $out)"
+[[ "$out" == *"decoded 2 frames, expected at least 5"* ]] || fail "the failure must name both counts (got: $out)"
 [[ -f "$dir/f_00000.png" ]] || fail "a failed read-back must keep the frame dir"
 [[ -f "$dir.mp4" ]] || fail "a failed read-back must keep the clip for inspection"
+
+# -r pads the concat stream to a constant rate at some fps, so a surplus is still verified
+dir="$(make_frames padded)"
+FAKE_FFMPEG_READBACK=8 run "$dir"
+[[ "$rc" -eq 0 ]] || fail "a padded read-back must exit 0 (got $rc: $out)"
+[[ ! -e "$dir" ]] || fail "a padded read-back must still delete the frame dir"
 
 # read-back cannot decode the clip at all
 dir="$(make_frames undecodable)"
