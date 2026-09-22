@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 using UnityEditor;
 #endif
 
-namespace Tests.PlayMode.Combat.Projectiles
+namespace Tests.PlayMode
 {
     /// <summary>
     /// Launch velocity of the shipped missile prefab from a moving shooter: the missile inherits only

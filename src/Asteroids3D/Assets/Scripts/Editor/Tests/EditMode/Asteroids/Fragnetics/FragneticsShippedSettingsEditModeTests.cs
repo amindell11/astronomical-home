@@ -4,7 +4,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Tests.EditMode.Asteroids.Fragnetics
+namespace Tests.EditMode
 {
     /// <summary>
     /// Drives the fragment calculator with the shipped FragSettings asset and a typical rock + laser
