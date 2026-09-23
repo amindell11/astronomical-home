@@ -41,6 +41,7 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh merge <slot> --remote` / `merge <slot> -- <test args>` — same merge gate with the test-run producer named (hosted headless suite / local run) instead of chosen from memory admission; see Step 6.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
+- `./scripts/agent_worktree_pool.sh hold <slot> [--local]` / `resume <lease> [slot]` — take waiting work off a slot and put it back; see "Holding a slot".
 
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
 own PR. Lease ids are the arc path — descriptive, branch-style names, one or
@@ -119,6 +120,25 @@ live-editor (`unity` CLI) verification that batch mode cannot cover, then
 editor on the primary worktree belongs to the user: report its PID and ask
 them to close it — never close it automatically.
 
+## Holding a slot
+
+Mechanics: the pool script's `--help`. Pass `--local` for work that must not
+go public yet, such as work awaiting approval: the repo is public.
+
+Offer to hold another session's slot, never hold it unasked, and offer only
+when a session starting work finds every slot full and that slot meets all of:
+
+- its ledger row is blocked or in review, waiting on a human;
+- `merge-progress <slot> --oneline` prints nothing;
+- `unity_access.ps1 -Action Status -ProjectPath <slot-path>/src/Asteroids3D -Json`
+  shows no `projectOwner`, so no editor or test run is live there.
+
+A session may hold its own work when it stops at a design fork for the user.
+
+After a hold, flip the ledger row to held, clear its slot column, and put the
+resume command in its Next column. Post the `HELD=… RESUME=…` line as a comment
+on the work's issue.
+
 ## Chat title lifecycle
 
 Chat titles surface each session's phase in the sessions list, so the user
@@ -186,7 +206,7 @@ presented options must include do-nothing/defer.
 Read the work ledger before acquiring
 (`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
 — worktree agents must use this exact absolute path) and claim a row. Acquire
-a slot; build and test there — directly, or via a sub-agent scoped to the
+a slot (every slot full → "Holding a slot"); build and test there — directly, or via a sub-agent scoped to the
 slot's worktree path when the task is large enough to benefit from an isolated
 context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
