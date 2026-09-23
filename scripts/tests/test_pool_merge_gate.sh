@@ -5,7 +5,8 @@ set -euo pipefail
 # failed runs stop the PR path, inert deltas skip the full suite, the phase
 # journal records the ladder for both outcomes, remote proof is accepted only
 # from a green merge-proof/headless status stamping the landing tree, and an owed run with no
-# named producer goes local or hosted on the memory admission verdict.
+# named producer goes local or hosted on the memory admission verdict. The script suite
+# overlaps the hosted wait, and a slot runs one gate at a time.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -880,6 +881,80 @@ grep -q '"phase":"base-recheck".*"status":"failed"' "$(journal_for)" || fail "th
 pool merge agent-1 >/dev/null
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "re-running merge after a moved base should integrate and merge"
 
+# The hosted wait overlaps the script suite: a script-test event lands before the verdict, and the
+# suite never holds the slot's merge lock.
+pending_headless() { printf 'pending\037headless suite running\037%s/%s' "$RUN_URL" "$1"; }
+cat > "$TMP/lock-probe.sh" <<'HOOK'
+[[ -n "${POOL_FLOCK_FD:-}" ]] || { echo nofd >> "$LOCK_PROBE_LOG"; exit 0; }
+[[ ! -e "/proc/$$/fd/$POOL_FLOCK_FD" ]] || echo held >> "$LOCK_PROBE_LOG"
+echo checked >> "$LOCK_PROBE_LOG"
+HOOK
+export LOCK_PROBE_LOG="$TMP/lock-probe.log"
+: > "$LOCK_PROBE_LOG"
+new_commit overlap-green
+statuses "$(pending_headless 51)" "$(pending_headless 51)" "$(pending_headless 51)" "$(green 51)"
+ratchets "$(rgreen 51)"
+runs "$(printf 'in_progress\t51')"
+merges_before="$(gh_merges)"
+PROBE_HOOK="bash '$TMP/lock-probe.sh'" remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote with a scripts/ diff should merge"; }
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "the overlapped hosted merge should reach gh pr merge"
+[[ "$(cat "$LOCK_PROBE_LOG")" == checked ]] || fail "the background suite must run with the merge lock fd closed (got '$(cat "$LOCK_PROBE_LOG")')"
+first_script_test="$(grep -n '"event":"script-test"' "$(journal_for)" | head -n 1 | cut -d: -f1)"
+remote_proof_end="$(grep -n '"event":"phase-end","phase":"remote-proof"' "$(journal_for)" | cut -d: -f1)"
+[[ -n "$first_script_test" && -n "$remote_proof_end" && "$first_script_test" -lt "$remote_proof_end" ]] \
+  || fail "the script suite must run during the hosted wait (script-test line ${first_script_test:-none}, remote-proof end ${remote_proof_end:-none})"
+[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+  || fail "overlap keeps the hosted ladder (got '$(phase_order)')"
+expect_output "PASS test_probe.sh" "the joined suite's output must reach the gate's output"
+
+# A red suite that finished during the wait still fails the merge at the join.
+new_commit overlap-red
+statuses "$(pending_headless 52)" "$(green 52)"
+ratchets "$(rgreen 52)"
+runs "$(printf 'in_progress\t52')"
+echo 1 > "$PROBE_EXIT_FILE"
+merges_before="$(gh_merges)"
+remote_merge && fail "a red script suite must fail the hosted merge"
+echo 0 > "$PROBE_EXIT_FILE"
+[[ "$(gh_merges)" == "$merges_before" ]] || fail "a red overlapped suite must not reach gh pr merge"
+grep -q '"phase":"script-tests".*"status":"failed"' "$(journal_for)" \
+  || fail "the journal should name script-tests as the phase that died"
+
+# A red verdict refuses at once and stops the still-running suite, children included.
+new_commit overlap-refused
+statuses "$(pending_headless 53)" "$(pending_headless 53)" "$(pending_headless 53)" "$(pending_headless 53)" \
+  "$(printf 'failure\037headless suite failed - see run\037%s/53' "$RUN_URL")"
+ratchets "$(ratchet_status pending "hosted ratchet running" 53)"
+runs "$(printf 'in_progress\t53')"
+rm -f "$TMP/hook.pid" "$TMP/sleep.pid"
+started=$SECONDS
+PROBE_HOOK="echo \$\$ > '$TMP/hook.pid'; sleep 60 & echo \$! > '$TMP/sleep.pid'; wait" remote_merge \
+  && fail "--remote must refuse a failure status while the suite runs"
+(( SECONDS - started < 30 )) || fail "the refusal must not wait for the script suite ($((SECONDS - started))s)"
+expect_output "merge-proof/headless on .* is 'failure'" "the refusal must name the red verdict"
+[[ -s "$TMP/hook.pid" && -s "$TMP/sleep.pid" ]] || fail "fixture: the suite should have started before the verdict"
+for pid_file in hook.pid sleep.pid; do
+  if kill -0 "$(cat "$TMP/$pid_file")" 2>/dev/null; then fail "the refusal must stop the suite ($pid_file still alive)"; fi
+done
+
+# One gate per slot: a second merge while the first is running is refused at once.
+new_commit overlap-concurrent
+statuses $'absent\037\037'
+rm -f "$TMP/gate1.started" "$TMP/gate1.go"
+merges_before="$(gh_merges)"
+PROBE_HOOK="touch '$TMP/gate1.started'; while [[ ! -f '$TMP/gate1.go' ]]; do sleep 0.2; done" \
+  pool merge agent-1 > "$TMP/merge1.out" 2>&1 &
+first_gate=$!
+for _ in $(seq 1 600); do [[ -f "$TMP/gate1.started" ]] && break; sleep 0.2; done
+[[ -f "$TMP/gate1.started" ]] || { touch "$TMP/gate1.go"; wait "$first_gate" || true; cat "$TMP/merge1.out" >&2; fail "fixture: the first gate never reached the script suite"; }
+runs_before="$(runner_runs)"
+if pool merge agent-1 > "$TMP/merge.out" 2>&1; then touch "$TMP/gate1.go"; fail "a second merge on a slot with a running gate must refuse"; fi
+expect_output "a merge gate is already running on agent-1" "the refusal must say a gate is already running"
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "the refused second gate must run nothing"
+touch "$TMP/gate1.go"
+wait "$first_gate" || { cat "$TMP/merge1.out" >&2; fail "the first gate should finish and merge"; }
+[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "only the first gate should reach gh pr merge"
+
 # A landing diff touching .github/ can edit the workflow that proves it: remote proof is refused on both paths.
 mkdir -p "$TMP/agent-1/.github/workflows"
 echo "name: edited" > "$TMP/agent-1/.github/workflows/headless-suite.yml"
@@ -910,4 +985,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the hosted wait + one gate per slot"
