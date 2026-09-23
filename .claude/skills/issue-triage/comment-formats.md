@@ -1,8 +1,7 @@
 # Triage comment formats
 
 The comments a triage run posts for queued verdicts and one-short readiness.
-Each carries the proposal, the evidence and the exact apply command, so the user
-acts from the issue alone. Verdict vocabulary: `SKILL.md` § Verdicts.
+Verdict vocabulary: `SKILL.md` § Verdicts.
 
 ## Bench proposal
 
@@ -35,8 +34,7 @@ The apply line's board Status change follows `doc/agents/issue-tracker.md`
 
 ## Duplicate close
 
-Queued by a `duplicate-of #M` verdict; the relationship comment itself is
-autonomous.
+Queued by a `duplicate-of #M` verdict.
 
 ```
 Apply: gh issue close <N> --reason "not planned" --comment "Duplicate of #M"
@@ -60,8 +58,7 @@ Apply: gh issue edit <N> --add-label ready-for-agent
 
 ## One-short question
 
-Readiness `one-short`: the issue is one decision short of buildable. No label
-flip — `ready-for-human` is the build-blocking inbox only.
+Readiness `one-short`: the issue is one decision short of buildable.
 
 ```
 Question <date>: <one line>
