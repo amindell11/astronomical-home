@@ -59,7 +59,7 @@ goto args
 exit %FAKE_UNITY_EXIT%
 '@ | Set-Content -LiteralPath $GateUnity -Encoding ASCII
 
-# The pre-fix launch (no cached handle) reproduces PS 5.1's $null ExitCode deterministically.
+# An agent copy without the handle cache reproduces PS 5.1's $null ExitCode deterministically.
 $handleLine = '        $null = $proc.Handle'
 $agentText = Get-Content -LiteralPath (Join-Path $Scripts "unity_test_agent.ps1") -Raw
 if (([regex]::Matches($agentText, [regex]::Escape($handleLine))).Count -ne 1) { throw "handle-cache line not found exactly once in unity_test_agent.ps1" }

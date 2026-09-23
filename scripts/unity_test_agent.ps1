@@ -4,13 +4,15 @@
     run summary other tools read.
 
 .DESCRIPTION
-    Exit codes: 0 all green, 1 test failures, 2 infra_error (nothing executed - compile failure,
-    a launch problem, or a Unity access refusal), any other non-zero = the wrapper itself failed
-    before a summary existed.
+    Exit codes: 0 all green, 1 test failures, 2 infra_error (no trustworthy verdict - compile
+    failure, a launch problem, a Unity access refusal, or an unreadable Unity exit code), any other
+    non-zero = the wrapper itself failed before a summary existed.
 
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
     content). Fields consumers depend on:
       projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      runs[].unityExitCode - the Unity process exit code; null when it could not be read, and
+                       that run is then infra_error whatever its XML says.
       wallTiming     - elapsedSec from runner entry to summary construction; cold startupToFirstTestSec
                        sums process launch to first XML test-run start; executionSec sums XML
                        test-run start/end intervals (second precision). remainingSec covers access
