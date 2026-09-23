@@ -57,7 +57,7 @@ When Mordechai will not admit a boot and a full batch gate is needed:
 
    The coordinator records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before driving the editor. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
-   Drive the editor through the `unity` CLI (`unity-cli` skill), **always passing `--project-path <your worktree's src/Asteroids3D>`** — routing is per-project via the editor's own lockfile, so multiple editors coexist and there is nothing to pin. Gate readiness as in rung 3; entering Play Mode gives a ~2 s domain-reload window where commands transiently fail — retry once or poll `editor_status`.
+   Drive the editor through the `unity` CLI (`unity-cli` skill), **always passing `--project-path <your worktree's src/Asteroids3D>`** — routing is per-project via the editor's own lockfile, so multiple editors coexist and there is nothing to pin. Gate readiness as in rung 3; entering Play Mode reloads the domain — the first command may fail (`Connection reset by server`) and the next blocks ~5 s — retry once or poll `editor_status`.
 
    Label the window right after attach so the taskbar shows which task holds
    the editor (the [PRIMARY]/[AGENT-N] slot prefix is automatic; the label
