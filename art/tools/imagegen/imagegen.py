@@ -34,7 +34,7 @@ PRICES_AS_OF = "2026-09-22"
 
 STATUSES = ("exploration", "placeholder", "approved-reworked")
 
-EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png"}
 
 
 def parse_args(argv):
