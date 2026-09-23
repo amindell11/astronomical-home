@@ -188,9 +188,10 @@ Commands:
       run posts both statuses, the gate waits for both, and the resharper
       phase accepts the hosted ratchet with no local ratchet run and no Unity
       boot here; without an acceptable merge-proof/resharper it refuses, and
-      one stamping another baseTree means base moved: re-run 'merge'.
-      When the landing diff touches scripts/, the script suite starts after
-      proof-check and runs beside the test run or hosted wait and the
+      one stamping another baseTree means main moved: re-run
+      'merge <slot> --remote'.
+      When the landing diff touches scripts/, the script suite starts at the
+      end of proof-check and runs beside the test run or hosted wait and the
       ratchet; the script-tests phase joins it.
       One gate per slot: a second 'merge' on a slot whose gate is running is
       refused at once (flock on the slot's .merge file under the lock root).
@@ -1848,7 +1849,7 @@ cmd_merge() {
   local scripts_diff_rc=0
   landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
   [[ "$scripts_diff_rc" -ne 2 ]] || return 1
-  # The suite needs only the landing tree, so it runs beside the test run, the hosted wait and the ratchet.
+  # Needs only the landing tree, so it overlaps the test run, hosted wait and ratchet.
   # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     echo "Landing diff touches scripts/ — the script suite runs alongside the rest of the gate."
@@ -1953,8 +1954,8 @@ cmd_merge() {
     && ratchet_reason="$(accept_remote_resharper_proof "$slot" "$path" "$landing_sha" "$base_ref")"; then
     echo "Landing commit $landing_sha carries a green $REMOTE_RESHARPER_CONTEXT status for this tree and base — hosted ratchet accepted, no local ratchet run."
     merge_journal_note "hosted ratchet accepted on the landing commit"
-  elif [[ "$remote" -eq 1 && "$ratchet_reason" == *" stamps baseTree "* ]]; then
-    # The hosted ratchet stamps the origin/main it fetched, so a different baseTree means main moved after this gate's fetch.
+  elif [[ "$remote" -eq 1 && "$base_ref" == origin/main && "$ratchet_reason" == *" stamps baseTree "* ]]; then
+    # The hosted ratchet stamps the main it fetched; another baseTree means main moved since.
     echo "merge: $ratchet_reason; base moved during the merge gate — re-run 'merge $slot --remote'." >&2
     return 1
   elif [[ "$remote" -eq 1 ]]; then

@@ -566,7 +566,7 @@ grep -q "SKIP: test_unity_access.ps1" "$TMP/merge.out" \
 
 git -C "$TMP/agent-1" rm -q scripts/tests/test_unity_access.ps1
 git -C "$TMP/agent-1" commit -qm "drop red coordinator suite member"
-# The suite runs beside the local test run: the stub runner cannot finish until the probe has run.
+# The stub runner blocks until the probe runs, proving the suite overlaps the test run.
 rm -f "$PROBE_MARKER"
 RUNNER_AWAITS="$PROBE_MARKER" pool merge agent-1 > "$TMP/merge.out" 2>&1 \
   || { cat "$TMP/merge.out" >&2; fail "the script suite must run while the local test run is still going"; }
@@ -614,7 +614,7 @@ pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "
 expect_output "remote proof, skipping the run" "the gate should say it used remote proof"
 [[ "$(phase_order)" == *"proof-check tests resharper"* ]] || fail "a skipped run keeps the default ladder (got '$(phase_order)')"
 
-# Trailer parse cases are checked on the pool script's own reader, with no gate run around them.
+# Trailer parse cases call the pool's own reader directly, with no gate around them.
 expect_no_proof() {
   local reason="$1" label="$2" out
   shift 2
@@ -676,7 +676,7 @@ ratchets $'absent\037\037'
 expect_ratchet_fail_closed "merge-proof/resharper on $(slot_sha) is 'absent', not success" "absent ratchet status" \
   "the hosted path runs no local ReSharper ratchet"
 expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "absent ratchet status: the --remote refusal must name the rerun"
-# The hosted ratchet stamps the origin/main it fetched, so another baseTree means base moved: a re-dispatch cannot fix it.
+# Another baseTree means base moved, which a workflow re-dispatch cannot fix.
 ratchets "$(ratchet_status success "tree=$(slot_tree) baseTree=$ZERO" 42)"
 expect_ratchet_fail_closed "stamps baseTree $ZERO" "ratchet baseTree mismatch" \
   "base moved during the merge gate — re-run 'merge agent-1 --remote'"
