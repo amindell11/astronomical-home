@@ -33,6 +33,9 @@ uv run art/tools/imagegen/imagegen.py \
   prompt describes the change.
 - `--ref` repeats. The request carries no role for a reference, so the prompt
   must say which image is an object, character or style reference.
+  Give every view you have (top and side, not one) and let the references carry
+  the design: a prompt that describes the design in words gets a generic ship back.
+- `--thinking` is optional; nb2 and lite accept `minimal|high`, pro `low|high`.
 - `--model` takes `nb2` (default, `gemini-3.1-flash-image`), `pro`
   (`gemini-3-pro-image`), `lite` (`gemini-3.1-flash-lite-image`, 1K only), or
   a raw model id.

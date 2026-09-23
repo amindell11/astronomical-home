@@ -47,7 +47,8 @@ def parse_args(argv):
     p.add_argument("--model", default="nb2", help=f"Alias ({', '.join(MODELS)}) or a raw model id. Default nb2.")
     p.add_argument("--size", default="1K", choices=["512", "1K", "2K", "4K"])
     p.add_argument("--aspect", default="1:1", help="Aspect ratio, e.g. 16:9, 3:2, 21:9.")
-    p.add_argument("--thinking", default="minimal", choices=["minimal", "high"])
+    p.add_argument("--thinking", choices=["minimal", "low", "high"],
+                   help="Thinking level; omitted uses the model's default. nb2/lite take minimal|high, pro low|high.")
     p.add_argument("--status", default="exploration", choices=STATUSES)
     p.add_argument("--out", type=Path, required=True,
                    help="Output path without extension; the returned MIME type picks it. Sidecar goes to <out>.json.")
@@ -91,7 +92,7 @@ def main(argv):
         model=args.model_id,
         input=[{"type": "text", "text": args.prompt_text}, *parts],
         response_format={"type": "image", "aspect_ratio": args.aspect, "image_size": args.size},
-        generation_config={"thinking_level": args.thinking},
+        **({"generation_config": {"thinking_level": args.thinking}} if args.thinking else {}),
     )
     if interaction.output_image is None or not interaction.output_image.data:
         sys.exit(f"imagegen: no image returned (status={interaction.status}, text={interaction.output_text!r})")
