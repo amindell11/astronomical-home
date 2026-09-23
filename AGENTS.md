@@ -18,7 +18,7 @@ the matching doc when its branch fires:
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (Obsidian
   vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
-- Memory reads/writes → `doc/agents/memory.md` (holds nothing repo-critical: working memory + taste only).
+- Memory reads/writes → `doc/agents/memory.md` (feedback notes only; nothing repo-critical).
 - Machine/tooling facts (remote box, editor-analytics churn, pool
   capacity, MCP setup) → `doc/agents/environment.md`.
 - Answering "why is it like this" / "was X tried" → the `design-lookup` agent (searches issues + PR bodies, returns cited answers, never the record).
@@ -84,15 +84,9 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 - Finalize the slot after merge.
 - Follow-up rounds on an open PR go on that PR's existing slot/branch; acquire a fresh slot only for genuinely independent work.
 - After any pool-script merge, `git pull` main in every live session before its next pool command — a session executing an old script copy is the live hazard.
-- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every ledger-writing transition; a plain title marks a discussion chat.
+- Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every lifecycle transition (claim, PR-open, block, merge); a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
-
-## Cross-agent work ledger
-
-`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md` — worktree agents must use this exact absolute path.
-Read it at session start and before acquiring a slot; write on claim, PR-open, block, and merge.
-Rows are one line, claims only — merged rows are deleted; their story lives in the PR description and the arc issue.
 
 ## Deferrals & issue tracker
 
@@ -121,6 +115,6 @@ Follow these when adding any new dependency; prefer zero new wiring over new sea
 
 Before deleting, force-pushing, or claiming shipped/preserved, check state directly (`git ls-remote`, grep main's tree) — squash merges destroy commit identity, and tracking surfaces record intentions, not outcomes.
 Approvals are per-action and never stretch into standing authorization — re-ask at each consequential step (merge, long-running or expensive launches).
-Past heavy context (~300k tokens), do not merge: write the handoff and let a fresh session drive the merge.
+Past heavy context (~300k tokens), do not merge: write the handoff into a spawn chip and let that fresh session drive the merge.
 Stopping a background monitor orphans its tail.exe/grep.exe children on Windows, and they keep tailed files locked (WinError 32 on delete/rename). taskkill the orphans before relaunching anything that recreates those logs.
 `core.hooksPath` belongs to `scripts/install_hooks.sh` (→ `.githooks`) — never override it, and never reach for `-c core.hooksPath=/dev/null` to skip a hook. git-lfs installs its hooks into whatever that path names, so off Git Bash the value resolves repo-relative and materializes a junk `dev/null/` directory in the tree.

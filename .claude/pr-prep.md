@@ -11,12 +11,11 @@ these concrete bindings on top of the generic phases.
   carry both a descriptive name (`vocab-docfix`) and a positional label
   (`Slice-C`, `PR-4`) — see `doc/Glossary.md` → *arc & PR naming*; add the
   missing label when you prep a slice that lacks one. The issue and its
-  comments are the authority for status; `MEMORY.md` → Active arcs holds only
-  the links to find it. Read the issue by section, and ask the `design-lookup`
+  comments are the authority for status; open arcs are
+  `gh issue list --label arc --state open`. Read the issue by section, and ask the `design-lookup`
   agent for design history (`doc/agents/design-docs.md` → Reading design).
-- **In-flight work** — read the active-work ledger at
-  `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
-  during Phase 3's "interaction with in-flight work" lens, so the PR you're
+- **In-flight work** — read `./scripts/worktree_dashboard.sh` and open PRs
+  (`gh pr list`) during Phase 3's "interaction with in-flight work" lens, so the PR you're
   prepping doesn't collide with a concurrent slot.
 - **Design philosophy** — root `AGENTS.md`. Two sections are load-bearing during
   triage:
@@ -73,7 +72,7 @@ brief), and open the PR. Don't start editing in the primary worktree.
 
 The worktree-loop skill's *Chat title lifecycle* section is the authority for
 the title grammar and the self-retitle call (`set_session_title`,
-`session_id: "self"`). Prep adds two transitions that write no ledger row —
+`session_id: "self"`). Prep adds two transitions of its own —
 retitle yourself at them too:
 
 - prep starts: `prep | <Slice-X or PR-N> | <word-id>` — a broken-out prep chat

@@ -8,8 +8,8 @@ restating it.
 
 ## Worktree pool capacity
 
-Pool is `agent-1..5`. Grow only when EVERY slot holds a live claim in the work
-ledger (a stale lock is reclaimable by plain `acquire`):
+Pool is `agent-1..5`. Grow only when EVERY slot holds a live lease (`pool status`;
+a stale lock is reclaimable by plain `acquire`):
 `git worktree add -b agent-6 D:/amind/git/agent-6 origin/main` from the primary
 tree — the pool script discovers slots by the `agent-N` branch pattern. **Never
 past `agent-7` without asking the user.** A fresh slot is Unity-cold (full asset
