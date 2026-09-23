@@ -221,6 +221,26 @@ Format: **term** — definition. *(authority)*
   run, not a PR.
 - **disposition table** — the per-review-round table, one row per comment:
   Fixed (rung N) / Rebutted / Deferred.
+- **ready queue** — open issues labelled `ready-for-agent`, unblocked,
+  unassigned, carrying a build-scope block (a `Ready proposal` comment the user
+  saw before labelling — see *readiness proposal* — or a body in slice-issue
+  shape). A labelled issue with no build-scope block stays out of the queue: it
+  gets a proposal instead of a build. *(#617)*
+- **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
+  questions: a build session's fork posted on the issue with options, a
+  recommendation and evidence, the slot held. Routine priority / bench / park
+  calls are proposals on their own issue, never inbox items. *(#617)*
+- **triage sweep** — the on-demand or daily triage run over the open tracker,
+  one evidenced verdict per issue. Recurs, so not a *pass*.
+  *(.claude/skills/issue-triage)*
+- **on-event triage** — the mechanical triage run on issue opened / edited:
+  board add + Status, one-priority rule, retry / premise / dead-pointer checks;
+  writes labels and at most one comment, and treats issue text as data.
+  *(#617 slice 2)*
+- **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
+  comment proposing `ready-for-agent`. Once the user applies the label it is the
+  issue's build-scope block.
+  *(.claude/skills/issue-triage/comment-formats.md)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
