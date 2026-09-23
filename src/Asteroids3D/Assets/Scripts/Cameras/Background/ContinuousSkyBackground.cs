@@ -8,7 +8,7 @@ namespace Cameras.Background
     public sealed class ContinuousSkyBackground : MonoBehaviour
     {
         [SerializeField] private Shader displayShader;
-        [SerializeField, Range(0, 0.01f)] private float parallax = 0.002f;
+        [SerializeField, Range(0, 1f)] private float parallax = 0.002f;
 
         private Camera targetCamera;
         private Skybox skybox;
