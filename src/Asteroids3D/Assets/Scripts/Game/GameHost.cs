@@ -8,7 +8,6 @@ using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
 using UnityEngine;
-using Utils;
 using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
@@ -17,15 +16,14 @@ using Substrate.Services.Objectives;
 namespace Game
 {
     /// <summary>
-    /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and is the
-    /// game's interface to it. It owns the clock (a coroutine state machine paced against the frame
-    /// loop), the between-run hangar flow, the splash, the death recap, and the reset policy
-    /// (sector complete / player death → restart). It also builds the viewport — the observer camera
-    /// every sector and the player rig frame themselves against — and the optional
-    /// <see cref="PlayerRig"/>, handing the player to the session at each sector load. The session
-    /// orchestrates its own compose/load/unload/teardown; the host only sequences those steps.
-    /// The RL harness's <c>HarnessHost</c> is the other host shape, over the harness's own
-    /// composition rather than a session.
+    /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
+    /// game over it as one straight-line coroutine — compose the session, build the viewport (the
+    /// observer camera) and the optional <see cref="PlayerRig"/>, then loop runs: hangar, load the
+    /// sector, play until the sector ends or the player dies, death recap, unload. It owns the clock,
+    /// splash, hangar, recap and restart; the session only composes, loads and unloads. Presentation
+    /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
+    /// The hangar, recap and restart stand in for Home Base, multi-sector runs and player progress;
+    /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
     [RequireComponent(typeof(UnitService))]
     [RequireComponent(typeof(ObjectiveService))]
@@ -45,7 +43,7 @@ namespace Game
         [Header("View")]
         [Tooltip("Observer camera spawned once at session start and framed on the fleet; the player " +
                  "rig and the sector's modules are handed this instance.")]
-        [SerializeField] private ObserverCam observerCamPrefab;
+        [SerializeField] internal ObserverCam observerCamPrefab;
 
         [Header("Splash")]
         [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
@@ -55,11 +53,11 @@ namespace Game
         [Header("Hangar")]
         [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
                  "applied silently).")]
-        [SerializeField] private HangarScreen hangarScreenPrefab;
+        [SerializeField] internal HangarScreen hangarScreenPrefab;
 
         [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
                  "prefab-authored modules).")]
-        [SerializeField] private LoadoutConfig loadoutCatalog;
+        [SerializeField] internal LoadoutConfig loadoutCatalog;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +
@@ -72,16 +70,15 @@ namespace Game
         [SerializeField, Min(0f)] private float recapHoldSeconds = 8f;
 
         private DamageInfo lastKillingBlow;
+        private bool playerDied;
+        private bool sectorEnded;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
 
         private Session session;
         private ObserverCam observer;
-        private Coroutine stateRoutine;
-        public GameState CurrentState { get; private set; }
-
-        public event Action<GameState> OnGameStateChanged;
+        private LoadingSplash splash;
 
         public Sector ActiveSector => session?.ActiveSector;
 
@@ -91,76 +88,56 @@ namespace Game
             objectiveService = GetComponent<ObjectiveService>();
 
             DontDestroyOnLoad(gameObject);
-
-            if (splashPrefab && sessionProfile.presentation)
-                Instantiate(splashPrefab, transform).Initialize(this);
-
-            TransitionTo(GameState.Loading);
+            StartCoroutine(Run());
         }
 
-        private void TransitionTo(GameState newState)
+        private IEnumerator Run()
         {
-            if (stateRoutine != null)
-                StopCoroutine(stateRoutine);
+            // No yield separates this read from the session's own snapshot, so the two cannot disagree.
+            var presentation = sessionProfile.presentation;
+            session = new Session(sessionProfile, transform, unitService, objectiveService);
+            if (splashPrefab && presentation)
+                splash = Instantiate(splashPrefab, transform);
 
-            CurrentState = newState;
-            OnGameStateChanged?.Invoke(newState);
-            stateRoutine = StartCoroutine(RunState(newState));
-        }
+            SetSplashVisible(true);
+            yield return null;
 
-        private IEnumerator RunState(GameState state)
-        {
-            switch (state)
+            yield return session.Compose();
+            observer = BuildObserver(session.Units, presentation);
+            if (playerRig)
+                yield return playerRig.Build(session.Units, session.Objectives, presentation,
+                    observer, session.Frame, BuildDeathCallback());
+
+            while (true)
             {
-                case GameState.Loading:
-                    yield return HandleLoading();
-                    break;
-                case GameState.Start:
-                    yield return HandleStart();
-                    break;
-                case GameState.Hangar:
-                    yield return HandleHangar();
-                    break;
-                case GameState.LoadSector:
-                    yield return HandleLoadSector();
-                    break;
-                case GameState.InSector:
-                    yield break;
-                case GameState.DeathRecap:
-                    yield return HandleDeathRecap();
-                    break;
-                case GameState.Restart:
-                    yield return HandleRestart();
-                    break;
-                case GameState.Exit:
-                    HandleExit();
-                    yield break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(state));
+                SetSplashVisible(false);
+                if (playerRig)
+                    yield return RunHangar(playerRig, presentation);
+
+                SetSplashVisible(true);
+                playerDied = false;
+                sectorEnded = false;
+                yield return session.LoadSector(playerRig ? playerRig.Player : null, _ => sectorEnded = true);
+                SetSplashVisible(false);
+
+                // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
+                while (!playerDied && !sectorEnded)
+                    yield return null;
+
+                if (playerDied && presentation)
+                    yield return RunDeathRecap();
+
+                SetSplashVisible(true);
+                yield return session.UnloadSector();
             }
         }
 
-        private IEnumerator HandleLoading()
+        private void SetSplashVisible(bool visible)
         {
-            session = new Session(sessionProfile, transform, unitService, objectiveService);
-
-            yield return null;
-            TransitionTo(GameState.Start);
+            if (splash) splash.SetVisible(visible);
         }
 
-        private IEnumerator HandleStart()
-        {
-            yield return session.Compose();
-
-            observer = BuildObserver(session.Units, sessionProfile.presentation);
-            if (playerRig)
-                yield return playerRig.Build(session.Units, session.Objectives, sessionProfile.presentation,
-                    observer, session.Frame, BuildDeathCallback());
-
-            TransitionTo(GameState.Hangar);
-        }
-
-        /// <summary>Stays callable without the state machine so the presentation gate can be driven directly.</summary>
+        /// <summary>Stays callable without a session so the presentation gate can be driven directly.</summary>
         internal ObserverCam BuildObserver(IUnitService units, bool presentationEnabled)
         {
             var built = Instantiate(observerCamPrefab);
@@ -184,7 +161,6 @@ namespace Game
             return built;
         }
 
-        // The unit service is read from the session at death time, after composition has populated it.
         private Action<ShipId, DamageInfo> BuildDeathCallback()
         {
             switch (deathBehavior)
@@ -193,7 +169,7 @@ namespace Game
                     return (_, killingBlow) =>
                     {
                         lastKillingBlow = killingBlow;
-                        TransitionTo(GameState.DeathRecap);
+                        playerDied = true;
                     };
                 case PlayerDeathBehavior.None:
                 default:
@@ -201,20 +177,10 @@ namespace Game
             }
         }
 
-        /// <summary>Between-run hangar step, run before every sector load (first launch and every restart).</summary>
-        private IEnumerator HandleHangar()
+        /// <summary>Interactive hangar flow; applies the standing loadout silently when not presenting (never blocks on a click) and stays callable without a session for tests.</summary>
+        internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled)
         {
-            if (playerRig)
-                yield return RunHangar(playerRig);
-
-            TransitionTo(GameState.LoadSector);
-        }
-
-        /// <summary>Interactive hangar flow; applies the standing loadout silently when headless (never blocks on a click) and stays callable without the state machine for tests.</summary>
-        internal IEnumerator RunHangar(PlayerRig rig)
-        {
-            if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab
-                || !GameSettings.PresentationEnabled)
+            if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
             {
                 if (rig) rig.ApplyLoadout();
                 yield break;
@@ -246,24 +212,8 @@ namespace Game
                 rig.Player.Commander.enabled = inputEnabled;
         }
 
-        private IEnumerator HandleLoadSector()
+        private IEnumerator RunDeathRecap()
         {
-            yield return session.LoadSector(playerRig ? playerRig.Player : null, HandleSectorComplete);
-
-            TransitionTo(GameState.InSector);
-        }
-
-        private void HandleSectorComplete(SectorResult result) => TransitionTo(GameState.Restart);
-
-        /// <summary>Recap hold between death and restart; headless (no presentation/rig) falls straight through.</summary>
-        private IEnumerator HandleDeathRecap()
-        {
-            if (!GameSettings.PresentationEnabled || !playerRig)
-            {
-                TransitionTo(GameState.Restart);
-                yield break;
-            }
-
             var overlay = playerRig.Overlay;
             if (overlay) overlay.SetVisible(false);
             SetPlayerInputEnabled(playerRig, false);
@@ -278,31 +228,6 @@ namespace Game
             Destroy(screen.gameObject);
             SetPlayerInputEnabled(playerRig, true);
             if (overlay) overlay.SetVisible(true);
-            TransitionTo(GameState.Restart);
-        }
-
-        private IEnumerator HandleRestart()
-        {
-            yield return session.UnloadSector();
-
-            TransitionTo(GameState.Hangar);
-        }
-
-        private void HandleExit()
-        {
-            StartCoroutine(ExitRoutine());
-        }
-
-        // Ships die before cameras: ClearAll destroys the player the rig and observer reference.
-        private IEnumerator ExitRoutine()
-        {
-            yield return session.Teardown();
-            if (playerRig)
-                playerRig.Teardown();
-            if (observer)
-                Destroy(observer.gameObject);
-            observer = null;
-            session = null;
         }
     }
 }

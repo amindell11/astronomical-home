@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System.Collections;
-using System.Reflection;
 using Cameras;
 using Game;
 using NUnit.Framework;
@@ -8,7 +7,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 using Substrate.Services;
 using Substrate.Services.Units;
 
@@ -18,7 +16,7 @@ namespace Tests.PlayMode
     /// The viewport the host builds is the only presentation the session itself spawns: with
     /// presentation off the observer camera's authored children (the starfield backdrop) go dark and
     /// the camera stops clearing to the skybox. Driven through
-    /// <see cref="GameHost.BuildObserver"/> on an inactive host, so no state machine runs.
+    /// <see cref="GameHost.BuildObserver"/> on an inactive host, so the host's flow never runs.
     /// </summary>
     [TestFixture]
     [Category("Presentation")]
@@ -30,17 +28,9 @@ namespace Tests.PlayMode
         private GameObject hostGo;
         private UnitService unitService;
         private ObserverCam observer;
-        private bool savedPresentation;
-
-        public override void SetUp()
-        {
-            base.SetUp();
-            savedPresentation = GameSettings.PresentationEnabled;
-        }
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(savedPresentation);
             if (unitService) unitService.Clear();
             unitService = null;
             DestroyTestObject(observer ? observer.gameObject : null);
@@ -78,21 +68,17 @@ namespace Tests.PlayMode
 
         private IEnumerator BuildObserver(bool presentation)
         {
-            GameSettings.SetPresentationEnabled(presentation);
-
             servicesHost = new GameObject("[TestServices]");
             unitService = servicesHost.AddComponent<UnitService>();
             ShipServices.Compose(unitService, servicesHost.transform, presentation);
 
-            // Inactive host: Awake and the state machine never run, so the camera build is exercised alone.
+            // Inactive host: Awake and its flow never run, so the camera build is exercised alone.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
             var prefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             Assert.IsNotNull(prefab, $"observer camera prefab loads from {ObserverCamPrefabPath}");
-            typeof(GameHost)
-                .GetField("observerCamPrefab", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(host, prefab);
+            host.observerCamPrefab = prefab;
 
             observer = host.BuildObserver(unitService, presentation);
             yield return null;

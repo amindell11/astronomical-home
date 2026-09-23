@@ -89,33 +89,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameState_HasExpectedValues()
-        {
-            var names = Enum.GetNames(typeof(GameState));
-            CollectionAssert.Contains(names, "Loading");
-            CollectionAssert.Contains(names, "Start");
-            CollectionAssert.Contains(names, "LoadSector");
-            CollectionAssert.Contains(names, "InSector");
-            CollectionAssert.Contains(names, "Restart");
-            CollectionAssert.Contains(names, "Exit");
-        }
-
-        [Test]
-        public void GameHost_HasCurrentStateProperty()
-        {
-            var prop = typeof(GameHost).GetProperty("CurrentState");
-            Assert.IsNotNull(prop, "GameHost must expose CurrentState");
-            Assert.AreEqual(typeof(GameState), prop.PropertyType);
-        }
-
-        [Test]
-        public void GameHost_HasOnGameStateChangedEvent()
-        {
-            var ev = typeof(GameHost).GetEvent("OnGameStateChanged");
-            Assert.IsNotNull(ev, "GameHost must declare OnGameStateChanged event");
-        }
-
-        [Test]
         public void Session_ExposesLifecycleCoroutines()
         {
             foreach (var name in new[] { "Compose", "LoadSector", "UnloadSector", "Teardown" })
@@ -149,7 +122,7 @@ namespace Tests.EditMode
                 "the player is the host's, not the session's — a session holds no rig");
             Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
                 "Session must expose its in-plane Frame");
-            // Presentation policy rides SessionProfile to the sector and spawn seams, never Session state.
+            // Presentation is snapshotted from SessionProfile at construction and handed to the sector and spawn seams; the session exposes no flag.
         }
 
         [Test]

@@ -11,7 +11,6 @@ using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -24,13 +23,6 @@ namespace Tests.PlayMode
         private GameObject sessionRoot;
         private IEpisodeCapture capture;
         private Session session;
-        private bool savedPresentation;
-
-        public override void SetUp()
-        {
-            base.SetUp();
-            savedPresentation = GameSettings.PresentationEnabled;
-        }
 
         public override void TearDown()
         {
@@ -48,9 +40,6 @@ namespace Tests.PlayMode
                 UnityEngine.Object.DestroyImmediate(capture as ScriptableObject);
                 capture = null;
             }
-
-            // Compose overrides this process-global and Teardown does not restore it.
-            GameSettings.SetPresentationEnabled(savedPresentation);
 
             base.TearDown();
         }
