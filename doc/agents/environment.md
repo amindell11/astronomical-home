@@ -139,6 +139,15 @@ the id form only. Supporting facts, all measured:
 cost two weeks of dismantled workarounds in 2026-08. When a tool refuses, re-read
 its parameter docs for the sanctioned form before architecting around it.
 
+## Image generation (Nano Banana)
+
+`art/tools/imagegen/imagegen.py` reads `GEMINI_API_KEY`, an AI Studio key on a
+billing-enabled account that is *not* the banned ai-counsel Gemini account. The
+user stores it as a Windows user env var; agents never print or copy it. The
+Claude app only sees it after a restart. Until then, lift it into a single
+command without echoing it:
+`GEMINI_API_KEY="$(powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('GEMINI_API_KEY','User')")" uv run art/tools/imagegen/imagegen.py ...`
+
 ## ai-counsel (cross-model debate MCP)
 
 Installed at `C:\Users\amind\tools\ai-counsel` (venv `.venv`), registered
