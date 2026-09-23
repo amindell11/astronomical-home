@@ -102,6 +102,11 @@ To update from the first ZIP, finish any render, remove the old **HDR Space
 Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.3.0 adds locked randomization and group color adjustments; it also includes
 the persistent render and corrected world-space viewport previews.
 
+Cloud Coverage uses a relative **-100 to +100** scale: **0** keeps the original
+coverage, negative values thin the clouds, and positive values fill more sky.
+Each one-unit step changes the internal threshold by 0.002; decimal entry allows
+finer tuning. Existing JSON presets keep their original coverage units.
+
 ## Explore with locks and group colors
 
 **Randomize Nebula** explores cloud shape, core emission and colors within the

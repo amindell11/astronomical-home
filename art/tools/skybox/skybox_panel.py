@@ -60,6 +60,10 @@ class SkyboxSettings(bpy.types.PropertyGroup):
     rotation: FloatVectorProperty(name="Rotation", subtype="EULER", size=3, default=(0.20, -0.35, 0.58))
     coverage: FloatProperty(name="Cloud Coverage", default=0, min=-0.2, max=0.2,
                            description="Higher values create more dense gas; lower values leave more empty space")
+    coverage_level: FloatProperty(name="Cloud Coverage", min=-100, max=100, step=100, precision=1,
+                                  get=lambda self: self.coverage * 500,
+                                  set=lambda self, value: setattr(self, "coverage", value / 500),
+                                  description="Relative coverage: 0 is the original sky; negative is sparse, positive is dense")
     core_emission: FloatProperty(name="Core Emission", default=1.5, min=0, soft_max=4)
     palette0: FloatVectorProperty(name="Shadow", subtype="COLOR", size=3, min=0, max=1)
     palette1: FloatVectorProperty(name="Cloud", subtype="COLOR", size=3, min=0, max=1)
@@ -116,7 +120,7 @@ def to_preset(settings):
         "nebula": {
             "variation": settings.variation, "scale": settings.scale,
             "stretch": list(settings.stretch), "rotation": list(settings.rotation),
-            "coverage": settings.coverage, "core_emission": settings.core_emission,
+            "coverage": settings.coverage_level / 500, "core_emission": settings.core_emission,
             "palette": [list(getattr(settings, f"palette{i}")) for i in range(4)],
         },
         "tiny_stars": {"brightness": settings.tiny_brightness, "legacy_seed": settings.legacy_seed},
@@ -265,7 +269,7 @@ class SKYBOX_OT_randomize(bpy.types.Operator):
 
 def locked_control(layout, settings, key):
     row = layout.row(align=True)
-    row.prop(settings, key)
+    row.prop(settings, "coverage_level" if key == "coverage" else key)
     row.prop(settings, f"lock_{key}", text="", emboss=False,
              icon="LOCKED" if getattr(settings, f"lock_{key}") else "UNLOCKED")
 
