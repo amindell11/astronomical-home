@@ -99,8 +99,26 @@ startup, image loading, hardware and higher resolutions affect the total wait.
 Blender's preview is for composition/color; evaluate the game's bloom in Unity.
 
 To update from the first ZIP, finish any render, remove the old **HDR Space
-Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.2.0 adds palette families and controlled randomization; it also includes
+Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.3.0 adds locked randomization and group color adjustments; it also includes
 the persistent render and corrected world-space viewport previews.
+
+## Explore with locks and group colors
+
+**Randomize Nebula** explores cloud shape, core emission and colors within the
+selected Color Family and Palette Variation. **Randomize Stars** separately
+changes star brightness and the appearance/placement of all five focal stars.
+Click the padlock beside a setting to protect it. Stretch/rotation locks cover
+all three axes; focal-star locks belong to the selected star. Render size,
+output paths and Unity settings are never randomized.
+
+**Hue -/+** rotates all four colors together by 10 degrees; **Saturation -/+**
+changes saturation by 5 percentage points; **Brightness -/+** divides/multiplies
+color brightness by 1.1, capped at 1. Group color buttons ignore locks.
+Locked colors resist Use Scheme, Apply Seed and palette Randomize. Manual edits and explicit preset loads can
+still change locked values. Locks live in your `.blend`; portable JSON presets
+store the resulting appearance. The new group/randomize buttons require Object
+Mode so Blender's Undo restores scene settings reliably; the panel offers a
+mode-switch button when needed. Refresh Draft to see changes in the sky.
 
 ## Send to Unity and compare
 

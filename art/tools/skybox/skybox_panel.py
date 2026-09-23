@@ -1,15 +1,21 @@
 """Blender authoring panel; rendering and preset interpretation live in the generator."""
 
 import math
+import random
 from pathlib import Path
 import time
 
 import bpy
-from bpy.props import (CollectionProperty, EnumProperty, FloatProperty,
+from bpy.props import (BoolProperty, CollectionProperty, EnumProperty, FloatProperty,
                        FloatVectorProperty, IntProperty, PointerProperty, StringProperty)
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 
 from . import skybox_merged, skybox_preset, skybox_unity, skybox_preview
+
+
+NEBULA_FIELDS = ("variation", "scale", "stretch", "rotation", "coverage", "core_emission")
+STAR_FIELDS = ("longitude", "latitude", "radius", "color", "strength")
+COLOR_FIELDS = tuple(f"palette{i}" for i in range(4))
 
 
 def longitude(star):
@@ -27,6 +33,10 @@ def direction(lon, lat):
 
 
 class SkyboxStar(bpy.types.PropertyGroup):
+    __annotations__ = {}
+    for key in STAR_FIELDS:
+        __annotations__[f"lock_{key}"] = BoolProperty(name="Lock", description="Keep this setting during star randomization")
+
     direction: FloatVectorProperty(size=3, default=(1, 0, 0))
     longitude: FloatProperty(name="Horizontal", subtype="ANGLE", min=-math.pi, max=math.pi,
                             get=longitude, set=lambda self, v: setattr(self, "direction", direction(v, latitude(self))))
@@ -38,6 +48,10 @@ class SkyboxStar(bpy.types.PropertyGroup):
 
 
 class SkyboxSettings(bpy.types.PropertyGroup):
+    __annotations__ = {}
+    for key in NEBULA_FIELDS + COLOR_FIELDS + ("tiny_brightness", "anchor_brightness"):
+        __annotations__[f"lock_{key}"] = BoolProperty(
+            name="Lock", description="Keep this setting during randomization and palette generation")
     variation: IntProperty(name="Cloud Variation", default=0, min=0, max=2147483647,
                           description="0 preserves the original clouds; other integers select repeatable cloud offsets")
     scale: FloatProperty(name="Cloud Scale", default=1, min=0.1, max=10, soft_max=3,
@@ -47,10 +61,10 @@ class SkyboxSettings(bpy.types.PropertyGroup):
     coverage: FloatProperty(name="Cloud Coverage", default=0, min=-0.2, max=0.2,
                            description="Higher values create more dense gas; lower values leave more empty space")
     core_emission: FloatProperty(name="Core Emission", default=1.5, min=0, soft_max=4)
-    palette0: FloatVectorProperty(name="Deep Violet", subtype="COLOR", size=3, min=0, max=1)
-    palette1: FloatVectorProperty(name="Violet", subtype="COLOR", size=3, min=0, max=1)
-    palette2: FloatVectorProperty(name="Blue", subtype="COLOR", size=3, min=0, max=1)
-    palette3: FloatVectorProperty(name="Rose", subtype="COLOR", size=3, min=0, max=1)
+    palette0: FloatVectorProperty(name="Shadow", subtype="COLOR", size=3, min=0, max=1)
+    palette1: FloatVectorProperty(name="Cloud", subtype="COLOR", size=3, min=0, max=1)
+    palette2: FloatVectorProperty(name="Highlight", subtype="COLOR", size=3, min=0, max=1)
+    palette3: FloatVectorProperty(name="Accent", subtype="COLOR", size=3, min=0, max=1)
     palette_scheme: EnumProperty(name="Color Family", items=[(key, value[0], "")
                                  for key, value in skybox_preset.PALETTES.items()])
     palette_seed: IntProperty(name="Palette Seed", default=0, min=0, max=2147483647)
@@ -169,9 +183,91 @@ class SKYBOX_OT_palette(bpy.types.Operator):
         colors = skybox_preset.make_palette(settings.palette_scheme, settings.palette_seed,
                                             0 if self.action == "BASE" else settings.palette_variation)
         for index, color in enumerate(colors):
-            setattr(settings, f"palette{index}", color)
+            if not getattr(settings, f"lock_palette{index}"):
+                setattr(settings, f"palette{index}", color)
         settings.status = "Palette updated. Refresh Draft to see it in the sky."
         return {"FINISHED"}
+
+
+class SKYBOX_OT_color_adjust(bpy.types.Operator):
+    bl_idname = "skybox.color_adjust"
+    bl_label = "Adjust Nebula Colors"
+    bl_options = {"UNDO"}
+    channel: EnumProperty(items=[("HUE", "Hue", "Rotate hues by 10 degrees"),
+                                 ("SATURATION", "Saturation", "Change saturation by 5 percentage points"),
+                                 ("VALUE", "Brightness", "Multiply color brightness by 1.1 or its inverse")])
+    decrease: BoolProperty(default=False)
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != "OBJECT":
+            cls.poll_message_set("Switch to Object Mode for reliable sky-setting Undo")
+            return False
+        return True
+
+    def execute(self, context):
+        settings = get_settings(context.scene)
+        colors = skybox_preset.adjust_palette(
+            [list(getattr(settings, key)) for key in COLOR_FIELDS], self.channel, self.decrease)
+        for key, color in zip(COLOR_FIELDS, colors):
+            setattr(settings, key, color)
+        settings.status = "Colors adjusted. Refresh Draft to see the result."
+        return {"FINISHED"}
+
+
+class SKYBOX_OT_randomize(bpy.types.Operator):
+    bl_idname = "skybox.randomize"
+    bl_label = "Randomize Unlocked"
+    bl_description = "Explore unlocked appearance settings; keep output and render settings"
+    bl_options = {"UNDO"}
+    target: EnumProperty(items=[("NEBULA", "Nebula", "Clouds, colors and core emission"),
+                                ("STARS", "Stars", "Star brightness and all five focal stars")])
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != "OBJECT":
+            cls.poll_message_set("Switch to Object Mode for reliable sky-setting Undo")
+            return False
+        return True
+
+    def execute(self, context):
+        settings = get_settings(context.scene)
+        rng = random.Random()
+        if self.target == "NEBULA":
+            values = {
+                "variation": rng.randrange(2147483648), "scale": rng.uniform(0.65, 1.6),
+                "stretch": [rng.uniform(0.4, 1.5) for _ in range(3)],
+                "rotation": [rng.uniform(-math.pi, math.pi) for _ in range(3)],
+                "coverage": rng.uniform(-0.07, 0.07), "core_emission": rng.uniform(0.6, 2.5),
+            }
+            settings.palette_seed = (settings.palette_seed + 1) % 2147483648
+            colors = skybox_preset.make_palette(settings.palette_scheme, settings.palette_seed,
+                                                settings.palette_variation)
+            values.update(zip(COLOR_FIELDS, colors))
+            for key, value in values.items():
+                if not getattr(settings, f"lock_{key}"):
+                    setattr(settings, key, value)
+        else:
+            for key in ("tiny_brightness", "anchor_brightness"):
+                if not getattr(settings, f"lock_{key}"):
+                    setattr(settings, key, rng.uniform(0.2, 1.8))
+            for star in settings.anchors:
+                values = {"longitude": rng.uniform(-math.pi, math.pi),
+                          "latitude": math.asin(rng.uniform(-1, 1)),
+                          "radius": rng.uniform(0.025, 0.09), "strength": rng.uniform(200, 900),
+                          "color": rng.choice(((0.55, 0.72, 1), (1, 0.78, 0.45), (1, 0.47, 0.17), (1, 1, 1)))}
+                for key, value in values.items():
+                    if not getattr(star, f"lock_{key}"):
+                        setattr(star, key, value)
+        settings.status = "Unlocked settings randomized. Refresh Draft to see the result."
+        return {"FINISHED"}
+
+
+def locked_control(layout, settings, key):
+    row = layout.row(align=True)
+    row.prop(settings, key)
+    row.prop(settings, f"lock_{key}", text="", emboss=False,
+             icon="LOCKED" if getattr(settings, f"lock_{key}") else "UNLOCKED")
 
 
 class SKYBOX_OT_render(bpy.types.Operator):
@@ -328,10 +424,14 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         row.operator("skybox.load_preset")
         row.operator("skybox.save_preset")
         layout.operator("skybox.nebula_glow")
+        if context.mode != "OBJECT":
+            layout.label(text="Group edits need Object Mode for Undo.")
+            layout.operator("object.mode_set", text="Switch to Object Mode").mode = "OBJECT"
         box = layout.box()
         box.label(text="Nebula")
-        for key in ("variation", "scale", "stretch", "rotation", "coverage"):
-            box.prop(settings, key)
+        box.operator("skybox.randomize", text="Randomize Nebula").target = "NEBULA"
+        for key in NEBULA_FIELDS:
+            locked_control(box, settings, key)
         box = layout.box()
         box.label(text="Nebula Colors")
         row = box.row(align=True)
@@ -342,20 +442,26 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         row = box.row(align=True)
         row.operator("skybox.palette", text="Apply Seed").action = "SEED"
         row.operator("skybox.palette", text="Randomize").action = "RANDOM"
-        row = box.row(align=True)
-        for index in range(4):
-            row.prop(settings, f"palette{index}", text="")
+        for key in COLOR_FIELDS:
+            locked_control(box, settings, key)
+        for channel, label in (("HUE", "Hue"), ("SATURATION", "Saturation"), ("VALUE", "Brightness")):
+            row = box.row(align=True)
+            for decrease, sign in ((True, "-"), (False, "+")):
+                op = row.operator("skybox.color_adjust", text=f"{label} {sign}")
+                op.channel = channel
+                op.decrease = decrease
         box = layout.box()
-        box.label(text="Stars and Emission")
-        for key in ("tiny_brightness", "anchor_brightness", "core_emission"):
-            box.prop(settings, key)
+        box.label(text="Stars")
+        box.operator("skybox.randomize", text="Randomize Stars").target = "STARS"
+        for key in ("tiny_brightness", "anchor_brightness"):
+            locked_control(box, settings, key)
         box.label(text="Star glow uses Unity bloom.")
         box = layout.box()
         box.label(text="Focal Star Placement")
         box.prop(settings, "selected_star")
         star = settings.anchors[settings.selected_star - 1]
-        for key in ("longitude", "latitude", "radius", "color", "strength"):
-            box.prop(star, key)
+        for key in STAR_FIELDS:
+            locked_control(box, star, key)
         box = layout.box()
         box.label(text="Render")
         box.prop(settings, "output_dir")
@@ -387,7 +493,7 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
 
 
 CLASSES = (SkyboxStar, SkyboxSettings, SKYBOX_OT_load, SKYBOX_OT_save,
-           SKYBOX_OT_glow, SKYBOX_OT_palette, SKYBOX_OT_render, SKYBOX_OT_view_image,
+           SKYBOX_OT_glow, SKYBOX_OT_palette, SKYBOX_OT_color_adjust, SKYBOX_OT_randomize, SKYBOX_OT_render, SKYBOX_OT_view_image,
            SKYBOX_OT_viewport, SKYBOX_PT_authoring)
 
 

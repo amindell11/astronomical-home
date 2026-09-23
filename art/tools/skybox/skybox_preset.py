@@ -60,6 +60,23 @@ def make_palette(scheme, seed=0, variation=0):
     return result
 
 
+def adjust_palette(colors, channel, decrease=False):
+    step = -1 if decrease else 1
+    result = []
+    for color in colors:
+        hue, saturation, value = colorsys.rgb_to_hsv(*color)
+        if channel == "HUE":
+            hue = (hue + step / 36) % 1
+        elif channel == "SATURATION":
+            saturation = max(0, min(1, saturation + step * 0.05))
+        elif channel == "VALUE":
+            value = min(1, value * 1.1 ** step)
+        else:
+            raise ValueError(f"Unknown color adjustment: {channel}")
+        result.append(list(colorsys.hsv_to_rgb(hue, saturation, value)))
+    return result
+
+
 def defaults(glow=False):
     value = copy.deepcopy(DEFAULT)
     if glow:
