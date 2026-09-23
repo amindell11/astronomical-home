@@ -443,7 +443,7 @@ cs_diff_is_comment_only() {
 with_slot_flock() {
   local file="$1" busy_msg="$2"
   shift 2
-  command -v perl >/dev/null 2>&1 || { echo 'Pool mutation requires Perl flock support.' >&2; return 1; }
+  command -v perl >/dev/null 2>&1 || { echo 'Pool locking requires Perl flock support.' >&2; return 1; }
   # The execed command inherits the lock; launcher death cannot expose a surviving child.
   # POOL_FLOCK_FD lets a background child close the fd so it never keeps the lock past its holder.
   perl -e '
@@ -863,8 +863,7 @@ cmd_run_script_tests() {
   [[ "$ran" -eq 1 ]] || { echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2; return 1; }
 }
 
-# The merge gate overlaps the script suite with the hosted wait. The suite gets its own process
-# group so an early refusal can stop all of it, and it closes the merge lock so it never holds it.
+# Own process group lets a refusal stop the whole suite; closing the lock fd keeps it off the merge lock.
 SCRIPT_SUITE_PID=""
 SCRIPT_SUITE_LOG=""
 
