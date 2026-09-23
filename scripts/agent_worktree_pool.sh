@@ -1324,7 +1324,7 @@ merge_phase_budget() {
     tests) echo 480 ;;
     remote-proof) echo 900 ;;
     resharper) echo 360 ;;
-    script-tests) echo 360 ;;
+    script-tests) echo 1200 ;;
     push) echo 30 ;;
     base-recheck) echo 15 ;;
     gh-merge) echo 20 ;;

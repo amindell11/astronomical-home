@@ -966,8 +966,10 @@ merges_before="$(gh_merges)"
 PROBE_HOOK="touch '$TMP/gate1.started'; while [[ ! -f '$TMP/gate1.go' ]]; do sleep 0.2; done" \
   pool merge agent-1 > "$TMP/merge1.out" 2>&1 &
 first_gate=$!
-for _ in $(seq 1 600); do [[ -f "$TMP/gate1.started" ]] && break; sleep 0.2; done
-[[ -f "$TMP/gate1.started" ]] || { touch "$TMP/gate1.go"; wait "$first_gate" || true; cat "$TMP/merge1.out" >&2; fail "fixture: the first gate never reached the script suite"; }
+# The suite starts before gate 1's test run, so wait until gate 1 is only joining it.
+gate1_joining() { grep -q '"event":"phase-start","phase":"script-tests"' "$(journal_for)" 2>/dev/null; }
+for _ in $(seq 1 600); do [[ -f "$TMP/gate1.started" ]] && gate1_joining && break; sleep 0.2; done
+gate1_joining || { touch "$TMP/gate1.go"; wait "$first_gate" || true; cat "$TMP/merge1.out" >&2; fail "fixture: the first gate never reached the script-tests join"; }
 runs_before="$(runner_runs)"
 if pool merge agent-1 > "$TMP/merge.out" 2>&1; then touch "$TMP/gate1.go"; fail "a second merge on a slot with a running gate must refuse"; fi
 expect_output "a merge gate is already running on agent-1" "the refusal must say a gate is already running"
