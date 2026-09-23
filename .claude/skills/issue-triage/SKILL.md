@@ -124,8 +124,9 @@ Done when: every examined issue is in exactly one partition.
 ### 3. Research fan-out
 
 Cluster allowlisted issues by domain label (any label outside `pri:*`, `bug`,
-`needs-triage`, `ready-for-*`, `arc`, `design-record`, `wayfinder:*`; no
-domain label → an `unlabelled` cluster; split a cluster past ~12 issues). Spawn
+`needs-triage`, `ready-for-*`, `arc`, `design-record`, `wayfinder:*`; first
+domain label wins; no domain label → `unlabelled`). Fold clusters under 4
+issues into `mixed`; split any cluster past ~12. Spawn
 one read-only research subagent per cluster **in one message** (`general-purpose`,
 Opus). Each prompt carries: the cluster's issues (number, title, labels,
 assignees, `updatedAt`, body), the merged and open PR lists, the ledger rows,
