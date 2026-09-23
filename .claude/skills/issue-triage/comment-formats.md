@@ -1,7 +1,7 @@
 # Triage comment formats
 
-The comments a triage run posts for queued verdicts and one-short readiness.
-Verdict vocabulary: `SKILL.md` § Verdicts.
+The comments a triage run posts for queued verdicts and one-short readiness,
+and the on-event triage's note. Verdict vocabulary: `SKILL.md` § Verdicts.
 
 ## Bench proposal
 
@@ -65,4 +65,27 @@ Question <date>: <one line>
 Options: <a> · <b> · <c>
 Recommendation: <one>
 Evidence: <path | PR | comment>
+```
+
+## On-event note
+
+The on-event triage's one comment per issue (`on-event.md`), rendered by
+`scripts/on_event_triage.sh` from the verdict fields and edited in place on
+later runs by its hidden marker. Only the lines with a finding appear; no
+findings and no prior note means no comment.
+
+```
+<!-- on-event-triage -->
+On-event triage <date>
+Retry of #N — <closed title>
+Premise not in the tree — <path:line>
+Dead pointer: `<path>` → `<replacement>` | no replacement found
+In flight (assigned)
+```
+
+A later clean run rewrites a prior note as:
+
+```
+<!-- on-event-triage -->
+On-event triage <date> — earlier findings resolved.
 ```

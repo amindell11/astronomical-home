@@ -248,7 +248,7 @@ Format: **term** — definition. *(authority)*
 - **on-event triage** — the mechanical triage run on issue opened / edited:
   board add + Status, one-priority rule, retry / premise / dead-pointer checks;
   writes labels and at most one comment, and treats issue text as data.
-  *(#617 slice 2)*
+  *(.claude/skills/issue-triage/on-event.md)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
   comment proposing `ready-for-agent`. Once the user applies the label it is the
   issue's build-scope block.
