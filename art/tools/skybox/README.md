@@ -1,71 +1,153 @@
-# Procedural space-skybox generator
+# HDR space-skybox authoring
 
-`skybox_merged.py` renders a seamless 360° equirectangular **HDR space skybox**
-(volumetric nebula + procedural star field + explicit HDR anchor stars) straight
-to a scene-linear file usable as a Unity `Skybox/Panoramic` texture that also
-drives image-based lighting.
+Author in Blender, preview through the game's bloom in Unity, then assign a final
+sky to an environment scene. The existing Cycles generator remains the rendering
+source for both the panel and command line. Blender 5.1+ is required; Cycles picks
+an available GPU backend and otherwise uses the CPU.
 
-The shipped asset `Assets/Visuals/Environment/Sky/nebulaCustom0.hdr` was produced
-by this script.
+## Install the Blender panel
 
-The approved glow variant is saved at
-`Assets/Visuals/Environment/Sky/nebulaGlow0.hdr`: 8192x4096, 64 samples,
-seed 7319, tiny-star brightness 0, anchor brightness 1, and nebula-core
-emission 1.5. It retains the large focal stars and uses Unity bloom.
+Zip the `skybox` directory so the archive contains `skybox/__init__.py` and its
+sibling Python/JSON files. From the repository root, for example:
 
-## Requirements
-
-Blender 5.1+ with Cycles (OptiX/CUDA/HIP GPU auto-detected, CPU fallback). No
-add-ons — everything is procedural nodes built in `bpy`.
-
-## Usage
-
-```bash
-# Fast iteration preview (2K EXR + AgX PNG next to the script)
-blender -b -P skybox_merged.py
-
-# Shipped 8K Radiance HDR
-blender -b -P skybox_merged.py -- \
-  --width 8192 --height 4096 --samples 64 --format HDR --out /path/to/nebulaCustom0
+```powershell
+Compress-Archive -Path art/tools/skybox -DestinationPath skybox-addon.zip -Force
 ```
 
-Each run writes `<out>.<ext>` (EXR or HDR), `<out>_preview.png` (AgX tonemapped),
-and `<out>_report.txt` (resolution, render time, max radiance, % HDR pixels). The
-report measures radiance above 1.0; dark settings may contain none.
+In Blender: **Edit > Preferences > Add-ons > menu > Install from Disk**, select
+that ZIP, then enable **HDR Space Skybox**. In the 3D View, press **N**, choose the
+**Skybox** tab, and click **Start with Nebula Glow**. See Blender's
+[add-on installation guide](https://docs.blender.org/manual/en/4.4/editors/preferences/addons.html).
 
-## Parameters (after `--`)
+Save your `.blend` to keep panel settings, output paths and the selected Unity
+project. **Save Preset** writes a portable JSON containing all sky appearance
+settings; **Load Preset** restores it. Output/project paths are local workspace
+choices and are not part of portable presets. **Load Nebula Glow** restores the
+approved appearance without changing those paths.
 
-| Flag | Default | Notes |
-|------|---------|-------|
-| `--width` / `--height` | 2048 / 1024 | Equirectangular, keep 2:1. |
-| `--samples` | 32 | Cycles adaptive samples (no denoise, to avoid panorama-seam artifacts). |
-| `--format` | EXR | `EXR` (32-bit float) or `HDR` (Radiance RGBE). |
-| `--seed` | 7319 | Varies the sparse-star layer; the nebula palette/structure are seed-extendable for per-sector variety. |
-| `--star-brightness` | 1 | Multiplier for both tiny-star layers; `0` removes the small star field. |
-| `--anchor-brightness` | 1 | Independent multiplier for the five bright focal stars; `0` omits their geometry. |
-| `--nebula-core-emission` | 1 | Emission multiplier at maximum density and palette luminance, tapering to 1 in dim or wispy gas. `1.5` boosts dense cores by up to 50% without changing density or the dark-space wash. |
-| `--out` | script dir | Output basename (extension added automatically). |
+## Make a sky
 
-Brightness/emission controls must be finite and non-negative. Their defaults
-preserve the original output. For a completely starless sky, set both
-`--star-brightness 0 --anchor-brightness 0`.
+1. Start from Nebula Glow and change a few controls.
+2. Click **Render Draft**. Choose 512 for rough shape checks, 1K for ordinary
+   iteration, or 2K to examine stars more closely. Drafts use 32 samples.
+3. Press **F11** to view the result. The adjacent `_preview.png` is AgX-tonemapped
+   for shape/color inspection; it does not reproduce Unity bloom.
+4. Save a named JSON preset when you like the result.
+5. Use **Export 8K HDR** for the final 8192×4096, 64-sample render.
+
+Rendering uses a temporary scene and restores the open scene afterward. Cancel
+from Blender's render view with Esc. The sky name uses letters, numbers, hyphens
+and underscores. Files default to `Pictures/Skyboxes`; choose any writable output
+folder in the panel. Draft and final basenames end in `-draft` and `-8k`, so a new
+draft does not replace the final.
+
+| Control | Effect |
+|---|---|
+| Cloud Variation | 0 keeps the original cloud field. Other integers choose repeatable 3D noise offsets. |
+| Cloud Scale | Higher values give smaller, more numerous cloud features. |
+| Stretch / Rotation | Shape and orient the nebula independently of the stars. |
+| Cloud Coverage | More dense gas versus more empty space. |
+| Four palette colors | Nebula emission colors; these also affect sky-derived lighting. |
+| Tiny Stars | Brightness of both small procedural-star layers. Zero removes them. |
+| Focal Stars | Overall brightness of the five large stars. |
+| Core Emission | Selective emission gain, strongest in bright dense gas. |
+| Selected focal star | Horizontal/vertical angles relative to the panorama, size, color and brightness. |
+
+The broad glow around focal stars comes from **Unity bloom**, not baked blur.
+Keep focal stars enabled to retain that glow. The background wash and noise-detail
+parameters remain the established defaults. This version edits the existing five
+focal stars; it does not paint clouds or add/remove stars.
+
+## Send to Unity and compare
+
+The target Unity project must contain this PR's editor scripts.
+
+1. In Blender, set **Unity Project** to the folder containing `Assets` and
+   `ProjectSettings` (for this repository: `src/Asteroids3D`).
+2. Click **Send Draft to Unity**. This renders a fresh draft, saves its local
+   outputs, then publishes the completed HDR and preset/provenance files into
+   `Assets/Visuals/Environment/Sky/Generated` in that project.
+3. Return to Unity. With Auto Refresh enabled Unity imports on focus; otherwise
+   open **Tools > Skybox Preview** and click **Refresh Imports**.
+4. Use **Choose Imported Sky** or the Candidate field. The companion creates a
+   `Skybox/Panoramic` material and configures the scene-linear HDR texture with
+   an 8K size limit, HDR-capable automatic compression, mipmaps and panorama wrapping.
+5. Enter Play Mode in the environment you want to compare. Click **Preview
+   Candidate**, then switch **Original / Candidate**. Keep the camera, exposure,
+   bloom and lighting fixed, with **High Fidelity** quality. Check the ship as
+   well as the background. Allow lighting a few frames to refresh.
+6. Re-export the same sky name while iterating. Its texture/material identities
+   remain stable, and an active candidate preview refreshes sky-derived ambient
+   lighting when the new image imports.
+7. **End Preview and Restore**, leaving Play Mode, closing the window, changing
+   the active scene, or a script reload restores the original sky.
+
+The window reports the current quality and default reflection texture. It does
+not retune bloom/exposure or promise reflection equivalence. If the reflection is
+`UnityBlackCube`, that comparison cannot establish sky-reflection behavior. Use
+the live Game View for judgment; the CLI screenshot HDR-clipping issue is separate.
+The approved HDR does not remove any independent in-game starfield effects.
+
+## Keep a final sky in the game
+
+In Blender, click **Send Final 8K**. In Unity, choose that `-8k` material, leave
+Play Mode, select the desired **Environment Scene**, and click **Apply Final to
+Environment (Undo)**. The scene is opened additively if needed and marked dirty;
+**save that scene normally** to retain the assignment. Undo restores its previous
+sky. Drafts cannot be applied through this button.
+
+Each environment has its own skybox. The game's existing locale selection uses
+that scene's lighting when entering the corresponding sector. Applying to one
+environment does not replace the other environments or their materials.
+
+## Reproduce from the command line
+
+The shipped `nebulaCustom0.hdr` used the generator's legacy defaults. The approved
+`nebulaGlow0.hdr` is represented by `nebula-glow.json`: 8K, 64 samples, legacy seed
+7319, tiny stars 0, focal brightness 1 and core emission 1.5. Both shipped assets
+are retained as references.
 
 ```bash
-# Keep bright focal stars, remove tiny stars, and gently boost nebula cores.
-blender -b -P skybox_merged.py -- \
+blender -b --python-exit-code 1 -P art/tools/skybox/skybox_merged.py -- \
+  --preset art/tools/skybox/nebula-glow.json \
+  --width 8192 --height 4096 --samples 64 --format HDR --out /path/to/my-sky
+
+# Legacy invocation remains supported; no preset means the original defaults.
+blender -b --python-exit-code 1 -P art/tools/skybox/skybox_merged.py -- \
   --star-brightness 0 --anchor-brightness 1 --nebula-core-emission 1.5 \
-  --format HDR --out /path/to/nebula-glow
+  --format HDR --out /path/to/my-sky
 ```
 
-The report records all three controls. Emission changes also change sky-derived
-lighting. The HDR output has no baked bloom; compare through Unity's existing
-bloom at fixed exposure and quality, including ship lighting and reflections.
+CLI defaults: 2048×1024, 32 samples, EXR. `--width` must be even; optional `--height`
+must be half the width. `--format EXR` writes 32-bit float EXR; `HDR` writes Radiance
+RGBE. `--seed`, `--star-brightness`, `--anchor-brightness` and
+`--nebula-core-emission` override the corresponding preset values.
 
-## Design notes
+**Legacy `--seed` is not a whole-sky variation control:** only its fractional part
+changes distortion in one tiny-star layer. It has no visible effect with tiny
+stars disabled. Use the preset's nebula `variation` instead.
 
-- Stars and the deep-space wash are sampled in **direction space** on the World
-  shader, so there is no 0/360 seam and no pole singularity by construction.
-- The nebula is a real Principled Volume in a domain cube (object-space 3D noise
-  drives density; emission is tied to density so dense cores glow above 1.0),
-  captured by an equirectangular panoramic camera at the origin — genuine HDR
-  radiance for IBL, not a tonemapped background.
+Each render writes the HDR/EXR, `_preview.png`, `_report.txt`, `_preset.json` and
+`_render.json`. The last file records Blender version, generator-source hashes,
+resolution, samples, exact preset and measured HDR radiance. Match that Blender
+version and generator revision for reproduction; normal GPU sampling variation
+can prevent byte-identical renders. Schema version 1 presets reject unknown
+fields, invalid numbers and unsupported versions before scene construction.
+
+## Handoff contract and checks
+
+`skybox_unity.publish` owns the export layout. It stages all files under the target
+project's `Library/SkyboxAuthoring`, then replaces JSON sidecars and atomically
+publishes `<name>-draft.hdr` or `<name>-8k.hdr` in the Generated folder. Unity `.meta`
+files are retained. `SkyboxImport` owns material creation and the matching material
+lookup; it only processes those HDR suffixes under that folder. Failed publishing
+reports an error while leaving the local render available to resend.
+
+```bash
+python -m unittest discover -s art/tools/skybox/tests -v
+blender -b --python-exit-code 1 -P art/tools/skybox/tests/blender_smoke.py -- \
+  --out results/skybox-authoring/variants
+```
+
+Unity integration tests: `Tests.EditMode.Skyboxes.SkyboxAuthoringEditModeTests`
+(category `Sectors`), through the repository's pooled Unity test runner.

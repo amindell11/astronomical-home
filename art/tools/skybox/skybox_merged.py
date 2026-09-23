@@ -5,7 +5,12 @@ star field + explicit HDR anchor stars) to a scene-linear EXR or Radiance HDR,
 plus an AgX-tonemapped PNG preview. Run: blender -b -P skybox_merged.py [-- args].
 """
 
+import argparse
 import array
+import hashlib
+import json
+import random
+from pathlib import Path
 import math
 import os
 import sys
@@ -15,38 +20,11 @@ import bpy
 from mathutils import Vector
 
 
-def _cli_args():
-    argv = sys.argv
-    args = argv[argv.index("--") + 1:] if "--" in argv else []
-    out = {}
-    i = 0
-    while i < len(args):
-        key = args[i].lstrip("-")
-        out[key] = args[i + 1]
-        i += 2
-    return out
-
-
-_ARGS = _cli_args()
-OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
-WIDTH = int(_ARGS.get("width", 2048))
-HEIGHT = int(_ARGS.get("height", 1024))
-SAMPLES = int(_ARGS.get("samples", 32))
-SEED = float(_ARGS.get("seed", 7319.0))
-STAR_BRIGHTNESS = float(_ARGS.get("star-brightness", 1.0))
-ANCHOR_BRIGHTNESS = float(_ARGS.get("anchor-brightness", 1.0))
-NEBULA_CORE_EMISSION = float(_ARGS.get("nebula-core-emission", 1.0))
-for flag, value in (("star-brightness", STAR_BRIGHTNESS),
-                    ("anchor-brightness", ANCHOR_BRIGHTNESS),
-                    ("nebula-core-emission", NEBULA_CORE_EMISSION)):
-    if not math.isfinite(value) or value < 0.0:
-        raise ValueError(f"--{flag} must be finite and non-negative")
-FORMAT = _ARGS.get("format", "EXR").upper()
-_EXT = {"EXR": ".exr", "HDR": ".hdr"}[FORMAT]
-_OUT_BASE = os.path.abspath(os.path.splitext(_ARGS.get("out", os.path.join(OUTPUT_DIR, "skybox_merged")))[0])
-OUT_PATH = _OUT_BASE + _EXT
-PNG_PATH = _OUT_BASE + "_preview.png"
-REPORT_PATH = _OUT_BASE + "_report.txt"
+if __package__:
+    from . import skybox_preset
+else:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import skybox_preset
 
 
 def socket(node, names, output=False):
@@ -83,7 +61,9 @@ def make_emission_material(name, color, strength):
     return mat
 
 
-def build_world():
+def build_world(preset):
+    STAR_BRIGHTNESS = preset["tiny_stars"]["brightness"]
+    SEED = preset["tiny_stars"]["legacy_seed"]
     world = bpy.data.worlds.new("Procedural Seamless Star World")
     bpy.context.scene.world = world
     world.use_nodes = True
@@ -163,7 +143,9 @@ def build_world():
     links.new(socket(bg, ("Background",), True), socket(out, ("Surface",)))
 
 
-def build_nebula_volume():
+def build_nebula_volume(preset):
+    settings = preset["nebula"]
+    NEBULA_CORE_EMISSION = settings["core_emission"]
     bpy.ops.mesh.primitive_cube_add(size=2.0, location=(0.0, 0.0, 0.0))
     cube = bpy.context.object
     cube.name = "Nebula Volume Domain"
@@ -184,8 +166,11 @@ def build_nebula_volume():
 
     texcoord = new_node(nodes, "ShaderNodeTexCoord", "Object Space Coordinates", -1050, 80)
     mapping = new_node(nodes, "ShaderNodeMapping", "Stretch Nebula", -850, 80)
-    set_input(mapping, ("Scale",), (0.62, 1.05, 0.62))
-    set_input(mapping, ("Rotation",), (0.20, -0.35, 0.58))
+    set_input(mapping, ("Scale",), tuple(v * settings["scale"] for v in settings["stretch"]))
+    set_input(mapping, ("Rotation",), settings["rotation"])
+    if settings["variation"]:
+        rng = random.Random(settings["variation"])
+        set_input(mapping, ("Location",), tuple(rng.uniform(-100.0, 100.0) for _ in range(3)))
 
     noise_large = new_node(nodes, "ShaderNodeTexNoise", "Billowing 3D Noise", -620, 180)
     noise_large.noise_dimensions = "3D"
@@ -207,9 +192,9 @@ def build_nebula_volume():
     threshold = new_node(nodes, "ShaderNodeValToRGB", "Wispy Density Threshold", -100, 120)
     threshold.color_ramp.interpolation = "EASE"
     # Threshold that carves the noise into wispy gas vs. empty space.
-    threshold.color_ramp.elements[0].position = 0.255
+    threshold.color_ramp.elements[0].position = 0.255 - settings["coverage"]
     threshold.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
-    threshold.color_ramp.elements[1].position = 0.450
+    threshold.color_ramp.elements[1].position = 0.450 - settings["coverage"]
     threshold.color_ramp.elements[1].color = (0.040, 0.040, 0.040, 1.0)
     density_scale = new_node(nodes, "ShaderNodeMath", "Density Scale", 140, 130)
     density_scale.operation = "MULTIPLY"
@@ -222,13 +207,13 @@ def build_nebula_volume():
     palette.color_ramp.elements.remove(palette.color_ramp.elements[1])
     p0 = palette.color_ramp.elements[0]
     p0.position = 0.18
-    p0.color = (0.015, 0.001, 0.055, 1.0)
+    p0.color = (*settings["palette"][0], 1.0)
     p1 = palette.color_ramp.elements.new(0.40)
-    p1.color = (0.35, 0.008, 0.52, 1.0)
+    p1.color = (*settings["palette"][1], 1.0)
     p2 = palette.color_ramp.elements.new(0.60)
-    p2.color = (0.018, 0.18, 0.72, 1.0)
+    p2.color = (*settings["palette"][2], 1.0)
     p3 = palette.color_ramp.elements.new(0.80)
-    p3.color = (0.75, 0.025, 0.16, 1.0)
+    p3.color = (*settings["palette"][3], 1.0)
 
     links.new(socket(texcoord, ("Generated",), True), socket(mapping, ("Vector",)))
     for noise in (noise_large, noise_fine):
@@ -267,26 +252,22 @@ def build_nebula_volume():
     cube.data.materials.append(mat)
 
 
-def build_anchor_stars():
-    if ANCHOR_BRIGHTNESS == 0.0:
+def build_anchor_stars(preset):
+    brightness = preset["anchor_brightness"]
+    if brightness == 0.0:
         return
 
-    anchors = [
-        ((0.78, -0.36, 0.51), 0.055, (0.55, 0.72, 1.00), 420.0),
-        ((-0.43, -0.81, 0.40), 0.070, (1.00, 0.47, 0.17), 260.0),
-        ((-0.70, 0.31, -0.64), 0.050, (0.52, 0.66, 1.00), 600.0),
-        ((0.18, 0.91, 0.37), 0.062, (1.00, 0.78, 0.45), 360.0),
-        ((0.52, 0.43, -0.74), 0.045, (0.70, 0.82, 1.00), 850.0),
-    ]
-    for i, (direction, radius, color, strength) in enumerate(anchors, 1):
+    for i, anchor in enumerate(preset["anchors"], 1):
+        direction, radius = anchor["direction"], anchor["radius"]
+        color, strength = anchor["color"], anchor["strength"]
         pos = Vector(direction).normalized() * 8.0
         bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=radius, location=pos)
         star = bpy.context.object
         star.name = f"HDR Anchor Star {i:02d}"
-        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength * ANCHOR_BRIGHTNESS))
+        star.data.materials.append(make_emission_material(f"Anchor {i:02d} HDR", color, strength * brightness))
 
 
-def configure_scene():
+def configure_scene(WIDTH, HEIGHT, SAMPLES, FORMAT, OUT_PATH):
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.render.resolution_x = WIDTH
@@ -304,6 +285,7 @@ def configure_scene():
     scene.render.use_file_extension = True
     scene.render.filepath = OUT_PATH
     scene.cycles.samples = SAMPLES
+    scene.cycles.sampling_pattern = "TABULATED_SOBOL"
     scene.cycles.use_adaptive_sampling = True
     scene.cycles.adaptive_threshold = 0.05
     scene.cycles.max_bounces = 4
@@ -351,11 +333,15 @@ def configure_scene():
     scene.camera = camera
 
 
-def save_and_verify():
-    scene = bpy.context.scene
-    start = time.perf_counter()
-    bpy.ops.render.render(write_still=True)
-    elapsed = time.perf_counter() - start
+def save_outputs(scene, preset, out_base, file_format, elapsed):
+    WIDTH, HEIGHT = scene.render.resolution_x, scene.render.resolution_y
+    SAMPLES = scene.cycles.samples
+    FORMAT = file_format
+    OUT_PATH = out_base + {"HDR": ".hdr", "EXR": ".exr"}[FORMAT]
+    PNG_PATH, REPORT_PATH = out_base + "_preview.png", out_base + "_report.txt"
+    STAR_BRIGHTNESS = preset["tiny_stars"]["brightness"]
+    ANCHOR_BRIGHTNESS = preset["anchor_brightness"]
+    NEBULA_CORE_EMISSION = preset["nebula"]["core_emission"]
 
     result = bpy.data.images.get("Render Result")
     if result is None:
@@ -397,17 +383,92 @@ def save_and_verify():
     )
     with open(REPORT_PATH, "w", encoding="utf-8") as handle:
         handle.write(report)
+    skybox_preset.save(out_base + "_preset.json", preset)
+    sources = [Path(__file__), Path(skybox_preset.__file__)]
+    provenance = {
+        "blender_version": bpy.app.version_string,
+        "generator_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
+        "width": WIDTH, "height": HEIGHT, "samples": SAMPLES,
+        "format": FORMAT, "render_seconds": elapsed,
+        "max_rgb": max_rgb, "pct_pixels_above_1": 100.0 * above1 / total,
+        "preset": preset, "out": OUT_PATH,
+    }
+    Path(out_base + "_render.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
     print("\nSKYBOX_RENDER_REPORT\n" + report)
 
 
+def build_scene(preset, out_base, width=1024, samples=32, file_format="HDR"):
+    """Build in a separate scene; the caller restores its scene and disposes this one."""
+    scene = bpy.data.scenes.new("Skybox Render")
+    bpy.context.window.scene = scene
+    try:
+        configure_scene(width, width // 2, samples, file_format,
+                        out_base + {"HDR": ".hdr", "EXR": ".exr"}[file_format])
+        build_world(preset)
+        build_nebula_volume(preset)
+        build_anchor_stars(preset)
+    except Exception:
+        dispose_scene(scene)
+        raise
+    return scene
+
+
+def dispose_scene(scene):
+    for obj in list(scene.objects):
+        data = obj.data
+        materials = list(data.materials) if hasattr(data, "materials") else []
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if data.users == 0:
+            (bpy.data.cameras if isinstance(data, bpy.types.Camera) else bpy.data.meshes).remove(data)
+        for material in materials:
+            if material.users == 0:
+                bpy.data.materials.remove(material)
+    world = scene.world
+    bpy.data.scenes.remove(scene)
+    if world and world.users == 0:
+        bpy.data.worlds.remove(world)
+
+
 def main():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    configure_scene()
-    build_world()
-    build_nebula_volume()
-    build_anchor_stars()
-    save_and_verify()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--preset", help="Versioned JSON preset; CLI brightness flags override it")
+    parser.add_argument("--width", type=int, default=2048)
+    parser.add_argument("--height", type=int)
+    parser.add_argument("--samples", type=int, default=32)
+    parser.add_argument("--format", type=str.upper, choices=("EXR", "HDR"), default="EXR")
+    parser.add_argument("--out", default=str(Path(__file__).with_suffix("")))
+    parser.add_argument("--seed", type=float)
+    parser.add_argument("--star-brightness", type=float)
+    parser.add_argument("--anchor-brightness", type=float)
+    parser.add_argument("--nebula-core-emission", type=float)
+    args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    if args.width < 2 or args.width % 2 or (args.height is not None and args.height != args.width // 2):
+        parser.error("width/height must describe a positive 2:1 panorama")
+    if args.samples < 1:
+        parser.error("samples must be positive")
+    preset = skybox_preset.load(args.preset) if args.preset else skybox_preset.defaults()
+    for value, mapping, key in (
+        (args.seed, preset["tiny_stars"], "legacy_seed"),
+        (args.star_brightness, preset["tiny_stars"], "brightness"),
+        (args.anchor_brightness, preset, "anchor_brightness"),
+        (args.nebula_core_emission, preset["nebula"], "core_emission"),
+    ):
+        if value is not None:
+            mapping[key] = value
+    preset = skybox_preset.parse(preset)
+    out_base = os.path.abspath(os.path.splitext(args.out)[0])
+    Path(out_base).parent.mkdir(parents=True, exist_ok=True)
+    previous = bpy.context.window.scene
+    scene = build_scene(preset, out_base, args.width, args.samples, args.format)
+    try:
+        start = time.perf_counter()
+        bpy.ops.render.render(write_still=True)
+        save_outputs(scene, preset, out_base, args.format, time.perf_counter() - start)
+    finally:
+        bpy.context.window.scene = previous
+        dispose_scene(scene)
 
 
 if __name__ == "__main__":
     main()
+
