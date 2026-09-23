@@ -16,6 +16,7 @@ namespace Tests.EditMode.Skyboxes
     public class SkyboxAuthoringEditModeTests
     {
         private string folder;
+        private string cleanupFolder;
         private Scene previous;
         private readonly List<Scene> scenes = new();
         private readonly List<Material> materials = new();
@@ -24,6 +25,7 @@ namespace Tests.EditMode.Skyboxes
         public void SetUp()
         {
             folder = SkyboxImport.Folder + "/test-" + Guid.NewGuid().ToString("N");
+            cleanupFolder = Directory.Exists(SkyboxImport.Folder) ? folder : SkyboxImport.Folder;
             Directory.CreateDirectory(folder);
             AssetDatabase.Refresh();
             previous = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -43,7 +45,7 @@ namespace Tests.EditMode.Skyboxes
                     Object.DestroyImmediate(material);
             materials.Clear();
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            AssetDatabase.DeleteAsset(folder);
+            AssetDatabase.DeleteAsset(cleanupFolder);
             Undo.ClearAll();
         }
 
