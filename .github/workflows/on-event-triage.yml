@@ -34,9 +34,10 @@ jobs:
           fetch-depth: 1
           lfs: false
 
+      # The pinned CLI declares node >=22; an older runtime installs with an engine warning only.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.270
