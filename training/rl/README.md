@@ -318,8 +318,8 @@ Proven across run 1 (2M curriculum) and the 500k retrain. Read before any launch
   judging free RAM by hand.
 - Pick a unique run id and assert `results/rl-training/<run-id>` does not exist.
   A first launch never uses `--force`.
-- Base port 5006 is single-occupancy machine-wide — check the work ledger and for
-  live fleets first.
+- Base port 5006 is single-occupancy machine-wide — check for a live
+  `RLTraining`/`mlagents` fleet first.
 
 ### While running
 

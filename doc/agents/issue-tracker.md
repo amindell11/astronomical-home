@@ -11,8 +11,8 @@ The tracker is where design prose lives (ruling 2026-09-02; before it, bodies
 were thin links to plan docs). Bodies and comments carry the why, the
 rejected alternatives, results and rulings — never a restatement of what the
 code says; point at the symbol. The tracker says *what / for-when / why*;
-memory holds machine-local session state; live in-flight claims go in the
-active-work ledger (see `AGENTS.md`). Body shapes:
+live in-flight claims are the pool's slot leases and open PRs; memory holds
+only feedback notes (`doc/agents/memory.md`). Body shapes:
 
 - **Arc issue**: the brief — design, forks, rulings — written before the
   build; slices are sub-issues. The completing PR carries the shipped why;
