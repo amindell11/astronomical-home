@@ -8,9 +8,9 @@ Memory is the primary session's file directory
 must use this absolute path). It holds **nothing repo-critical** (ruling
 2026-09-03): the tracker and `doc/agents/` do. Two layers only:
 
-- **Working memory** — `active_work_ledger.md` (live claims), the session
-  handoff files a consuming session deletes, and one-line *links* to active
-  arcs (`Arc → #N`). Never the arc's content.
+- **Working memory** — `active_work_ledger.md` (live claims) and the session
+  handoff files a consuming session deletes. Active arcs are not listed here
+  — query the `arc` label / board; a list here drifts as issues close.
 - **Taste and interaction** — `user_*` / `feedback_*`: preferences, how the
   user likes to work, interaction notes (e.g. "easing back in"), tidbits the
   user says. Allowed to drift; trimmed and reassessed regularly.
