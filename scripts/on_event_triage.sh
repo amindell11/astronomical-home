@@ -275,7 +275,7 @@ PY
 say "running claude -p ($CLAUDE_MODEL, read-only tools, max $CLAUDE_MAX_TURNS turns)"
 claude -p --tools Read,Grep,Glob --json-schema "$VERDICT_SCHEMA" --output-format json \
   --max-turns "$CLAUDE_MAX_TURNS" --model "$CLAUDE_MODEL" < "$TMP/prompt.md" > "$TMP/claude.json" \
-  || infra "claude -p exited non-zero"
+  || infra "claude -p exited non-zero: $(head -c 2000 "$TMP/claude.json")"
 
 eval "$(python3 - "$TMP/claude.json" "$TMP/note.md" "$DATE" "$ASSIGNED" "$MARKER" <<'PY'
 import json, shlex, sys
