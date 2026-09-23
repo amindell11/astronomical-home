@@ -8,6 +8,19 @@ Coordination (leases, boot policy, routing into a held editor):
 `.claude/skills/unity-access/SKILL.md`. Capture lanes (clips, live-editor stills):
 `.claude/skills/game-capture/SKILL.md`.
 
+## `unity` plugin skills
+
+`unity@claude-plugins-official` (user scope) adds `unity:*` task skills plus its own
+`unity:unity-cli` copy, which lags the binary. "`unity-cli`" in this repo means the
+binary-rendered user skill above — prefer it over the plugin copy.
+
+- Plugin skills that run `unity command eval` still need a `unity-access` lease and
+  `--project-path`; their snippets omit both.
+- `unity:unity-package-management`'s direct `-batchmode` Editor launch is barred —
+  every boot goes through `unity-access`.
+- `unity:generate-editor-search-query` fires on generic "find/locate" wording; repo
+  lookups stay on Grep, not the editor Search window.
+
 ## Targeting & readiness
 
 - Always pass `--project-path <proj>` — per-project lockfile routing is reliable;
