@@ -53,15 +53,16 @@ namespace Tests.PlayMode
                 Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
 
             var scenario = CreateScenario(typeName);
+            var sectorEntry = scenario.SectorEntry;
 
             sessionRoot = new GameObject("CaptureScenarioSession");
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
-                sectorEntry = scenario.SectorEntry,
+                sectorEntry = sectorEntry,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();
-            if (session.Profile.sectorEntry != null)
+            if (sectorEntry != null)
                 yield return session.LoadSector();
             scenario.Session = session;
 
