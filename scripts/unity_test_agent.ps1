@@ -1058,14 +1058,6 @@ function Wait-RoutedEditorReady {
     throw "-Routed: $What not reached within ${TimeoutSec}s (editor_status must answer with no compile/domain-reload in progress). Last output: $(Normalize-Message -Message $lastText -MaxLen 400)"
 }
 
-function Set-RoutedAutotick {
-    # Autotick resets on every domain reload; an unticked idle editor starves command servicing into 30s timeouts.
-    $call = Invoke-PipelineCommand -CommandName "set_autotick" -CommandParams @("--enable", "true") -What "set_autotick"
-    if (-not $call.ok) {
-        Write-Warning "set_autotick failed (a starved editor will surface as poll timeouts): $(Normalize-Message -Message $call.text -MaxLen 240)"
-    }
-}
-
 function Get-RoutedTestCatalog {
     param([string]$PipelineMode)
 
@@ -1210,7 +1202,6 @@ function Invoke-RoutedPlatformRun {
     $durationSum = 0.0
     foreach ($callSpec in $Plan.calls) {
         [void](Wait-RoutedEditorReady -TimeoutSec 120 -What "$platform pre-run readiness")
-        Set-RoutedAutotick
 
         $runParams = @("--mode", $Plan.pipelineMode, "--async_tests", "true", "--timeout", [string]$UnityTimeoutSec)
         if (-not [string]::IsNullOrWhiteSpace([string]$callSpec.filter)) {
@@ -1226,7 +1217,6 @@ function Invoke-RoutedPlatformRun {
         }
 
         $final = Wait-RoutedTestCompletion -TimeoutSec ($UnityTimeoutSec + 60) -What "run_tests $platform"
-        Set-RoutedAutotick
 
         $durationSum += [double](Get-JsonProp $final 'duration')
         foreach ($result in @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })) {
@@ -1329,7 +1319,6 @@ function Invoke-RoutedSuite {
     if ($isPlaying) {
         throw "-Routed: the resident editor is in Play Mode; stop it before routing tests (unity command editor_stop --project-path $ProjectFullPath)."
     }
-    Set-RoutedAutotick
 
     # Plan every platform before running any: a selection the routed transport cannot honor must refuse up front, not half-run.
     $plans = @()
