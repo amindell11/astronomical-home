@@ -35,7 +35,8 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
 - **`design-record`**: closed issue holding an arc's why/results/rulings (see body law).
 - **Triage states**: `needs-triage` — agent-created, awaiting user review
   (**default on every deferral issue an agent mints mid-task**; the user
-  clears it to a priority/readiness label on review). `ready-for-agent` —
+  clears it to a priority/readiness label on review), and any open issue
+  carrying no priority label (the on-event triage adds it). `ready-for-agent` —
   fully specified, an AFK agent can take it. `ready-for-human` — needs human
   judgment or hands. `wontfix` — closed, not actioned; the closing comment
   links the memory file recording why.
@@ -73,7 +74,9 @@ gh api graphql -f query='mutation { addProjectV2ItemById(input: {projectId: "PVT
 gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: {projectId: "PVT_kwHOAJsCkc4BfiTv", itemId: "<item-id>", fieldId: "PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE", value: {singleSelectOptionId: "<option-id>"}}) { projectV2Item { id } } }'
 ```
 
-(`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.)
+(`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.) Actions runs
+mutate the board under the `PROJECTS_TOKEN` secret (classic PAT, `project`
+scope only): `GITHUB_TOKEN` cannot mutate a user-owned project.
 
 ⚠ `updateProjectV2Field`'s `singleSelectOptions` is a **REPLACE, not a merge**
 — always carry the existing option ids to rename in place. A rename mutation

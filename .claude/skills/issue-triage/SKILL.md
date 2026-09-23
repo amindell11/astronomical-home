@@ -11,8 +11,9 @@ metadata:
 
 Keeps the tracker true so the ready queue stays stocked without a manual pass.
 This file is the **triage sweep** (steps below) plus the reference both triage
-runs share; the **on-event triage** (issue opened / edited) lands as a sibling
-file in a later slice. Arc brief and rulings: #617.
+runs share; the **on-event triage** (issue opened / edited) is
+[`on-event.md`](on-event.md), the prompt `scripts/on_event_triage.sh` feeds its
+read-only `claude -p`. Arc brief and rulings: #617.
 
 ## Arguments
 
