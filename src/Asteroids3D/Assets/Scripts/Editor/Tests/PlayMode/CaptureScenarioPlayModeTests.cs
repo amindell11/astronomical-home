@@ -15,7 +15,7 @@ using Utils;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a sector-less Session — scenarios get the session's real services and UnitService spawn path — with presentation decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
+    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a Session — scenarios get the session's real services and UnitService spawn path — and loads the scenario's sector entry, if any, hero-less; presentation is decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
     [TestFixture]
     [Category("Camera")]
     [Category("RequiresGraphics")]
@@ -68,10 +68,12 @@ namespace Tests.PlayMode
             sessionRoot = new GameObject("CaptureScenarioSession");
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
-                sectorEntry = null,
+                sectorEntry = scenario.SectorEntry,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();
+            if (session.Profile.sectorEntry != null)
+                yield return session.LoadSector();
             scenario.Session = session;
 
             using var pacing = CapturePacing.Locked();
