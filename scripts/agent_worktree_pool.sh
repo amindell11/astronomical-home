@@ -16,8 +16,9 @@ mkdir -p "$LOCK_ROOT"
 #   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
 #   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
 #   Locks                     write_lock, lock_age_seconds, clobber safety
-#   Status                    collect_slot_records (porcelain), cmd_status
+#   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
+#   Hold / resume             held_snapshot, merge_in_flight, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
@@ -54,6 +55,16 @@ Commands:
                                 go stale by AGE, never by pid liveness
         locked_at=<iso8601>     locked/stale only
 
+      After the slot records, one record per held lease (see hold), read
+      from local held/* branches and origin/held/* remote-tracking refs as
+      of the last fetch. It leads with held= instead of slot=:
+
+        held=<lease>            always
+        branch=held/<lease>     always
+        left_slot=<slot>        the slot the work was held from, when recorded
+        held_at=<iso8601>       when the snapshot was taken
+        pushed=0|1              origin/held/<lease> exists as of the last fetch
+
       Keys may be added; consumers must ignore unknown keys and tolerate any
       optional key being absent.
 
@@ -75,6 +86,28 @@ Commands:
   prepare <slot> [base_ref]
       Reset slot branch/worktree to base ref (default: origin/main)
       while preserving ignored dirs (e.g., Unity Library/).
+
+  hold <slot> [--local]
+      Free a slot whose work waits on the user, keeping the work. Snapshots
+      HEAD plus the dirty tree (tracked edits and untracked non-ignored
+      files) as one commit whose only parent is HEAD, on branch
+      held/<lease>, pushed to origin unless --local; then prepares the slot
+      to origin/main and releases it. task/<lease> is never touched.
+      Refuses a free or lease-less slot, a slot whose merge gate journal
+      has a phase open, and an existing held/<lease>. Local merge and
+      ReSharper proof live in the lock and are lost; the merge gate re-proves.
+      Output: HELD=<lease> RESUME="agent_worktree_pool.sh resume <lease>"
+
+  resume <lease> [slot]
+      Put held work back on a slot. Reads local held/<lease>, else
+      origin/held/<lease>. Acquires <slot> (strict, as acquire), else the
+      slot the work left, else any; refuses a slot holding unpushed work.
+      Resets the slot branch to the held HEAD and restores the snapshot as
+      uncommitted changes (staged edits come back unstaged), then deletes
+      held/<lease> locally and on origin.
+      Output: SLOT=<name> PATH=<abs-path> RESUMED=<lease>
+      Exit 1 after that line means the work is restored but held/<lease>
+      could not be deleted everywhere.
 
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
@@ -185,6 +218,8 @@ Examples:
   scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
+  scripts/agent_worktree_pool.sh hold agent-1 --local
+  scripts/agent_worktree_pool.sh resume task-123
 EOF
 }
 
@@ -486,7 +521,13 @@ is_head_pushed() {
   [[ -n "$remotes" ]]
 }
 
-# Clobber-safe: no uncommitted changes and no local commits absent from every remote branch.
+# A local held/* branch keeps HEAD reachable through a reset, pushed or not (hold --local).
+is_head_held() {
+  local path="$1"
+  [[ -n "$(git -C "$path" for-each-ref --contains HEAD --format='%(refname)' refs/heads/held/ 2>/dev/null)" ]]
+}
+
+# Clobber-safe: no uncommitted changes, and commits ahead of base survive on a remote or held/* branch.
 slot_is_clobber_safe() {
   local path="$1" base="${2:-origin/main}"
   local dirty ahead
@@ -494,7 +535,7 @@ slot_is_clobber_safe() {
   [[ "${dirty:-0}" -eq 0 ]] || return 1
   ahead="$(git -C "$path" rev-list --count "$base"..HEAD 2>/dev/null || echo 0)"
   [[ "${ahead:-0}" -eq 0 ]] && return 0
-  is_head_pushed "$path"
+  is_head_pushed "$path" || is_head_held "$path"
 }
 
 # ---- Status ----------------------------------------------------------------
@@ -530,8 +571,27 @@ collect_slot_records() {
   done < <(slots_tsv)
 }
 
+# One record per held lease, local branch first; origin-only leases were held from another clone.
+collect_held_records() {
+  local lease branch ref pushed left at
+  while IFS= read -r lease; do
+    [[ -n "$lease" ]] || continue
+    branch="held/$lease"
+    pushed=0
+    git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null && pushed=1
+    ref="refs/heads/$branch"
+    git -C "$ROOT" rev-parse -q --verify "$ref" >/dev/null || ref="refs/remotes/origin/$branch"
+    left="$(held_trailer "$ref" Held-Slot)"
+    at="$(TZ=UTC git -C "$ROOT" log -1 --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd "$ref")"
+    printf 'held=%s\nbranch=%s\n' "$lease" "$branch"
+    [[ -n "$left" ]] && printf 'left_slot=%s\n' "$left"
+    printf 'held_at=%s\npushed=%s\n\n' "$at" "$pushed"
+  done < <(git -C "$ROOT" for-each-ref --format='%(refname)' refs/heads/held/ refs/remotes/origin/held/ \
+    | sed -e 's#^refs/heads/held/##' -e 's#^refs/remotes/origin/held/##' | sort -u)
+}
+
 cmd_status() {
-  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" line key value
+  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" held="" left="" pushed="" line key value
   # One collection pass feeds both renderings; a record ends at its blank line.
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ -n "$line" ]]; then
@@ -545,7 +605,17 @@ cmd_status() {
         task_branch) tb="$value" ;;
         locked_by_pid) pid="$value" ;;
         locked_at) ts="$value" ;;
+        held) held="$value" ;;
+        left_slot) left="$value" ;;
+        pushed) pushed="$value" ;;
       esac
+      continue
+    fi
+    if [[ -n "$held" ]]; then
+      local where="local"
+      [[ "$pushed" == 1 ]] && where="pushed"
+      echo "held/$held | HELD   | left=${left:-unknown} $where"
+      held=""; left=""; pushed=""
       continue
     fi
     [[ -n "$slot" ]] || continue
@@ -558,7 +628,7 @@ cmd_status() {
       echo "$slot | $label | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
     fi
     slot=""; state=""; path=""; lease=""; tb=""; pid=""; ts=""
-  done < <(collect_slot_records)
+  done < <(collect_slot_records; collect_held_records)
 
   if [[ "$any" -eq 0 ]]; then
     echo "No agent-* worktrees found."
@@ -627,11 +697,19 @@ cmd_acquire() {
 
 cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
 
+# An expected lease makes it compare-and-release: a slot reclaimed meanwhile keeps its new holder.
 release_slot() {
-  local slot="$1"
-  local ldir path
+  local slot="$1" expected="${2:-}"
+  local ldir path current
   ldir="$(lock_dir_for "$slot")"
   path="$(slot_path "$slot" 2>/dev/null || true)"
+  if [[ -n "$expected" ]]; then
+    current="$(lease_for "$slot")"
+    if [[ "$current" != "$expected" ]]; then
+      echo "$slot now holds lease '${current:-none}', not '$expected'; left locked." >&2
+      return 1
+    fi
+  fi
   if [[ -n "$path" ]]; then
     git -C "$path" config --worktree --unset worktree-pool.lease 2>/dev/null || true
     git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
@@ -660,9 +738,11 @@ cmd_prepare() {
     dirty="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
     echo "REFUSING to prepare $slot: it holds unpushed work" >&2
     echo "  ($ahead commit(s) ahead of $base, $dirty uncommitted change(s))." >&2
-    echo "  Preserve it first, e.g.:" >&2
+    echo "  Work that must not be pushed (held for approval): hold it, which also frees the slot:" >&2
+    echo "    $0 hold $slot --local" >&2
+    echo "  Work that may be pushed but waits on the user: $0 hold $slot" >&2
+    echo "  Work that belongs on its task branch: push it, then re-run with --force:" >&2
     echo "    git -C $path push origin HEAD:refs/heads/task/<lease>" >&2
-    echo "  then re-run with --force:" >&2
     echo "    $0 prepare $slot $base --force" >&2
     return 1
   fi
@@ -674,6 +754,134 @@ cmd_prepare() {
   rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"
+}
+
+# ---- Hold / resume -----------------------------------------------------------
+# Held work is one snapshot commit on held/<lease> whose only parent is the slot's HEAD. Its
+# trailers carry what resume needs, so the branch alone, local or on origin, is the whole record.
+held_trailer() {
+  local ref="$1" key="$2" value
+  value="$(git -C "$ROOT" log -1 --format="%(trailers:key=$key,valueonly)" "$ref")"
+  printf '%s' "${value%%$'\n'*}"
+}
+
+# Built in a copy of the index so the slot's own index and worktree stay untouched until prepare.
+held_snapshot() {
+  local path="$1" lease="$2" slot="$3"
+  local index tmp_index tree rc=0
+  # Callers run this in $( ), where errexit is off: every step feeds rc.
+  index="$(git -C "$path" rev-parse --path-format=absolute --git-path index)" || return 1
+  tmp_index="$(mktemp)" || return 1
+  cp "$index" "$tmp_index" || rc=$?
+  [[ "$rc" -ne 0 ]] || GIT_INDEX_FILE="$tmp_index" git -C "$path" add -A || rc=$?
+  [[ "$rc" -ne 0 ]] || tree="$(GIT_INDEX_FILE="$tmp_index" git -C "$path" write-tree)" || rc=$?
+  rm -f "$tmp_index"
+  [[ "$rc" -eq 0 ]] || return "$rc"
+  printf 'hold: %s\n\nHeld-Lease: %s\nHeld-Slot: %s\n' "$lease" "$lease" "$slot" \
+    | git -C "$path" commit-tree "$tree" -p HEAD
+}
+
+# The live journal only, never the run history. A gate killed hard never closes its phase, so a
+# journal unwritten for longer than the lock TTL is dead: the pool's stale-by-age rule.
+merge_in_flight() {
+  local slot="$1" journal age
+  journal="$(cat "$(lock_dir_for "$slot")/merge_run" 2>/dev/null || true)"
+  [[ -n "$journal" && -f "$journal" ]] || return 1
+  [[ -n "$(merge_journal_open_phase "$journal")" ]] || return 1
+  age=$(( $(date +%s) - $(stat -c %Y "$journal") ))
+  [[ "$age" -le "$LOCK_TTL_SECONDS" ]]
+}
+
+cmd_hold() {
+  local slot="$1" mode="${2:-}"
+  local path lease branch snap where="origin"
+  case "$mode" in
+    ""|--local) ;;
+    *) echo "hold: unknown argument '$mode' (hold <slot> [--local])" >&2; return 1 ;;
+  esac
+  path="$(slot_path "$slot")" || { echo "hold: unknown slot '$slot'" >&2; return 1; }
+  [[ -d "$(lock_dir_for "$slot")" ]] || { echo "hold: $slot is not locked; there is no work to hold." >&2; return 1; }
+  lease="$(lease_for "$slot")"
+  [[ -n "$lease" ]] || { echo "hold: $slot has no lease, and held work is keyed on it." >&2; return 1; }
+  if merge_in_flight "$slot"; then
+    echo "hold: a merge gate is in flight on $slot; follow it with '$0 merge-progress $slot'." >&2
+    return 1
+  fi
+
+  branch="held/$lease"
+  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    echo "hold: $branch already exists; resume it ('$0 resume $lease') before holding $slot again." >&2
+    return 1
+  fi
+  snap="$(held_snapshot "$path" "$lease" "$slot")"
+  git -C "$ROOT" update-ref "refs/heads/$branch" "$snap" ""
+
+  if [[ "$mode" == "--local" ]]; then
+    where="this clone only"
+  elif ! git -C "$path" push -q --force-with-lease="refs/heads/$branch:" origin "$snap:refs/heads/$branch"; then
+    git -C "$ROOT" update-ref -d "refs/heads/$branch" "$snap"
+    echo "hold: pushing $branch failed, so $slot is untouched. For work that must not be pushed: $0 hold $slot --local" >&2
+    return 1
+  fi
+
+  # The snapshot is on its branch, so this reset destroys nothing.
+  cmd_prepare "$slot" origin/main --force >&2
+  with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || {
+    echo "hold: $slot was prepared but not released; the work is safe on $branch." >&2
+    return 1
+  }
+  echo "Held $slot's work on $branch ($where); $slot is prepared and free." >&2
+  echo "HELD=$lease RESUME=\"agent_worktree_pool.sh resume $lease\""
+}
+
+cmd_resume() {
+  local lease="$1" wanted="${2:-}"
+  local branch ref snap base hint out="" slot path rc=0
+  branch="held/$lease"
+  ref="refs/heads/$branch"
+  if ! git -C "$ROOT" rev-parse -q --verify "$ref" >/dev/null; then
+    ref="refs/remotes/origin/$branch"
+    git -C "$ROOT" fetch -q origin "+refs/heads/$branch:$ref" 2>/dev/null || {
+      echo "resume: no held work for '$lease': $branch is not local and could not be fetched from origin." >&2
+      return 1
+    }
+  fi
+  snap="$(git -C "$ROOT" rev-parse "$ref^{commit}")"
+  base="$(git -C "$ROOT" rev-parse "$snap^1")"
+
+  if [[ -n "$wanted" ]]; then
+    out="$(cmd_acquire "$lease" "$wanted")" || return 1
+  else
+    hint="$(held_trailer "$snap" Held-Slot)"
+    if [[ -n "$hint" ]] && slot_path "$hint" >/dev/null 2>&1; then
+      out="$(cmd_acquire "$lease" "$hint" 2>/dev/null)" || out=""
+    fi
+    [[ -n "$out" ]] || out="$(cmd_acquire "$lease")" || return 1
+  fi
+  slot="${out#SLOT=}"
+  slot="${slot%% PATH=*}"
+  path="${out#* PATH=}"
+
+  if ! slot_is_clobber_safe "$path"; then
+    with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || true
+    echo "resume: $slot holds unpushed or uncommitted work, so it was released untouched; name another slot." >&2
+    return 1
+  fi
+  git -C "$path" checkout -q "$slot"
+  git -C "$path" reset -q --hard "$snap"
+  git -C "$path" reset -q "$base"
+
+  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    git -C "$ROOT" update-ref -d "refs/heads/$branch" "$snap" || rc=1
+  fi
+  if git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
+    git -C "$ROOT" push -q --force-with-lease="refs/heads/$branch:$snap" origin --delete "$branch" || rc=1
+  fi
+  if [[ "$rc" -ne 0 ]]; then
+    echo "resume: the work is restored on $slot, but $branch could not be deleted everywhere; delete it once checked." >&2
+  fi
+  echo "SLOT=$slot PATH=$path RESUMED=$lease"
+  return "$rc"
 }
 
 # ---- Unity test runs -------------------------------------------------------
@@ -1893,7 +2101,7 @@ main() {
 
   case "$cmd" in
     status)
-      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
+      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; collect_held_records; else cmd_status; fi
       ;;
     acquire) cmd_acquire "$@" ;;
     release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
@@ -1912,6 +2120,8 @@ main() {
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
     revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
+    hold) require_slot_arg "hold requires <slot> [--local]" "$#"; cmd_hold "$@" ;;
+    resume) require_slot_arg "resume requires <lease> [slot]" "$#"; cmd_resume "$@" ;;
     -h|--help|help) usage ;;
     *)
       echo "Unknown command: $cmd" >&2

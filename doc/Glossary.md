@@ -87,6 +87,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 
 ---
 
@@ -188,6 +189,18 @@ Format: **term** — definition. *(authority)*
   history.
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
+- **held** (work) — slot work set aside while it waits on the user, on branch
+  `held/<lease>`, keyed on the lease because the lease is the resume key. The
+  issue stays open and carries the resume line; the ledger row stays, slot
+  cleared. Mechanics: `hold` / `resume` in the pool script's `--help`. *(#559)*
+- **benched** — set aside until a dependency or missing knowledge unlocks it;
+  expected to finish. Branch `bench/<topic>` on origin, kept. Issue closed,
+  first line `Benched <date> — reopen when …`; leaves the ledger. Comments
+  before 2026-09-21 opening `Shelved <date>` mean benched. *(#559)*
+- **parked** (work) — not worth pursuing; kept for posterity, not expected to
+  resume. Branch `park/<topic>` on origin. Issue closed as not planned, first
+  line `Parked <date> — why`, no label; leaves the ledger. The probe-code
+  step *scratch → promote → park* is a separate sense. *(#559)*
 - **warm** (slot) — its Unity Library is already built; a reason to name a slot
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
@@ -668,5 +681,7 @@ Format: **term** — definition. *(authority)*
 | program, package, series (as a work grouping) | **arc**, **slice**, or **pass** |
 | ARC COMPLETE | **SHIPPED** or **CLOSED** |
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
+| shelve, shelved, shelf, unshelf (work set aside) | **benched** (waits on a dependency or knowledge) or **held** (slot work waiting on the user) |
+| parked, as a ledger status | **held** — parked work leaves the ledger |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
