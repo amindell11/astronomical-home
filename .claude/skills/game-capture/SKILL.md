@@ -177,7 +177,8 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
 - **Sub-second subjects**: a select→capture round-trip is ~0.5–1 s, too slow for laser
   bolts and projectiles-in-flight. `wait_for` with an `on_met` capture fires in the frame
   its condition holds (`doc/agents/unity-cli.md` → Latency envelope); whether that
-  composites gizmos is untested — settle it on #446 before building `capture.gizmo_still`.
+  composites gizmos is untested. The atomic `capture.gizmo_still` is benched as #446;
+  evaluate `wait_for` first if that ticket reopens.
   Meanwhile: pause with the subject in flight and select it manually.
 
 ## Run + assemble (one command each)

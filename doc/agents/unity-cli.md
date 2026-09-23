@@ -123,7 +123,8 @@ or poll `editor_status`. A forced script reload (`RequestScriptReload`) makes
 End to end from the CLI, plain commands and warm evals both take ≈270–350 ms; the first
 eval after a reload ≈1.1 s. `wait_for` with `--on_met '{"capture":{…}}'` captures in the
 editor frame its condition first holds — the atomic primitive sub-second subjects
-(laser bolts) need; gizmo composition through it is untested (see #446).
+(laser bolts) need; gizmo composition through it is untested (#446 is benched; its
+reopen condition decides whether this gets evaluated).
 
 ## Warm-capture lane
 
