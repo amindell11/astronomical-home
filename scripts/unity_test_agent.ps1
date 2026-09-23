@@ -4,13 +4,15 @@
     run summary other tools read.
 
 .DESCRIPTION
-    Exit codes: 0 all green, 1 test failures, 2 infra_error (nothing executed - compile failure,
-    a launch problem, or a Unity access refusal), any other non-zero = the wrapper itself failed
-    before a summary existed.
+    Exit codes: 0 all green, 1 test failures, 2 infra_error (no trustworthy verdict - compile
+    failure, a launch problem, a Unity access refusal, or an unreadable Unity exit code), any other
+    non-zero = the wrapper itself failed before a summary existed.
 
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
     content). Fields consumers depend on:
       projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      runs[].unityExitCode - the Unity process exit code; null when it could not be read, and
+                       that run is then infra_error whatever its XML says.
       wallTiming     - elapsedSec from runner entry to summary construction; cold startupToFirstTestSec
                        sums process launch to first XML test-run start; executionSec sums XML
                        test-run start/end intervals (second precision). remainingSec covers access
@@ -667,6 +669,8 @@ function Invoke-UnityProcess {
         $bootHeld = -not $SkipUnityAccess.IsPresent
         $launchedAt = [DateTimeOffset]::UtcNow
         $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
+        # PS 5.1: without a cached handle, ExitCode reads $null once the process is gone.
+        $null = $proc.Handle
         Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
 
         if ($TimeoutSec -le 0) {
@@ -741,15 +745,11 @@ function Invoke-UnityProcess {
             Start-Sleep -Milliseconds 500
         }
 
-        $exitCode = 0
-        if ($null -ne $proc.ExitCode) {
-            $exitCode = [int]$proc.ExitCode
-        }
-
         return [ordered]@{
             refusal = $null
             launchedAt = $launchedAt
-            exitCode = $exitCode
+            # $null when the handle was cached too late (process already gone); callers void the run.
+            exitCode = $proc.ExitCode
             timedOut = $false
             killedAfterResults = $false
             pid = [int]$proc.Id
@@ -797,7 +797,7 @@ function New-RunRecord {
         [string]$Platform,
         [string]$XmlPath = "",
         [string]$LogPath = "",
-        [int]$UnityExitCode = 0,
+        [Nullable[int]]$UnityExitCode = 0,
         [string]$Status = "infra_error",
         [object]$Selection
     )
@@ -848,7 +848,7 @@ function Parse-UnityResultXml {
         [string]$XmlPath,
         [string]$Platform,
         [string]$LogPath,
-        [int]$UnityExitCode,
+        [Nullable[int]]$UnityExitCode,
         [int]$FailureLimit,
         [int]$MessageLimit,
         [switch]$WithStackTrace,
@@ -858,6 +858,13 @@ function Parse-UnityResultXml {
 
     $base = New-RunRecord -Platform $Platform -XmlPath $XmlPath -LogPath $LogPath `
         -UnityExitCode $UnityExitCode -Selection $Selection
+
+    if ($null -eq $UnityExitCode) {
+        $base.logTail = Get-LogTail -LogPath $LogPath -TailLines $TailLines
+        $xmlState = if (Test-Path -LiteralPath $XmlPath) { "present but unconfirmed" } else { "not found" }
+        $base.note = "Unity exit code unknown (process gone before its handle was read); result XML $xmlState"
+        return $base
+    }
 
     if (-not (Test-Path -LiteralPath $XmlPath)) {
         $base.logTail = Get-LogTail -LogPath $LogPath -TailLines $TailLines
@@ -1597,7 +1604,7 @@ try {
         else {
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
             $memoryProcesses += , $invoke.memory
-            $unityExit = [int]$invoke.exitCode
+            $unityExit = $invoke.exitCode
 
             # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
             # the XMLs carry the verdict, so parse them as truth instead of voiding a green run.
@@ -1666,7 +1673,7 @@ try {
             }
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
             $memoryProcesses += , $invoke.memory
-            $unityExit = [int]$invoke.exitCode
+            $unityExit = $invoke.exitCode
 
             $parsed = Parse-UnityResultXml -XmlPath $xmlPath -Platform $platform -LogPath $logPath -UnityExitCode $unityExit @parseOptions
 
