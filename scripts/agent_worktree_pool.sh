@@ -153,6 +153,10 @@ Commands:
       run posts both statuses, the gate waits for both, and the resharper
       phase accepts the hosted ratchet with no local ratchet run and no Unity
       boot here; without an acceptable merge-proof/resharper it refuses.
+      When the landing diff touches scripts/, the script suite runs during
+      the hosted wait and the script-tests phase joins it.
+      One gate per slot: a second 'merge' on a slot whose gate is running is
+      refused at once (flock on the slot's .merge file under the lock root).
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -435,22 +439,35 @@ cs_diff_is_comment_only() {
 }
 
 # ---- Locks -----------------------------------------------------------------
-with_slot_mutation() {
-  local slot="$1"
-  shift
+# Runs <cmd...> holding an exclusive flock on <file>; a held lock returns 1, printing <busy_msg> unless empty.
+with_slot_flock() {
+  local file="$1" busy_msg="$2"
+  shift 2
   command -v perl >/dev/null 2>&1 || { echo 'Pool mutation requires Perl flock support.' >&2; return 1; }
-  # The execed mutator inherits the lock; launcher death cannot expose a surviving child.
+  # The execed command inherits the lock; launcher death cannot expose a surviving child.
+  # POOL_FLOCK_FD lets a background child close the fd so it never keeps the lock past its holder.
   perl -e '
     use strict;
     use warnings;
     use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
     my $path = shift @ARGV;
-    open my $lock, ">>", $path or die "Pool mutation lock $path: $!\n";
-    flock($lock, LOCK_EX | LOCK_NB) or exit 1;
-    fcntl($lock, F_SETFD, 0) or die "Pool mutation lock inheritance: $!\n";
-    exec @ARGV or die "Pool mutation exec: $!\n";
-  ' "$LOCK_ROOT/$slot.mutation" bash -c 'source "$1"; shift; "$@"' \
+    my $busy = shift @ARGV;
+    open my $lock, ">>", $path or die "Pool lock $path: $!\n";
+    unless (flock($lock, LOCK_EX | LOCK_NB)) {
+      print STDERR "$busy\n" if length $busy;
+      exit 1;
+    }
+    fcntl($lock, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
+    $ENV{POOL_FLOCK_FD} = fileno($lock);
+    exec @ARGV or die "Pool lock exec: $!\n";
+  ' "$file" "$busy_msg" bash -c 'source "$1"; shift; "$@"' \
     pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
+with_slot_mutation() {
+  local slot="$1"
+  shift
+  with_slot_flock "$LOCK_ROOT/$slot.mutation" "" "$@"
 }
 
 write_lock() {
@@ -844,6 +861,45 @@ cmd_run_script_tests() {
   done
   echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
   [[ "$ran" -eq 1 ]] || { echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2; return 1; }
+}
+
+# The merge gate overlaps the script suite with the hosted wait. The suite gets its own process
+# group so an early refusal can stop all of it, and it closes the merge lock so it never holds it.
+SCRIPT_SUITE_PID=""
+SCRIPT_SUITE_LOG=""
+
+start_script_suite() {
+  local dir="$1"
+  SCRIPT_SUITE_LOG="$(mktemp)"
+  set -m
+  (
+    [[ -z "${POOL_FLOCK_FD:-}" ]] || eval "exec ${POOL_FLOCK_FD}>&-"
+    cmd_run_script_tests "$dir"
+  ) > "$SCRIPT_SUITE_LOG" 2>&1 &
+  SCRIPT_SUITE_PID=$!
+  set +m
+}
+
+join_script_suite() {
+  local rc=0
+  wait "$SCRIPT_SUITE_PID" || rc=$?
+  SCRIPT_SUITE_PID=""
+  cat "$SCRIPT_SUITE_LOG"
+  rm -f "$SCRIPT_SUITE_LOG"
+  return "$rc"
+}
+
+stop_script_suite() {
+  [[ -n "$SCRIPT_SUITE_PID" ]] || return 0
+  local attempt
+  # Under Git Bash a child caught mid-exec can miss one group signal, so repeat until the group is empty.
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    kill -TERM -- "-$SCRIPT_SUITE_PID" 2>/dev/null || break
+    sleep 0.2
+  done
+  wait "$SCRIPT_SUITE_PID" 2>/dev/null || true
+  SCRIPT_SUITE_PID=""
+  rm -f "$SCRIPT_SUITE_LOG"
 }
 
 # 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
@@ -1520,7 +1576,7 @@ cmd_merge() {
   merge_journal_open "$slot" "$base_ref"
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
-  trap 'merge_journal_finish "$?"' EXIT
+  trap 'merge_rc=$?; stop_script_suite; merge_journal_finish "$merge_rc"' EXIT
   merge_phase_begin preflight
 
   require_gh || return 1
@@ -1584,6 +1640,9 @@ cmd_merge() {
   if [[ "$github_diff_rc" -eq 0 ]]; then
     remote_reason="no remote proof: the landing diff touches .github/, so this merge needs the local run"
   fi
+  local scripts_diff_rc=0
+  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
+  [[ "$scripts_diff_rc" -ne 2 ]] || return 1
 
   case "$delta" in
     proven)
@@ -1646,6 +1705,11 @@ cmd_merge() {
       echo "Running the hosted headless suite on landing commit $landing_sha before merge."
       merge_phase_begin remote-proof
       merge_journal_note "hosted headless suite on $landing_sha"
+      if [[ "$scripts_diff_rc" -eq 0 ]]; then
+        echo "Landing diff touches scripts/ — the script suite runs alongside the hosted wait."
+        merge_journal_note "script suite started alongside the hosted run"
+        start_script_suite "$path"
+      fi
       run_remote_for_proof "$slot" "$path" "$landing_sha" "$task_branch"
       remote_reason="$(accept_remote_proof "$slot" "$landing_sha" "$current_tree")" || {
         echo "merge: $remote_reason; not merging." >&2
@@ -1691,14 +1755,16 @@ cmd_merge() {
     cmd_run_resharper "$slot" "$base_ref"
   fi
 
-  local scripts_diff_rc=0
-  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
-  [[ "$scripts_diff_rc" -ne 2 ]] || return 1
   # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     merge_phase_begin script-tests
-    merge_journal_note "landing diff touches scripts/ - running the script suite"
-    cmd_run_script_tests "$path"
+    if [[ -n "$SCRIPT_SUITE_PID" ]]; then
+      merge_journal_note "joining the script suite started alongside the hosted run"
+      join_script_suite
+    else
+      merge_journal_note "landing diff touches scripts/ - running the script suite"
+      cmd_run_script_tests "$path"
+    fi
   fi
 
   merge_phase_begin push
@@ -1907,7 +1973,13 @@ main() {
       ;;
     create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
     submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
-    merge) require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"; cmd_merge "$@" ;;
+    merge)
+      require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"
+      # Two gates on one slot race each other's pushes and cancel each other's hosted runs.
+      with_slot_flock "$LOCK_ROOT/$1.merge" \
+        "merge: a merge gate is already running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
+        cmd_merge "$@"
+      ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
