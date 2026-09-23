@@ -11,7 +11,6 @@ using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -24,13 +23,6 @@ namespace Tests.PlayMode
         private GameObject sessionRoot;
         private IEpisodeCapture capture;
         private Session session;
-        private bool savedPresentation;
-
-        public override void SetUp()
-        {
-            base.SetUp();
-            savedPresentation = GameSettings.PresentationEnabled;
-        }
 
         public override void TearDown()
         {
@@ -49,9 +41,6 @@ namespace Tests.PlayMode
                 capture = null;
             }
 
-            // Compose overrides this process-global and Teardown does not restore it.
-            GameSettings.SetPresentationEnabled(savedPresentation);
-
             base.TearDown();
         }
 
@@ -64,15 +53,16 @@ namespace Tests.PlayMode
                 Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
 
             var scenario = CreateScenario(typeName);
+            var sectorEntry = scenario.SectorEntry;
 
             sessionRoot = new GameObject("CaptureScenarioSession");
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
-                sectorEntry = scenario.SectorEntry,
+                sectorEntry = sectorEntry,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();
-            if (session.Profile.sectorEntry != null)
+            if (sectorEntry != null)
                 yield return session.LoadSector();
             scenario.Session = session;
 

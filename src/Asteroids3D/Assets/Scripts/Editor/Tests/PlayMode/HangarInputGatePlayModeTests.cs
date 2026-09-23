@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Cameras;
-using System.Reflection;
 using Game;
 using Substrate.Sessions;
 using NUnit.Framework;
@@ -12,8 +11,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
-using UnityEngine.UI;
-using Utils;
 using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
@@ -42,7 +39,6 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             var screen = Object.FindFirstObjectByType<HangarScreen>();
             if (screen) DestroyTestObject(screen.gameObject);
             if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
@@ -58,8 +54,6 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator RunHangar_GatesPlayerInput_UntilLaunch()
         {
-            GameSettings.SetPresentationEnabled(true);
-
             servicesGo = new GameObject("TestServices");
             unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
@@ -75,17 +69,17 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
 
-            // Supply screen + catalog to an inactive host (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
+            // Host stays inactive so its flow never runs; the rig hosts the hangar coroutine.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
-            SetPrivate(host, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
-            SetPrivate(host, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
+            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
+            host.loadoutCatalog = AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath);
 
             var finished = false;
             IEnumerator Run()
             {
-                yield return host.RunHangar(rig);
+                yield return host.RunHangar(rig, presentationEnabled: true);
                 finished = true;
             }
             rig.StartCoroutine(Run());
@@ -96,8 +90,7 @@ namespace Tests.PlayMode
             Assert.IsFalse(rig.Player.Commander.enabled,
                 "player input is disconnected while the hangar screen is open");
 
-            var launchButton = new SerializedObject(screen)
-                .FindProperty("launchButton").objectReferenceValue as Button;
+            var launchButton = screen.launchButton;
             Assert.IsNotNull(launchButton, "hangar screen has a launch button");
             launchButton.onClick.Invoke();
 
@@ -108,10 +101,6 @@ namespace Tests.PlayMode
             Assert.IsTrue(rig.Player.Commander.enabled, "player input is restored after launch");
             Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
         }
-
-        private static void SetPrivate(object target, string field, Object value) =>
-            target.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(target, value);
     }
 }
 #endif

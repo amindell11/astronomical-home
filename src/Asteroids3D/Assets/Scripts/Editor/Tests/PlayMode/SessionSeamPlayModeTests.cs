@@ -8,7 +8,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -28,7 +27,6 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             DestroyTestObject(hostGo);
             DestroyTestObject(rigInstance ? rigInstance.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
