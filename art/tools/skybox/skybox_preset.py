@@ -1,8 +1,10 @@
 """Versioned, validated authoring settings shared by Blender and the CLI."""
 
+import colorsys
 import copy
 import json
 import math
+import random
 from pathlib import Path
 
 SCHEMA_VERSION = 1
@@ -28,6 +30,34 @@ DEFAULT = {
         {"direction": [0.52, 0.43, -0.74], "radius": 0.045, "color": [0.70, 0.82, 1.0], "strength": 850.0},
     ],
 }
+
+
+PALETTES = {
+    "GLOW": ("Nebula Glow", DEFAULT["nebula"]["palette"]),
+    "ICE": ("Azure & Ice", [[0.002, 0.008, 0.04], [0.015, 0.12, 0.48],
+                             [0.035, 0.42, 0.58], [0.30, 0.62, 0.85]]),
+    "TEAL": ("Teal & Amber", [[0.002, 0.025, 0.03], [0.012, 0.30, 0.38],
+                               [0.025, 0.52, 0.28], [0.85, 0.22, 0.03]]),
+    "EMBER": ("Ember & Violet", [[0.035, 0.002, 0.008], [0.62, 0.015, 0.04],
+                                  [0.30, 0.018, 0.52], [0.90, 0.34, 0.06]]),
+    "ROSE": ("Rose & Gold", [[0.04, 0.002, 0.025], [0.48, 0.024, 0.22],
+                              [0.68, 0.09, 0.38], [0.90, 0.42, 0.12]]),
+}
+
+
+def make_palette(scheme, seed=0, variation=0):
+    base = PALETTES[scheme][1]
+    if variation == 0:
+        return copy.deepcopy(base)
+    rng = random.Random(seed)
+    shift = rng.uniform(-0.07, 0.07) * variation
+    result = []
+    for color in base:
+        hue, saturation, value = colorsys.rgb_to_hsv(*color)
+        hue = (hue + shift + rng.uniform(-0.02, 0.02) * variation) % 1
+        saturation = max(0.35, min(1, saturation + rng.uniform(-0.12, 0.12) * variation))
+        result.append(list(colorsys.hsv_to_rgb(hue, saturation, value)))
+    return result
 
 
 def defaults(glow=False):

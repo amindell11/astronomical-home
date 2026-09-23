@@ -30,6 +30,7 @@ class ViewportPreview:
         self.visibility = {p.identifier: getattr(space, p.identifier)
                            for p in space.bl_rna.properties if p.identifier.startswith("show_object_viewport_")}
         self.overlays = space.overlay.show_overlays
+        self.lens = space.lens
         self.view = capture_view(space)
         self.directory = tempfile.TemporaryDirectory(prefix="skybox-preview-")
         self.path = Path(self.directory.name) / (Path(self.directory.name).name + ".hdr")
@@ -49,8 +50,9 @@ class ViewportPreview:
         shading.studiolight_background_blur = 0
         shading.studiolight_intensity = 1
         shading.studiolight_rotate_z = 0
-        shading.use_studiolight_view_rotation = False
+        shading.use_studiolight_view_rotation = True
         self.space.overlay.show_overlays = False
+        self.space.lens = 20
         self.space.region_3d.view_perspective = "PERSP"
         for key in self.visibility:
             setattr(self.space, key, False)
@@ -66,6 +68,7 @@ class ViewportPreview:
             if self.shading["type"] not in {"MATERIAL", "RENDERED"}:
                 self.space.shading.studio_light = self.shading["studio_light"]
             self.space.overlay.show_overlays = self.overlays
+            self.space.lens = self.lens
             restore_view(self.space, self.view)
             for key, value in self.visibility.items():
                 setattr(self.space, key, value)

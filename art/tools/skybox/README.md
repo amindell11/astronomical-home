@@ -58,17 +58,37 @@ Keep focal stars enabled to retain that glow. The background wash and noise-deta
 parameters remain the established defaults. This version edits the existing five
 focal stars; it does not paint clouds or add/remove stars.
 
+## Choose and vary a color scheme
+
+Under **Nebula Colors**, choose a **Color Family** and click **Use Scheme** for its
+exact colors: Nebula Glow, Azure & Ice, Teal & Amber, Ember & Violet, or Rose & Gold.
+**Randomize** advances the **Palette Seed** and generates a related variation.
+**Palette Variation** controls how far its hues/saturation may drift: 0 gives the
+exact scheme, while 1 allows the widest variation. A shared hue shift keeps the
+family related; small per-swatch changes add variety. Each swatch retains its peak
+brightness, preserving the dark base and brighter cloud/accent roles.
+
+To revisit a variation, choose the same family, variation amount and seed, then
+click **Apply Seed**. The four swatches remain directly editable. **Refresh Draft**
+shows the changed colors in the sky. These actions change nebula colors only.
+
+**Save Preset** stores the exact resulting RGB colors, so loading it reproduces the
+sky without needing the generator's family/seed controls. Those controls are saved
+with the `.blend` as local authoring state; selecting a family alone does not
+replace the current colors until you press one of the palette buttons.
+
 ## Look around while editing
 
 Click **Refresh Draft** in the **3D Preview** section to render the selected draft
-size and display the completed HDR around you in the 3D viewport. Drag the middle
+size and display the completed HDR around you in the 3D viewport with a wide 20 mm
+view. The sky stays fixed in world space. Drag the middle
 mouse button to look around. Adjust the same sky sliders, then click **Refresh
 Draft** again; it keeps your viewing direction. Start with 512 for a quick editing
 loop, then switch to 1K or 2K for detail. Slider changes take effect after refresh;
 this is a preview of the latest render, not a continuously rendering volume.
 
 **Look Around Last Render** opens an existing result without rendering again.
-**End Preview** restores your viewport shading, object visibility and view.
+**End Preview** restores your viewport shading, object visibility, lens and view.
 Saving/loading a `.blend` or disabling the add-on also ends the preview. It changes
 only viewport display settings; your scene's objects, materials and world stay
 intact. **View Last Render** opens the saved 2D preview, which remains available
@@ -79,8 +99,8 @@ startup, image loading, hardware and higher resolutions affect the total wait.
 Blender's preview is for composition/color; evaluate the game's bloom in Unity.
 
 To update from the first ZIP, finish any render, remove the old **HDR Space
-Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.1.0
-adds these preview controls and fixes the disappearing completed render.
+Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.2.0 adds palette families and controlled randomization; it also includes
+the persistent render and corrected world-space viewport previews.
 
 ## Send to Unity and compare
 
@@ -179,6 +199,14 @@ verdict plus a viewport screenshot:
 ```bash
 blender --factory-startup --python art/tools/skybox/tests/blender_preview.py -- \
   --out results/skybox-authoring/preview-regression
+```
+
+The pixel-based look-around regression accepts a nonuniform rendered sky and
+checks visible movement in Object and Edit Mode:
+
+```bash
+blender --factory-startup --python art/tools/skybox/tests/blender_viewport_rotation.py -- \
+  --hdr /path/to/my-sky-draft.hdr --out results/skybox-authoring/rotation
 ```
 
 Unity integration tests: filter `Tests.EditMode.Skyboxes`

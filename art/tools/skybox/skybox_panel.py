@@ -51,6 +51,11 @@ class SkyboxSettings(bpy.types.PropertyGroup):
     palette1: FloatVectorProperty(name="Violet", subtype="COLOR", size=3, min=0, max=1)
     palette2: FloatVectorProperty(name="Blue", subtype="COLOR", size=3, min=0, max=1)
     palette3: FloatVectorProperty(name="Rose", subtype="COLOR", size=3, min=0, max=1)
+    palette_scheme: EnumProperty(name="Color Family", items=[(key, value[0], "")
+                                 for key, value in skybox_preset.PALETTES.items()])
+    palette_seed: IntProperty(name="Palette Seed", default=0, min=0, max=2147483647)
+    palette_variation: FloatProperty(name="Palette Variation", default=0.35, min=0, max=1,
+                                   description="How far colors may drift from the chosen family")
     tiny_brightness: FloatProperty(name="Tiny Stars", default=0, min=0, soft_max=3)
     legacy_seed: FloatProperty(name="Legacy Tiny-Star Seed", default=7319)
     anchor_brightness: FloatProperty(name="Focal Stars", default=1, min=0, soft_max=4)
@@ -146,6 +151,26 @@ class SKYBOX_OT_glow(bpy.types.Operator):
 
     def execute(self, context):
         apply_preset(get_settings(context.scene), skybox_preset.defaults(glow=True))
+        return {"FINISHED"}
+
+
+class SKYBOX_OT_palette(bpy.types.Operator):
+    bl_idname = "skybox.palette"
+    bl_label = "Generate Palette"
+    bl_options = {"UNDO"}
+    action: EnumProperty(items=[("BASE", "Use Scheme", "Use the exact named colors"),
+                                ("SEED", "Apply Seed", "Reproduce this family's seeded variation"),
+                                ("RANDOM", "Randomize", "Try the next seed within this color family")])
+
+    def execute(self, context):
+        settings = get_settings(context.scene)
+        if self.action == "RANDOM":
+            settings.palette_seed = (settings.palette_seed + 1) % 2147483648
+        colors = skybox_preset.make_palette(settings.palette_scheme, settings.palette_seed,
+                                            0 if self.action == "BASE" else settings.palette_variation)
+        for index, color in enumerate(colors):
+            setattr(settings, f"palette{index}", color)
+        settings.status = "Palette updated. Refresh Draft to see it in the sky."
         return {"FINISHED"}
 
 
@@ -307,6 +332,16 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         box.label(text="Nebula")
         for key in ("variation", "scale", "stretch", "rotation", "coverage"):
             box.prop(settings, key)
+        box = layout.box()
+        box.label(text="Nebula Colors")
+        row = box.row(align=True)
+        row.prop(settings, "palette_scheme", text="")
+        row.operator("skybox.palette", text="Use Scheme").action = "BASE"
+        box.prop(settings, "palette_variation")
+        box.prop(settings, "palette_seed")
+        row = box.row(align=True)
+        row.operator("skybox.palette", text="Apply Seed").action = "SEED"
+        row.operator("skybox.palette", text="Randomize").action = "RANDOM"
         row = box.row(align=True)
         for index in range(4):
             row.prop(settings, f"palette{index}", text="")
@@ -352,7 +387,7 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
 
 
 CLASSES = (SkyboxStar, SkyboxSettings, SKYBOX_OT_load, SKYBOX_OT_save,
-           SKYBOX_OT_glow, SKYBOX_OT_render, SKYBOX_OT_view_image,
+           SKYBOX_OT_glow, SKYBOX_OT_palette, SKYBOX_OT_render, SKYBOX_OT_view_image,
            SKYBOX_OT_viewport, SKYBOX_PT_authoring)
 
 

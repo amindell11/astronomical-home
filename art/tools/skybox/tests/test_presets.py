@@ -21,6 +21,24 @@ class PresetAndPublishingTests(unittest.TestCase):
             self.assertEqual(approved["tiny_stars"]["brightness"], 0)
             self.assertEqual(approved["nebula"]["core_emission"], 1.5)
 
+    def test_palettes_are_repeatable_and_keep_dark_base_and_brightness(self):
+        approved = skybox_preset.defaults(glow=True)["nebula"]["palette"]
+        self.assertEqual(skybox_preset.make_palette("GLOW"), approved)
+        for scheme in skybox_preset.PALETTES:
+            base = skybox_preset.make_palette(scheme)
+            for seed in range(20):
+                colors = skybox_preset.make_palette(scheme, seed, 1)
+                self.assertEqual(colors, skybox_preset.make_palette(scheme, seed, 1))
+                self.assertNotEqual(colors, skybox_preset.make_palette(scheme, seed+1, 1))
+                self.assertEqual(skybox_preset.make_palette(scheme, seed, 0), base)
+                for original, changed in zip(base, colors):
+                    self.assertAlmostEqual(max(original), max(changed))
+                self.assertLess(max(colors[0]), min(max(c) for c in colors[1:]))
+                preset = skybox_preset.defaults(glow=True)
+                preset["nebula"]["palette"] = colors
+                self.assertEqual(skybox_preset.parse(preset), preset)
+        self.assertEqual(skybox_preset.defaults(glow=True)["nebula"]["palette"], approved)
+
     def test_bad_presets_fail_before_scene_construction(self):
         for value in (-1, float("nan"), float("inf"), True):
             with self.subTest(value=value):

@@ -10,7 +10,7 @@ from mathutils import Quaternion
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import skybox
-from skybox import skybox_panel, skybox_preview
+from skybox import skybox_panel, skybox_preview, skybox_preset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--out", required=True)
@@ -23,6 +23,18 @@ settings = skybox_panel.get_settings(original)
 settings.output_dir = str(out)
 settings.output_name = "preview-test"
 settings.draft_width = "512"
+before_palette = skybox_panel.to_preset(settings)
+settings.palette_scheme = "TEAL"
+assert bpy.ops.skybox.palette(action="BASE") == {"FINISHED"}
+assert bpy.ops.skybox.palette(action="RANDOM") == {"FINISHED"}
+assert settings.palette_seed == 1
+palette = skybox_panel.to_preset(settings)["nebula"]["palette"]
+assert bpy.ops.skybox.palette(action="SEED") == {"FINISHED"}
+after_palette = skybox_panel.to_preset(settings)
+assert after_palette["nebula"]["palette"] == palette
+after_palette["nebula"]["palette"] = before_palette["nebula"]["palette"]
+assert after_palette == before_palette
+skybox_panel.apply_preset(settings, before_palette)
 objects = list(original.objects)
 world = original.world
 window = bpy.context.window
@@ -31,6 +43,7 @@ space = area.spaces.active
 region = next(r for r in area.regions if r.type == "WINDOW")
 shading = {key: getattr(space.shading, key) for key in skybox_preview.ViewportPreview.shading_keys}
 overlays = space.overlay.show_overlays
+lens = space.lens
 view_rotation = space.region_3d.view_rotation.copy()
 view_location = space.region_3d.view_location.copy()
 view_distance = space.region_3d.view_distance
@@ -107,6 +120,7 @@ def tick():
             skybox_preview.end_viewport()
             assert all(getattr(space.shading, key) == value for key, value in shading.items())
             assert space.overlay.show_overlays == overlays
+            assert space.lens == lens
             assert max(abs(a-b) for a, b in zip(space.region_3d.view_rotation, view_rotation)) < 1e-5
             assert (space.region_3d.view_location - view_location).length < 1e-5
             assert space.region_3d.view_distance == view_distance
