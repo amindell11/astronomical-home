@@ -40,7 +40,7 @@ jobs:
           node-version: 22
 
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code@2.1.270
+        run: npm install -g @anthropic-ai/claude-code@2.1.280
 
       # scripts/on_event_triage.sh owns the run; its trailers and the job summary are the report.
       - name: Triage
