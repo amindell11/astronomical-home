@@ -24,8 +24,7 @@ MODELS = {
     "lite": "gemini-3.1-flash-lite-image",
 }
 
-# Standard (non-batch) USD per output image, ai.google.dev/gemini-api/docs/pricing as of 2026-09-22.
-# Thinking tokens bill on top; the sidecar records them from the response's usage block.
+# Standard (non-batch) USD per output image, from ai.google.dev/gemini-api/docs/pricing.
 PRICE_PER_IMAGE = {
     "gemini-3.1-flash-image": {"512": 0.045, "1K": 0.067, "2K": 0.101, "4K": 0.151},
     "gemini-3-pro-image": {"1K": 0.134, "2K": 0.134, "4K": 0.24},
@@ -100,7 +99,7 @@ def main(argv):
     mime = interaction.output_image.mime_type
     if mime not in EXTENSIONS:
         sys.exit(f"imagegen: unexpected output MIME type {mime!r}")
-    out_path = args.out.with_suffix(args.out.suffix + EXTENSIONS[mime])
+    out_path = args.out.with_name(args.out.name + EXTENSIONS[mime])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes(base64.b64decode(interaction.output_image.data))
 

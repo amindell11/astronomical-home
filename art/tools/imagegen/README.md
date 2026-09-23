@@ -45,7 +45,8 @@ uv run art/tools/imagegen/imagegen.py \
 | `pro` | 6 / 5 / – | 1K, 2K, 4K | 0.134 / 0.24 |
 | `lite` | 14 / – / – | 1K | 0.0336 / – |
 
-Prices are the standard tier as of 2026-09-22; thinking tokens bill on top.
+Prices are the standard tier as of 2026-09-22; thinking and input tokens bill
+on top.
 `gemini-2.5-flash-image` shuts down 2026-10-02, so don't use it.
 
 ## Outputs
@@ -55,7 +56,7 @@ Write outputs next to their subject, typically
 `art/.gitattributes`; sidecars stay plain JSON so they diff. Nothing is
 committed for you. Every output carries Google's invisible SynthID watermark.
 
-The sidecar records the prompt, the parent and reference paths with sha256
-hashes, the provider, model and interaction id, the parameters, the UTC
-timestamp, a per-image cost estimate, the response's token usage and any text
-the model returned.
+The sidecar records the output filename, the status, the prompt, the parent
+and reference paths with sha256 hashes, the provider, model and interaction id,
+the parameters, the UTC timestamp, a per-image cost estimate, the response's
+token usage and any text the model returned.
