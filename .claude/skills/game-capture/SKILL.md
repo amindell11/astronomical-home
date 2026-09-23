@@ -133,8 +133,8 @@ unity command capture_lane_release --project-path <proj>  # restores EPO
   assemble as below.
 - Scenario types must already be compiled in the resident editor: promoted
   scenarios just work. A scratch scenario must be copied under `Assets/` (e.g.
-  `.../Editor/Tests/PlayMode/Scenarios/`) first — wait out the recompile, re-arm
-  `set_autotick --enable true`, delete the file (and `.meta`) after. The cold
+  `.../Editor/Tests/PlayMode/Scenarios/`) first — wait out the recompile, delete the
+  file (and `.meta`) after. The cold
   runner's automatic scratch staging never runs here.
 
 ## Live-editor stills (CLI lane)
@@ -174,9 +174,11 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   line-topology meshes, since gizmos never reach an own-camera render) → PNG in the
   scratchpad → SendUserFile. Load an empty scene before closing the editor so nothing
   prompts to save. The lane is young: extend the snippets as uses accumulate.
-- **Sub-second subjects are out of reach**: a select→capture round-trip is ~0.5–1 s, so
-  laser bolts and projectiles-in-flight cannot be stilled from outside — that needs an
-  editor-side atomic `[CliCommand]`, `capture.gizmo_still` (carded #446).
+- **Sub-second subjects**: a select→capture round-trip is ~0.5–1 s, too slow for laser
+  bolts and projectiles-in-flight. `wait_for` with an `on_met` capture fires in the frame
+  its condition holds (`doc/agents/unity-cli.md` → Latency envelope); whether that
+  composites gizmos is untested. The atomic `capture.gizmo_still` is benched as #446;
+  evaluate `wait_for` first if that ticket reopens.
   Meanwhile: pause with the subject in flight and select it manually.
 
 ## Run + assemble (one command each)

@@ -3,10 +3,26 @@
 Repo-side companion to the machine-generated `unity-cli` skill
 (`~/.claude/skills/unity-cli/`, rendered from the binary by `unity skill refresh` —
 never edit it; repo deltas live here). The editor-side surface is experimental
-(`com.unity.pipeline`) on a beta CLI: re-verify the bugs below after any version bump.
+(`com.unity.pipeline`) on a beta CLI. Claims below were last verified live on CLI
+`1.0.0-beta.11` + `com.unity.pipeline 0.7.0-exp.1` (2026-09-22): re-verify them after
+bumping either one.
 Coordination (leases, boot policy, routing into a held editor):
 `.claude/skills/unity-access/SKILL.md`. Capture lanes (clips, live-editor stills):
 `.claude/skills/game-capture/SKILL.md`.
+
+## CLI ↔ package version coupling
+
+The CLI and the project's `com.unity.pipeline` pin version independently, and a CLI
+upgrade can outrun the package. beta.11 refuses every parameterized `unity command` on
+a package older than `0.6.0-exp.1` ("package is too old to parse command lines");
+parameterless commands keep working, so `editor_status` still looks healthy while the
+routed test lane and eval are dead. After any CLI upgrade, run one parameterized
+command (`set_window_title --label x`) before trusting the lanes.
+
+- `unity pipeline upgrade` stepped only 0.5 → 0.6 and then reported `alreadyLatest`
+  with 0.7 published; pin explicitly: `unity pipeline install --package-version <v>`.
+- An unfocused editor does not resolve a manifest edit on its own — restart it through
+  `unity-access` so the boot resolves the package.
 
 ## `unity` plugin skills
 
@@ -23,13 +39,13 @@ binary-rendered user skill above — prefer it over the plugin copy.
 
 ## Targeting & readiness
 
-- Always pass `--project-path <proj>` — per-project lockfile routing is reliable;
-  discovery is not.
+- Always pass `--project-path <proj>` — per-project routing (the editor's
+  `Library/Pipeline/.unity-pipeline-port`) is reliable; discovery is not.
 - Gate readiness on `unity command editor_status --project-path <proj>`
-  (status / compiling / domainReloadInProgress / playMode). `unity status` and
-  `pipeline list` are unreliable in both directions — blind to live unfocused editors
-  AND listing phantom dead ones. Polling them cost one session 7 minutes.
-
+  (status / compiling / domainReloadInProgress / playMode; `--result-only` drops the
+  envelope). `unity status` and `pipeline list` are blind to live coordinator-launched
+  editors: `STATUS_NO_INSTANCES` / zero instances while `editor_status` answers `ready`.
+  (Listing phantom dead editors was not reproduced on beta.11 after a clean close.)
 - Live inspector edits are not on disk. When the user is tuning ScriptableObject
   assets in an open editor, ask them to save before you read or commit those
   assets.
@@ -37,70 +53,78 @@ binary-rendered user skill above — prefer it over the plugin copy.
 ## Command discovery — read, don't guess
 
 `unity command --format json` prints the full catalog with typed schemas; read a
-command's schema before first use. Params are `--flag value` (`key=value` is rejected)
-and flag names are inconsistent across siblings (`--enabled` vs `--enable`,
-`delete_asset --asset`), so each guess costs a round-trip. On the listing form, query
-flags use underscores (`--group_by`) and become command params once a command name is
-present.
+command's schema before first use. Params are `--flag value`; `key=value` is rejected.
+Flag names are inconsistent across siblings (`set_autotick --enable` vs
+`add_scene_to_build --enabled`, `delete_asset --asset`), but a wrong name is now caught
+client-side (exit 2) with a `Did you mean --enable?` hint. Array params take JSON
+(`--instance_ids "[-3036]"`); a bare scalar is rejected. On the listing form, query
+flags use underscores (`--group_by`; `--group-by` is silently ignored) and become
+command params once a command name is present.
 
 ## Attaching vs booting
 
-`unity command` is the attach path. `unity run --command` does NOT reuse a live editor
-(the docs contradict themselves; integration-advanced.md is right) — it fresh-boots, blocks
-on the same-project lock behind a resident editor, and dies at `--timeout`.
+`unity command` is the attach path. `unity run --command` is a one-shot fresh batch
+boot (beta.11 help and docs agree) — it never reuses a live editor and launches Unity
+outside `unity-access`, so it is barred here like any direct launch.
 
 ## Running tests
 
-Sync PlayMode `run_tests` is a silent no-op: it returns in ~0.2 s with `success:true` and an
-all-zeros summary having run nothing, so a gate trusting it goes green on zero tests. Use
-`--async_tests true` plus `test_status` polling (results also land in
-`Temp/pipeline_test_status.json`); `test_status` returns its payload sometimes as an object,
-sometimes as a JSON string — parse both.
+Sync PlayMode `run_tests` does not run: the inner result carries `success:false` and
+"PlayMode tests cannot run synchronously over HTTP", but the envelope is `success:true`,
+exit 0, with an all-zeros summary — a gate trusting the exit code goes green on zero
+tests. Use `--async_tests true` plus `test_status` polling (results also land in
+`Temp/pipeline_test_status.json`). `test_status` puts its payload in `data.result` as a
+JSON string; `--result-only` returns it parsed.
 
 ## Output paths
 
 - `capture_game_view` / `capture_scene_view` take `save_path`: project-relative,
-  rejects `..`, lands under `Assets/` — triggering imports and polluting the tree.
-  Delete the folder (e.g. `Assets/Screenshots`) when done.
-- `screenshot` takes `--output` and accepts absolute paths — prefer it when it can do
-  the job. `--view scene` ignores scene-camera changes made over the CLI; to frame a
-  subject yourself, render through your own camera (game-capture skill → "Asset stills").
+  rejects `..` and absolute paths, lands under `Assets/` — triggering imports and
+  polluting the tree. Delete the folder (e.g. `Assets/Screenshots`) when done.
+- `screenshot` takes `--output` and accepts absolute paths (default:
+  `Temp/pipeline-screenshots/`) — prefer it when it can do the job. `--view scene`
+  honors a scene-camera pose set over eval (`SceneView.LookAtDirect` + `Repaint`), but
+  `sv.camera.transform` reads the old pose until the next repaint.
 
 ## eval / eval_file
 
 - Snippets are method-body-wrapped: `using` directives are compile errors — fully
   qualify every type. Grep the repo for the exact namespace before writing
-  (`Substrate.GamePlane`, `AI.Navigator`; guesses cost a round-trip each).
+  (`Substrate.GamePlane`, `AI.Navigation.MPC.Cost`; guesses cost a round-trip each).
+  `run_script` compiles a whole `.cs` file (usings, types) with no domain reload and
+  calls a static entry point — use it when a snippet outgrows a method body.
 - `internal` members need reflection.
-- On an unfocused/background editor, run `set_autotick --enable true` first — without
-  it, main-thread ops time out at 5000 ms. Autotick resets on EVERY domain reload, so
-  re-arm it after each one; a starved editor reads as a wedged server (30 s timeouts).
-- PowerShell mangles embedded double-quotes in inline snippets: write the snippet to a
-  file and use `eval_file` for anything nontrivial.
-- Keep stderr visible and check the result's error fields: `2>$null | ConvertFrom-Json`
-  eats the error JSON, so a failed eval prints nothing and reads as success (this
-  produced captures with debug toggles believed off).
-- CLI JSON nests the payload under `data.result` — an envelope `success:true` can wrap an
-  inner `success:false`. Always check the inner result.
+- Autotick (keeps an unfocused editor servicing commands) is on by default and
+  `set_autotick` persists across domain reloads (`--persist false` for a one-off).
+  An unfocused editor with autotick off still answered evals in ~300 ms.
+- PowerShell mangles embedded double-quotes in inline snippets (the string splits into
+  the next flag: `--timeout expects Int32 but got there;`): write the snippet to a file
+  and use `eval_file` for anything nontrivial.
+- A failed eval (compile or runtime) fails the envelope: `success:false`, exit 6,
+  message in `errors[]`. With `--format json`/`--result-only` that JSON is on stdout;
+  in human format a failure prints only to stderr, so `2>$null` there reads as silence.
+  Check the exit code.
 
 ## Selection
 
-`set_selection --instance_ids` with negative editor instance-ids reports success and
-selects NOTHING. Select via eval instead: `UnityEditor.Selection.objects = ...`.
+`set_selection --instance_ids "[<id>]"` selects scene objects, negative instance-ids
+included (pass a JSON array).
 
 ## Domain-reload dead zones
 
-Both play-mode transitions reload the domain: play-*enter* gives a ~2 s window of
-failing commands; after `editor_stop`, asset ops (`delete_asset`) time out and
-`editor_status` is briefly unreachable. Poll `editor_status` until it answers before
-firing follow-ups.
+Play-*enter* reloads the domain: the first command after `editor_play` can fail with
+`Connection reset by server`, and the next blocks ~5 s until the reload ends. Retry once
+or poll `editor_status`. A forced script reload (`RequestScriptReload`) makes
+`editor_status` fail for ~1 s rather than report `domainReloadInProgress:true`. After
+`editor_stop`, `delete_asset` and `editor_status` answered immediately.
 
 ## Latency envelope
 
-Plain commands ≈100 ms; `eval` 0.5–1.5 s (server-side Roslyn compile per snippet), so a
-select→capture round-trip is ~0.5–1 s. Sub-second subjects (laser bolts) cannot be
-caught from outside the editor — that needs an editor-side `[CliCommand]` primitive
-(`capture.gizmo_still`, carded #446).
+End to end from the CLI, plain commands and warm evals both take ≈270–350 ms; the first
+eval after a reload ≈1.1 s. `wait_for` with `--on_met '{"capture":{…}}'` captures in the
+editor frame its condition first holds — the atomic primitive sub-second subjects
+(laser bolts) need; gizmo composition through it is untested (#446 is benched; its
+reopen condition decides whether this gets evaluated).
 
 ## Warm-capture lane
 
