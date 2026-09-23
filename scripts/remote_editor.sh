@@ -133,8 +133,6 @@ EOF
         sleep 10
     done
 
-    # Unfocused editors need autotick or main-thread ops time out at 5 s.
-    cli_cmd set_autotick --enable true >/dev/null
     cli_cmd "$(psq set_window_title --label "$LEASE")" >/dev/null
     echo "[remote_editor] ready — drive it with: $0 cmd <unity-command> [args]"
     cli_cmd editor_status
