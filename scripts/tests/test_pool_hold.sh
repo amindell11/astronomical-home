@@ -119,17 +119,23 @@ git branch -q -D held/quiet
 git push -q origin main:refs/heads/held/quiet
 if pool hold agent-1 --local >/dev/null 2>&1; then fail "hold --local must refuse a held/<lease> known on origin"; fi
 git push -q origin --delete held/quiet
-journal="$TMP/merge-run.jsonl"
-printf '%s\n' '{"event":"run-start","phase":""}' '{"event":"phase-start","phase":"tests"}' > "$journal"
-printf '%s\n' "$journal" > "$(lock_dir agent-1)/merge_run"
-if pool hold agent-1 >/dev/null 2>"$TMP/hold.log"; then fail "hold must refuse while a merge phase is open"; fi
+# A running merge gate holds the slot's .merge flock for its whole run.
+perl -e 'use Fcntl qw(LOCK_EX); open my $l, ">>", $ARGV[0] or die "$!"; flock($l, LOCK_EX) or die "$!";
+  open my $r, ">", $ARGV[1] or die "$!"; close $r; select(undef, undef, undef, 0.1) until -e $ARGV[2];' \
+  "$WORKTREE_POOL_LOCK_ROOT/agent-1.merge" "$TMP/gate.ready" "$TMP/gate.go" &
+gate=$!
+for _ in $(seq 1 100); do [[ -f "$TMP/gate.ready" ]] && break; sleep 0.1; done
+[[ -f "$TMP/gate.ready" ]] || fail "fixture: the stand-in gate never took the .merge flock"
+held_anyway=0
+pool hold agent-1 >/dev/null 2>"$TMP/hold.log" && held_anyway=1
+touch "$TMP/gate.go"
+wait "$gate"
+[[ "$held_anyway" == 0 ]] || fail "hold must refuse while a merge gate runs"
 grep -qF 'merge-progress agent-1' "$TMP/hold.log" || fail "the merge refusal must name merge-progress"
 [[ "$(git -C "$A1" status --porcelain)" == ' M a.txt' ]] || fail "a refused hold must leave the work on the slot"
-touch -d '2 hours ago' "$journal"
-WORKTREE_POOL_LOCK_TTL=60 pool hold agent-1 --local >/dev/null 2>&1 \
-  || fail "a journal silent past the lock TTL is a dead gate and must not block hold"
+pool hold agent-1 --local >/dev/null 2>&1 || fail "hold must proceed once the gate has finished"
 if pool hold agent-1 >/dev/null 2>&1; then fail "hold must refuse a free slot"; fi
-echo "PASS: hold refuses an existing held branch, an open merge phase and a free slot"
+echo "PASS: hold refuses an existing held branch, a running merge gate and a free slot"
 
 # --- resume: refuses a slot holding work; never reclaims the left slot while one is free;
 #     falls back to origin when the local branch is gone ---------------------------------------

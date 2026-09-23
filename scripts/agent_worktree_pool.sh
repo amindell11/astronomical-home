@@ -18,7 +18,7 @@ mkdir -p "$LOCK_ROOT"
 #   Locks                     write_lock, lock_age_seconds, clobber safety
 #   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
-#   Hold / resume             held_snapshot, merge_in_flight, cmd_hold, cmd_resume
+#   Hold / resume             held_snapshot, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
@@ -93,9 +93,10 @@ Commands:
       files) as one commit whose only parent is HEAD, on branch
       held/<lease>, pushed to origin unless --local; then prepares the slot
       to origin/main and releases it. task/<lease> is never touched.
-      Refuses a free or lease-less slot, a slot whose merge gate journal
-      has a phase open, and a held/<lease> that exists locally or on origin
-      as of the last fetch. Local merge and
+      Holds the slot's merge gate flock throughout, so it refuses while a
+      merge gate runs on the slot and no gate starts mid-hold. Also refuses
+      a free or lease-less slot, and a held/<lease> that exists locally or
+      on origin as of the last fetch. Local merge and
       ReSharper proof live in the lock and are lost; the merge gate re-proves.
       Output: HELD=<lease> RESUME="agent_worktree_pool.sh resume <lease>"
 
@@ -797,19 +798,10 @@ held_snapshot() {
     | git -C "$path" commit-tree "$tree" -p HEAD
 }
 
-# A gate killed hard never closes its phase; a journal silent past the lock TTL is dead.
-merge_in_flight() {
-  local slot="$1" journal age
-  journal="$(cat "$(lock_dir_for "$slot")/merge_run" 2>/dev/null || true)"
-  [[ -n "$journal" && -f "$journal" ]] || return 1
-  [[ -n "$(merge_journal_open_phase "$journal")" ]] || return 1
-  age=$(( $(date +%s) - $(stat -c %Y "$journal") ))
-  [[ "$age" -le "$LOCK_TTL_SECONDS" ]]
-}
-
+# Runs under the slot's .merge flock (see main): no merge gate is live, and none starts mid-hold.
 cmd_hold() {
   local slot="$1" mode="${2:-}"
-  local path lease branch snap where="origin"
+  local path lease branch snap where="origin" self="$SCRIPT_DIR/agent_worktree_pool.sh"
   case "$mode" in
     ""|--local) ;;
     *) echo "hold: unknown argument '$mode' (hold <slot> [--local])" >&2; return 1 ;;
@@ -818,15 +810,11 @@ cmd_hold() {
   [[ -d "$(lock_dir_for "$slot")" ]] || { echo "hold: $slot is not locked; there is no work to hold." >&2; return 1; }
   lease="$(lease_for "$slot")"
   [[ -n "$lease" ]] || { echo "hold: $slot has no lease, and held work is keyed on it." >&2; return 1; }
-  if merge_in_flight "$slot"; then
-    echo "hold: a merge gate is in flight on $slot; follow it with '$0 merge-progress $slot'." >&2
-    return 1
-  fi
 
   branch="held/$lease"
   if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null \
     || git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
-    echo "hold: $branch already exists here or on origin; resume it ('$0 resume $lease') before holding $slot again." >&2
+    echo "hold: $branch already exists here or on origin; resume it ('$self resume $lease') before holding $slot again." >&2
     return 1
   fi
   snap="$(held_snapshot "$path" "$lease" "$slot")"
@@ -836,7 +824,7 @@ cmd_hold() {
     where="this clone only"
   elif ! git -C "$path" push -q --force-with-lease="refs/heads/$branch:" origin "$snap:refs/heads/$branch"; then
     git -C "$ROOT" update-ref -d "refs/heads/$branch" "$snap"
-    echo "hold: pushing $branch failed, so $slot is untouched. For work that must not be pushed: $0 hold $slot --local" >&2
+    echo "hold: pushing $branch failed, so $slot is untouched. For work that must not be pushed: $self hold $slot --local" >&2
     return 1
   fi
 
@@ -2190,7 +2178,12 @@ main() {
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
     revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
-    hold) require_slot_arg "hold requires <slot> [--local]" "$#"; cmd_hold "$@" ;;
+    hold)
+      require_slot_arg "hold requires <slot> [--local]" "$#"
+      with_slot_flock "$LOCK_ROOT/$1.merge" \
+        "hold: a merge gate is running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
+        cmd_hold "$@"
+      ;;
     resume) require_slot_arg "resume requires <lease> [slot]" "$#"; cmd_resume "$@" ;;
     -h|--help|help) usage ;;
     *)
