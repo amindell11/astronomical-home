@@ -81,8 +81,10 @@ def main(argv):
     parts, records = zip(*(image_part(p) for p in images)) if images else ((), ())
 
     sidecar_path = args.out.with_name(args.out.name + ".json")
-    if sidecar_path.exists() and not args.force:
-        sys.exit(f"imagegen: {sidecar_path} exists; pass --force to overwrite")
+    targets = [sidecar_path, *(args.out.with_name(args.out.name + ext) for ext in EXTENSIONS.values())]
+    existing = [t for t in targets if t.exists()]
+    if existing and not args.force:
+        sys.exit(f"imagegen: {existing[0]} exists; pass --force to overwrite")
 
     from google import genai
 
