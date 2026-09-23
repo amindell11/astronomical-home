@@ -78,8 +78,10 @@ public sealed class MyProbe : CaptureScenario
 
 `Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
 advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, and
-`Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose gizmos draw.
+Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, `SectorEntry`
+to film inside a sector (loaded hero-less before `Run`; `SpawnCombatShip` ships sense its
+rocks), and `Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose
+gizmos draw.
 
 **Define the gizmo set and scope from what the clip must show.** Pick the narrowest
 `Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
@@ -159,15 +161,12 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   `enable_gizmo_annotations.cs`; the #401 flake family).
 - **Select via eval** (`cli-eval/select_ships.cs`) and bracket each capture with a
   state-read eval so you know what was actually on screen when the frame was taken.
-- **Live-fire scene without playing the game:** boot InitScene, then
-  `cli-eval/launch_no_presentation.cs`, `spawn_enemy.cs` (`UnitService.SpawnShip` with a
-  Ship prefab + AgentPilot Commander), `teleport_close.cs` for tight ObserverCam framing.
-  `launch_no_presentation.cs` flips `GameHost.sessionProfile.presentation = false`
-  **before** clicking hangar launch, so the pre-spawn compose suppresses the asteroid
-  field's renderers too — poking only the `GameSettings` static after compose leaves the
-  field lit (the "magenta asteroid" leak). With presentation off, the environment
-  silhouette comes from **collider gizmos** (the Gizmo View Colliders toggle / the capture
-  transaction's `CollidersOn`), not unlit meshes.
+- **Live-fire scene** → film `TwoShipSkirmishScenario` (cold runner or warm lane): two
+  policy-pilot ships inside `TuningSector`'s asteroid field, presentation off from the
+  first compose, so the rocks' silhouettes are **collider gizmos** (the capture drives
+  `CollidersOn`), not meshes. A still is a mid-clip frame — read it before
+  `assemble.py`, or pass `--keep-frames`. A dark live game to poke at over the CLI has
+  no path until #647 (an edit-mode bootstrap that builds a dark GameHost).
 - **Asset stills (edit mode, own camera)** — a finding about something visual (mesh,
   collider, layout) ships as a picture when an editor is already held or the user asks;
   otherwise offer the picture in one line and let the user spend the boot. Worked
