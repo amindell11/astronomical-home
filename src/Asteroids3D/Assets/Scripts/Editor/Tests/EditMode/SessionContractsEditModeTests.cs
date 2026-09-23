@@ -122,7 +122,7 @@ namespace Tests.EditMode
                 "the player is the host's, not the session's — a session holds no rig");
             Assert.AreEqual(typeof(SessionFrame), type.GetProperty("Frame")?.PropertyType,
                 "Session must expose its in-plane Frame");
-            // Presentation is snapshotted from SessionProfile at construction and handed to the sector and spawn seams; the session exposes no flag.
+            // Presentation is snapshotted at construction; Session exposes no presentation flag.
         }
 
         [Test]

@@ -18,7 +18,7 @@ namespace Game
     /// <summary>
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
-    /// observer camera) and the optional <see cref="PlayerRig"/>, then loop runs: hangar, load the
+    /// observer camera) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
     /// sector, play until the sector ends or the player dies, death recap, unload. It owns the clock,
     /// splash, hangar, recap and restart; the session only composes, loads and unloads. Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
@@ -36,7 +36,7 @@ namespace Game
         [Header("Session")]
         [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
 
-        [Tooltip("The player and its HUD. Built once at Start; persists across sector restarts. " +
+        [Tooltip("The player and its HUD. Built once after session compose; persists across sector restarts. " +
                  "Null → no player (spectator).")]
         [SerializeField] private PlayerRig playerRig;
 
@@ -46,8 +46,8 @@ namespace Game
         [SerializeField] internal ObserverCam observerCamPrefab;
 
         [Header("Splash")]
-        [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
-                 "sector load). Optional; skipped when presentation is off (headless/RL).")]
+        [Tooltip("Full-screen splash shown over the non-interactive steps (boot, session compose, " +
+                 "sector load/unload). Optional; skipped when presentation is off (headless/RL).")]
         [SerializeField] private LoadingSplash splashPrefab;
 
         [Header("Hangar")]
@@ -177,7 +177,7 @@ namespace Game
             }
         }
 
-        /// <summary>Interactive hangar flow; applies the standing loadout silently when not presenting (never blocks on a click) and stays callable without a session for tests.</summary>
+        /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled)
         {
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)

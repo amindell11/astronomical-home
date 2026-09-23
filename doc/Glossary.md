@@ -595,7 +595,7 @@ Format: **term** — definition. *(authority)*
   may despawn before the recap reads the row. *(DamageLedger)*
 - **death recap** — the post-death summary rendered from the damage ledger at
   the game host's hold between death and sector unload; presentation-gated, so a
-  headless host goes straight to the unload.
+  game host with presentation off goes straight to the unload.
   *(DeathRecapScreen, GameHost.RunDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is

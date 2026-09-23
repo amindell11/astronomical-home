@@ -69,7 +69,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
 
-            // Supply screen + catalog to an inactive host (Awake and its flow never run) and drive the hangar coroutine on the active rig.
+            // Host stays inactive so its flow never runs; the rig hosts the hangar coroutine.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
