@@ -167,4 +167,3 @@ namespace Tests.EditMode.Skyboxes
         }
     }
 }
-

@@ -191,7 +191,6 @@ def build_nebula_volume(preset):
     multiply_noise.operation = "MULTIPLY"
     threshold = new_node(nodes, "ShaderNodeValToRGB", "Wispy Density Threshold", -100, 120)
     threshold.color_ramp.interpolation = "EASE"
-    # Threshold that carves the noise into wispy gas vs. empty space.
     threshold.color_ramp.elements[0].position = 0.255 - settings["coverage"]
     threshold.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
     threshold.color_ramp.elements[1].position = 0.450 - settings["coverage"]
@@ -471,4 +470,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

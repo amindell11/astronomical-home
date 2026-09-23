@@ -149,5 +149,5 @@ blender -b --python-exit-code 1 -P art/tools/skybox/tests/blender_smoke.py -- \
   --out results/skybox-authoring/variants
 ```
 
-Unity integration tests: `Tests.EditMode.Skyboxes.SkyboxAuthoringEditModeTests`
+Unity integration tests: filter `Tests.EditMode.Skyboxes`
 (category `Sectors`), through the repository's pooled Unity test runner.
