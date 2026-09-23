@@ -5,8 +5,8 @@ set -euo pipefail
 # failed runs stop the PR path, inert deltas skip the full suite, the phase
 # journal records the ladder for both outcomes, remote proof is accepted only
 # from a green merge-proof/headless status stamping the landing tree, and an owed run with no
-# named producer goes local or hosted on the memory admission verdict. The script suite
-# overlaps the hosted wait, and a slot runs one gate at a time.
+# named producer goes local or hosted on the memory admission verdict. The script suite runs
+# beside the rest of the gate, and a slot runs one gate at a time.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -65,6 +65,10 @@ if [[ "$*" != *unity_test_agent.ps1* ]]; then
   exec "$real" "$@"
 fi
 echo "run $*" >> "$RUNNER_LOG"
+if [[ -n "${RUNNER_AWAITS:-}" ]]; then
+  for _ in $(seq 1 300); do [[ -e "$RUNNER_AWAITS" ]] && break; sleep 0.1; done
+  [[ -e "$RUNNER_AWAITS" ]] || { echo "stub: $RUNNER_AWAITS never appeared while the runner ran" >&2; exit 1; }
+fi
 if [[ "${RUNNER_MUTATE_TRACKED:-0}" == 1 ]]; then
   sed -i 's/UNITY_POST_PROCESSING_STACK_V2$/UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED/' src/Asteroids3D/ProjectSettings/ProjectSettings.asset
 fi
@@ -562,7 +566,10 @@ grep -q "SKIP: test_unity_access.ps1" "$TMP/merge.out" \
 
 git -C "$TMP/agent-1" rm -q scripts/tests/test_unity_access.ps1
 git -C "$TMP/agent-1" commit -qm "drop red coordinator suite member"
-pool merge agent-1 > "$TMP/merge.out"
+# The suite runs beside the local test run: the stub runner cannot finish until the probe has run.
+rm -f "$PROBE_MARKER"
+RUNNER_AWAITS="$PROBE_MARKER" pool merge agent-1 > "$TMP/merge.out" 2>&1 \
+  || { cat "$TMP/merge.out" >&2; fail "the script suite must run while the local test run is still going"; }
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green script suite should merge (got $(gh_merges))"
 
 # --- remote proof ------------------------------------------------------------
@@ -607,8 +614,16 @@ pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "
 expect_output "remote proof, skipping the run" "the gate should say it used remote proof"
 [[ "$(phase_order)" == *"proof-check tests resharper"* ]] || fail "a skipped run keeps the default ladder (got '$(phase_order)')"
 
-# Fail closed, default path: each unusable status names its reason and the gate turns to the local run.
-# The runner is red here so each case stops at the tests phase; one green fallback closes the block.
+# Trailer parse cases are checked on the pool script's own reader, with no gate run around them.
+expect_no_proof() {
+  local reason="$1" label="$2" out
+  shift 2
+  if out="$( (source "$POOL"; verified_remote_status "$@") 2>&1)"; then fail "$label: must be no proof (got: $out)"; fi
+  [[ "$out" == *"$reason"* ]] || fail "$label: must say '$reason' (got: $out)"
+}
+
+# Fail closed, default path: an unusable status names its reason and the gate turns to the local run.
+# The runner is red here so each gate case stops at the tests phase; one green fallback closes the block.
 expect_local_fallback() {
   local reason="$1" label="$2"
   runs_before="$(runner_runs)"
@@ -622,14 +637,15 @@ merges_before="$(gh_merges)"
 echo 1 > "$RUNNER_EXIT_FILE"
 statuses "$(printf 'success\037tree=%040d total=5 passed=5 skipped=0\037%s/42' 0 "$RUN_URL")"
 expect_local_fallback "stamps tree 0000000000000000000000000000000000000000, the landing tree is $(slot_tree)" "tree mismatch"
+headless_no_proof() { expect_no_proof "$1" "$2" "$(slot_sha)" merge-proof/headless "tree=$(slot_tree)"; }
 statuses "$(printf 'success\037all green, trust me\037%s/42' "$RUN_URL")"
-expect_local_fallback "names no tree ('all green, trust me')" "unparsable trailer"
+headless_no_proof "names no tree ('all green, trust me')" "unparsable trailer"
 statuses "$(printf 'neutral\037whatever\037%s/42' "$RUN_URL")"
-expect_local_fallback "is 'neutral', not success" "unknown state"
+headless_no_proof "is 'neutral', not success" "unknown state"
 statuses $'absent\037\037'
-expect_local_fallback "is 'absent', not success" "absent status"
+headless_no_proof "is 'absent', not success" "absent status"
 statuses "$(green 42)"
-GH_API_FAIL=1 expect_local_fallback "could not read the merge-proof/headless status" "gh error"
+GH_API_FAIL=1 headless_no_proof "could not read the merge-proof/headless status" "gh error"
 new_commit remote-unpushed
 expect_local_fallback "is not on GitHub yet" "unpushed landing commit"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "no fail-closed case may reach gh pr merge"
@@ -638,7 +654,7 @@ pool merge agent-1 > "$TMP/merge.out" 2>&1 || { cat "$TMP/merge.out" >&2; fail "
 [[ "$(proof_kind)" == "full-run" ]] || fail "fallback proof must come from the local run (got $(proof_kind))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fallback should merge on local proof"
 
-# Hosted ratchet, fail closed: tests are proven once, so every case dies in the resharper phase with no
+# Hosted ratchet, fail closed: tests are proven once, so every gate case dies in the resharper phase with no
 # wait. Default path: the reason is named and the (red) local ratchet runs; --remote: refused, no ratchet run.
 new_commit ratchet-fail-closed
 push_slot
@@ -647,32 +663,37 @@ echo 1 > "$RESHARPER_EXIT_FILE"
 merges_before="$(gh_merges)"
 ZERO="$(printf '%040d' 0)"
 expect_ratchet_fail_closed() {
-  local reason="$1" label="$2"
+  local reason="$1" label="$2" remote_says="$3"
   resharper_before="$(resharper_runs)"
   if pool merge agent-1 > "$TMP/merge.out" 2>&1; then fail "$label: fixture ratchet is red, merge must fail"; fi
   expect_output "$reason" "$label: the gate must say why the hosted ratchet is no proof"
   [[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "$label: the default path must run the local ratchet once (got $(resharper_runs))"
   if remote_merge; then fail "$label: --remote must refuse"; fi
-  expect_output "the hosted path runs no local ReSharper ratchet" "$label: the --remote refusal must say why"
-  expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "$label: the --remote refusal must name the rerun"
+  expect_output "$remote_says" "$label: the --remote refusal must say why"
   [[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "$label: --remote must not run the local ratchet (got $(resharper_runs))"
 }
 ratchets $'absent\037\037'
-expect_ratchet_fail_closed "merge-proof/resharper on $(slot_sha) is 'absent', not success" "absent ratchet status"
-ratchets "$(ratchet_status failure "1 blocking finding(s) on changed lines - see run" 42)"
-expect_ratchet_fail_closed "is 'failure', not success" "red ratchet status"
-ratchets "$(ratchet_status error "run cancelled or timed out" 42)"
-expect_ratchet_fail_closed "is 'error', not success" "errored ratchet status"
-ratchets "$(ratchet_status neutral whatever 42)"
-expect_ratchet_fail_closed "is 'neutral', not success" "unknown ratchet state"
-ratchets "$(ratchet_status success "baseTree=$(base_tree) skipped=1" 42)"
-expect_ratchet_fail_closed "names no tree (" "ratchet trailer without tree="
-ratchets "$(ratchet_status success "tree=$(slot_tree) skipped=1" 42)"
-expect_ratchet_fail_closed "names no baseTree (" "ratchet trailer without baseTree="
-ratchets "$(ratchet_status success "tree=$ZERO baseTree=$(base_tree)" 42)"
-expect_ratchet_fail_closed "stamps tree $ZERO" "ratchet tree mismatch"
+expect_ratchet_fail_closed "merge-proof/resharper on $(slot_sha) is 'absent', not success" "absent ratchet status" \
+  "the hosted path runs no local ReSharper ratchet"
+expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "absent ratchet status: the --remote refusal must name the rerun"
+# The hosted ratchet stamps the origin/main it fetched, so another baseTree means base moved: a re-dispatch cannot fix it.
 ratchets "$(ratchet_status success "tree=$(slot_tree) baseTree=$ZERO" 42)"
-expect_ratchet_fail_closed "stamps baseTree $ZERO" "ratchet baseTree mismatch"
+expect_ratchet_fail_closed "stamps baseTree $ZERO" "ratchet baseTree mismatch" \
+  "base moved during the merge gate — re-run 'merge agent-1 --remote'"
+if grep -q "gh workflow run" "$TMP/merge.out"; then fail "a moved base must not be answered with a workflow re-dispatch"; fi
+ratchet_no_proof() { expect_no_proof "$1" "$2" "$(slot_sha)" merge-proof/resharper "tree=$(slot_tree)" "baseTree=$(base_tree)"; }
+ratchets "$(ratchet_status failure "1 blocking finding(s) on changed lines - see run" 42)"
+ratchet_no_proof "is 'failure', not success" "red ratchet status"
+ratchets "$(ratchet_status error "run cancelled or timed out" 42)"
+ratchet_no_proof "is 'error', not success" "errored ratchet status"
+ratchets "$(ratchet_status neutral whatever 42)"
+ratchet_no_proof "is 'neutral', not success" "unknown ratchet state"
+ratchets "$(ratchet_status success "baseTree=$(base_tree) skipped=1" 42)"
+ratchet_no_proof "names no tree (" "ratchet trailer without tree="
+ratchets "$(ratchet_status success "tree=$(slot_tree) skipped=1" 42)"
+ratchet_no_proof "names no baseTree (" "ratchet trailer without baseTree="
+ratchets "$(ratchet_status success "tree=$ZERO baseTree=$(base_tree)" 42)"
+ratchet_no_proof "stamps tree $ZERO" "ratchet tree mismatch"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "no hosted-ratchet fail-closed case may reach gh pr merge"
 # Green for this tree and base: accepted on the default path, the (still red) local ratchet never runs.
 ratchets "$(rgreen 42)"
@@ -985,4 +1006,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the hosted wait + one gate per slot"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot"
