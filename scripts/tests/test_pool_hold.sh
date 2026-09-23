@@ -116,6 +116,9 @@ echo "PASS: hold --local never pushes; a failed push rolls back; resume works fr
 git branch held/quiet main
 if pool hold agent-1 >/dev/null 2>&1; then fail "hold must refuse an existing held/<lease>"; fi
 git branch -q -D held/quiet
+git push -q origin main:refs/heads/held/quiet
+if pool hold agent-1 --local >/dev/null 2>&1; then fail "hold --local must refuse a held/<lease> known on origin"; fi
+git push -q origin --delete held/quiet
 journal="$TMP/merge-run.jsonl"
 printf '%s\n' '{"event":"run-start","phase":""}' '{"event":"phase-start","phase":"tests"}' > "$journal"
 printf '%s\n' "$journal" > "$(lock_dir agent-1)/merge_run"

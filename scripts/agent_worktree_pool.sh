@@ -94,7 +94,8 @@ Commands:
       held/<lease>, pushed to origin unless --local; then prepares the slot
       to origin/main and releases it. task/<lease> is never touched.
       Refuses a free or lease-less slot, a slot whose merge gate journal
-      has a phase open, and an existing held/<lease>. Local merge and
+      has a phase open, and a held/<lease> that exists locally or on origin
+      as of the last fetch. Local merge and
       ReSharper proof live in the lock and are lost; the merge gate re-proves.
       Output: HELD=<lease> RESUME="agent_worktree_pool.sh resume <lease>"
 
@@ -806,8 +807,9 @@ cmd_hold() {
   fi
 
   branch="held/$lease"
-  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
-    echo "hold: $branch already exists; resume it ('$0 resume $lease') before holding $slot again." >&2
+  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null \
+    || git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
+    echo "hold: $branch already exists here or on origin; resume it ('$0 resume $lease') before holding $slot again." >&2
     return 1
   fi
   snap="$(held_snapshot "$path" "$lease" "$slot")"
