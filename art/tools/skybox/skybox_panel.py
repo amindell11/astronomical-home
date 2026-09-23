@@ -9,7 +9,7 @@ from bpy.props import (CollectionProperty, EnumProperty, FloatProperty,
                        FloatVectorProperty, IntProperty, PointerProperty, StringProperty)
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 
-from . import skybox_merged, skybox_preset, skybox_unity
+from . import skybox_merged, skybox_preset, skybox_unity, skybox_preview
 
 
 def longitude(star):
@@ -61,6 +61,8 @@ class SkyboxSettings(bpy.types.PropertyGroup):
     output_name: StringProperty(name="Sky Name", default="my-sky")
     draft_width: EnumProperty(name="Draft Size", items=[("512", "512", "Very quick shape checks"),
                               ("1024", "1K", "Shape and color"), ("2048", "2K", "More star detail")], default="1024")
+    last_hdr: StringProperty(subtype="FILE_PATH")
+    preview_image: PointerProperty(type=bpy.types.Image)
     status: StringProperty(default="Start from Nebula Glow, adjust, then render a draft.")
 
 
@@ -152,6 +154,7 @@ class SKYBOX_OT_render(bpy.types.Operator):
     bl_label = "Render Skybox"
     final: bpy.props.BoolProperty(default=False)
     send_to_unity: bpy.props.BoolProperty(default=False)
+    viewport: bpy.props.BoolProperty(default=False)
     active = False
 
     @classmethod
@@ -170,6 +173,10 @@ class SKYBOX_OT_render(bpy.types.Operator):
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
         self.out_base = str(folder / (settings.output_name + ("-8k" if self.final else "-draft")))
+        self.preview_space = context.space_data if self.viewport else None
+        self.preview_session = skybox_preview.active
+        self.preview_view = (skybox_preview.capture_view(self.preview_session.space)
+                             if self.preview_session is not None else None)
         self.window = context.window
         self.previous = context.scene
         self.scene = skybox_merged.build_scene(self.preset, self.out_base,
@@ -183,7 +190,13 @@ class SKYBOX_OT_render(bpy.types.Operator):
         type(self).active = True
         context.window_manager.modal_handler_add(self)
         try:
-            bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+            display = context.preferences.view.render_display_type
+            try:
+                if self.viewport:
+                    context.preferences.view.render_display_type = "NONE"
+                bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+            finally:
+                context.preferences.view.render_display_type = display
         except Exception:
             self.cleanup(context)
             raise
@@ -206,6 +219,11 @@ class SKYBOX_OT_render(bpy.types.Operator):
                 settings.status = "Render cancelled."
                 return {"CANCELLED"}
             skybox_merged.save_outputs(self.scene, self.preset, self.out_base, "HDR", time.perf_counter()-self.started)
+            skybox_preview.retain_image(settings, self.out_base)
+            if self.preview_space is not None:
+                skybox_preview.show_viewport(self.preview_space, settings.last_hdr)
+            elif skybox_preview.active is not None:
+                skybox_preview.active.refresh(settings.last_hdr)
             published = skybox_unity.publish(self.out_base, self.unity_project, self.sky_name, self.final) if self.send_to_unity else None
             settings.status = f"Sent {published.name}; switch to Unity > Tools > Skybox Preview." if published else f"Saved {self.out_base}.hdr"
             self.report({"INFO"}, settings.status)
@@ -222,9 +240,47 @@ class SKYBOX_OT_render(bpy.types.Operator):
         context.window_manager.event_timer_remove(self.timer)
         self.window.scene = self.previous
         skybox_merged.dispose_scene(self.scene)
+        if self.preview_session is not None and self.preview_session is skybox_preview.active:
+            skybox_preview.restore_view(self.preview_session.space, self.preview_view)
         type(self).active = False
         for area in self.window.screen.areas:
             area.tag_redraw()
+
+
+class SKYBOX_OT_view_image(bpy.types.Operator):
+    bl_idname = "skybox.view_image"
+    bl_label = "View Last Render"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.skybox_authoring.preview_image is not None
+
+    def execute(self, context):
+        image = context.scene.skybox_authoring.preview_image
+        bpy.ops.render.view_show("INVOKE_DEFAULT")
+        skybox_preview.show_image(image)
+        return {"FINISHED"}
+
+
+class SKYBOX_OT_viewport(bpy.types.Operator):
+    bl_idname = "skybox.viewport"
+    bl_label = "Look Around Last Render"
+    end: bpy.props.BoolProperty(default=False)
+
+    @classmethod
+    def poll(cls, context):
+        return not SKYBOX_OT_render.active and context.area.type == "VIEW_3D"
+
+    def execute(self, context):
+        if self.end:
+            skybox_preview.end_viewport()
+        else:
+            path = bpy.path.abspath(context.scene.skybox_authoring.last_hdr)
+            if not Path(path).is_file():
+                self.report({"ERROR"}, "Render a draft first, or click Refresh Draft")
+                return {"CANCELLED"}
+            skybox_preview.show_viewport(context.space_data, path)
+        return {"FINISHED"}
 
 
 class SKYBOX_PT_authoring(bpy.types.Panel):
@@ -273,7 +329,16 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         row = box.row(align=True)
         row.operator("skybox.render", text="Render Draft").final = False
         row.operator("skybox.render", text="Export 8K HDR").final = True
-        box.label(text="F11: view the last render")
+        box.operator("skybox.view_image")
+        box = layout.box()
+        box.label(text="3D Preview")
+        box.operator("skybox.render", text="Refresh Draft").viewport = True
+        if skybox_preview.active is None:
+            box.operator("skybox.viewport")
+        else:
+            box.operator("skybox.viewport", text="End Preview").end = True
+        box.label(text="Middle-mouse drag: look around")
+        box.label(text="Edit sliders, then Refresh Draft")
         box = layout.box()
         box.label(text="Unity Handoff")
         box.prop(settings, "unity_project")
@@ -287,18 +352,24 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
 
 
 CLASSES = (SkyboxStar, SkyboxSettings, SKYBOX_OT_load, SKYBOX_OT_save,
-           SKYBOX_OT_glow, SKYBOX_OT_render, SKYBOX_PT_authoring)
+           SKYBOX_OT_glow, SKYBOX_OT_render, SKYBOX_OT_view_image,
+           SKYBOX_OT_viewport, SKYBOX_PT_authoring)
 
 
 def register():
     for cls in CLASSES:
         bpy.utils.register_class(cls)
     bpy.types.Scene.skybox_authoring = PointerProperty(type=SkyboxSettings)
+    bpy.app.handlers.load_pre.append(skybox_preview.end_viewport)
+    bpy.app.handlers.save_pre.append(skybox_preview.end_viewport)
 
 
 def unregister():
     if SKYBOX_OT_render.active:
         raise RuntimeError("Finish or cancel the skybox render before disabling the add-on")
+    skybox_preview.end_viewport()
+    bpy.app.handlers.load_pre.remove(skybox_preview.end_viewport)
+    bpy.app.handlers.save_pre.remove(skybox_preview.end_viewport)
     del bpy.types.Scene.skybox_authoring
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)

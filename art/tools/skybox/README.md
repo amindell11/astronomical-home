@@ -30,7 +30,7 @@ approved appearance without changing those paths.
 1. Start from Nebula Glow and change a few controls.
 2. Click **Render Draft**. Choose 512 for rough shape checks, 1K for ordinary
    iteration, or 2K to examine stars more closely. Drafts use 32 samples.
-3. Press **F11** to view the result. The adjacent `_preview.png` is AgX-tonemapped
+3. Click **View Last Render** to view the persistent result. The adjacent `_preview.png` is AgX-tonemapped
    for shape/color inspection; it does not reproduce Unity bloom.
 4. Save a named JSON preset when you like the result.
 5. Use **Export 8K HDR** for the final 8192×4096, 64-sample render.
@@ -57,6 +57,30 @@ The broad glow around focal stars comes from **Unity bloom**, not baked blur.
 Keep focal stars enabled to retain that glow. The background wash and noise-detail
 parameters remain the established defaults. This version edits the existing five
 focal stars; it does not paint clouds or add/remove stars.
+
+## Look around while editing
+
+Click **Refresh Draft** in the **3D Preview** section to render the selected draft
+size and display the completed HDR around you in the 3D viewport. Drag the middle
+mouse button to look around. Adjust the same sky sliders, then click **Refresh
+Draft** again; it keeps your viewing direction. Start with 512 for a quick editing
+loop, then switch to 1K or 2K for detail. Slider changes take effect after refresh;
+this is a preview of the latest render, not a continuously rendering volume.
+
+**Look Around Last Render** opens an existing result without rendering again.
+**End Preview** restores your viewport shading, object visibility and view.
+Saving/loading a `.blend` or disabling the add-on also ends the preview. It changes
+only viewport display settings; your scene's objects, materials and world stay
+intact. **View Last Render** opens the saved 2D preview, which remains available
+after the temporary render scene is cleaned up.
+
+512 drafts took about 1.5�3 seconds of rendering on the development machine;
+startup, image loading, hardware and higher resolutions affect the total wait.
+Blender's preview is for composition/color; evaluate the game's bloom in Unity.
+
+To update from the first ZIP, finish any render, remove the old **HDR Space
+Skybox** add-on in Preferences, restart Blender, then install the new ZIP and enable it. Version 1.1.0
+adds these preview controls and fixes the disappearing completed render.
 
 ## Send to Unity and compare
 
@@ -147,6 +171,14 @@ reports an error while leaving the local render available to resend.
 python -m unittest discover -s art/tools/skybox/tests -v
 blender -b --python-exit-code 1 -P art/tools/skybox/tests/blender_smoke.py -- \
   --out results/skybox-authoring/variants
+```
+
+The native preview regression runs in a windowed Blender and writes a JSON
+verdict plus a viewport screenshot:
+
+```bash
+blender --factory-startup --python art/tools/skybox/tests/blender_preview.py -- \
+  --out results/skybox-authoring/preview-regression
 ```
 
 Unity integration tests: filter `Tests.EditMode.Skyboxes`
