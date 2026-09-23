@@ -46,6 +46,8 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 (`agent_worktree_pool.sh run-script-tests <slot>`). Tests keep their state inside a temp dir
 and inject every root the script would otherwise take from this machine; the
 non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
+The gate runs the suite in the slot beside its own test run and ratchet, so a test that writes
+into the worktree trips the gate's clean-tree checks.
 
 ## 5. Shared primitives live in `scripts/lib/`
 

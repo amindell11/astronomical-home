@@ -187,9 +187,12 @@ Commands:
       Hosted ladder (... proof-check remote-proof resharper ...): one hosted
       run posts both statuses, the gate waits for both, and the resharper
       phase accepts the hosted ratchet with no local ratchet run and no Unity
-      boot here; without an acceptable merge-proof/resharper it refuses.
-      When the landing diff touches scripts/, the script suite runs during
-      the hosted wait and the script-tests phase joins it.
+      boot here; without an acceptable merge-proof/resharper it refuses, and
+      one stamping another baseTree means main moved: re-run
+      'merge <slot> --remote'.
+      When the landing diff touches scripts/, the script suite starts at the
+      end of proof-check and runs beside the test run or hosted wait and the
+      ratchet; the script-tests phase joins it.
       One gate per slot: a second 'merge' on a slot whose gate is running is
       refused at once (flock on the slot's .merge file under the lock root).
 
@@ -380,8 +383,15 @@ tested_tree_for() {
 
 # First value of KEY= in a KEY=value record file; empty when absent.
 record_field() {
-  local file="$1" key="$2"
-  sed -n "s/^${key}=//p" "$file" 2>/dev/null | head -n 1
+  local file="$1" key="$2" line
+  [[ -r "$file" ]] || return 2
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    if [[ "$line" == "$key="* ]]; then
+      printf '%s\n' "${line#"$key="}"
+      return 0
+    fi
+  done < "$file"
 }
 
 tested_scope_field() {
@@ -954,16 +964,18 @@ run_tests_for_proof() {
 
 # ---- ReSharper ratchet -----------------------------------------------------
 resharper_fingerprint() {
-  local path="$1" file hashes=""
-  for file in \
-    .config/dotnet-tools.json \
-    scripts/agent_worktree_pool.sh \
-    scripts/resharper-unity.DotSettings \
-    scripts/resharper_ratchet.ps1 \
-    scripts/sync_unity_solution.ps1; do
+  local path="$1" file hash hashes="" i=0 files=(
+    .config/dotnet-tools.json
+    scripts/agent_worktree_pool.sh
+    scripts/resharper-unity.DotSettings
+    scripts/resharper_ratchet.ps1
+    scripts/sync_unity_solution.ps1)
+  for file in "${files[@]}"; do
     [[ -f "$path/$file" ]] || { echo "missing:$file"; return 0; }
-    hashes+="$(git -C "$path" hash-object "$path/$file"):$file"$'\n'
   done
+  while IFS= read -r hash; do
+    hashes+="$hash:${files[i++]}"$'\n'
+  done < <(git -C "$path" hash-object "${files[@]/#/$path/}")
   printf '%s' "$hashes" | git hash-object --stdin
 }
 
@@ -1312,7 +1324,7 @@ merge_phase_budget() {
     tests) echo 480 ;;
     remote-proof) echo 900 ;;
     resharper) echo 360 ;;
-    script-tests) echo 360 ;;
+    script-tests) echo 1200 ;;
     push) echo 30 ;;
     base-recheck) echo 15 ;;
     gh-merge) echo 20 ;;
@@ -1368,7 +1380,7 @@ journal_event() {
 
 merge_journal_open() {
   local slot="$1" base_ref="$2" ldir
-  MERGE_RUN_START="$(date +%s)"
+  MERGE_RUN_START=$EPOCHSECONDS
   MERGE_JOURNAL_PID="$BASHPID"
   mkdir -p "$MERGE_RUNS_DIR" 2>/dev/null || return 0
   # $$ disambiguates two runs opening in the same second; the truncation below would eat the earlier journal.
@@ -1385,14 +1397,14 @@ merge_journal_open() {
 merge_phase_begin() {
   merge_phase_end ok
   MERGE_PHASE="$1"
-  MERGE_PHASE_START="$(date +%s)"
+  MERGE_PHASE_START=$EPOCHSECONDS
   journal_event phase-start "$MERGE_PHASE"
 }
 
 merge_phase_end() {
   [[ -n "$MERGE_PHASE" ]] || return 0
   local status="${1:-ok}" sec
-  sec=$(( $(date +%s) - MERGE_PHASE_START ))
+  sec=$(( EPOCHSECONDS - MERGE_PHASE_START ))
   journal_event phase-end "$MERGE_PHASE" "sec=$sec" "status=$status" "budget=$(merge_phase_budget "$MERGE_PHASE")"
   MERGE_PHASE=""
 }
@@ -1413,7 +1425,7 @@ merge_journal_finish() {
     merge_phase_end failed
     status="failed"
   fi
-  journal_event run-end "" "sec=$(( $(date +%s) - MERGE_RUN_START ))" "status=$status" "exit=$code"
+  journal_event run-end "" "sec=$(( EPOCHSECONDS - MERGE_RUN_START ))" "status=$status" "exit=$code"
   echo ""
   merge_journal_render "$MERGE_JOURNAL"
 }
@@ -1837,6 +1849,13 @@ cmd_merge() {
   local scripts_diff_rc=0
   landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
   [[ "$scripts_diff_rc" -ne 2 ]] || return 1
+  # Needs only the landing tree, so it overlaps the test run, hosted wait and ratchet.
+  # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
+  if [[ "$scripts_diff_rc" -eq 0 ]]; then
+    echo "Landing diff touches scripts/ — the script suite runs alongside the rest of the gate."
+    merge_journal_note "script suite started alongside the gate"
+    start_script_suite "$path"
+  fi
 
   case "$delta" in
     proven)
@@ -1899,11 +1918,6 @@ cmd_merge() {
       echo "Running the hosted headless suite on landing commit $landing_sha before merge."
       merge_phase_begin remote-proof
       merge_journal_note "hosted headless suite on $landing_sha"
-      if [[ "$scripts_diff_rc" -eq 0 ]]; then
-        echo "Landing diff touches scripts/ — the script suite runs alongside the hosted wait."
-        merge_journal_note "script suite started alongside the hosted run"
-        start_script_suite "$path"
-      fi
       run_remote_for_proof "$slot" "$path" "$landing_sha" "$task_branch"
       remote_reason="$(accept_remote_proof "$slot" "$landing_sha" "$current_tree")" || {
         echo "merge: $remote_reason; not merging." >&2
@@ -1940,6 +1954,10 @@ cmd_merge() {
     && ratchet_reason="$(accept_remote_resharper_proof "$slot" "$path" "$landing_sha" "$base_ref")"; then
     echo "Landing commit $landing_sha carries a green $REMOTE_RESHARPER_CONTEXT status for this tree and base — hosted ratchet accepted, no local ratchet run."
     merge_journal_note "hosted ratchet accepted on the landing commit"
+  elif [[ "$remote" -eq 1 && "$base_ref" == origin/main && "$ratchet_reason" == *" stamps baseTree "* ]]; then
+    # The hosted ratchet stamps the main it fetched; another baseTree means main moved since.
+    echo "merge: $ratchet_reason; base moved during the merge gate — re-run 'merge $slot --remote'." >&2
+    return 1
   elif [[ "$remote" -eq 1 ]]; then
     echo "merge: $ratchet_reason; the hosted path runs no local ReSharper ratchet — not merging." >&2
     echo "  'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch' re-posts both verdicts; then re-run 'merge $slot --remote'." >&2
@@ -1949,16 +1967,10 @@ cmd_merge() {
     cmd_run_resharper "$slot" "$base_ref"
   fi
 
-  # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     merge_phase_begin script-tests
-    if [[ -n "$SCRIPT_SUITE_PID" ]]; then
-      merge_journal_note "joining the script suite started alongside the hosted run"
-      join_script_suite
-    else
-      merge_journal_note "landing diff touches scripts/ - running the script suite"
-      cmd_run_script_tests "$path"
-    fi
+    merge_journal_note "joining the script suite started alongside the gate"
+    join_script_suite
   fi
 
   merge_phase_begin push
