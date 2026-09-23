@@ -208,7 +208,7 @@ everything and exits nonzero.
   there both as a file attachment and as an artifact data-URI `<video>`. Proven:
   `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
   embedded as an `<img>` data URI in an artifact.
-- Note the delivered clip's absolute path in the ledger row / topic file — the next
+- Note the delivered clip's absolute path in the PR body or issue comment — the next
   session otherwise greps every worktree hunting for it.
 
 ## Hard-won constraints (violate = silent garbage)

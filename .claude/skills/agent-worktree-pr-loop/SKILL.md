@@ -29,7 +29,7 @@ the PR ceremony added review the session had already performed.)
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
-- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
+- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
@@ -128,16 +128,16 @@ go public yet, such as work awaiting approval: the repo is public.
 Offer to hold another session's slot, never hold it unasked, and offer only
 when a session starting work finds every slot full and that slot meets all of:
 
-- its ledger row is blocked or in review, waiting on a human;
+- its open PR is waiting on a human — review or a decision (the PR thread and
+  that session's chat title say which);
 - `merge-progress <slot> --oneline` prints nothing;
 - `unity_access.ps1 -Action Status -ProjectPath <slot-path>/src/Asteroids3D -Json`
   shows no `projectOwner`, so no editor or test run is live there.
 
 A session may hold its own work when it stops at a design fork for the user.
 
-After a hold, flip the ledger row to held, clear its slot column, and put the
-resume command in its Next column. Post the `HELD=… RESUME=…` line as a comment
-on the work's issue.
+After a hold, post the `HELD=… RESUME=…` line as a comment on the work's issue
+(and its PR, if open); `pool status` lists held leases.
 
 ## Chat title lifecycle
 
@@ -184,8 +184,8 @@ a spawn chip, a handoff, a launch prompt you draft for the user — give it its
 lifecycle title from the start (`prep | <slot-label> | <word-id>`) instead of
 a freeform title plus a later retitle.
 
-Retitle yourself (`session_id: "self"`) at every transition that writes
-the ledger (claim, PR-open, block, merge/finalize). The rename overwrites
+Retitle yourself (`session_id: "self"`) at every lifecycle transition
+(claim, PR-open, block, merge/finalize). The rename overwrites
 a hand-set title, so a chat the user renamed stays theirs only until your
 next transition — compose the lifecycle title regardless; the grammar is
 the contract.
@@ -203,9 +203,8 @@ presented options must include do-nothing/defer.
 
 ## Step 2 — Build
 
-Read the work ledger before acquiring
-(`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
-— worktree agents must use this exact absolute path) and claim a row. Acquire
+Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
+leases, branches, merge progress, held leases; `gh pr list` for open PRs). Acquire
 a slot (every slot full → "Holding a slot"); build and test there — directly, or via a sub-agent scoped to the
 slot's worktree path when the task is large enough to benefit from an isolated
 context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
@@ -238,7 +237,7 @@ alternatives tried and rejected on the way — it is the only home of that why
 (`doc/agents/design-docs.md` → Where design lives). An arc-completing PR
 closes its arc issue with a link back. The body also carries one bookkeeping line,
 `Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
-moves in this same PR. Flip the ledger row to in-review with the PR number.
+moves in this same PR.
 
 ## Step 5 — Review round-trip
 
@@ -321,8 +320,6 @@ merge gate" means re-run `merge`.
 
 `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`, then pull
 `origin/main` in the primary worktree (`git checkout main && git pull`).
-Delete the ledger row — the story lives in the PR body and the arc issue
-file, not the ledger.
 
 ## Preconditions & known hazards
 
