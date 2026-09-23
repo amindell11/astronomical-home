@@ -101,7 +101,7 @@ Commands:
   resume <lease> [slot]
       Put held work back on a slot. Reads local held/<lease>, else
       origin/held/<lease>. Acquires <slot> (strict, as acquire), else the
-      slot the work left, else any; refuses a slot holding unpushed work.
+      slot the work left if free, else any; refuses a slot holding unpushed work.
       Resets the slot branch to the held HEAD and restores the snapshot as
       uncommitted changes (staged edits come back unstaged), then deletes
       held/<lease> locally and on origin.
@@ -527,7 +527,6 @@ is_head_held() {
   [[ -n "$(git -C "$path" for-each-ref --contains HEAD --format='%(refname)' refs/heads/held/ 2>/dev/null)" ]]
 }
 
-# Clobber-safe: no uncommitted changes, and commits ahead of base survive on a remote or held/* branch.
 slot_is_clobber_safe() {
   local path="$1" base="${2:-origin/main}"
   local dirty ahead
@@ -539,7 +538,7 @@ slot_is_clobber_safe() {
 }
 
 # ---- Status ----------------------------------------------------------------
-# The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
+# The pool's read interface: blank-line-separated records (slots, then held leases), KEY=value per line (git's own
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
 collect_slot_records() {
@@ -571,7 +570,7 @@ collect_slot_records() {
   done < <(slots_tsv)
 }
 
-# One record per held lease, local branch first; origin-only leases were held from another clone.
+# The local branch wins when both exist; an origin-only lease was held from another clone.
 collect_held_records() {
   local lease branch ref pushed left at
   while IFS= read -r lease; do
@@ -757,8 +756,7 @@ cmd_prepare() {
 }
 
 # ---- Hold / resume -----------------------------------------------------------
-# Held work is one snapshot commit on held/<lease> whose only parent is the slot's HEAD. Its
-# trailers carry what resume needs, so the branch alone, local or on origin, is the whole record.
+# Resume reads trailers, not a local file, so an origin-only held branch is the whole record.
 held_trailer() {
   local ref="$1" key="$2" value
   value="$(git -C "$ROOT" log -1 --format="%(trailers:key=$key,valueonly)" "$ref")"
@@ -781,8 +779,7 @@ held_snapshot() {
     | git -C "$path" commit-tree "$tree" -p HEAD
 }
 
-# The live journal only, never the run history. A gate killed hard never closes its phase, so a
-# journal unwritten for longer than the lock TTL is dead: the pool's stale-by-age rule.
+# A gate killed hard never closes its phase; a journal silent past the lock TTL is dead.
 merge_in_flight() {
   local slot="$1" journal age
   journal="$(cat "$(lock_dir_for "$slot")/merge_run" 2>/dev/null || true)"
@@ -836,7 +833,7 @@ cmd_hold() {
 
 cmd_resume() {
   local lease="$1" wanted="${2:-}"
-  local branch ref snap base hint out="" slot path rc=0
+  local branch ref snap base hint hint_path out="" slot path rc=0
   branch="held/$lease"
   ref="refs/heads/$branch"
   if ! git -C "$ROOT" rev-parse -q --verify "$ref" >/dev/null; then
@@ -853,8 +850,8 @@ cmd_resume() {
     out="$(cmd_acquire "$lease" "$wanted")" || return 1
   else
     hint="$(held_trailer "$snap" Held-Slot)"
-    if [[ -n "$hint" ]] && slot_path "$hint" >/dev/null 2>&1; then
-      out="$(cmd_acquire "$lease" "$hint" 2>/dev/null)" || out=""
+    if [[ -n "$hint" ]] && hint_path="$(slot_path "$hint" 2>/dev/null)"; then
+      out="$(try_lock_slot "$hint" "$lease" "$hint_path")" || out=""
     fi
     [[ -n "$out" ]] || out="$(cmd_acquire "$lease")" || return 1
   fi

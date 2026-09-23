@@ -122,10 +122,8 @@ them to close it — never close it automatically.
 
 ## Holding a slot
 
-`hold <slot>` moves a slot's work (commits and dirty tree) onto branch
-`held/<lease>` and frees the slot; `resume <lease>` restores it, lease
-included. Pass `--local` for work that must not go public yet, such as work
-held for approval: the repo is public.
+Mechanics: the pool script's `--help`. Pass `--local` for work that must not
+go public yet, such as work awaiting approval: the repo is public.
 
 Offer to hold another session's slot, never hold it unasked, and offer only
 when a session starting work finds every slot full and that slot meets all of:
@@ -139,8 +137,7 @@ A session may hold its own work when it stops at a design fork for the user.
 
 After a hold, flip the ledger row to held, clear its slot column, and put the
 resume command in its Next column. Post the `HELD=… RESUME=…` line as a comment
-on the work's issue. A hold drops the slot's local merge proof, so the merge
-gate re-proves after `resume`.
+on the work's issue.
 
 ## Chat title lifecycle
 

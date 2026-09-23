@@ -189,10 +189,9 @@ Format: **term** — definition. *(authority)*
   history.
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
-- **held** (work) — slot work set aside while it waits on the user, on branch
-  `held/<lease>`, keyed on the lease because the lease is the resume key. The
-  issue stays open and carries the resume line; the ledger row stays, slot
-  cleared. Mechanics: `hold` / `resume` in the pool script's `--help`. *(#559)*
+- **held** (work) — slot work set aside while it waits on the user; mechanics
+  are `hold` / `resume` in the pool script's `--help`. The issue stays open and
+  carries the resume line; the ledger row stays, slot cleared. *(#559)*
 - **benched** — set aside until a dependency or missing knowledge unlocks it;
   expected to finish. Branch `bench/<topic>` on origin, kept. Issue closed,
   first line `Benched <date> — reopen when …`; leaves the ledger. Comments

@@ -28,6 +28,7 @@ A1="$TMP/agent-1"
 A2="$TMP/agent-2"
 
 lock_dir() { printf '%s/%s.lock' "$WORKTREE_POOL_LOCK_ROOT" "$1"; }
+age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/timestamp"; }
 held_record() { pool status --porcelain | awk -v RS= -v want="held=$1" '{ split($0, l, "\n"); if (l[1] == want) print }'; }
 # Any push fails while the push URL points nowhere, so a verb that must not push cannot pass by accident.
 block_push() { git remote set-url --push origin "$TMP/no-such-origin.git"; }
@@ -127,17 +128,21 @@ WORKTREE_POOL_LOCK_TTL=60 pool hold agent-1 --local >/dev/null 2>&1 \
 if pool hold agent-1 >/dev/null 2>&1; then fail "hold must refuse a free slot"; fi
 echo "PASS: hold refuses an existing held branch, an open merge phase and a free slot"
 
-# --- resume: refuses a slot holding work; falls back to origin when the local branch is gone ----
+# --- resume: refuses a slot holding work; never reclaims the left slot while one is free;
+#     falls back to origin when the local branch is gone ---------------------------------------
 echo stray > "$A1/stray.txt"
 if pool resume quiet agent-1 >/dev/null 2>"$TMP/resume.log"; then fail "resume must refuse a slot holding uncommitted work"; fi
 [[ -f "$A1/stray.txt" && ! -d "$(lock_dir agent-1)" ]] || fail "a refused resume must release the slot untouched"
 git rev-parse -q --verify refs/heads/held/quiet >/dev/null || fail "a refused resume must keep the held branch"
 rm "$A1/stray.txt"
+pool acquire other agent-1 >/dev/null
+age_lock agent-1 100
 git push -q origin held/quiet
 git branch -q -D held/quiet
 git update-ref -d refs/remotes/origin/held/quiet
-out="$(pool resume quiet 2>"$TMP/resume.log")" || { cat "$TMP/resume.log"; fail "resume must fall back to origin/held/<lease>"; }
-[[ "$out" == "SLOT=agent-1 PATH="*" RESUMED=quiet" ]] || fail "origin resume: $out"
-[[ "$(git -C "$A1" status --porcelain)" == ' M a.txt' ]] || fail "origin resume must restore the dirty edit"
+out="$(WORKTREE_POOL_LOCK_TTL=60 pool resume quiet 2>"$TMP/resume.log")" || { cat "$TMP/resume.log"; fail "resume must fall back to origin/held/<lease>"; }
+[[ "$out" == "SLOT=agent-2 PATH="*" RESUMED=quiet" ]] || fail "resume must take a free slot before reclaiming the left one: $out"
+[[ "$(cat "$(lock_dir agent-1)/lease")" == other ]] || fail "resume must leave the stale holder of the left slot alone"
+[[ "$(git -C "$A2" status --porcelain)" == ' M a.txt' ]] || fail "origin resume must restore the dirty edit"
 [[ -z "$(git ls-remote origin refs/heads/held/quiet)" ]] || fail "origin resume must delete origin's held branch"
-echo "PASS: resume refuses an unsafe slot and falls back to origin"
+echo "PASS: resume refuses an unsafe slot, prefers a free slot to a stale reclaim, and falls back to origin"
