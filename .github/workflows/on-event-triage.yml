@@ -3,6 +3,9 @@ name: on-event-triage
 # No pull_request trigger: fork PRs must never run this workflow or reach its secrets.
 # Label and comment writes go out under GITHUB_TOKEN, so they never trigger a workflow.
 on:
+  # PROOF-ONLY, reverted in the next commit: a first run registers the workflow for dispatch.
+  push:
+    branches: ['task/on-event-triage']
   issues:
     types: [opened, edited]
   workflow_dispatch:
