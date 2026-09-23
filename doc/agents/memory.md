@@ -5,15 +5,15 @@
 Memory is the primary session's file directory
 `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\`
 (`MEMORY.md` = index, auto-loaded; worktree agents resolve a different dir and
-must use this absolute path). It holds **nothing repo-critical** (ruling
-2026-09-03): the tracker and `doc/agents/` do. Two layers only:
+must use this absolute path). It holds **feedback notes only** (`feedback_*`): the user's preferences, how
+they like to work, corrections worth keeping. Allowed to drift; trimmed and
+reassessed regularly. Nothing repo-critical lives here (ruling 2026-09-03), and
+since 2026-09-22 no working state either:
 
-- **Working memory** — `active_work_ledger.md` (live claims), the session
-  handoff files a consuming session deletes, and one-line *links* to active
-  arcs (`Arc → #N`). Never the arc's content.
-- **Taste and interaction** — `user_*` / `feedback_*`: preferences, how the
-  user likes to work, interaction notes (e.g. "easing back in"), tidbits the
-  user says. Allowed to drift; trimmed and reassessed regularly.
+- in-flight work — the pool (`./scripts/worktree_dashboard.sh`,
+  `agent_worktree_pool.sh status`: leases, held work) plus open PRs;
+- active arcs — `gh issue list --label arc --state open` and the board;
+- handoffs — the spawn-chip prompt that starts the fresh session.
 
 If a fact would hurt the repo when it drifts, it does not belong here: a
 decision or result → the issue; a rule → `doc/agents/` or `AGENTS.md`; an

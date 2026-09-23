@@ -16,4 +16,5 @@ dependencies, so do not move them out.
 Everything binary here is LFS-tracked via this directory's `.gitattributes`.
 
 - `tools/` — art-pipeline generators (`tools/skybox/` renders the procedural
-  HDR space skybox with Blender); scripts, not sources, so not LFS.
+  HDR space skybox with Blender; `tools/imagegen/` generates and edits images
+  with Google's Nano Banana models); scripts, not sources, so not LFS.

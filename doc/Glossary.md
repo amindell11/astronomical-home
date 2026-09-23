@@ -87,6 +87,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 
 ---
 
@@ -176,18 +177,26 @@ Format: **term** — definition. *(authority)*
   (AGENTS.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
-- **three tracking surfaces** — GitHub Issues = what / for-when (thin
-  title-plus-link issues; ex-Obsidian-board, migrated 2026-08-06);
-  memory = why / how; ledger = right-now claims. Never conflate. *(doc/agents/memory.md)*
+- **tracking surfaces** — GitHub Issues/PRs = what / for-when / why / status;
+  the pool (slot leases, `held/*` branches) = right-now claims; memory =
+  feedback notes only. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
-- **handoff** — a memory brief a fresh session reads cold to take over.
-  Explicitly not `/compact`; the consuming session deletes it.
-- **ledger row** — a live claim on in-flight work. A row is deleted when its
-  claim no longer holds — merged, abandoned, or superseded. The ledger is not a
-  history.
+- **handoff** — a brief a fresh session reads cold to take over; it rides the
+  spawn-chip prompt that starts that session. Explicitly not `/compact`.
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
+- **held** (work) — slot work set aside while it waits on the user; mechanics
+  are `hold` / `resume` in the pool script's `--help`. The issue stays open and
+  carries the resume line; `pool status` lists the held lease. *(#559)*
+- **benched** — set aside until a dependency or missing knowledge unlocks it;
+  expected to finish. Branch `bench/<topic>` on origin, kept. Issue closed,
+  first line `Benched <date> — reopen when …`. Comments
+  before 2026-09-21 opening `Shelved <date>` mean benched. *(#559)*
+- **parked** (work) — not worth pursuing; kept for posterity, not expected to
+  resume. Branch `park/<topic>` on origin. Issue closed as not planned, first
+  line `Parked <date> — why`, no label. The probe-code
+  step *scratch → promote → park* is a separate sense. *(#559)*
 - **warm** (slot) — its Unity Library is already built; a reason to name a slot
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
@@ -594,9 +603,9 @@ Format: **term** — definition. *(authority)*
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
 - **death recap** — the post-death summary rendered from the damage ledger at
-  the host-owned `GameState.DeathRecap` hold; presentation-gated, so a headless
-  host falls straight through to Restart.
-  *(DeathRecapScreen, GameHost.HandleDeathRecap)*
+  the game host's hold between death and sector unload; presentation-gated, so a
+  game host with presentation off goes straight to the unload.
+  *(DeathRecapScreen, GameHost.RunDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type
@@ -688,5 +697,8 @@ Format: **term** — definition. *(authority)*
 | program, package, series (as a work grouping) | **arc**, **slice**, or **pass** |
 | ARC COMPLETE | **SHIPPED** or **CLOSED** |
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
+| shelve, shelved, shelf, unshelf (work set aside) | **benched** (waits on a dependency or knowledge) or **held** (slot work waiting on the user) |
+| parked, for slot work waiting on the user | **held** |
+| ledger row, work ledger | *(retired 2026-09-22)* — in-flight state is the pool (`status`, dashboard) plus open PRs |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
