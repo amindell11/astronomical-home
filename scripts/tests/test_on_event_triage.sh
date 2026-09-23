@@ -46,12 +46,14 @@ inline_body() {
   done
   printf '%s' "$body"
 }
+# Like gh, --paginate --slurp answers with one array per page; the fixture is page one, page two is empty.
+pages() { printf '[%s,[]]' "$(cat "$1")"; }
 case "$args" in
   "issue view "*) cat "$FIX/issue.json" ;;
   "issue list "*"--state closed"*) cat "$FIX/closed.json" ;;
-  "api repos/"*"/events"*) cat "$FIX/events.json" ;;
+  "api repos/"*"/events --paginate --slurp") pages "$FIX/events.json" ;;
   "api -X PATCH repos/"*"/comments/"*) echo "token=$GH_TOKEN $args body=<<$(inline_body "$@")>>" >> "$GH_WRITE_LOG" ;;
-  "api repos/"*"/comments"*) cat "$FIX/comments.json" ;;
+  "api repos/"*"/comments --paginate --slurp") pages "$FIX/comments.json" ;;
   "api graphql "*"mutation "*) echo "token=$GH_TOKEN $args" >> "$GH_WRITE_LOG"; echo '{"data":{}}' ;;
   "api graphql "*"projectItems"*) echo "token=$GH_TOKEN board-query" >> "$GH_CALL_LOG"; cat "$FIX/board.json" ;;
   "issue edit "*) echo "token=$GH_TOKEN $args" >> "$GH_WRITE_LOG" ;;
@@ -142,6 +144,7 @@ grep -q '^<issue-body number=700>' "$CLAUDE_PROMPT_CAPTURE" || fail "packet deli
 grep -q '^#632 · Capture rig X-mirror deferred · 2026-09-21$' "$CLAUDE_PROMPT_CAPTURE" || fail "packet carries the closed list"
 grep -q '^# On-event triage' "$CLAUDE_PROMPT_CAPTURE" || fail "packet starts with on-event.md"
 [[ "$(trailer VERDICT <<<"$out")" == clean ]] || fail "clean verdict (got: $out)"
+grep -q 'Verdict fields: `{"retry_of": null' "$GITHUB_STEP_SUMMARY" || fail "job summary carries the verdict fields"
 [[ "$(trailer TOKENS_IN <<<"$out")" == 1200 && "$(trailer TOKENS_OUT <<<"$out")" == 80 && "$(trailer TOKENS_CACHE <<<"$out")" == 800 ]] || fail "usage trailers (got: $out)"
 [[ "$(trailer COST_USD <<<"$out")" == 0.0421 ]] || fail "cost trailer"
 ! grep -q 'issue comment' "$GH_WRITE_LOG" || fail "clean verdict with no prior note posts nothing"
@@ -183,6 +186,22 @@ reset; issue amindell11 '[{"name":"pri:now"}]'
 ev="$(event '{"action":"edited","issue":{"number":700},"changes":{"title":{"from":"Old title"}}}')"
 out="$(run --event "$ev" 2>/dev/null)"
 [[ "$(trailer GATE <<<"$out")" == run ]] || fail "title edit should run (got: $out)"
+
+reset; issue amindell11 '[{"name":"pri:now"}]'
+ev="$(event '{"action":"edited","issue":{"number":700},"changes":{"body":{"from":null}}}')"
+out="$(run --event "$ev" 2>/dev/null)"
+[[ "$(trailer GATE <<<"$out")" == run ]] || fail "a first body on a bodyless issue is compared against empty (got: $out)"
+
+for dotted in '.github/workflows/on-event-triage.yml' '.claude/skills/issue-triage/SKILL.md' './scripts/capture/assemble.py'; do
+  reset; issue amindell11 '[{"name":"pri:now"}]'
+  python3 - "$FIX/issue.json" "$dotted" <<'PY'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p, encoding="utf-8")); d["body"] = f"Now also see {sys.argv[2]} for the rig."; json.dump(d, open(p, "w", encoding="utf-8"))
+PY
+  ev="$(event '{"action":"edited","issue":{"number":700},"changes":{"body":{"from":"Now also see nothing for the rig."}}}')"
+  out="$(run --event "$ev" 2>/dev/null)"
+  [[ "$(trailer GATE <<<"$out")" == run ]] || fail "dot-rooted path $dotted should open the gate (got: $out)"
+done
 
 reset; issue stranger '[{"name":"needs-triage"}]'
 ev="$(event '{"action":"edited","issue":{"number":700},"changes":{"title":{"from":"Old title"}}}')"

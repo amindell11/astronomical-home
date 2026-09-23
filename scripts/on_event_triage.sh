@@ -128,10 +128,9 @@ if "issue" in ev:
 else:
     action = "dispatch"
     number = int((ev.get("inputs") or {})["issue_number"])
-old_body = (changes.get("body") or {}).get("from")
-has_old = old_body is not None
+has_old = "body" in changes
 if has_old:
-    open(f"{tmp}/old_body.txt", "w", encoding="utf-8", newline="\n").write(old_body)
+    open(f"{tmp}/old_body.txt", "w", encoding="utf-8", newline="\n").write((changes["body"] or {}).get("from") or "")
 print(f"ACTION={shlex.quote(action)}")
 print(f"NUMBER={number}")
 print(f"TITLE_CHANGED={1 if 'title' in changes else 0}")
@@ -171,10 +170,10 @@ if [[ "$AUTHOR" != "$ALLOWLIST" ]]; then
 else
   pris=($(pri_labels))
   if [[ ${#pris[@]} -gt 1 ]]; then
-    gh api "repos/$REPO/issues/$NUMBER/events" --paginate > "$TMP/events.json" || infra "gh api issue events failed"
+    gh api "repos/$REPO/issues/$NUMBER/events" --paginate --slurp > "$TMP/events.json" || infra "gh api issue events failed"
     keep="$(python3 - "$TMP/events.json" "${pris[@]}" <<'PY'
 import json, sys
-events = json.load(open(sys.argv[1], encoding="utf-8"))
+events = [e for page in json.load(open(sys.argv[1], encoding="utf-8")) for e in page]
 present = sys.argv[2:]
 last = {}
 for e in events:
@@ -237,8 +236,8 @@ if [[ "$ACTION" == edited && "$TITLE_CHANGED" -eq 0 ]]; then
   if [[ "$HAS_OLD_BODY" -eq 1 ]]; then
     gate_open="$(python3 - "$TMP/issue.json" "$TMP/old_body.txt" <<'PY'
 import json, re, sys
-SEG = r"[\w@-]+(?:\.[\w@-]+)*"
-PATH_RE = re.compile(rf"(?<![\w/.])(?:{SEG}/)+{SEG}|(?<![\w/.])[\w-]+\.(?:cs|md|sh|ps1|py|yml|yaml|json|asmdef|unity|prefab|asset|mat|shader|hlsl|cginc|txt)\b")
+SEG = r"\.?[\w@-]+(?:\.[\w@-]+)*"
+PATH_RE = re.compile(rf"(?<![\w/.])(?:\./)?(?:{SEG}/)+{SEG}|(?<![\w/.])\.?[\w-]+\.(?:cs|md|sh|ps1|py|yml|yaml|json|asmdef|unity|prefab|asset|mat|shader|hlsl|cginc|txt)\b")
 new = json.load(open(sys.argv[1], encoding="utf-8")).get("body") or ""
 old = open(sys.argv[2], encoding="utf-8").read()
 print(1 if set(PATH_RE.findall(new)) - set(PATH_RE.findall(old)) else 0)
@@ -310,6 +309,7 @@ for d in v["dead_pointers"]:
     rep = d.get("replacement")
     lines.append(f"Dead pointer: `{d['path']}` → " + (f"`{rep}`" if rep else "no replacement found"))
 print(f"FINDINGS={len(lines)}")
+print(f"VERDICT_JSON={shlex.quote(json.dumps(v, ensure_ascii=False))}")
 if lines:
     if sys.argv[4] == "1":
         lines.append("In flight (assigned)")
@@ -318,13 +318,14 @@ if lines:
 PY
 )"
 [[ -z "${CLAUDE_ERROR:-}" ]] || infra "$CLAUDE_ERROR"
-say "verdict: $FINDINGS finding(s)"
+say "verdict: $FINDINGS finding(s): $VERDICT_JSON"
+summary "- Verdict fields: \`$VERDICT_JSON\`"
 
 # ---- Note -------------------------------------------------------------------------------------
-gh api "repos/$REPO/issues/$NUMBER/comments" --paginate > "$TMP/comments.json" || infra "gh api issue comments failed"
+gh api "repos/$REPO/issues/$NUMBER/comments" --paginate --slurp > "$TMP/comments.json" || infra "gh api issue comments failed"
 PRIOR_ID="$(python3 - "$TMP/comments.json" "$BOT_LOGIN" "$MARKER" <<'PY'
 import json, sys
-comments = json.load(open(sys.argv[1], encoding="utf-8"))
+comments = [c for page in json.load(open(sys.argv[1], encoding="utf-8")) for c in page]
 ids = [c["id"] for c in comments if (c.get("user") or {}).get("login") == sys.argv[2] and sys.argv[3] in (c.get("body") or "")]
 print(ids[-1] if ids else "")
 PY
