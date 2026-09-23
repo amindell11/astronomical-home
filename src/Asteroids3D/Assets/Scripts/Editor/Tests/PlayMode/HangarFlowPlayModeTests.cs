@@ -4,7 +4,6 @@ using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -21,7 +20,6 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             DestroyTestObject(hostGo);
             DestroyTestObject(rigGo);
             base.TearDown();
@@ -30,9 +28,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator RunHangar_HeadlessOrNoPlayer_CompletesWithoutScreen()
         {
-            GameSettings.SetPresentationEnabled(false);
-
-            // Keep the host inactive so its Awake/state-machine never runs — the hangar flow is
+            // Keep the host inactive so its Awake and flow never run — the hangar flow is
             // pumped in isolation. RequireComponent adds the sibling services on AddComponent.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
@@ -43,7 +39,7 @@ namespace Tests.PlayMode
             var rig = rigGo.AddComponent<PlayerRig>();
 
             var finished = false;
-            var step = host.RunHangar(rig);
+            var step = host.RunHangar(rig, presentationEnabled: false);
             while (step.MoveNext())
                 yield return step.Current;
             finished = true;

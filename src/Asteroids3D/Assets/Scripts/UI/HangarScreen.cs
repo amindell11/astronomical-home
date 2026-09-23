@@ -29,7 +29,7 @@ namespace UI
         [SerializeField] private Button optionButtonTemplate;
 
         [Header("Commit")]
-        [SerializeField] private Button launchButton;
+        [SerializeField] internal Button launchButton;
 
         [Header("Stats readout")]
         [Tooltip("Shows the hovered option's stats; falls back to the current selection.")]

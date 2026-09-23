@@ -124,7 +124,7 @@ Contract:
   `-ExcludeCategory RequiresGraphics`. Run those cold (also faster: batch
   `-nographics` beats a GUI editor ~2.5× per PlayMode test).
 - **Every run is async** (`--async_tests` + `test_status` polling: a sync
-  PlayMode `run_tests` silently runs zero tests, and a long sync call risks
+  PlayMode `run_tests` runs zero tests under an exit-0 envelope, and a long sync call risks
   CLI client timeouts), and the wrapper re-arms `set_autotick` around every
   domain reload.
 - Incompatible with `-WithGraphics`, `-Windowed`, `-CaptureScenario`,

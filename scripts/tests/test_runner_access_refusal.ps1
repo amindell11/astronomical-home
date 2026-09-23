@@ -5,6 +5,7 @@ $ErrorActionPreference = "Stop"
 # + exit 2; a coordinator failure stays a wrapper failure. The agent runs from a copy of scripts/
 # whose unity_access.ps1 is a stub speaking the coordinator's published channel, so no coordinator,
 # Unity or machine state is consulted; the fake Unity executable proves nothing was launched.
+# A launched Unity whose exit code is nonzero or unreadable lands the same way, never as a pass.
 
 $Root = Join-Path $env:TEMP ("runner-refusal-" + [guid]::NewGuid().ToString("N"))
 $Scripts = Join-Path $Root "scripts"
@@ -42,6 +43,28 @@ $Launched = Join-Path $Root "launched.txt"
 $Unity = Join-Path $Root "Unity.cmd"
 "@echo launched > `"$Launched`"" | Set-Content -LiteralPath $Unity -Encoding ASCII
 
+# Writes both gate XMLs green, then exits $env:FAKE_UNITY_EXIT: the verdict turns on the exit code alone.
+$GateUnity = Join-Path $Root "GateUnity.cmd"
+@'
+@echo off
+:args
+if "%~1"=="" goto write
+if "%~1"=="-gateEditResults" set "EDIT=%~2"
+if "%~1"=="-gatePlayResults" set "PLAY=%~2"
+shift
+goto args
+:write
+>"%EDIT%" echo ^<test-run result="Passed" total="1" passed="1" failed="0" skipped="0" duration="0.1"/^>
+>"%PLAY%" echo ^<test-run result="Passed" total="1" passed="1" failed="0" skipped="0" duration="0.1"/^>
+exit %FAKE_UNITY_EXIT%
+'@ | Set-Content -LiteralPath $GateUnity -Encoding ASCII
+
+# An agent copy without the handle cache reproduces PS 5.1's $null ExitCode deterministically.
+$handleLine = '        $null = $proc.Handle'
+$agentText = Get-Content -LiteralPath (Join-Path $Scripts "unity_test_agent.ps1") -Raw
+if (([regex]::Matches($agentText, [regex]::Escape($handleLine))).Count -ne 1) { throw "handle-cache line not found exactly once in unity_test_agent.ps1" }
+$agentText.Replace($handleLine, "") | Set-Content -LiteralPath (Join-Path $Scripts "unity_test_agent_nohandle.ps1") -Encoding UTF8
+
 $Repo = Join-Path $Root "repo"
 $Project = Join-Path $Repo "src\Asteroids3D"
 New-Item -ItemType Directory -Force -Path $Project | Out-Null
@@ -56,13 +79,13 @@ $OrderedList = Join-Path $Root "ordered.txt"
 "Probe.One" | Set-Content -LiteralPath $OrderedList
 
 function Invoke-Agent {
-    param([string]$Stub, [string[]]$AgentArgs)
+    param([string]$Stub, [string[]]$AgentArgs, [string]$UnityExe = $Unity, [string]$Agent = "unity_test_agent.ps1")
     $env:RUNNER_REFUSAL_STUB = $Stub
     $env:RUNNER_REFUSAL_LOG = $StubLog
     Set-Content -LiteralPath $StubLog -Value ""
     $outDir = Join-Path $Root ("out-" + [guid]::NewGuid().ToString("N"))
-    $arguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Scripts "unity_test_agent.ps1"),
-        "-UnityPath", $Unity, "-ProjectPath", $Project, "-OutDir", $outDir,
+    $arguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Scripts $Agent),
+        "-UnityPath", $UnityExe, "-ProjectPath", $Project, "-OutDir", $outDir,
         "-UnityAccessStateRoot", (Join-Path $Root "state")) + $AgentArgs
     $previous = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
@@ -121,5 +144,28 @@ if ($run.text -match '(?m)^STATUS=') { throw "a coordinator failure must not pri
 if ($run.text -notlike "*Unity access BootAcquire failed (exit=1)*") { throw "a coordinator failure must name the action and exit`n$($run.text)" }
 if (Test-Path -LiteralPath $run.summary) { throw "a coordinator failure must not write a summary" }
 
+function Assert-ExitVerdict {
+    param([string]$Case, [object]$Run, [AllowNull()][object]$ExpectedCode, [string]$NoteFragment)
+    if ($Run.exit -ne 2) { throw "${Case}: expected exit 2, got $($Run.exit)`n$($Run.text)" }
+    if ($Run.text -notmatch '(?m)^STATUS=infra_error ') { throw "${Case}: missing the infra_error STATUS trailer`n$($Run.text)" }
+    $runs = @((Get-Content -LiteralPath $Run.summary -Raw | ConvertFrom-Json).runs)
+    if ($runs.Count -ne 2) { throw "${Case}: expected EditMode+PlayMode runs, got $($runs.Count)" }
+    foreach ($record in $runs) {
+        if ($record.status -ne "infra_error") { throw "${Case}: run $($record.platform) status $($record.status)" }
+        if ($record.unityExitCode -ne $ExpectedCode) { throw "${Case}: run $($record.platform) unityExitCode '$($record.unityExitCode)', expected '$ExpectedCode'" }
+        if ($NoteFragment -and $record.note -notlike "*$NoteFragment*") { throw "${Case}: run $($record.platform) note lacks '$NoteFragment': $($record.note)" }
+    }
+}
+
+# Green XMLs under a nonzero exit: the real code reaches the summary and voids the run.
+$env:FAKE_UNITY_EXIT = "3"
+$run = Invoke-Agent -Stub "" -AgentArgs @("-Mode", "Both") -UnityExe $GateUnity
+Assert-ExitVerdict -Case "known nonzero exit" -Run $run -ExpectedCode 3
+
+# An unreadable exit code is never a clean exit, even with green XMLs and a real exit of 0.
+$env:FAKE_UNITY_EXIT = "0"
+$run = Invoke-Agent -Stub "" -AgentArgs @("-Mode", "Both") -UnityExe $GateUnity -Agent "unity_test_agent_nohandle.ps1"
+Assert-ExitVerdict -Case "unknown exit" -Run $run -ExpectedCode $null -NoteFragment "exit code unknown"
+
 Remove-Item -LiteralPath $Root -Recurse -Force -ErrorAction SilentlyContinue
-Write-Host "PASS: direct-path access refusals land as infra_error summaries with exit 2; coordinator_error stays a wrapper failure"
+Write-Host "PASS: direct-path access refusals and unconfirmed Unity exits land as infra_error summaries with exit 2; coordinator_error stays a wrapper failure"

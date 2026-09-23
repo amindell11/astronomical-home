@@ -14,7 +14,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 using Substrate;
 
 namespace Tests.PlayMode
@@ -44,7 +43,6 @@ namespace Tests.PlayMode
         private float savedTimeScale;
         private float savedMaxDelta;
         private bool savedAudioPause;
-        private bool savedPresentation;
 
         [SetUp]
         public void SetUp()
@@ -52,7 +50,6 @@ namespace Tests.PlayMode
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
             savedAudioPause = AudioListener.pause;
-            savedPresentation = GameSettings.PresentationEnabled;
 
             AudioListener.pause = true;
             // Frozen during composition so arena A cannot simulate ahead while arena B still composes.
@@ -70,7 +67,6 @@ namespace Tests.PlayMode
             Time.timeScale = savedTimeScale;
             Time.maximumDeltaTime = savedMaxDelta;
             AudioListener.pause = savedAudioPause;
-            GameSettings.SetPresentationEnabled(savedPresentation);
         }
 
         [UnityTest]
