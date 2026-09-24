@@ -29,7 +29,9 @@ A2="$TMP/agent-2"
 
 lock_dir() { printf '%s/%s.lock' "$WORKTREE_POOL_LOCK_ROOT" "$1"; }
 age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/timestamp"; }
-held_record() { pool status --porcelain | awk -v RS= -v want="held=$1" '{ split($0, l, "\n"); if (l[1] == want) print }'; }
+pick_held() { awk -v RS= -v want="held=$1" '{ split($0, l, "\n"); if (l[1] == want) print }'; }
+# Direct call to the collector; the one real `status --porcelain` read below guards the machine channel.
+held_record() { (source "$POOL"; collect_held_records) | pick_held "$1"; }
 # Any push fails while the push URL points nowhere, so a verb that must not push cannot pass by accident.
 block_push() { git remote set-url --push origin "$TMP/no-such-origin.git"; }
 allow_push() { git remote set-url --push origin "$TMP/origin.git"; }
@@ -67,7 +69,7 @@ out="$(pool hold agent-2 2>"$TMP/hold.log")" || { cat "$TMP/hold.log"; fail "hol
 [[ "$(git rev-parse held/trip^1)" == "$head" ]] || fail "the snapshot's only parent must be the held HEAD"
 [[ "$(git ls-remote origin refs/heads/held/trip | cut -f1)" == "$(git rev-parse held/trip)" ]] || fail "hold must push held/trip"
 [[ -z "$(git ls-remote origin refs/heads/task/trip)" ]] || fail "hold must never touch task/<lease>"
-rec="$(held_record trip)"
+rec="$(pool status --porcelain | pick_held trip)"
 { grep -qx 'branch=held/trip' <<< "$rec" && grep -qx 'left_slot=agent-2' <<< "$rec" && grep -qx 'pushed=1' <<< "$rec"; } \
   || fail "porcelain held record: $rec"
 pool status | grep -q '^held/trip | HELD' || fail "plain status must list held work"
