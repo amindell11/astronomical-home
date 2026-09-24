@@ -1,0 +1,2 @@
+Game world is the galaxy: a map of 3-5 [[Sectors]], each containing 6-8 [[Encounters]] (numbers subject to change), for a total runtime of ~30-45 minutes.
+Player can jump from sector to sector using a 'node' style map.
