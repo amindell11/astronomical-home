@@ -15,8 +15,8 @@ the matching doc when its branch fires:
   protocol, domain categories; suite guide: `TESTING.md`).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
-- Design/doc work, tracker writes → `doc/agents/design-docs.md` (Obsidian
-  vault, doc lifecycle, tracker usage); tracker label/body/board mechanics:
+- Design/doc work, tracker writes → `doc/agents/design-docs.md` (design
+  vault at `doc/design/`, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
 - Memory reads/writes → `doc/agents/memory.md` (feedback notes only; nothing repo-critical).
 - Machine/tooling facts (remote box, editor-analytics churn, pool
