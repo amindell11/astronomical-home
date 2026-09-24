@@ -4,3 +4,4 @@ The diversity of weapons, boons, keepsakes, and aspects which can all be combine
 
 The story works in a non-linear path, with different characters throughout the world as well as your home base revealing bits of lore as you go.
 
+The visuals are colorful, unique, and exciting. and I love that they look kind of hand drawn
