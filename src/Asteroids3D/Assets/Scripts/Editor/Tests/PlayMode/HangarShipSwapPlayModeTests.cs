@@ -57,7 +57,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
             yield return rig.Build(unitService, objectiveService, presentationEnabled: false, observer,
-                new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
+                servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

@@ -26,6 +26,7 @@ namespace Substrate.Sessions
         private enum Phase { Created, Composed, Loaded, TornDown }
 
         private readonly Transform root;
+        private Transform sectorRoot;
         private readonly UnitService units;
         private readonly ObjectiveService objectives;
         private readonly LocaleService locale = new();
@@ -66,7 +67,8 @@ namespace Substrate.Sessions
             // The session root doubles as the arena root: placed at the frame offset before anything composes against it.
             root.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(Frame.Offset);
 
-            Projectiles = ShipServices.Compose(units, root, presentation);
+            sectorRoot = NewChild("Sector");
+            Projectiles = ShipServices.Compose(units, root, NewChild("Transients"), presentation);
             Units = units;
             Objectives = objectives;
 
@@ -92,10 +94,10 @@ namespace Substrate.Sessions
             if (presentation)
                 yield return locale.ApplyLocaleAsync(entry.config ? entry.config.Locale?.SceneName : null);
 
-            // Compose under an inactive holder at the arena root so authored children Awake only after adoption has wired them.
+            // Inactive holder under the sector root: authored children Awake only after adoption wires them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
             holder.SetActive(false);
-            holder.transform.SetParent(root, false);
+            holder.transform.SetParent(sectorRoot, false);
 
             var sector = UnityEngine.Object.Instantiate(entry.prefab, holder.transform);
             ActiveSector = sector;
@@ -115,8 +117,8 @@ namespace Substrate.Sessions
 
             yield return sector.Setup();
 
-            // Adopting into the arena root also moves the sector to the root's stable scene, keeping it out of the swappable locale scene.
-            sector.transform.SetParent(root, true);
+            // Adopting moves the sector into the root's stable scene, out of the swappable locale scene.
+            sector.transform.SetParent(sectorRoot, true);
             UnityEngine.Object.Destroy(holder);
         }
 
@@ -151,6 +153,13 @@ namespace Substrate.Sessions
             Units = null;
             Objectives = null;
             phase = Phase.TornDown;
+        }
+
+        private Transform NewChild(string name)
+        {
+            var child = new GameObject(name).transform;
+            child.SetParent(root, false);
+            return child;
         }
 
         private void Require(Phase expected, string operation)

@@ -135,8 +135,8 @@ namespace RL.Episodes
             var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
                 GamePlane.PlanePointToWorld(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
-            // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.
-            ship.transform.SetParent(units.transform, true);
+            // Parent under the units root like SpawnShip so a crash-path host teardown can't strand it.
+            ship.transform.SetParent(units.UnitsRoot, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
 
             ship.Reequip(ship.Engine, ship.Shield, ship.Weapons.PrimaryMountPrefab, null);

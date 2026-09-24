@@ -80,7 +80,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(prefab, $"observer camera prefab loads from {ObserverCamPrefabPath}");
             host.observerCamPrefab = prefab;
 
-            observer = host.BuildObserver(unitService, presentation);
+            observer = host.BuildObserver(unitService, presentation, servicesHost.transform);
             yield return null;
         }
 

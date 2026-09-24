@@ -9,7 +9,6 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using Substrate.Services;
 using Substrate.Services.Units;
@@ -41,7 +40,6 @@ namespace Tests.PlayMode
         {
             var screen = Object.FindFirstObjectByType<HangarScreen>();
             if (screen) DestroyTestObject(screen.gameObject);
-            if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
             if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
@@ -64,7 +62,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
             yield return rig.Build(unitService, objectiveService, presentationEnabled: true, observer,
-                new SessionFrame(Vector2.zero), onPlayerDeath: null);
+                servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
@@ -79,7 +77,7 @@ namespace Tests.PlayMode
             var finished = false;
             IEnumerator Run()
             {
-                yield return host.RunHangar(rig, presentationEnabled: true);
+                yield return host.RunHangar(rig, presentationEnabled: true, servicesGo.transform);
                 finished = true;
             }
             rig.StartCoroutine(Run());
