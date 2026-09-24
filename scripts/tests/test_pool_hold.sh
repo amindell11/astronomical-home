@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 
 # hold / resume: the round trip keeps the lease, unpushed commits and the dirty tree; --local never
 # pushes; prepare accepts an unpushed tip only when a held/* branch reaches it.

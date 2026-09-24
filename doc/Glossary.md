@@ -222,6 +222,14 @@ Format: **term** — definition. *(authority)*
   without the heavy art/audio files (light LFS checkout). A test that needs
   one of those files cannot live in it.
   *(.github/workflows/headless-suite.yml)*
+- **script-suite selection** — the merge gate runs only the `scripts/tests/`
+  files the landing diff selects through their **covers lines**, falling back
+  to every file on the run-everything triggers. Always qualified: bare "test
+  selection" is the Unity run. *(doc/agents/script-contracts.md sec.4)*
+- **covers line** — a script test file's `# covers:` header naming the
+  scripts it runs or loads. An entry matching no file refuses the suite. Not
+  "coverage": that word is the merge gate's full-coverage proof.
+  *(read_covers_line, agent_worktree_pool.sh)*
 - **inert diff** — a behaviour-neutral delta (docs-only, comment-only) that
   extends existing proof without a fresh run.
 - **consent / merge instruction** — an explicit "merge it". Praise is not

@@ -132,8 +132,13 @@ Commands:
       During a merge, journal event script-test (phase script-tests) carries
       file, sec and exit for each completed file.
       Non-hermetic files are SKIPped unless
-      SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. The merge
-      gate runs this when the landing diff touches scripts/.
+      SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. A covers
+      line entry that matches no file exits 1 before any file runs. The
+      first line names the files that run; during a merge, journal event
+      script-selection carries mode, reason, files and unlisted. The merge
+      gate runs this when the landing diff touches scripts/, handing it
+      the landing range so only the test files that range selects run
+      (doc/agents/script-contracts.md sec.4).
 
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push the slot's work to its task branch (task/<lease>, recorded
@@ -195,7 +200,9 @@ Commands:
       'merge <slot> --remote'.
       When the landing diff touches scripts/, the script suite starts at the
       end of proof-check and runs beside the test run or hosted wait and the
-      ratchet; the script-tests phase joins it.
+      ratchet; the script-tests phase joins it. It runs only the test files
+      whose covers line the landing diff touches (script-suite selection,
+      doc/agents/script-contracts.md sec.4).
       One gate per slot: a second 'merge' on a slot whose gate is running is
       refused at once (flock on the slot's .merge file under the lock root).
 
@@ -1033,35 +1040,101 @@ cmd_run_resharper() {
 
 # ---- Script tests ----------------------------------------------------------
 # run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
-# SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>. Every file runs; any failure exits 1.
-# Internal: callers supply a resolved worktree path. A subshell body keeps its EXIT trap off the caller.
+# SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>. Every selected file runs; any failure exits 1.
+# Internal: callers supply a resolved worktree path and, from the merge gate, the landing range
+# (<base> <head>) that script-suite selection reads. A subshell body keeps its EXIT trap off the caller.
 cmd_run_script_tests() (
-  local dir="$1"
+  local dir="$1" base_ref="${2:-}" head_ref="${3:-}"
   local tests_dir="$dir/scripts/tests" file base rc=0 suite_started=$SECONDS buf sh_lane ps1_lane
-  local -a sh_files=() ps1_files=()
+  local mode=all reason=no-diff changed entry hit diff_out
+  local -a found=() sh_files=() ps1_files=() names=() unlisted=() changes=() entries=()
+  local -A covers_of=() picked=()
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
+  # A changed path here runs every file: tests load these without listing them on a covers line.
+  # scripts/tests/* means its non-test files (fixtures); a changed test file selects only itself.
+  local -a shared=("scripts/lib/*" "scripts/tests/*")
   if [[ ! -d "$tests_dir" ]]; then
     echo "run-script-tests: $tests_dir is missing — the suite did not run." >&2
     return 1
   fi
   for file in "$tests_dir"/test_*.sh "$tests_dir"/test_*.ps1; do
     [[ -f "$file" ]] || continue
-    base="$(basename "$file")"
+    base="${file##*/}"
     if [[ "${SCRIPT_TESTS_INCLUDE_NONHERMETIC:-0}" != 1 && "$nonhermetic" == *" $base "* ]]; then
       echo "SKIP: $base — non-hermetic (its state escapes a temp dir); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1"
       continue
     fi
+    found+=("$file")
+  done
+  if (( ${#found[@]} == 0 )); then
+    echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+    echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2
+    return 1
+  fi
+  for file in "${found[@]}"; do
+    base="${file##*/}"
+    read_covers_line "$file" || continue
+    covers_of[$base]="$SCRIPT_TEST_COVERS"
+    read -ra entries <<< "$SCRIPT_TEST_COVERS"
+    for entry in "${entries[@]}"; do
+      if ! compgen -G "$dir/$entry" > /dev/null; then
+        echo "run-script-tests: $base covers '$entry', which matches no file in the tree — fix its covers line; the suite did not run." >&2
+        return 1
+      fi
+    done
+  done
+  if [[ -n "$base_ref" ]]; then
+    diff_out="$(git -C "$dir" diff --name-only --no-renames "$base_ref" "$head_ref" -- scripts)" || {
+      rc=$?
+      echo "run-script-tests: could not compute the landing diff $base_ref..$head_ref (git exit $rc) — the suite did not run." >&2
+      return 1
+    }
+    mapfile -t changes <<< "$diff_out"
+    mode=selected reason=diff
+    for file in "${found[@]}"; do
+      base="${file##*/}"
+      [[ -v "covers_of[$base]" ]] || { mode=all reason="undeclared:$base"; break; }
+    done
+  fi
+  if [[ "$mode" == selected ]]; then
+    for changed in "${changes[@]}"; do
+      [[ -n "$changed" ]] || continue
+      if [[ "$changed" =~ ^scripts/tests/test_[^/]*$ ]]; then
+        picked[${changed##*/}]=1
+        continue
+      fi
+      for entry in "${shared[@]}"; do
+        # shellcheck disable=SC2053  # the entry is a glob pattern
+        [[ "$changed" == $entry ]] && { mode=all reason="shared:$changed"; break 2; }
+      done
+      hit=0
+      for base in "${!covers_of[@]}"; do
+        read -ra entries <<< "${covers_of[$base]}"
+        for entry in "${entries[@]}"; do
+          # shellcheck disable=SC2053  # the entry is a glob pattern
+          [[ "$changed" == $entry ]] && { picked[$base]=1; hit=1; break; }
+        done
+      done
+      (( hit )) || unlisted+=("$changed")
+    done
+  fi
+  [[ "$mode" == selected ]] || unlisted=()
+  for file in "${found[@]}"; do
+    base="${file##*/}"
+    [[ "$mode" == all || -v "picked[$base]" ]] || continue
+    names+=("$base")
     case "$file" in
       *.sh) sh_files+=("$file") ;;
       *) ps1_files+=("$file") ;;
     esac
   done
-  if (( ${#sh_files[@]} + ${#ps1_files[@]} == 0 )); then
+  echo "Script-suite selection: ${#names[@]} of ${#found[@]} files run (mode=$mode reason=$reason)${names[*]:+: ${names[*]}}${unlisted[*]:+; no covers line lists: ${unlisted[*]}}"
+  journal_event script-selection script-tests "mode=$mode" "reason=$reason" "files=${names[*]}" "unlisted=${unlisted[*]}"
+  if (( ${#names[@]} == 0 )); then
     echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
-    echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2
-    return 1
+    return 0
   fi
   buf="$(mktemp -d)"
   # Bash pairs with PowerShell only: same-runtime lanes contend on process-spawn cost.
@@ -1073,12 +1146,25 @@ cmd_run_script_tests() (
   trap "rm -rf '$buf'" EXIT
   wait "$sh_lane" || rc=1
   wait "$ps1_lane" || rc=1
-  for file in "${sh_files[@]}" "${ps1_files[@]}"; do
-    cat "$buf/$(basename "$file")"
+  for base in "${names[@]}"; do
+    cat "$buf/$base"
   done
   echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
   return "$rc"
 )
+
+# Sets SCRIPT_TEST_COVERS to the file's covers-line entries; 1 = none in its first 10 lines.
+read_covers_line() {
+  local line n=0
+  while (( n++ < 10 )) && IFS= read -r line; do
+    line="${line%$'\r'}"
+    if [[ "$line" == "# covers:"* ]]; then
+      SCRIPT_TEST_COVERS="${line#"# covers:"}"
+      return 0
+    fi
+  done < "$1"
+  return 1
+}
 
 # Runs its files in order; each file's output, trailer and verdict land in <buf>/<name>.
 run_script_test_lane() {
@@ -1110,12 +1196,12 @@ SCRIPT_SUITE_PID=""
 SCRIPT_SUITE_LOG=""
 
 start_script_suite() {
-  local dir="$1"
+  local dir="$1" base_ref="$2" head_ref="$3"
   SCRIPT_SUITE_LOG="$(mktemp)"
   set -m
   (
     [[ -z "${POOL_FLOCK_FD:-}" ]] || eval "exec ${POOL_FLOCK_FD}>&-"
-    cmd_run_script_tests "$dir"
+    cmd_run_script_tests "$dir" "$base_ref" "$head_ref"
   ) > "$SCRIPT_SUITE_LOG" 2>&1 &
   SCRIPT_SUITE_PID=$!
   set +m
@@ -1889,7 +1975,7 @@ cmd_merge() {
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     echo "Landing diff touches scripts/ — the script suite runs alongside the rest of the gate."
     merge_journal_note "script suite started alongside the gate"
-    start_script_suite "$path"
+    start_script_suite "$path" "$base_ref" "$slot"
   fi
 
   case "$delta" in

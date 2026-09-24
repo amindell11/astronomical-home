@@ -1,3 +1,4 @@
+# covers: scripts/inert_diff.ps1
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $PSCommandPath
 $inertDiff = Join-Path $scriptDir "..\inert_diff.ps1"

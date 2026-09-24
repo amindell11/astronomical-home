@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 
 # Regression for the pool's locking contracts: auto-pick prefers free slots over
 # stale reclaims, a named slot never falls back, reclaim is TTL-gated and refuses

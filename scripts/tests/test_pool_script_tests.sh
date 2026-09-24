@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 
 # run-script-tests takes <slot> like every sibling verb, and a slot whose suite cannot run
 # (no scripts/tests, or none with test files) fails instead of reporting success. The .ps1
 # lane runs beside the .sh lane, and a red file fails the suite only after every file ran.
+# Given the gate's landing range, script-suite selection runs only the files whose covers line
+# the diff touches, and falls back to every file on the run-everything triggers.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -107,4 +110,105 @@ done
 [[ "$out" == *"FAIL test_b_red.sh (exit 3)"* && "$out" == *"FAIL test_e_red.ps1 (exit 4)"* ]] \
   || fail "each red file names its own failure (got: $out)"
 
-echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, runs the .ps1 lane beside the .sh lane in a stable print order, and fails only after every file ran"
+# ---- Script-suite selection: the slot's runner, handed a landing range the way the gate hands it.
+SEL="$TMP/sel"
+export SEL_MARKER="$TMP/sel-ran"
+SEL_JOURNAL="$TMP/sel-journal"
+mkdir -p "$SEL/scripts/lib" "$SEL/scripts/tests/fixtures"
+git init -q -b main "$SEL"
+git -C "$SEL" config user.email pool-test@example.test
+git -C "$SEL" config user.name "Pool Test"
+git -C "$SEL" config core.autocrlf false
+for name in alpha.sh beta.sh bet2.sh gamma.sh lib/shared.ps1 tests/fixtures/data.txt; do
+  printf 'v1\n' > "$SEL/scripts/$name"
+done
+sel_test() { printf '#!/usr/bin/env bash\n%s\necho %s >> "$SEL_MARKER"\n' "$2" "$1" > "$SEL/scripts/tests/$1"; }
+sel_test test_alpha.sh "# covers: scripts/alpha.sh"
+sel_test test_beta.sh "# covers: scripts/be*.sh"
+# CRLF, as the .ps1 test files are on disk.
+sed -i 's/$/\r/' "$SEL/scripts/tests/test_beta.sh"
+git -C "$SEL" add -A
+git -C "$SEL" commit -qm base
+SEL_BASE="$(git -C "$SEL" rev-parse HEAD)"
+
+sel_case() { git -C "$SEL" checkout -q -B "case-$1" "$SEL_BASE"; }
+sel_commit() { git -C "$SEL" add -A; git -C "$SEL" commit -qm case; }
+# Sets out/rc; with no args the runner gets no range, as run-script-tests <slot> calls it.
+sel_run() {
+  : > "$SEL_MARKER"
+  : > "$SEL_JOURNAL"
+  rc=0
+  out="$(source "$POOL"; MERGE_JOURNAL="$SEL_JOURNAL"; MERGE_RUN_START=$EPOCHSECONDS
+    cmd_run_script_tests "$SEL" "$@" 2>&1)" || rc=$?
+}
+sel_ran() { sort "$SEL_MARKER" | tr '\n' ' '; }
+expect_sel() {
+  local why="$1" want_ran="$2" want_line="$3"
+  [[ "$rc" -eq 0 ]] || fail "$why: the run should pass (rc=$rc; got: $out)"
+  [[ "$(sel_ran)" == "$want_ran" ]] || fail "$why: expected to run '$want_ran', ran '$(sel_ran)' (got: $out)"
+  [[ "$out" == *"$want_line"* ]] || fail "$why: expected '$want_line' (got: $out)"
+}
+
+sel_case selective
+printf 'v2\n' > "$SEL/scripts/alpha.sh"
+printf 'v2\n' > "$SEL/scripts/gamma.sh"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a covered script selects its test" "test_alpha.sh " "mode=selected reason=diff"
+grep -qF '"event":"script-selection","phase":"script-tests","mode":"selected","reason":"diff","files":"test_alpha.sh","unlisted":"scripts/gamma.sh"}' "$SEL_JOURNAL" \
+  || fail "the script-selection event carries mode, reason, files and unlisted (got: $(cat "$SEL_JOURNAL"))"
+
+sel_run
+expect_sel "no range runs every file" "test_alpha.sh test_beta.sh " "mode=all reason=no-diff"
+
+sel_case shared-lib
+printf 'v2\n' > "$SEL/scripts/lib/shared.ps1"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a shared lib path runs every file" "test_alpha.sh test_beta.sh " "reason=shared:scripts/lib/shared.ps1"
+
+sel_case shared-fixture
+printf 'v2\n' > "$SEL/scripts/tests/fixtures/data.txt"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a non-test path under scripts/tests runs every file" "test_alpha.sh test_beta.sh " \
+  "reason=shared:scripts/tests/fixtures/data.txt"
+
+sel_case undeclared
+sel_test test_bare.sh "# no covers line here"
+printf 'v2\n' > "$SEL/scripts/alpha.sh"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a test file without a covers line fails closed to every file" \
+  "test_alpha.sh test_bare.sh test_beta.sh " "reason=undeclared:test_bare.sh"
+
+sel_case self
+printf '# edited\n' >> "$SEL/scripts/tests/test_beta.sh"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a changed test file selects only itself" "test_beta.sh " "mode=selected reason=diff"
+
+sel_case unlisted
+printf 'v2\n' > "$SEL/scripts/gamma.sh"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a diff no covers line lists runs nothing and passes" "" "0 of 2 files run"
+[[ "$out" == *"no covers line lists: scripts/gamma.sh"* ]] || fail "zero selected names the unlisted paths (got: $out)"
+grep -qE '^SCRIPT_TEST_TOTAL_SECONDS=[0-9]+' <<<"$out" || fail "zero selected still prints the total (got: $out)"
+grep -qF '"files":"","unlisted":"scripts/gamma.sh"' "$SEL_JOURNAL" || fail "zero selected journals the unlisted paths"
+
+sel_case rename
+git -C "$SEL" mv scripts/bet2.sh scripts/zed.sh
+sel_commit
+sel_run "$SEL_BASE" HEAD
+expect_sel "a rename counts its old path" "test_beta.sh " "no covers line lists: scripts/zed.sh"
+
+sel_case stale
+sel_test test_alpha.sh "# covers: scripts/alpha.sh scripts/gone.sh"
+sel_commit
+sel_run
+[[ "$rc" -ne 0 ]] || fail "a covers entry matching no file must refuse the run (got: $out)"
+[[ "$out" == *"test_alpha.sh covers 'scripts/gone.sh'"* ]] || fail "the refusal names the file and the entry (got: $out)"
+[[ ! -s "$SEL_MARKER" ]] || fail "a stale entry refuses before any file runs (ran: $(sel_ran))"
+
+echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, runs the .ps1 lane beside the .sh lane in a stable print order, fails only after every file ran, and selects files by covers line from a landing range"
