@@ -13,6 +13,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
         {
             Name "DrawnContour"
             Tags { "LightMode"="SRPDefaultUnlit" }
+            Stencil { Ref 1 ReadMask 1 WriteMask 0 Comp NotEqual }
             Cull Front
             ZWrite Off
             HLSLPROGRAM

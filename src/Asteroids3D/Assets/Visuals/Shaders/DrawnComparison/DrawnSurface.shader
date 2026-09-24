@@ -6,8 +6,12 @@ Shader "Astronomical/Comparison/Drawn Surface"
         _BaseColor ("Hull Color / Hit Flash", Color) = (1,1,1,1)
         _PaperColor ("Surface Palette", Color) = (0.65,0.7,0.75,1)
         _TextureStrength ("Painted Surface Strength", Range(0,1)) = 0.65
+        _PigmentPreservation ("Preserve Saturated Paint", Range(0,1)) = 0
+        _PaletteLighting ("Bound Palette Lighting", Range(0,1)) = 0
+        _AmbientStrength ("Ambient Strength", Range(0,1)) = 1
         _LineStrength ("Painted Dark Mark Strength", Range(0,1)) = 0.35
         _LineThreshold ("Painted Dark Mark Threshold", Range(0,1)) = 0.12
+        _LineSoftness ("Painted Dark Mark Transition", Range(0.001,0.2)) = 0.08
         _WearMap ("Static Wear Mask (R)", 2D) = "black" {}
         _WearStrength ("Static Wear Strength", Range(0,1)) = 0.08
         _DetailAlbedoMap ("Combat Damage Detail", 2D) = "gray" {}
@@ -29,7 +33,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST, _DetailAlbedoMap_ST;
             half4 _BaseColor, _PaperColor, _ShadowColor, _EmissionColor;
-            half _TextureStrength, _LineStrength, _LineThreshold, _WearStrength;
+            half _TextureStrength, _PigmentPreservation, _LineStrength, _LineThreshold, _LineSoftness, _WearStrength;
+            half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
             half _SpecularStrength, _EmissionStrength;
         CBUFFER_END
@@ -37,6 +42,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
         Pass
         {
             Name "DrawnSurface"
+            Stencil { Ref 1 WriteMask 1 Comp Always Pass Replace }
             Tags { "LightMode"="UniversalForwardOnly" }
             HLSLPROGRAM
             #pragma vertex SurfaceVertex
@@ -79,8 +85,12 @@ Shader "Astronomical/Comparison/Drawn Surface"
             {
                 half3 painted = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
                 half luminance = dot(painted, half3(0.2126,0.7152,0.0722));
-                half marks = 1 - smoothstep(_LineThreshold, _LineThreshold + 0.08, luminance);
-                half3 albedo = lerp(_PaperColor.rgb, painted, _TextureStrength);
+                half marks = 1 - smoothstep(_LineThreshold, _LineThreshold + _LineSoftness, luminance);
+                half brightest = max(painted.r, max(painted.g, painted.b));
+                half darkest = min(painted.r, min(painted.g, painted.b));
+                half saturation = (brightest - darkest) / max(brightest, 0.001);
+                half pigment = smoothstep(0.25, 0.60, saturation) * _PigmentPreservation;
+                half3 albedo = lerp(_PaperColor.rgb, painted, max(_TextureStrength, pigment));
                 albedo *= 1 - marks * _LineStrength;
                 albedo *= 1 - SAMPLE_TEXTURE2D(_WearMap, sampler_WearMap, input.uv).r * _WearStrength;
                 float2 detailUV = input.uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
@@ -102,6 +112,10 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 half highlight = pow(saturate(dot(normal, SafeNormalize(light.direction + view))), 48);
                 half3 color = albedo * (SampleSH(normal) + light.color * diffuse * light.distanceAttenuation);
+                half3 illumination = light.color * light.distanceAttenuation + max(SampleSH(normal), 0) * _AmbientStrength;
+                half peak = max(illumination.r, max(illumination.g, illumination.b));
+                illumination /= max(1, peak);
+                color = lerp(color, albedo * diffuse * illumination, _PaletteLighting);
                 color += light.color * highlight * _SpecularStrength * light.shadowAttenuation;
                 color += SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionStrength;
                 return half4(MixFog(color, input.fog), 1);

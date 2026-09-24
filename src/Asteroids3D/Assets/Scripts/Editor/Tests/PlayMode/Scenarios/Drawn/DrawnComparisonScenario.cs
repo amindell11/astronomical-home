@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Asteroids;
 using Asteroids.Spawning;
@@ -20,6 +21,7 @@ using Substrate.Sectors;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UI;
+using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -70,7 +72,13 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rock.transform.position = GamePlane.PlanePointToWorld(new Vector2(5, 9));
                 rock.Initialize(null, null, settings.meshInfos[0], 0, 20, 1.4f,
                     Vector3.zero, new Vector3(0.36f, 0.53f, 0.21f));
-                ApplyTreatment((MeshRenderer)rock.Renderer);
+                var rockMesh = Treatment >= 3
+                    ? AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(rock.CurrentMesh))
+                        .OfType<Mesh>().Single(mesh => mesh.name == "Asteroid1_LOD4")
+                    : rock.CurrentMesh;
+                rock.GetComponent<MeshFilter>().sharedMesh = rockMesh;
+                ApplyTreatment((MeshRenderer)rock.Renderer, true);
+                rockMesh = rock.GetComponent<MeshFilter>().sharedMesh;
                 var initialRockRotation = rock.transform.rotation;
 
                 var volume = root.AddComponent<Volume>();
@@ -105,9 +113,9 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rockPreview.transform.SetParent(root.transform);
                 rockPreview.transform.position = new Vector3(1000, -1000, 0);
                 rockPreview.layer = LayerMask.NameToLayer("ShipPreview");
-                rockPreview.GetComponent<MeshFilter>().sharedMesh = rock.CurrentMesh;
+                rockPreview.GetComponent<MeshFilter>().sharedMesh = rockMesh;
                 rockPreview.GetComponent<MeshRenderer>().sharedMaterial = rock.Renderer.sharedMaterial;
-                if (Treatment == 2) AddContour(rockPreview.GetComponent<MeshRenderer>());
+                if (Treatment >= 2) AddContour(rockPreview.GetComponent<MeshRenderer>());
                 var rockCamera = new GameObject("Asteroid inspection camera", typeof(Camera)).GetComponent<Camera>();
                 rockCamera.transform.SetParent(root.transform);
                 rockCamera.transform.position = rockPreview.transform.position + new Vector3(0, 0, 6);
@@ -137,7 +145,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                             DamageKind.Laser, ShipId.Invalid, 1, Vector3.zero, ship.transform.position));
                     inspection.SetActive(time >= 9);
                     rockPreview.transform.rotation = rock.transform.rotation;
-                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : "B  ·  DRAWN SURFACE + CONTOUR")}     /     " +
+                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : Treatment == 2 ? "B  ·  DRAWN SURFACE + CONTOUR" : "EXPLORATION  ·  CLEAN PANELS + INK")}     /     " +
                                  (time < 6 ? "FLIGHT · BANK / SETTLE" : time < 9 ? "HULL DAMAGE / HIT FLASH" : "HANGAR + ASTEROID INSPECTION");
                     yield return new WaitForFixedUpdate();
                     FilmStep();
@@ -178,7 +186,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             light.enabled = false;
         }
 
-        private void ApplyTreatment(MeshRenderer renderer)
+        private void ApplyTreatment(MeshRenderer renderer, bool asteroid = false)
         {
             if (Treatment == 0) return;
             var original = renderer.sharedMaterial;
@@ -195,8 +203,89 @@ namespace Tests.PlayMode.Scenarios.Drawn
             material.SetColor("_BaseColor", original.GetColor("_BaseColor"));
             material.SetColor("_EmissionColor", original.GetColor("_EmissionColor"));
             material.SetFloat("_DetailAlbedoMapScale", 0);
+            if (Treatment >= 3)
+            {
+                var filter = renderer.GetComponent<MeshFilter>();
+                filter.sharedMesh = PrepareVisualMesh(filter.sharedMesh, asteroid);
+                material.SetColor("_PaperColor", asteroid ? new Color(.65f, .59f, .64f) : new Color(.95f, .93f, .89f));
+                material.SetFloat("_TextureStrength", asteroid ? .08f : .05f);
+                material.SetFloat("_PigmentPreservation", asteroid ? 0 : 1);
+                material.SetFloat("_PaletteLighting", 1);
+                material.SetFloat("_AmbientStrength", .2f);
+                material.SetFloat("_LineThreshold", .008f);
+                material.SetFloat("_LineSoftness", .015f);
+                material.SetFloat("_LineStrength", asteroid ? .20f : .98f);
+                material.SetColor("_ShadowColor", asteroid ? new Color(.40f, .36f, .52f) : new Color(.34f, .33f, .48f));
+                material.SetFloat("_ShadowThreshold", asteroid ? .05f : -.10f);
+                material.SetFloat("_ShadowSoftness", .18f);
+                material.SetFloat("_SpecularStrength", .015f);
+                material.SetFloat("_EmissionStrength", .06f);
+            }
             renderer.sharedMaterial = material;
-            if (Treatment == 2) AddContour(renderer);
+            if (Treatment >= 2) AddContour(renderer);
+        }
+
+        private Mesh PrepareVisualMesh(Mesh source, bool faceted)
+        {
+            using var meshData = MeshUtility.AcquireReadOnlyMeshData(source);
+            var data = meshData[0];
+            Assert.That(data.subMeshCount, Is.EqualTo(1), "Comparison meshes require one surface material.");
+            using var vertexData = new NativeArray<Vector3>(data.vertexCount, Allocator.Temp);
+            using var uvData = new NativeArray<Vector2>(data.vertexCount, Allocator.Temp);
+            using var indexData = new NativeArray<int>(data.GetSubMesh(0).indexCount, Allocator.Temp);
+            data.GetVertices(vertexData);
+            data.GetUVs(0, uvData);
+            data.GetIndices(indexData, 0);
+            var vertices = vertexData.ToArray();
+            var uv = uvData.ToArray();
+            var triangles = indexData.ToArray();
+            if (faceted)
+            {
+                var corners = new Vector3[triangles.Length];
+                var cornerUV = new Vector2[triangles.Length];
+                for (var i = 0; i < triangles.Length; i++)
+                {
+                    corners[i] = vertices[triangles[i]];
+                    cornerUV[i] = uv[triangles[i]];
+                    triangles[i] = i;
+                }
+                vertices = corners;
+                uv = cornerUV;
+            }
+            var mesh = new Mesh
+            {
+                name = source.name + " Drawn",
+                indexFormat = source.indexFormat,
+                vertices = vertices,
+                uv = uv,
+                triangles = triangles,
+                bounds = source.bounds
+            };
+            owned.Add(mesh);
+            if (faceted)
+            {
+                mesh.RecalculateNormals();
+                return mesh;
+            }
+            var normals = new Vector3[vertices.Length];
+            var sums = new Dictionary<Vector3, Vector3>();
+            for (var i = 0; i < triangles.Length; i += 3)
+            {
+                var a = triangles[i];
+                var b = triangles[i + 1];
+                var c = triangles[i + 2];
+                var normal = Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]);
+                for (var corner = 0; corner < 3; corner++)
+                {
+                    var index = triangles[i + corner];
+                    sums.TryGetValue(vertices[index], out var sum);
+                    sums[vertices[index]] = sum + normal;
+                }
+            }
+            for (var i = 0; i < normals.Length; i++)
+                normals[i] = sums[vertices[i]].normalized;
+            mesh.normals = normals;
+            return mesh;
         }
 
         private void AddContour(MeshRenderer renderer)
@@ -210,6 +299,12 @@ namespace Tests.PlayMode.Scenarios.Drawn
             var outline = shell.GetComponent<MeshRenderer>();
             var material = new Material(shader);
             owned.Add(material);
+            if (Treatment >= 3)
+            {
+                material.SetFloat("_ContourPixels", 4.5f);
+                material.SetFloat("_ContourMinimum", .6f);
+                material.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
+            }
             outline.sharedMaterial = material;
             outline.shadowCastingMode = ShadowCastingMode.Off;
             outline.receiveShadows = false;
