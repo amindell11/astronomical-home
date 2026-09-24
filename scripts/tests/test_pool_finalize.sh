@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
 TMP="$(mktemp -d)"

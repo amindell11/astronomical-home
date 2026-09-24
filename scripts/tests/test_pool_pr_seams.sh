@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 
 # Regression for the shared PR seams (#456): one flag grammar for create-pr/submit, a PR lookup
 # that refuses a missing head branch, and the single-owner Unity churn classifier the pool shells
