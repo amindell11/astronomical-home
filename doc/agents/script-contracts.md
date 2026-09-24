@@ -60,11 +60,17 @@ logic (each with >=2 divergent copies). Nothing enters with one caller - one ada
 hypothetical seam. A coordinated tool's own front door is a sanctioned client (section 3),
 not a shared primitive.
 
-Splitting the monolith scripts (`agent_worktree_pool.sh`, `unity_test_agent.ps1`,
-`unity_access.ps1`) into smaller files is a standing NON-GOAL: depth is a property of the
-interface, not the implementation, so a 1,500-line module behind a small honest interface is
-already the goal state. Splits buy maintainer locality only; they re-earn a place in the
-backlog via an observed maintenance failure, as their own hygiene arc.
+Splitting the monolith scripts (`agent_worktree_pool.sh`, `unity_test_agent.ps1`) into smaller
+files is a standing NON-GOAL: depth is a property of the interface, not the implementation, so a
+1,500-line module behind a small honest interface is already the goal state. Splits buy
+maintainer locality only; they re-earn a place in the backlog via an observed maintenance
+failure, as their own hygiene arc.
+
+The one lifted case is `unity_access.ps1` (user, 2026-09-23, #664): its test spawned a process
+per call, so the functions live in `unity_access_lib.ps1` and the entry point keeps the whole
+published interface. The library adds no interface and is not a second front door. An in-process
+caller becomes the lease holder, so only the entry point and its test load it; every other
+caller uses the client (section 3).
 
 ## 6. PowerShell 5.1 trap
 
