@@ -1153,8 +1153,7 @@ cmd_run_script_tests() (
   return "$rc"
 )
 
-# Covers line: '# covers: <path-or-glob> ...' (repo-relative bash globs) within a test file's
-# first 10 lines. Sets SCRIPT_TEST_COVERS to its entries; 1 = the file has none.
+# Sets SCRIPT_TEST_COVERS to the file's covers-line entries; 1 = none in its first 10 lines.
 read_covers_line() {
   local line n=0
   while (( n++ < 10 )) && IFS= read -r line; do
