@@ -28,7 +28,7 @@ This is designed to make **flee/extract meaningful** (not “kill everything”)
 
 ![[sector-transit-motion-reference.gif]]
 
-This 0:14–0:21 excerpt suggests a future sector-travel animation: it was created by rapidly sweeping an orthographic flight camera over the tiled nebula, with the unintended streaking provisionally traced to unclamped URP camera-and-object motion blur.
+This 0:14–0:21 excerpt suggests a future sector-travel animation: it was created by rapidly sweeping an orthographic flight camera over the tiled nebula, with unclamped URP camera-and-object motion blur producing the unintended streaking (confirmed by repeating the sweep with only motion blur disabled).
 
 ## Open questions
 - Early exit (before completing the sector objective): what carries forward (loot retention, story state, failure state)?
