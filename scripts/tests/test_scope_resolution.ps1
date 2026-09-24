@@ -1,3 +1,4 @@
+# covers: scripts/unity_test_scope_lib.ps1 scripts/unity_test_scopes.json scripts/unity_test_agent.ps1 scripts/unity_access_client.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 

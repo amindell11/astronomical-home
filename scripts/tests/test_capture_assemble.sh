@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/capture/assemble.py
 
 # Regression (#456): assemble.py must not report success when it produced no clip. A frameless
 # directory used to print "skip" and exit 0, so a caller waiting for footage got a green run and

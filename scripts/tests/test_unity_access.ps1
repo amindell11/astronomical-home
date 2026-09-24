@@ -1,3 +1,4 @@
+# covers: scripts/unity_access.ps1 scripts/unity_access_lib.ps1 scripts/unity_access_client.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 

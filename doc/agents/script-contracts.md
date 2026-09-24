@@ -43,13 +43,29 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 ## 4. Enforcement
 
 `scripts/tests/` runs in the merge gate whenever the landing diff touches `scripts/**`
-(`agent_worktree_pool.sh run-script-tests <slot>`). Tests keep their state inside a temp dir
-and inject every root the script would otherwise take from this machine; the
-non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
+(`agent_worktree_pool.sh run-script-tests <slot>`), under script-suite selection: the gate hands
+the runner its landing range, and only the test files that range selects run.
+
+- **Covers line.** Every `scripts/tests/test_*` file carries `# covers: <path-or-glob> …` within
+  its first 10 lines: repo-relative paths or bash globs, space-separated. List every non-lib
+  script the test runs or loads, directly or through the script under test
+  (`test_resharper_ratchet.ps1` lists `scripts/unity_access_client.ps1`); never the file itself.
+- **Selection.** A changed path selects each file whose covers line matches it; a changed test
+  file selects itself. A rename counts its old and new path. A changed script no covers line
+  lists runs nothing; the suite's first line and the `script-selection` journal event name it,
+  and a run that selects nothing passes.
+- **Every file runs** with no landing range (`run-script-tests <slot>` by hand), when the diff
+  touches a shared path (`scripts/lib/**`, or a non-`test_*` path under `scripts/tests/`), or
+  when a test file has no covers line.
+- **A stale covers entry refuses.** An entry matching no file fails every run, full runs
+  included, before any file starts.
+
+Tests keep their state inside a temp dir and inject every root the script would otherwise take
+from this machine; the non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
 The gate runs the suite in the slot beside its own test run and ratchet, so a test that writes
 into the worktree trips the gate's clean-tree checks.
-The `.ps1` files run in a lane beside the `.sh` files, so a test file never runs alone and
-must share no state with another file. Every file runs and the suite fails at the end; each file's
+The `.ps1` files run in a lane beside the `.sh` files, so a test file may run beside any other
+and must share no state with another file. Every selected file runs and the suite fails at the end; each file's
 output prints as one block in a fixed order, and its trailer and journal event stay per file.
 Lanes pair bash with PowerShell only; concurrent bash copies contend on spawn cost (#611).
 

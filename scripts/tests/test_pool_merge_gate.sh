@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh scripts/inert_diff.ps1
 
 # Regression for the merge gate's proof chain: proof binds to the landing tree,
 # failed runs stop the PR path, inert deltas skip the full suite, the phase

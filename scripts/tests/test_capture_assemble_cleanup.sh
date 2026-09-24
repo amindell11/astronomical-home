@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/capture/assemble.py
 
 # The frame dir is assemble.py's intermediate. It goes only after the clip reads back with the
 # expected frame count; --keep-frames or any read-back failure leaves it (and the clip) in place.
