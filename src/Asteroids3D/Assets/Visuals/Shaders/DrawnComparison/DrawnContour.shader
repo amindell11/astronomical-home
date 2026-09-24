@@ -3,7 +3,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
     Properties
     {
         _ContourColor ("Contour Color", Color) = (0.025,0.035,0.065,1)
-        _ContourPixels ("Shadow Side Width (Pixels)", Range(0,5)) = 1.6
+        _ContourPixels ("Shadow Side Width (Pixels)", Range(0,5)) = 3.2
         _ContourMinimum ("Lit Side Width Fraction", Range(0,1)) = 0.25
     }
     SubShader
