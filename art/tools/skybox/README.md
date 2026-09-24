@@ -5,6 +5,65 @@ sky to an environment scene. The existing Cycles generator remains the rendering
 source for both the panel and command line. Blender 5.1+ is required; Cycles picks
 an available GPU backend and otherwise uses the CPU.
 
+## Opt-in native flat background
+
+Enable **Native Flat Background** in the panel for starless clouds repeating
+along both texture axes. Palette families, seed exploration, locks, group color
+adjustments and historical JSON presets remain available. Billows and fine
+filaments sample 4D noise on periodic circles; there is no panorama crop or
+seam blend. Core emission follows density, leaving dark gaps between wisps.
+
+**Render Draft / Export Final** save local `.flatbg`, scene-linear EXR and AgX
+preview PNG files. **Send Draft / Send Final** render and atomically publish the
+whole bundle into `Assets/Visuals/Environment/Flat/Generated`. Reusing a name
+replaces that stage's bundle and preserves its Unity `.meta`; drafts never
+replace finals. Use Unity's **Tools > Environment Preview** for Original/Candidate preview
+and explicit final Apply with Undo, then save the locale scene normally.
+Reimport does not save scenes. The flat Blender preview is a 2D image.
+
+Historical presets remain unchanged. Every bundle records the complete source
+preset, generator hashes, Blender version, samples and explicit migration text:
+X/Y stretch become torus radii; Z stretch changes detail; X/Y rotations shift
+periodic phases and Z rotation offsets noise. Spherical arrangements are
+regenerated. Tiny/focal-star settings remain in provenance but are ignored by
+the flat renderer. Unity owns every star; existing native scene lights remain.
+
+Drafts default to 1024 square; finals default to 2048 square, selectable from
+1024/2048/4096. CLI dimensions are independent, with no panorama aspect rule.
+Measured 8-sample OPTIX renders on Blender 5.1.2 took 0.46 s at 1024 and 0.80 s
+at 2048, excluding startup, compression and import. Raw RGBAHalf storage is
+8 MiB / 32 MiB; complete mip chains cost approximately 10.7 MiB / 42.7 MiB.
+Bundles including EXR were 9.9 MiB / 37.6 MiB. The final reached linear RGB
+8.64 while 29.5% of pixels stayed below 0.01. Mean linear RGB error comparing
+512 with downsampled 1024 was 0.0161; 1024 with downsampled 2048 was 0.0093.
+Finer filaments visibly benefit from 2048; 1024 works for shape/palette checks.
+The 2048 wrapped edge steps were 1.40 times ordinary horizontal steps and 0.83
+times vertical steps, with no edge discontinuity. Same-preset GPU renders
+differed by at most one half-float rounding step in a handful of channels.
+
+Unity's initial comparison uses 20,000 world units per repeat and half a tile
+per screen height. These are provisional settings for the later playable
+comparison, not texture aspect constraints.
+
+Run the real Blender verification with factory startup so an installed old
+add-on cannot shadow the worktree package. It compares three sizes and a
+rectangle, checks wrapped edges, reproducibility, star independence, palette
+locks, atomic replacement, stable `.meta` and draft/final separation:
+
+```powershell
+& blender -b --factory-startup --python-exit-code 1 -P art/tools/skybox/tests/blender_flat.py
+& blender -b --factory-startup --python-exit-code 1 -P art/tools/skybox/skybox_flat.py -- `
+  --preset art/tools/skybox/nebula-glow.json --stage final --width 2048 --height 2048 `
+  --out D:/renders/nebula-flat-final --unity-project D:/project/src/Asteroids3D --name nebula-flat
+```
+
+A `.flatbg` is one ZIP containing `manifest.json`, `image.exr` and
+`image.rgba16f`. Schema 1 records stage, dimensions, SHA-256 of the raw pixels,
+four scene-linear RGB roles (`base`, `primary`, `secondary`, `accent`), and
+provenance. Raw pixels are little-endian RGBA half-floats, bottom row first.
+The publisher stages outside Assets and uses one same-volume atomic replace;
+Unity cannot observe pixels paired with another render's palette.
+
 ## Install the Blender panel
 
 Zip the `skybox` directory so the archive contains `skybox/__init__.py` and its

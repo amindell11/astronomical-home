@@ -57,3 +57,4 @@
 *.lxo filter=lfs diff=lfs merge=lfs -text
 #ML
 *.onnx filter=lfs diff=lfs merge=lfs -text
+*.flatbg filter=lfs diff=lfs merge=lfs -text

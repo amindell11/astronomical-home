@@ -168,6 +168,7 @@ namespace Game
         internal ObserverCam BuildObserver(IUnitService units, bool presentationEnabled, Transform parent)
         {
             var built = Instantiate(observerCamPrefab, parent);
+            built.gameObject.AddComponent<Substrate.Services.Environment.Flat.FlatBackgroundCamera>();
 
             // The authored prefab clears to the skybox; a non-presenting session must not render one.
             if (!presentationEnabled)
