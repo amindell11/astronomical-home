@@ -30,16 +30,8 @@ the flat renderer. Unity owns every star; existing native scene lights remain.
 
 Drafts default to 1024 square; finals default to 2048 square, selectable from
 1024/2048/4096. CLI dimensions are independent, with no panorama aspect rule.
-Measured 8-sample OPTIX renders on Blender 5.1.2 took 0.46 s at 1024 and 0.80 s
-at 2048, excluding startup, compression and import. Raw RGBAHalf storage is
-8 MiB / 32 MiB; complete mip chains cost approximately 10.7 MiB / 42.7 MiB.
-Bundles including EXR were 9.9 MiB / 37.6 MiB. The final reached linear RGB
-8.64 while 29.5% of pixels stayed below 0.01. Mean linear RGB error comparing
-512 with downsampled 1024 was 0.0161; 1024 with downsampled 2048 was 0.0093.
-Finer filaments visibly benefit from 2048; 1024 works for shape/palette checks.
-The 2048 wrapped edge steps were 1.40 times ordinary horizontal steps and 0.83
-times vertical steps, with no edge discontinuity. Same-preset GPU renders
-differed by at most one half-float rounding step in a handful of channels.
+Resolution, HDR, render timing and seam evidence lives on
+[issue #679](https://github.com/amindell11/astronomical-home/issues/679).
 
 Unity's initial comparison uses 20,000 world units per repeat and half a tile
 per screen height. These are provisional settings for the later playable

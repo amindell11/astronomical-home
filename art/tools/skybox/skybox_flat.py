@@ -117,7 +117,7 @@ def build_scene(preset, out_base, width=1024, height=1024, samples=8):
         links.new(math_node("ADD", coords[3], offset + 51.39), fine.inputs["W"])
         density = math_node("ADD", math_node("MULTIPLY", noise.outputs["Fac"], fine.outputs["Fac"]), nebula["coverage"])
         mask = math_node("MINIMUM", math_node("MAXIMUM", math_node("MULTIPLY", math_node("SUBTRACT", density, 0.22), 5), 0), 1)
-        strength = math_node("ADD", math_node("MULTIPLY", math_node("POWER", mask, 1.5), 8 * nebula["core_emission"]), 0.005)
+        strength = math_node("ADD", math_node("MULTIPLY", math_node("POWER", mask, 1.5), nebula["core_emission"]), 0.005)
         ramp = nodes.new("ShaderNodeValToRGB")
         ramp.color_ramp.interpolation = "EASE"
         ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1])

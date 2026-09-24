@@ -522,7 +522,7 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         op = box.operator("skybox.render", text="Send Final" if settings.flat_background else "Send Final 8K")
         op.final = True
         op.send_to_unity = True
-        box.label(text="Unity: Tools > Flat Background" if settings.flat_background else "Unity: Tools > Skybox Preview")
+        box.label(text="Unity: Tools > Environment Preview" if settings.flat_background else "Unity: Tools > Skybox Preview")
         layout.label(text=settings.status)
 
 

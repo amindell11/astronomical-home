@@ -20,6 +20,7 @@ namespace Tests.PlayMode.Presentation
     {
         private GameHost host;
         private string output;
+        private ObserverCam observer;
 
         [UnityTest]
         public IEnumerator GameView_FlightAndRapidLockAndSignedTravel()
@@ -45,9 +46,10 @@ namespace Tests.PlayMode.Presentation
             for (var frame = 0; frame < 600 && !host.ActiveSector; frame++) yield return null;
             Assert.That(host.ActiveSector, Is.Not.Null);
             yield return new WaitForSeconds(1);
-            var rig = Object.FindFirstObjectByType<PlayerRig>();
-            var observer = Object.FindFirstObjectByType<ObserverCam>();
+            var rig = (PlayerRig)new SerializedObject(host).FindProperty("playerRig").objectReferenceValue;
+            observer = Object.FindFirstObjectByType<ObserverCam>();
             Assert.That(rig.Player, Is.Not.Null);
+            rig.Player.Damage.SetInvulnerability(600);
             Assert.That(observer.Cam.GetComponent<FlatBackgroundCamera>(), Is.Not.Null);
             Assert.That(host.ActiveSector.ObstacleField, Is.Not.Null, "Real flight must include the asteroid field.");
             var asset = AssetDatabase.LoadAssetAtPath<FlatBackgroundAsset>("Assets/Visuals/Environment/Flat/Generated/nebula-glow-flat-final.flatbg");
@@ -85,7 +87,13 @@ namespace Tests.PlayMode.Presentation
                 yield return Capture("lock", frame);
             }
             rig.Player.Movement.Drive(default);
+            observer.SetLockCameraToSubject(true);
             observer.SetManualZoom(20);
+            observer.SetManualCenter(new Vector2(-60000, 60000));
+            yield return new WaitForSeconds(1);
+            Assert.That(observer.transform.position.x, Is.LessThan(-59000));
+            Assert.That(observer.transform.position.y, Is.GreaterThan(59000));
+            yield return Capture("travel-start", 0);
             for (var frame = 0; frame < 80; frame++)
             {
                 var position = Vector2.Lerp(new Vector2(-60000, 60000), new Vector2(60000, -60000), frame / 79f);
@@ -93,6 +101,10 @@ namespace Tests.PlayMode.Presentation
                 yield return new WaitForSeconds(0.1f);
                 yield return Capture("travel", frame);
             }
+            yield return new WaitForSeconds(1);
+            yield return Capture("travel-end", 0);
+            Assert.That(observer.transform.position.x, Is.GreaterThan(59000));
+            Assert.That(observer.transform.position.y, Is.LessThan(-59000));
             observer.SetManualCenter(null);
             observer.SetManualZoom(null);
             observer.SetLockCameraToSubject(true);
@@ -107,6 +119,9 @@ namespace Tests.PlayMode.Presentation
         private IEnumerator Capture(string phase, int index)
         {
             yield return new WaitForEndOfFrame();
+            Assert.That(host.ActiveSector, Is.Not.Null, "Capture must remain in the flight sector.");
+            var position = observer.transform.position;
+            File.AppendAllText(Path.Combine(output, "route.csv"), System.FormattableString.Invariant($"{phase},{index},{position.x},{position.y},{observer.Cam.orthographicSize}\n"));
             var image = ScreenCapture.CaptureScreenshotAsTexture();
             var pixels = image.GetPixels32();
             bool varied = false;
