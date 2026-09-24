@@ -156,6 +156,9 @@ case "$1 $2" in
   "pr merge") echo "$*" >> "$GH_MERGE_LOG" ;;
   "api repos/pool-test/repo/commits/"*)
     [[ "${GH_API_FAIL:-0}" != 1 ]] || { echo "gh stub: HTTP 502" >&2; exit 1; }
+    if [[ -n "${GH_STATUS_AWAITS:-}" ]]; then
+      for _ in $(seq 1 300); do [[ -s "$GH_STATUS_AWAITS" ]] && break; sleep 0.1; done
+    fi
     if [[ "$*" == *merge-proof/resharper* ]]; then seq="$GH_RATCHET_SEQ"; else seq="$GH_STATUS_SEQ"; fi
     next_answer "$seq" $'absent\037\037' ;;
   "run list") next_answer "$GH_RUN_SEQ" $'none\t' ;;
@@ -941,24 +944,37 @@ echo 0 > "$PROBE_EXIT_FILE"
 grep -q '"phase":"script-tests".*"status":"failed"' "$(journal_for)" \
   || fail "the journal should name script-tests as the phase that died"
 
-# A red verdict refuses at once and stops the still-running suite, children included.
+# A red verdict refuses at once and stops the still-running suite, both lanes and children included.
+# The status stub waits for the .ps1 probe, so the verdict cannot beat the PowerShell lane.
+cat > "$TMP/agent-1/scripts/tests/test_probe.ps1" <<'PROBE'
+if ($env:PS1_PROBE_PID) { $PID | Set-Content -Path $env:PS1_PROBE_PID; Start-Sleep -Seconds 60 }
+PROBE
+git -C "$TMP/agent-1" add scripts/tests/test_probe.ps1
 new_commit overlap-refused
+ps1_pid_file="$(cygpath -m "$TMP/ps1.pid")"
 statuses "$(pending_headless 53)" "$(pending_headless 53)" "$(pending_headless 53)" "$(pending_headless 53)" \
   "$(printf 'failure\037headless suite failed - see run\037%s/53' "$RUN_URL")"
 ratchets "$(ratchet_status pending "hosted ratchet running" 53)"
 runs "$(printf 'in_progress\t53')"
-rm -f "$TMP/hook.pid" "$TMP/sleep.pid"
+rm -f "$TMP/hook.pid" "$TMP/sleep.pid" "$TMP/ps1.pid"
 started=$SECONDS
-PROBE_HOOK="echo \$\$ > '$TMP/hook.pid'; sleep 60 & echo \$! > '$TMP/sleep.pid'; wait" remote_merge \
+PS1_PROBE_PID="$ps1_pid_file" GH_STATUS_AWAITS="$ps1_pid_file" \
+  PROBE_HOOK="echo \$\$ > '$TMP/hook.pid'; sleep 60 & echo \$! > '$TMP/sleep.pid'; wait" remote_merge \
   && fail "--remote must refuse a failure status while the suite runs"
 (( SECONDS - started < 30 )) || fail "the refusal must not wait for the script suite ($((SECONDS - started))s)"
 expect_output "merge-proof/headless on .* is 'failure'" "the refusal must name the red verdict"
-[[ -s "$TMP/hook.pid" && -s "$TMP/sleep.pid" ]] || fail "fixture: the suite should have started before the verdict"
+[[ -s "$TMP/hook.pid" && -s "$TMP/sleep.pid" && -s "$TMP/ps1.pid" ]] \
+  || fail "fixture: both lanes should have started before the verdict"
 for pid_file in hook.pid sleep.pid; do
   if kill -0 "$(cat "$TMP/$pid_file")" 2>/dev/null; then fail "the refusal must stop the suite ($pid_file still alive)"; fi
 done
+ps1_pid="$(tr -dc '0-9' < "$TMP/ps1.pid")"
+if tasklist //FI "PID eq $ps1_pid" //NH | grep -qi powershell; then
+  fail "the refusal must stop the PowerShell lane (powershell.exe $ps1_pid still alive)"
+fi
 
 # One gate per slot: a second merge while the first is running is refused at once.
+git -C "$TMP/agent-1" rm -q scripts/tests/test_probe.ps1
 new_commit overlap-concurrent
 statuses $'absent\037\037'
 rm -f "$TMP/gate1.started" "$TMP/gate1.go"

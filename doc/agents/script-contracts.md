@@ -48,6 +48,10 @@ and inject every root the script would otherwise take from this machine; the
 non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
 The gate runs the suite in the slot beside its own test run and ratchet, so a test that writes
 into the worktree trips the gate's clean-tree checks.
+The `.ps1` files run in a lane beside the `.sh` files, so a test file never runs alone and
+must share no state with another file. Every file runs and the suite fails at the end; each file's
+output prints as one block in a fixed order, and its trailer and journal event stay per file.
+Lanes pair bash with PowerShell only; concurrent bash copies contend on spawn cost (#611).
 
 ## 5. Shared primitives live in `scripts/lib/`
 
