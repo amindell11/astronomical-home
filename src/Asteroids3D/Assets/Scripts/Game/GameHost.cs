@@ -8,6 +8,7 @@ using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
@@ -20,7 +21,9 @@ namespace Game
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
     /// observer camera) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
     /// sector, play until the sector ends or the player dies, death recap, unload. It owns the clock,
-    /// splash, hangar, recap and restart; the session only composes, loads and unloads. Presentation
+    /// splash, hangar, recap, restart and the one EventSystem; the session only composes, loads and
+    /// unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer camera),
+    /// <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
     /// The hangar, recap and restart stand in for Home Base, multi-sector runs and player progress;
     /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
@@ -80,12 +83,20 @@ namespace Game
         private ObserverCam observer;
         private LoadingSplash splash;
 
+        private Transform viewport;
+        private Transform ui;
+        private Transform arena;
+
         public Sector ActiveSector => session?.ActiveSector;
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
+
+            viewport = NewRoot("Viewport");
+            ui = NewRoot("UI");
+            arena = NewRoot("Arena");
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(Run());
@@ -95,24 +106,26 @@ namespace Game
         {
             // No yield separates this read from the session's own snapshot, so the two cannot disagree.
             var presentation = sessionProfile.presentation;
-            session = new Session(sessionProfile, transform, unitService, objectiveService);
+            session = new Session(sessionProfile, arena, unitService, objectiveService);
+            if (presentation)
+                BuildEventSystem(ui);
             if (splashPrefab && presentation)
-                splash = Instantiate(splashPrefab, transform);
+                splash = Instantiate(splashPrefab, ui);
 
             SetSplashVisible(true);
             yield return null;
 
             yield return session.Compose();
-            observer = BuildObserver(session.Units, presentation);
+            observer = BuildObserver(session.Units, presentation, viewport);
             if (playerRig)
                 yield return playerRig.Build(session.Units, session.Objectives, presentation,
-                    observer, session.Frame, BuildDeathCallback());
+                    observer, ui, session.Frame, BuildDeathCallback());
 
             while (true)
             {
                 SetSplashVisible(false);
                 if (playerRig)
-                    yield return RunHangar(playerRig, presentation);
+                    yield return RunHangar(playerRig, presentation, ui);
 
                 SetSplashVisible(true);
                 playerDied = false;
@@ -132,15 +145,29 @@ namespace Game
             }
         }
 
+        private Transform NewRoot(string name)
+        {
+            var root = new GameObject(name).transform;
+            root.SetParent(transform, false);
+            return root;
+        }
+
+        // The hangar and recap screens click through uGUI, which needs exactly one EventSystem.
+        private static void BuildEventSystem(Transform parent)
+        {
+            var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+            eventSystem.transform.SetParent(parent, false);
+        }
+
         private void SetSplashVisible(bool visible)
         {
             if (splash) splash.SetVisible(visible);
         }
 
         /// <summary>Stays callable without a session so the presentation gate can be driven directly.</summary>
-        internal ObserverCam BuildObserver(IUnitService units, bool presentationEnabled)
+        internal ObserverCam BuildObserver(IUnitService units, bool presentationEnabled, Transform parent)
         {
-            var built = Instantiate(observerCamPrefab);
+            var built = Instantiate(observerCamPrefab, parent);
 
             // The authored prefab clears to the skybox; a non-presenting session must not render one.
             if (!presentationEnabled)
@@ -178,7 +205,7 @@ namespace Game
         }
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
-        internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled)
+        internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
         {
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
             {
@@ -190,7 +217,7 @@ namespace Game
             if (overlay) overlay.SetVisible(false);
             SetPlayerInputEnabled(rig, false);
 
-            var screen = Instantiate(hangarScreenPrefab);
+            var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
             screen.Show(loadoutCatalog, rig.Loadout, () => launched = true);
 
@@ -218,7 +245,7 @@ namespace Game
             if (overlay) overlay.SetVisible(false);
             SetPlayerInputEnabled(playerRig, false);
 
-            var screen = DeathRecapScreen.Create();
+            var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
             screen.Show(lastKillingBlow, playerRig.Ledger.Rows, () => dismissed = true);
 

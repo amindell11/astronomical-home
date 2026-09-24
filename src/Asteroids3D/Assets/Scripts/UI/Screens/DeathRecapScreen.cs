@@ -4,7 +4,6 @@ using System.Text;
 using Damage;
 using Game.Player;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.Screens
@@ -19,9 +18,10 @@ namespace UI.Screens
     {
         private const int MaxRows = 6;
 
-        public static DeathRecapScreen Create()
+        public static DeathRecapScreen Create(Transform parent)
         {
             var go = new GameObject("DeathRecapScreen");
+            go.transform.SetParent(parent, false);
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
@@ -31,8 +31,6 @@ namespace UI.Screens
 
         public void Show(in DamageInfo killingBlow, IReadOnlyList<DamageLedger.Row> rows, Action onContinue)
         {
-            EnsureEventSystem();
-
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             var dim = AddStretchedImage(transform, "Dim", new Color(0f, 0f, 0f, 0.65f));
@@ -153,13 +151,6 @@ namespace UI.Screens
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             go.AddComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
-        }
-
-        private static void EnsureEventSystem()
-        {
-            if (EventSystem.current) return;
-            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-            DontDestroyOnLoad(go);
         }
     }
 }
