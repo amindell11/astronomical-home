@@ -137,6 +137,18 @@ Shader "Astronomical/Comparison/Drawn Surface"
         }
         Pass
         {
+            Name "DepthNormals"
+            Tags { "LightMode"="DepthNormalsOnly" }
+            ZWrite On
+            HLSLPROGRAM
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+        Pass
+        {
             Name "DepthOnly"
             Tags { "LightMode"="DepthOnly" }
             ZWrite On

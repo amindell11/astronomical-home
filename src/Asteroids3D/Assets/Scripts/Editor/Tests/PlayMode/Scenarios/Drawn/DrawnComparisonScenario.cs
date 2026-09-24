@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Asteroids;
 using Asteroids.Spawning;
@@ -55,11 +54,13 @@ namespace Tests.PlayMode.Scenarios.Drawn
             var quality = QualitySettings.GetQualityLevel();
             var random = UnityEngine.Random.state;
             var root = new GameObject("Drawn comparison");
+            DrawnInkStudy ink = null;
             try
             {
                 var high = Array.IndexOf(QualitySettings.names, "High Fidelity");
                 Assert.That(high, Is.GreaterThanOrEqualTo(0));
                 QualitySettings.SetQualityLevel(high, true);
+                if (Treatment >= 3) ink = new DrawnInkStudy(Treatment >= 4 ? 1 : 0);
                 UnityEngine.Random.InitState(685);
                 var template = Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab");
                 var ship = Session.Units.SpawnShip(template, null, 0, Vector3.zero, GamePlane.Rotation, null);
@@ -72,13 +73,8 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rock.transform.position = GamePlane.PlanePointToWorld(new Vector2(5, 9));
                 rock.Initialize(null, null, settings.meshInfos[0], 0, 20, 1.4f,
                     Vector3.zero, new Vector3(0.36f, 0.53f, 0.21f));
-                var rockMesh = Treatment >= 3
-                    ? AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(rock.CurrentMesh))
-                        .OfType<Mesh>().Single(mesh => mesh.name == "Asteroid1_LOD4")
-                    : rock.CurrentMesh;
-                rock.GetComponent<MeshFilter>().sharedMesh = rockMesh;
+                var rockMesh = rock.CurrentMesh;
                 ApplyTreatment((MeshRenderer)rock.Renderer, true);
-                rockMesh = rock.GetComponent<MeshFilter>().sharedMesh;
                 var initialRockRotation = rock.transform.rotation;
 
                 var volume = root.AddComponent<Volume>();
@@ -145,7 +141,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                             DamageKind.Laser, ShipId.Invalid, 1, Vector3.zero, ship.transform.position));
                     inspection.SetActive(time >= 9);
                     rockPreview.transform.rotation = rock.transform.rotation;
-                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : Treatment == 2 ? "B  ·  DRAWN SURFACE + CONTOUR" : "EXPLORATION  ·  CLEAN PANELS + INK")}     /     " +
+                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : Treatment == 2 ? "B  ·  DRAWN SURFACE + CONTOUR" : Treatment == 3 ? "OUTER CONTOUR ONLY" : "INK STUDY  ·  SILHOUETTES + OVERLAPS")}     /     " +
                                  (time < 6 ? "FLIGHT · BANK / SETTLE" : time < 9 ? "HULL DAMAGE / HIT FLASH" : "HANGAR + ASTEROID INSPECTION");
                     yield return new WaitForFixedUpdate();
                     FilmStep();
@@ -170,6 +166,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             }
             finally
             {
+                ink?.Dispose();
                 Object.DestroyImmediate(root);
                 foreach (var item in owned) if (item) Object.DestroyImmediate(item);
                 QualitySettings.SetQualityLevel(quality, true);
@@ -181,6 +178,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
         {
             camera.clearFlags = CameraClearFlags.Skybox;
             camera.allowHDR = true;
+            camera.allowMSAA = false;
             camera.cullingMask &= ~(1 << LayerMask.NameToLayer("ShipPreview"));
             camera.GetUniversalAdditionalCameraData().renderPostProcessing = true;
             light.enabled = false;
@@ -205,8 +203,11 @@ namespace Tests.PlayMode.Scenarios.Drawn
             material.SetFloat("_DetailAlbedoMapScale", 0);
             if (Treatment >= 3)
             {
-                var filter = renderer.GetComponent<MeshFilter>();
-                filter.sharedMesh = PrepareVisualMesh(filter.sharedMesh, asteroid);
+                if (!asteroid)
+                {
+                    var filter = renderer.GetComponent<MeshFilter>();
+                    filter.sharedMesh = SmoothVisualNormals(filter.sharedMesh);
+                }
                 material.SetColor("_PaperColor", asteroid ? new Color(.65f, .59f, .64f) : new Color(.95f, .93f, .89f));
                 material.SetFloat("_TextureStrength", asteroid ? .08f : .05f);
                 material.SetFloat("_PigmentPreservation", asteroid ? 0 : 1);
@@ -225,7 +226,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             if (Treatment >= 2) AddContour(renderer);
         }
 
-        private Mesh PrepareVisualMesh(Mesh source, bool faceted)
+        private Mesh SmoothVisualNormals(Mesh source)
         {
             using var meshData = MeshUtility.AcquireReadOnlyMeshData(source);
             var data = meshData[0];
@@ -239,19 +240,6 @@ namespace Tests.PlayMode.Scenarios.Drawn
             var vertices = vertexData.ToArray();
             var uv = uvData.ToArray();
             var triangles = indexData.ToArray();
-            if (faceted)
-            {
-                var corners = new Vector3[triangles.Length];
-                var cornerUV = new Vector2[triangles.Length];
-                for (var i = 0; i < triangles.Length; i++)
-                {
-                    corners[i] = vertices[triangles[i]];
-                    cornerUV[i] = uv[triangles[i]];
-                    triangles[i] = i;
-                }
-                vertices = corners;
-                uv = cornerUV;
-            }
             var mesh = new Mesh
             {
                 name = source.name + " Drawn",
@@ -262,11 +250,6 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 bounds = source.bounds
             };
             owned.Add(mesh);
-            if (faceted)
-            {
-                mesh.RecalculateNormals();
-                return mesh;
-            }
             var normals = new Vector3[vertices.Length];
             var sums = new Dictionary<Vector3, Vector3>();
             for (var i = 0; i < triangles.Length; i += 3)
