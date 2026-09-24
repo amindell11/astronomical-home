@@ -63,13 +63,37 @@ namespace Tests.EditMode.Environments
             Assert.That(final.Texture.wrapModeV, Is.EqualTo(TextureWrapMode.Repeat));
             Assert.That(final.Texture.filterMode, Is.EqualTo(FilterMode.Trilinear));
             Assert.That(final.Texture.mipmapCount, Is.GreaterThan(1));
-            Assert.That(final.Texture.GetPixel(0, 0).r, Is.EqualTo(2));
-            Assert.That(final.Texture.GetPixel(0, 1).r, Is.EqualTo(4));
+            Assert.That(final.Texture.isReadable, Is.False, "Imported backgrounds must release CPU pixel storage.");
             Assert.That(final.BaseColor, Is.EqualTo(new Color(0.125f, 0.25f, 0.5f, 1)));
             Assert.That(final.PrimaryColor.r, Is.EqualTo(2));
             Assert.That(final.SecondaryColor.g, Is.EqualTo(2));
             Assert.That(final.AccentColor.b, Is.EqualTo(2));
             StringAssert.Contains("\"seed\":679", final.ManifestJson);
+        }
+
+        [Test, Category("RequiresGraphics")]
+        public void ImportedTexture_PreservesHdrAndRowOrderOnGpu()
+        {
+            WriteBundle("final");
+            Import();
+            var asset = AssetDatabase.LoadAssetAtPath<FlatBackgroundAsset>(assetPath);
+            var previous = RenderTexture.active;
+            var target = RenderTexture.GetTemporary(3, 2, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            var readback = new Texture2D(3, 2, TextureFormat.RGBAFloat, false, true);
+            try
+            {
+                Graphics.Blit(asset.Texture, target);
+                RenderTexture.active = target;
+                readback.ReadPixels(new Rect(0, 0, 3, 2), 0, 0);
+                Assert.That(readback.GetPixel(0, 0).r, Is.EqualTo(2).Within(0.001f));
+                Assert.That(readback.GetPixel(0, 1).r, Is.EqualTo(4).Within(0.001f));
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(target);
+                Object.DestroyImmediate(readback);
+            }
         }
 
         [TestCase("hash")]

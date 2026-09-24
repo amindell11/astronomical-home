@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Substrate.Services.Environment.Flat
 {
-    [ScriptedImporter(1, "flatbg")]
+    [ScriptedImporter(2, "flatbg")]
     public sealed class FlatBackgroundImport : ScriptedImporter
     {
         public override void OnImportAsset(AssetImportContext ctx)
@@ -86,7 +86,7 @@ namespace Substrate.Services.Environment.Flat
                 for (int i = 0; i < pixels.Length; i += 2)
                     (pixels[i], pixels[i + 1]) = (pixels[i + 1], pixels[i]);
             texture.SetPixelData(pixels, 0);
-            texture.Apply(true, false);
+            texture.Apply(true, true);
             var asset = ScriptableObject.CreateInstance<FlatBackgroundAsset>();
             asset.name = Path.GetFileNameWithoutExtension(ctx.assetPath);
             asset.Initialize(texture, final, background, primary, secondary, accent, manifestJson);

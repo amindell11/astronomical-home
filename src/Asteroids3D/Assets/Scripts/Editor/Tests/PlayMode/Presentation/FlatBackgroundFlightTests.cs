@@ -21,6 +21,7 @@ namespace Tests.PlayMode.Presentation
         private GameHost host;
         private string output;
         private ObserverCam observer;
+        private Color32[] capturedPixels;
 
         [UnityTest]
         public IEnumerator GameView_FlightAndRapidLockAndSignedTravel()
@@ -62,11 +63,32 @@ namespace Tests.PlayMode.Presentation
             serialized.ApplyModifiedPropertiesWithoutUndo();
             observer.SetLockCameraToSubject(true);
             observer.SetLockZoomToSubject(true);
-            yield return Capture("original", 0);
-            environment.Preview(asset);
-            yield return Capture("candidate", 0);
-            environment.EndPreview();
-            yield return Capture("restored", 0);
+            var previousTimeScale = Time.timeScale;
+            var cameraEnabled = observer.enabled;
+            try
+            {
+                Time.timeScale = 0;
+                observer.enabled = false;
+                yield return null;
+                yield return Capture("original", 0);
+                var originalPixels = capturedPixels;
+                environment.Preview(asset);
+                yield return Capture("candidate", 0);
+                var candidateDifference = Difference(originalPixels, capturedPixels);
+                environment.EndPreview();
+                yield return Capture("restored", 0);
+                var restoredDifference = Difference(originalPixels, capturedPixels);
+                File.WriteAllText(Path.Combine(output, "preview-difference.txt"),
+                    System.FormattableString.Invariant($"Candidate={candidateDifference}; Restored={restoredDifference}\n"));
+                Assert.That(candidateDifference, Is.GreaterThan(0.05), "Candidate clouds must change the actual Game View.");
+                Assert.That(restoredDifference, Is.LessThan(0.01), "Ending preview must restore the original Game View.");
+                Assert.That(candidateDifference, Is.GreaterThan(restoredDifference * 5));
+            }
+            finally
+            {
+                Time.timeScale = previousTimeScale;
+                if (observer) observer.enabled = cameraEnabled;
+            }
             serialized.Update();
             serialized.FindProperty("background").objectReferenceValue = asset;
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -124,12 +146,24 @@ namespace Tests.PlayMode.Presentation
             File.AppendAllText(Path.Combine(output, "route.csv"), System.FormattableString.Invariant($"{phase},{index},{position.x},{position.y},{observer.Cam.orthographicSize}\n"));
             var image = ScreenCapture.CaptureScreenshotAsTexture();
             var pixels = image.GetPixels32();
+            capturedPixels = pixels;
             bool varied = false;
             for (int i = 1; i < pixels.Length; i += 97)
                 if (!pixels[i].Equals(pixels[0])) { varied = true; break; }
             Assert.That(varied, Is.True, "Composited Game View must contain visible content.");
             File.WriteAllBytes(Path.Combine(output, phase + "-" + index.ToString("D3") + ".png"), image.EncodeToPNG());
             Object.Destroy(image);
+        }
+
+        private static double Difference(Color32[] original, Color32[] current)
+        {
+            Assert.That(current.Length, Is.EqualTo(original.Length));
+            long sum = 0;
+            for (var i = 0; i < original.Length; i++)
+                sum += System.Math.Abs(original[i].r - current[i].r) +
+                       System.Math.Abs(original[i].g - current[i].g) +
+                       System.Math.Abs(original[i].b - current[i].b);
+            return sum / (original.Length * 765.0);
         }
 
         [UnityTearDown]
