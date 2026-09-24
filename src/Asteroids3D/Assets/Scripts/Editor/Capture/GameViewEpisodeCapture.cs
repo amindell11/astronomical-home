@@ -160,6 +160,7 @@ namespace Capture.GameView
             directional.type = LightType.Directional;
             directional.transform.rotation = Quaternion.LookRotation(
                 GamePlane.Rotation * new Vector3(0.4f, -0.3f, 1f));
+            config.configureView?.Invoke(captureCamera, directional);
         }
 
         private void FrameCamera()
