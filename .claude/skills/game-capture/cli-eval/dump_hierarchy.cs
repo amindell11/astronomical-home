@@ -1,6 +1,7 @@
 // Dumps every GameObject in every loaded scene plus the DontDestroyOnLoad scene and hidden
 // (HideAndDontSave) objects, as an indented tree. Writes to OUT and returns a summary.
 var OUT = System.IO.Path.Combine(UnityEngine.Application.dataPath, "../../../results/hierarchy/hierarchy.txt");
+System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(OUT));
 var sb = new System.Text.StringBuilder();
 int total = 0;
 System.Action<UnityEngine.Transform, int> walk = null;
