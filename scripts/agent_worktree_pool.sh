@@ -121,11 +121,14 @@ Commands:
 
   run-script-tests <slot>
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
-      (powershell.exe) in that slot's worktree. Prints one PASS/FAIL line
-      per file and stops at the first failure (exit 1). An unknown slot,
-      a missing scripts/tests, or one with no test files also exits 1.
-      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
-      SCRIPT_TEST_TOTAL_SECONDS=<wall seconds> includes the failed final file.
+      (powershell.exe) in that slot's worktree: the .sh files in one lane,
+      the .ps1 files in a second lane beside it. Every file runs; each
+      file's output is buffered and printed once the suite ends, .sh files
+      then .ps1 files, each ending in one PASS/FAIL line. Any failure exits
+      1 after the whole suite. An unknown slot, a missing scripts/tests,
+      or one with no test files also exits 1.
+      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>
+      per file; SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>.
       During a merge, journal event script-test (phase script-tests) carries
       file, sec and exit for each completed file.
       Non-hermetic files are SKIPped unless
@@ -1030,11 +1033,12 @@ cmd_run_resharper() {
 
 # ---- Script tests ----------------------------------------------------------
 # run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
-# SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
-# Internal: callers supply a resolved worktree path.
-cmd_run_script_tests() {
+# SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>. Every file runs; any failure exits 1.
+# Internal: callers supply a resolved worktree path. A subshell body keeps its EXIT trap off the caller.
+cmd_run_script_tests() (
   local dir="$1"
-  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS
+  local tests_dir="$dir/scripts/tests" file base rc=0 suite_started=$SECONDS buf sh_lane ps1_lane
+  local -a sh_files=() ps1_files=()
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
@@ -1049,25 +1053,56 @@ cmd_run_script_tests() {
       echo "SKIP: $base — non-hermetic (its state escapes a temp dir); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1"
       continue
     fi
-    ran=1
+    case "$file" in
+      *.sh) sh_files+=("$file") ;;
+      *) ps1_files+=("$file") ;;
+    esac
+  done
+  if (( ${#sh_files[@]} + ${#ps1_files[@]} == 0 )); then
+    echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+    echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2
+    return 1
+  fi
+  buf="$(mktemp -d)"
+  # Bash pairs with PowerShell only: same-runtime lanes contend on process-spawn cost.
+  run_script_test_lane "$buf" "${sh_files[@]}" &
+  sh_lane=$!
+  run_script_test_lane "$buf" "${ps1_files[@]}" &
+  ps1_lane=$!
+  # Armed after the fork: some bash builds run an inherited EXIT trap on lane exit.
+  trap "rm -rf '$buf'" EXIT
+  wait "$sh_lane" || rc=1
+  wait "$ps1_lane" || rc=1
+  for file in "${sh_files[@]}" "${ps1_files[@]}"; do
+    cat "$buf/$(basename "$file")"
+  done
+  echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+  return "$rc"
+)
+
+# Runs its files in order; each file's output, trailer and verdict land in <buf>/<name>.
+run_script_test_lane() {
+  local buf="$1" file base rc sec started failed=0
+  shift
+  for file in "$@"; do
+    base="$(basename "$file")"
     rc=0
     started=$SECONDS
     case "$file" in
-      *.sh) bash "$file" || rc=$? ;;
-      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
+      *.sh) bash "$file" > "$buf/$base" 2>&1 || rc=$? ;;
+      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" > "$buf/$base" 2>&1 || rc=$? ;;
     esac
-    journal_event script-test script-tests "file=$base" "sec=$((SECONDS - started))" "exit=$rc"
-    echo "SCRIPT_TEST_FILE=$base SECONDS=$((SECONDS - started)) EXIT=$rc"
+    sec=$((SECONDS - started))
+    journal_event script-test script-tests "file=$base" "sec=$sec" "exit=$rc"
+    echo "SCRIPT_TEST_FILE=$base SECONDS=$sec EXIT=$rc" >> "$buf/$base"
     if [[ "$rc" -eq 0 ]]; then
-      echo "PASS $base"
+      echo "PASS $base" >> "$buf/$base"
     else
-      echo "FAIL $base (exit $rc)"
-      echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
-      return 1
+      echo "FAIL $base (exit $rc)" >> "$buf/$base"
+      failed=1
     fi
   done
-  echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
-  [[ "$ran" -eq 1 ]] || { echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2; return 1; }
+  return "$failed"
 }
 
 # Own process group lets a refusal stop the whole suite; closing the lock fd keeps it off the merge lock.
