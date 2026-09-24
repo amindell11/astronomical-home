@@ -8,7 +8,6 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Tests.PlayMode
@@ -42,7 +41,6 @@ namespace Tests.PlayMode
         {
             DestroyTestObject(screen);
             if (catalog) Object.DestroyImmediate(catalog);
-            if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             base.TearDown();
         }
 

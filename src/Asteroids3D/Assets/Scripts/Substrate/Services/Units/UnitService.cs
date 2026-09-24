@@ -30,11 +30,16 @@ namespace Substrate.Services.Units
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
+        /// <summary>Every spawned or adopted ship is parented here; null until <see cref="Initialize"/>.</summary>
+        public Transform UnitsRoot { get; private set; }
+
         /// <summary>Composition-time wiring only (<c>ShipServices.Compose</c>): arming a weapon throws until the projectile registry lands here.</summary>
-        public void Initialize(IProjectileService projectiles, bool presentationEnabled)
+        public void Initialize(IProjectileService projectiles, bool presentationEnabled, Transform root)
         {
             this.projectiles = projectiles;
             this.presentationEnabled = presentationEnabled;
+            UnitsRoot = new GameObject("Units").transform;
+            UnitsRoot.SetParent(root, false);
         }
 
         public event Action<Ship> OnShipSpawned;
@@ -55,7 +60,7 @@ namespace Substrate.Services.Units
                 position, rotation,
                 postInitialize: spawned => WireShipDependencies(spawned, field));
 
-            ship.transform.SetParent(transform, true);
+            ship.transform.SetParent(UnitsRoot, true);
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
             OnShipSpawned?.Invoke(ship);
@@ -67,8 +72,8 @@ namespace Substrate.Services.Units
             if (!ship)
                 return null;
 
-            // Re-home from the sector to the arena root so lifetime/Clear() matches a spawned ship.
-            ship.transform.SetParent(transform, true);
+            // Re-home from the sector to the units root so lifetime/Clear() matches a spawned ship.
+            ship.transform.SetParent(UnitsRoot, true);
 
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)

@@ -166,14 +166,15 @@ namespace Tests.EditMode
             var build = typeof(PlayerRig).GetMethod("Build");
             Assert.IsNotNull(build, "PlayerRig must expose Build");
             var parameters = build.GetParameters();
-            Assert.AreEqual(6, parameters.Length,
-                "Build must take (units, objectives, presentationEnabled, observer, frame, onPlayerDeath)");
+            Assert.AreEqual(7, parameters.Length,
+                "Build must take (units, objectives, presentationEnabled, observer, uiRoot, frame, onPlayerDeath)");
             Assert.AreEqual(typeof(IUnitService), parameters[0].ParameterType);
             Assert.AreEqual(typeof(IObjectiveService), parameters[1].ParameterType);
             Assert.AreEqual(typeof(bool), parameters[2].ParameterType);
             Assert.AreEqual(typeof(ObserverCam), parameters[3].ParameterType);
-            Assert.AreEqual(typeof(SessionFrame), parameters[4].ParameterType);
-            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[5].ParameterType);
+            Assert.AreEqual(typeof(Transform), parameters[4].ParameterType);
+            Assert.AreEqual(typeof(SessionFrame), parameters[5].ParameterType);
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[6].ParameterType);
         }
     }
 }

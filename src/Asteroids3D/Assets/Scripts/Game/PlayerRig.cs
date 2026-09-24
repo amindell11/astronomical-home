@@ -76,14 +76,15 @@ namespace Game
 
         /// <summary>
         /// Build the player and its HUD into the session's services, framed by the host's
-        /// <paramref name="observer"/>. Called once, before the first sector loads. The ship is owned
-        /// by the unit service and therefore cleared by the session's teardown; the overlay is the
-        /// rig's own and goes in <see cref="Teardown"/>. The host-supplied
-        /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
-        /// (before any yield), so a spawn-frame death already has a subscriber.
+        /// <paramref name="observer"/> with the overlay under its <paramref name="uiRoot"/>. Called
+        /// once, before the first sector loads. The ship is owned by the unit service and therefore
+        /// cleared by the session's teardown; the overlay is the rig's own and goes in
+        /// <see cref="Teardown"/>. The host-supplied <paramref name="onPlayerDeath"/> is stored and
+        /// wired onto the player synchronously at spawn (before any yield), so a spawn-frame death
+        /// already has a subscriber.
         /// </summary>
         public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            ObserverCam observer, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
+            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.units = units;
             this.observer = observer;
@@ -106,7 +107,7 @@ namespace Game
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
                 observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
 
-                Overlay = Instantiate(overlayPrefab);
+                Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.SetCanvasWorldCamera(uiCam);
                 Overlay.Initialize(BuildHudBinding());
 
