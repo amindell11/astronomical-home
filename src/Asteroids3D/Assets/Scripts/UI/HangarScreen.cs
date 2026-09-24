@@ -52,14 +52,13 @@ namespace UI
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
         public void Show(LoadoutConfig catalog, ShipLoadout loadout, Action onLaunch)
         {
-            EnsureEventSystem();
-
             if (optionButtonTemplate)
                 optionButtonTemplate.gameObject.SetActive(false);
 
             if (previewImage)
             {
-                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch);
+                // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
+                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent);
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);
             }
@@ -181,15 +180,6 @@ namespace UI
         {
             if (previewStage)
                 Destroy(previewStage.gameObject);
-        }
-
-        // uGUI needs an EventSystem to route pointer clicks; the game ships without one (HUD is
-        // display-only), so create a legacy-input one on demand if the scene has none.
-        private static void EnsureEventSystem()
-        {
-            if (EventSystem.current) return;
-            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-            DontDestroyOnLoad(go);
         }
     }
 }

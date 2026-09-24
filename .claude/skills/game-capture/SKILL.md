@@ -161,6 +161,10 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   `enable_gizmo_annotations.cs`; the #401 flake family).
 - **Select via eval** (`cli-eval/select_ships.cs`) and bracket each capture with a
   state-read eval so you know what was actually on screen when the frame was taken.
+- **Hierarchy dump** (`cli-eval/dump_hierarchy.cs`) writes every loaded scene, the
+  DontDestroyOnLoad scene and hidden roots to `results/hierarchy/hierarchy.txt`;
+  `cli-eval/launch_hangar.cs` clicks the hangar's Launch button so a dump can reach a
+  live sector from InitScene play.
 - **Live-fire scene** → film `TwoShipSkirmishScenario` (cold runner or warm lane): two
   policy-pilot ships inside `TuningSector`'s asteroid field, presentation off from the
   first compose, so the rocks' silhouettes are **collider gizmos** (the capture drives

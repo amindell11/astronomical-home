@@ -39,7 +39,7 @@ namespace Tests.PlayMode
             var rig = rigGo.AddComponent<PlayerRig>();
 
             var finished = false;
-            var step = host.RunHangar(rig, presentationEnabled: false);
+            var step = host.RunHangar(rig, presentationEnabled: false, hostGo.transform);
             while (step.MoveNext())
                 yield return step.Current;
             finished = true;

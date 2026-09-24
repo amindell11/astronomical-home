@@ -40,9 +40,10 @@ namespace UI
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch)
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent)
         {
             var go = new GameObject("HangarPreviewStage");
+            go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.continueSpinOnSwitch = continueSpinOnSwitch;
