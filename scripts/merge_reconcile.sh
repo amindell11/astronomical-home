@@ -191,7 +191,6 @@ PY
   done
   touched="${touched# }"
 
-  # Residue: `#N` citations of each closed issue left in the agent docs, listed for the reader.
   local residue_total=0 hits
   declare -A residue=()
   for n in $CLOSED; do
