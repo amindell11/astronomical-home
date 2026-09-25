@@ -85,8 +85,9 @@ Status was unrecoverable.
 
 Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `76914216`; `pri:now` → Now `291743a0`; `pri:next` → Next `4dbdbff5`;
-`pri:later` → Later `225f15fa`; Doing `772cf1a0` and Done `165b6aec` are
-human/close-time states. First match in that order wins.
+`pri:later` → Later `225f15fa`; Doing `772cf1a0` is a human state. Done
+`165b6aec` is set by the merge reconcile at close for PR-closed issues
+(`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
 
 ## Wayfinding operations
 
@@ -105,4 +106,5 @@ Used by the wayfinder skill; body law above applies.
   order wins. **Claim** = `gh issue edit <n> --add-assignee @me`, before any
   work.
 - **Resolve**: gist comment (+ memory link when deep) → close → append the
-  context pointer to the map's Decisions-so-far.
+  context pointer to the map's Decisions-so-far. The merge reconcile posts the
+  shipped pointer and Done for PR-closed issues.

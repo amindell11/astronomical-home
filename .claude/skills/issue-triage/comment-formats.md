@@ -1,7 +1,8 @@
 # Triage comment formats
 
 The comments a triage run posts for queued verdicts and one-short readiness,
-and the on-event triage's note. Verdict vocabulary: `SKILL.md` § Verdicts.
+the on-event triage's note, and the merge reconcile's Shipped and Touched
+notes. Verdict vocabulary: `SKILL.md` § Verdicts.
 
 ## Bench proposal
 
@@ -88,4 +89,28 @@ A later clean run rewrites a prior note as:
 ```
 <!-- on-event-triage -->
 On-event triage <date> — earlier findings resolved.
+```
+
+## Shipped note
+
+The merge reconcile's comment on each issue a merged PR closes
+(`scripts/merge_reconcile.sh`), skipped when any comment on the issue already
+contains `Shipped in #PR`. The `Residue:` line appears only when `#N` citations
+of the issue remain in `AGENTS.md`, `doc/`, `.claude/`, `TESTING.md` or
+`scripts/`; the reader judges each.
+
+```
+Shipped in #PR (squash <sha>)
+Residue: <path:line>, <path:line>
+```
+
+## Touched note
+
+The merge reconcile's one marked comment per open issue a merged PR's body
+cites without closing; each later PR appends its line in place. Whether the
+issue is now done stays with the user or the triage sweep.
+
+```
+<!-- merge-reconcile -->
+Touched by #PR — <PR title> (<date>)
 ```

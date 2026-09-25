@@ -316,6 +316,10 @@ specific boot — it covers the test boot only, not the ratchet's. On a
 Just before `gh pr merge`, both paths re-check base: "base moved during the
 merge gate" means re-run `merge`.
 
+After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
+landing push) posts the Shipped note and board Done on the PR-closed issues, so
+the merging session posts neither.
+
 ## Step 7 — Finalize
 
 `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`, then pull
