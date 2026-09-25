@@ -49,7 +49,7 @@ def build_scene(preset, out_base, width=1024, height=1024, samples=8):
     previous = bpy.context.window.scene
     bpy.context.window.scene = scene
     try:
-        skybox_merged.configure_scene(width, height, samples, "EXR", str(out_base) + ".exr")
+        skybox_merged.configure_scene(width, height, samples, "EXR", out_base + ".exr")
         scene.render.image_settings.color_depth = "16"
         scene.cycles.use_adaptive_sampling = False
         scene.cycles.seed = 0
