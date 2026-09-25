@@ -22,8 +22,9 @@ permissions:
   pull-requests: read
   contents: read
 
+# One group for every run: two pushes reconciling the same issue must not race on its note.
 concurrency:
-  group: merge-reconcile-${{ inputs.sha || github.sha }}
+  group: merge-reconcile
 
 jobs:
   reconcile:
