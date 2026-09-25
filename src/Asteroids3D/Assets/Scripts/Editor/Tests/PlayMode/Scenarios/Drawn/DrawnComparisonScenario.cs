@@ -75,7 +75,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rock.Initialize(null, null, settings.meshInfos[0], 0, 20, 1.4f,
                     Vector3.zero, new Vector3(0.36f, 0.53f, 0.21f));
                 var rockMesh = Treatment == 5
-                    ? Load<GameObject>(PaintedRockFolder + "AsteroidPaintStudy.fbx").GetComponentInChildren<MeshFilter>().sharedMesh
+                    ? Load<GameObject>(PaintedRockFolder + "AsteroidFractureStudy.fbx").GetComponentInChildren<MeshFilter>().sharedMesh
                     : rock.CurrentMesh;
                 rock.GetComponent<MeshFilter>().sharedMesh = rockMesh;
                 ApplyTreatment((MeshRenderer)rock.Renderer, true);
@@ -193,7 +193,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             if (Treatment == 0) return;
             if (asteroid && Treatment == 5)
             {
-                renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidPaint.mat");
+                renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidFracturePaint.mat");
                 AddContour(renderer);
                 return;
             }

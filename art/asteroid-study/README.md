@@ -1,6 +1,17 @@
-# Asteroid paint study
+# Fractured asteroid study
 
-Exploratory source for PR #691, using the asteroid forms in the selected hangar reference. `AsteroidPaintStudy.blend` contains the editable chipped-plane mesh and a packed paint image. The exported FBX and Unity material/texture live under `Assets/Visuals/Environment/Asteroids/DrawnStudy`. This candidate is used only by `DrawnAsteroidPaintScenario`; production asteroid spawn settings are unchanged.
+`AsteroidFractureStudy.blend` is the current editable source, with its generated paint image packed. `FracturedRockReference.png` is the user-supplied style reference. The exported FBX, texture and material live under `Assets/Visuals/Environment/Asteroids/DrawnStudy` and are used by `DrawnAsteroidPaintScenario` only. Production spawning and collision remain unchanged.
+
+The Blender mesh has an asymmetric taper, nine carved depressions and raised fracture lips. Its UVs travel with the deformation. The slate/olive texture supplies selected dark fractures; the existing surface shader gives the light-facing planes their amber palette. Amber is not painted into the texture. The remaining spherical UV compression near the poles needs more deliberate painting before production use.
+
+## Current texture provenance and prompt
+
+Generated with the built-in ImageGen tool using `FracturedRockReference.png` as the style input. Saved as `AsteroidFracturePaint.png`; the earlier mauve texture remains separate.
+
+Use case: stylized-concept. Asset type: production game flat diffuse texture for a rotating 3D asteroid. Attached image is STYLE REFERENCE ONLY. Create a square seamless tileable texture filling the canvas; NOT a picture of a rock. Match the asteroid's hand-painted comic mineral surface: broad irregular desaturated slate blue-grey and olive grey stone planes, with large angular near-black ink fissures, tapered dark clefts and a handful of black scooped cavity marks. Strong value contrast, confident variable-width black brushwork, asymmetrical elongated chisel-like marks. Broad solid colored planes with restrained hand-painted variation. Around 6-8 large connected mineral regions across the sheet, dark creases occupying roughly 12 percent. Irregular branches, selected boundaries only, no uniform outlined cell mosaic. Keep overall colors medium grey to allow engine lighting. Ignore the orange rim in the reference because that will come from real-time lighting. No directional lighting, no orange, no shadows cast across other surfaces, no white edge highlights, no pebble texture, no speckle, no grunge, no dense spiderweb, no regular triangles, no UI, no background, no text. Flat texture, all edges seamless, 1024x1024.
+# Earlier quiet paint study
+
+Exploratory source for PR #691, using the asteroid forms in the selected hangar reference. `AsteroidPaintStudy.blend` contains the editable chipped-plane mesh and a packed paint image. The exported FBX and Unity material/texture live under `Assets/Visuals/Environment/Asteroids/DrawnStudy`. This earlier candidate is retained as an exploration source.
 
 The texture was generated with the built-in ImageGen tool, using `doc/design/assets/Pasted image 20260923023842.png` as a style reference. The mesh was built and edited in Blender, with broad irregular faces, bevels and two larger fracture recesses. UVs wrap the painting around the mesh; no screen-space internal edge detector is used for this candidate.
 
