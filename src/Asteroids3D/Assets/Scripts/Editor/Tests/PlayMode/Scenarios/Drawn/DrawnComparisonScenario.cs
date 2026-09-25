@@ -33,6 +33,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
     public abstract class DrawnComparisonScenario : CaptureScenario
     {
         private const string Folder = "Assets/Scripts/Editor/Tests/PlayMode/Scenarios/Drawn/";
+        private const string PaintedRockFolder = "Assets/Visuals/Environment/Asteroids/DrawnStudy/";
         private readonly List<Object> owned = new();
         protected abstract int Treatment { get; }
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
@@ -60,7 +61,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 var high = Array.IndexOf(QualitySettings.names, "High Fidelity");
                 Assert.That(high, Is.GreaterThanOrEqualTo(0));
                 QualitySettings.SetQualityLevel(high, true);
-                if (Treatment >= 3) ink = new DrawnInkStudy(Treatment >= 4 ? 1 : 0);
+                if (Treatment == 3 || Treatment == 4) ink = new DrawnInkStudy(Treatment == 4 ? 1 : 0);
                 UnityEngine.Random.InitState(685);
                 var template = Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab");
                 var ship = Session.Units.SpawnShip(template, null, 0, Vector3.zero, GamePlane.Rotation, null);
@@ -73,7 +74,10 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rock.transform.position = GamePlane.PlanePointToWorld(new Vector2(5, 9));
                 rock.Initialize(null, null, settings.meshInfos[0], 0, 20, 1.4f,
                     Vector3.zero, new Vector3(0.36f, 0.53f, 0.21f));
-                var rockMesh = rock.CurrentMesh;
+                var rockMesh = Treatment == 5
+                    ? Load<GameObject>(PaintedRockFolder + "AsteroidPaintStudy.fbx").GetComponentInChildren<MeshFilter>().sharedMesh
+                    : rock.CurrentMesh;
+                rock.GetComponent<MeshFilter>().sharedMesh = rockMesh;
                 ApplyTreatment((MeshRenderer)rock.Renderer, true);
                 var initialRockRotation = rock.transform.rotation;
 
@@ -141,7 +145,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                             DamageKind.Laser, ShipId.Invalid, 1, Vector3.zero, ship.transform.position));
                     inspection.SetActive(time >= 9);
                     rockPreview.transform.rotation = rock.transform.rotation;
-                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : Treatment == 2 ? "B  ·  DRAWN SURFACE + CONTOUR" : Treatment == 3 ? "OUTER CONTOUR ONLY" : "INK STUDY  ·  SILHOUETTES + OVERLAPS")}     /     " +
+                    label.text = $"{(Treatment == 0 ? "CURRENT" : Treatment == 1 ? "A  ·  DRAWN SURFACE" : Treatment == 2 ? "B  ·  DRAWN SURFACE + CONTOUR" : Treatment == 3 ? "OUTER CONTOUR ONLY" : Treatment == 4 ? "INK STUDY  ·  SILHOUETTES + OVERLAPS" : "ASTEROID STUDY  ·  SCULPTED FORMS + PAINT")}     /     " +
                                  (time < 6 ? "FLIGHT · BANK / SETTLE" : time < 9 ? "HULL DAMAGE / HIT FLASH" : "HANGAR + ASTEROID INSPECTION");
                     yield return new WaitForFixedUpdate();
                     FilmStep();
@@ -187,6 +191,12 @@ namespace Tests.PlayMode.Scenarios.Drawn
         private void ApplyTreatment(MeshRenderer renderer, bool asteroid = false)
         {
             if (Treatment == 0) return;
+            if (asteroid && Treatment == 5)
+            {
+                renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidPaint.mat");
+                AddContour(renderer);
+                return;
+            }
             var original = renderer.sharedMaterial;
             var shader = Shader.Find("Astronomical/Comparison/Drawn Surface");
             Assert.That(shader && shader.isSupported, Is.True, "Drawn surface shader must compile.");

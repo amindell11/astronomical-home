@@ -150,6 +150,7 @@ namespace Capture.GameView
             rig = new GameObject("[Capture] Game View Rig");
             captureCamera = rig.AddComponent<Camera>();
             captureCamera.orthographic = true;
+            captureCamera.cullingMask &= ~LayerMask.GetMask("Minimap", "Minimap_Ship", "Minimap_Enemy");
             captureCamera.clearFlags = CameraClearFlags.SolidColor;
             captureCamera.backgroundColor = new Color(0.02f, 0.02f, 0.05f);
             captureCamera.depth = 100f;
