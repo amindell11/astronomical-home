@@ -1,0 +1,53 @@
+name: merge-reconcile
+
+# Runs on pushes to main only (the pool script's squash merges and docs-only landings): no
+# pull_request trigger, so fork PRs never run it or reach its secrets. Comments go out under
+# GITHUB_TOKEN and never trigger a workflow; the board's Done mutation needs PROJECTS_TOKEN.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit on main to reconcile (its subject must end in "(#PR)")
+        required: true
+        type: string
+      dry_run:
+        description: Print every write instead of running it
+        type: boolean
+        default: true
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: merge-reconcile-${{ inputs.sha || github.sha }}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The residue grep reads this tree: on a push it is main at the landing sha.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: false
+
+      # scripts/merge_reconcile.sh owns the run; its trailers and the job summary are the report.
+      - name: Reconcile
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          SHA: ${{ inputs.sha }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          flag=""
+          [ "$DRY_RUN" != true ] || flag=--dry-run
+          if [ -n "$SHA" ]; then
+            bash scripts/merge_reconcile.sh --sha "$SHA" $flag
+          else
+            bash scripts/merge_reconcile.sh --event "$GITHUB_EVENT_PATH" $flag
+          fi
