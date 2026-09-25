@@ -175,7 +175,8 @@ def main():
         bpy.ops.render.render(write_still=True)
         save_outputs(scene, preset, args.out, args.stage, time.perf_counter() - started)
         if args.unity_project:
-            published = skybox_unity.publish(args.out, args.unity_project, args.name, args.stage == "final", **skybox_unity.FLAT)
+            published = skybox_unity.publish(args.out, args.unity_project, args.name,
+                                             args.stage == "final", **skybox_unity.FLAT)
             print("FLATBG_PUBLISHED=" + str(published))
     finally:
         bpy.context.window.scene = previous
