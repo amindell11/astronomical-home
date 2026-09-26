@@ -116,6 +116,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rockPreview.GetComponent<MeshFilter>().sharedMesh = rockMesh;
                 rockPreview.GetComponent<MeshRenderer>().sharedMaterial = rock.Renderer.sharedMaterial;
                 if (Treatment >= 2) AddContour(rockPreview.GetComponent<MeshRenderer>());
+                if (Treatment == 5) AddSurfaceDrawing(rockPreview.transform);
                 var rockCamera = new GameObject("Asteroid inspection camera", typeof(Camera)).GetComponent<Camera>();
                 rockCamera.transform.SetParent(root.transform);
                 rockCamera.transform.position = rockPreview.transform.position + new Vector3(0, 0, 6);
@@ -195,6 +196,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             {
                 renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidFracturePaint.mat");
                 AddContour(renderer);
+                AddSurfaceDrawing(renderer.transform);
                 return;
             }
             var original = renderer.sharedMaterial;
@@ -279,6 +281,17 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 normals[i] = sums[vertices[i]].normalized;
             mesh.normals = normals;
             return mesh;
+        }
+
+        private static void AddSurfaceDrawing(Transform parent)
+        {
+            var drawing = Object.Instantiate(Load<GameObject>(PaintedRockFolder + "AsteroidSurfaceDrawing.fbx"), parent);
+            foreach (var renderer in drawing.GetComponentsInChildren<MeshRenderer>())
+            {
+                renderer.gameObject.layer = parent.gameObject.layer;
+                renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidSurfaceDrawing.mat");
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+            }
         }
 
         private void AddContour(MeshRenderer renderer)

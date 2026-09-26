@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: AsteroidFracturePaint
+  m_Name: AsteroidSurfaceDrawing
   m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 6ff7b50b5b2e401e8aa978fab244e768, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -57,12 +57,12 @@ Material:
     - _ShadowSoftness: 0.18
     - _ShadowThreshold: 0.55
     - _SpecularStrength: 0
-    - _TextureStrength: 1
+    - _TextureStrength: 0
     - _WearStrength: 0.08
     m_Colors:
-    - _BaseColor: {r: 3, g: 1.5, b: 0.6, a: 1}
+    - _BaseColor: {r: 0.018, g: 0.024, b: 0.034, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _PaperColor: {r: 0.65, g: 0.7, b: 0.75, a: 1}
-    - _ShadowColor: {r: 0.22, g: 0.45, b: 1.5, a: 1}
+    - _PaperColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShadowColor: {r: 0.5, g: 0.55, b: 0.7, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

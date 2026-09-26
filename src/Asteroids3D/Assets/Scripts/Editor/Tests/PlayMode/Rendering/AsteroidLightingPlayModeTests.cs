@@ -84,6 +84,21 @@ namespace Tests.PlayMode.Rendering
                 material.SetTexture("_BaseMap", source.GetTexture("_BaseMap"));
                 material.SetFloat("_LineStrength", source.GetFloat("_LineStrength"));
                 var albedo = Read("fully-lit");
+                var drawing = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
+                    folder + "AsteroidSurfaceDrawing.fbx"), rock.transform);
+                var drawingMaterial = AssetDatabase.LoadAssetAtPath<Material>(folder + "AsteroidSurfaceDrawing.mat");
+                foreach (var renderer in drawing.GetComponentsInChildren<MeshRenderer>())
+                {
+                    renderer.gameObject.layer = rock.layer;
+                    renderer.sharedMaterial = drawingMaterial;
+                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+                var drawnAlbedo = Read("drawing-fully-lit");
+                var drawingPixels = 0;
+                for (var i = 0; i < mask.Length; i++)
+                    if (mask[i].r >= 245 && mask[i].g >= 245 && mask[i].b >= 245 &&
+                        albedo[i].r - drawnAlbedo[i].r > 20) drawingPixels++;
+                drawing.SetActive(false);
                 material.CopyPropertiesFromMaterial(source);
                 light.shadows = LightShadows.Soft;
                 light.transform.rotation = Quaternion.Euler(20, 115, 0);
@@ -100,11 +115,41 @@ namespace Tests.PlayMode.Rendering
                     if (Dark(albedo[i])) fixedBlack++;
                     if (Dark(left[i]) != Dark(right[i])) changedDark++;
                 }
+                drawing.SetActive(true);
+                var contourMaterial = new Material(Shader.Find("Astronomical/Comparison/Drawn Contour"));
+                resources.Add(contourMaterial);
+                contourMaterial.SetFloat("_ContourPixels", 4.5f);
+                contourMaterial.SetFloat("_ContourMinimum", .6f);
+                contourMaterial.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
+                var shell = new GameObject("Study contour", typeof(MeshFilter), typeof(MeshRenderer));
+                shell.transform.SetParent(rock.transform, false);
+                shell.layer = rock.layer;
+                shell.GetComponent<MeshFilter>().sharedMesh = rock.GetComponent<MeshFilter>().sharedMesh;
+                var outline = shell.GetComponent<MeshRenderer>();
+                outline.sharedMaterial = contourMaterial;
+                outline.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                outline.receiveShadows = false;
+                light.transform.rotation = Quaternion.Euler(20, 115, 0);
+                Read("drawing-left");
+                light.transform.rotation = Quaternion.Euler(20, 245, 0);
+                Read("drawing-right");
                 for (var frame = 0; frame < 72; frame++)
                 {
                     light.transform.rotation = Quaternion.Euler(20, 100 + frame * 5, 0);
                     Read("f_" + frame.ToString("D5"));
                 }
+                var pose = rock.transform.rotation;
+                light.transform.rotation = Quaternion.Euler(20, 115, 0);
+                var turntable = Path.Combine(output, "turntable");
+                Directory.CreateDirectory(turntable);
+                for (var frame = 0; frame < 72; frame++)
+                {
+                    rock.transform.rotation = Quaternion.Euler(20, frame * 5, 12);
+                    Read("turntable/f_" + frame.ToString("D5"));
+                }
+                File.WriteAllText(Path.Combine(turntable, "manifest.json"),
+                    "{\"width\":512,\"height\":512,\"suggestedFps\":24,\"steps\":72}");
+                rock.transform.rotation = pose;
                 light.enabled = false;
                 RenderSettings.sun = null;
                 var sceneLights = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -114,7 +159,8 @@ namespace Tests.PlayMode.Rendering
                 File.WriteAllText(Path.Combine(output, "manifest.json"),
                     "{\"width\":512,\"height\":512,\"suggestedFps\":24,\"steps\":72}");
                 File.WriteAllText(Path.Combine(output, "measurement.json"),
-                    $"{{\"surfacePixels\":{surface},\"fixedBlackPixels\":{fixedBlack},\"changedDarkPixels\":{changedDark}}}");
+                    $"{{\"drawingPixels\":{drawingPixels},\"surfacePixels\":{surface},\"fixedBlackPixels\":{fixedBlack},\"changedDarkPixels\":{changedDark}}}");
+                Assert.That(drawingPixels, Is.InRange(60, surface / 12), "Authored drawing must remain sparse linework.");
                 Assert.That(surface, Is.GreaterThan(10000), "The stationary mesh must fill the diagnostic silhouette.");
                 Assert.That(fixedBlack, Is.LessThan(surface / 1000), "Fully lit stone must not contain painted black shadows.");
                 Assert.That(changedDark, Is.GreaterThan(surface / 10), "Moving the light must move substantial dark regions.");
