@@ -12,7 +12,9 @@
         "RL.Runtime",
         "Unity.InferenceEngine",
         "Unity.ML-Agents",
-        "Capture"
+        "Capture",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor",
