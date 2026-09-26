@@ -167,6 +167,29 @@ Each environment has its own skybox. The game's existing locale selection uses
 that scene's lighting when entering the corresponding sector. Applying to one
 environment does not replace the other environments or their materials.
 
+## Native flat background (opt-in)
+
+Tick **Native Flat Background** to render starless clouds that repeat in both
+axes (a 4D-torus noise field) instead of a spherical panorama. Star, focal-star
+and 3D-preview controls hide; stars belong to Unity's starfield. Drafts use
+**Draft Width**; **Final Size** picks 1K/2K/4K (2K default). Each render writes
+`<name>-draft|final.exr`, `_preview.png` and a `.json` sidecar carrying the four
+palette roles (base/primary/secondary/accent), provenance and the migration
+report for old spherical presets (also printed as `FLATBG_MIGRATION=`).
+
+**Send Draft/Final to Unity** publishes the sidecar, then the EXR, into
+`Assets/Visuals/Environment/Flat/Generated` through the same `skybox_unity.publish`
+as skies. Unity imports the EXR natively (scene-linear, BC6H, Repeat, mips) and
+creates a matching `.mat` once; repeat distance (default 10,000 world units) and
+view height in tiles (default 0.1) live on that material. Assign it to the
+locale scene's `EnvironmentAuthoring` **Background** field: swap it in Play Mode
+to preview (Unity reverts on exit), or assign it in Edit Mode and save the scene
+to apply (native Undo).
+
+```bash
+blender -b --python-exit-code 1 -P art/tools/skybox/skybox_flat.py --   --preset art/tools/skybox/nebula-glow.json --stage final --out /path/to/clouds-final   --unity-project src/Asteroids3D --name nebula-glow-flat
+```
+
 ## Reproduce from the command line
 
 The shipped `nebulaCustom0.hdr` used the generator's legacy defaults. The approved
