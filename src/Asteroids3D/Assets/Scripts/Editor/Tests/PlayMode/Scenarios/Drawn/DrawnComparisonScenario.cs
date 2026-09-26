@@ -115,7 +115,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 rockPreview.layer = LayerMask.NameToLayer("ShipPreview");
                 rockPreview.GetComponent<MeshFilter>().sharedMesh = rockMesh;
                 rockPreview.GetComponent<MeshRenderer>().sharedMaterial = rock.Renderer.sharedMaterial;
-                if (Treatment >= 2) AddContour(rockPreview.GetComponent<MeshRenderer>());
+                if (Treatment >= 2) AddContour(rockPreview.GetComponent<MeshRenderer>(), Treatment == 5 ? 5.5f : 4.5f);
                 if (Treatment == 5) AddSurfaceDrawing(rockPreview.transform);
                 var rockCamera = new GameObject("Asteroid inspection camera", typeof(Camera)).GetComponent<Camera>();
                 rockCamera.transform.SetParent(root.transform);
@@ -195,7 +195,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             if (asteroid && Treatment == 5)
             {
                 renderer.sharedMaterial = Load<Material>(PaintedRockFolder + "AsteroidFracturePaint.mat");
-                AddContour(renderer);
+                AddContour(renderer, 5.5f);
                 AddSurfaceDrawing(renderer.transform);
                 return;
             }
@@ -294,7 +294,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             }
         }
 
-        private void AddContour(MeshRenderer renderer)
+        private void AddContour(MeshRenderer renderer, float pixels = 4.5f)
         {
             var shader = Shader.Find("Astronomical/Comparison/Drawn Contour");
             Assert.That(shader && shader.isSupported, Is.True, "Drawn contour shader must compile.");
@@ -307,7 +307,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             owned.Add(material);
             if (Treatment >= 3)
             {
-                material.SetFloat("_ContourPixels", 4.5f);
+                material.SetFloat("_ContourPixels", pixels);
                 material.SetFloat("_ContourMinimum", .6f);
                 material.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
             }

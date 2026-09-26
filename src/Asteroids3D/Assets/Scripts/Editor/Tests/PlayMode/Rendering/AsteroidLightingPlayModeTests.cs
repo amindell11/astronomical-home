@@ -118,7 +118,7 @@ namespace Tests.PlayMode.Rendering
                 drawing.SetActive(true);
                 var contourMaterial = new Material(Shader.Find("Astronomical/Comparison/Drawn Contour"));
                 resources.Add(contourMaterial);
-                contourMaterial.SetFloat("_ContourPixels", 4.5f);
+                contourMaterial.SetFloat("_ContourPixels", 5.5f);
                 contourMaterial.SetFloat("_ContourMinimum", .6f);
                 contourMaterial.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
                 var shell = new GameObject("Study contour", typeof(MeshFilter), typeof(MeshRenderer));

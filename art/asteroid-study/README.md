@@ -2,7 +2,7 @@
 
 `AsteroidDrawnStudy.blend` is the current editable source. Its rock object packs `AsteroidBrushAlbedo.png`; `AsteroidSurfaceDrawing` is a separate mesh of authored tapered ribbons. Both export under `Assets/Visuals/Environment/Asteroids/DrawnStudy`. The drawing follows selected recess rims and plane breaks, with six small impact bowls, broken rim strokes and paired chisel nicks. It receives lighting but does not cast shadows. `DrawnAsteroidPaintScenario` includes it in gameplay and inspection.
 
-The surface albedo stays medium-value and shadow-free. Broad directional gouache strokes and angular mineral patches supply the painted character. Thin graphite marks are intentional material details; the large dark regions still come from real-time shadows. The existing thick silhouette remains. Production spawning and collision are unchanged.
+The surface albedo stays medium-value and shadow-free. Broad directional gouache strokes and angular mineral patches supply the painted character. Thin graphite marks are intentional material details; the large dark regions still come from real-time shadows. The asteroid silhouette uses a 5.5-pixel contour. Tapered crease continuations add density along selected ridges while keeping the broad planes open. Production spawning and collision are unchanged.
 
 ## Current brush texture provenance and prompt
 
