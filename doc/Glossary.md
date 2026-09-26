@@ -242,11 +242,14 @@ Format: **term** — definition. *(authority)*
   unassigned, carrying a build-scope block (a `Ready proposal` comment the user
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
-  gets a proposal instead of a build. *(#617)*
+  gets a proposal instead of a build. A *drain run* takes only items also
+  labelled `unity:none`; its claim is the issue assignee plus the pool lease.
+  *(#617, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
-  questions: a build session's fork posted on the issue with options, a
-  recommendation and evidence, the slot held. Routine priority / bench / park
-  calls are proposals on their own issue, never inbox items. *(#617)*
+  questions from interactive sessions: a fork posted on the issue with options,
+  a recommendation and evidence, the slot held. A *drain run* asks in its own
+  chat instead, surfaced by its `⛔ blocked` title. Routine priority / bench /
+  park calls are proposals on their own issue, never inbox items. *(#617)*
 - **triage sweep** — the on-demand or daily triage run over the open tracker,
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
@@ -261,9 +264,14 @@ Format: **term** — definition. *(authority)*
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
-  comment proposing `ready-for-agent`. Once the user applies the label it is the
-  issue's build-scope block.
+  comment proposing `ready-for-agent`; its `Unity:` field mints the matching
+  `unity:*` label on the same `Apply:` line. Once the user applies the label it
+  is the issue's build-scope block.
   *(.claude/skills/issue-triage/comment-formats.md)*
+- **drain run** — one unattended build session, started from a desktop
+  scheduled task, that picks, claims, builds, PRs and holds one `unity:none`
+  *ready queue* item; the user talks to it in its own chat.
+  *(agent-worktree-pr-loop → Drain run)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
