@@ -121,13 +121,14 @@ itself on the editor's next load via the lane journal). A leased slot editor
 ```powershell
 unity command capture_lane_attach --project-path <proj>   # once per session
 unity command capture_request_scenario --scenario TwoShipSkirmishScenario --project-path <proj>
-./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
+./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
 unity command capture_lane_release --project-path <proj>  # restores EPO
 ```
 
 - `-ExcludeCategory ''` is required: the capture fixture is `RequiresGraphics`,
   and `-Routed` makes running excluded categories in a resident editor a
   deliberate act. The editor must not already be in Play Mode.
+- `-Routed` takes literal fixture names: a dotted name reads as regex and is refused.
 - The request is one-shot — cleared when the runner reads it, dead with the
   editor — so a stale scenario can never refilm. The run prints the frame dir;
   assemble as below.
