@@ -29,8 +29,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _RepeatDistance: 20000
-    - _ViewHeightInTiles: 0.5
+    - _RepeatDistance: 10000
+    - _ViewHeightInTiles: 0.1
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
