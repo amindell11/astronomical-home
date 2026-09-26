@@ -1200,6 +1200,7 @@ function Invoke-RoutedPlatformRun {
     $byName = [ordered]@{}
     $duplicates = 0
     $durationSum = 0.0
+    $droppedResults = @()
     foreach ($callSpec in $Plan.calls) {
         [void](Wait-RoutedEditorReady -TimeoutSec 120 -What "$platform pre-run readiness")
 
@@ -1207,7 +1208,8 @@ function Invoke-RoutedPlatformRun {
         if (-not [string]::IsNullOrWhiteSpace([string]$callSpec.filter)) {
             $runParams += @("--filter", [string]$callSpec.filter, "--filter_type", [string]$callSpec.filterType)
         }
-        Write-Host "Routed ${platform}: run_tests $(if ($callSpec.filter) { "$($callSpec.filterType)=$($callSpec.filter)" } else { '(unfiltered)' }) ..."
+        $callLabel = if ($callSpec.filter) { "$($callSpec.filterType)=$($callSpec.filter)" } else { '(unfiltered)' }
+        Write-Host "Routed ${platform}: run_tests $callLabel ..."
         $launch = Invoke-PipelineCommand -CommandName "run_tests" -CommandParams $runParams -What "run_tests $platform"
         $launchState = [string](Get-JsonProp $launch.result 'result')
         if (-not $launch.ok -or $launchState -ne "running") {
@@ -1219,7 +1221,15 @@ function Invoke-RoutedPlatformRun {
         $final = Wait-RoutedTestCompletion -TimeoutSec ($UnityTimeoutSec + 60) -What "run_tests $platform"
 
         $durationSum += [double](Get-JsonProp $final 'duration')
-        foreach ($result in @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })) {
+        $reported = @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })
+        $summary = Get-JsonProp $final 'summary'
+        $summaryTotal = [int](Get-JsonProp $summary 'total')
+        if ($reported.Count -ne $summaryTotal) {
+            $droppedResults += ("run_tests $platform ${callLabel}: the pipeline returned $($reported.Count) per-test result(s) " +
+                "for a $summaryTotal-test run (root summary: $(Get-JsonProp $summary 'passed') passed, $(Get-JsonProp $summary 'failed') failed). " +
+                "com.unity.pipeline drops results from before a mid-run domain reload (an EditMode test entering Play Mode); run this selection cold (drop -Routed).")
+        }
+        foreach ($result in $reported) {
             $fullName = [string](Get-JsonProp $result 'FullName')
             if ($byName.Contains($fullName)) { $duplicates++ } else { $byName[$fullName] = $result }
         }
@@ -1265,6 +1275,11 @@ function Invoke-RoutedPlatformRun {
         $status = "infra_error"
         if ($missing.Count -gt 0) { $notes += "Executed set is missing $($missing.Count) expected test(s): $(@($missing | Select-Object -First 10) -join ', ')" }
         if ($extra.Count -gt 0) { $notes += "Executed set has $($extra.Count) unexpected test(s): $(@($extra | Select-Object -First 10) -join ', ')" }
+    }
+    # A lost result may be a failure another call's rerun masked, so this fails even when parity holds.
+    if ($droppedResults.Count -gt 0) {
+        $status = "infra_error"
+        $notes = $droppedResults + $notes
     }
 
     $run = New-RunRecord -Platform $platform -Status $status -Selection $Selection
