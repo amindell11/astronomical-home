@@ -3,6 +3,9 @@ Shader "Astronomical/Comparison/Drawn Surface"
     Properties
     {
         _BaseMap ("Original Painted Surface", 2D) = "white" {}
+        [Toggle(_NORMALMAP)] _UseRelief ("Sculpted Relief", Float) = 0
+        [Normal] _BumpMap ("Sculpted Relief Normal", 2D) = "bump" {}
+        _BumpScale ("Relief Strength", Range(0,2)) = 1
         _BaseColor ("Hull Color / Hit Flash", Color) = (1,1,1,1)
         _PaperColor ("Surface Palette", Color) = (0.65,0.7,0.75,1)
         _TextureStrength ("Painted Surface Strength", Range(0,1)) = 0.65
@@ -38,8 +41,18 @@ Shader "Astronomical/Comparison/Drawn Surface"
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
             half _SpecularStrength, _EmissionStrength;
-            half _CastShadowStrength;
+            half _CastShadowStrength, _BumpScale;
         CBUFFER_END
+        TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
+        half3 DrawnWorldNormal(half3 normalWS, half4 tangentWS, float2 uv)
+        {
+            #if defined(_NORMALMAP)
+                half3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+                half3 bitangent = tangentWS.w * cross(normalWS, tangentWS.xyz);
+                normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS.xyz, bitangent, normalWS));
+            #endif
+            return NormalizeNormalPerPixel(normalWS);
+        }
         ENDHLSL
         Pass
         {
@@ -49,6 +62,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             HLSLPROGRAM
             #pragma vertex SurfaceVertex
             #pragma fragment SurfaceFragment
+            #pragma shader_feature_local _NORMALMAP
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
@@ -62,6 +76,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                float4 tangentOS : TANGENT;
                 float2 uv : TEXCOORD0;
             };
             struct SurfaceOutput
@@ -71,6 +86,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half3 normalWS : TEXCOORD1;
                 float2 uv : TEXCOORD2;
                 half fog : TEXCOORD3;
+                half4 tangentWS : TEXCOORD4;
             };
             SurfaceOutput SurfaceVertex(SurfaceInput input)
             {
@@ -79,6 +95,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 output.positionCS = position.positionCS;
                 output.positionWS = position.positionWS;
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.tangentWS = half4(TransformObjectToWorldDir(input.tangentOS.xyz),
+                    input.tangentOS.w * GetOddNegativeScale());
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.fog = ComputeFogFactor(position.positionCS.z);
                 return output;
@@ -100,7 +118,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half mask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, input.uv).a;
                 albedo *= lerp(1, 2 * detail * _DetailAlbedoMapScale - _DetailAlbedoMapScale + 1, mask);
                 albedo *= _BaseColor.rgb;
-                half3 normal = NormalizeNormalPerPixel(input.normalWS);
+                half3 normal = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
                 #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
                     float4 shadowCoord = ComputeScreenPos(TransformWorldToHClip(input.positionWS));
                 #else
@@ -144,10 +162,44 @@ Shader "Astronomical/Comparison/Drawn Surface"
             Tags { "LightMode"="DepthNormalsOnly" }
             ZWrite On
             HLSLPROGRAM
-            #pragma vertex DepthNormalsVertex
-            #pragma fragment DepthNormalsFragment
+            #pragma vertex DrawnDepthVertex
+            #pragma fragment DrawnDepthFragment
+            #pragma shader_feature_local _NORMALMAP
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            struct DepthInput
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float4 tangentOS : TANGENT;
+                float2 uv : TEXCOORD0;
+            };
+            struct DepthOutput
+            {
+                float4 positionCS : SV_POSITION;
+                half3 normalWS : TEXCOORD0;
+                half4 tangentWS : TEXCOORD1;
+                float2 uv : TEXCOORD2;
+            };
+            DepthOutput DrawnDepthVertex(DepthInput input)
+            {
+                DepthOutput output;
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.tangentWS = half4(TransformObjectToWorldDir(input.tangentOS.xyz),
+                    input.tangentOS.w * GetOddNegativeScale());
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                return output;
+            }
+            half4 DrawnDepthFragment(DepthOutput input) : SV_Target
+            {
+                half3 normalWS = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
+                #if defined(_GBUFFER_NORMALS_OCT)
+                    float2 oct = saturate(PackNormalOctQuadEncode(normalWS) * 0.5 + 0.5);
+                    return half4(PackFloat2To888(oct), 0);
+                #else
+                    return half4(normalWS, 0);
+                #endif
+            }
             ENDHLSL
         }
         Pass

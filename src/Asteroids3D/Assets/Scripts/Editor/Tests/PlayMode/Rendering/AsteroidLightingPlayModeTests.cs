@@ -64,9 +64,20 @@ namespace Tests.PlayMode.Rendering
                 camera.targetTexture = target;
                 var image = new Texture2D(size, size, TextureFormat.RGB24, false);
                 resources.Add(image);
-                Color32[] Read(string name)
+                Color32[] Read(string name, bool normals = false)
                 {
-                    camera.Render();
+                    if (normals)
+                    {
+                        using var commands = new UnityEngine.Rendering.CommandBuffer();
+                        commands.SetRenderTarget(target);
+                        commands.ClearRenderTarget(true, true, Color.black);
+                        commands.SetViewProjectionMatrices(camera.worldToCameraMatrix,
+                            GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
+                        commands.DrawMesh(rock.GetComponent<MeshFilter>().sharedMesh, rock.transform.localToWorldMatrix,
+                            material, 0, material.FindPass("DepthNormals"));
+                        Graphics.ExecuteCommandBuffer(commands);
+                    }
+                    else camera.Render();
                     RenderTexture.active = target;
                     image.ReadPixels(new Rect(0, 0, size, size), 0, 0);
                     image.Apply();
@@ -105,6 +116,28 @@ namespace Tests.PlayMode.Rendering
                 var left = Read("light-left");
                 light.transform.rotation = Quaternion.Euler(20, 245, 0);
                 var right = Read("light-right");
+                material.DisableKeyword("_NORMALMAP");
+                var smoothRight = Read("relief-off-right");
+                light.transform.rotation = Quaternion.Euler(20, 115, 0);
+                var smoothLeft = Read("relief-off-left");
+                var smoothNormals = Read("depth-normal-off", true);
+                material.EnableKeyword("_NORMALMAP");
+                var reliefNormals = Read("depth-normal-on", true);
+                var normalPixels = 0;
+                for (var i = 0; i < smoothNormals.Length; i++)
+                    if (Math.Abs(reliefNormals[i].r - smoothNormals[i].r) +
+                        Math.Abs(reliefNormals[i].g - smoothNormals[i].g) +
+                        Math.Abs(reliefNormals[i].b - smoothNormals[i].b) > 20) normalPixels++;
+                var reliefPixels = 0;
+                var reliefReversals = 0;
+                for (var i = 0; i < mask.Length; i++)
+                {
+                    if (mask[i].r < 245 || mask[i].g < 245 || mask[i].b < 245) continue;
+                    var deltaLeft = left[i].r + left[i].g + left[i].b - smoothLeft[i].r - smoothLeft[i].g - smoothLeft[i].b;
+                    var deltaRight = right[i].r + right[i].g + right[i].b - smoothRight[i].r - smoothRight[i].g - smoothRight[i].b;
+                    if (Math.Abs(deltaLeft) > 35 || Math.Abs(deltaRight) > 35) reliefPixels++;
+                    if ((deltaLeft > 20 && deltaRight < -20) || (deltaLeft < -20 && deltaRight > 20)) reliefReversals++;
+                }
                 var surface = 0;
                 var fixedBlack = 0;
                 var changedDark = 0;
@@ -159,7 +192,10 @@ namespace Tests.PlayMode.Rendering
                 File.WriteAllText(Path.Combine(output, "manifest.json"),
                     "{\"width\":512,\"height\":512,\"suggestedFps\":24,\"steps\":72}");
                 File.WriteAllText(Path.Combine(output, "measurement.json"),
-                    $"{{\"drawingPixels\":{drawingPixels},\"surfacePixels\":{surface},\"fixedBlackPixels\":{fixedBlack},\"changedDarkPixels\":{changedDark}}}");
+                    $"{{\"normalPixels\":{normalPixels},\"reliefPixels\":{reliefPixels},\"reliefReversals\":{reliefReversals},\"drawingPixels\":{drawingPixels},\"surfacePixels\":{surface},\"fixedBlackPixels\":{fixedBlack},\"changedDarkPixels\":{changedDark}}}");
+                Assert.That(normalPixels, Is.GreaterThan(50), "Depth normals must include the sculpted relief.");
+                Assert.That(reliefPixels, Is.GreaterThan(200), "Sculpted relief must visibly affect lighting.");
+                Assert.That(reliefReversals, Is.GreaterThan(50), "Relief must brighten and darken with opposed lights.");
                 Assert.That(drawingPixels, Is.InRange(60, surface / 12), "Authored drawing must remain sparse linework.");
                 Assert.That(surface, Is.GreaterThan(10000), "The stationary mesh must fill the diagnostic silhouette.");
                 Assert.That(fixedBlack, Is.LessThan(surface / 1000), "Fully lit stone must not contain painted black shadows.");
