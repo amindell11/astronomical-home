@@ -1,10 +1,16 @@
 # Fractured asteroid study
 
-`AsteroidFractureStudy.blend` is the current editable source, with its generated paint image packed. `FracturedRockReference.png` is the user-supplied style reference. The exported FBX, texture and material live under `Assets/Visuals/Environment/Asteroids/DrawnStudy` and are used by `DrawnAsteroidPaintScenario` only. Production spawning and collision remain unchanged.
+`AsteroidFractureStudy.blend` is the current editable source, with its generated unlit stone albedo packed. `FracturedRockReference.png` is the user-supplied style reference. The exported FBX, texture and material live under `Assets/Visuals/Environment/Asteroids/DrawnStudy` and are used by `DrawnAsteroidPaintScenario` only. Production spawning and collision remain unchanged.
 
-The Blender mesh has an asymmetric taper, nine carved depressions and raised fracture lips. Its UVs travel with the deformation. The slate/olive texture supplies selected dark fractures; the existing surface shader gives the light-facing planes their amber palette. Amber is not painted into the texture. The remaining spherical UV compression near the poles needs more deliberate painting before production use.
+The Blender mesh has an asymmetric taper, nine carved depressions and raised fracture lips. Its UVs travel with the deformation. The slate/olive albedo supplies medium-value mineral color only. Mesh recesses cast shadows that respond to the light; the surface shader gives light-facing planes their amber palette. The material opts into cast-shadow darkness and disables texture-edge ink. Neither black shadows nor amber lighting are painted into the current texture. The remaining spherical UV compression near the poles needs more deliberate painting before production use.
 
 ## Current texture provenance and prompt
+
+Generated with the built-in ImageGen tool by editing the earlier `AsteroidFracturePaint.png` into `AsteroidStoneAlbedo.png`. The Unity material and packed Blender source both use this clean albedo. The earlier painted-black candidate remains as exploration history.
+
+Use case: precise-object-edit. Edit target: attached asteroid diffuse texture. Correct it to a genuinely unlit base-color/albedo map for a real-time 3D mesh. Remove EVERY black fissure, black pocket, cavity shadow, directional shading, relief highlight and dark outline. Fill those areas seamlessly with the surrounding stone color. Retain the broad irregular slate-grey and muted olive-grey mineral color regions and subtle painterly brush variation, but keep all colors in a narrow MEDIUM value range: no near-black, no dark cracks, no white highlights. The result must look like flat mottled painted stone color, without any impression of crevices or lighting. Physical cavities and cast shadows will be produced by the mesh and renderer, not this image. No line art, no ambient occlusion, no new cracks, no directional light, no orange, no specular sheen, no 3D object, no text, no border. Fill the entire square canvas and keep edges tileable. Preserve the original square resolution.
+
+## Earlier painted-black candidate (superseded)
 
 Generated with the built-in ImageGen tool using `FracturedRockReference.png` as the style input. Saved as `AsteroidFracturePaint.png`; the earlier mauve texture remains separate.
 

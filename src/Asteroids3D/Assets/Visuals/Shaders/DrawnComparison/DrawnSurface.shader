@@ -20,6 +20,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
         _ShadowColor ("Shadow Plane Tint", Color) = (0.38,0.46,0.62,1)
         _ShadowThreshold ("Shadow Plane Threshold", Range(-1,1)) = 0.15
         _ShadowSoftness ("Shadow Transition", Range(0.01,0.5)) = 0.08
+        _CastShadowStrength ("Cast Shadow Darkness", Range(0,1)) = 0
         _SpecularStrength ("Highlight Strength", Range(0,1)) = 0.12
         _EmissionMap ("Localized Emission", 2D) = "black" {}
         [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0,1)
@@ -37,6 +38,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
             half _SpecularStrength, _EmissionStrength;
+            half _CastShadowStrength;
         CBUFFER_END
         ENDHLSL
         Pass
@@ -48,7 +50,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             #pragma vertex SurfaceVertex
             #pragma fragment SurfaceFragment
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
@@ -109,6 +111,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half transition = max(_ShadowSoftness, fwidth(ndl));
                 half plane = smoothstep(_ShadowThreshold - transition, _ShadowThreshold + transition, ndl);
                 half3 diffuse = lerp(_ShadowColor.rgb, 1, plane * light.shadowAttenuation);
+                diffuse *= lerp(1, light.shadowAttenuation, _CastShadowStrength);
                 half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 half highlight = pow(saturate(dot(normal, SafeNormalize(light.direction + view))), 48);
                 half3 color = albedo * (SampleSH(normal) + light.color * diffuse * light.distanceAttenuation);

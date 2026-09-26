@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: d7765e624fc086a488519b72015090ce, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3c381573752aa804cbd4968c87d5a98c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -46,10 +46,11 @@ Material:
     m_Ints: []
     m_Floats:
     - _AmbientStrength: 0.35
+    - _CastShadowStrength: 0.96
     - _DetailAlbedoMapScale: 0
     - _EmissionStrength: 0
     - _LineSoftness: 0.02
-    - _LineStrength: 0.3
+    - _LineStrength: 0
     - _LineThreshold: 0.035
     - _PaletteLighting: 1
     - _PigmentPreservation: 0
@@ -59,9 +60,9 @@ Material:
     - _TextureStrength: 1
     - _WearStrength: 0.08
     m_Colors:
-    - _BaseColor: {r: 3, g: 1.8, b: 0.75, a: 1}
+    - _BaseColor: {r: 3, g: 1.5, b: 0.6, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _PaperColor: {r: 0.65, g: 0.7, b: 0.75, a: 1}
-    - _ShadowColor: {r: 0.25, g: 0.46, b: 1.3, a: 1}
+    - _ShadowColor: {r: 0.22, g: 0.45, b: 1.5, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
