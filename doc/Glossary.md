@@ -243,7 +243,8 @@ Format: **term** — definition. *(authority)*
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
   gets a proposal instead of a build. A *drain run* takes only items also
-  labelled `unity:none`; its claim is the issue assignee plus the pool lease.
+  labelled `unity:none`; its claim is the issue assignee plus the
+  worktree-pool lease.
   *(#617, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
   questions from interactive sessions: a fork posted on the issue with options,

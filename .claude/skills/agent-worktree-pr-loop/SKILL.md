@@ -135,7 +135,8 @@ when a session starting work finds every slot full and that slot meets all of:
   shows no `projectOwner`, so no editor or test run is live there.
 
 A session may hold its own work when it stops at a design fork for the user;
-a drain run also holds once its PR is open (§ Drain run).
+a drain run also holds at the anti-churn bar and once its PR is open
+(§ Drain run).
 
 After a hold, post the `HELD=… RESUME=…` line as a comment on the work's issue
 (and its PR, if open); `pool status` lists held leases.
@@ -270,8 +271,8 @@ to re-push fixes.
 
 ## Step 6 — Merge
 
-When the PR's work is held, `resume <lease>` first. Only on an explicit user
-merge instruction. Consent = an explicit instruction
+Only on an explicit user merge instruction; when the PR's work is held,
+`resume <lease>` once it is given. Consent = an explicit instruction
 to merge ("merge it", "ship it", "land it"); praise of the code ("looks
 good", "LGTM") is NOT consent. Approval binds the tree: record the branch
 HEAD at the moment of consent; if ANYTHING lands on the branch after that
@@ -364,9 +365,9 @@ comments.
 9. **Hold and hand over:** `hold` the slot, retitle
    `review | drain | <lease> | #<pr>`, and end with what was built, the PR
    link, the proof, and "reply here: *fix …* or *merge*".
-10. **Follow-ups in this chat:** Step 5 (revise) or Step 6 (merge, only on the
-    user's explicit instruction), each starting with `resume <lease>`, then
-    Step 7.
+10. **Follow-ups in this chat:** `resume <lease>`, then Step 5 (revise, then
+    hold again as in step 9) or Step 6 (merge, only on the user's explicit
+    instruction, then Step 7).
 
 ## Preconditions & known hazards
 

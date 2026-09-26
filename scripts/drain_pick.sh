@@ -40,7 +40,10 @@ usage() { echo "Usage: drain_pick.sh pick [--dry-run] | drain_pick.sh claim <iss
 infra() { echo "drain_pick: $1" >&2; exit 1; }
 say() { echo "drain_pick: $1" >&2; }
 
-repo() { echo "${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"; }
+repo() {
+  if [[ -n "${GITHUB_REPOSITORY:-}" ]]; then echo "$GITHUB_REPOSITORY"
+  else gh repo view --json nameWithOwner --jq .nameWithOwner; fi
+}
 
 cmd_pick() {
   local dry_run=0
@@ -136,7 +139,7 @@ cmd_claim() {
     say "acquire $lease $slot failed; #$issue unassigned"
     echo "CLAIM=acquire_failed"; exit 5
   fi
-  out="$(grep -m1 '^SLOT=' <<<"$out")" || infra "acquire printed no SLOT= line"
+  out="$(grep -m1 '^SLOT=' <<<"$out")" || infra "acquire printed no SLOT= line — #$issue is left assigned"
   echo "CLAIM=claimed"
   echo "SLOT=$slot"
   echo "PATH=${out#* PATH=}"

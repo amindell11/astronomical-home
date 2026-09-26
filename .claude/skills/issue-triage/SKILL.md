@@ -79,7 +79,7 @@ Exactly one status verdict per issue per sweep, evidence line mandatory.
 | `covered-by PR #N` | relationship | comment, saying whether the PR body closes it |
 | `blocked-by #N` | relationship | dependency wired if missing |
 | `unblocked` | relationship | comment naming what landed, plus a readiness assessment |
-| `in-flight` | relationship | no write (assignee, pool lease or open PR) |
+| `in-flight` | relationship | no write (assignee, worktree-pool lease or open PR) |
 | `bench` | queued | bench proposal (reopen condition) |
 | `park` | queued | park proposal (why) |
 | `repri` | queued | repri proposal |
@@ -113,14 +113,14 @@ gh pr list --state open --limit 100 --json number,title,headRefName,body,closing
 gh project item-list 1 --owner amindell11 --format json --limit 500
 ```
 
-plus `./scripts/agent_worktree_pool.sh status --porcelain` (the pool leases), and
-`git fetch origin` so `origin/main` is current. Apply `--since` / `#N`
+plus `./scripts/agent_worktree_pool.sh status --porcelain` (the worktree-pool
+leases), and `git fetch origin` so `origin/main` is current. Apply `--since` / `#N`
 to the issue list. Record `updatedAt` per examined issue — the dry-run proof
 compares it after the run.
 
 Done when: every examined issue's number, author, labels, assignees,
 `updatedAt` and board membership are in hand, and the merged-PR list, open-PR
-list and pool leases are read.
+list and worktree-pool leases are read.
 
 ### 2. Allowlist split
 
@@ -137,7 +137,7 @@ domain label wins; no domain label → `unlabelled`). Fold clusters under 4
 issues into `mixed`; split any cluster over 12. Spawn one read-only research
 subagent per cluster **in one message** (`general-purpose`, Opus). Each prompt
 carries: the cluster's issues (number, title, labels, assignees, `updatedAt`,
-body), the merged and open PR lists, the pool leases, the standing rules and
+body), the merged and open PR lists, the worktree-pool leases, the standing rules and
 verdict table above verbatim, the path to `comment-formats.md`, and this
 charter:
 
