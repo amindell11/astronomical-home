@@ -1276,7 +1276,7 @@ function Invoke-RoutedPlatformRun {
         if ($missing.Count -gt 0) { $notes += "Executed set is missing $($missing.Count) expected test(s): $(@($missing | Select-Object -First 10) -join ', ')" }
         if ($extra.Count -gt 0) { $notes += "Executed set has $($extra.Count) unexpected test(s): $(@($extra | Select-Object -First 10) -join ', ')" }
     }
-    # A lost result may be a failure another call's rerun masked, so this fails even when parity holds.
+    # A dropped result may be a failure another call's rerun masked; fail regardless of parity.
     if ($droppedResults.Count -gt 0) {
         $status = "infra_error"
         $notes = $droppedResults + $notes

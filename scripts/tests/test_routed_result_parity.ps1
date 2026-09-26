@@ -42,7 +42,7 @@ function New-Plan([string[]]$Categories, [string[]]$Expected) {
         calls = @($Categories | ForEach-Object { @{ filter = $_; filterType = "category" } }); expected = $expectedSet }
 }
 
-# The observed failure: a mid-run domain reload leaves only the post-reload results beside a full summary.
+# Mid-run domain reload: only post-reload results survive beside a full summary.
 $Script:completions = @(New-Completion 3 @("T.C"))
 $run = Invoke-RoutedPlatformRun -Plan (New-Plan @("Sectors") @("T.A", "T.B", "T.C")) -Selection $null
 Assert-Equal "infra_error" $run.status "dropped results"
