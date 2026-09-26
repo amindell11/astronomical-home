@@ -13,7 +13,11 @@ Keeps the tracker true so the ready queue stays stocked without a manual pass.
 This file is the **triage sweep** (steps below) plus the reference both triage
 runs share; the **on-event triage** (issue opened / edited) is
 [`on-event.md`](on-event.md), the prompt `scripts/on_event_triage.sh` feeds its
-read-only `claude -p`. Arc brief and rulings: #617.
+read-only `claude -p`; the **merge reconcile** (push to main) is
+`scripts/merge_reconcile.sh`, mechanical: a Shipped note and board Done on the
+issues a merged PR closes, a Touched note on the open issues its body cites
+(formats in [`comment-formats.md`](comment-formats.md)). Arc brief and
+rulings: #617.
 
 ## Arguments
 

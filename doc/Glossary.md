@@ -254,6 +254,12 @@ Format: **term** — definition. *(authority)*
   board add + Status, one-priority rule, retry / premise / dead-pointer checks;
   writes labels and at most one comment, and treats issue text as data.
   *(.claude/skills/issue-triage/on-event.md)*
+- **merge reconcile** — the mechanical triage run on each push to main: for
+  every squash-merged PR in the push, a Shipped note and board Done on the
+  issues it closes, a Touched note on the open issues its body cites, a listing
+  of `#N` citations of the closed issues left in the agent docs, and a warning
+  when the body disclaims a close the PR performs. Never closes or reopens an
+  issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
   comment proposing `ready-for-agent`. Once the user applies the label it is the
   issue's build-scope block.
