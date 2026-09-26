@@ -3,8 +3,8 @@ Shader "Environment/Flat Background"
     Properties
     {
         _MainTex ("Clouds", 2D) = "black" {}
-        _RepeatDistance ("Repeat Distance (world units)", Float) = 20000
-        _ViewHeightInTiles ("View Height (tiles)", Range(0.1, 4)) = 0.5
+        _RepeatDistance ("Repeat Distance (world units)", Float) = 10000
+        _ViewHeightInTiles ("View Height (tiles)", Range(0.1, 4)) = 0.1
     }
     SubShader
     {

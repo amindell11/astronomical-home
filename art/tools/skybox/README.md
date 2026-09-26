@@ -180,8 +180,8 @@ report for old spherical presets (also printed as `FLATBG_MIGRATION=`).
 **Send Draft/Final to Unity** publishes the sidecar, then the EXR, into
 `Assets/Visuals/Environment/Flat/Generated` through the same `skybox_unity.publish`
 as skies. Unity imports the EXR natively (scene-linear, BC6H, Repeat, mips) and
-creates a matching `.mat` once; repeat distance (default 20,000 world units) and
-view height in tiles (default 0.5) live on that material. Assign it to the
+creates a matching `.mat` once; repeat distance (default 10,000 world units) and
+view height in tiles (default 0.1) live on that material. Assign it to the
 locale scene's `EnvironmentAuthoring` **Background** field: swap it in Play Mode
 to preview (Unity reverts on exit), or assign it in Edit Mode and save the scene
 to apply (native Undo).
