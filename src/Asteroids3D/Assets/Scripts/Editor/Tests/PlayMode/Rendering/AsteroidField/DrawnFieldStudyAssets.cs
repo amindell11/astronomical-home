@@ -20,10 +20,10 @@ namespace Tests.PlayMode.Rendering.AsteroidField
 
         public DrawnFieldStudyAssets()
         {
-            graphite = Load<Material>(Folder + "DrawnStudy/AsteroidSurfaceDrawing.mat");
+            graphite = Load<Material>(Folder + "DrawnField/FieldGraphite.mat");
             contour = new Material(Shader.Find("Astronomical/Comparison/Drawn Contour"));
-            contour.SetFloat("_ContourPixels", 5.5f);
-            contour.SetFloat("_ContourMinimum", .6f);
+            contour.SetFloat("_ContourPixels", 7.5f);
+            contour.SetFloat("_ContourMinimum", .85f);
             contour.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
             for (var i = 0; i < 10; i++)
             {
