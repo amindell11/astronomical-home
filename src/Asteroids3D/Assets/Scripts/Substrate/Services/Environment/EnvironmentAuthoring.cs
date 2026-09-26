@@ -32,8 +32,8 @@ namespace Substrate.Services.Environment
             properties = new MaterialPropertyBlock();
         }
 
-        private void OnEnable() => FlatBackgroundCamera.Rendering += Draw;
-        private void OnDisable() => FlatBackgroundCamera.Rendering -= Draw;
+        private void OnEnable() => EnvironmentCamera.Rendering += Draw;
+        private void OnDisable() => EnvironmentCamera.Rendering -= Draw;
         private void OnDestroy() => Destroy(triangle);
 
         public static Vector2 Offset(Vector3 position, float distance)

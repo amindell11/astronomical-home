@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace Substrate.Services.Environment
 {
     [RequireComponent(typeof(Camera)), DisallowMultipleComponent]
-    public sealed class FlatBackgroundCamera : MonoBehaviour, IPresentationPart
+    public sealed class EnvironmentCamera : MonoBehaviour, IPresentationPart
     {
         public static event Action<Camera> Rendering;
         private Camera cameraView;

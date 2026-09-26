@@ -35,7 +35,7 @@ namespace Tests.PlayMode.Presentation
             background = new Material(Shader.Find("Environment/Flat Background")) { mainTexture = texture };
             cameraRoot = new GameObject("Flight camera");
             cameraRoot.AddComponent<Camera>();
-            cameraRoot.AddComponent<FlatBackgroundCamera>();
+            cameraRoot.AddComponent<EnvironmentCamera>();
             environmentRoot = new GameObject("Environment");
             environmentRoot.SetActive(false);
             var authoring = environmentRoot.AddComponent<EnvironmentAuthoring>();
