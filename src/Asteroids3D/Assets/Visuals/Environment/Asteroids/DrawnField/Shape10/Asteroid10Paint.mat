@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Asteroid10Paint
+  m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _NORMALMAP
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 39c0ce05f08e4e75877bf96ffec0d0d1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 6ff7b50b5b2e401e8aa978fab244e768, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WearMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BumpScale: 0.85
+    - _UseRelief: 1
+    - _AmbientStrength: 0.35
+    - _CastShadowStrength: 0.96
+    - _DetailAlbedoMapScale: 0
+    - _EmissionStrength: 0
+    - _LineSoftness: 0.02
+    - _LineStrength: 0
+    - _LineThreshold: 0.035
+    - _PaletteLighting: 1
+    - _PigmentPreservation: 0
+    - _ShadowSoftness: 0.18
+    - _ShadowThreshold: 0.55
+    - _SpecularStrength: 0
+    - _TextureStrength: 1
+    - _WearStrength: 0.08
+    m_Colors:
+    - _BaseColor: {r: 3, g: 1.5, b: 0.6, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PaperColor: {r: 0.65, g: 0.7, b: 0.75, a: 1}
+    - _ShadowColor: {r: 0.22, g: 0.45, b: 1.5, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
