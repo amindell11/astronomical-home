@@ -22,9 +22,9 @@ namespace Game
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
     /// observer camera) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
     /// sector, play until the sector ends or the player dies, death recap, unload. It owns the clock,
-    /// splash, hangar, recap, restart and the one EventSystem; the session only composes, loads and
-    /// unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer camera),
-    /// <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
+    /// splash, hangar, recap, restart, kill refill and the one EventSystem; the session only composes,
+    /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer
+    /// camera), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
     /// The hangar, recap and restart stand in for Home Base, multi-sector runs and player progress;
     /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
@@ -67,6 +67,10 @@ namespace Game
         [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +
                  "reloads the active sector; None does nothing.")]
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
+
+        [Header("Kill Refill")]
+        [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
+        [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Death Recap")]
         [Tooltip("Seconds the death recap holds before auto-continuing; the Continue button skips " +
@@ -119,8 +123,11 @@ namespace Game
             yield return session.Compose();
             observer = BuildObserver(session.Units, presentation, viewport);
             if (playerRig)
+            {
                 yield return playerRig.Build(session.Units, session.Objectives, presentation,
                     observer, ui, session.Frame, BuildDeathCallback());
+                playerRig.Tally.Killed += RefillPlayerHull;
+            }
 
             while (true)
             {
@@ -207,6 +214,8 @@ namespace Game
                     return null;
             }
         }
+
+        private void RefillPlayerHull() => playerRig.Player.Damage.Health.RestoreFraction(killHullRestore);
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)

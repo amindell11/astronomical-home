@@ -650,8 +650,12 @@ Format: **term** — definition. *(authority)*
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
   hangar can rebuild the player); only deaths between the game host's clock
-  stamps count (begin after the sector load, end at player death). Reset at each
-  run's loadout step. *(RunTally)*
+  stamps count (begin after the sector load, end at player death). Raises
+  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the fraction of max hull the game host restores to the
+  player each time the run tally counts a kill; hull only (ammo or heat on a kill
+  would be a reset button, and the shield already regens). Interactive sessions
+  only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.
