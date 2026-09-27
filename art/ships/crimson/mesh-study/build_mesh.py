@@ -16,11 +16,20 @@ bpy.context.preferences.filepaths.save_version = 0
 scene = bpy.context.scene
 scene.name = 'Crimson - mesh only'
 collections = {}
-for name in ('01 Hull and cockpit', '02 Upper wings', '03 Lower wings', '04 Fins and spars',
+for name in ('00 Symmetry controls', '01 Hull and cockpit', '02 Upper wings', '03 Lower wings', '04 Fins and spars',
              '05 Engines', '90 References - toggle to compare', '99 Inspection cameras'):
     collection = bpy.data.collections.new(name)
     scene.collection.children.link(collection)
     collections[name] = collection
+mirror_center = bpy.data.objects.new('SHIP CENTER - mirror plane', None)
+collections['00 Symmetry controls'].objects.link(mirror_center)
+mirror_center.empty_display_type = 'PLAIN_AXES'
+mirror_center.empty_display_size = .15
+mirror_center.lock_location = (True, True, True)
+mirror_center.lock_rotation = (True, True, True)
+mirror_center.lock_scale = (True, True, True)
+mirror_center.hide_select = True
+mirror_center.hide_render = True
 parts = []
 pitch = math.radians(-5.5)
 
@@ -46,6 +55,7 @@ def mesh(name, vertices, faces, collection, mirror=False, smooth=False):
     obj.color = (.58, .62, .66, 1)
     if mirror:
         modifier = obj.modifiers.new('Opposite wing', 'MIRROR')
+        modifier.mirror_object = mirror_center
         modifier.use_clip = True
         modifier.use_mirror_merge = True
     for face in data.polygons:

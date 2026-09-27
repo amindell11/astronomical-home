@@ -26,11 +26,20 @@ bpy.context.preferences.filepaths.save_version = 0
 scene = bpy.context.scene
 scene.name = 'Crimson - original top constrained'
 collections = {}
-for name in ('01 Hull and cockpit', '02 Upper wings', '03 Lower wings',
+for name in ('00 Symmetry controls', '01 Hull and cockpit', '02 Upper wings', '03 Lower wings',
              '04 Fins and spars', '05 Engines', '90 References', '99 Cameras'):
     col = bpy.data.collections.new(name)
     scene.collection.children.link(col)
     collections[name] = col
+mirror_center = bpy.data.objects.new('SHIP CENTER - mirror plane', None)
+collections['00 Symmetry controls'].objects.link(mirror_center)
+mirror_center.empty_display_type = 'PLAIN_AXES'
+mirror_center.empty_display_size = .15
+mirror_center.lock_location = (True, True, True)
+mirror_center.lock_rotation = (True, True, True)
+mirror_center.lock_scale = (True, True, True)
+mirror_center.hide_select = True
+mirror_center.hide_render = True
 parts = []
 reference_image = bpy.data.images.load(str(REFERENCE))
 pixels = np.asarray(reference_image.pixels[:]).reshape(1024,1024,4)[::-1]
@@ -82,6 +91,7 @@ def mesh(name, vertices, faces, collection, mirror=False):
     collections[collection].objects.link(obj)
     if mirror:
         mod = obj.modifiers.new('Port and starboard symmetry', 'MIRROR')
+        mod.mirror_object = mirror_center
         mod.use_clip = True
     parts.append(obj)
     return obj

@@ -5,6 +5,11 @@ three-quarter view with the upper wing selected. Collections separate the hull,
 upper wings, lower wings, fins/spars, and engines. Paired parts retain their Mirror
 modifiers; the canopy retains one subdivision level over its editable cage.
 
+`CrimsonMesh-CenteredMirror.blend` preserves the editing session with the Object
+Mode mirror correction. Mirror modifiers reference the locked `SHIP CENTER -
+mirror plane` empty, keeping symmetry fixed when a part moves or rotates. The
+builder also uses this target when reconstructing `CrimsonMesh.blend`.
+
 The hidden reference collection holds the original AI mesh, original top drawing,
 and the selected profile concept. Reference images are packed. The AI mesh is only
 a rough guide and is excluded from export. New ship parts have no material slots,
