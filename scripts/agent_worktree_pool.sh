@@ -73,6 +73,10 @@ Commands:
       free slots over stale-lock reclaims. Naming a slot is strict:
       if it isn't free (or safely reclaimable) acquire FAILS — no
       silent fallback to auto-pick.
+      A free slot is handed back prepared at origin/main (as prepare,
+      keeping ignored dirs); when prepare refuses (the slot holds unpushed
+      work) acquire releases the slot untouched and fails - auto-pick does
+      not move on to another slot. A reclaimed stale slot is not prepared.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
@@ -102,8 +106,9 @@ Commands:
 
   resume <lease> [slot]
       Put held work back on a slot. Reads local held/<lease>, else
-      origin/held/<lease>. Acquires <slot> (strict, as acquire), else the
-      slot the work left if free, else any; refuses a slot holding unpushed work.
+      origin/held/<lease>. Acquires <slot> (strict, as acquire, but never
+      prepared), else the slot the work left if free, else any; refuses a
+      slot holding unpushed work.
       Resets the slot branch to the held HEAD and restores the snapshot as
       uncommitted changes (staged edits come back unstaged), then deletes
       held/<lease> locally and on origin.
@@ -735,15 +740,28 @@ reclaim_stale_slot() {
   echo "SLOT=$slot PATH=$path"
 }
 
-cmd_acquire() {
-  local lease="${1:-task-$(date +%Y%m%d-%H%M%S)}"
-  local wanted="${2:-}"
+# A free slot can still carry a released task's tree: acquire hands it back prepared at origin/main, or not at all.
+claim_prepared_slot() {
+  local slot="$1" lease="$2" path="$3" out
+  out="$(try_lock_slot "$slot" "$lease" "$path")" || return 1
+  # A child process keeps prepare's errexit, which a failure-handling context would switch off.
+  if ! bash "$SCRIPT_DIR/agent_worktree_pool.sh" prepare "$slot" origin/main >&2; then
+    with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || true
+    echo "acquire: $slot is free but could not be prepared, so it was released untouched." >&2
+    exit 1
+  fi
+  echo "$out"
+}
+
+# <claim> takes a free slot: resume passes try_lock_slot, since it resets the slot to its held snapshot itself.
+lock_slot() {
+  local lease="$1" wanted="$2" claim="$3"
 
   # A named slot is strict: the caller chose it for state the pool can't see — silently handing back a different slot recreates the surprise naming was meant to remove.
   if [[ -n "$wanted" ]]; then
     local path
     path="$(slot_path "$wanted")" || { echo "acquire: unknown slot '$wanted'" >&2; return 1; }
-    try_lock_slot "$wanted" "$lease" "$path" && return 0
+    "$claim" "$wanted" "$lease" "$path" && return 0
     try_reclaim_slot "$wanted" "$lease" "$path" && return 0
     echo "acquire: $wanted unavailable (lease=$(lease_for "$wanted")); no fallback when a slot is named." >&2
     return 1
@@ -752,7 +770,7 @@ cmd_acquire() {
   # Free slots first; reclaiming a stale lock crosses another session's expectations, so it is a fallback pass, never interleaved.
   local slot path
   while IFS=$'\t' read -r slot path; do
-    try_lock_slot "$slot" "$lease" "$path" && return 0
+    "$claim" "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
   while IFS=$'\t' read -r slot path; do
     try_reclaim_slot "$slot" "$lease" "$path" && return 0
@@ -761,6 +779,8 @@ cmd_acquire() {
   echo "No free slots" >&2
   return 1
 }
+
+cmd_acquire() { lock_slot "${1:-task-$(date +%Y%m%d-%H%M%S)}" "${2:-}" claim_prepared_slot; }
 
 cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
 
@@ -903,13 +923,13 @@ cmd_resume() {
   base="$(git -C "$ROOT" rev-parse "$snap^1")"
 
   if [[ -n "$wanted" ]]; then
-    out="$(cmd_acquire "$lease" "$wanted")" || return 1
+    out="$(lock_slot "$lease" "$wanted" try_lock_slot)" || return 1
   else
     hint="$(held_trailer "$snap" Held-Slot)"
     if [[ -n "$hint" ]] && hint_path="$(slot_path "$hint" 2>/dev/null)"; then
       out="$(try_lock_slot "$hint" "$lease" "$hint_path")" || out=""
     fi
-    [[ -n "$out" ]] || out="$(cmd_acquire "$lease")" || return 1
+    [[ -n "$out" ]] || out="$(lock_slot "$lease" "" try_lock_slot)" || return 1
   fi
   slot="${out#SLOT=}"
   slot="${slot%% PATH=*}"
