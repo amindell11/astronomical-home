@@ -7,6 +7,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
         [Normal] _BumpMap ("Sculpted Relief Normal", 2D) = "bump" {}
         _BumpScale ("Relief Strength", Range(0,2)) = 1
         _BaseColor ("Hull Color / Hit Flash", Color) = (1,1,1,1)
+        _OrangeGain ("Orange Paint RGB Gain", Vector) = (1,1,1,0)
         _PaperColor ("Surface Palette", Color) = (0.65,0.7,0.75,1)
         _TextureStrength ("Painted Surface Strength", Range(0,1)) = 0.65
         _PigmentPreservation ("Preserve Saturated Paint", Range(0,1)) = 0
@@ -37,6 +38,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST, _DetailAlbedoMap_ST;
             half4 _BaseColor, _PaperColor, _ShadowColor, _EmissionColor;
+            half4 _OrangeGain;
             half _TextureStrength, _PigmentPreservation, _LineStrength, _LineThreshold, _LineSoftness, _WearStrength;
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
@@ -104,6 +106,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
             half4 SurfaceFragment(SurfaceOutput input) : SV_Target
             {
                 half3 painted = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
+                half orange = smoothstep(0.15, 0.3, painted.r - painted.g) * smoothstep(0.06, 0.15, painted.g - painted.b);
+                painted *= lerp(1, _OrangeGain.rgb, orange);
                 half luminance = dot(painted, half3(0.2126,0.7152,0.0722));
                 half marks = 1 - smoothstep(_LineThreshold, _LineThreshold + _LineSoftness, luminance);
                 half brightest = max(painted.r, max(painted.g, painted.b));

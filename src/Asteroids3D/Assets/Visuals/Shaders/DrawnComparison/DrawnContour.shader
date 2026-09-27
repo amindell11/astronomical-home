@@ -3,8 +3,9 @@ Shader "Astronomical/Comparison/Drawn Contour"
     Properties
     {
         _ContourColor ("Contour Color", Color) = (0.025,0.035,0.065,1)
-        _ContourPixels ("Shadow Side Width (Pixels)", Range(0,8)) = 3.2
+        _ContourPixels ("Contour Width (Pixels)", Range(0,12)) = 3.2
         _ContourMinimum ("Lit Side Width Fraction", Range(0,1)) = 0.25
+        _UniformWidth ("Uniform Screen Width", Range(0,1)) = 0
     }
     SubShader
     {
@@ -22,7 +23,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _ContourColor;
-                float _ContourPixels, _ContourMinimum;
+                float _ContourPixels, _ContourMinimum, _UniformWidth;
             CBUFFER_END
             struct ContourInput
             {
@@ -42,6 +43,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
                 float3 viewDirection = GetWorldSpaceNormalizeViewDir(TransformObjectToWorld(input.positionOS.xyz));
                 float facing = dot(normalWS, viewDirection);
                 width *= sqrt(saturate(1 - facing * facing));
+                width = lerp(width, _ContourPixels, _UniformWidth);
                 positionCS.xy += direction * (2 * width / _ScaledScreenParams.xy) * positionCS.w;
                 return positionCS;
             }

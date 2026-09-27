@@ -10,6 +10,7 @@ using Tests.PlayMode.Rendering.AsteroidField;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -34,6 +35,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
             var previousAmbient = RenderSettings.ambientLight;
             var previousMode = RenderSettings.ambientMode;
             var previousTarget = RenderTexture.active;
+            var minimumOutlineCoverage = 1f;
             try
             {
                 QualitySettings.SetQualityLevel(Array.IndexOf(QualitySettings.names, "High Fidelity"), true);
@@ -53,23 +55,44 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 camera.transform.SetParent(root.transform, false);
                 camera.enabled = false;
                 camera.orthographic = true;
-                camera.allowHDR = false;
+                camera.allowHDR = true;
                 camera.allowMSAA = true;
                 camera.nearClipPlane = 50;
                 camera.farClipPlane = 70;
                 camera.clearFlags = CameraClearFlags.SolidColor;
                 camera.backgroundColor = new Color(.045f, .062f, .105f);
                 camera.cullingMask = 1 << 30;
-                var target = new RenderTexture(1600, 900, 24) { antiAliasing = 4 };
+                var cameraData = camera.GetUniversalAdditionalCameraData();
+                cameraData.renderPostProcessing = true;
+                cameraData.volumeLayerMask = 1 << 30;
+                var volume = new GameObject("Pod bloom", typeof(Volume)).GetComponent<Volume>();
+                volume.gameObject.layer = 30;
+                volume.transform.SetParent(root.transform, false);
+                volume.isGlobal = true;
+                volume.priority = 100;
+                var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                owned.Add(profile);
+                volume.sharedProfile = profile;
+                var bloom = profile.Add<Bloom>(true);
+                owned.Add(bloom);
+                bloom.threshold.value = 1.1f;
+                bloom.intensity.value = .8f;
+                bloom.scatter.value = .65f;
+                var target = new RenderTexture(1600, 900, 24, RenderTextureFormat.ARGBHalf) { antiAliasing = 4 };
+                var encoded = new RenderTexture(1600, 900, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                 var image = new Texture2D(1600, 900, TextureFormat.RGB24, false);
-                owned.Add(target); owned.Add(image);
+                owned.Add(target); owned.Add(encoded); owned.Add(image);
                 camera.targetTexture = target;
                 var config = new CaptureConfig { width = 1600, height = 900, minHalfHeight = 3.8f, padding = 0 };
                 CaptureFraming.Apply(camera, config, new[] { Vector2.zero });
                 Color32[] Read(string name)
                 {
                     camera.Render();
-                    RenderTexture.active = target;
+                    var previousSrgbWrite = GL.sRGBWrite;
+                    GL.sRGBWrite = true;
+                    Graphics.Blit(target, encoded);
+                    GL.sRGBWrite = previousSrgbWrite;
+                    RenderTexture.active = encoded;
                     image.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
                     image.Apply();
                     File.WriteAllBytes(Path.Combine(output, name + ".png"), image.EncodeToPNG());
@@ -133,9 +156,10 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 ship.transform.SetParent(pose.transform, true);
                 var texture = Load<Texture2D>(Assets + "VanguardBaseColor.png");
                 var contour = NewMaterial("Astronomical/Comparison/Drawn Contour");
-                contour.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
-                contour.SetFloat("_ContourPixels", 7.5f);
+                contour.SetColor("_ContourColor", Color.black);
+                contour.SetFloat("_ContourPixels", 10);
                 contour.SetFloat("_ContourMinimum", .8f);
+                contour.SetFloat("_UniformWidth", 1);
                 var outlines = new List<GameObject>();
                 var standard = new List<Material>();
                 var drawn = new List<Material>();
@@ -152,6 +176,10 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     if (!core && !canopy) plain.SetTexture("_BaseMap", texture);
                     var paint = NewMaterial("Astronomical/Comparison/Drawn Surface");
                     paint.SetColor("_BaseColor", tint);
+                    var sourceOrange = new Color(234 / 255f, 148 / 255f, 31 / 255f).linear;
+                    var referenceOrange = new Color(251 / 255f, 135 / 255f, 22 / 255f).linear;
+                    paint.SetVector("_OrangeGain", new Vector4(referenceOrange.r / sourceOrange.r,
+                        referenceOrange.g / sourceOrange.g, referenceOrange.b / sourceOrange.b, 0));
                     paint.SetFloat("_TextureStrength", 1);
                     paint.SetFloat("_LineStrength", 0);
                     paint.SetFloat("_WearStrength", 0);
@@ -167,17 +195,30 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     {
                         plain.SetColor("_BaseColor", Color.black);
                         plain.EnableKeyword("_EMISSION");
-                        plain.SetColor("_EmissionColor", tint.linear);
+                        var emission = new Color(.15f, 1.8f, 6);
+                        plain.SetColor("_EmissionColor", emission);
                         paint.SetColor("_BaseColor", Color.black);
                         paint.SetTexture("_EmissionMap", Texture2D.whiteTexture);
-                        paint.SetColor("_EmissionColor", tint.linear);
+                        paint.SetColor("_EmissionColor", emission);
                         paint.SetFloat("_EmissionStrength", 1);
                     }
                     standard.Add(plain); drawn.Add(paint);
                     var outline = new GameObject("Silhouette", typeof(MeshFilter), typeof(MeshRenderer));
                     outline.transform.SetParent(renderer.transform, false);
                     outline.layer = 30;
-                    outline.GetComponent<MeshFilter>().sharedMesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                    var contourMesh = Object.Instantiate(renderer.GetComponent<MeshFilter>().sharedMesh);
+                    owned.Add(contourMesh);
+                    var vertices = contourMesh.vertices;
+                    var normals = contourMesh.normals;
+                    var joined = new Dictionary<Vector3, Vector3>();
+                    for (var v = 0; v < vertices.Length; v++)
+                    {
+                        joined.TryGetValue(vertices[v], out var normal);
+                        joined[vertices[v]] = normal + normals[v];
+                    }
+                    for (var v = 0; v < vertices.Length; v++) normals[v] = joined[vertices[v]].normalized;
+                    contourMesh.normals = normals;
+                    outline.GetComponent<MeshFilter>().sharedMesh = contourMesh;
                     var ink = outline.GetComponent<MeshRenderer>();
                     ink.sharedMaterial = contour;
                     ink.shadowCastingMode = ShadowCastingMode.Off;
@@ -204,9 +245,9 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     Read(label + "-quarter");
                     pose.transform.rotation = Quaternion.identity;
                     camera.orthographicSize = 26;
-                    contour.SetFloat("_ContourPixels", 3.5f);
+                    contour.SetFloat("_ContourPixels", 4.5f);
                     Read(label + "-gameplay");
-                    contour.SetFloat("_ContourPixels", 7.5f);
+                    contour.SetFloat("_ContourPixels", 10);
                 }
                 camera.orthographicSize = 3.8f;
                 pose.transform.rotation = Quaternion.Euler(28, -24, -30);
@@ -256,31 +297,85 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     backgroundRenderer.receiveShadows = false;
                     camera.orthographicSize = 26;
                     backdrop.transform.localScale = new Vector3(52 * camera.aspect, 52, 1);
-                    contour.SetFloat("_ContourPixels", 3.5f);
+                    contour.SetFloat("_ContourPixels", 4.5f);
                     Read("nebula-field");
                     camera.orthographicSize = 14;
                     backdrop.transform.localScale = new Vector3(28 * camera.aspect, 28, 1);
-                    contour.SetFloat("_ContourPixels", 7.5f);
+                    contour.SetFloat("_ContourPixels", 10);
                     Read("nebula-close");
                     field.SetActive(false);
                     pose.transform.rotation = Quaternion.Euler(55, -10, -50);
                     pose.transform.position = new Vector3(1.8f, -.3f, 0);
                     camera.orthographicSize = 3.5f;
                     backdrop.transform.localScale = new Vector3(7 * camera.aspect, 7, 1);
-                    background.SetTexture("_BaseMap", Load<Texture2D>(Assets + "PlanetBackground-v1.png"));
+                    background.SetTexture("_BaseMap", Load<Texture2D>(Assets + "PlanetBackground-v2-ui.png"));
                     Read("hero-space");
+                    bloom.intensity.value = 0;
+                    var noBloom = Read("hero-space-no-bloom");
+                    bloom.intensity.value = .8f;
+                    var withBloom = Read("hero-space");
+                    Assert.That(Difference(noBloom, withBloom), Is.GreaterThan(100), "The HDR pods must produce visible bloom.");
                     var hangar = NewMaterial("Astronomical/Comparison/Shadowed Plate");
-                    hangar.SetTexture("_BaseMap", Load<Texture2D>(Assets + "HangarBackground-v1.png"));
+                    hangar.SetTexture("_BaseMap", Load<Texture2D>(Assets + "HangarBackground-v2-ui.png"));
                     hangar.SetColor("_ShadowColor", new Color(.3f, .35f, .55f));
                     backgroundRenderer.sharedMaterial = hangar;
                     backgroundRenderer.receiveShadows = true;
                     backdrop.transform.position = new Vector3(0, 0, 3);
                     Read("hero-hangar");
+                    bloom.intensity.value = 0;
+                    backdrop.SetActive(false);
+                    structure.gameObject.SetActive(false);
+                    var white = NewMaterial("Astronomical/Comparison/Drawn Surface");
+                    white.SetColor("_BaseColor", Color.black);
+                    white.SetTexture("_EmissionMap", Texture2D.whiteTexture);
+                    white.SetColor("_EmissionColor", Color.white);
+                    white.SetFloat("_EmissionStrength", 1);
+                    white.SetFloat("_SpecularStrength", 0);
+                    foreach (var renderer in renderers) renderer.sharedMaterial = white;
+                    foreach (var (label, rotation) in new[]
+                    {
+                        ("hero", Quaternion.Euler(55, -10, -50)),
+                        ("top", Quaternion.identity), ("bank", Quaternion.Euler(0, 30, 0))
+                    })
+                    {
+                        pose.transform.rotation = rotation;
+                        foreach (var outline in outlines) outline.SetActive(false);
+                        camera.backgroundColor = Color.black;
+                        var silhouette = Read("outline-mask-" + label);
+                        foreach (var outline in outlines) outline.SetActive(true);
+                        camera.backgroundColor = Color.white;
+                        var border = Read("outline-proof-" + label);
+                        var expected = 0;
+                        var covered = 0;
+                        for (var y = 3; y < target.height - 3; y++)
+                        for (var x = 3; x < target.width - 3; x++)
+                        {
+                            var index = y * target.width + x;
+                            if (silhouette[index].r > 32) continue;
+                            var adjacent = false;
+                            for (var dy = -3; dy <= 3 && !adjacent; dy++)
+                            for (var dx = -3; dx <= 3; dx++)
+                                if (dx * dx + dy * dy <= 9 && silhouette[index + dy * target.width + dx].r > 240)
+                                {
+                                    adjacent = true;
+                                    break;
+                                }
+                            if (!adjacent) continue;
+                            expected++;
+                            if (border[index].r < 30 && border[index].g < 30 && border[index].b < 30) covered++;
+                        }
+                        Assert.That(expected, Is.GreaterThan(1000));
+                        var coverage = (float)covered / expected;
+                        minimumOutlineCoverage = Mathf.Min(minimumOutlineCoverage, coverage);
+                        Assert.That(coverage, Is.GreaterThan(.95f),
+                            label + ": a dark three-pixel band must touch the rendered hull, including sharp tips and split panels.");
+                    }
                 }
                 File.WriteAllText(Path.Combine(output, "capture.json"), JsonUtility.ToJson(new CaptureEvidence
                 {
                     model = Assets + "VanguardStructure.fbx", lengthWorld = 6, gameplayHalfHeight = 26,
-                    changedLightingPixels = Difference(firstLight, secondLight), changedTreatmentPixels = Difference(before, after)
+                    changedLightingPixels = Difference(firstLight, secondLight), changedTreatmentPixels = Difference(before, after),
+                    minimumOutlineCoverage = minimumOutlineCoverage
                 }, true));
 
                 Material NewMaterial(string shaderName)
@@ -324,6 +419,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
         {
             public string model;
             public float lengthWorld, gameplayHalfHeight;
+            public float minimumOutlineCoverage;
             public int changedLightingPixels, changedTreatmentPixels;
         }
     }
