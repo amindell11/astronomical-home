@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Hermetic regression for scripts/sweep_leads.sh: each lead kind, the --since cut (day and
 # timestamp), a fenced #N or path is not a lead, a quiet issue lands in QUIET=, the --out packet
-# layout, and the exit codes. gh is a stub on PATH answering from fixtures; the dead-path lookup
+# layout (citing paragraphs, list items and table rows only), and the exit codes. gh is a stub on PATH answering from fixtures; the dead-path lookup
 # runs against origin/main of a throwaway git tree.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -68,7 +68,8 @@ def pr(n, title, body, closes=(), merged=new):
             "closingIssuesReferences": [{"number": c} for c in closes]}
 merged = [
     pr(100, "feat: thing (#2)", "No refs here."),
-    pr(101, "feat: other", "Intro paragraph.\n\nAdvances #3 by a step.\n\nUnrelated closing paragraph.\n\n```\n#7 in a fence\n```"),
+    pr(101, "feat: other", "Intro paragraph.\n\nAdvances #3 by a step.\n\nUnrelated closing paragraph.\n\n```\n#7 in a fence\n```\n\n"
+       "Items:\n- one for #3\n  continued\n- two for #9\n\n| # | verdict |\n|---|---|\n| #3 | keep |\n| #9 | done |"),
     pr(102, "feat: closer", "Body without refs.", closes=[4]),
     pr(103, "feat: early", "Advances #1.", merged="2026-09-21T10:00:00Z"),
     pr(104, "feat: same day", "Advances #1 too.", merged="2026-09-22T10:00:00Z"),
@@ -141,7 +142,7 @@ P="$OUT/issue-3.md"
 grep -q '^labels: tooling · assignees: none · updatedAt: 2026-09-20T10:00:00Z$' "$P" || fail "packet metadata line"
 grep -q '^<issue-body number=3>$' "$P" && grep -q '^</issue-body>$' "$P" || fail "issue body is delimited"
 grep -q '^### PR #101 — feat: other$' "$P" || fail "citing PR heading"
-[[ "$(sed -n '/^<pr-body number=101>$/,/^<\/pr-body>$/p' "$P")" == "$(printf '<pr-body number=101>\nAdvances #3 by a step.\n</pr-body>')" ]] \
-  || fail "only the citing paragraph of the PR body is carried (got: $(cat "$P"))"
+[[ "$(sed -n '/^<pr-body number=101>$/,/^<\/pr-body>$/p' "$P")" == "$(printf '<pr-body number=101>\nAdvances #3 by a step.\n\n- one for #3\n  continued\n\n| # | verdict |\n| #3 | keep |\n</pr-body>')" ]] \
+  || fail "only the citing paragraphs, list items and table rows are carried (got: $(cat "$P"))"
 
 echo "test_sweep_leads: PASS"

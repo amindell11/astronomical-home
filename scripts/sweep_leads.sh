@@ -11,7 +11,8 @@ set -euo pipefail
 #                   issue's number, title, labels, assignees, updatedAt, its leads, its body inside
 #                   <issue-body number=N> … </issue-body>, and per citing PR its number, title,
 #                   mergedAt, closing refs and only the body paragraphs citing #N inside
-#                   <pr-body number=M> … </pr-body>.
+#                   <pr-body number=M> … </pr-body> (a list item or table row is a paragraph;
+#                   a row keeps its table's header row).
 # Lead kinds, per open issue #N:
 #   cited         a PR merged on/after --since names #N in its title, its body prose outside
 #                 code fences, or its closingIssuesReferences (merge_reconcile.sh's prose rule)
@@ -131,9 +132,25 @@ for pr in merged:
 
 closed_at = {i["number"]: i["closedAt"] for i in closed if i.get("closedAt") and ts(i["closedAt"]) >= since}
 
+# A list item or table row is its own paragraph, so one report table cannot flood every packet.
+ITEM = re.compile(r"^\s*(?:(?:[-*+]|\d+[.)])\s|\|)")
+
 def cite_paragraphs(pr, n):
     pat = re.compile(rf"(?<![\w/])#{n}\b")
-    return [p.strip() for p in re.split(r"\n\s*\n", pr["_prose"]) if pat.search(p)]
+    found = []
+    for para in re.split(r"\n\s*\n", pr["_prose"].strip()):
+        lines = para.splitlines()
+        header = next((l for l in lines if l.lstrip().startswith("|")), None)
+        chunks = []
+        for line in lines:
+            if chunks and not ITEM.match(line):
+                chunks[-1] += "\n" + line
+            else:
+                chunks.append(line)
+        for c in chunks:
+            if pat.search(c):
+                found.append(f"{header}\n{c}" if header and c != header and c.lstrip().startswith("|") else c)
+    return found
 
 def hashes(ns): return ", ".join(f"#{n}" for n in ns) or "none"
 
