@@ -4,8 +4,9 @@ set -euo pipefail
 
 # Hermetic regression for scripts/sweep_leads.sh: each lead kind, the --since cut (day and
 # timestamp), a fenced #N or path is not a lead, a quiet issue lands in QUIET=, the --out packet
-# layout (citing paragraphs, list items and table rows only), and the exit codes. gh is a stub on PATH answering from fixtures; the dead-path lookup
-# runs against origin/main of a throwaway git tree.
+# layout (citing paragraphs, list items and table rows only), and the exit codes.
+# gh is a stub on PATH answering from fixtures; the dead-path lookup runs against origin/main of
+# a throwaway git tree.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LEADS="$SCRIPT_DIR/../sweep_leads.sh"

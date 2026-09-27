@@ -21,7 +21,7 @@ set -euo pipefail
 #                 backticked token ending in `/`) matches no path, nor path suffix, tracked at
 #                 origin/main of the git repo at the working directory — the caller fetches
 #   updated       the issue's own updatedAt is on/after --since
-# Exit: 0 done · 1 infra (gh or git failed, or a listing reached its limit) · 2 usage.
+# Exit: 0 done · 1 infra (gh or git failed, or a listing reached its 1000-row limit) · 2 usage.
 # Stdout trailers, one per line, stable:
 #   LED=<n,…>  QUIET=<n,…>  (ascending; every open issue is in exactly one)
 #   CITED=<count>  CHILD_CLOSED=<count>  DEAD_PATH=<count>  UPDATED=<count>  (led issues per kind)
@@ -132,11 +132,10 @@ for pr in merged:
 
 closed_at = {i["number"]: i["closedAt"] for i in closed if i.get("closedAt") and ts(i["closedAt"]) >= since}
 
-# A list item or table row is its own paragraph, so one report table cannot flood every packet.
+# Items and rows split apart so one PR's report table cannot flood every packet.
 ITEM = re.compile(r"^\s*(?:(?:[-*+]|\d+[.)])\s|\|)")
 
 def cite_paragraphs(pr, n):
-    pat = re.compile(rf"(?<![\w/])#{n}\b")
     found = []
     for para in re.split(r"\n\s*\n", pr["_prose"].strip()):
         lines = para.splitlines()
@@ -148,7 +147,7 @@ def cite_paragraphs(pr, n):
             else:
                 chunks.append(line)
         for c in chunks:
-            if pat.search(c):
+            if n in refs(c):
                 found.append(f"{header}\n{c}" if header and c != header and c.lstrip().startswith("|") else c)
     return found
 

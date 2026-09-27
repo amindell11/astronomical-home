@@ -27,7 +27,7 @@ rulings: #617.
   every tracker write printed as its command instead of run. The closing report
   matches a live run's, plus the `updatedAt` check (Step 7).
 - `--since <date>` — research only the issues with a sweep lead since `<date>`
-  (a date or an ISO timestamp); every other open issue gets the report row
+  (a date, or an ISO timestamp with an offset or Z); every other open issue gets the report row
   `keep — no lead since <date>` and no subagent.
 - `#N …` — examine only these issues, researched whether or not they have a lead.
 
