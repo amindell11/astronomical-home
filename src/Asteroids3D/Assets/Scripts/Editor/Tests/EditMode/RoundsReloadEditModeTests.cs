@@ -132,5 +132,95 @@ namespace Tests.EditMode
             rounds.Tick(1f);
             Assert.AreEqual(0f, rounds.ReloadProgress, 0.0001f, "Progress reads 0 once reload completes.");
         }
+
+        [Test]
+        public void PerRound_EachRoundReturnsOnItsOwnTimer_AndFiresWhileRegenerating()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f, Rounds.RefillMode.PerRound);
+
+            rounds.ProcessFire();
+            Assert.IsTrue(rounds.IsReloading, "Regen starts on the first shot, not on empty.");
+            rounds.Tick(0.5f);
+            Assert.IsTrue(rounds.CanFire());
+            rounds.ProcessFire();
+            Assert.AreEqual(1, rounds.AmmoCount);
+
+            rounds.Tick(0.5f);
+            Assert.AreEqual(2, rounds.AmmoCount, "First round is back one reloadTime after it was fired.");
+            Assert.IsTrue(rounds.IsReloading);
+
+            rounds.Tick(0.5f);
+            Assert.AreEqual(3, rounds.AmmoCount);
+            Assert.IsFalse(rounds.IsReloading);
+        }
+
+        [Test]
+        public void PerRound_RefillCapsAtMax()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f, Rounds.RefillMode.PerRound);
+            FireUntilEmpty();
+
+            rounds.Tick(10f);
+
+            Assert.AreEqual(3, rounds.AmmoCount);
+            Assert.IsFalse(rounds.IsReloading);
+        }
+
+        [Test]
+        public void PerRound_ReloadEvents_FireOnlyOnIdleEdges()
+        {
+            rounds.Configure(maxAmmo: 2, reloadTime: 1f, Rounds.RefillMode.PerRound);
+            var started = 0;
+            var completed = 0;
+            var lastAmmoNotified = -1;
+            rounds.OnReloadStarted += () => started++;
+            rounds.OnReloadCompleted += () => completed++;
+            rounds.OnAmmoCountChanged += ammo => lastAmmoNotified = ammo;
+
+            rounds.ProcessFire();
+            rounds.Tick(0.5f);
+            rounds.ProcessFire();
+            Assert.AreEqual(1, started);
+
+            rounds.Tick(0.5f);
+            Assert.AreEqual(0, completed, "One round still regenerating.");
+            Assert.AreEqual(1, lastAmmoNotified);
+
+            rounds.Tick(0.5f);
+            Assert.AreEqual(1, completed);
+            Assert.AreEqual(2, lastAmmoNotified);
+        }
+
+        [Test]
+        public void PerRound_ReloadProgress_TracksSoonestRound()
+        {
+            rounds.Configure(maxAmmo: 2, reloadTime: 2f, Rounds.RefillMode.PerRound);
+
+            rounds.ProcessFire();
+            rounds.Tick(1f);
+            rounds.ProcessFire();
+            Assert.AreEqual(0.5f, rounds.ReloadProgress, 0.0001f);
+
+            rounds.Tick(1f);
+            Assert.AreEqual(0.5f, rounds.ReloadProgress, 0.0001f, "Second round is now the soonest, half done.");
+        }
+
+        [Test]
+        public void PerRound_Reset_ClearsPendingRounds()
+        {
+            rounds.Configure(maxAmmo: 2, reloadTime: 1f, Rounds.RefillMode.PerRound);
+            FireUntilEmpty();
+            rounds.Tick(0.5f);
+
+            rounds.Reset();
+            Assert.IsFalse(rounds.IsReloading);
+            Assert.AreEqual(2, rounds.AmmoCount);
+
+            rounds.ProcessFire();
+            rounds.Tick(0.75f);
+            Assert.AreEqual(1, rounds.AmmoCount, "A stale pre-reset timer must not return this round early.");
+            rounds.Tick(0.25f);
+            Assert.AreEqual(2, rounds.AmmoCount);
+        }
     }
 }

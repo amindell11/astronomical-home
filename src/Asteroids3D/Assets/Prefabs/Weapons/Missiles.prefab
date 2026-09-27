@@ -66,6 +66,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxAmmo: 2
+  reloadTime: 15
+  refill: 1
 --- !u!114 &7892887138566842922
 MonoBehaviour:
   m_ObjectHideFlags: 0
