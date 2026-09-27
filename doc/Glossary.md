@@ -88,6 +88,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
+| **layer** | environment layer (one drawn sky layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `EnvironmentAuthoring` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer environment layers sit on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) | Always qualified: "environment layer" vs "the `Sky` layer". |
 
 ---
 

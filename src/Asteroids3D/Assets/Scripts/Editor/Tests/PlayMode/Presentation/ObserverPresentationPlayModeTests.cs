@@ -3,6 +3,7 @@ using System.Collections;
 using Cameras;
 using Game;
 using NUnit.Framework;
+using Substrate;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -14,8 +15,8 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// The viewport the host builds is the only presentation the session itself spawns: with
-    /// presentation off the observer camera's authored children (the starfield backdrop) go dark and
-    /// the camera stops clearing to the skybox. Driven through
+    /// presentation off the observer camera stops seeing the locale's <c>Sky</c> layer and stops
+    /// clearing to the skybox. Driven through
     /// <see cref="GameHost.BuildObserver"/> on an inactive host, so the host's flow never runs.
     /// </summary>
     [TestFixture]
@@ -43,25 +44,20 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator PresentationOff_DarkensTheBackdrop_AndStopsCameraClearingToSkybox()
+        public IEnumerator PresentationOff_ExcludesTheSkyLayer_AndStopsCameraClearingToSkybox()
         {
             yield return BuildObserver(presentation: false);
 
-            foreach (var renderer in BackdropRenderers())
-                Assert.IsFalse(renderer.enabled,
-                    $"observer-camera renderer '{renderer.name}' (starfield) still enabled with presentation off");
-
+            Assert.IsFalse(SeesSky(), "observer camera still renders the Sky layer with presentation off");
             Assert.AreEqual(CameraClearFlags.SolidColor, observer.Cam.clearFlags);
         }
 
         [UnityTest]
-        public IEnumerator PresentationOn_LeavesTheBackdropAndCameraAsAuthored()
+        public IEnumerator PresentationOn_LeavesTheSkyLayerAndCameraAsAuthored()
         {
             yield return BuildObserver(presentation: true);
 
-            foreach (var renderer in BackdropRenderers())
-                Assert.IsTrue(renderer.enabled, $"observer-camera renderer '{renderer.name}' darkened while presenting");
-
+            Assert.IsTrue(SeesSky(), "test premise: the authored observer camera renders the Sky layer");
             Assert.AreEqual(CameraClearFlags.Skybox, observer.Cam.clearFlags,
                 "test premise: the authored observer camera clears to the skybox");
         }
@@ -84,12 +80,11 @@ namespace Tests.PlayMode
             yield return null;
         }
 
-        private Renderer[] BackdropRenderers()
+        private bool SeesSky()
         {
             Assert.IsNotNull(observer, "test premise: the host built an observer camera");
-            var renderers = observer.GetComponentsInChildren<Renderer>(true);
-            Assert.IsNotEmpty(renderers, "test premise: the observer camera prefab carries the starfield backdrop");
-            return renderers;
+            Assert.That(LayerIds.Sky, Is.GreaterThanOrEqualTo(0), "test premise: the Sky layer exists");
+            return (observer.Cam.cullingMask & (1 << LayerIds.Sky)) != 0;
         }
     }
 }

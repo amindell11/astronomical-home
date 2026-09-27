@@ -10,6 +10,7 @@ namespace Substrate
         public static readonly int Projectile = LayerMask.NameToLayer(TagNames.Projectile);
         public static readonly int Missile = LayerMask.NameToLayer(TagNames.Missile);
         public static readonly int MinimapEnemy = LayerMask.NameToLayer(TagNames.MinimapEnemy);
+        public static readonly int Sky = LayerMask.NameToLayer("Sky");
 
         /// <summary>
         /// Combine multiple layer indices into a LayerMask.

@@ -1,5 +1,8 @@
+using System.Linq;
 using NUnit.Framework;
+using Substrate.Services.Environment;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -9,7 +12,6 @@ namespace Tests.EditMode
     public class StarfieldShaderEditModeTests
     {
         private const string MaterialPath = "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat";
-        private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
         private static Material LoadMaterial()
         {
@@ -219,15 +221,23 @@ namespace Tests.EditMode
             }
         }
 
-        [Test]
-        public void AuthoredStarfield_RidesTheObserverCamera_WithTheProductionMaterial()
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string scenePath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ObserverCamPrefabPath);
-            Assert.IsNotNull(prefab, $"Observer camera prefab missing at {ObserverCamPrefabPath}.");
-
-            var renderer = prefab.GetComponentInChildren<SpriteRenderer>(true);
-            Assert.IsNotNull(renderer, $"No starfield SpriteRenderer found under {ObserverCamPrefabPath}.");
-            Assert.AreSame(LoadMaterial(), renderer.sharedMaterial);
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var root = scene.GetRootGameObjects().Single(g => g.GetComponent<EnvironmentAuthoring>()).transform;
+                var starfield = root.Find("StarField");
+                Assert.IsNotNull(starfield, $"No StarField environment layer under {scenePath}'s environment root.");
+                Assert.AreSame(LoadMaterial(), starfield.GetComponent<MeshRenderer>().sharedMaterial);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
     }
 }

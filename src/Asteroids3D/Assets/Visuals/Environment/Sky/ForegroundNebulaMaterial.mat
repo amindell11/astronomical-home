@@ -37,6 +37,7 @@ Material:
     - _NebulaStrength: 0.22
     - _NebulaZoomResponse: 0
     - _Seed: 0
+    - _ZTest: 8
     - _ZoomReferenceSize: 7
     m_Colors:
     - _NebulaCool: {r: 0.17999998, g: 0.47999996, b: 0.65, a: 1}
