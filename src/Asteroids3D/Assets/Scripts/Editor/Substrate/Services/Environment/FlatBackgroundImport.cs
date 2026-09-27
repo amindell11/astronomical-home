@@ -14,6 +14,11 @@ namespace Substrate.Services.Environment
             (path.EndsWith("-draft.exr", StringComparison.Ordinal) ||
              path.EndsWith("-final.exr", StringComparison.Ordinal));
 
+        public static bool IsSidecar(string path) =>
+            path.StartsWith(Folder + "/", StringComparison.Ordinal) &&
+            (path.EndsWith("-draft.json", StringComparison.Ordinal) ||
+             path.EndsWith("-final.json", StringComparison.Ordinal));
+
         private void OnPreprocessTexture()
         {
             if (!IsFlatBackground(assetPath))
@@ -36,6 +41,8 @@ namespace Substrate.Services.Environment
         {
             foreach (var path in imported)
             {
+                if (IsSidecar(path))
+                    PaletteParents.Write(path, FlatBackgroundSidecar.Parse(File.ReadAllText(path), path));
                 var materialPath = Path.ChangeExtension(path, ".mat");
                 if (!IsFlatBackground(path) || AssetDatabase.LoadAssetAtPath<Material>(materialPath))
                     continue;

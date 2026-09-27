@@ -492,6 +492,16 @@ Format: **term** — definition. *(authority)*
 - **locale** — the per-sector look *scene*: skybox, lighting, ambience and sky
   layers (under its `LocaleSky` root). `LocaleService` loads it additively and
   makes it active. Look is a scene; gameplay is a prefab.
+- **palette role** — one of base, primary, secondary or accent: the colours
+  Blender exports in a flat background's sidecar `.json`. Scene-linear.
+- **palette parent** — a generated Material Variant of a shared sky-layer
+  material whose only overrides are palette-mapped colours (`PaletteParents`).
+  Never hand-edited: every sidecar reimport rewrites it. Tune a locale's own
+  variant instead; its overrides survive the refresh.
+- **candidate root** — a locale's inactive `Sky (Candidate)` `LocaleSky` root,
+  compared against the shipped `Sky` root by flipping their GameObject
+  checkboxes in Play Mode. Exactly one root per locale scene is active. It
+  lives until the arc's apply slice swaps the roots.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
