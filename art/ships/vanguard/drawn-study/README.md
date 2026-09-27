@@ -10,6 +10,9 @@ Its separate service-panel mesh defines exposed wing-root frames, core collars,
 aft pod access covers and cockpit cooling grilles from `service-panels.json`.
 The covers follow the pod armor edges; all detail fits the native triangles.
 The paired hangar captures show this layer enabled and disabled.
+`wear-lines.json` places tapered scuffs along exposed edges and sparse crossed
+hatch bundles beside joints. This separate mesh is the base finish; damage-level
+variants remain a future art pass. Paired hangar captures isolate the wear layer.
 
 Run `export_study.py` with Blender in background mode to export the packed study
 to Unity. An optional path after `--` selects a different source. Export reads the
@@ -35,7 +38,7 @@ shadow-receiving plate, not a modeled environment or functional menu.
 
 Contour-only mesh copies join normals at shared positions and use a uniform
 black screen width. The painted mesh retains its authored normals. Three native
-poses verify that the contour touches the hull. A material gain shifts the
+poses verify a two-pixel contact band at the reduced contour width. A material gain shifts the
 original gold-orange toward the reference orange without editing the texture.
 HDR emission and camera bloom light the blue pods; paired space captures isolate
 the bloom effect. The UI plates retain their native resolution without mipmaps.

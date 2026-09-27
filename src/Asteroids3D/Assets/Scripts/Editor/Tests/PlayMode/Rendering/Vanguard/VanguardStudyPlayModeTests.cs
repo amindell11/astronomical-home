@@ -134,13 +134,14 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 var ship = Object.Instantiate(Load<GameObject>(Assets + "VanguardStructure.fbx"), root.transform);
                 ship.transform.localRotation = Quaternion.Euler(-90, 0, 0);
                 var allRenderers = ship.GetComponentsInChildren<MeshRenderer>();
-                var renderers = Array.FindAll(allRenderers, r => r.name != "Vanguard structural ink" && r.name != "Vanguard service panels");
+                var renderers = Array.FindAll(allRenderers, r => r.name != "Vanguard structural ink" &&
+                    r.name != "Vanguard service panels" && r.name != "Vanguard surface wear");
                 var structure = Array.Find(allRenderers, r => r.name == "Vanguard structural ink");
                 Assert.That(structure, Is.Not.Null);
                 var panels = Array.Find(allRenderers, r => r.name == "Vanguard service panels");
                 Assert.That(panels, Is.Not.Null);
                 var panelMaterials = new List<Material>();
-                foreach (var color in new[] { new Color(.27f, .28f, .30f), new Color(.43f, .43f, .42f), new Color(.70f, .69f, .65f) })
+                foreach (var color in new[] { new Color(.38f, .39f, .41f), new Color(.62f, .62f, .59f), new Color(.80f, .78f, .72f) })
                 {
                     var material = NewMaterial("Astronomical/Comparison/Drawn Surface");
                     material.SetColor("_BaseColor", color.linear);
@@ -167,6 +168,14 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 structure.sharedMaterial = graphite;
                 structure.shadowCastingMode = ShadowCastingMode.Off;
                 structure.gameObject.layer = 30;
+                var wear = Array.Find(allRenderers, r => r.name == "Vanguard surface wear");
+                Assert.That(wear, Is.Not.Null);
+                var wearInk = new Material(graphite);
+                owned.Add(wearInk);
+                wearInk.SetColor("_BaseColor", new Color(.35f, .32f, .29f).linear);
+                wear.sharedMaterial = wearInk;
+                wear.shadowCastingMode = ShadowCastingMode.Off;
+                wear.gameObject.layer = 30;
                 var bounds = renderers[0].bounds;
                 foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
                 ship.transform.localScale *= 6 / bounds.size.y;
@@ -179,7 +188,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 var texture = Load<Texture2D>(Assets + "VanguardBaseColor.png");
                 var contour = NewMaterial("Astronomical/Comparison/Drawn Contour");
                 contour.SetColor("_ContourColor", Color.black);
-                contour.SetFloat("_ContourPixels", 10);
+                contour.SetFloat("_ContourPixels", 7.5f);
                 contour.SetFloat("_ContourMinimum", .8f);
                 contour.SetFloat("_UniformWidth", 1);
                 var outlines = new List<GameObject>();
@@ -253,6 +262,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 for (var treatment = 0; treatment < 2; treatment++)
                 {
                     structure.gameObject.SetActive(treatment == 1);
+                    wear.gameObject.SetActive(treatment == 1);
                     panels.gameObject.SetActive(treatment == 1);
                     for (var i = 0; i < renderers.Length; i++)
                     {
@@ -268,9 +278,9 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     Read(label + "-quarter");
                     pose.transform.rotation = Quaternion.identity;
                     camera.orthographicSize = 26;
-                    contour.SetFloat("_ContourPixels", 4.5f);
+                    contour.SetFloat("_ContourPixels", 3.25f);
                     Read(label + "-gameplay");
-                    contour.SetFloat("_ContourPixels", 10);
+                    contour.SetFloat("_ContourPixels", 7.5f);
                 }
                 camera.orthographicSize = 3.8f;
                 pose.transform.rotation = Quaternion.Euler(28, -24, -30);
@@ -320,11 +330,11 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     backgroundRenderer.receiveShadows = false;
                     camera.orthographicSize = 26;
                     backdrop.transform.localScale = new Vector3(52 * camera.aspect, 52, 1);
-                    contour.SetFloat("_ContourPixels", 4.5f);
+                    contour.SetFloat("_ContourPixels", 3.25f);
                     Read("nebula-field");
                     camera.orthographicSize = 14;
                     backdrop.transform.localScale = new Vector3(28 * camera.aspect, 28, 1);
-                    contour.SetFloat("_ContourPixels", 10);
+                    contour.SetFloat("_ContourPixels", 7.5f);
                     Read("nebula-close");
                     field.SetActive(false);
                     pose.transform.rotation = Quaternion.Euler(55, -10, -50);
@@ -347,11 +357,15 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     panels.gameObject.SetActive(false);
                     Read("hero-hangar-no-panels");
                     panels.gameObject.SetActive(true);
+                    wear.gameObject.SetActive(false);
+                    Read("hero-hangar-no-wear");
+                    wear.gameObject.SetActive(true);
                     Read("hero-hangar");
                     bloom.intensity.value = 0;
                     backdrop.SetActive(false);
                     structure.gameObject.SetActive(false);
                     panels.gameObject.SetActive(false);
+                    wear.gameObject.SetActive(false);
                     var white = NewMaterial("Astronomical/Comparison/Drawn Surface");
                     white.SetColor("_BaseColor", Color.black);
                     white.SetTexture("_EmissionMap", Texture2D.whiteTexture);
@@ -374,15 +388,15 @@ namespace Tests.PlayMode.Rendering.Vanguard
                         var border = Read("outline-proof-" + label);
                         var expected = 0;
                         var covered = 0;
-                        for (var y = 3; y < target.height - 3; y++)
-                        for (var x = 3; x < target.width - 3; x++)
+                        for (var y = 2; y < target.height - 2; y++)
+                        for (var x = 2; x < target.width - 2; x++)
                         {
                             var index = y * target.width + x;
                             if (silhouette[index].r > 32) continue;
                             var adjacent = false;
-                            for (var dy = -3; dy <= 3 && !adjacent; dy++)
-                            for (var dx = -3; dx <= 3; dx++)
-                                if (dx * dx + dy * dy <= 9 && silhouette[index + dy * target.width + dx].r > 240)
+                            for (var dy = -2; dy <= 2 && !adjacent; dy++)
+                            for (var dx = -2; dx <= 2; dx++)
+                                if (dx * dx + dy * dy <= 4 && silhouette[index + dy * target.width + dx].r > 240)
                                 {
                                     adjacent = true;
                                     break;
@@ -395,7 +409,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                         var coverage = (float)covered / expected;
                         minimumOutlineCoverage = Mathf.Min(minimumOutlineCoverage, coverage);
                         Assert.That(coverage, Is.GreaterThan(.95f),
-                            label + ": a dark three-pixel band must touch the rendered hull, including sharp tips and split panels.");
+                            label + ": a dark two-pixel band must touch the rendered hull, including sharp tips and split panels.");
                     }
                 }
                 File.WriteAllText(Path.Combine(output, "capture.json"), JsonUtility.ToJson(new CaptureEvidence

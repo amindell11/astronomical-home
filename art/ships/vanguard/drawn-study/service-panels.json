@@ -1,6 +1,6 @@
 {
   "space": "Model world XY, Z up; nose +Y. Convex patches follow the native triangles.",
-  "palette": {"charcoal": [0.27, 0.28, 0.30], "gray": [0.43, 0.43, 0.42], "edge": [0.70, 0.69, 0.65]},
+  "palette": {"charcoal":[0.38,0.39,0.41],"gray":[0.62,0.62,0.59],"edge":[0.8,0.78,0.72]},
   "patches": [
     {"name":"exposed wing-root frame","object":"MVP wing_armature","mirror":true,"color":"charcoal","points":[[0.08,-0.12],[0.42,-0.12],[0.42,0.38],[0.08,0.38]]},
     {"name":"power-core retaining collar","object":"MVP Power Nacelle Housing","mirror":true,"color":"charcoal","points":[[0.29,-0.13],[0.45,-0.13],[0.45,0.04],[0.29,0.04]]},
@@ -11,6 +11,16 @@
     {"name":"cockpit aft cooling recess","object":"MVP Cockpit.001","mirror":true,"color":"charcoal","points":[[0.106,0.301],[0.153,0.315],[0.151,0.399],[0.097,0.393]]},
     {"name":"cooling louver forward","object":"MVP Cockpit.001","mirror":true,"color":"gray","offset":0.0007,"points":[[0.103,0.373],[0.147,0.38],[0.147,0.388],[0.102,0.382]]},
     {"name":"cooling louver middle","object":"MVP Cockpit.001","mirror":true,"color":"gray","offset":0.0007,"points":[[0.105,0.348],[0.148,0.357],[0.148,0.365],[0.104,0.357]]},
-    {"name":"cooling louver aft","object":"MVP Cockpit.001","mirror":true,"color":"gray","offset":0.0007,"points":[[0.108,0.322],[0.149,0.334],[0.149,0.342],[0.107,0.33]]}
+    {"name":"cooling louver aft","object":"MVP Cockpit.001","mirror":true,"color":"gray","offset":0.0007,"points":[[0.108,0.322],[0.149,0.334],[0.149,0.342],[0.107,0.33]]},
+    {"name":"pod ventilation slat 1 charcoal","object":"MVP wing_armor","mirror":true,"color":"charcoal","offset":0.0013,"points":[[0.33711,-0.33339],[0.39361,-0.31653],[0.39409,-0.32348],[0.3374,-0.3416]]},
+    {"name":"pod ventilation slat 1 edge","object":"MVP wing_armor","mirror":true,"color":"edge","offset":0.0014,"points":[[0.3374,-0.34178],[0.3941,-0.32364],[0.39425,-0.3258],[0.33749,-0.34434]]},
+    {"name":"pod ventilation slat 2 charcoal","object":"MVP wing_armor","mirror":true,"color":"charcoal","offset":0.0013,"points":[[0.33806,-0.36076],[0.39521,-0.33971],[0.39569,-0.34667],[0.33835,-0.36897]]},
+    {"name":"pod ventilation slat 2 edge","object":"MVP wing_armor","mirror":true,"color":"edge","offset":0.0014,"points":[[0.33835,-0.36915],[0.3957,-0.34682],[0.39585,-0.34898],[0.33844,-0.37171]]},
+    {"name":"pod ventilation slat 3 charcoal","object":"MVP wing_armor","mirror":true,"color":"charcoal","offset":0.0013,"points":[[0.33901,-0.38813],[0.39681,-0.36289],[0.39729,-0.36985],[0.3393,-0.39634]]},
+    {"name":"pod ventilation slat 3 edge","object":"MVP wing_armor","mirror":true,"color":"edge","offset":0.0014,"points":[[0.3393,-0.39652],[0.3973,-0.37],[0.39745,-0.37217],[0.33939,-0.39907]]},
+    {"name":"pod ventilation slat 4 charcoal","object":"MVP wing_armor","mirror":true,"color":"charcoal","offset":0.0013,"points":[[0.33996,-0.41549],[0.39841,-0.38608],[0.39889,-0.39303],[0.34025,-0.4237]]},
+    {"name":"pod ventilation slat 4 edge","object":"MVP wing_armor","mirror":true,"color":"edge","offset":0.0014,"points":[[0.34025,-0.42389],[0.3989,-0.39318],[0.39905,-0.39535],[0.34034,-0.42644]]},
+    {"name":"pod ventilation slat 5 charcoal","object":"MVP wing_armor","mirror":true,"color":"charcoal","offset":0.0013,"points":[[0.34091,-0.44286],[0.40001,-0.40926],[0.40049,-0.41621],[0.3412,-0.45107]]},
+    {"name":"pod ventilation slat 5 edge","object":"MVP wing_armor","mirror":true,"color":"edge","offset":0.0014,"points":[[0.3412,-0.45125],[0.4005,-0.41637],[0.40065,-0.41853],[0.34129,-0.45381]]}
   ]
 }

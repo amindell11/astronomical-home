@@ -56,8 +56,10 @@ bpy.ops.export_scene.fbx(filepath=str(assets/'VanguardStudy.fbx'),use_selection=
     bake_anim=False,add_leaf_bones=False,path_mode='STRIP')
 sys.path.insert(0, str(out))
 from build_structure import build, build_panels
-drawing = build(scene, out)
+drawing = build(scene, out, 'structural-lines.json', 'Vanguard structural ink')
 drawing.select_set(True)
+wear = build(scene, out, 'wear-lines.json', 'Vanguard surface wear')
+wear.select_set(True)
 panels = build_panels(scene, out)
 panels.select_set(True)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'VanguardStructure.blend'))

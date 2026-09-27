@@ -3,9 +3,9 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 
-def build(scene, out):
+def build(scene, out, layout_name, object_name):
     vertices, faces = [], []
-    for line in json.loads((out/'structural-lines.json').read_text())['lines']:
+    for line in json.loads((out/layout_name).read_text())['lines']:
         obj = scene.objects[line['object']]
         mesh = obj.data
         tree = BVHTree.FromPolygons([obj.matrix_world@v.co for v in mesh.vertices],
@@ -27,7 +27,7 @@ def build(scene, out):
                 xy = point + side * sign * line['width'] * pressure / 2
                 hit, normal, _, _ = tree.ray_cast(Vector((xy.x,xy.y,2)),Vector((0,0,-1)))
                 if hit is None: break
-                edge.append(hit+normal*.0003)
+                edge.append(hit+normal*line.get('offset', .0003))
             if len(edge) != 2:
                 previous = None
                 continue
@@ -39,10 +39,10 @@ def build(scene, out):
                     faces.append(tri if (b-a).cross(c-a).z>0 else tuple(reversed(tri)))
             previous = start
     
-    mesh = bpy.data.meshes.new('Selected tapered panel seams')
+    mesh = bpy.data.meshes.new(object_name)
     mesh.from_pydata(vertices,[],faces)
     mesh.update()
-    drawing = bpy.data.objects.new('Vanguard structural ink',mesh)
+    drawing = bpy.data.objects.new(object_name,mesh)
     scene.collection.objects.link(drawing)
     return drawing
 
