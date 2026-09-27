@@ -18,8 +18,8 @@ namespace Game.Player
     /// Kills and time survived for one run — consumer-side recorder beside the damage ledger,
     /// never sim state. Hooks the death event of every ship the unit service spawns and counts
     /// deaths whose killing blow came from the current player, only between the host's
-    /// <see cref="Begin"/> and <see cref="End"/>. The player id is read at event time because
-    /// the hangar can rebuild the player.
+    /// <see cref="Begin"/> and <see cref="End"/>, raising <see cref="Killed"/> on each counted kill.
+    /// The player id is read at event time because the hangar can rebuild the player.
     /// </summary>
     public sealed class RunTally : IRunTally
     {
@@ -29,6 +29,8 @@ namespace Game.Player
         private float endTime;
         private bool running;
         private bool ended;
+
+        public event Action Killed;
 
         public int Kills { get; private set; }
 
@@ -82,8 +84,9 @@ namespace Game.Player
         {
             if (!running) return;
             var player = playerId();
-            if (killingBlow.AttackerId == player && victim != player)
-                Kills++;
+            if (killingBlow.AttackerId != player || victim == player) return;
+            Kills++;
+            Killed?.Invoke();
         }
     }
 }
