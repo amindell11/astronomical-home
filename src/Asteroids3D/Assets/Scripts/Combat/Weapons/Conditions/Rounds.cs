@@ -42,6 +42,7 @@ namespace Combat.Weapons.Conditions
         public int AmmoCount { get; private set; }
         public int MaxAmmo => maxAmmo;
         public float ReloadTime => reloadTime;
+        public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
 
         public float ReloadProgress =>
