@@ -38,7 +38,7 @@ namespace Tests.EditMode
 
             var stats = prefab.HangarStats;
             StringAssert.Contains("Blast 40 to 12u", stats);
-            StringAssert.Contains("3 charges (reload 12s)", stats);
+            StringAssert.Contains("3 charges (regen 12s/round)", stats);
             StringAssert.Contains("Fuse 2.5s", stats);
         }
 

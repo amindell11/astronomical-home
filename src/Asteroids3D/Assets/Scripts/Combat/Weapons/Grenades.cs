@@ -25,7 +25,7 @@ namespace Combat.Weapons
                 var wave = projectilePrefab ? projectilePrefab.WavePrefab : null;
                 if (!wave) return DisplayName;
                 var mag = rounds
-                    ? $"   |   {rounds.MaxAmmo} charges" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    ? $"   |   {rounds.MaxAmmo} charges" + rounds.RefillLabel
                     : "";
                 return $"Blast {wave.MaxDamage:0} to {wave.MaxRadius:0}u, hits friend and foe{mag}   |   Fuse {projectilePrefab.FuseSeconds:0.#}s";
             }
