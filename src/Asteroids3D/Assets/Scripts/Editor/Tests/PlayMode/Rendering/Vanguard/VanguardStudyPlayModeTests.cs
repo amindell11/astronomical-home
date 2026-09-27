@@ -134,9 +134,31 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 var ship = Object.Instantiate(Load<GameObject>(Assets + "VanguardStructure.fbx"), root.transform);
                 ship.transform.localRotation = Quaternion.Euler(-90, 0, 0);
                 var allRenderers = ship.GetComponentsInChildren<MeshRenderer>();
-                var renderers = Array.FindAll(allRenderers, r => r.name != "Vanguard structural ink");
+                var renderers = Array.FindAll(allRenderers, r => r.name != "Vanguard structural ink" && r.name != "Vanguard service panels");
                 var structure = Array.Find(allRenderers, r => r.name == "Vanguard structural ink");
                 Assert.That(structure, Is.Not.Null);
+                var panels = Array.Find(allRenderers, r => r.name == "Vanguard service panels");
+                Assert.That(panels, Is.Not.Null);
+                var panelMaterials = new List<Material>();
+                foreach (var color in new[] { new Color(.27f, .28f, .30f), new Color(.43f, .43f, .42f), new Color(.70f, .69f, .65f) })
+                {
+                    var material = NewMaterial("Astronomical/Comparison/Drawn Surface");
+                    material.SetColor("_BaseColor", color.linear);
+                    material.SetFloat("_TextureStrength", 1);
+                    material.SetFloat("_LineStrength", 0);
+                    material.SetFloat("_WearStrength", 0);
+                    material.SetFloat("_SpecularStrength", 0);
+                    material.SetFloat("_ShadowThreshold", .55f);
+                    material.SetFloat("_ShadowSoftness", .18f);
+                    material.SetFloat("_PaletteLighting", 1);
+                    material.SetFloat("_AmbientStrength", .35f);
+                    material.SetFloat("_CastShadowStrength", .96f);
+                    material.SetColor("_ShadowColor", new Color(.35f, .45f, .8f));
+                    panelMaterials.Add(material);
+                }
+                panels.sharedMaterials = panelMaterials.ToArray();
+                panels.shadowCastingMode = ShadowCastingMode.Off;
+                panels.gameObject.layer = 30;
                 var graphite = NewMaterial("Astronomical/Comparison/Drawn Surface");
                 graphite.SetFloat("_TextureStrength", 1);
                 graphite.SetFloat("_LineStrength", 0);
@@ -231,6 +253,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 for (var treatment = 0; treatment < 2; treatment++)
                 {
                     structure.gameObject.SetActive(treatment == 1);
+                    panels.gameObject.SetActive(treatment == 1);
                     for (var i = 0; i < renderers.Length; i++)
                     {
                         renderers[i].sharedMaterial = treatment == 0 ? standard[i] : drawn[i];
@@ -321,10 +344,14 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     backgroundRenderer.sharedMaterial = hangar;
                     backgroundRenderer.receiveShadows = true;
                     backdrop.transform.position = new Vector3(0, 0, 3);
+                    panels.gameObject.SetActive(false);
+                    Read("hero-hangar-no-panels");
+                    panels.gameObject.SetActive(true);
                     Read("hero-hangar");
                     bloom.intensity.value = 0;
                     backdrop.SetActive(false);
                     structure.gameObject.SetActive(false);
+                    panels.gameObject.SetActive(false);
                     var white = NewMaterial("Astronomical/Comparison/Drawn Surface");
                     white.SetColor("_BaseColor", Color.black);
                     white.SetTexture("_EmissionMap", Texture2D.whiteTexture);

@@ -6,6 +6,9 @@ records the original file hash and image provenance; the primary-tree originals
 remain untouched. This is separate from the committed production Vanguard export.
 `VanguardStructure.blend` adds selected tapered panel seams; their editable paths
 are in `structural-lines.json`. The original paint remains unchanged.
+Its separate service-panel mesh adds charcoal access covers, gray patches and
+vent groups from `service-panels.json`, clipped to the hull's native triangles.
+The paired hangar captures show this layer enabled and disabled.
 
 Run `export_study.py` with Blender in background mode to export the packed study
 to Unity. An optional path after `--` selects a different source. Export reads the

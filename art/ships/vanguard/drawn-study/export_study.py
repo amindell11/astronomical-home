@@ -55,9 +55,11 @@ bpy.ops.export_scene.fbx(filepath=str(assets/'VanguardStudy.fbx'),use_selection=
     object_types={'MESH'},axis_forward='-Z',axis_up='Y',use_mesh_modifiers=True,
     bake_anim=False,add_leaf_bones=False,path_mode='STRIP')
 sys.path.insert(0, str(out))
-from build_structure import build
+from build_structure import build, build_panels
 drawing = build(scene, out)
 drawing.select_set(True)
+panels = build_panels(scene, out)
+panels.select_set(True)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'VanguardStructure.blend'))
 bpy.ops.export_scene.fbx(filepath=str(assets/'VanguardStructure.fbx'),use_selection=True,
     object_types={'MESH'},axis_forward='-Z',axis_up='Y',use_mesh_modifiers=True,
