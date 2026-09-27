@@ -29,7 +29,7 @@ the PR ceremony added review the session had already performed.)
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
-- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
+- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims). A free slot comes back prepared at `origin/main`; one holding unpushed work is released untouched and acquire fails — report that slot and name another.
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
@@ -216,7 +216,7 @@ scope and proceeds; past the anti-churn bar it asks (§ Drain run).
 
 Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
 leases, branches, merge progress, held leases; `gh pr list` for open PRs). Acquire
-a slot (every slot full → "Holding a slot"); build and test there — directly, or via a sub-agent scoped to the
+a slot (every slot full → "Holding a slot"; a reclaimed stale slot is not prepared, so `prepare` it); build and test there — directly, or via a sub-agent scoped to the
 slot's worktree path when the task is large enough to benefit from an isolated
 context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
