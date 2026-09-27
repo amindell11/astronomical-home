@@ -13,7 +13,7 @@ namespace Substrate.Services.Environment
         public const string Path = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
 
         [MenuItem("Tools/Environment/Generate Sky Triangle")]
-        public static Mesh Generate()
+        public static void Generate()
         {
             var mesh = new Mesh
             {
@@ -26,12 +26,11 @@ namespace Substrate.Services.Environment
             if (!existing)
             {
                 AssetDatabase.CreateAsset(mesh, Path);
-                return mesh;
+                return;
             }
             EditorUtility.CopySerialized(mesh, existing);
             Object.DestroyImmediate(mesh);
             AssetDatabase.SaveAssets();
-            return existing;
         }
     }
 }
