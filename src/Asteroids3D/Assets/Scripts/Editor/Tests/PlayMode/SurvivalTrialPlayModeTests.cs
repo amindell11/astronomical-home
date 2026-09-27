@@ -100,6 +100,8 @@ namespace Tests.PlayMode
             for (var i = 0; i < 10 && director.Spawned.Count > 0; i++)
                 yield return null;
             Assert.AreEqual(0, director.Spawned.Count, "The director despawns its dead product.");
+            // Object.Destroy lands at end of frame.
+            yield return null;
             Assert.IsFalse(enemy, "The despawned product is destroyed.");
 
             yield return sector.Teardown();
