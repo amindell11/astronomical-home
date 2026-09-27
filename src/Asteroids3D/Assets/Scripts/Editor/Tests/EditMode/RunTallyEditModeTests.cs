@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Run tally kill attribution: a killing blow from the player counts and raises Killed, asteroid, other-ship and self kills do not, and nothing counts outside Begin/End.</summary>
+    /// <summary>Run tally kill attribution: a killing blow from the player counts and raises Killed; asteroid, other-ship and self kills do not, and nothing counts outside Begin/End.</summary>
     [Category("Damage")]
     public class RunTallyEditModeTests
     {
