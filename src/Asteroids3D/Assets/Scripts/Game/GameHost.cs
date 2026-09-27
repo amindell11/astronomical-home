@@ -132,6 +132,7 @@ namespace Game
                 playerDied = false;
                 sectorEnded = false;
                 yield return session.LoadSector(playerRig ? playerRig.Player : null, _ => sectorEnded = true);
+                if (playerRig) playerRig.Tally.Begin(Time.time);
                 SetSplashVisible(false);
 
                 // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
@@ -197,6 +198,7 @@ namespace Game
                 case PlayerDeathBehavior.RestartSector:
                     return (_, killingBlow) =>
                     {
+                        playerRig.Tally.End(Time.time);
                         lastKillingBlow = killingBlow;
                         playerDied = true;
                     };
@@ -249,7 +251,7 @@ namespace Game
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(lastKillingBlow, playerRig.Ledger.Rows, () => dismissed = true);
+            screen.Show(lastKillingBlow, playerRig.Ledger.Rows, playerRig.Tally, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);

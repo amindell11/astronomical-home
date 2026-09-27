@@ -20,12 +20,13 @@ namespace Game
 {
     /// <summary>
     /// Everything the interactive game puts into a session for the human: the player ship and its
-    /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout and the damage
-    /// ledger. Built <b>once</b> at session start against a viewport the host owns, and held for the
-    /// whole session — sectors are swapped underneath it and reference the player by injection
-    /// (<see cref="Sector.Initialize"/>), never building or clearing it. Pure mechanism: the rig holds
-    /// no session policy — the host injects the player-death behavior via <see cref="Build"/> and the
-    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
+    /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
+    /// ledger and the run tally. Built <b>once</b> at session start against a viewport the host
+    /// owns, and held for the whole session — sectors are swapped underneath it and reference the
+    /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. Pure
+    /// mechanism: the rig holds no session policy — the host injects the player-death behavior via
+    /// <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
+    /// assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
@@ -54,6 +55,9 @@ namespace Game
 
         /// <summary>Per-life damage rows for the death recap; re-bound to each player the rig builds.</summary>
         public DamageLedger Ledger { get; } = new();
+
+        /// <summary>Kills and time survived this run; the host stamps its clock, the loadout step resets it.</summary>
+        public RunTally Tally { get; } = new();
 
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
@@ -91,6 +95,7 @@ namespace Game
             this.frame = frame;
             this.onPlayerDeath = onPlayerDeath;
 
+            Tally.Bind(units, () => Player ? Player.Id : ShipId.Invalid);
             BuildPlayer(playerTemplate);
 
             Ledger.Bind(Player.Damage, units.Registry);
@@ -135,6 +140,7 @@ namespace Game
         {
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
+            Tally.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
             Overlay = null;
@@ -155,6 +161,7 @@ namespace Game
 
             // A new run starts here; the previous life's recap has already consumed the rows.
             Ledger.Clear();
+            Tally.Reset();
 
             // A dead player reaches the hangar deactivated (death disables the ship GameObject).
             // Revive it before applying so swapped-in weapon mounts instantiate active and Awake-wire
@@ -229,7 +236,7 @@ namespace Game
 
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).
         private HudBinding BuildHudBinding() => new HudBinding(
-            Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null);
+            Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally);
 
         private void WirePlayerDeath()
         {

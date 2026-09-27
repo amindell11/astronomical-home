@@ -1,3 +1,4 @@
+using Game.Player;
 using Ships.Command;
 using Ships.Damage;
 
@@ -5,7 +6,8 @@ namespace UI
 {
     /// <summary>
     /// The read-only bundle the HUD binds to — the UI's counterpart of <see cref="ShipControl"/>:
-    /// narrow, event-driven surfaces of the ship it displays, assembled by the owning rig.
+    /// narrow, event-driven surfaces of the ship it displays plus the run tally, assembled by the
+    /// owning rig.
     /// The UI never sees the Ship or any sim MonoBehaviour behind these.
     /// </summary>
     public readonly struct HudBinding
@@ -19,11 +21,14 @@ namespace UI
         /// <summary>Slot-keyed weapon display view, or null if the ship is unarmed.</summary>
         public readonly IWeaponReadouts Weapons;
 
-        public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons)
+        public readonly IRunTally Tally;
+
+        public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons, IRunTally tally)
         {
             Status = status;
             Damage = damage;
             Weapons = weapons;
+            Tally = tally;
         }
     }
 }
