@@ -20,6 +20,13 @@ The export manifest describes that run; it does not replace source provenance.
 lighting baseline uses the same textured mesh as the drawn candidate. The separate
 production captures use the committed Vanguard rig's mesh and materials, staged
 with the hull top facing the canonical camera and normalized to the same length.
+The context captures combine that ship with the ten drawn asteroid assets and
+`NebulaBackground-v2.png`, an AI background plate with foreground objects removed.
+The ship and asteroids are native Unity meshes; the backdrop is a static image.
+`background-prompt.txt` records the built-in image-generation edit request.
+The hero captures use clean hangar and green-planet plates derived from the two
+user-supplied concept references; `hero-background-prompts.txt` records those edits.
+The hangar is a flat shadow-receiving plate, not a modeled environment.
 
 The rendering brief and visual decisions live on
 [#685](https://github.com/amindell11/astronomical-home/issues/685#issuecomment-5853114008).

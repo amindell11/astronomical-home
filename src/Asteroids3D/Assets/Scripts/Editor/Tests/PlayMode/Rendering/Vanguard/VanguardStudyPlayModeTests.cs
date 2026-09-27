@@ -6,6 +6,7 @@ using System.IO;
 using Capture;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Rendering.AsteroidField;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -133,7 +134,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 var texture = Load<Texture2D>(Assets + "VanguardBaseColor.png");
                 var contour = NewMaterial("Astronomical/Comparison/Drawn Contour");
                 contour.SetColor("_ContourColor", new Color(.003f, .004f, .009f));
-                contour.SetFloat("_ContourPixels", 3.8f);
+                contour.SetFloat("_ContourPixels", 7.5f);
                 contour.SetFloat("_ContourMinimum", .8f);
                 var outlines = new List<GameObject>();
                 var standard = new List<Material>();
@@ -203,9 +204,9 @@ namespace Tests.PlayMode.Rendering.Vanguard
                     Read(label + "-quarter");
                     pose.transform.rotation = Quaternion.identity;
                     camera.orthographicSize = 26;
-                    contour.SetFloat("_ContourPixels", 1.4f);
+                    contour.SetFloat("_ContourPixels", 3.5f);
                     Read(label + "-gameplay");
-                    contour.SetFloat("_ContourPixels", 3.8f);
+                    contour.SetFloat("_ContourPixels", 7.5f);
                 }
                 camera.orthographicSize = 3.8f;
                 pose.transform.rotation = Quaternion.Euler(28, -24, -30);
@@ -219,6 +220,62 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 {
                     pose.transform.rotation = Quaternion.Euler(0, bank, 0);
                     Read("drawn-bank-" + bank);
+                }
+                pose.transform.rotation = Quaternion.Euler(0, 0, 155);
+                pose.transform.position = new Vector3(0, -3, 0);
+                var field = new GameObject("Asteroid context") { layer = 30 };
+                field.transform.SetParent(root.transform, false);
+                using (var asteroids = new DrawnFieldStudyAssets())
+                {
+                    var positions = new[]
+                    {
+                        new Vector2(-29, -17), new Vector2(-18, 10), new Vector2(-8, 18),
+                        new Vector2(7, 20), new Vector2(22, 12), new Vector2(32, -7),
+                        new Vector2(13, -12), new Vector2(-13, -10), new Vector2(-32, 2),
+                        new Vector2(0, -21)
+                    };
+                    for (var i = 0; i < positions.Length; i++)
+                    {
+                        var rock = asteroids.Create(i, field.transform);
+                        rock.transform.rotation = Quaternion.Euler(i * 37, i * 61, i * 23);
+                        var size = rock.GetComponent<MeshRenderer>().bounds.size;
+                        rock.transform.localScale *= (6 + i % 4) / Mathf.Max(size.x, size.y, size.z);
+                        rock.transform.position = positions[i];
+                    }
+                    var backdrop = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    backdrop.name = "AI nebula background plate";
+                    backdrop.layer = 30;
+                    backdrop.transform.SetParent(root.transform, false);
+                    backdrop.transform.position = new Vector3(0, 0, 8);
+                    Object.DestroyImmediate(backdrop.GetComponent<Collider>());
+                    var background = NewMaterial("Universal Render Pipeline/Unlit");
+                    background.SetTexture("_BaseMap", Load<Texture2D>(Assets + "NebulaBackground-v2.png"));
+                    var backgroundRenderer = backdrop.GetComponent<MeshRenderer>();
+                    backgroundRenderer.sharedMaterial = background;
+                    backgroundRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                    backgroundRenderer.receiveShadows = false;
+                    camera.orthographicSize = 26;
+                    backdrop.transform.localScale = new Vector3(52 * camera.aspect, 52, 1);
+                    contour.SetFloat("_ContourPixels", 3.5f);
+                    Read("nebula-field");
+                    camera.orthographicSize = 14;
+                    backdrop.transform.localScale = new Vector3(28 * camera.aspect, 28, 1);
+                    contour.SetFloat("_ContourPixels", 7.5f);
+                    Read("nebula-close");
+                    field.SetActive(false);
+                    pose.transform.rotation = Quaternion.Euler(55, -10, -50);
+                    pose.transform.position = new Vector3(1.8f, -.3f, 0);
+                    camera.orthographicSize = 3.5f;
+                    backdrop.transform.localScale = new Vector3(7 * camera.aspect, 7, 1);
+                    background.SetTexture("_BaseMap", Load<Texture2D>(Assets + "PlanetBackground-v1.png"));
+                    Read("hero-space");
+                    var hangar = NewMaterial("Astronomical/Comparison/Shadowed Plate");
+                    hangar.SetTexture("_BaseMap", Load<Texture2D>(Assets + "HangarBackground-v1.png"));
+                    hangar.SetColor("_ShadowColor", new Color(.3f, .35f, .55f));
+                    backgroundRenderer.sharedMaterial = hangar;
+                    backgroundRenderer.receiveShadows = true;
+                    backdrop.transform.position = new Vector3(0, 0, 3);
+                    Read("hero-hangar");
                 }
                 File.WriteAllText(Path.Combine(output, "capture.json"), JsonUtility.ToJson(new CaptureEvidence
                 {
