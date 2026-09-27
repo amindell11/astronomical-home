@@ -4,8 +4,9 @@ set -euo pipefail
 
 # Hermetic regression for scripts/drain_pick.sh: the pick filter (unity label, assignee, open
 # blocker, scope block, proposal author), priority-then-age order, and claim's lock order —
-# assignee re-read, free slot only, no write on no_slot, unassign on acquire failure. gh and the
-# pool script are stubs; every call a stub does not model fails closed.
+# the drain-claim pool lock around it all, assignee re-read, free slot only, no write on no_slot,
+# unassign on acquire failure. gh and the pool script are stubs; every call a stub does not model
+# fails closed, and every claim write or pool read outside the stub's lock fails.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRAIN="$SCRIPT_DIR/../drain_pick.sh"
@@ -28,14 +29,18 @@ args="$*"
 case "$args" in
   "api graphql "*) cat "$FIX/queue.json" ;;
   "issue view "*"--json assignees"*) cat "$FIX/assignees.txt" ;;
-  "issue edit "*) echo "$args" >> "$GH_WRITE_LOG" ;;
+  "issue edit "*) [[ -n "${IN_DRAIN_LOCK:-}" ]] || exit 98; echo "$args" >> "$GH_WRITE_LOG" ;;
   *) echo "gh stub: unmodelled call: $args" >&2; exit 97 ;;
 esac
 EOF
 cat > "$TMP/bin/pool.sh" <<'EOF'
 #!/usr/bin/env bash
 echo "$*" >> "$POOL_LOG"
+[[ "$1" == lock || -n "${IN_DRAIN_LOCK:-}" ]] || exit 98
 case "$1" in
+  lock) [[ "$2" == drain-claim && "$3" == --wait && "$5" == -- ]] || exit 97
+        [[ ! -e "$FIX/lock.busy" ]] || exit 75
+        shift 5; IN_DRAIN_LOCK=1 "$@" ;;
   status) [[ "${2:-}" == --porcelain ]] || exit 97; cat "$FIX/porcelain.txt" ;;
   acquire) rc="$(cat "$FIX/acquire.exit")"; [[ "$rc" -ne 0 ]] || echo "SLOT=$3 PATH=D:/pool dir/$3"; exit "$rc" ;;
   *) echo "pool stub: unmodelled call: $*" >&2; exit 97 ;;
@@ -73,6 +78,7 @@ reset() {
   ISSUES=()
   : > "$GH_WRITE_LOG"; : > "$POOL_LOG"
   : > "$FIX/assignees.txt"
+  rm -f "$FIX/lock.busy"
   echo 0 > "$FIX/acquire.exit"
   printf '%s' "$FREE_LAST" > "$FIX/porcelain.txt"
 }
@@ -149,13 +155,14 @@ out="$(bash "$DRAIN" claim 40 drain-thing 2>/dev/null)"
 [[ "$(trailer PATH <<<"$out")" == "D:/pool dir/agent-3" ]] || fail "PATH keeps spaces (got: $out)"
 [[ "$(trailer LEASE <<<"$out")" == drain-thing ]] || fail "LEASE trailer (got: $out)"
 [[ "$(cat "$GH_WRITE_LOG")" == "issue edit 40 --repo owner/repo --add-assignee @me" ]] || fail "one assign write (got: $(cat "$GH_WRITE_LOG"))"
-[[ "$(sed -n 2p "$POOL_LOG")" == "acquire drain-thing agent-3" ]] || fail "acquire is strict on the free slot (got: $(cat "$POOL_LOG"))"
+[[ "$(sed -n 1p "$POOL_LOG")" == "lock drain-claim --wait "*" -- bash "*"/drain_pick.sh claim-locked 40 drain-thing" ]] || fail "claim runs under the drain-claim lock (got: $(cat "$POOL_LOG"))"
+[[ "$(sed -n 3p "$POOL_LOG")" == "acquire drain-thing agent-3" ]] || fail "acquire is strict on the free slot (got: $(cat "$POOL_LOG"))"
 
 # --- claim: assignee changed since pick → taken, nothing written ---------------------------------
 reset; echo "someone" > "$FIX/assignees.txt"
 rc=0; out="$(bash "$DRAIN" claim 40 drain-thing 2>/dev/null)" || rc=$?
 [[ "$rc" -eq 4 && "$(trailer CLAIM <<<"$out")" == taken ]] || fail "an assignee at re-read is taken, exit 4 (rc=$rc: $out)"
-[[ ! -s "$GH_WRITE_LOG" && ! -s "$POOL_LOG" ]] || fail "taken writes nothing and never reads the pool"
+[[ ! -s "$GH_WRITE_LOG" ]] && ! grep -q '^status' "$POOL_LOG" || fail "taken writes nothing and never reads the pool"
 
 # --- claim: no free slot → no_slot before any assign ---------------------------------------------
 reset; printf '%s' "$NO_FREE" > "$FIX/porcelain.txt"
@@ -170,5 +177,12 @@ rc=0; out="$(bash "$DRAIN" claim 40 drain-thing 2>/dev/null)" || rc=$?
 [[ "$rc" -eq 5 && "$(trailer CLAIM <<<"$out")" == acquire_failed ]] || fail "acquire failure exits 5 (rc=$rc: $out)"
 [[ "$(sed -n 2p "$GH_WRITE_LOG")" == "issue edit 40 --repo owner/repo --remove-assignee @me" ]] || fail "acquire failure unassigns (got: $(cat "$GH_WRITE_LOG"))"
 ! grep -q '^SLOT=' <<<"$out" || fail "no SLOT on acquire failure"
+
+# --- claim: lock still held after the wait → infra, nothing read or written ----------------------
+reset; : > "$FIX/lock.busy"
+rc=0; out="$(bash "$DRAIN" claim 40 drain-thing 2>"$TMP/err")" || rc=$?
+[[ "$rc" -eq 1 && -z "$out" ]] || fail "a lock timeout exits 1 with no CLAIM trailer (rc=$rc: $out)"
+grep -q 'drain-claim lock' "$TMP/err" || fail "a lock timeout names the lock (got: $(cat "$TMP/err"))"
+[[ ! -s "$GH_WRITE_LOG" && "$(wc -l < "$POOL_LOG")" -eq 1 ]] || fail "a lock timeout writes nothing and reads no pool state"
 
 echo "PASS test_drain_pick.sh"
