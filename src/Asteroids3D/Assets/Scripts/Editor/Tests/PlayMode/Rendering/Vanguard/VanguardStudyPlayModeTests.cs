@@ -141,7 +141,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 var panels = Array.Find(allRenderers, r => r.name == "Vanguard service panels");
                 Assert.That(panels, Is.Not.Null);
                 var panelMaterials = new List<Material>();
-                foreach (var color in new[] { new Color(.38f, .39f, .41f), new Color(.62f, .62f, .59f), new Color(.80f, .78f, .72f) })
+                foreach (var color in new[] { new Color(.38f, .39f, .41f), new Color(.62f, .62f, .59f), new Color(.80f, .78f, .72f), new Color(.39f, .46f, .54f) })
                 {
                     var material = NewMaterial("Astronomical/Comparison/Drawn Surface");
                     material.SetColor("_BaseColor", color.linear);

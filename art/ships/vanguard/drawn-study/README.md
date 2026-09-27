@@ -7,12 +7,14 @@ remain untouched. This is separate from the committed production Vanguard export
 `VanguardStructure.blend` adds selected tapered panel seams; their editable paths
 are in `structural-lines.json`. The original paint remains unchanged.
 Its separate service-panel mesh defines exposed wing-root frames, core collars,
-aft pod access covers and cockpit cooling grilles from `service-panels.json`.
+aft pod access covers, fitted native cockpit vents and blue-gray inner hull
+panels from `service-panels.json`.
 The covers follow the pod armor edges; all detail fits the native triangles.
 The paired hangar captures show this layer enabled and disabled.
-`wear-lines.json` places tapered scuffs along exposed edges and sparse crossed
-hatch bundles beside joints. This separate mesh is the base finish; damage-level
-variants remain a future art pass. Paired hangar captures isolate the wear layer.
+`wear-lines.json` places asymmetric glancing impacts on the forward pod, canopy
+armor and aft spar. Torn entry chips lead into directional gouges and scrape
+trails. This is one battle-worn finish; damage-level variants remain a future art
+pass. Paired hangar captures isolate the wear layer.
 
 Run `export_study.py` with Blender in background mode to export the packed study
 to Unity. An optional path after `--` selects a different source. Export reads the
