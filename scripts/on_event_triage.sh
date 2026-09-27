@@ -31,7 +31,7 @@ PROMPT_FILE="$SCRIPT_DIR/../.claude/skills/issue-triage/on-event.md"
 ALLOWLIST="amindell11"
 BOT_LOGIN="github-actions[bot]"
 MARKER="<!-- on-event-triage -->"
-CLAUDE_MODEL="claude-opus-5-5"
+CLAUDE_MODEL="claude-sonnet-5"
 CLAUDE_MAX_TURNS=12
 
 # Operative copy of doc/agents/issue-tracker.md § Projects board sync; Doing / Done are human-owned.

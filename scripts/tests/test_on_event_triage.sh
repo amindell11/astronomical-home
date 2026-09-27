@@ -140,7 +140,7 @@ grep -q -- '--add-label needs-triage' "$GH_WRITE_LOG" || fail "priority-less iss
 grep -q 'singleSelectOptionId: "d6567434"' "$GH_WRITE_LOG" || fail "priority-less issue: Status Triage"
 claude_ran || fail "opened allowlisted issue should reach claude"
 grep -q -- '-p --tools Read,Grep,Glob --json-schema ' "$CLAUDE_CALL_LOG" || fail "claude surface is read-only (got: $(cat "$CLAUDE_CALL_LOG"))"
-grep -q -- '--output-format json --max-turns 12 --model claude-opus-5-5' "$CLAUDE_CALL_LOG" || fail "claude flags (got: $(cat "$CLAUDE_CALL_LOG"))"
+grep -q -- '--output-format json --max-turns 12 --model claude-sonnet-5' "$CLAUDE_CALL_LOG" || fail "claude flags (got: $(cat "$CLAUDE_CALL_LOG"))"
 grep -q '^<issue-body number=700>' "$CLAUDE_PROMPT_CAPTURE" || fail "packet delimits the body"
 grep -q '^#632 · Capture rig X-mirror deferred · 2026-09-21$' "$CLAUDE_PROMPT_CAPTURE" || fail "packet carries the closed list"
 grep -q '^# On-event triage' "$CLAUDE_PROMPT_CAPTURE" || fail "packet starts with on-event.md"

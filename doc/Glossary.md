@@ -264,6 +264,14 @@ Format: **term** — definition. *(authority)*
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
+- **sweep lead** — a mechanical reason for the *triage sweep* to research an
+  open issue since a watermark: a merged PR cites it, an issue it cites
+  closed, a path it names is gone, or it was itself updated. With `--since`,
+  an issue with none is *quiet*: a report row, no subagent. Computed from PR
+  and issue data, never from the *merge reconcile*'s notes. Gap: a PR that
+  obsoletes an issue without citing it leaves no lead — only a full sweep
+  catches it. Always "sweep lead" outside the triage skill (the Gunner's
+  firing lead is unrelated). *(scripts/sweep_leads.sh)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
   comment proposing `ready-for-agent`; its `Unity:` field mints the matching
   `unity:*` label on the same `Apply:` line. Once the user applies the label it
