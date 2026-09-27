@@ -269,10 +269,20 @@ Format: **term** — definition. *(authority)*
   `unity:*` label on the same `Apply:` line. Once the user applies the label it
   is the issue's build-scope block.
   *(.claude/skills/issue-triage/comment-formats.md)*
-- **drain run** — one unattended build session, started from a desktop
-  scheduled task, that picks, claims, builds, PRs and holds one `unity:none`
-  *ready queue* item; the user talks to it in its own chat.
+- **drain run** — one unattended build session, started from a *drain task* by
+  the *drain orchestrator* or by Run now, that picks, claims, builds, PRs and
+  holds one `unity:none` *ready queue* item; a claim lost to a concurrent run
+  (`taken`) sends it back to pick. The user talks to it in its own chat.
   *(agent-worktree-pr-loop → Drain run)*
+- **drain task** — a desktop scheduled task a *drain run* is started from:
+  exactly three, `drain-1..3`, with identical one-line prompts, and that count
+  is the drain-run cap. Never a *lane* (collision table).
+  *(.claude/skills/drain-orchestrator)*
+- **drain orchestrator** — the pinned `/loop` chat that dispatches *drain runs*
+  across the *drain tasks*, surfaces what waits on the user, and restocks the
+  *ready queue* via the *triage sweep*. Titled `orchestrator | drain — …`;
+  distinct from an `Arc` orchestrator chat.
+  *(.claude/skills/drain-orchestrator)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 

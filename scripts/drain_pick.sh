@@ -14,15 +14,18 @@ set -euo pipefail
 #           wins), else a body with a `What to build` heading and an `Acceptance` heading.
 #           Order: pri:now > pri:next > pri:later > none, then oldest createdAt.
 #           --dry-run changes nothing (pick never writes); it only stamps DRY_RUN=1.
-#   claim   re-reads the assignee (taken → stop), reads `agent_worktree_pool.sh status
-#           --porcelain` for a state=free slot (none → stop before any write), assigns @me,
-#           then `acquire <lease> <slot>` — strict, so a stale slot is never reclaimed. An
-#           acquire failure unassigns before exiting.
+#   claim   under the pool's machine-wide `drain-claim` lock (`agent_worktree_pool.sh lock`),
+#           so concurrent runs claim one at a time: re-reads the assignee (taken → stop), reads
+#           `agent_worktree_pool.sh status --porcelain` for a state=free slot (none → stop
+#           before any write), assigns @me, then `acquire <lease> <slot>` — strict, so a stale
+#           slot is never reclaimed. An acquire failure unassigns before exiting. Every run is
+#           the same GitHub account, so the assignee alone cannot tell two claimers apart.
 # Env:  GITHUB_REPOSITORY (owner/repo; default `gh repo view`) · DRAIN_POOL (pool script
 #       path; default the sibling agent_worktree_pool.sh — tests inject a fake).
 # Exit: pick — 0 done, picked or not · 1 infra (gh failed) · 2 usage.
-#       claim — 0 claimed · 1 infra (gh or pool failed; an issue left assigned is named on
-#       stderr) · 2 usage · 3 no_slot · 4 taken · 5 acquire_failed (unassigned again).
+#       claim — 0 claimed · 1 infra (gh or pool failed, or the drain-claim lock was still held
+#       after CLAIM_LOCK_WAIT seconds; an issue left assigned is named on stderr) · 2 usage ·
+#       3 no_slot · 4 taken · 5 acquire_failed (unassigned again).
 # Stdout trailers, one per line, stable:
 #   pick:  SKIP=<n> <reason>[,<reason>…]  (one per queue issue not picked; reasons: no-unity-label
 #          unity:<value> assigned:<login> blocked:<open-count> no-scope-block)
@@ -35,6 +38,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="${DRAIN_POOL:-$SCRIPT_DIR/agent_worktree_pool.sh}"
 PROPOSAL_AUTHOR="amindell11"
+CLAIM_LOCK_WAIT=120
 
 usage() { echo "Usage: drain_pick.sh pick [--dry-run] | drain_pick.sh claim <issue> <lease>" >&2; exit 2; }
 infra() { echo "drain_pick: $1" >&2; exit 1; }
@@ -114,6 +118,13 @@ PY
 
 cmd_claim() {
   [[ $# -eq 2 && "$1" =~ ^[0-9]+$ && -n "$2" ]] || usage
+  local rc=0
+  "$POOL" lock drain-claim --wait "$CLAIM_LOCK_WAIT" -- bash "$SCRIPT_DIR/drain_pick.sh" claim-locked "$@" || rc=$?
+  [[ "$rc" -ne 75 ]] || infra "the drain-claim lock was still held after ${CLAIM_LOCK_WAIT}s; nothing claimed"
+  exit "$rc"
+}
+
+cmd_claim_locked() {
   local issue="$1" lease="$2" r assignees slot out
   r="$(repo)" || infra "gh repo view failed"
 
@@ -151,5 +162,6 @@ verb="$1"; shift
 case "$verb" in
   pick) cmd_pick "$@" ;;
   claim) cmd_claim "$@" ;;
+  claim-locked) cmd_claim_locked "$@" ;;  # claim's critical section; only claim calls it, under the lock
   *) usage ;;
 esac
