@@ -10,12 +10,14 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Continuous producer for the survival trial: an opening wave at Build, then one spawn per
-    /// interval while fewer than the alive cap live, interval and cap easing linearly from their
+    /// Continuous producer for the survival trial: an opening wave on the first tick, then one spawn
+    /// per interval while fewer than the alive cap live, interval and cap easing linearly from their
     /// start to end values over the ramp. Ships ring the hero just off screen, facing it, on the
     /// first angle clear of asteroids. Dead products are despawned on the tick, and the tick idles
-    /// while the hero is inactive (the recap hold). The base class's "produce exactly once" is
-    /// about the activation token, not lifetime.
+    /// while the hero is inactive (the recap hold). Nothing spawns in Build: the sector builds under
+    /// an inactive holder and the asteroid field lays out at its Start, so a Build-time clearance
+    /// check would see no rocks. The base class's "produce exactly once" is about the activation
+    /// token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner
     {
@@ -53,6 +55,7 @@ namespace Substrate.Sectors.Elements
         private Ship hero;
         private float startTime;
         private float nextSpawnTime;
+        private bool opened;
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
@@ -68,9 +71,7 @@ namespace Substrate.Sectors.Elements
             units = ctx.Units;
             field = ctx.Field;
             hero = ctx.Hero;
-            BeginSchedule(Time.time);
-            for (var i = 0; i < CapAt(0f); i++)
-                TrySpawn();
+            opened = false;
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
@@ -87,8 +88,17 @@ namespace Substrate.Sectors.Elements
         {
             if (!hero || !hero.gameObject.activeInHierarchy) return;
 
-            DespawnDead();
             var now = Time.time;
+            if (!opened)
+            {
+                opened = true;
+                BeginSchedule(now);
+                for (var i = 0; i < CapAt(0f); i++)
+                    TrySpawn();
+                return;
+            }
+
+            DespawnDead();
             if (SpawnDue(now, products.Count) && TrySpawn())
                 ScheduleNext(now);
         }

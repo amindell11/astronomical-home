@@ -18,7 +18,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Survival trial end to end on primitives: the wave director's opening spawn rings the hero, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
+    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SurvivalTrialPlayModeTests : PlayModeWorldFixture
@@ -86,8 +86,9 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
             tally.Begin(Time.time);
-
-            Assert.AreEqual(1, director.Spawned.Count, "The opening wave fills the start cap.");
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+            Assert.AreEqual(1, director.Spawned.Count, "The first tick's opening wave fills the start cap.");
             var enemy = director.Spawned[0];
             Assert.AreEqual(1, enemy.teamNumber, "Director products are hostile to the team-0 player.");
             Assert.AreEqual(SpawnRadius,
