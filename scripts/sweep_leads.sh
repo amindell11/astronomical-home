@@ -17,7 +17,7 @@ set -euo pipefail
 #   cited         a PR merged on/after --since names #N in its title, its body prose outside
 #                 code fences, or its closingIssuesReferences (merge_reconcile.sh's prose rule)
 #   child-closed  an issue #M the body prose names closed on/after --since
-#   dead-path     a path token in the body prose (one with a `/` and a file extension, or a
+#   dead-path     a path token in the body prose (one with a `/` and a 1–8 character extension, or a
 #                 backticked token ending in `/`) matches no path, nor path suffix, tracked at
 #                 origin/main of the git repo at the working directory — the caller fetches
 #   updated       the issue's own updatedAt is on/after --since
