@@ -29,7 +29,7 @@ namespace Combat.Weapons
                 var rate = cooldown && cooldown.SecondsBetweenShots > 0f
                     ? $"   |   Rate {1f / cooldown.SecondsBetweenShots:0.#}/s" : "";
                 var mag = rounds
-                    ? $"   |   Mag {rounds.MaxAmmo}" + rounds.RefillLabel
+                    ? $"   |   Mag {rounds.MaxAmmo}" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
                     : "";
                 return $"Damage {projectilePrefab.Damage:0}{rate}{mag}   |   Speed {projectilePrefab.LaserSpeed:0}";
             }

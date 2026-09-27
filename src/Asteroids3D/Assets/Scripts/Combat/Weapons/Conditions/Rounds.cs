@@ -41,11 +41,8 @@ namespace Combat.Weapons.Conditions
 
         public int AmmoCount { get; private set; }
         public int MaxAmmo => maxAmmo;
-        public string RefillLabel =>
-            reloadTime <= 0f ? ""
-            : refill == RefillMode.PerRound ? $" (regen {reloadTime:0.#}s/round)"
-            : $" (reload {reloadTime:0.#}s)";
-
+        public float ReloadTime => reloadTime;
+        public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
 
         public float ReloadProgress =>
