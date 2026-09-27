@@ -4,8 +4,9 @@ set -euo pipefail
 
 # Regression for the pool's locking contracts: auto-pick prefers free slots over
 # stale reclaims, a named slot never falls back, reclaim is TTL-gated and refuses
-# to clobber unpushed work, release clears both lease homes, and prepare refuses
-# a slot holding unpushed work.
+# to clobber unpushed work, release clears both lease homes, acquire prepares a
+# free slot or releases it when prepare refuses, and prepare refuses a slot
+# holding unpushed work.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -79,6 +80,22 @@ pool release agent-2 | grep -q "Released agent-2" || fail "release should report
   || fail "release must clear the durable git-config lease"
 pool release agent-2 | grep -q "was not locked" || fail "releasing a free slot should be a clean no-op"
 
+# --- acquire prepares a free slot, and gives it back when prepare refuses -----
+# agent-1 is locked, so auto-pick meets the released-but-dirty agent-2 first.
+if pool acquire lease-seven >/dev/null 2>&1; then fail "acquire must fail on a free slot holding unpushed work"; fi
+[[ ! -d "$(lock_dir agent-2)" ]] || fail "a refused acquire must release the slot"
+[[ -f "$TMP/agent-2/dirty.txt" ]] || fail "a refused acquire must not touch the worktree"
+rm "$TMP/agent-2/dirty.txt"
+mkdir -p "$TMP/agent-2/results" && echo keep > "$TMP/agent-2/results/x"
+echo moved > "$TMP/primary/file.txt"
+git -C "$TMP/primary" commit -qam "main moves on" && git -C "$TMP/primary" push -q origin main
+got="$(pool acquire lease-seven 2>/dev/null | acquired_slot)"
+[[ "$got" == "agent-2" ]] || fail "acquire should take the clean free agent-2 (got '$got')"
+[[ "$(git -C "$TMP/agent-2" rev-parse HEAD)" == "$(git -C "$TMP/primary" rev-parse origin/main)" ]] \
+  || fail "acquire must prepare a free slot at origin/main"
+[[ -f "$TMP/agent-2/results/x" ]] || fail "acquire's prepare must keep ignored dirs"
+pool release agent-2 >/dev/null
+
 # --- prepare refuses unpushed work unless forced ------------------------------
 if pool prepare agent-1 origin/main >/dev/null 2>&1; then fail "prepare must refuse a slot holding unpushed work"; fi
 [[ -f "$TMP/agent-1/wip.txt" ]] || fail "a refused prepare must not touch the worktree"
@@ -104,4 +121,4 @@ for iteration in 1 2 3 4 5; do
   pool release agent-1 >/dev/null
 done
 
-echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare refusal + reclaim contention"
+echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare-on-acquire + prepare refusal + reclaim contention"
