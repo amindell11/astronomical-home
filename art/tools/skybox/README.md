@@ -187,6 +187,13 @@ view height in tiles (default 0.1) live on that material. Assign it to a
 material in Play Mode to preview (Unity reverts on exit), or assign it in Edit
 Mode and save the scene to apply (native Undo).
 
+Each sidecar import also writes palette parents beside it
+(`<name>-final.FarNebula.mat`, `….CloseNebula.mat`): Material Variants of the
+shared nebula materials with palette-mapped colours. A locale's nebula
+materials vary these, so re-sending refreshes inherited colours while its
+Inspector overrides survive; per-property **Revert** returns to the palette.
+`nebula-glow-warm.json` is the amber/red counterpart of `nebula-glow.json`.
+
 ```bash
 blender -b --python-exit-code 1 -P art/tools/skybox/skybox_flat.py --   --preset art/tools/skybox/nebula-glow.json --stage final --out /path/to/clouds-final   --unity-project src/Asteroids3D --name nebula-glow-flat
 ```
