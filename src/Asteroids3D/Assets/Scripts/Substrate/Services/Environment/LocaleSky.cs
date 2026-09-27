@@ -4,13 +4,13 @@ using UnityEngine.SceneManagement;
 namespace Substrate.Services.Environment
 {
     /// <summary>
-    /// A locale scene's environment root. Each child renderer is one environment layer on the
-    /// <c>Sky</c> Unity layer, which only the flight camera's culling mask includes; the root enables
-    /// its layers only while its scene is the active scene, so inactive loaded locales draw nothing.
-    /// A layer's look lives on its material. Design: arc #678.
+    /// A locale scene's sky root. Each child renderer is one sky layer on the <c>Sky</c> Unity
+    /// layer, which only the flight camera's culling mask includes; the root enables its sky layers
+    /// only while its scene is the active scene, so inactive loaded locales draw nothing.
+    /// A sky layer's look lives on its material. Design: arc #678.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class EnvironmentAuthoring : MonoBehaviour
+    public sealed class LocaleSky : MonoBehaviour
     {
         private Renderer[] layers;
 

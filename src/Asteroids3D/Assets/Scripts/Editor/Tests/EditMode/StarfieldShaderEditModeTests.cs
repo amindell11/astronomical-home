@@ -229,9 +229,9 @@ namespace Tests.EditMode
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
-                var root = scene.GetRootGameObjects().Single(g => g.GetComponent<EnvironmentAuthoring>()).transform;
+                var root = scene.GetRootGameObjects().Single(g => g.GetComponent<LocaleSky>()).transform;
                 var starfield = root.Find("StarField");
-                Assert.IsNotNull(starfield, $"No StarField environment layer under {scenePath}'s environment root.");
+                Assert.IsNotNull(starfield, $"No StarField sky layer under {scenePath}'s LocaleSky root.");
                 Assert.AreSame(LoadMaterial(), starfield.GetComponent<MeshRenderer>().sharedMaterial);
             }
             finally

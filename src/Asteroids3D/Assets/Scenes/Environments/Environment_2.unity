@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 8819561}
   - component: {fileID: 8819560}
   m_Layer: 16
-  m_Name: Environment
+  m_Name: Sky
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

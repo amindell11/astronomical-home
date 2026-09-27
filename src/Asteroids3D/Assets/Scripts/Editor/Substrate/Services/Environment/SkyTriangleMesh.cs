@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Substrate.Services.Environment
 {
     /// <summary>
-    /// Generates the fullscreen triangle every environment layer renders with. The sky shaders read
+    /// Generates the fullscreen triangle every sky layer renders with. The sky shaders read
     /// its vertices as clip-space positions; the huge bounds keep it from being frustum-culled
     /// wherever the flight camera travels.
     /// </summary>

@@ -64,7 +64,7 @@ namespace Tests.EditMode.Rendering
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
-                var root = scene.GetRootGameObjects().Single(g => g.GetComponent<EnvironmentAuthoring>()).transform;
+                var root = scene.GetRootGameObjects().Single(g => g.GetComponent<LocaleSky>()).transform;
                 var far = root.Find("FarNebula").GetComponent<MeshRenderer>().sharedMaterial;
                 var stars = root.Find("StarField").GetComponent<MeshRenderer>().sharedMaterial;
                 var close = root.Find("CloseNebula").GetComponent<MeshRenderer>().sharedMaterial;

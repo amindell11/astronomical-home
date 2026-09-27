@@ -11,7 +11,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Presentation
 {
     [Category("Sectors")]
-    public sealed class EnvironmentAuthoringPlayModeTests
+    public sealed class LocaleSkyPlayModeTests
     {
         private const string SkyTrianglePath = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
 
@@ -52,17 +52,17 @@ namespace Tests.PlayMode.Presentation
             var a = BuildRoot(first, null);
             var b = BuildRoot(second, null);
             yield return null;
-            Assert.IsTrue(a.enabled, "the active locale's environment layers draw");
-            Assert.IsFalse(b.enabled, "an inactive loaded locale's environment layers stay off");
+            Assert.IsTrue(a.enabled, "the active locale's sky layers draw");
+            Assert.IsFalse(b.enabled, "an inactive loaded locale's sky layers stay off");
 
             SceneManager.SetActiveScene(second);
             yield return null;
-            Assert.IsFalse(a.enabled, "the previously active locale's environment layers turn off");
-            Assert.IsTrue(b.enabled, "the newly active locale's environment layers turn on");
+            Assert.IsFalse(a.enabled, "the previously active locale's sky layers turn off");
+            Assert.IsTrue(b.enabled, "the newly active locale's sky layers turn on");
         }
 
         [UnityTest, Category("RequiresGraphics")]
-        public IEnumerator FlightCameraFarFromOrigin_StillDrawsTheLayers()
+        public IEnumerator FlightCameraFarFromOrigin_StillDrawsTheSkyLayers()
         {
             texture = new Texture2D(4, 4, TextureFormat.RGBAHalf, false, true);
             var colors = new Color[16];
@@ -90,13 +90,13 @@ namespace Tests.PlayMode.Presentation
                 cameraRoot.transform.position = position;
                 yield return null;
                 yield return null;
-                Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), $"the environment layer must still draw with the camera at {position}");
+                Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), $"the sky layer must still draw with the camera at {position}");
             }
         }
 
         private static MeshRenderer BuildRoot(Scene scene, Material layerMaterial)
         {
-            var root = new GameObject("Environment");
+            var root = new GameObject("Sky");
             root.SetActive(false);
             SceneManager.MoveGameObjectToScene(root, scene);
             var layer = new GameObject("Layer") { layer = LayerIds.Sky };
@@ -104,7 +104,7 @@ namespace Tests.PlayMode.Presentation
             layer.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(SkyTrianglePath);
             var renderer = layer.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = layerMaterial;
-            root.AddComponent<EnvironmentAuthoring>();
+            root.AddComponent<LocaleSky>();
             root.SetActive(true);
             return renderer;
         }
