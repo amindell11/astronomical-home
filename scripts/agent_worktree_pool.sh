@@ -506,8 +506,7 @@ cs_diff_is_comment_only() {
 # ---- Locks -----------------------------------------------------------------
 LOCK_BUSY_EXIT=75
 
-# Runs <cmd...> holding an exclusive flock on <file>, waiting up to <wait> seconds for it; a lock
-# still held after the wait returns LOCK_BUSY_EXIT, printing <busy_msg> unless empty.
+# Runs <cmd...> under an exclusive flock on <file>; still held after <wait>s → LOCK_BUSY_EXIT, printing any <busy_msg>.
 with_flock() {
   local file="$1" wait="$2" busy_msg="$3"
   shift 3
