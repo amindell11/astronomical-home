@@ -30,6 +30,11 @@ camera half-height is 3.5; the field half-height is 26. To inspect the field clo
 and resize the background quad to (49.7778, 28, 1), using the hero outline for the ship. Background
 quads are composed for 16:9. The hangar quad receives a real shadow; space quads are unlit.
 
+For hangar shadow tuning, select `Fixed key` and rotate its Transform. The hangar light starts
+at (5, -8, 0) degrees; space retains (25, -35, 0). Bringing X/Y rotation closer to zero shortens
+the projection onto the flat background plate. Moving a directional light does not change it.
+The hangar architecture is painted into that plate, so it does not provide a modeled 3D floor.
+
 ## Reproduce
 
 `Astronomical > Art previews > Capture saved study scenes` reopens the three saved scenes,

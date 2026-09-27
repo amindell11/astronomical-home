@@ -184,7 +184,7 @@ namespace Visuals.Studies
             light.shadowBias = .02f;
             light.shadowNormalBias = .05f;
             light.cullingMask = 1 << 30;
-            light.transform.rotation = Quaternion.Euler(25, -35, 0);
+            light.transform.rotation = hangar ? Quaternion.Euler(5, -8, 0) : Quaternion.Euler(25, -35, 0);
             RenderSettings.sun = light;
             var camera = new GameObject("Preview camera", typeof(Camera)).GetComponent<Camera>();
             camera.tag = "MainCamera";
