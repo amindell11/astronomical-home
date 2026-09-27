@@ -36,8 +36,8 @@
     {"name":"inner cockpit shell channel","object":"MVP Cockpit.001","mirror":true,"color":"bluegray","points":[[0,0.23996],[0.04954,0.23796],[0.03611,0.06836],[0,0.06869]]},
     {"name":"inner cockpit channel bridge","object":"MVP Cockpit.001","mirror":true,"color":"bluegray","offset":0.0004,"points":[[0,0.23996],[0.04954,0.23796],[0.05006,0.28505],[0,0.28762]]},
     {"name":"inner cockpit channel canopy taper","object":"MVP Cockpit.001","mirror":true,"color":"bluegray","offset":0.0004,"points":[[0,0.28762],[0.05006,0.28505],[0.01548,0.45574],[0,0.45593]]},
-    {"name":"canopy channel terminal cap","object":"MVP Cockpit.001","mirror":false,"color":"charcoal","offset":0.001,"points":[[-0.016,0.444],[0.016,0.444],[0.014,0.453],[-0.014,0.453]]},
-    {"name":"canopy channel cap edge","object":"MVP Cockpit.001","mirror":false,"color":"edge","offset":0.0013,"points":[[-0.011,0.449],[0.011,0.449],[0.0105,0.451],[-0.0105,0.451]]},
-    {"name":"canopy channel amber index","object":"MVP Cockpit.001","mirror":false,"color":"amber","offset":0.001,"points":[[-0.006,0.42],[0.006,0.42],[0,0.43]]}
+    {"name":"canopy channel terminal cap","object":"MVP Cockpit.001","mirror":false,"color":"charcoal","offset":0.001,"points":[[-0.016,0.378],[0.016,0.378],[0.014,0.387],[-0.014,0.387]]},
+    {"name":"canopy channel cap edge","object":"MVP Cockpit.001","mirror":false,"color":"edge","offset":0.0013,"points":[[-0.011,0.383],[0.011,0.383],[0.0105,0.385],[-0.0105,0.385]]},
+    {"name":"canopy channel amber index","object":"MVP Cockpit.001","mirror":false,"color":"amber","offset":0.001,"points":[[-0.006,0.354],[0.006,0.354],[0,0.364]]}
   ]
 }
