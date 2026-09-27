@@ -172,7 +172,7 @@ namespace Tests.PlayMode.Rendering.Vanguard
                 Assert.That(wear, Is.Not.Null);
                 var wearInk = new Material(graphite);
                 owned.Add(wearInk);
-                wearInk.SetColor("_BaseColor", new Color(.35f, .32f, .29f).linear);
+                wearInk.SetColor("_BaseColor", new Color(.62f, .60f, .57f).linear);
                 wear.sharedMaterial = wearInk;
                 wear.shadowCastingMode = ShadowCastingMode.Off;
                 wear.gameObject.layer = 30;
