@@ -229,7 +229,9 @@ or the stated scope, no new abstractions, no bug-hunting, no speculative
 findings; (b) comment hygiene on TOUCHED HUNKS ONLY per AGENTS.md's comment
 rules; (c) conformance of touched Unity code to
 `doc/agents/unity-conventions.md`. Its edits become part of the tree the user reviews. Summarize its
-changes in the PR body.
+changes in the PR body. A Size-S diff (under ~100 changed lines, no C#) may skip the
+quality subagent: the session checks comment hygiene on its own hunks and says in the PR
+body that it skipped the pass.
 
 ## Step 4 — Submit
 
