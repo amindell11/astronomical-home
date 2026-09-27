@@ -740,7 +740,7 @@ reclaim_stale_slot() {
   echo "SLOT=$slot PATH=$path"
 }
 
-# A free slot can still carry a released task's tree: acquire hands it back prepared at origin/main, or not at all.
+# A released slot keeps its old tree, so a free slot is only handed out prepared.
 claim_prepared_slot() {
   local slot="$1" lease="$2" path="$3" out
   out="$(try_lock_slot "$slot" "$lease" "$path")" || return 1
@@ -753,7 +753,7 @@ claim_prepared_slot() {
   echo "$out"
 }
 
-# <claim> takes a free slot: resume passes try_lock_slot, since it resets the slot to its held snapshot itself.
+# resume claims lock-only: it resets the slot to its held snapshot itself.
 lock_slot() {
   local lease="$1" wanted="$2" claim="$3"
 
