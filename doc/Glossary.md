@@ -429,7 +429,7 @@ Format: **term** — definition. *(authority)*
   worktree machine.
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
-  the pending loadout, the damage ledger and the death hook. Built once by the
+  the pending loadout, the damage ledger, the run tally and the death hook. Built once by the
   game host against the viewport it owns, injected into every sector load, torn
   down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
@@ -461,6 +461,14 @@ Format: **term** — definition. *(authority)*
 - **encounter** — the *fat* activation rule: rule + lazily-spawned content +
   local objective + on-complete events. A thin rule on a fixture is not an
   encounter.
+- **wave director** — the continuous sector spawner: ships ringing the hero
+  just off screen on an escalating interval under an escalating alive cap,
+  dead products despawned as it goes. Content, not a sector module, so product
+  ownership and teardown stay the spawner's. *(WaveDirector)*
+- **survival trial** — the sector whose only goal is surviving: a wave director
+  and an asteroid field, no sector module, never raising a sector end — the
+  game host's player-death path is its only exit, and the run tally is its
+  score. *(TrialSector prefab)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -625,8 +633,14 @@ Format: **term** — definition. *(authority)*
   rows, aggregated per source — consumer-side recorder owned by the player rig,
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
-- **death recap** — the post-death summary rendered from the damage ledger at
-  the game host's hold between death and sector unload; presentation-gated, so a
+- **run tally** — kills and time survived for one run: a consumer-side recorder
+  on the player rig beside the damage ledger, never sim state. A kill is a death
+  whose killing blow came from the current player (id read at event time — the
+  hangar can rebuild the player); only deaths between the game host's clock
+  stamps count (begin after the sector load, end at player death). Reset at each
+  run's loadout step. *(RunTally)*
+- **death recap** — the post-death summary rendered from the damage ledger and
+  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.
   *(DeathRecapScreen, GameHost.RunDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture

@@ -19,6 +19,7 @@ namespace UI
         private UIBoostAudio boostAudio;
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
+        private RunTallyReadout tallyReadout;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
@@ -65,6 +66,10 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
+
+            if (!tallyReadout)
+                tallyReadout = RunTallyReadout.Create(transform);
+            tallyReadout.Initialize(binding.Tally);
 
             // Overheat and lock audio are single overlay-level channels; each follows the
             // first weapon (in slot order) that exposes the matching readout.
