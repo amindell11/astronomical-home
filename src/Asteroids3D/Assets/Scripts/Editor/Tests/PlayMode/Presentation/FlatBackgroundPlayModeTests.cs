@@ -1,11 +1,9 @@
 #if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
-using Substrate.Presentation;
-using Substrate.Services.Environment;
+using Substrate;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Presentation
@@ -13,10 +11,12 @@ namespace Tests.PlayMode.Presentation
     [Category("Sectors")]
     public sealed class FlatBackgroundPlayModeTests
     {
+        private const string SkyTrianglePath = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
+        // A power of two keeps whole-repeat camera positions and the shader's division exact.
+        private const float RepeatDistance = 65536;
+
         private GameObject cameraRoot;
-        private GameObject environmentRoot;
-        private Scene original;
-        private Scene locale;
+        private GameObject layer;
         private Texture2D texture;
         private Material background;
         private RenderTexture target;
@@ -24,44 +24,24 @@ namespace Tests.PlayMode.Presentation
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            original = SceneManager.GetActiveScene();
-            locale = SceneManager.CreateScene("Flat background test");
-            SceneManager.SetActiveScene(locale);
-            texture = new Texture2D(4, 4, TextureFormat.RGBAHalf, false, true);
-            var colors = new Color[16];
-            for (var i = 0; i < colors.Length; i++) colors[i] = new Color(2, 0.25f, 0.125f, 1);
+            Assert.That(LayerIds.Sky, Is.GreaterThanOrEqualTo(0), "test premise: the Sky layer exists");
+            texture = new Texture2D(16, 16, TextureFormat.RGBAHalf, false, true) { wrapMode = TextureWrapMode.Repeat };
+            var colors = new Color[256];
+            for (var i = 0; i < colors.Length; i++) colors[i] = new Color(2 + i % 16 * 0.125f, 0.25f, i / 16 * 0.0625f, 1);
             texture.SetPixels(colors);
             texture.Apply();
             background = new Material(Shader.Find("Environment/Flat Background")) { mainTexture = texture };
+            background.SetFloat("_RepeatDistance", RepeatDistance);
+            background.SetFloat("_ViewHeightInTiles", 0.5f);
+            layer = new GameObject("Flat background") { layer = LayerIds.Sky };
+            layer.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(SkyTrianglePath);
+            layer.AddComponent<MeshRenderer>().sharedMaterial = background;
+
             cameraRoot = new GameObject("Flight camera");
-            cameraRoot.AddComponent<Camera>();
-            cameraRoot.AddComponent<EnvironmentCamera>();
-            environmentRoot = new GameObject("Environment");
-            environmentRoot.SetActive(false);
-            var authoring = environmentRoot.AddComponent<EnvironmentAuthoring>();
-            var serialized = new SerializedObject(authoring);
-            serialized.FindProperty("background").objectReferenceValue = background;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            environmentRoot.SetActive(true);
-            yield return null;
-        }
-
-        [UnityTearDown]
-        public IEnumerator TearDown()
-        {
-            if (cameraRoot) Object.Destroy(cameraRoot);
-            if (environmentRoot) Object.Destroy(environmentRoot);
-            if (background) Object.Destroy(background);
-            if (texture) Object.Destroy(texture);
-            if (target) { target.Release(); Object.Destroy(target); }
-            SceneManager.SetActiveScene(original);
-            yield return SceneManager.UnloadSceneAsync(locale);
-        }
-
-        [UnityTest, Category("RequiresGraphics")]
-        public IEnumerator FlightCameraDrawsHdr_AndInactiveLocaleAndPresentationOffDoNotDraw()
-        {
-            var camera = cameraRoot.GetComponent<Camera>();
+            var camera = cameraRoot.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 7;
+            camera.cullingMask = 1 << LayerIds.Sky;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = Color.black;
             camera.allowHDR = true;
@@ -69,32 +49,52 @@ namespace Tests.PlayMode.Presentation
             target.Create();
             camera.targetTexture = target;
             yield return null;
-            yield return null;
-            Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), "Native flat clouds must reach the camera as HDR.");
-            camera.orthographicSize = 100;
-            camera.transform.position = new Vector3(-400000, 800000, -10);
-            yield return null;
-            Assert.That(ReadCenter().r, Is.GreaterThan(1.5f));
-            SceneManager.SetActiveScene(original);
-            yield return null;
-            Assert.That(ReadCenter().r, Is.LessThan(0.01f), "Inactive loaded locales must not draw.");
-            SceneManager.SetActiveScene(locale);
-            PresentationApplier.Apply(cameraRoot, false);
-            yield return null;
-            Assert.That(ReadCenter().r, Is.LessThan(0.01f), "Presentation-off must suppress the background.");
-            PresentationApplier.Apply(cameraRoot, true);
-            yield return null;
-            Assert.That(ReadCenter().r, Is.GreaterThan(1.5f));
         }
 
-        private Color ReadCenter()
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (cameraRoot) Object.Destroy(cameraRoot);
+            if (layer) Object.Destroy(layer);
+            if (background) Object.Destroy(background);
+            if (texture) Object.Destroy(texture);
+            if (target) { target.Release(); Object.Destroy(target); }
+            yield return null;
+        }
+
+        [UnityTest, Category("RequiresGraphics")]
+        public IEnumerator HomeAndWholeRepeatsAway_RenderIdentically_InHdr()
+        {
+            var home = new Vector3(128, 384, -10);
+            yield return RenderAt(home);
+            var baseline = ReadAll();
+            Assert.That(baseline[32 * 64 + 32].r, Is.GreaterThan(1.5f), "Native flat clouds must reach the camera as HDR.");
+
+            foreach (var repeats in new[] { 1, -1, 12, -12 })
+            {
+                yield return RenderAt(home + new Vector3(repeats, -repeats, 0) * RepeatDistance);
+                CollectionAssert.AreEqual(baseline, ReadAll(), $"{repeats} whole repeats away must render as home.");
+            }
+
+            yield return RenderAt(home + new Vector3(RepeatDistance / 2, 0, 0));
+            CollectionAssert.AreNotEqual(baseline, ReadAll(), "Travel inside a repeat must reveal different clouds.");
+        }
+
+        private IEnumerator RenderAt(Vector3 position)
+        {
+            cameraRoot.transform.position = position;
+            yield return null;
+            yield return null;
+        }
+
+        private Color[] ReadAll()
         {
             var previous = RenderTexture.active;
             RenderTexture.active = target;
-            var readback = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, true);
-            readback.ReadPixels(new Rect(32, 32, 1, 1), 0, 0);
+            var readback = new Texture2D(target.width, target.height, TextureFormat.RGBAFloat, false, true);
+            readback.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
             readback.Apply();
-            var result = readback.GetPixel(0, 0);
+            var result = readback.GetPixels();
             Object.Destroy(readback);
             RenderTexture.active = previous;
             return result;

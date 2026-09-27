@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Cameras;
 using Damage;
+using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sessions;
@@ -170,14 +171,15 @@ namespace Game
         {
             var built = Instantiate(observerCamPrefab, parent);
 
-            // The authored prefab clears to the skybox; a non-presenting session must not render one.
+            // The authored prefab clears to the skybox and sees the Sky layer; presentation-off renders neither.
             if (!presentationEnabled)
             {
                 built.Cam.clearFlags = CameraClearFlags.SolidColor;
                 built.Cam.backgroundColor = Color.black;
+                built.Cam.cullingMask &= ~(1 << LayerIds.Sky);
             }
 
-            // The camera carries authored presentation of its own (the starfield backdrop, the reverb zone).
+            // The camera carries authored presentation of its own (the reverb zone).
             PresentationApplier.Apply(built.gameObject, presentationEnabled);
 
             var registry = units.ActiveRegistry;
