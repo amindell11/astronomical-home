@@ -1262,15 +1262,6 @@ require_pr_title_body() {
   fi
 }
 
-resolve_pr_body() {
-  local body="$1" body_file="$2"
-  if [[ -n "$body_file" ]]; then
-    cat "$body_file"
-  else
-    printf '%s' "$body"
-  fi
-}
-
 require_gh() {
   command -v gh >/dev/null 2>&1 || {
     echo "gh CLI not found in PATH" >&2
@@ -1360,8 +1351,11 @@ push_and_open_pr() {
     return 0
   fi
 
+  # gh reads the file itself: inlining a large body overflows Windows' ~32 KB command line.
+  local body_args=(--body "$PR_BODY")
+  [[ -z "$PR_BODY_FILE" ]] || body_args=(--body-file "$PR_BODY_FILE")
   local url
-  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" --body "$(resolve_pr_body "$PR_BODY" "$PR_BODY_FILE")")"
+  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" "${body_args[@]}")"
   echo "$slot PR created: $url"
 }
 
