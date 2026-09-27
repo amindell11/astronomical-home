@@ -88,6 +88,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · legacy name for a locale (`Environment_N.unity`, `Visuals/Environment`, `Substrate.Services.Environment`, the sector config's "Environment" header) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
 ---
 
@@ -495,8 +497,9 @@ Format: **term** — definition. *(authority)*
   `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
-- **locale** — the per-sector environment *scene* (skybox, light, ambience).
-  Environment is a scene; gameplay is a prefab.
+- **locale** — the per-sector look *scene*: skybox, lighting, ambience and sky
+  layers (under its `LocaleSky` root). `LocaleService` loads it additively and
+  makes it active. Look is a scene; gameplay is a prefab.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
@@ -655,8 +658,12 @@ Format: **term** — definition. *(authority)*
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
   hangar can rebuild the player); only deaths between the game host's clock
-  stamps count (begin after the sector load, end at player death). Reset at each
-  run's loadout step. *(RunTally)*
+  stamps count (begin after the sector load, end at player death). Raises
+  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the fraction of max hull the game host restores to the
+  player each time the run tally counts a kill; hull only (ammo or heat on a kill
+  would be a reset button, and the shield already regens). Interactive sessions
+  only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.

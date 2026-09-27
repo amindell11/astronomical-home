@@ -14,6 +14,7 @@ Shader "Custom/Nebula"
         [Toggle] _NebulaForeground ("Foreground Wisps Only", Float) = 0
         _NebulaCool ("Nebula Cool Color", Color) = (0.18, 0.48, 0.65, 1)
         _NebulaWarm ("Nebula Warm Color", Color) = (0.5, 0.2, 0.38, 1)
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("Depth Test", Float) = 4
 
     }
 
@@ -28,7 +29,7 @@ Shader "Custom/Nebula"
 
         Blend One One
         Cull Off
-        ZTest LEqual
+        ZTest [_ZTest]
         ZWrite Off
 
         Pass
