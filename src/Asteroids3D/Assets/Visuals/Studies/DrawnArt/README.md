@@ -37,8 +37,10 @@ The hangar architecture is painted into that plate, so it does not provide a mod
 
 The canopy uses `Drawn Canopy`: a tapered blue-gray reflection and an interrupted glint,
 projected in the canopy mesh's local XY coordinates. Its material exposes reflection strength
-and both colors. The marks follow the curved glass and respond to light/view direction without
-emission or a smooth specular hotspot. Other ship surfaces keep the `Drawn Surface` shader.
+and both colors. The reflection shifts with the light/view direction, narrows at grazing angles,
+and fades in shadow. A subtle blue edge response suggests glass without emission. This is an
+art-directed approximation, not a reflection of scene objects. Other ship surfaces keep the
+`Drawn Surface` shader.
 
 ## Reproduce
 
