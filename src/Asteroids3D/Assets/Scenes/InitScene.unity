@@ -167,8 +167,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sessionProfile:
     sectorEntry:
-      config: {fileID: 11400000, guid: 6cb05f9f988f48a18ee615e444e24d3f, type: 2}
-      prefab: {fileID: 6734031631238332472, guid: 47426a24cc9026e408695399dc81c107,
+      config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
+      prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
     presentation: 1
     offset: {x: 0, y: 0}
