@@ -45,7 +45,7 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            _unitService?.Clear();
+            if (_unitService) _unitService.Clear();
 
             foreach (var go in _created)
                 if (go != null) Object.DestroyImmediate(go);
