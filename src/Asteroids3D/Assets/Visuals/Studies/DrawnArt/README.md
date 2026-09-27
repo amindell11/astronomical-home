@@ -35,6 +35,11 @@ at (5, -8, 0) degrees; space retains (25, -35, 0). Bringing X/Y rotation closer 
 the projection onto the flat background plate. Moving a directional light does not change it.
 The hangar architecture is painted into that plate, so it does not provide a modeled 3D floor.
 
+The canopy uses `Drawn Canopy`: a tapered blue-gray reflection and an interrupted glint,
+projected in the canopy mesh's local XY coordinates. Its material exposes reflection strength
+and both colors. The marks follow the curved glass and respond to light/view direction without
+emission or a smooth specular hotspot. Other ship surfaces keep the `Drawn Surface` shader.
+
 ## Reproduce
 
 `Astronomical > Art previews > Capture saved study scenes` reopens the three saved scenes,
