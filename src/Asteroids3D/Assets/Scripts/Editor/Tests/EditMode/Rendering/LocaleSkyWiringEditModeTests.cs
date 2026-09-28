@@ -19,6 +19,7 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleScene_HasExactlyOneActiveLocaleSky(string scenePath)
         {
@@ -35,7 +36,8 @@ namespace Tests.EditMode.Rendering
         }
 
         [TestCase("Assets/Scenes/Environments/Environment_1.unity", "nebula-glow-warm-flat-final")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity", "illustrated-blue-final")]
+        [TestCase("Assets/Scenes/Environments/Environment_2.unity", "nebula-glow-flat-final")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity", "illustrated-blue-final")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string scenePath, string background)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
@@ -48,7 +50,7 @@ namespace Tests.EditMode.Rendering
                 Assert.IsFalse(roots.Single(g => g.name == "Sky (Original)").activeSelf,
                     "The original root stays inactive as a rollback.");
                 var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-                var illustrated = scene.name == "Environment_2";
+                var illustrated = scene.name == "Environment_3";
                 var names = illustrated
                     ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
                     : CandidateLayers;
@@ -85,6 +87,7 @@ namespace Tests.EditMode.Rendering
 
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
         public void SectorLocale_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string scenePath)
         {
             var previous = SceneManager.GetActiveScene();

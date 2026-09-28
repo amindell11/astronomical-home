@@ -24,7 +24,29 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - _Brightness: 5
+    - _CellScale: 1.5
+    - _DepthElongation: 0.08
+    - _HaloSize: 2
+    - _HaloStrength: 0.015
+    - _ParallaxFar: 0
+    - _ParallaxNear: 0.1
+    - _ParallaxScale: 0.034
+    - _PointedShare: 0.9
+    - _Seed: 93
+    - _ShapeVariation: 0
+    - _ShootingBrightness: 0.1
+    - _ShootingParallax: 0.035
+    - _SmallStarBias: 2
+    - _Softness: 0
+    - _StarDensity: 0.035
+    - _StarSizeMax: 0.14
+    - _StarSizeMin: 0.01
+    - _TwinkleAmount: 0.12
+    - _WarmColorShare: 0.4
+    m_Colors:
+    - _ColorCool: {r: 0.15, g: 0.5, b: 1, a: 1}
+    - _ColorWarm: {r: 1, g: 0.38, b: 0.05, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

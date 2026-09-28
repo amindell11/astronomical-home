@@ -195,7 +195,7 @@ Inspector overrides survive; per-property **Revert** returns to the palette.
 `nebula-glow-warm.json` is the amber/red counterpart of `nebula-glow.json`.
 
 `illustrated-blue.json` supplies the cool palette and subdued generated texture
-used by `Environment_2`. Its Background material adds a Solid Base and reduces
+used by `Environment_3`. Its Background material adds a Solid Base and reduces
 Cloud Texture Strength; the main visible cloud banks are the locale's FarNebula
 material. Cloud Bank Opacity enables shaded, partially opaque banks; zero keeps
 the additive wisps treatment. Coverage, Direction and Stretch shape the banks.
