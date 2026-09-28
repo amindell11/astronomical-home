@@ -1,6 +1,8 @@
 using System.Linq;
 using NUnit.Framework;
+using Substrate.Services.Environment;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -54,20 +56,34 @@ namespace Tests.EditMode.Rendering
             Object.DestroyImmediate(material);
         }
 
-        [Test]
-        public void CameraAtmosphere_SeparatesMaterialsAndPreservesDrawOrder()
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity")]
+        public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string scenePath)
         {
-            var camera = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Cameras/Main Camera.prefab");
-            var stars = camera.transform.Find("StarField").GetComponent<SpriteRenderer>().sharedMaterial;
-            var background = camera.transform.Find("BackgroundNebula").GetComponent<SpriteRenderer>().sharedMaterial;
-            var foreground = camera.transform.Find("ForegroundNebula").GetComponent<SpriteRenderer>().sharedMaterial;
-            Assert.That(stars.HasProperty("_NebulaStrength"), Is.False);
-            Assert.That(background.HasProperty("_StarDensity"), Is.False);
-            Assert.That(foreground.shader, Is.EqualTo(background.shader));
-            Assert.That(foreground, Is.Not.EqualTo(background));
-            Assert.That(stars.renderQueue, Is.EqualTo(2950));
-            Assert.That(background.renderQueue, Is.EqualTo(2960));
-            Assert.That(foreground.renderQueue, Is.EqualTo(2990));
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
+                var far = root.Find("FarNebula").GetComponent<MeshRenderer>().sharedMaterial;
+                var stars = root.Find("StarField").GetComponent<MeshRenderer>().sharedMaterial;
+                var close = root.Find("CloseNebula").GetComponent<MeshRenderer>().sharedMaterial;
+                Assert.That(stars.HasProperty("_NebulaStrength"), Is.False);
+                Assert.That(far.HasProperty("_StarDensity"), Is.False);
+                Assert.That(close.shader, Is.EqualTo(far.shader));
+                Assert.That(close, Is.Not.EqualTo(far));
+                Assert.That(far.renderQueue, Is.EqualTo(2940));
+                Assert.That(stars.renderQueue, Is.EqualTo(2950));
+                Assert.That(close.renderQueue, Is.EqualTo(2990));
+                Assert.That(far.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.LessEqual));
+                Assert.That(close.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.Always),
+                    "The close nebula must draw over gameplay.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]

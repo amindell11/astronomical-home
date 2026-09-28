@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Canopy
-  m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
+  m_Shader: {fileID: 4800000, guid: 112c91cc725f0b84eb0b973c51144c0f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -53,6 +53,7 @@ Material:
     - _BumpScale: 1
     - _CastShadowStrength: 0.96
     - _DetailAlbedoMapScale: 0
+    - _DrawnReflectionStrength: 0.85
     - _EmissionStrength: 0.35
     - _LineSoftness: 0.08
     - _LineStrength: 0
@@ -70,6 +71,9 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
     - _PaperColor: {r: 0.65, g: 0.7, b: 0.75, a: 1}
+    - _ReflectionBounds: {r: -0.000010760268, g: 0.006227376, b: 632.1744, a: 215.95718}
+    - _ReflectionColor: {r: 0.42, g: 0.54, b: 0.64, a: 1}
+    - _ReflectionEdgeColor: {r: 0.56, g: 0.64, b: 0.67, a: 1}
     - _ShadowColor: {r: 0.35, g: 0.45, b: 0.8, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

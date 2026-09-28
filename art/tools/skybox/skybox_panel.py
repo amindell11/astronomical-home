@@ -10,7 +10,7 @@ from bpy.props import (BoolProperty, CollectionProperty, EnumProperty, FloatProp
                        FloatVectorProperty, IntProperty, PointerProperty, StringProperty)
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 
-from . import skybox_merged, skybox_preset, skybox_unity, skybox_preview
+from . import skybox_merged, skybox_preset, skybox_unity, skybox_preview, skybox_flat
 
 
 NEBULA_FIELDS = ("variation", "scale", "stretch", "rotation", "coverage", "core_emission")
@@ -52,6 +52,10 @@ class SkyboxSettings(bpy.types.PropertyGroup):
     for key in NEBULA_FIELDS + COLOR_FIELDS + ("tiny_brightness", "anchor_brightness"):
         __annotations__[f"lock_{key}"] = BoolProperty(
             name="Lock", description="Keep this setting during randomization and palette generation")
+    flat_background: BoolProperty(name="Native Flat Background", default=False,
+                                  description="Starless clouds repeating in both axes; historical star controls are ignored")
+    flat_final_size: EnumProperty(name="Final Size", items=[("1024", "1K", "Compact"),
+                                 ("2048", "2K", "Default cloud detail"), ("4096", "4K", "High detail")], default="2048")
     variation: IntProperty(name="Cloud Variation", default=0, min=0, max=2147483647,
                           description="0 preserves the original clouds; other integers select repeatable cloud offsets")
     scale: FloatProperty(name="Cloud Scale", default=1, min=0.1, max=10, soft_max=3,
@@ -297,16 +301,22 @@ class SKYBOX_OT_render(bpy.types.Operator):
         except (OSError, ValueError) as exc:
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
-        self.out_base = str(folder / (settings.output_name + ("-8k" if self.final else "-draft")))
+        self.flat = settings.flat_background
+        suffix = ("-final" if self.flat else "-8k") if self.final else "-draft"
+        self.out_base = str(folder / (settings.output_name + suffix))
         self.preview_space = context.space_data if self.viewport else None
         self.preview_session = skybox_preview.active
         self.preview_view = (skybox_preview.capture_view(self.preview_session.space)
                              if self.preview_session is not None else None)
         self.window = context.window
         self.previous = context.scene
-        self.scene = skybox_merged.build_scene(self.preset, self.out_base,
-                                               8192 if self.final else int(settings.draft_width),
-                                               64 if self.final else 32)
+        if self.flat:
+            size = int(settings.flat_final_size if self.final else settings.draft_width)
+            self.scene = skybox_flat.build_scene(self.preset, self.out_base, size, size, 8)
+        else:
+            self.scene = skybox_merged.build_scene(self.preset, self.out_base,
+                                                  8192 if self.final else int(settings.draft_width),
+                                                  64 if self.final else 32)
         self.state = "rendering"
         self.started = time.perf_counter()
         bpy.app.handlers.render_complete.append(self.completed)
@@ -343,6 +353,19 @@ class SKYBOX_OT_render(bpy.types.Operator):
             if self.state == "cancelled":
                 settings.status = "Render cancelled."
                 return {"CANCELLED"}
+            if self.flat:
+                skybox_flat.save_outputs(self.scene, self.preset, self.out_base,
+                                         "final" if self.final else "draft", time.perf_counter()-self.started)
+                image = bpy.data.images.load(self.out_base + "_preview.png", check_existing=False)
+                old = settings.preview_image
+                settings.preview_image = image
+                if old is not None and old.users == 0:
+                    bpy.data.images.remove(old)
+                published = (skybox_unity.publish(self.out_base, self.unity_project, self.sky_name, self.final,
+                                                  **skybox_unity.FLAT) if self.send_to_unity else Path(self.out_base + ".exr"))
+                settings.status = f"Saved {published.name}. Star settings ignored; see sidecar migration report."
+                self.report({"INFO"}, settings.status)
+                return {"FINISHED"}
             skybox_merged.save_outputs(self.scene, self.preset, self.out_base, "HDR", time.perf_counter()-self.started)
             skybox_preview.retain_image(settings, self.out_base)
             if self.preview_space is not None:
@@ -428,6 +451,10 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         row.operator("skybox.load_preset")
         row.operator("skybox.save_preset")
         layout.operator("skybox.nebula_glow")
+        layout.prop(settings, "flat_background")
+        if settings.flat_background:
+            layout.label(text="Periodic starless clouds; star settings ignored.")
+            layout.label(text="Stretch/rotation remapped; report in sidecar.")
         if context.mode != "OBJECT":
             layout.label(text="Group edits need Object Mode for Undo.")
             layout.operator("object.mode_set", text="Switch to Object Mode").mode = "OBJECT"
@@ -454,18 +481,19 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
                 op = row.operator("skybox.color_adjust", text=f"{label} {sign}")
                 op.channel = channel
                 op.decrease = decrease
-        box = layout.box()
-        box.label(text="Stars")
-        box.operator("skybox.randomize", text="Randomize Stars").target = "STARS"
-        for key in ("tiny_brightness", "anchor_brightness"):
-            locked_control(box, settings, key)
-        box.label(text="Star glow uses Unity bloom.")
-        box = layout.box()
-        box.label(text="Focal Star Placement")
-        box.prop(settings, "selected_star")
-        star = settings.anchors[settings.selected_star - 1]
-        for key in STAR_FIELDS:
-            locked_control(box, star, key)
+        if not settings.flat_background:
+            box = layout.box()
+            box.label(text="Stars")
+            box.operator("skybox.randomize", text="Randomize Stars").target = "STARS"
+            for key in ("tiny_brightness", "anchor_brightness"):
+                locked_control(box, settings, key)
+            box.label(text="Star glow uses Unity bloom.")
+            box = layout.box()
+            box.label(text="Focal Star Placement")
+            box.prop(settings, "selected_star")
+            star = settings.anchors[settings.selected_star - 1]
+            for key in STAR_FIELDS:
+                locked_control(box, star, key)
         box = layout.box()
         box.label(text="Render")
         box.prop(settings, "output_dir")
@@ -473,26 +501,29 @@ class SKYBOX_PT_authoring(bpy.types.Panel):
         box.prop(settings, "draft_width")
         row = box.row(align=True)
         row.operator("skybox.render", text="Render Draft").final = False
-        row.operator("skybox.render", text="Export 8K HDR").final = True
+        row.operator("skybox.render", text="Export Final" if settings.flat_background else "Export 8K HDR").final = True
+        if settings.flat_background:
+            box.prop(settings, "flat_final_size")
         box.operator("skybox.view_image")
-        box = layout.box()
-        box.label(text="3D Preview")
-        box.operator("skybox.render", text="Refresh Draft").viewport = True
-        if skybox_preview.active is None:
-            box.operator("skybox.viewport")
-        else:
-            box.operator("skybox.viewport", text="End Preview").end = True
-        box.label(text="Middle-mouse drag: look around")
-        box.label(text="Edit sliders, then Refresh Draft")
+        if not settings.flat_background:
+            box = layout.box()
+            box.label(text="3D Preview")
+            box.operator("skybox.render", text="Refresh Draft").viewport = True
+            if skybox_preview.active is None:
+                box.operator("skybox.viewport")
+            else:
+                box.operator("skybox.viewport", text="End Preview").end = True
+            box.label(text="Middle-mouse drag: look around")
+            box.label(text="Edit sliders, then Refresh Draft")
         box = layout.box()
         box.label(text="Unity Handoff")
         box.prop(settings, "unity_project")
         op = box.operator("skybox.render", text="Send Draft to Unity")
         op.send_to_unity = True
-        op = box.operator("skybox.render", text="Send Final 8K")
+        op = box.operator("skybox.render", text="Send Final" if settings.flat_background else "Send Final 8K")
         op.final = True
         op.send_to_unity = True
-        box.label(text="Unity: Tools > Skybox Preview")
+        box.label(text="Unity: assign its material on Environment" if settings.flat_background else "Unity: Tools > Skybox Preview")
         layout.label(text=settings.status)
 
 

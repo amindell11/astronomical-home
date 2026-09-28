@@ -40,6 +40,11 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   fully specified, an AFK agent can take it. `ready-for-human` — needs human
   judgment or hands. `wontfix` — closed, not actioned; the closing comment
   links the memory file recording why.
+- **Execution axis** (what the build needs to prove itself): `unity:none` — no
+  Unity boot; `unity:headless` — batch tests, no GPU, provable by the hosted
+  suite; `unity:editor` — a live editor, rendering, capture or eyes on pixels.
+  Minted only together with `ready-for-agent`, by a readiness proposal's
+  `Apply:` line; a drain run picks only `unity:none`. No board Status mapping.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
 - **Domain labels** (`RL`, `Ship`, `Testing`, …) and `arc` (umbrella issue
@@ -85,8 +90,9 @@ Status was unrecoverable.
 
 Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `76914216`; `pri:now` → Now `291743a0`; `pri:next` → Next `4dbdbff5`;
-`pri:later` → Later `225f15fa`; Doing `772cf1a0` and Done `165b6aec` are
-human/close-time states. First match in that order wins.
+`pri:later` → Later `225f15fa`; Doing `772cf1a0` is a human state. Done
+`165b6aec` is set by the merge reconcile at close for PR-closed issues
+(`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
 
 ## Wayfinding operations
 
@@ -105,4 +111,5 @@ Used by the wayfinder skill; body law above applies.
   order wins. **Claim** = `gh issue edit <n> --add-assignee @me`, before any
   work.
 - **Resolve**: gist comment (+ memory link when deep) → close → append the
-  context pointer to the map's Decisions-so-far.
+  context pointer to the map's Decisions-so-far. The merge reconcile posts the
+  shipped pointer and Done for PR-closed issues.

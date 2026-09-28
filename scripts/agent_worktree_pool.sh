@@ -15,7 +15,7 @@ mkdir -p "$LOCK_ROOT"
 #   Slot & lease resolution   slots_tsv .. ensure_task_branch
 #   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
 #   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
-#   Locks                     write_lock, lock_age_seconds, clobber safety
+#   Locks                     with_flock + cmd_lock, write_lock, lock_age_seconds, clobber safety
 #   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
@@ -73,6 +73,10 @@ Commands:
       free slots over stale-lock reclaims. Naming a slot is strict:
       if it isn't free (or safely reclaimable) acquire FAILS — no
       silent fallback to auto-pick.
+      A free slot is handed back prepared at origin/main (as prepare,
+      keeping ignored dirs); when prepare refuses (the slot holds unpushed
+      work) acquire releases the slot untouched and fails - auto-pick does
+      not move on to another slot. A reclaimed stale slot is not prepared.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
@@ -102,14 +106,23 @@ Commands:
 
   resume <lease> [slot]
       Put held work back on a slot. Reads local held/<lease>, else
-      origin/held/<lease>. Acquires <slot> (strict, as acquire), else the
-      slot the work left if free, else any; refuses a slot holding unpushed work.
+      origin/held/<lease>. Acquires <slot> (strict, as acquire, but never
+      prepared), else the slot the work left if free, else any; refuses a
+      slot holding unpushed work.
       Resets the slot branch to the held HEAD and restores the snapshot as
       uncommitted changes (staged edits come back unstaged), then deletes
       held/<lease> locally and on origin.
       Output: SLOT=<name> PATH=<abs-path> RESUMED=<lease>
       Exit 1 after that line means the work is restored but held/<lease>
       could not be deleted everywhere.
+
+  lock <name> [--wait <seconds>] -- <cmd...>
+      Run <cmd> holding an exclusive machine-wide lock named <name> (a flock
+      on <name>.lock under the lock root, the same primitive the slot
+      mutation and merge gate locks use). Waits up to --wait seconds
+      (default 30) for another holder to finish. <name> is [A-Za-z0-9._-]+.
+      Exit: <cmd>'s own exit code; 75 when the lock is still held after the
+      wait (stderr names the lock file); 1 on a usage error.
 
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
@@ -496,10 +509,12 @@ cs_diff_is_comment_only() {
 }
 
 # ---- Locks -----------------------------------------------------------------
-# Runs <cmd...> holding an exclusive flock on <file>; a held lock returns 1, printing <busy_msg> unless empty.
-with_slot_flock() {
-  local file="$1" busy_msg="$2"
-  shift 2
+LOCK_BUSY_EXIT=75
+
+# Runs <cmd...> under an exclusive flock on <file>; still held after <wait>s → LOCK_BUSY_EXIT, printing any <busy_msg>.
+with_flock() {
+  local file="$1" wait="$2" busy_msg="$3"
+  shift 3
   command -v perl >/dev/null 2>&1 || { echo 'Pool locking requires Perl flock support.' >&2; return 1; }
   # The execed command inherits the lock; launcher death cannot expose a surviving child.
   # POOL_FLOCK_FD lets a background child close the fd so it never keeps the lock past its holder.
@@ -507,24 +522,43 @@ with_slot_flock() {
     use strict;
     use warnings;
     use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
-    my $path = shift @ARGV;
-    my $busy = shift @ARGV;
+    my ($path, $wait, $busy, $busy_exit) = splice @ARGV, 0, 4;
     open my $lock, ">>", $path or die "Pool lock $path: $!\n";
-    unless (flock($lock, LOCK_EX | LOCK_NB)) {
-      print STDERR "$busy\n" if length $busy;
-      exit 1;
+    my $deadline = time + $wait;
+    until (flock($lock, LOCK_EX | LOCK_NB)) {
+      if (time >= $deadline) {
+        print STDERR "$busy\n" if length $busy;
+        exit $busy_exit;
+      }
+      select(undef, undef, undef, 0.1);
     }
     fcntl($lock, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
     $ENV{POOL_FLOCK_FD} = fileno($lock);
     exec @ARGV or die "Pool lock exec: $!\n";
-  ' "$file" "$busy_msg" bash -c 'source "$1"; shift; "$@"' \
+  ' "$file" "$wait" "$busy_msg" "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' \
     pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
 }
 
 with_slot_mutation() {
   local slot="$1"
   shift
-  with_slot_flock "$LOCK_ROOT/$slot.mutation" "" "$@"
+  with_flock "$LOCK_ROOT/$slot.mutation" 0 "" "$@"
+}
+
+cmd_lock() {
+  local usage_line="lock requires <name> [--wait <seconds>] -- <cmd...>" name="${1:-}" wait=30
+  [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "$usage_line" >&2; return 1; }
+  shift
+  if [[ "${1:-}" == --wait ]]; then
+    [[ "${2:-}" =~ ^[0-9]+$ ]] || { echo "$usage_line" >&2; return 1; }
+    wait="$2"
+    shift 2
+  fi
+  [[ "${1:-}" == -- && $# -ge 2 ]] || { echo "$usage_line" >&2; return 1; }
+  shift
+  # `command` runs <cmd> itself even when it shares a name with a pool function.
+  with_flock "$LOCK_ROOT/$name.lock" "$wait" \
+    "lock: $name is still held after ${wait}s ($LOCK_ROOT/$name.lock)" command "$@"
 }
 
 write_lock() {
@@ -706,15 +740,28 @@ reclaim_stale_slot() {
   echo "SLOT=$slot PATH=$path"
 }
 
-cmd_acquire() {
-  local lease="${1:-task-$(date +%Y%m%d-%H%M%S)}"
-  local wanted="${2:-}"
+# A released slot keeps its old tree, so a free slot is only handed out prepared.
+claim_prepared_slot() {
+  local slot="$1" lease="$2" path="$3" out
+  out="$(try_lock_slot "$slot" "$lease" "$path")" || return 1
+  # A child process keeps prepare's errexit, which a failure-handling context would switch off.
+  if ! bash "$SCRIPT_DIR/agent_worktree_pool.sh" prepare "$slot" origin/main >&2; then
+    with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || true
+    echo "acquire: $slot is free but could not be prepared, so it was released untouched." >&2
+    exit 1
+  fi
+  echo "$out"
+}
+
+# resume claims lock-only: it resets the slot to its held snapshot itself.
+lock_slot() {
+  local lease="$1" wanted="$2" claim="$3"
 
   # A named slot is strict: the caller chose it for state the pool can't see — silently handing back a different slot recreates the surprise naming was meant to remove.
   if [[ -n "$wanted" ]]; then
     local path
     path="$(slot_path "$wanted")" || { echo "acquire: unknown slot '$wanted'" >&2; return 1; }
-    try_lock_slot "$wanted" "$lease" "$path" && return 0
+    "$claim" "$wanted" "$lease" "$path" && return 0
     try_reclaim_slot "$wanted" "$lease" "$path" && return 0
     echo "acquire: $wanted unavailable (lease=$(lease_for "$wanted")); no fallback when a slot is named." >&2
     return 1
@@ -723,7 +770,7 @@ cmd_acquire() {
   # Free slots first; reclaiming a stale lock crosses another session's expectations, so it is a fallback pass, never interleaved.
   local slot path
   while IFS=$'\t' read -r slot path; do
-    try_lock_slot "$slot" "$lease" "$path" && return 0
+    "$claim" "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
   while IFS=$'\t' read -r slot path; do
     try_reclaim_slot "$slot" "$lease" "$path" && return 0
@@ -732,6 +779,8 @@ cmd_acquire() {
   echo "No free slots" >&2
   return 1
 }
+
+cmd_acquire() { lock_slot "${1:-task-$(date +%Y%m%d-%H%M%S)}" "${2:-}" claim_prepared_slot; }
 
 cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
 
@@ -874,13 +923,13 @@ cmd_resume() {
   base="$(git -C "$ROOT" rev-parse "$snap^1")"
 
   if [[ -n "$wanted" ]]; then
-    out="$(cmd_acquire "$lease" "$wanted")" || return 1
+    out="$(lock_slot "$lease" "$wanted" try_lock_slot)" || return 1
   else
     hint="$(held_trailer "$snap" Held-Slot)"
     if [[ -n "$hint" ]] && hint_path="$(slot_path "$hint" 2>/dev/null)"; then
       out="$(try_lock_slot "$hint" "$lease" "$hint_path")" || out=""
     fi
-    [[ -n "$out" ]] || out="$(cmd_acquire "$lease")" || return 1
+    [[ -n "$out" ]] || out="$(lock_slot "$lease" "" try_lock_slot)" || return 1
   fi
   slot="${out#SLOT=}"
   slot="${slot%% PATH=*}"
@@ -1262,15 +1311,6 @@ require_pr_title_body() {
   fi
 }
 
-resolve_pr_body() {
-  local body="$1" body_file="$2"
-  if [[ -n "$body_file" ]]; then
-    cat "$body_file"
-  else
-    printf '%s' "$body"
-  fi
-}
-
 require_gh() {
   command -v gh >/dev/null 2>&1 || {
     echo "gh CLI not found in PATH" >&2
@@ -1360,8 +1400,11 @@ push_and_open_pr() {
     return 0
   fi
 
+  # gh reads the file itself: inlining a large body overflows Windows' ~32 KB command line.
+  local body_args=(--body "$PR_BODY")
+  [[ -z "$PR_BODY_FILE" ]] || body_args=(--body-file "$PR_BODY_FILE")
   local url
-  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" --body "$(resolve_pr_body "$PR_BODY" "$PR_BODY_FILE")")"
+  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" "${body_args[@]}")"
   echo "$slot PR created: $url"
 }
 
@@ -2303,7 +2346,7 @@ main() {
     merge)
       require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"
       # Two gates on one slot race each other's pushes and cancel each other's hosted runs.
-      with_slot_flock "$LOCK_ROOT/$1.merge" \
+      with_flock "$LOCK_ROOT/$1.merge" 0 \
         "merge: a merge gate is already running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
         cmd_merge "$@"
       ;;
@@ -2313,11 +2356,12 @@ main() {
     revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
     hold)
       require_slot_arg "hold requires <slot> [--local]" "$#"
-      with_slot_flock "$LOCK_ROOT/$1.merge" \
+      with_flock "$LOCK_ROOT/$1.merge" 0 \
         "hold: a merge gate is running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
         cmd_hold "$@"
       ;;
     resume) require_slot_arg "resume requires <lease> [slot]" "$#"; cmd_resume "$@" ;;
+    lock) cmd_lock "$@" ;;
     -h|--help|help) usage ;;
     *)
       echo "Unknown command: $cmd" >&2

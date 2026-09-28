@@ -37,7 +37,9 @@ namespace Combat.Weapons
             {
                 if (!projectilePrefab) return DisplayName;
                 var ammo = rounds
-                    ? $"   |   {rounds.MaxAmmo} rounds" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    ? $"   |   {rounds.MaxAmmo} rounds" + (rounds.ReloadTime <= 0f ? ""
+                        : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
+                        : $" (reload {rounds.ReloadTime:0.#}s)")
                     : "";
                 return $"Damage {projectilePrefab.Damage:0} + {projectilePrefab.SplashDamage:0} splash{ammo}   |   Lock-on homing";
             }

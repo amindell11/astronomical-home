@@ -78,6 +78,21 @@ if pr_number_for_pushed_head "" main >/dev/null 2>&1; then
   fail "pr_number_for_pushed_head must refuse an empty head branch rather than listing every PR"
 fi
 
+# --- a body file reaches gh as a path, never inlined onto the command line -------------------
+big_body="$TMP/big-body.md"
+head -c 45000 /dev/zero | tr '\0' 'x' > "$big_body"
+(
+  git() { :; }
+  gh() {
+    if [[ "$1 $2" == "pr create" ]]; then printf '%s\n' "$@" > "$TMP/gh-create-args"; echo "https://example.test/pr/1"; fi
+  }
+  PR_TITLE=t PR_BODY="" PR_BODY_FILE="$big_body"
+  push_and_open_pr "$TMP/agent-1" agent-1 main task/big >/dev/null
+)
+grep -qxF -- "--body-file" "$TMP/gh-create-args" || fail "gh pr create should receive --body-file for a body file"
+grep -qxF -- "$big_body" "$TMP/gh-create-args" || fail "gh pr create should receive the body file's path"
+! grep -qxF -- "--body" "$TMP/gh-create-args" || fail "a body file must not be inlined as --body"
+
 # --- churn classifier is the single owner of the restore allowlist ------------------------
 churn() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$CHURN" -WorktreePath "$1"; }
 
@@ -101,4 +116,4 @@ git -C "$TMP/primary" restore --worktree -- .
 printf 'edited\n' > "$TMP/primary/file.txt"
 [[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "an unrelated tracked edit is not allowlisted"
 
-echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + single-owner churn classifier"
+echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + body-file pass-through + single-owner churn classifier"

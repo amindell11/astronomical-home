@@ -9,7 +9,7 @@ case "$TMP" in */pool-serialization.*) ;; *) exit 90 ;; esac
 export SYNC="$TMP/sync"
 mkdir -p "$TMP/bin" "$SYNC"
 launcher=""
-trap ': > "$SYNC/resume"; if [[ -n "$launcher" ]]; then wait "$launcher" 2>/dev/null || true; fi; rm -rf -- "$TMP"' EXIT
+trap ': > "$SYNC/resume"; : > "$SYNC/a-go"; if [[ -n "$launcher" ]]; then wait "$launcher" 2>/dev/null || true; fi; rm -rf -- "$TMP"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 export REAL_GIT="$(command -v git)" REAL_MKDIR="$(command -v mkdir)"
 export REAL_RM="$(command -v rm)" REAL_PERL="$(command -v perl)"
@@ -153,3 +153,22 @@ assert_lease recovered
 pool release agent-1 >/dev/null
 [[ -f "$WORKTREE_POOL_LOCK_ROOT/agent-1.mutation" ]] || fail 'release deleted the advisory file'
 echo 'PASS: mutation death releases its OS lock without deleting the advisory file'
+
+# lock verb: a second holder of one name waits for the first; --wait expiry exits 75; exit passes through.
+rm -f "$SYNC/a-in" "$SYNC/a-go" "$SYNC/order"
+pool lock named -- bash -c ': > "$SYNC/a-in"; until [[ -e "$SYNC/a-go" ]]; do sleep .02; done; echo a >> "$SYNC/order"' &
+first=$!
+deadline=$((SECONDS + 15))
+until [[ -e "$SYNC/a-in" ]]; do (( SECONDS < deadline )) || fail 'first lock holder never started'; sleep .02; done
+pool lock named --wait 15 -- bash -c 'echo b >> "$SYNC/order"' &
+second=$!
+rc=0; pool lock named --wait 1 -- true 2> "$TMP/timeout.err" || rc=$?
+[[ "$rc" == 75 ]] && grep -q 'named is still held after 1s' "$TMP/timeout.err" || { cat "$TMP/timeout.err"; fail "lock --wait expiry exited $rc"; }
+[[ ! -e "$SYNC/order" ]] || fail 'a second holder ran while the first held the lock'
+: > "$SYNC/a-go"
+wait "$first" || fail 'first lock holder failed'
+wait "$second" || fail 'second lock holder failed'
+[[ "$(tr -d '\n' < "$SYNC/order")" == ab ]] || fail "lock holders did not serialize (order: $(cat "$SYNC/order"))"
+rc=0; pool lock named -- bash -c 'exit 7' || rc=$?
+[[ "$rc" == 7 ]] || fail "lock swallowed the command's exit code (got $rc)"
+echo 'PASS: lock serializes holders of one name, times out with 75, and passes the exit code through'

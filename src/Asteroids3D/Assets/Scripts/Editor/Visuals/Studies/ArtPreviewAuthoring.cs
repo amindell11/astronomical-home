@@ -77,7 +77,15 @@ namespace Visuals.Studies
             var reference = new Color(251 / 255f, 135 / 255f, 22 / 255f).linear;
             paint.SetVector("_OrangeGain", new Vector4(reference.r / source.r, reference.g / source.g, reference.b / source.b, 0));
             paint = Save(paint, "Materials/Ship/Surface/Hull paint.mat");
-            var canopy = Save(Paint(new Color(.025f, .065f, .15f)), "Materials/Ship/Surface/Canopy.mat");
+            var canopy = new Material(Shader.Find("Astronomical/Comparison/Drawn Canopy"));
+            canopy.SetColor("_BaseColor", new Color(.025f, .065f, .15f));
+            var canopyBounds = Array.Find(hull, r => r.name.Contains("Canopy")).GetComponent<MeshFilter>().sharedMesh.bounds;
+            canopy.SetVector("_ReflectionBounds", new Vector4(canopyBounds.center.x, canopyBounds.center.y,
+                1 / canopyBounds.size.x, 1 / canopyBounds.size.y));
+            canopy.SetFloat("_DrawnReflectionStrength", .85f);
+            canopy.SetColor("_ReflectionColor", new Color(.42f, .54f, .64f));
+            canopy.SetColor("_ReflectionEdgeColor", new Color(.56f, .64f, .67f));
+            canopy = Save(canopy, "Materials/Ship/Surface/Canopy.mat");
             var pod = Paint(Color.black);
             var emissionMask = new Texture2D(1, 1, TextureFormat.RGBA32, false);
             emissionMask.SetPixel(0, 0, Color.white);
@@ -184,7 +192,7 @@ namespace Visuals.Studies
             light.shadowBias = .02f;
             light.shadowNormalBias = .05f;
             light.cullingMask = 1 << 30;
-            light.transform.rotation = Quaternion.Euler(25, -35, 0);
+            light.transform.rotation = hangar ? Quaternion.Euler(5, -8, 0) : Quaternion.Euler(25, -35, 0);
             RenderSettings.sun = light;
             var camera = new GameObject("Preview camera", typeof(Camera)).GetComponent<Camera>();
             camera.tag = "MainCamera";

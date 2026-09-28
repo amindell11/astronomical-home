@@ -224,6 +224,32 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Health_RestoreFraction_AddsFractionOfMax_AndReportsPrevious()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 0f);
+            Damage(dc, 60f); // health -> 40
+            float current = -1f, previous = -1f;
+            dc.Health.OnValueChanged += (cur, prev, _) => { current = cur; previous = prev; };
+
+            dc.Health.RestoreFraction(0.25f);
+
+            Assert.AreEqual(65f, dc.Health.CurrentValue, 0.001f);
+            Assert.AreEqual(65f, current, 0.001f);
+            Assert.AreEqual(40f, previous, 0.001f);
+        }
+
+        [Test]
+        public void Health_RestoreFraction_CapsAtMax()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 0f);
+            Damage(dc, 10f); // health -> 90
+
+            dc.Health.RestoreFraction(0.25f);
+
+            Assert.AreEqual(100f, dc.Health.CurrentValue, 0.001f);
+        }
+
+        [Test]
         public void Shield_RegenRespectsDelay()
         {
             var dc = NewDamage(maxShield: 50f, regenRate: 10f, regenDelay: 0.5f);
