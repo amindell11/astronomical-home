@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-09-28T09:32:47.0400145-07:00",
+  "projectPath": "D:\\amind\\git\\agent-3\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "PlayMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "Tests.PlayMode.Rendering.AsteroidField.LayeredExplosionStudyTests.FragmentingAsteroid_UsesLayeredExplosion",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": true,
+    "captureScenario": ""
+  },
+  "status": "passed",
+  "totals": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSec": 25.129
+  },
+  "runs": [
+    {
+      "platform": "PlayMode",
+      "xmlPath": "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20260928-093028-PlayMode.xml",
+      "logPath": "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20260928-093028-PlayMode.log",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 25.1288075,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "assemblyNames": "",
+        "captureScenario": "",
+        "scopeName": "",
+        "rerunFailedFrom": "",
+        "testCategory": "",
+        "auto": null,
+        "categoryFilter": "",
+        "testFilter": "Tests.PlayMode.Rendering.AsteroidField.LayeredExplosionStudyTests.FragmentingAsteroid_UsesLayeredExplosion",
+        "scopeType": "Workspace",
+        "orderedTestListFile": "",
+        "excludeCategory": "",
+        "scopeResolved": false,
+        "withGraphics": true
+      },
+      "startedAt": "2026-09-28 16:32:16Z",
+      "finishedAt": "2026-09-28 16:32:41Z"
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 138.579,
+    "startupToFirstTestSec": 102.684,
+    "executionSec": 25.0,
+    "remainingSec": 10.896,
+    "unavailableReason": ""
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "mode=PlayMode"
+  },
+  "memory": {
+    "processes": [
+      {
+        "pid": 48032,
+        "rootPeakPrivateGB": 2.754,
+        "rootPeakWorkingSetGB": 2.175,
+        "treePeakSampledPrivateGB": 2.983,
+        "treePeakSampledWorkingSetGB": 2.492,
+        "treeSumOfPeaksPrivateGB": 3.473,
+        "commitHeadroomAtLaunchGB": 12.09,
+        "commitHeadroomMinGB": 8.57,
+        "availablePhysicalAtLaunchGB": 4.2,
+        "availablePhysicalMinGB": 1.99,
+        "bootLaneReleasedAtSec": 39.966,
+        "treePeakAtSec": 122.451,
+        "samples": 21,
+        "samplesFailed": 0,
+        "unavailableReason": ""
+      }
+    ],
+    "unavailableReason": ""
+  }
+}
