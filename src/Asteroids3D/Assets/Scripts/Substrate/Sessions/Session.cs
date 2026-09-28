@@ -122,7 +122,7 @@ namespace Substrate.Sessions
             UnityEngine.Object.Destroy(holder);
         }
 
-        /// <summary>Unload the sector (run its teardown phase, destroy its content); the registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
+        /// <summary>Unload the sector (run its teardown phase, destroy its content) and, with presentation, restore the boot scene's look; the registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
         public IEnumerator UnloadSector()
         {
             Require(Phase.Loaded, nameof(UnloadSector));
@@ -132,6 +132,10 @@ namespace Substrate.Sessions
             Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(runTeardown: true);
+
+            if (presentation)
+                yield return locale.RestoreBootEnvironmentAsync();
+
             phase = Phase.Composed;
         }
 
