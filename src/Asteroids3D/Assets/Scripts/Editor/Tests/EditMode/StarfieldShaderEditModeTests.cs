@@ -233,7 +233,9 @@ namespace Tests.EditMode
                 var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
                 var starfield = root.Find("StarField");
                 Assert.IsNotNull(starfield, $"No StarField sky layer under {scenePath}'s LocaleSky root.");
-                Assert.AreSame(LoadMaterial(), starfield.GetComponent<MeshRenderer>().sharedMaterial);
+                var material = starfield.GetComponent<MeshRenderer>().sharedMaterial;
+                Assert.AreSame(LoadMaterial(), material.parent ? material.parent : material,
+                    "The starfield must use the production material or a per-locale variant of it.");
             }
             finally
             {

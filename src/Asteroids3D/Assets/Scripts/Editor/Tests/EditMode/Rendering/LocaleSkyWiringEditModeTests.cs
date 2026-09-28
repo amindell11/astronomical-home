@@ -5,6 +5,8 @@ using Substrate.Services.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace Tests.EditMode.Rendering
 {
@@ -34,14 +36,17 @@ namespace Tests.EditMode.Rendering
 
         [TestCase("Assets/Scenes/Environments/Environment_1.unity", "nebula-glow-warm-flat-final")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity", "nebula-glow-flat-final")]
-        public void CandidateRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string scenePath, string background)
+        public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string scenePath, string background)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
-                var root = scene.GetRootGameObjects().Single(g => g.name == "Sky (Candidate)");
+                var roots = scene.GetRootGameObjects();
+                var root = roots.Single(g => g.name == "Sky");
                 Assert.IsTrue(root.GetComponent<LocaleSky>());
-                Assert.IsFalse(root.activeSelf, "The candidate root ships inactive beside the original.");
+                Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
+                Assert.IsFalse(roots.Single(g => g.name == "Sky (Original)").activeSelf,
+                    "The original root stays inactive as a rollback.");
                 var layers = root.transform.Cast<Transform>().ToArray();
                 Assert.That(layers.Select(l => l.name), Is.EqualTo(CandidateLayers));
 
@@ -59,13 +64,36 @@ namespace Tests.EditMode.Rendering
                     Assert.That(layers[i].gameObject.layer, Is.EqualTo(LayerIds.Sky), $"{layers[i].name} layer");
                     Assert.That(AssetDatabase.GetAssetPath(material),
                         Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{scene.name}/"),
-                        $"The candidate {layers[i].name} sky layer must use a per-locale material variant.");
+                        $"The {layers[i].name} sky layer must use a per-locale material variant.");
                     Assert.That(AssetDatabase.GetAssetPath(material.parent), Is.EqualTo(expectedParents[i]));
                     Assert.That(material.renderQueue, Is.EqualTo(CandidateQueues[i]), $"{layers[i].name} draw order");
                 }
             }
             finally
             {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        public void SectorLocale_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string scenePath)
+        {
+            var previous = SceneManager.GetActiveScene();
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                SceneManager.SetActiveScene(scene);
+                Assert.That(RenderSettings.ambientMode, Is.EqualTo(AmbientMode.Flat),
+                    "Skybox ambient would light ships from the retired skybox.");
+                Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
+                Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
+                Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),
+                    Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{scene.name}/"));
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
                 EditorSceneManager.CloseScene(scene, true);
             }
         }
