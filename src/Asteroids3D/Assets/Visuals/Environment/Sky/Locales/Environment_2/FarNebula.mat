@@ -31,9 +31,11 @@ Material:
     - _CloudStretch: 2.4
     - _NebulaScale: 0.24
     - _NebulaSpeed: 0
-    - _NebulaStrength: 0.9
+    - _NebulaStrength: 1.45
     - _Seed: 17
     m_Colors:
     - _CloudShadow: {r: 0.08610419, g: 0.20598412, b: 0.50638634, a: 1}
+    - _NebulaCool: {r: 0.18281263, g: 0.78577685, b: 1.1461531, a: 1}
+    - _NebulaWarm: {r: 0.6499564, g: 0.17184407, b: 1.022425, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -35,6 +35,7 @@ Material:
     - _Seed: 11
     - _ShapeVariation: 0
     - _ShootingBrightness: 0
+    - _SmallStarBias: 1.8
     - _Softness: 0
     - _StarDensity: 0.24
     - _StarSizeMax: 0.026

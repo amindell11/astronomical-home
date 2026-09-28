@@ -28,7 +28,7 @@ Material:
     m_Floats:
     - _NebulaParallax: 0.055
     - _NebulaSpeed: 0.0004
-    - _NebulaStrength: 0.016
+    - _NebulaStrength: 0.025
     - _Seed: 29
     m_Colors: []
   m_BuildTextureStacks: []
