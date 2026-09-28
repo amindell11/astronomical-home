@@ -53,7 +53,7 @@ namespace Tests.PlayMode
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
             Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
             locale = config.Locale?.SceneName;
-            Assert.That(locale, Is.Not.Empty, "The default sector must name a locale for this round trip to mean anything.");
+            Assert.That(locale, Is.Not.Null.And.Not.Empty, "The default sector must name a locale for this round trip to mean anything.");
 
             root = new GameObject("SessionRoot");
             var session = TestSession.Create(root, new SessionProfile
