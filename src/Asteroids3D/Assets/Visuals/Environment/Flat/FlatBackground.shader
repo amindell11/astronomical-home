@@ -3,6 +3,8 @@ Shader "Environment/Flat Background"
     Properties
     {
         _MainTex ("Clouds", 2D) = "black" {}
+        _BaseColor ("Solid Base", Color) = (0, 0, 0, 1)
+        _TextureStrength ("Cloud Texture Strength", Range(0, 1)) = 1
         _RepeatDistance ("Repeat Distance (world units)", Float) = 10000
         _ViewHeightInTiles ("View Height (tiles)", Range(0.1, 4)) = 0.1
     }
@@ -23,6 +25,8 @@ Shader "Environment/Flat Background"
             CBUFFER_START(UnityPerMaterial)
                 float _RepeatDistance;
                 float _ViewHeightInTiles;
+                float4 _BaseColor;
+                float _TextureStrength;
             CBUFFER_END
             struct Varyings { float4 position : SV_POSITION; float2 uv : TEXCOORD0; };
             Varyings Vert(float3 position : POSITION)
@@ -36,7 +40,7 @@ Shader "Environment/Flat Background"
             }
             half4 Frag(Varyings input) : SV_Target
             {
-                return half4(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb, 1);
+                return half4(_BaseColor.rgb + SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb * _TextureStrength, 1);
             }
             ENDHLSL
         }
