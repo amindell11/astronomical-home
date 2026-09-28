@@ -89,8 +89,12 @@ namespace Tests.PlayMode.Rendering.AsteroidField
                     for (var frame = 0; frame < 220; frame++)
                     {
                         if (frame == 45)
+                        {
                             parent.Damage.TakeDamage(new DamageInfo(parent.Damage.MaxHealth + 1, DamageKind.Collision,
                                 ShipId.Invalid, 2, new Vector3(4, 1, 0), parent.transform.position));
+                            Assert.That(parent.transform.Find("Crease drawing").gameObject.activeSelf, Is.False);
+                            Assert.That(parent.transform.Find("Outer contour").gameObject.activeSelf, Is.False);
+                        }
                         yield return new WaitForFixedUpdate();
                         if (frame == 49)
                         {
@@ -127,6 +131,10 @@ namespace Tests.PlayMode.Rendering.AsteroidField
                 }
                 Assert.That(fragments.Max(f => f.transform.position.magnitude), Is.GreaterThan(2));
                 Assert.That(pixelDifference, Is.GreaterThan(100000), "The burst must visibly change the rendered asteroid.");
+                var reused = spawner.Spawn(new Pose(Vector3.zero, Quaternion.identity), attributes);
+                Assert.That(reused, Is.SameAs(parent));
+                Assert.That(reused.transform.Find("Crease drawing").gameObject.activeSelf, Is.True);
+                Assert.That(reused.transform.Find("Outer contour").gameObject.activeSelf, Is.True);
                 File.WriteAllText(Path.Combine(output, "receipt.json"), "{\"fps\":50,\"frames\":220,\"destructionFrame\":45,\"fragments\":" + fragments.Count + ",\"realDamagePath\":true,\"assignedPrefabSpawned\":true,\"drawnFragmentMeshesVerified\":true,\"pixelDifference\":" + pixelDifference + "}");
             }
             finally

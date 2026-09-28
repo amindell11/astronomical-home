@@ -33,8 +33,23 @@ namespace Asteroids.Visual
                     throw new InvalidOperationException("Every drawn asteroid shape requires surface, drawing, and paint assets.");
         }
 
-        private void OnEnable() => asteroid.OnInitialized += Apply;
-        private void OnDisable() => asteroid.OnInitialized -= Apply;
+        private void OnEnable()
+        {
+            asteroid.OnInitialized += Apply;
+            asteroid.OnDestroyed += Hide;
+        }
+
+        private void OnDisable()
+        {
+            asteroid.OnInitialized -= Apply;
+            asteroid.OnDestroyed -= Hide;
+        }
+
+        private void Hide(Vector3 position)
+        {
+            drawing.gameObject.SetActive(false);
+            contour.gameObject.SetActive(false);
+        }
 
         private void Apply()
         {
@@ -43,6 +58,8 @@ namespace Asteroids.Visual
             paint.sharedMaterial = shape.paint;
             drawing.sharedMesh = shape.drawing;
             contour.sharedMesh = shape.surface;
+            drawing.gameObject.SetActive(true);
+            contour.gameObject.SetActive(true);
         }
     }
 }
