@@ -224,6 +224,7 @@ namespace Tests.EditMode
         [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string scenePath)
         {

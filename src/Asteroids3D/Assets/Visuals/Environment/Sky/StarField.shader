@@ -10,6 +10,7 @@ Shader "Custom/StarField"
         _CellScale ("Cells Per World Unit", Range(0.05, 4)) = 0.8
         _StarSizeMin ("Minimum Star Radius", Range(0.002, 0.15)) = 0.012
         _StarSizeMax ("Maximum Star Radius", Range(0.002, 0.2)) = 0.045
+        _SmallStarBias ("Small Star Bias", Range(1, 8)) = 1
         _PositionJitter ("Position Jitter", Range(0, 0.6)) = 0.5
 
         [HideInInspector] _ZoomReferenceSize ("Zoom Reference Size", Float) = 7
@@ -36,6 +37,7 @@ Shader "Custom/StarField"
 
         _ShapeVariation ("Shape Variation", Range(0, 1)) = 0
         _Softness ("Softness", Range(0, 1)) = 0
+        _PointedShare ("Four Point Star Share", Range(0, 1)) = 0
 
         [Header(Shooting Stars)]
         _ShootingBrightness ("Shooting Star Brightness", Range(0, 2)) = 0
@@ -82,6 +84,7 @@ Shader "Custom/StarField"
                 float _CellScale;
                 float _StarSizeMin;
                 float _StarSizeMax;
+                float _SmallStarBias;
                 float _PositionJitter;
                 float _ZoomReferenceSize;
                 float _ParallaxScale;
@@ -99,6 +102,7 @@ Shader "Custom/StarField"
                 float _HaloStrength;
                 float _ShapeVariation;
                 float _Softness;
+                float _PointedShare;
                 float _TwinkleNoise;
                 float _TwinkleAmount;
                 float _TwinkleDurationMin;
@@ -188,7 +192,7 @@ Shader "Custom/StarField"
                     return 0;
 
                 float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
-                float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
+                float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), pow(random.w, _SmallStarBias)) * sizeScale;
                 float distanceToCenter = length(positionInCell - center);
                 float4 appearance = Hash42(seededCell + float2(127.1, 311.7));
                 float brightness = lerp(0.45, 1.15, appearance.x * appearance.x);
@@ -223,6 +227,13 @@ Shader "Custom/StarField"
                 float2 haloOffset = (shape.zw - 0.5) * (0.28 * _ShapeVariation * haloRadius);
                 float halo = LightFalloff(length(local - haloOffset), haloRadius, antialiasWidth);
                 float intensity = core + halo * haloStrength;
+                if (appearance.w < _PointedShare)
+                {
+                    float2 pointDistance = abs(offset) / (haloRadius + antialiasWidth);
+                    float diamond = pow(saturate(1 - sqrt(pointDistance.x) - sqrt(pointDistance.y)), 2);
+                    float pointedCore = 1 - smoothstep(0, radius + antialiasWidth, abs(local.x) + abs(local.y));
+                    intensity = pointedCore + halo * haloStrength + diamond * 2;
+                }
 
                 if (intensity <= 0)
                     return 0;
