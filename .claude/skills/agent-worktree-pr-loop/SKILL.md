@@ -252,6 +252,42 @@ closes its arc issue with a link back. The body also carries one bookkeeping lin
 `Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
 moves in this same PR.
 
+**Visual evidence.** Every image, GIF or clip the work produced as evidence
+(captures, previews, before/after stills) is embedded in the body under
+`## Visual evidence`, not linked by local path: a heading and one-line caption
+per item, the key item first, extras in a `<details>` block, a GIF inline with
+its MP4 linked, and one line saying what the evidence does not claim (e.g.
+"Blender previews, not in-engine"). Model: #725. GitHub renders only pushed
+files, so pin every URL to a commit SHA — LFS file:
+`https://media.githubusercontent.com/media/<owner>/<repo>/<sha>/<path>`;
+non-LFS image: `https://github.com/<owner>/<repo>/raw/<sha>/<path>`; MP4 link:
+`https://github.com/<owner>/<repo>/blob/<sha>/<path>`.
+
+- Evidence already in the diff (an asset's `previews/`) → pin to the PR head SHA.
+- Anything else → push it to `evidence/<lease>`, an orphan side branch that never
+  merges, and pin to that SHA. Re-running for a follow-up round appends a commit,
+  so earlier pins keep resolving. Never delete an `evidence/*` branch — PR bodies
+  link into it.
+
+```bash
+lease=<lease>; files=(<evidence paths>)
+ev="$(mktemp -d)"
+if git fetch -q origin "evidence/$lease" 2>/dev/null; then
+  git worktree add -q -B "evidence/$lease" "$ev" FETCH_HEAD
+else
+  git worktree add -q --detach "$ev"
+  git -C "$ev" checkout -q --orphan "evidence/$lease" && git -C "$ev" rm -rfq .
+  printf '%s filter=lfs diff=lfs merge=lfs -text\n' '*.png' '*.gif' '*.mp4' '*.jpg' > "$ev/.gitattributes"
+fi
+cp "${files[@]}" "$ev/" && git -C "$ev" add -A && git -C "$ev" commit -qm "evidence: $lease"
+git -C "$ev" lfs push origin "evidence/$lease" && git -C "$ev" push -q -u origin "evidence/$lease"
+git -C "$ev" rev-parse HEAD   # the <sha> to pin
+git worktree remove "$ev" && git branch -D "evidence/$lease"
+```
+
+The explicit `git lfs push` matters: the orphan worktree has no `.githooks/`, so
+the LFS pre-push hook cannot be relied on there.
+
 ## Step 5 — Review round-trip
 
 When the PR's work is held, `resume <lease>` first.

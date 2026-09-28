@@ -213,8 +213,9 @@ everything and exits nonzero.
   there both as a file attachment and as an artifact data-URI `<video>`. Proven:
   `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
   embedded as an `<img>` data URI in an artifact.
-- Note the delivered clip's absolute path in the PR body or issue comment — the next
-  session otherwise greps every worktree hunting for it.
+- Embed the clip in the PR body or issue comment, never just its path: a
+  `--format gif` inline plus the `--web` mp4 linked, pushed per
+  `agent-worktree-pr-loop` → Step 4 → Visual evidence.
 
 ## Hard-won constraints (violate = silent garbage)
 
