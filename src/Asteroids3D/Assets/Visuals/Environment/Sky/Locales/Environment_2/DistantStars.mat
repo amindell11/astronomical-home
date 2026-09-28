@@ -25,21 +25,23 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Brightness: 0.8
+    - _Brightness: 0.45
     - _CellScale: 3
-    - _HaloSize: 1.7
-    - _HaloStrength: 0.04
+    - _DepthElongation: 0.15
+    - _HaloSize: 1.2
+    - _HaloStrength: 0.015
     - _ParallaxFar: 0
     - _ParallaxNear: 0.15
     - _ParallaxScale: 0.013
     - _Seed: 11
     - _ShapeVariation: 0
     - _ShootingBrightness: 0
-    - _SmallStarBias: 1.8
+    - _SmallStarBias: 2.4
     - _Softness: 0
     - _StarDensity: 0.24
-    - _StarSizeMax: 0.026
+    - _StarSizeMax: 0.01
     - _TwinkleAmount: 0.08
+    - _WarmColorShare: 0.35
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

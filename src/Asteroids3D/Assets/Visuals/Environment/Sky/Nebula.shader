@@ -20,6 +20,10 @@ Shader "Custom/Nebula"
         _CloudDirection ("Cloud Bank Direction", Range(-180, 180)) = 25
         _CloudStretch ("Cloud Bank Stretch", Range(1, 6)) = 2.5
         _CloudShadow ("Cloud Bank Shadow", Color) = (0.025, 0.09, 0.3, 1)
+        _CloudGlow ("Cloud Interior Glow", Range(0, 3)) = 0
+        _CloudGlowSpread ("Cloud Glow Spread", Range(0.01, 0.3)) = 0.16
+        [HDR] _CloudGlowCool ("Cool Interior Light", Color) = (0.1, 0.65, 1.4, 1)
+        [HDR] _CloudGlowWarm ("Violet Interior Light", Color) = (0.7, 0.15, 1.6, 1)
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("Depth Test", Float) = 4
 
     }
@@ -66,6 +70,10 @@ Shader "Custom/Nebula"
                 float _CloudDirection;
                 float _CloudStretch;
                 float4 _CloudShadow;
+                float _CloudGlow;
+                float _CloudGlowSpread;
+                float4 _CloudGlowCool;
+                float4 _CloudGlowWarm;
             CBUFFER_END
 
             float CloudNoise(float2 position)
@@ -134,19 +142,29 @@ Shader "Custom/Nebula"
                 p += _Seed * float2(13.7, 29.3) + _Time.y * _NebulaSpeed * float2(0.2, 0.1);
                 float2 warp = float2(CloudFractal(p * 0.7), CloudFractal(p * 0.7 + 19.3)) - 0.5;
                 float2 cloud = p + warp * 2.4;
-                float detail = CloudFractal(grainPosition * 7 + warp * 4);
-                float field = CloudFractal(cloud) + (detail - 0.5) * 0.16;
+                float detail = CloudFractal(grainPosition * 4 + warp * 4);
+                float broadField = CloudFractal(cloud);
+                float field = broadField + (detail - 0.5) * 0.16;
                 float threshold = 1 - _CloudCoverage;
                 float coverage = smoothstep(threshold - 0.09, threshold + 0.12, field);
                 float terraces = lerp(field, floor(field * 24) / 24, 0.35);
                 float light = pow(smoothstep(threshold + 0.02, threshold + 0.30, terraces), 2.5);
                 float violet = pow(saturate(1 - abs(CloudFractal(p * 1.4 + 71.2) - 0.5) * 10), 1.5);
                 float3 color = lerp(_CloudShadow.rgb, _NebulaCool.rgb, light);
-                color = lerp(color, _NebulaWarm.rgb * (0.2 + light), violet * 0.65);
-                color += _NebulaWarm.rgb * violet * sqrt(light) * 0.35;
+                color = lerp(color, _NebulaWarm.rgb * (0.2 + light), violet * 0.25);
+                color += _NebulaWarm.rgb * violet * sqrt(light) * 0.15;
                 color *= _NebulaStrength;
                 float opacity = coverage * _CloudOpacity;
-                return half4(color * opacity, opacity);
+                float glowEnvelope = smoothstep(threshold - _CloudGlowSpread, threshold + 0.18, broadField);
+                float lightPockets = pow(smoothstep(0.4, 0.88, CloudNoise(cloud * 1.6 + float2(9.1, 41.3))), 2);
+                lightPockets *= 0.5 + 2.5 * lightPockets * lightPockets * lightPockets;
+                float glowHue = smoothstep(0.5, 0.75, CloudNoise(p * 0.8 + 71.2));
+                float3 glow = _CloudShadow.rgb * 0.25 + lerp(_CloudGlowCool.rgb, _CloudGlowWarm.rgb, glowHue) * lightPockets;
+                float shadowField = CloudFractal(grainPosition * 1.4 + 25.7);
+                float lightShadow = smoothstep(0.36, 0.4, shadowField) * 0.22 +
+                    smoothstep(0.44, 0.48, shadowField) * 0.3 + smoothstep(0.52, 0.56, shadowField) * 0.35;
+                glow *= glowEnvelope * lerp(1, 0.2, lightShadow) * _CloudGlow * _NebulaStrength;
+                return half4(color * opacity + glow, opacity);
             }
 
             half4 Frag(Varyings input) : SV_Target

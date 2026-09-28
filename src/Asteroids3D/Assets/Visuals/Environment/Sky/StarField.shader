@@ -231,7 +231,8 @@ Shader "Custom/StarField"
                 {
                     float2 pointDistance = abs(offset) / (haloRadius + antialiasWidth);
                     float diamond = pow(saturate(1 - sqrt(pointDistance.x) - sqrt(pointDistance.y)), 2);
-                    intensity += diamond * 2;
+                    float pointedCore = 1 - smoothstep(0, radius + antialiasWidth, abs(local.x) + abs(local.y));
+                    intensity = pointedCore + halo * haloStrength + diamond * 2;
                 }
 
                 if (intensity <= 0)

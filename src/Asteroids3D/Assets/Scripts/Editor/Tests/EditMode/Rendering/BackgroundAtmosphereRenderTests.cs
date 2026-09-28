@@ -183,6 +183,25 @@ namespace Tests.EditMode.Rendering
             Assert.That(Difference(black, Render(0)), Is.Zero);
         }
 
+        [Test]
+        public void CloudGlow_SpreadsBeyondDenseCloudsWithoutChangingStarTransmission()
+        {
+            material.SetFloat("_CloudOpacity", 0.95f);
+            material.SetFloat("_CloudCoverage", 0.55f);
+            material.SetFloat("_NebulaScale", 0.25f);
+            material.SetFloat("_NebulaStrength", 0.6f);
+            var unlit = Render(0);
+            var unlitWhite = Render(0, background: Color.white);
+            material.SetFloat("_CloudGlow", 1.5f);
+            var glowing = Render(0);
+            var glowingWhite = Render(0, background: Color.white);
+            var unlitTransmission = unlitWhite.Zip(unlit, (w, b) => w - b).ToArray();
+            var glowingTransmission = glowingWhite.Zip(glowing, (w, b) => w - b).ToArray();
+            Assert.Less(Difference(unlitTransmission, glowingTransmission), 0.0001f);
+            Assert.Greater(unlitTransmission.Where((c, i) => c.r > 0.8f && glowing[i].b - unlit[i].b > 0.01f).Count(), 100,
+                "Interior light must spread beyond the dense silhouettes.");
+        }
+
         private Color[] Render(float time, float cameraX = 0, float halfHeight = 7, Color? background = null)
         {
             var cameraPosition = new Vector3(cameraX, 0, -10);

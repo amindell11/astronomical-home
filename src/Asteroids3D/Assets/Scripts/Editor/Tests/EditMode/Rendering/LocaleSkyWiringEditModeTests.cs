@@ -47,7 +47,7 @@ namespace Tests.EditMode.Rendering
                 Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
                 Assert.IsFalse(roots.Single(g => g.name == "Sky (Original)").activeSelf,
                     "The original root stays inactive as a rollback.");
-                var layers = root.transform.Cast<Transform>().ToArray();
+                var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
                 var illustrated = scene.name == "Environment_2";
                 var names = illustrated
                     ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
