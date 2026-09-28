@@ -65,13 +65,13 @@ namespace Tests.PlayMode.Rendering.AsteroidField
                 var settings = Load<AsteroidSpawnSettings>(Folder + "Settings/FragmentPreview.asset");
                 Set(spawner, "settings", settings);
                 var fragments = new List<AsteroidController>();
-                void Style(AsteroidController rock)
+                void SetCaptureLayer(AsteroidController rock)
                 {
-                    foreach (Transform child in rock.transform.Cast<Transform>().ToArray()) Object.DestroyImmediate(child.gameObject);
-                    assets.Apply(rock);
-                    foreach (Transform child in rock.GetComponentsInChildren<Transform>()) child.gameObject.layer = 30;
+                    var asteroidLayer = rock.gameObject.layer;
+                    foreach (Transform child in rock.GetComponentsInChildren<Transform>())
+                        if (child.gameObject.layer == asteroidLayer) child.gameObject.layer = 30;
                 }
-                spawner.OnFragmentSpawned += rock => { Style(rock); fragments.Add(rock); };
+                spawner.OnFragmentSpawned += rock => { SetCaptureLayer(rock); fragments.Add(rock); };
                 holder.SetActive(true);
                 UnityEngine.Random.InitState(713);
                 var info = settings.meshInfos[0];
@@ -79,7 +79,8 @@ namespace Tests.PlayMode.Rendering.AsteroidField
                 var attributes = new AsteroidAttributes(info, 0, info.cachedVolume * scale * scale * scale * settings.density,
                     scale, new Vector3(.12f, .04f, 0), new Vector3(.04f, .07f, .12f));
                 var parent = spawner.Spawn(new Pose(Vector3.zero, Quaternion.Euler(20, 15, -12)), attributes);
-                Style(parent);
+                SetCaptureLayer(parent);
+                Assert.That(parent.CurrentMesh, Is.SameAs(assets.Rocks[0]));
                 var effectSeen = false;
                 var pixelDifference = 0L;
                 Color32[] before = null;
@@ -114,6 +115,16 @@ namespace Tests.PlayMode.Rendering.AsteroidField
                 Assert.That(effectSeen, Is.True);
                 Assert.That(fragments.Count, Is.InRange(2, 5));
                 Assert.That(fragments.All(f => f.CurrentMesh == assets.Rocks[f.MeshIndex]), Is.True);
+                foreach (var fragment in fragments)
+                {
+                    var path = $"Assets/Visuals/Environment/Asteroids/DrawnField/Shape{fragment.MeshIndex + 1:D2}/Asteroid{fragment.MeshIndex + 1}";
+                    Assert.That(fragment.Renderer.sharedMaterial.GetTexture("_BaseMap"),
+                        Is.SameAs(Load<Material>(path + "Paint.mat").GetTexture("_BaseMap")));
+                    Assert.That(fragment.transform.Find("Outer contour").GetComponent<MeshFilter>().sharedMesh,
+                        Is.SameAs(fragment.CurrentMesh));
+                    Assert.That(fragment.transform.Find("Crease drawing").GetComponent<MeshFilter>().sharedMesh,
+                        Is.SameAs(Load<GameObject>(path + "Drawing.fbx").GetComponentInChildren<MeshFilter>().sharedMesh));
+                }
                 Assert.That(fragments.Max(f => f.transform.position.magnitude), Is.GreaterThan(2));
                 Assert.That(pixelDifference, Is.GreaterThan(100000), "The burst must visibly change the rendered asteroid.");
                 File.WriteAllText(Path.Combine(output, "receipt.json"), "{\"fps\":50,\"frames\":220,\"destructionFrame\":45,\"fragments\":" + fragments.Count + ",\"realDamagePath\":true,\"assignedPrefabSpawned\":true,\"drawnFragmentMeshesVerified\":true,\"pixelDifference\":" + pixelDifference + "}");
@@ -202,6 +213,22 @@ namespace Tests.PlayMode.Rendering.AsteroidField
             foreach (var t in specimen.GetComponentsInChildren<Transform>()) t.gameObject.layer = asteroid.layer;
             foreach (var child in specimen.transform.Cast<Transform>().ToArray()) child.SetParent(asteroid.transform, false);
             Object.DestroyImmediate(specimen);
+            asteroid.SetActive(false);
+            var appearance = new SerializedObject(asteroid.AddComponent<DrawnAsteroidAppearance>());
+            appearance.FindProperty("drawing").objectReferenceValue = asteroid.transform.Find("Crease drawing").GetComponent<MeshFilter>();
+            appearance.FindProperty("contour").objectReferenceValue = asteroid.transform.Find("Outer contour").GetComponent<MeshFilter>();
+            var shapes = appearance.FindProperty("shapes");
+            shapes.arraySize = assets.Rocks.Length;
+            for (var i = 0; i < shapes.arraySize; i++)
+            {
+                var path = $"Assets/Visuals/Environment/Asteroids/DrawnField/Shape{i + 1:D2}/Asteroid{i + 1}";
+                var shape = shapes.GetArrayElementAtIndex(i);
+                shape.FindPropertyRelative("surface").objectReferenceValue = assets.Rocks[i];
+                shape.FindPropertyRelative("drawing").objectReferenceValue = Load<GameObject>(path + "Drawing.fbx").GetComponentInChildren<MeshFilter>().sharedMesh;
+                shape.FindPropertyRelative("paint").objectReferenceValue = Load<Material>(path + "Paint.mat");
+            }
+            appearance.ApplyModifiedPropertiesWithoutUndo();
+            asteroid.SetActive(true);
             var asteroidPrefab = PrefabUtility.SaveAsPrefabAsset(asteroid, Folder + "Prefabs/FragmentingDrawnAsteroid.prefab");
             Object.DestroyImmediate(asteroid);
             var settings = Object.Instantiate(source); settings.poolCapacity = 6; settings.maxPoolSize = 12;

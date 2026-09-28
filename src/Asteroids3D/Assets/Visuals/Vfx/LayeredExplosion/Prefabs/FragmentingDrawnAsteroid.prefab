@@ -290,6 +290,7 @@ GameObject:
   - component: {fileID: 5160398813247908855}
   - component: {fileID: 2088042095946506239}
   - component: {fileID: 44683479784857108}
+  - component: {fileID: 4088057956371197286}
   m_Layer: 8
   m_Name: FragmentingDrawnAsteroid
   m_TagString: Asteroid
@@ -591,3 +592,68 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 2.2698784
   m_Center: {x: 0.11327094, y: 0.06809962, z: 0.054836392}
+--- !u!114 &4088057956371197286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8703994287975115637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9162ea4daef26d84da16e60cce089da1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shapes:
+  - surface: {fileID: -8136317043942708646, guid: 404f63f987ab47b0b99c8ad9973a55f6,
+      type: 3}
+    drawing: {fileID: -8717620347110335594, guid: e10fe7d6d80546288834a41b013fffd6,
+      type: 3}
+    paint: {fileID: 2100000, guid: 6d61fc42a3cb4959896418ef802cfb98, type: 2}
+  - surface: {fileID: -8411264719490064891, guid: a731a6d7093d4e59a7b15047a36f3ceb,
+      type: 3}
+    drawing: {fileID: -1986376167496388457, guid: bd056d76642545f0b81a6c52de4d301b,
+      type: 3}
+    paint: {fileID: 2100000, guid: 3e573e804cc4477a8d0405b97fff8ec1, type: 2}
+  - surface: {fileID: 8076971328543133373, guid: 0cc859af95fe4b61af051cc794cecc32,
+      type: 3}
+    drawing: {fileID: 4018309102646589267, guid: 3c456e8f14d14a1d933fd66be8f8f15f,
+      type: 3}
+    paint: {fileID: 2100000, guid: 01ecba022b314347bc04c38b5a4bb592, type: 2}
+  - surface: {fileID: -489777358525527979, guid: 75387c7066f54e4cadd1c64af853a783,
+      type: 3}
+    drawing: {fileID: -3895433404252483227, guid: f013ff1ce18f4273aa7ef55af9c26a59,
+      type: 3}
+    paint: {fileID: 2100000, guid: af20e233218b4102b09882860f4d52c9, type: 2}
+  - surface: {fileID: 8489520945196360959, guid: 71da730de05b4fec96e468bfe2a5fcf7,
+      type: 3}
+    drawing: {fileID: 2335489345326239973, guid: 8c52e84c4dbe4892bcaf0087f3d0600c,
+      type: 3}
+    paint: {fileID: 2100000, guid: 6a939243b5784aa28e86090a61fdb57a, type: 2}
+  - surface: {fileID: -816665000561182351, guid: ac4f38a039a740498a796b90ee246961,
+      type: 3}
+    drawing: {fileID: -4622630505374877670, guid: 0762400136934d1a8dc6e3f39e07a133,
+      type: 3}
+    paint: {fileID: 2100000, guid: 92ba89c313ea4497a703a0461a9294de, type: 2}
+  - surface: {fileID: -8481618654914723302, guid: 594ab18dc2de4383bfa9b1d7b946c1a6,
+      type: 3}
+    drawing: {fileID: -2334243796977973243, guid: 713968d1ff70452398dc712bafe9c926,
+      type: 3}
+    paint: {fileID: 2100000, guid: e962c7070d50415596968e7c366ebebd, type: 2}
+  - surface: {fileID: 2696416934102283860, guid: 23281c8067dd45a49ec52ba296f90a4c,
+      type: 3}
+    drawing: {fileID: 6925305419020028745, guid: c339a4f485a74d6eb5b33f8a014778ce,
+      type: 3}
+    paint: {fileID: 2100000, guid: 3b1432ce53b34e0f80a7d39ec3e1fd72, type: 2}
+  - surface: {fileID: 6351797964739494434, guid: 6412a9b108e84426b3fd6a2cfefa180e,
+      type: 3}
+    drawing: {fileID: -8444061828765066714, guid: 63c59d19f93f478594663aea76856991,
+      type: 3}
+    paint: {fileID: 2100000, guid: ec5d6c91e7db4bffb4a11ef88848167a, type: 2}
+  - surface: {fileID: -5914033447858998786, guid: 7ecd422201b542878b3fde2e31957b74,
+      type: 3}
+    drawing: {fileID: 9014323712723937059, guid: 380e6a0de3cf49f6a4c8c1682c11ad73,
+      type: 3}
+    paint: {fileID: 2100000, guid: 9f7310b569cb415ca6aa599d10d86b71, type: 2}
+  drawing: {fileID: 2480915085675937161}
+  contour: {fileID: 3642010505430290084}
