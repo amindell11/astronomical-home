@@ -7,16 +7,16 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: StarField
+  m_Name: DistantStars
   m_Shader: {fileID: 4800000, guid: 158759aec174df240b9bdba3928f8403, type: 3}
   m_Parent: {fileID: 2100000, guid: b18f177bd928aa8469f8f3364cfa1cf0, type: 2}
-  m_ModifiedSerializedProperties: 0
+  m_ModifiedSerializedProperties: 16
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2930
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -25,22 +25,20 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Brightness: 3
-    - _CellScale: 1.5
-    - _HaloStrength: 0.09
+    - _Brightness: 0.8
+    - _CellScale: 3
+    - _HaloSize: 1.7
+    - _HaloStrength: 0.04
     - _ParallaxFar: 0
-    - _ParallaxNear: 0.1
-    - _ParallaxScale: 0.034
-    - _PointedShare: 0.8
-    - _Seed: 93
+    - _ParallaxNear: 0.15
+    - _ParallaxScale: 0.013
+    - _Seed: 11
     - _ShapeVariation: 0
-    - _ShootingBrightness: 0.1
-    - _ShootingParallax: 0.035
+    - _ShootingBrightness: 0
     - _Softness: 0
-    - _StarDensity: 0.025
-    - _StarSizeMax: 0.15
-    - _StarSizeMin: 0.008
-    - _TwinkleAmount: 0.12
+    - _StarDensity: 0.24
+    - _StarSizeMax: 0.026
+    - _TwinkleAmount: 0.08
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

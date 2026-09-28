@@ -6,7 +6,7 @@ Shader "Custom/Nebula"
         [HideInInspector] _ZoomReferenceSize ("Zoom Reference Size", Float) = 7
         _Seed ("Seed", Float) = 0
         [Header(Nebula)]
-        _NebulaStrength ("Nebula Strength", Range(0, 0.3)) = 0
+        _NebulaStrength ("Nebula Strength", Range(0, 2)) = 0
         _NebulaScale ("Nebula Scale", Range(0.01, 0.3)) = 0.085
         _NebulaSpeed ("Nebula Motion Speed", Range(0, 0.05)) = 0.008
         _NebulaParallax ("Nebula Parallax", Range(0, 1)) = 0.025
@@ -14,6 +14,12 @@ Shader "Custom/Nebula"
         [Toggle] _NebulaForeground ("Foreground Wisps Only", Float) = 0
         _NebulaCool ("Nebula Cool Color", Color) = (0.18, 0.48, 0.65, 1)
         _NebulaWarm ("Nebula Warm Color", Color) = (0.5, 0.2, 0.38, 1)
+        [Header(Cloud Banks)]
+        _CloudOpacity ("Cloud Bank Opacity (0 for additive wisps)", Range(0, 1)) = 0
+        _CloudCoverage ("Cloud Bank Coverage", Range(0, 1)) = 0.5
+        _CloudDirection ("Cloud Bank Direction", Range(-180, 180)) = 25
+        _CloudStretch ("Cloud Bank Stretch", Range(1, 6)) = 2.5
+        _CloudShadow ("Cloud Bank Shadow", Color) = (0.025, 0.09, 0.3, 1)
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("Depth Test", Float) = 4
 
     }
@@ -27,7 +33,7 @@ Shader "Custom/Nebula"
             "Queue" = "Transparent-40"
         }
 
-        Blend One One
+        Blend One OneMinusSrcAlpha
         Cull Off
         ZTest [_ZTest]
         ZWrite Off
@@ -55,6 +61,11 @@ Shader "Custom/Nebula"
                 float _NebulaForeground;
                 float4 _NebulaCool;
                 float4 _NebulaWarm;
+                float _CloudOpacity;
+                float _CloudCoverage;
+                float _CloudDirection;
+                float _CloudStretch;
+                float4 _CloudShadow;
             CBUFFER_END
 
             float CloudNoise(float2 position)
@@ -98,10 +109,52 @@ Shader "Custom/Nebula"
                 return farClouds * 0.6 + nearWisps * 0.4;
             }
 
+            float CloudFractal(float2 p)
+            {
+                float value = 0;
+                float weight = 0.5;
+                [unroll]
+                for (int octave = 0; octave < 5; octave++)
+                {
+                    value += CloudNoise(p) * weight;
+                    p = p * 2.03 + float2(7.1, 13.7);
+                    weight *= 0.5;
+                }
+                return value;
+            }
+
+            half4 CloudBanks(float2 position)
+            {
+                float angle = radians(_CloudDirection);
+                float2 axis = float2(cos(angle), sin(angle));
+                float2 p = float2(dot(position, axis), dot(position, float2(-axis.y, axis.x)));
+                p *= _NebulaScale;
+                float2 grainPosition = p;
+                p *= float2(1.0 / _CloudStretch, 1);
+                p += _Seed * float2(13.7, 29.3) + _Time.y * _NebulaSpeed * float2(0.2, 0.1);
+                float2 warp = float2(CloudFractal(p * 0.7), CloudFractal(p * 0.7 + 19.3)) - 0.5;
+                float2 cloud = p + warp * 2.4;
+                float detail = CloudFractal(grainPosition * 7 + warp * 4);
+                float field = CloudFractal(cloud) + (detail - 0.5) * 0.16;
+                float threshold = 1 - _CloudCoverage;
+                float coverage = smoothstep(threshold - 0.09, threshold + 0.12, field);
+                float terraces = lerp(field, floor(field * 24) / 24, 0.35);
+                float light = pow(smoothstep(threshold + 0.02, threshold + 0.30, terraces), 2.5);
+                float violet = pow(saturate(1 - abs(CloudFractal(p * 1.4 + 71.2) - 0.5) * 10), 1.5);
+                float3 color = lerp(_CloudShadow.rgb, _NebulaCool.rgb, light);
+                color = lerp(color, _NebulaWarm.rgb * (0.2 + light), violet * 0.65);
+                color += _NebulaWarm.rgb * violet * sqrt(light) * 0.35;
+                color *= _NebulaStrength;
+                float opacity = coverage * _CloudOpacity;
+                return half4(color * opacity, opacity);
+            }
+
             half4 Frag(Varyings input) : SV_Target
             {
                 SkyCoordinates coordinates = GetSkyCoordinates(input.projectedPosition, _ZoomReferenceSize);
                 float2 position = coordinates.planePosition * pow(coordinates.zoom, -_NebulaZoomResponse);
+                if (_CloudOpacity > 0)
+                    return CloudBanks(position + coordinates.cameraPosition * _NebulaParallax);
                 return half4(Nebula(position, coordinates.cameraPosition), 0);
             }
             ENDHLSL

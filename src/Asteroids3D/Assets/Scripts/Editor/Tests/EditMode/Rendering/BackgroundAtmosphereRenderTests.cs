@@ -165,12 +165,30 @@ namespace Tests.EditMode.Rendering
             Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
         }
 
-        private Color[] Render(float time, float cameraX = 0, float halfHeight = 7)
+        [Test]
+        public void CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel()
+        {
+            material.SetFloat("_CloudOpacity", 0.95f);
+            material.SetFloat("_CloudCoverage", 0.55f);
+            material.SetFloat("_NebulaScale", 0.25f);
+            material.SetFloat("_NebulaStrength", 0.6f);
+            material.SetFloat("_NebulaParallax", 0.025f);
+            var black = Render(0);
+            var white = Render(0, background: Color.white);
+            var transmission = white.Zip(black, (w, b) => w.r - b.r).ToArray();
+            Assert.Less(transmission.Min(), 0.5f, "Dense clouds must hide distant starlight.");
+            Assert.Greater(transmission.Max(), 0.95f, "Open space must retain distant starlight.");
+            Assert.Greater(Difference(black, Render(0, 500)), 0.01f);
+            Assert.Less(Difference(black, Render(0, halfHeight: 28)), 0.0001f);
+            Assert.That(Difference(black, Render(0)), Is.Zero);
+        }
+
+        private Color[] Render(float time, float cameraX = 0, float halfHeight = 7, Color? background = null)
         {
             var cameraPosition = new Vector3(cameraX, 0, -10);
             commands.Clear();
             commands.SetRenderTarget(target);
-            commands.ClearRenderTarget(true, true, Color.black);
+            commands.ClearRenderTarget(true, true, background ?? Color.black);
             commands.SetViewProjectionMatrices(
                 Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.Translate(-cameraPosition),
                 GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfHeight * 16 / 9, halfHeight * 16 / 9, -halfHeight, halfHeight, 0.1f, 100), true));

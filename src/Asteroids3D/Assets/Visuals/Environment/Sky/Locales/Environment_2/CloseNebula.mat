@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CloseNebula
   m_Shader: {fileID: 4800000, guid: 1af0987870b4c154392851c7d14257dc, type: 3}
-  m_Parent: {fileID: 2100000, guid: 9d4a202a8297e08498a0aca977b2a603, type: 2}
+  m_Parent: {fileID: 2100000, guid: 81e6db0d89b20f74ea2c868483cea273, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
@@ -25,7 +25,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _NebulaParallax: 0.055
+    - _NebulaSpeed: 0.0004
+    - _NebulaStrength: 0.016
+    - _Seed: 29
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

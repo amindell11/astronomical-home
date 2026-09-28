@@ -194,6 +194,19 @@ materials vary these, so re-sending refreshes inherited colours while its
 Inspector overrides survive; per-property **Revert** returns to the palette.
 `nebula-glow-warm.json` is the amber/red counterpart of `nebula-glow.json`.
 
+`illustrated-blue.json` supplies the cool palette and subdued generated texture
+used by `Environment_2`. Its Background material adds a Solid Base and reduces
+Cloud Texture Strength; the main visible cloud banks are the locale's FarNebula
+material. Cloud Bank Opacity enables shaded, partially opaque banks; zero keeps
+the additive wisps treatment. Coverage, Direction and Stretch shape the banks.
+
+That locale draws Background → DistantStars → FarNebula → StarField → CloseNebula.
+Cloud banks obscure the distant stars, while sparse nearer stars remain in front.
+Both star populations use the existing starfield shader; Small Star Bias keeps
+large stars rare, and Four Point Star Share adds pointed accents. Tune these
+materials together on the LocaleSky root, then compare during camera travel and
+zoom. Background and sky-layer motion are deliberately slower than gameplay.
+
 ```bash
 blender -b --python-exit-code 1 -P art/tools/skybox/skybox_flat.py --   --preset art/tools/skybox/nebula-glow.json --stage final --out /path/to/clouds-final   --unity-project src/Asteroids3D --name nebula-glow-flat
 ```
