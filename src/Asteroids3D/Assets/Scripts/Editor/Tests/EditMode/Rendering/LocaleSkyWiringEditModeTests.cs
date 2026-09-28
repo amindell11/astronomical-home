@@ -19,6 +19,7 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleScene_HasExactlyOneActiveLocaleSky(string scenePath)
         {
@@ -36,6 +37,7 @@ namespace Tests.EditMode.Rendering
 
         [TestCase("Assets/Scenes/Environments/Environment_1.unity", "nebula-glow-warm-flat-final")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity", "nebula-glow-flat-final")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity", "illustrated-blue-final")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string scenePath, string background)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
@@ -47,8 +49,13 @@ namespace Tests.EditMode.Rendering
                 Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
                 Assert.IsFalse(roots.Single(g => g.name == "Sky (Original)").activeSelf,
                     "The original root stays inactive as a rollback.");
-                var layers = root.transform.Cast<Transform>().ToArray();
-                Assert.That(layers.Select(l => l.name), Is.EqualTo(CandidateLayers));
+                var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
+                var illustrated = scene.name == "Environment_3";
+                var names = illustrated
+                    ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
+                    : CandidateLayers;
+                var queues = illustrated ? new[] { 2900, 2930, 2940, 2950, 2990 } : CandidateQueues;
+                Assert.That(layers.Select(l => l.name), Is.EqualTo(names));
 
                 var sidecar = $"{FlatBackgroundImport.Folder}/{background}.json";
                 var expectedParents = new[]
@@ -58,6 +65,9 @@ namespace Tests.EditMode.Rendering
                     "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat",
                     PaletteParents.PathFor(sidecar, "CloseNebula"),
                 };
+                if (illustrated)
+                    expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
+                        expectedParents[2], expectedParents[3] };
                 for (var i = 0; i < layers.Length; i++)
                 {
                     var material = layers[i].GetComponent<MeshRenderer>().sharedMaterial;
@@ -66,7 +76,7 @@ namespace Tests.EditMode.Rendering
                         Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{scene.name}/"),
                         $"The {layers[i].name} sky layer must use a per-locale material variant.");
                     Assert.That(AssetDatabase.GetAssetPath(material.parent), Is.EqualTo(expectedParents[i]));
-                    Assert.That(material.renderQueue, Is.EqualTo(CandidateQueues[i]), $"{layers[i].name} draw order");
+                    Assert.That(material.renderQueue, Is.EqualTo(queues[i]), $"{layers[i].name} draw order");
                 }
             }
             finally
@@ -77,6 +87,7 @@ namespace Tests.EditMode.Rendering
 
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
         public void SectorLocale_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string scenePath)
         {
             var previous = SceneManager.GetActiveScene();

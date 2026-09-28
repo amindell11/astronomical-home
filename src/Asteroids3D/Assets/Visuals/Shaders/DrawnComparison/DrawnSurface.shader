@@ -6,7 +6,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
         [Toggle(_NORMALMAP)] _UseRelief ("Sculpted Relief", Float) = 0
         [Normal] _BumpMap ("Sculpted Relief Normal", 2D) = "bump" {}
         _BumpScale ("Relief Strength", Range(0,2)) = 1
-        _BaseColor ("Hull Color / Hit Flash", Color) = (1,1,1,1)
+        [MainColor] _BaseColor ("Hull Color / Hit Flash", Color) = (1,1,1,1)
         _OrangeGain ("Orange Paint RGB Gain", Vector) = (1,1,1,0)
         _PaperColor ("Surface Palette", Color) = (0.65,0.7,0.75,1)
         _TextureStrength ("Painted Surface Strength", Range(0,1)) = 0.65
