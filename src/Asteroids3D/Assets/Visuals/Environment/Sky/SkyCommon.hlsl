@@ -31,21 +31,16 @@ float4 Hash42(float2 value)
 Varyings Vert(Attributes input)
 {
     Varyings output;
-    output.positionHCS = TransformObjectToHClip(input.positionOS);
+    output.positionHCS = float4(input.positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1);
     output.projectedPosition = output.positionHCS;
     return output;
 }
 
 SkyCoordinates GetSkyCoordinates(float4 projectedPosition, float zoomReferenceSize)
 {
-    float3 planeRight = normalize(float3(
-        unity_ObjectToWorld._m00,
-        unity_ObjectToWorld._m10,
-        unity_ObjectToWorld._m20));
-    float3 planeUp = normalize(float3(
-        unity_ObjectToWorld._m01,
-        unity_ObjectToWorld._m11,
-        unity_ObjectToWorld._m21));
+    // The frozen Z game plane, seen by a flight camera looking down +Z.
+    float3 planeRight = float3(1, 0, 0);
+    float3 planeUp = float3(0, 1, 0);
     float3 cameraPositionWS = GetCameraPositionWS();
     float2 cameraPosition = float2(
         dot(cameraPositionWS, planeRight),

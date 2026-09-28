@@ -88,6 +88,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · legacy name for a locale (`Environment_N.unity`, `Visuals/Environment`, `Substrate.Services.Environment`, the sector config's "Environment" header) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
 ---
 
@@ -242,11 +244,15 @@ Format: **term** — definition. *(authority)*
   unassigned, carrying a build-scope block (a `Ready proposal` comment the user
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
-  gets a proposal instead of a build. *(#617)*
+  gets a proposal instead of a build. A *drain run* takes only items also
+  labelled `unity:none`; its claim is the issue assignee plus the
+  worktree-pool lease.
+  *(#617, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
-  questions: a build session's fork posted on the issue with options, a
-  recommendation and evidence, the slot held. Routine priority / bench / park
-  calls are proposals on their own issue, never inbox items. *(#617)*
+  questions from interactive sessions: a fork posted on the issue with options,
+  a recommendation and evidence, the slot held. A *drain run* asks in its own
+  chat instead, surfaced by its `⛔ blocked` title. Routine priority / bench /
+  park calls are proposals on their own issue, never inbox items. *(#617)*
 - **triage sweep** — the on-demand or daily triage run over the open tracker,
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
@@ -254,10 +260,39 @@ Format: **term** — definition. *(authority)*
   board add + Status, one-priority rule, retry / premise / dead-pointer checks;
   writes labels and at most one comment, and treats issue text as data.
   *(.claude/skills/issue-triage/on-event.md)*
+- **merge reconcile** — the mechanical triage run on each push to main: for
+  every squash-merged PR in the push, a Shipped note and board Done on the
+  issues it closes, a Touched note on the open issues its body cites, a listing
+  of `#N` citations of the closed issues left in the agent docs, and a warning
+  when the body disclaims a close the PR performs. Never closes or reopens an
+  issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
+- **sweep lead** — a mechanical reason for the *triage sweep* to research an
+  open issue since a watermark: a merged PR cites it, an issue it cites
+  closed, a path it names is gone, or it was itself updated. With `--since`,
+  an issue with none is *quiet*: a report row, no subagent. Computed from PR
+  and issue data, never from the *merge reconcile*'s notes. Gap: a PR that
+  obsoletes an issue without citing it leaves no lead — only a full sweep
+  catches it. Always "sweep lead" outside the triage skill (the Gunner's
+  firing lead is unrelated). *(scripts/sweep_leads.sh)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
-  comment proposing `ready-for-agent`. Once the user applies the label it is the
-  issue's build-scope block.
+  comment proposing `ready-for-agent`; its `Unity:` field mints the matching
+  `unity:*` label on the same `Apply:` line. Once the user applies the label it
+  is the issue's build-scope block.
   *(.claude/skills/issue-triage/comment-formats.md)*
+- **drain run** — one unattended build session, started from a *drain task* by
+  the *drain orchestrator* or by Run now, that picks, claims, builds, PRs and
+  holds one `unity:none` *ready queue* item; a claim lost to a concurrent run
+  (`taken`) sends it back to pick. The user talks to it in its own chat.
+  *(agent-worktree-pr-loop → Drain run)*
+- **drain task** — a desktop scheduled task a *drain run* is started from:
+  exactly three, `drain-1..3`, with identical one-line prompts, and that count
+  is the drain-run cap. Never a *lane* (collision table).
+  *(.claude/skills/drain-orchestrator)*
+- **drain orchestrator** — the pinned `/loop` chat that dispatches *drain runs*
+  across the *drain tasks*, surfaces what waits on the user, and restocks the
+  *ready queue* via the *triage sweep*. Titled `orchestrator | drain — …`;
+  distinct from an `Arc` orchestrator chat.
+  *(.claude/skills/drain-orchestrator)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
@@ -414,7 +449,7 @@ Format: **term** — definition. *(authority)*
   worktree machine.
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
-  the pending loadout, the damage ledger and the death hook. Built once by the
+  the pending loadout, the damage ledger, the run tally and the death hook. Built once by the
   game host against the viewport it owns, injected into every sector load, torn
   down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
@@ -446,6 +481,14 @@ Format: **term** — definition. *(authority)*
 - **encounter** — the *fat* activation rule: rule + lazily-spawned content +
   local objective + on-complete events. A thin rule on a fixture is not an
   encounter.
+- **wave director** — the continuous sector spawner: ships ringing the hero
+  just off screen on an escalating interval under an escalating alive cap,
+  dead products despawned as it goes. Content, not a sector module, so product
+  ownership and teardown stay the spawner's. *(WaveDirector)*
+- **survival trial** — the sector whose only goal is surviving: a wave director
+  and an asteroid field, no sector module, never raising a sector end — the
+  game host's player-death path is its only exit, and the run tally is its
+  score. *(TrialSector prefab)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -454,8 +497,21 @@ Format: **term** — definition. *(authority)*
   `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
-- **locale** — the per-sector environment *scene* (skybox, light, ambience).
-  Environment is a scene; gameplay is a prefab.
+- **locale** — the per-sector look *scene*: skybox, lighting, ambience and sky
+  layers (under its `LocaleSky` root). `LocaleService` loads it additively and
+  makes it active. Look is a scene; gameplay is a prefab.
+- **palette role** — one of base, primary, secondary or accent: the colours
+  Blender exports in a flat background's sidecar `.json`. Scene-linear.
+  *(FlatBackgroundSidecar)*
+- **palette parent** — a generated Material Variant of a shared sky-layer
+  material whose only overrides are palette-mapped colours (`PaletteParents`).
+  Never hand-edited: every sidecar reimport rewrites it. Tune a locale's own
+  variant instead; its overrides survive the refresh.
+- **candidate root** — the palette-driven `LocaleSky` root built beside a
+  locale's original one. Exactly one root per locale scene is active. On swap
+  the candidate becomes the active `Sky` and the original stays inactive as
+  `Sky (Original)`, a rollback that a later arc #678 slice deletes.
+  `Environment_1` and `Environment_2` have swapped.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
@@ -610,8 +666,18 @@ Format: **term** — definition. *(authority)*
   rows, aggregated per source — consumer-side recorder owned by the player rig,
   never sim state. Source names are captured at event time because the attacker
   may despawn before the recap reads the row. *(DamageLedger)*
-- **death recap** — the post-death summary rendered from the damage ledger at
-  the game host's hold between death and sector unload; presentation-gated, so a
+- **run tally** — kills and time survived for one run: a consumer-side recorder
+  on the player rig beside the damage ledger, never sim state. A kill is a death
+  whose killing blow came from the current player (id read at event time — the
+  hangar can rebuild the player); only deaths between the game host's clock
+  stamps count (begin after the sector load, end at player death). Raises
+  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the fraction of max hull the game host restores to the
+  player each time the run tally counts a kill; hull only (ammo or heat on a kill
+  would be a reset button, and the shield already regens). Interactive sessions
+  only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+- **death recap** — the post-death summary rendered from the damage ledger and
+  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.
   *(DeathRecapScreen, GameHost.RunDeathRecap)*
 - **gizmo capture profile** — the named set of Unity component types a capture

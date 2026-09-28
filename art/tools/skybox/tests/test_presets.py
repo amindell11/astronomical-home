@@ -85,6 +85,23 @@ class PresetAndPublishingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 skybox_unity.publish(source, project, "../escape")
 
+    def test_flat_publish_replaces_sidecar_and_exr_only_for_matching_stage(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "Assets").mkdir()
+            (root / "ProjectSettings").mkdir()
+            (root / "ProjectSettings/ProjectVersion.txt").touch()
+            source = root / "clouds-final"
+            Path(str(source) + ".json").write_text(json.dumps({"stage": "final"}))
+            Path(str(source) + ".exr").write_bytes(b"final clouds")
+            published = skybox_unity.publish(source, root, "clouds", True, **skybox_unity.FLAT)
+            self.assertEqual(published, root / skybox_unity.FLAT_FOLDER / "clouds-final.exr")
+            self.assertEqual(published.read_bytes(), b"final clouds")
+            self.assertTrue(published.with_suffix(".json").is_file())
+            with self.assertRaisesRegex(ValueError, "stage"):
+                skybox_unity.publish(source, root, "clouds", False, **skybox_unity.FLAT)
+            self.assertFalse((root / skybox_unity.FLAT_FOLDER / "clouds-draft.exr").exists())
+
     def test_partial_export_never_replaces_importable_hdr(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
