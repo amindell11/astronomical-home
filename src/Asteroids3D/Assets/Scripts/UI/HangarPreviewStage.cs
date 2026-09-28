@@ -67,7 +67,7 @@ namespace UI
             var layer = PreviewLayer();
             gameObject.layer = layer;
 
-            texture = new RenderTexture(TextureSize, TextureSize, 16) { name = "HangarPreviewRT" };
+            texture = new RenderTexture(TextureSize, TextureSize, 24) { name = "HangarPreviewRT" };
 
             anchor = new GameObject("Anchor").transform;
             anchor.SetParent(transform, false);

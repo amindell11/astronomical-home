@@ -53,14 +53,14 @@ namespace Capture.GameView
             return state;
         }
 
-        public void Prepare(int width, int height)
+        public void Prepare(int width, int height, bool showGizmos)
         {
             PlayModeWindow.SetViewType(PlayModeWindow.PlayModeViewTypes.GameView);
             var gameView = MainView();
             if (!gameView || !gameViewType.IsInstanceOfType(gameView))
                 throw new InvalidOperationException("Unity did not create a Game View for native gizmo capture.");
 
-            drawGizmos.SetValue(gameView, true);
+            drawGizmos.SetValue(gameView, showGizmos);
             PlayModeWindow.SetPlayModeFocused(true);
             PlayModeWindow.SetCustomRenderingResolution((uint)width, (uint)height, "Recording Resolution");
             gameView.Focus();

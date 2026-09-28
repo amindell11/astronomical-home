@@ -30,9 +30,8 @@ namespace Capture
                 (xExtent + config.padding) * config.height / config.width,
                 config.minHalfHeight);
 
-            var normal = GamePlane.Rotation * Vector3.forward;
-            camera.transform.position = GamePlane.PlanePointToWorld(center) + normal * CameraHeight;
-            camera.transform.rotation = Quaternion.LookRotation(-normal, GamePlane.Rotation * Vector3.up);
+            camera.transform.position = GamePlane.PlanePointToWorld(center) - GamePlane.Normal * CameraHeight;
+            camera.transform.rotation = GamePlane.Rotation;
             camera.orthographicSize = halfHeight;
         }
 
