@@ -507,10 +507,11 @@ Format: **term** — definition. *(authority)*
   material whose only overrides are palette-mapped colours (`PaletteParents`).
   Never hand-edited: every sidecar reimport rewrites it. Tune a locale's own
   variant instead; its overrides survive the refresh.
-- **candidate root** — a locale's inactive `Sky (Candidate)` `LocaleSky` root,
-  compared against the shipped `Sky` root by flipping their GameObject
-  checkboxes in Play Mode. Exactly one root per locale scene is active. It
-  lives until a later arc #678 slice swaps the roots.
+- **candidate root** — the palette-driven `LocaleSky` root built beside a
+  locale's original one. Exactly one root per locale scene is active. On swap
+  the candidate becomes the active `Sky` and the original stays inactive as
+  `Sky (Original)`, a rollback that a later arc #678 slice deletes.
+  `Environment_1` and `Environment_2` have swapped.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
