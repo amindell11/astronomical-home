@@ -185,7 +185,7 @@ namespace Ships
             // Flush transforms so collider bounds reflect the authored root scale before the radius is derived from them.
             Physics.SyncTransforms();
 
-            if (Rigidbody) Rigidbody.ResetInertiaTensor();
+            if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
 
             Stats.shipRadius = DeriveShipRadius();
 
