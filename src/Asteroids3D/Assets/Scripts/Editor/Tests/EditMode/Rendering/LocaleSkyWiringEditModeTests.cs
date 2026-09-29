@@ -38,9 +38,13 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/Environments/Environment_1.unity", "nebula-glow-warm-flat-final")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity", "nebula-glow-flat-final")]
         [TestCase("Assets/Scenes/Environments/Environment_3.unity", "illustrated-blue-final")]
-        public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string scenePath, string background)
+        [TestCase("Assets/Scenes/InitScene.unity", "nebula-glow-flat-final")]
+        [TestCase("Assets/Scenes/EditScene.unity", "nebula-glow-flat-final", "Environment_2")]
+        public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
+            string scenePath, string background, string localeFolder = null)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            localeFolder ??= scene.name;
             try
             {
                 var roots = scene.GetRootGameObjects();
@@ -73,7 +77,7 @@ namespace Tests.EditMode.Rendering
                     var material = layers[i].GetComponent<MeshRenderer>().sharedMaterial;
                     Assert.That(layers[i].gameObject.layer, Is.EqualTo(LayerIds.Sky), $"{layers[i].name} layer");
                     Assert.That(AssetDatabase.GetAssetPath(material),
-                        Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{scene.name}/"),
+                        Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{localeFolder}/"),
                         $"The {layers[i].name} sky layer must use a per-locale material variant.");
                     Assert.That(AssetDatabase.GetAssetPath(material.parent), Is.EqualTo(expectedParents[i]));
                     Assert.That(material.renderQueue, Is.EqualTo(queues[i]), $"{layers[i].name} draw order");
@@ -88,10 +92,13 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
-        public void SectorLocale_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string scenePath)
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity", "Environment_2")]
+        public void Scene_LightsFromFlatAmbientAndALocaleReflectionCubemap(string scenePath, string localeFolder = null)
         {
             var previous = SceneManager.GetActiveScene();
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            localeFolder ??= scene.name;
             try
             {
                 SceneManager.SetActiveScene(scene);
@@ -100,7 +107,7 @@ namespace Tests.EditMode.Rendering
                 Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
                 Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
                 Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),
-                    Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{scene.name}/"));
+                    Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{localeFolder}/"));
             }
             finally
             {
