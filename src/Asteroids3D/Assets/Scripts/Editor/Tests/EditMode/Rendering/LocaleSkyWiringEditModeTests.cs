@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Services.Environment;
@@ -51,8 +52,6 @@ namespace Tests.EditMode.Rendering
                 var root = roots.Single(g => g.name == "Sky");
                 Assert.IsTrue(root.GetComponent<LocaleSky>());
                 Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
-                Assert.IsFalse(roots.Single(g => g.name == "Sky (Original)").activeSelf,
-                    "The original root stays inactive as a rollback.");
                 var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
                 var illustrated = scene.name == "Environment_3";
                 var names = illustrated
@@ -89,6 +88,39 @@ namespace Tests.EditMode.Rendering
             }
         }
 
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
+        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity")]
+        public void Scene_HasNoSkyboxRollbackRootOrLightingData(string scenePath)
+        {
+            var previous = SceneManager.GetActiveScene();
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                SceneManager.SetActiveScene(scene);
+                Assert.IsNull(RenderSettings.skybox, "The flat background and sky layers are the only backdrop.");
+                Assert.That(scene.GetRootGameObjects().Select(g => g.name), Has.No.Member("Sky (Original)"));
+                Assert.That(LightingDataReference().objectReferenceInstanceIDValue, Is.Zero,
+                    "Stored lighting data, even a missing asset, would override the flat ambient and custom reflection.");
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        // Lightmapping.lightingDataAsset reads a missing asset as null; the serialized reference still names it.
+        private static SerializedProperty LightingDataReference()
+        {
+            var getter = typeof(LightmapEditorSettings).GetMethod("GetLightmapSettings",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(getter, "test premise: LightmapEditorSettings.GetLightmapSettings exists");
+            return new SerializedObject((Object)getter.Invoke(null, null)).FindProperty("m_LightingDataAsset");
+        }
+
         [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
         [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
@@ -103,7 +135,7 @@ namespace Tests.EditMode.Rendering
             {
                 SceneManager.SetActiveScene(scene);
                 Assert.That(RenderSettings.ambientMode, Is.EqualTo(AmbientMode.Flat),
-                    "Skybox ambient would light ships from the retired skybox.");
+                    "Ships are lit by the locale's flat ambient colour.");
                 Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
                 Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
                 Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),

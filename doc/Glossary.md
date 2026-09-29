@@ -497,9 +497,10 @@ Format: **term** — definition. *(authority)*
   `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
-- **locale** — the per-sector look *scene*: skybox, lighting, ambience and sky
-  layers (under its `LocaleSky` root). `LocaleService` loads it additively and
-  makes it active. Look is a scene; gameplay is a prefab.
+- **locale** — the per-sector look *scene*: lights, flat ambient, custom
+  reflection, ambience and sky layers (under its `LocaleSky` root).
+  `LocaleService` loads it additively and makes it active. Look is a scene;
+  gameplay is a prefab.
 - **palette role** — one of base, primary, secondary or accent: the colours
   Blender exports in a flat background's sidecar `.json`. Scene-linear.
   *(FlatBackgroundSidecar)*
@@ -507,12 +508,6 @@ Format: **term** — definition. *(authority)*
   material whose only overrides are palette-mapped colours (`PaletteParents`).
   Never hand-edited: every sidecar reimport rewrites it. Tune a locale's own
   variant instead; its overrides survive the refresh.
-- **candidate root** — the palette-driven `LocaleSky` root built beside a
-  locale's original one. Exactly one root per locale scene is active. On swap
-  the candidate becomes the active `Sky` and the original stays inactive as
-  `Sky (Original)`, a rollback that a later arc #678 slice deletes. Every
-  locale scene, the boot scene and `EditScene` have swapped, so the term lives
-  on only until those `Sky (Original)` roots are deleted.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:

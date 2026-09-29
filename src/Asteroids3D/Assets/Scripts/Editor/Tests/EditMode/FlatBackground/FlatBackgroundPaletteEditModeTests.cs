@@ -6,7 +6,7 @@ using Substrate.Services.Environment;
 using UnityEditor;
 using UnityEngine;
 
-namespace Tests.EditMode.Skyboxes
+namespace Tests.EditMode.FlatBackground
 {
     [Category("Sectors")]
     public class FlatBackgroundPaletteEditModeTests

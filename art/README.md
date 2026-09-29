@@ -19,6 +19,7 @@ own Blender importer uses, so the imported hierarchy and fileIDs stay identical.
 
 Everything binary here is LFS-tracked via this directory's `.gitattributes`.
 
-- `tools/` — art-pipeline generators (`tools/skybox/` renders the procedural
-  HDR space skybox with Blender; `tools/imagegen/` generates and edits images
-  with Google's Nano Banana models); scripts, not sources, so not LFS.
+- `tools/` — art-pipeline generators (`tools/flat_background/` renders the
+  procedural starless flat background with Blender; `tools/imagegen/` generates
+  and edits images with Google's Nano Banana models); scripts, not sources, so
+  not LFS.

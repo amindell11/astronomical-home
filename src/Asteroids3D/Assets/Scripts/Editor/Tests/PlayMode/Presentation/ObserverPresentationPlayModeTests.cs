@@ -15,8 +15,7 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// The viewport the host builds is the only presentation the session itself spawns: with
-    /// presentation off the observer camera stops seeing the locale's <c>Sky</c> layer and stops
-    /// clearing to the skybox. Driven through
+    /// presentation off the observer camera stops seeing the locale's <c>Sky</c> layer. Driven through
     /// <see cref="GameHost.BuildObserver"/> on an inactive host, so the host's flow never runs.
     /// </summary>
     [TestFixture]
@@ -44,12 +43,11 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator PresentationOff_ExcludesTheSkyLayer_AndStopsCameraClearingToSkybox()
+        public IEnumerator PresentationOff_ExcludesTheSkyLayer()
         {
             yield return BuildObserver(presentation: false);
 
             Assert.IsFalse(SeesSky(), "observer camera still renders the Sky layer with presentation off");
-            Assert.AreEqual(CameraClearFlags.SolidColor, observer.Cam.clearFlags);
         }
 
         [UnityTest]
@@ -58,8 +56,8 @@ namespace Tests.PlayMode
             yield return BuildObserver(presentation: true);
 
             Assert.IsTrue(SeesSky(), "test premise: the authored observer camera renders the Sky layer");
-            Assert.AreEqual(CameraClearFlags.Skybox, observer.Cam.clearFlags,
-                "test premise: the authored observer camera clears to the skybox");
+            Assert.AreEqual(CameraClearFlags.SolidColor, observer.Cam.clearFlags,
+                "test premise: the authored observer camera clears to a solid colour");
         }
 
         private IEnumerator BuildObserver(bool presentation)

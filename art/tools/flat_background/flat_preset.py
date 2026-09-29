@@ -7,7 +7,7 @@ import math
 import random
 from pathlib import Path
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT = {
     "schema_version": SCHEMA_VERSION,
     "nebula": {
@@ -16,21 +16,20 @@ DEFAULT = {
         "stretch": [0.62, 1.05, 0.62],
         "rotation": [0.20, -0.35, 0.58],
         "coverage": 0.0,
-        "core_emission": 1.0,
+        "core_emission": 1.5,
         "palette": [[0.015, 0.001, 0.055], [0.35, 0.008, 0.52],
                     [0.018, 0.18, 0.72], [0.75, 0.025, 0.16]],
     },
-    "tiny_stars": {"brightness": 1.0, "legacy_seed": 7319.0},
-    "anchor_brightness": 1.0,
-    "anchors": [
-        {"direction": [0.78, -0.36, 0.51], "radius": 0.055, "color": [0.55, 0.72, 1.0], "strength": 420.0},
-        {"direction": [-0.43, -0.81, 0.40], "radius": 0.070, "color": [1.0, 0.47, 0.17], "strength": 260.0},
-        {"direction": [-0.70, 0.31, -0.64], "radius": 0.050, "color": [0.52, 0.66, 1.0], "strength": 600.0},
-        {"direction": [0.18, 0.91, 0.37], "radius": 0.062, "color": [1.0, 0.78, 0.45], "strength": 360.0},
-        {"direction": [0.52, 0.43, -0.74], "radius": 0.045, "color": [0.70, 0.82, 1.0], "strength": 850.0},
-    ],
 }
 
+V1_KEYS = ("schema_version", "nebula", "tiny_stars", "anchor_brightness", "anchors")
+MIGRATION = [
+    "Read a schema_version 1 preset as schema_version 2.",
+    "Dropped tiny_stars, anchor_brightness and anchors; stars belong to Unity.",
+    "Palette, variation, scale, coverage and core emission retain their authoring roles.",
+    "Stretch X/Y control torus radii; stretch Z controls cloud detail.",
+    "Rotation X/Y shift periodic phases; rotation Z offsets the 4D field.",
+]
 
 PALETTES = {
     "GLOW": ("Nebula Glow", DEFAULT["nebula"]["palette"]),
@@ -77,12 +76,8 @@ def adjust_palette(colors, channel, decrease=False):
     return result
 
 
-def defaults(glow=False):
-    value = copy.deepcopy(DEFAULT)
-    if glow:
-        value["tiny_stars"]["brightness"] = 0.0
-        value["nebula"]["core_emission"] = 1.5
-    return value
+def defaults():
+    return copy.deepcopy(DEFAULT)
 
 
 def _keys(value, expected, path):
@@ -123,28 +118,21 @@ def parse(value):
         _vector(color, "nebula.palette color", 0.0, 1.0)
     if not any(channel > 0 for color in nebula["palette"] for channel in color):
         raise ValueError("nebula.palette: at least one color must emit light")
-    tiny = value["tiny_stars"]
-    _keys(tiny, DEFAULT["tiny_stars"], "tiny_stars")
-    _number(tiny["brightness"], "tiny_stars.brightness", 0.0)
-    _number(tiny["legacy_seed"], "tiny_stars.legacy_seed")
-    _number(value["anchor_brightness"], "anchor_brightness", 0.0)
-    if not isinstance(value["anchors"], list) or len(value["anchors"]) != 5:
-        raise ValueError("anchors: expected five focal stars")
-    for index, star in enumerate(value["anchors"]):
-        path = f"anchors[{index}]"
-        _keys(star, DEFAULT["anchors"][0], path)
-        _vector(star["direction"], f"{path}.direction", -1.0, 1.0)
-        if sum(x*x for x in star["direction"]) < 1e-12:
-            raise ValueError(f"{path}.direction: expected a nonzero direction")
-        _number(star["radius"], f"{path}.radius", 0.001, 1.0)
-        _vector(star["color"], f"{path}.color", 0.0, 1.0)
-        _number(star["strength"], f"{path}.strength", 0.0)
     return copy.deepcopy(value)
+
+
+def upgrade(value):
+    """Return (schema 2 preset, migration report); the report is empty for a schema 2 input."""
+    if isinstance(value, dict) and type(value.get("schema_version")) is int and value["schema_version"] == 1:
+        _keys(value, V1_KEYS, "preset")
+        value = {"schema_version": SCHEMA_VERSION, "nebula": value["nebula"]}
+        return parse(value), list(MIGRATION)
+    return parse(value), []
 
 
 def load(path):
     with open(path, encoding="utf-8-sig") as handle:
-        return parse(json.load(handle))
+        return upgrade(json.load(handle))
 
 
 def save(path, value):
