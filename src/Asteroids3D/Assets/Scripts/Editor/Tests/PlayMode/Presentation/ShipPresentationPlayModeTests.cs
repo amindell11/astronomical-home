@@ -11,11 +11,10 @@ using UnityEngine.TestTools;
 using UI.PlayerState;
 using Ships.Registry;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Presentation
 {
     /// <summary>
-    /// Tests the ship presentation layer: a ship prefab carries its visual rig as an embedded child
-    /// that self-binds its visuals to the ship, and damage-driven visuals behave across death/respawn.
+    /// Ship_1 carries its visual rig as an embedded child; Ship_3 preserves legacy damage feedback.
     /// </summary>
     [Category("Ships")]
     public class ShipPresentationPlayModeTests : PlayModeWorldFixture
@@ -61,14 +60,17 @@ namespace Tests.PlayMode
             Assert.IsNotNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Rig should contribute LockOnIndicator");
         }
 
-        /// <summary>
-        /// Smoke behavior across death/respawn, driven through the embedded, self-bound rig: hidden at
-        /// full health, shown below 50%, hidden again after a respawn.
-        /// </summary>
         [UnityTest]
-        public IEnumerator SmokeTrail_HiddenAtFull_ShownWhenDamaged_HiddenAfterRespawn()
+        public IEnumerator LegacyShipSmoke_HiddenAtFull_ShownWhenDamaged_HiddenAfterRespawn()
         {
-            yield return null; // let the embedded rig self-bind
+#if UNITY_EDITOR
+            ShipTestFactory.DestroyShip(ship);
+            var prefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_3.prefab");
+            Assert.IsNotNull(prefab, "Ship_3 prefab failed to load");
+            ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
+            Assert.IsTrue(ship.GetComponentInChildren<HullVisuals>(true).enabled);
+#endif
+            yield return null;
 
             var damage = ship.Damage;
             var smoke = GetSmokeObject(ship);

@@ -210,9 +210,11 @@ namespace Tests.PlayMode.Rendering.AsteroidField
             var effectPrefab = PrefabUtility.SaveAsPrefabAsset(explosion, Folder + "Prefabs/LayeredAsteroidExplosion.prefab");
             Object.DestroyImmediate(explosion);
             var source = Load<AsteroidSpawnSettings>("Assets/Settings/Asteroids/SpawnSettings.asset");
-            var asteroid = Object.Instantiate(source.asteroidPrefab.gameObject);
+            var asteroid = Object.Instantiate(Load<GameObject>("Assets/Prefabs/Asteroid/Asteroid3D.prefab"));
             asteroid.name = "Fragmenting drawn asteroid";
             Set(asteroid.GetComponent<AsteroidVisual>(), "explosionPrefab", effectPrefab);
+            asteroid.transform.Find("LowLODMESH").GetComponent<MeshRenderer>().sharedMaterial =
+                Load<Material>("Assets/Visuals/Ui/Minimap/UI_Minimap_Foreground.mat");
             var specimen = assets.Create(0, asteroid.transform);
             var outline = specimen.transform.Find("Outer contour").GetComponent<MeshRenderer>();
             outline.sharedMaterial = Save(new Material(outline.sharedMaterial), "Materials/AsteroidContour.mat");
