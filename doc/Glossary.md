@@ -510,8 +510,9 @@ Format: **term** — definition. *(authority)*
 - **candidate root** — the palette-driven `LocaleSky` root built beside a
   locale's original one. Exactly one root per locale scene is active. On swap
   the candidate becomes the active `Sky` and the original stays inactive as
-  `Sky (Original)`, a rollback that a later arc #678 slice deletes.
-  `Environment_1` and `Environment_2` have swapped.
+  `Sky (Original)`, a rollback that a later arc #678 slice deletes. Every
+  locale scene, the boot scene and `EditScene` have swapped, so the term lives
+  on only until those `Sky (Original)` roots are deleted.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
 - **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:

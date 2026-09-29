@@ -8,8 +8,9 @@ namespace Substrate.Services.Environment
     /// <summary>
     /// Locale switching for one session, held privately by it rather than exposed beside its services:
     /// swap the active (lighting) scene to a sector's authored locale before its content builds, and
-    /// put the boot scene's lighting back at teardown. Both steps are presentation-only — the session
-    /// skips them headless — and nothing outside the session ever calls them.
+    /// put the boot scene's look back — and unload the locale — whenever the sector unloads or the
+    /// session tears down. Both steps are presentation-only — the session skips them headless — and
+    /// nothing outside the session ever calls them.
     /// </summary>
     public class LocaleService
     {
