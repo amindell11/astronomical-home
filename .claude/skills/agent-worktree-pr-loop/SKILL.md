@@ -248,9 +248,11 @@ statement; anything a scope-reader wouldn't expect either comes out or is
 flagged in the body for confirmation. The body also carries the
 alternatives tried and rejected on the way — it is the only home of that why
 (`doc/agents/design-docs.md` → Where design lives). An arc-completing PR
-closes its arc issue with a link back. The body also carries one bookkeeping line,
-`Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
-moves in this same PR.
+closes its arc issue with a link back. Cite an issue the PR leaves open as
+"Relates to #N" / "Refs #N": GitHub ignores negation, so "does not close #N"
+closes it, and `create-pr`/`submit` refuse such a body. The body also carries
+one bookkeeping line, `Vocab: <new/changed terms | none>`; anything but `none`
+means `doc/Glossary.md` moves in this same PR.
 
 **Visual evidence.** Every image, GIF or clip the work produced as evidence
 (captures, previews, before/after stills) is embedded in the body under

@@ -68,6 +68,26 @@ out="$(expect_reject "submit must reject a bare positional before --" submit age
 out="$(expect_reject "submit must require a body" submit agent-1 --title t -- -Mode EditMode)"
 [[ "$out" == *"missing required --body"* ]] || fail "submit should validate flags before running tests (got: $out)"
 
+# --- a negated closing keyword still closes on merge: refused before anything runs ----------
+rc=0; out="$(pool create-pr agent-1 --title t --body $'Summary.\nDoes not close #617; the arc stays open.' 2>&1)" || rc=$?
+[[ "$rc" -eq 2 ]] || fail "create-pr should exit 2 on a negated close (rc=$rc, got: $out)"
+[[ "$out" == *"line 2: Does not close #617; the arc stays open."* && "$out" == *'"Relates to #617"'* ]] \
+  || fail "create-pr should print the offending line and the rewording (got: $out)"
+
+printf "Won't fix: #12\n" > "$TMP/negated-body.md"
+rc=0; out="$(pool submit agent-1 --title t --body-file "$TMP/negated-body.md" -- -Mode EditMode 2>&1)" || rc=$?
+[[ "$rc" -eq 2 && "$out" == *"line 1: Won't fix: #12"* ]] || fail "submit should refuse a negated close in a body file (rc=$rc, got: $out)"
+
+# The check passes these bodies, so the run goes on to the (empty) slot's no-commits skip; the gh
+# stub only satisfies require_gh and fails any real call.
+mkdir -p "$TMP/bin"
+printf '#!/usr/bin/env bash\necho "unexpected gh call: $*" >&2\nexit 99\n' > "$TMP/bin/gh"
+chmod +x "$TMP/bin/gh"
+for body in "Closes #617." "Not closing #617: GitHub has no 'closing' keyword." "No issue refs at all."; do
+  rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 --title t --body "$body" 2>&1)" || rc=$?
+  [[ "$rc" -eq 0 && "$out" == *"no commits ahead"* ]] || fail "create-pr should accept '$body' (rc=$rc, got: $out)"
+done
+
 # --- PR lookup refuses a missing head branch ---------------------------------------------
 # Sourced, not executed: the guard at the foot of the pool script leaves the functions defined.
 set +u
