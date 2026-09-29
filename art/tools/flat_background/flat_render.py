@@ -234,8 +234,7 @@ def main():
         bpy.ops.render.render(write_still=True)
         save_outputs(scene, preset, args.out, args.stage, time.perf_counter() - started, migration)
         if args.unity_project:
-            published = flat_unity.publish(args.out, args.unity_project, args.name,
-                                           args.stage == "final", **flat_unity.FLAT)
+            published = flat_unity.publish(args.out, args.unity_project, args.name, args.stage == "final")
             print("FLATBG_PUBLISHED=" + str(published))
     finally:
         bpy.context.window.scene = previous

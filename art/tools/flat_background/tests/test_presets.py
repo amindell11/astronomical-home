@@ -111,21 +111,21 @@ class PresetAndPublishingTests(unittest.TestCase):
             source = root / "clouds-final"
             Path(str(source) + ".json").write_text(json.dumps({"stage": "final"}))
             Path(str(source) + ".exr").write_bytes(b"final clouds")
-            published = flat_unity.publish(source, root, "clouds", True, **flat_unity.FLAT)
+            published = flat_unity.publish(source, root, "clouds", True)
             self.assertEqual(published, root / flat_unity.FLAT_FOLDER / "clouds-final.exr")
             self.assertEqual(published.read_bytes(), b"final clouds")
             self.assertTrue(published.with_suffix(".json").is_file())
             meta = published.with_suffix(".exr.meta")
             meta.write_text("guid: preserved")
             Path(str(source) + ".exr").write_bytes(b"new clouds")
-            self.assertEqual(flat_unity.publish(source, root, "clouds", True, **flat_unity.FLAT), published)
+            self.assertEqual(flat_unity.publish(source, root, "clouds", True), published)
             self.assertEqual(published.read_bytes(), b"new clouds")
             self.assertEqual(meta.read_text(), "guid: preserved")
             with self.assertRaisesRegex(ValueError, "stage"):
-                flat_unity.publish(source, root, "clouds", False, **flat_unity.FLAT)
+                flat_unity.publish(source, root, "clouds", False)
             self.assertFalse((root / flat_unity.FLAT_FOLDER / "clouds-draft.exr").exists())
             with self.assertRaises(ValueError):
-                flat_unity.publish(source, root, "../escape", True, **flat_unity.FLAT)
+                flat_unity.publish(source, root, "../escape", True)
 
     def test_partial_export_never_replaces_importable_exr(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -136,7 +136,7 @@ class PresetAndPublishingTests(unittest.TestCase):
             source = root / "partial"
             Path(str(source) + ".json").write_text(json.dumps({"stage": "draft"}))
             with self.assertRaises(FileNotFoundError):
-                flat_unity.publish(source, root, "test", False, **flat_unity.FLAT)
+                flat_unity.publish(source, root, "test", False)
             self.assertFalse((root / flat_unity.FLAT_FOLDER / "test-draft.json").exists())
 
 

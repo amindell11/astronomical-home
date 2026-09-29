@@ -60,7 +60,7 @@ class FlatBackgroundSettings(bpy.types.PropertyGroup):
 
 def apply_preset(settings, preset):
     nebula = preset["nebula"]
-    for key in ("variation", "scale", "stretch", "rotation", "coverage", "core_emission"):
+    for key in NEBULA_FIELDS:
         setattr(settings, key, nebula[key])
     for index, color in enumerate(nebula["palette"]):
         setattr(settings, f"palette{index}", color)
@@ -289,8 +289,8 @@ class FLATBG_OT_render(bpy.types.Operator):
             settings.preview_image = image
             if old is not None and old.users == 0:
                 bpy.data.images.remove(old)
-            published = (flat_unity.publish(self.out_base, self.unity_project, self.sky_name, self.final,
-                                            **flat_unity.FLAT) if self.send_to_unity else Path(self.out_base + ".exr"))
+            published = (flat_unity.publish(self.out_base, self.unity_project, self.sky_name, self.final)
+                         if self.send_to_unity else Path(self.out_base + ".exr"))
             settings.status = f"Saved {published.name}."
             self.report({"INFO"}, settings.status)
             return {"FINISHED"}

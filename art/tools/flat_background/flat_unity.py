@@ -8,6 +8,7 @@ import shutil
 import tempfile
 
 FLAT_FOLDER = "Assets/Visuals/Environment/Flat/Generated"
+SUFFIXES = (".json", ".exr")
 
 
 def project_folder(value):
@@ -23,29 +24,23 @@ def sky_name(value):
     return value
 
 
-def publish(out_base, project, name, final, folder, suffixes, tags, check):
-    """Replace sidecars, then atomically publish the image (last suffix); preserve Unity .meta identities."""
+def publish(out_base, project, name, final):
+    """Replace the sidecar, then atomically publish the EXR; preserve Unity .meta identities."""
     project = project_folder(project)
-    name = sky_name(name) + tags[final]
+    stage = "final" if final else "draft"
+    name = f"{sky_name(name)}-{stage}"
     source = str(out_base)
-    check(source, final)
-    destination = project / folder
+    sidecar_stage = json.loads(Path(source + ".json").read_text(encoding="utf-8"))["stage"]
+    if sidecar_stage != stage:
+        raise ValueError(f"Sidecar stage '{sidecar_stage}' does not match the requested publish")
+    destination = project / FLAT_FOLDER
     destination.mkdir(parents=True, exist_ok=True)
     staging_root = project / "Library/FlatBackgroundAuthoring"
     staging_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=staging_root) as staging:
-        for suffix in suffixes:
+        for suffix in SUFFIXES:
             staged = Path(staging) / (name + suffix)
             shutil.copyfile(source + suffix, staged)
-        for suffix in suffixes:
+        for suffix in SUFFIXES:
             os.replace(Path(staging) / (name + suffix), destination / (name + suffix))
-    return destination / (name + suffixes[-1])
-
-
-def check_flat(source, final):
-    stage = json.loads(Path(source + ".json").read_text(encoding="utf-8"))["stage"]
-    if stage != ("final" if final else "draft"):
-        raise ValueError(f"Sidecar stage '{stage}' does not match the requested publish")
-
-
-FLAT = dict(folder=FLAT_FOLDER, suffixes=(".json", ".exr"), tags=("-draft", "-final"), check=check_flat)
+    return destination / (name + ".exr")
