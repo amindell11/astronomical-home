@@ -29,7 +29,7 @@ set -euo pipefail
 #       3 no_slot · 4 taken · 5 acquire_failed (unassigned again).
 # Stdout trailers, one per line, stable:
 #   pick:  SKIP=<n> <reason>[,<reason>…]  (one per queue issue not picked; reasons: no-unity-label
-#          unity:<value> no-drain:approved assigned:<login> blocked:<open-count> no-scope-block)
+#          unity:<value> no-drain:approved unity-conflict (more than one unity:*) assigned:<login> blocked:<open-count> no-scope-block)
 #          ISSUE=<n>|none  SCOPE=proposal:<comment-url>|body  (SCOPE only when picked)
 #          DRY_RUN=<0|1>
 #   claim: CLAIM=<claimed|no_slot|taken|acquire_failed>
@@ -92,12 +92,16 @@ picked = []
 for n in nodes:
     labels = [l["name"] for l in n["labels"]["nodes"]]
     reasons = []
-    approved_headless = "unity:headless" in labels and "drain:approved" in labels
-    if "unity:none" not in labels and not approved_headless:
-        unity = [l for l in labels if l.startswith("unity:")]
-        reasons += unity or ["no-unity-label"]
-        if "unity:headless" in labels:
-            reasons.append("no-drain:approved")
+    unity = sorted(l for l in labels if l.startswith("unity:"))
+    if not unity:
+        reasons.append("no-unity-label")
+    elif len(unity) > 1:
+        reasons += unity + ["unity-conflict"]
+    elif unity[0] == "unity:headless":
+        if "drain:approved" not in labels:
+            reasons += ["unity:headless", "no-drain:approved"]
+    elif unity[0] != "unity:none":
+        reasons.append(unity[0])
     reasons += [f"assigned:{a['login']}" for a in n["assignees"]["nodes"]]
     blocked = (n.get("issueDependenciesSummary") or {}).get("blockedBy") or 0
     if blocked:

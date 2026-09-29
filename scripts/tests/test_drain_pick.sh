@@ -126,11 +126,15 @@ reset
 issue 50 2026-09-01T00:00:00Z ready-for-agent,unity:headless "" 0 "$SLICE_BODY"
 issue 51 2026-09-02T00:00:00Z ready-for-agent,unity:editor,drain:approved "" 0 "$SLICE_BODY"
 issue 52 2026-09-03T00:00:00Z ready-for-agent,unity:headless,drain:approved "" 0 "$SLICE_BODY"
+issue 54 2026-09-01T00:00:00Z ready-for-agent,unity:headless,unity:editor,drain:approved "" 0 "$SLICE_BODY"
+issue 55 2026-09-01T00:00:00Z ready-for-agent,unity:none,unity:editor "" 0 "$SLICE_BODY"
 write_queue
 out="$(bash "$DRAIN" pick 2>/dev/null)"
 [[ "$(skip_of 50 <<<"$out")" == unity:headless,no-drain:approved ]] || fail "unapproved headless names the missing label (got: $out)"
 [[ "$(skip_of 51 <<<"$out")" == unity:editor ]] || fail "editor is skipped even with drain:approved (got: $out)"
 [[ "$(trailer ISSUE <<<"$out")" == 52 ]] || fail "approved headless is picked (got: $out)"
+[[ "$(skip_of 54 <<<"$out")" == unity:editor,unity:headless,unity-conflict ]] || fail "a stale editor label beside approved headless is a conflict (got: $out)"
+[[ "$(skip_of 55 <<<"$out")" == unity:editor,unity:none,unity-conflict ]] || fail "unity:none beside another unity label is a conflict (got: $out)"
 issue 53 2026-09-04T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY"
 write_queue
 out="$(bash "$DRAIN" pick 2>/dev/null)"
