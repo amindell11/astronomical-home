@@ -62,6 +62,16 @@ DATE="$(date -u +%F)"
 REPO="${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 RETRY_SLEEP="${TRIAGE_RETRY_SLEEP:-60}"
 
+# One Python per run: a process spawn is costly on Git Bash.
+coproc python3 "$SCRIPT_DIR/on_event_triage_helper.py" "$TMP" "$EVENT" "$PROMPT_FILE"
+PY_OUT="${COPROC[0]}" PY_IN="${COPROC[1]}"
+ask() {
+  local IFS=$'\t' ack
+  printf '%s\n' "$*" >&"$PY_IN"
+  read -r ack <&"$PY_OUT" || infra "triage helper failed on: $1"
+  . "$TMP/reply.sh"
+}
+
 SUMMARY_LINES=()
 summary() { SUMMARY_LINES+=("$1"); }
 WRITES=0
@@ -117,43 +127,14 @@ finish() {
 }
 
 # ---- Event ------------------------------------------------------------------------------------
-eval "$(python3 - "$EVENT" "$TMP" <<'PY'
-import json, shlex, sys
-ev = json.load(open(sys.argv[1], encoding="utf-8"))
-tmp = sys.argv[2]
-changes = ev.get("changes") or {}
-if "issue" in ev:
-    action = ev.get("action") or ""
-    number = ev["issue"]["number"]
-else:
-    action = "dispatch"
-    number = int((ev.get("inputs") or {})["issue_number"])
-has_old = "body" in changes
-if has_old:
-    open(f"{tmp}/old_body.txt", "w", encoding="utf-8", newline="\n").write((changes["body"] or {}).get("from") or "")
-print(f"ACTION={shlex.quote(action)}")
-print(f"NUMBER={number}")
-print(f"TITLE_CHANGED={1 if 'title' in changes else 0}")
-print(f"HAS_OLD_BODY={1 if has_old else 0}")
-PY
-)"
+ask event
 echo "ISSUE=$NUMBER"
 say "issue #$NUMBER, action=$ACTION, dry_run=$DRY_RUN"
 
 gh issue view "$NUMBER" --repo "$REPO" --json number,title,body,state,author,labels,assignees,id \
   > "$TMP/issue.json" || infra "gh issue view $NUMBER failed"
 
-eval "$(python3 - "$TMP/issue.json" <<'PY'
-import json, shlex, sys
-issue = json.load(open(sys.argv[1], encoding="utf-8"))
-labels = [l["name"] for l in issue.get("labels") or []]
-print(f"STATE={shlex.quote((issue.get('state') or '').upper())}")
-print(f"AUTHOR={shlex.quote((issue.get('author') or {}).get('login') or '')}")
-print(f"NODE_ID={shlex.quote(issue.get('id') or '')}")
-print(f"LABELS={shlex.quote(' '.join(labels))}")
-print(f"ASSIGNED={1 if issue.get('assignees') else 0}")
-PY
-)"
+ask issue
 
 [[ "$STATE" != CLOSED ]] || { say "closed issue, nothing to do"; finish closed none; }
 
@@ -171,17 +152,7 @@ else
   pris=($(pri_labels))
   if [[ ${#pris[@]} -gt 1 ]]; then
     gh api "repos/$REPO/issues/$NUMBER/events" --paginate --slurp > "$TMP/events.json" || infra "gh api issue events failed"
-    keep="$(python3 - "$TMP/events.json" "${pris[@]}" <<'PY'
-import json, sys
-events = [e for page in json.load(open(sys.argv[1], encoding="utf-8")) for e in page]
-present = sys.argv[2:]
-last = {}
-for e in events:
-    if e.get("event") == "labeled" and (e.get("label") or {}).get("name") in present:
-        last[e["label"]["name"]] = e.get("created_at") or ""
-print(max(present, key=lambda p: last.get(p, "")))
-PY
-)"
+    ask keep "${pris[@]}"
     say "one-priority rule: keeping $keep (added last)"
     for p in "${pris[@]}"; do [[ "$p" == "$keep" ]] || remove_label "$p"; done
   elif [[ ${#pris[@]} -eq 0 ]]; then
@@ -202,16 +173,7 @@ ITEM_ID="" CURRENT_OPTION=""
 board_lookup() {
   GH_TOKEN="$PROJECTS_TOKEN" gh api graphql -F id="$NODE_ID" -f query='query($id: ID!) { node(id: $id) { ... on Issue { projectItems(first: 50) { nodes { id project { id } fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { optionId } } } } } } }' \
     > "$TMP/board.json" || infra "board query failed"
-  eval "$(python3 - "$TMP/board.json" "$PROJECT_ID" <<'PY'
-import json, shlex, sys
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-nodes = ((data.get("data") or {}).get("node") or {}).get("projectItems", {}).get("nodes") or []
-for n in nodes:
-    if (n.get("project") or {}).get("id") == sys.argv[2]:
-        print(f"ITEM_ID={shlex.quote(n['id'])}")
-        print(f"CURRENT_OPTION={shlex.quote(((n.get('fieldValueByName') or {}).get('optionId')) or '')}")
-PY
-)"
+  ask board "$PROJECT_ID"
 }
 if [[ -n "${PROJECTS_TOKEN:-}" ]]; then
   board_lookup
@@ -233,17 +195,7 @@ fi
 # ---- Edit gate --------------------------------------------------------------------------------
 if [[ "$ACTION" == edited && "$TITLE_CHANGED" -eq 0 ]]; then
   gate_open=0
-  if [[ "$HAS_OLD_BODY" -eq 1 ]]; then
-    gate_open="$(python3 - "$TMP/issue.json" "$TMP/old_body.txt" <<'PY'
-import json, re, sys
-SEG = r"\.?[\w@-]+(?:\.[\w@-]+)*"
-PATH_RE = re.compile(rf"(?<![\w/.])(?:\./)?(?:{SEG}/)+{SEG}|(?<![\w/.])\.?[\w-]+\.(?:cs|md|sh|ps1|py|yml|yaml|json|asmdef|unity|prefab|asset|mat|shader|hlsl|cginc|txt)\b")
-new = json.load(open(sys.argv[1], encoding="utf-8")).get("body") or ""
-old = open(sys.argv[2], encoding="utf-8").read()
-print(1 if set(PATH_RE.findall(new)) - set(PATH_RE.findall(old)) else 0)
-PY
-)"
-  fi
+  [[ "$HAS_OLD_BODY" -eq 0 ]] || ask gate
   if [[ "$gate_open" -eq 0 ]]; then
     say "edit gate: no title change and no new path-like token — checks wait for the sweep"
     finish edit-skipped none
@@ -254,82 +206,21 @@ fi
 [[ -f "$PROMPT_FILE" ]] || infra "prompt file missing: $PROMPT_FILE"
 gh issue list --repo "$REPO" --state closed --limit 1000 --json number,title,closedAt > "$TMP/closed.json" \
   || infra "gh issue list --state closed failed"
-python3 - "$PROMPT_FILE" "$TMP/issue.json" "$TMP/closed.json" "$TMP/prompt.md" <<'PY'
-import json, sys
-prompt = open(sys.argv[1], encoding="utf-8").read()
-issue = json.load(open(sys.argv[2], encoding="utf-8"))
-closed = json.load(open(sys.argv[3], encoding="utf-8"))
-n = issue["number"]
-labels = ", ".join(l["name"] for l in issue.get("labels") or []) or "none"
-assignees = ", ".join(a["login"] for a in issue.get("assignees") or []) or "none"
-out = [prompt.rstrip(), "", "## Packet", "",
-       f"Issue #{n} · author {issue['author']['login']} · labels: {labels} · assignees: {assignees}", "",
-       f"<issue-body number={n}>", f"# {issue['title']}", "", issue.get("body") or "", f"</issue-body>", "",
-       "<closed-issues>"]
-out += [f"#{c['number']} · {c['title']} · {(c.get('closedAt') or '')[:10]}" for c in closed]
-out += ["</closed-issues>", ""]
-open(sys.argv[4], "w", encoding="utf-8", newline="\n").write("\n".join(out))
-PY
+ask prompt
 
 say "running claude -p ($CLAUDE_MODEL, read-only tools, max $CLAUDE_MAX_TURNS turns)"
 claude -p --tools Read,Grep,Glob --json-schema "$VERDICT_SCHEMA" --output-format json \
   --max-turns "$CLAUDE_MAX_TURNS" --model "$CLAUDE_MODEL" < "$TMP/prompt.md" > "$TMP/claude.json" \
   || infra "claude -p exited non-zero: $(head -c 2000 "$TMP/claude.json")"
 
-eval "$(python3 - "$TMP/claude.json" "$TMP/note.md" "$DATE" "$ASSIGNED" "$MARKER" <<'PY'
-import json, shlex, sys
-try:
-    out = json.load(open(sys.argv[1], encoding="utf-8"))
-except Exception as e:
-    print(f"CLAUDE_ERROR={shlex.quote(f'output is not JSON: {e}')}"); sys.exit(0)
-if not isinstance(out, dict) or out.get("is_error"):
-    print(f"CLAUDE_ERROR={shlex.quote('claude reported an error: ' + str(out.get('result') if isinstance(out, dict) else out)[:300])}"); sys.exit(0)
-v = out.get("structured_output")
-if v is None:
-    try:
-        v = json.loads(out.get("result") or "")
-    except Exception:
-        v = None
-required = {"retry_of": (int, type(None)), "retry_evidence": str, "premise_holds": bool,
-            "premise_evidence": str, "dead_pointers": list}
-if not isinstance(v, dict) or any(k not in v or not isinstance(v[k], t) for k, t in required.items()) \
-        or any(not isinstance(d, dict) or "path" not in d for d in v["dead_pointers"]):
-    print(f"CLAUDE_ERROR={shlex.quote('verdict does not match the schema: ' + json.dumps(v)[:300])}"); sys.exit(0)
-usage = out.get("usage") or {}
-print(f"TOKENS_IN={int(usage.get('input_tokens') or 0)}")
-print(f"TOKENS_OUT={int(usage.get('output_tokens') or 0)}")
-print(f"TOKENS_CACHE={int(usage.get('cache_creation_input_tokens') or 0) + int(usage.get('cache_read_input_tokens') or 0)}")
-print(f"COST_USD={out.get('total_cost_usd') or 0}")
-lines = []
-if v["retry_of"] is not None:
-    lines.append(f"Retry of #{v['retry_of']} — {v['retry_evidence']}")
-if not v["premise_holds"]:
-    lines.append(f"Premise not in the tree — {v['premise_evidence']}")
-for d in v["dead_pointers"]:
-    rep = d.get("replacement")
-    lines.append(f"Dead pointer: `{d['path']}` → " + (f"`{rep}`" if rep else "no replacement found"))
-print(f"FINDINGS={len(lines)}")
-print(f"VERDICT_JSON={shlex.quote(json.dumps(v, ensure_ascii=False))}")
-if lines:
-    if sys.argv[4] == "1":
-        lines.append("In flight (assigned)")
-    open(sys.argv[2], "w", encoding="utf-8", newline="\n").write(
-        f"{sys.argv[5]}\nOn-event triage {sys.argv[3]}\n" + "\n".join(lines) + "\n")
-PY
-)"
+ask verdict "$DATE" "$ASSIGNED" "$MARKER"
 [[ -z "${CLAUDE_ERROR:-}" ]] || infra "$CLAUDE_ERROR"
 say "verdict: $FINDINGS finding(s): $VERDICT_JSON"
 summary "- Verdict fields: \`$VERDICT_JSON\`"
 
 # ---- Note -------------------------------------------------------------------------------------
 gh api "repos/$REPO/issues/$NUMBER/comments" --paginate --slurp > "$TMP/comments.json" || infra "gh api issue comments failed"
-PRIOR_ID="$(python3 - "$TMP/comments.json" "$BOT_LOGIN" "$MARKER" <<'PY'
-import json, sys
-comments = [c for page in json.load(open(sys.argv[1], encoding="utf-8")) for c in page]
-ids = [c["id"] for c in comments if (c.get("user") or {}).get("login") == sys.argv[2] and sys.argv[3] in (c.get("body") or "")]
-print(ids[-1] if ids else "")
-PY
-)"
+ask prior "$BOT_LOGIN" "$MARKER"
 if [[ "$FINDINGS" -gt 0 ]]; then
   if [[ -n "$PRIOR_ID" ]]; then
     run_write gh api -X PATCH "repos/$REPO/issues/comments/$PRIOR_ID" -F "body=@$TMP/note.md"
