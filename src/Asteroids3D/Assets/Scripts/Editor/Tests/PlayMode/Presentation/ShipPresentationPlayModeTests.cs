@@ -13,9 +13,6 @@ using Ships.Registry;
 
 namespace Tests.PlayMode.Presentation
 {
-    /// <summary>
-    /// Ship_1 carries its visual rig as an embedded child; Ship_3 preserves legacy damage feedback.
-    /// </summary>
     [Category("Ships")]
     public class ShipPresentationPlayModeTests : PlayModeWorldFixture
     {

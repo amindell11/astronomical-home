@@ -60,15 +60,42 @@ namespace Tests.EditMode.Rendering.Illustrated
         }
 
         [Test]
+        public void Crimson_HullHasOneMeshAndRendererWithDistinctPaintAndContourVertices()
+        {
+            var hull = LoadShip(2).GetComponentsInChildren<Transform>(true).Single(t => t.name == "Crimson");
+            var renderers = hull.GetComponentsInChildren<MeshRenderer>(true);
+            var filters = hull.GetComponentsInChildren<MeshFilter>(true);
+            Assert.That(renderers, Has.Length.EqualTo(1));
+            Assert.That(filters, Has.Length.EqualTo(1));
+            Assert.That(renderers[0].gameObject, Is.EqualTo(hull.gameObject));
+            var mesh = filters[0].sharedMesh;
+            Assert.That(mesh.subMeshCount, Is.EqualTo(2));
+            Assert.That(renderers[0].sharedMaterials.Select(m => m.shader.name),
+                Is.EqualTo(new[] { SurfaceShader, ContourShader }));
+            Assert.That(mesh.GetIndexCount(0), Is.GreaterThan(0));
+            Assert.That(mesh.GetIndexCount(1), Is.EqualTo(mesh.GetIndexCount(0)));
+            Assert.That(mesh.GetIndices(0).Intersect(mesh.GetIndices(1)), Is.Empty,
+                "Painted and contour normals require separate vertex ranges within the same mesh.");
+        }
+
+        [Test]
         public void Crimson_ProwFacesForwardAndCanopyFacesTheGameplayCamera()
         {
             var ship = LoadShip(2);
-            var surfaces = ship.GetComponentsInChildren<MeshRenderer>(true)
-                .Where(r => UsesShader(r, SurfaceShader)).ToArray();
-            var prow = CenterInShip(ship.transform, surfaces.Single(r => r.name == "Upper prow tip"));
-            var nozzle = CenterInShip(ship.transform, surfaces.Single(r => r.name == "Engine nozzle"));
-            var canopy = CenterInShip(ship.transform, surfaces.Single(r => r.name == "Canopy"));
-            var hull = CenterInShip(ship.transform, surfaces.Single(r => r.name == "Central hull"));
+            var visual = ship.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Crimson");
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Visuals/Ships/Crimson/Crimson.fbx");
+            var parts = source.GetComponentsInChildren<MeshRenderer>(true);
+            Vector3 Center(string name)
+            {
+                var part = parts.Single(r => r.name == name);
+                var point = source.transform.InverseTransformPoint(
+                    part.transform.TransformPoint(part.GetComponent<MeshFilter>().sharedMesh.bounds.center));
+                return ship.transform.InverseTransformPoint(visual.TransformPoint(point));
+            }
+            var prow = Center("Upper prow tip");
+            var nozzle = Center("Engine nozzle");
+            var canopy = Center("Canopy");
+            var hull = Center("Central hull");
             Assert.That(Vector3.Dot((prow - nozzle).normalized, Vector3.up), Is.GreaterThan(.99f));
             Assert.That(canopy.z, Is.LessThan(hull.z), "The camera sees the canopy, not the underside.");
         }
@@ -120,9 +147,6 @@ namespace Tests.EditMode.Rendering.Illustrated
 
         private static bool UsesShader(MeshRenderer renderer, string shader) =>
             renderer.sharedMaterials.Any(m => m && m.shader && m.shader.name == shader);
-
-        private static Vector3 CenterInShip(Transform ship, MeshRenderer renderer) =>
-            ship.InverseTransformPoint(renderer.transform.TransformPoint(renderer.GetComponent<MeshFilter>().sharedMesh.bounds.center));
 
         private static Bounds BoundsInShip(Transform ship, Transform part, Bounds local)
         {
