@@ -27,26 +27,40 @@ assert not {"tiny_stars", "anchor_brightness", "anchors"} & set(preset), preset
 original = bpy.context.window.scene
 objects = list(original.objects)
 scenes = set(bpy.data.scenes)
-base = str(out / "illustrated-blue-draft")
-scene = flat_render.build_scene(preset, base, SIZE, SIZE, 4)
-try:
-    started = time.perf_counter()
-    bpy.ops.render.render(write_still=True)
-    flat_render.save_outputs(scene, preset, base, "draft", time.perf_counter() - started, migration)
-finally:
-    bpy.context.window.scene = original
-    flat_render.dispose_scene(scene)
-assert bpy.context.window.scene == original and list(original.objects) == objects, "open scene not restored"
-assert set(bpy.data.scenes) == scenes, "render scene leaked"
 
-exr = Path(base + ".exr")
-assert exr.is_file(), exr
-image = bpy.data.images.load(str(exr), check_existing=False)
-assert image.is_float and tuple(image.size) == (SIZE, SIZE), (image.is_float, tuple(image.size))
-pixels = np.empty(len(image.pixels), np.float32)
-image.pixels.foreach_get(pixels)
-bpy.data.images.remove(image)
-rgb = pixels.reshape(SIZE, SIZE, 4)[..., :3]
+
+def render(value, name):
+    base = str(out / name)
+    scene = flat_render.build_scene(value, base, SIZE, SIZE, 4)
+    try:
+        started = time.perf_counter()
+        bpy.ops.render.render(write_still=True)
+        flat_render.save_outputs(scene, value, base, "draft", time.perf_counter() - started, migration)
+    finally:
+        bpy.context.window.scene = original
+        flat_render.dispose_scene(scene)
+    assert bpy.context.window.scene == original and list(original.objects) == objects, "open scene not restored"
+    assert set(bpy.data.scenes) == scenes, "render scene leaked"
+    exr = Path(base + ".exr")
+    assert exr.is_file(), exr
+    image = bpy.data.images.load(str(exr), check_existing=False)
+    assert image.is_float and tuple(image.size) == (SIZE, SIZE), (image.is_float, tuple(image.size))
+    pixels = np.empty(len(image.pixels), np.float32)
+    image.pixels.foreach_get(pixels)
+    bpy.data.images.remove(image)
+    return base, exr, pixels.reshape(SIZE, SIZE, 4)[..., :3]
+
+
+base, exr, rgb = render(preset, "illustrated-blue-draft")
+noise = np.abs(rgb - render(preset, "repeat")[2]).mean()
+varied = flat_preset.parse(preset)
+varied["nebula"]["variation"] += 23
+recolored = flat_preset.parse(preset)
+recolored["nebula"]["palette"] = [[g, b, r] for r, g, b in recolored["nebula"]["palette"]]
+differences = {name: float(np.abs(rgb - render(value, name)[2]).mean())
+               for name, value in (("variation", varied), ("palette", recolored))}
+for name, difference in differences.items():
+    assert difference > max(1e-4, 10 * noise), (name, difference, noise)
 luminance = rgb @ np.array([0.2126, 0.7152, 0.0722], np.float32)
 assert luminance.std() > 1e-3, "EXR is uniform"
 padded = np.pad(luminance, 1, mode="wrap")
@@ -78,5 +92,6 @@ staging = project / "Library/FlatBackgroundAuthoring"
 assert staging.is_dir() and not any(staging.iterdir()), "staging missing or left behind"
 
 report = {"size": SIZE, "max_rgb": float(rgb.max()), "luminance_std": float(luminance.std()),
-          "isolated_peaks": isolated_peaks, "published": str(published)}
+          "isolated_peaks": isolated_peaks, "repeat_noise": float(noise), **differences,
+          "published": str(published)}
 print("FLATBG_SMOKE_PASS", json.dumps(report))
