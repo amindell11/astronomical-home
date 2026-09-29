@@ -50,10 +50,11 @@ namespace Tests.PlayMode
             var brain = cmdr.InstallBrain<InferenceBrain>();
             brain.ConfigureModel(model, 120f);
 
-            yield return AsyncAssert.WaitUntil(
+            // WaitUntil ends the test via Assert.Pass on success; WaitUntilThen lets the teardown below run.
+            yield return AsyncAssert.WaitUntilThen(
                 () => brain.Agent,
-                timeoutSec: 5f,
-                failureMessage: "InferenceBrain never composed its agent",
+                5f,
+                () => Assert.IsTrue(brain.Agent, "InferenceBrain never composed its agent"),
                 useFixedUpdate: true);
 
             Object.DestroyImmediate(ship.gameObject);
