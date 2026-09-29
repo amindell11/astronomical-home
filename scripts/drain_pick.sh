@@ -2,14 +2,15 @@
 set -euo pipefail
 
 # Drain run pick and claim (arc #617 Slice-3a): the deterministic half of a drain run. `pick`
-# reads the ready queue and names the top `unity:none` item; `claim` locks it (issue assignee)
+# reads the ready queue and names the top dispatchable item; `claim` locks it (issue assignee)
 # and takes a genuinely free pool slot for it. The session reads the scope and names the lease
 # in between. Procedure: .claude/skills/agent-worktree-pr-loop/SKILL.md § Drain run.
 #
 # Usage: drain_pick.sh pick [--dry-run]
 #        drain_pick.sh claim <issue> <lease>
 #   pick    read-only. Queue = open `ready-for-agent` issues; an issue is picked only when it
-#           carries `unity:none`, has no assignee, no open blocked-by dependency, and a scope
+#           carries `unity:none` (or `unity:headless` plus `drain:approved`, the user's approval;
+#           `unity:editor` never), has no assignee, no open blocked-by dependency, and a scope
 #           block: a comment by amindell11 whose first line starts `Ready proposal` (the latest
 #           wins), else a body with a `What to build` heading and an `Acceptance` heading.
 #           Order: pri:now > pri:next > pri:later > none, then oldest createdAt.
@@ -28,7 +29,7 @@ set -euo pipefail
 #       3 no_slot · 4 taken · 5 acquire_failed (unassigned again).
 # Stdout trailers, one per line, stable:
 #   pick:  SKIP=<n> <reason>[,<reason>…]  (one per queue issue not picked; reasons: no-unity-label
-#          unity:<value> assigned:<login> blocked:<open-count> no-scope-block)
+#          unity:<value> no-drain:approved assigned:<login> blocked:<open-count> no-scope-block)
 #          ISSUE=<n>|none  SCOPE=proposal:<comment-url>|body  (SCOPE only when picked)
 #          DRY_RUN=<0|1>
 #   claim: CLAIM=<claimed|no_slot|taken|acquire_failed>
@@ -91,9 +92,12 @@ picked = []
 for n in nodes:
     labels = [l["name"] for l in n["labels"]["nodes"]]
     reasons = []
-    if "unity:none" not in labels:
+    approved_headless = "unity:headless" in labels and "drain:approved" in labels
+    if "unity:none" not in labels and not approved_headless:
         unity = [l for l in labels if l.startswith("unity:")]
         reasons += unity or ["no-unity-label"]
+        if "unity:headless" in labels:
+            reasons.append("no-drain:approved")
     reasons += [f"assigned:{a['login']}" for a in n["assignees"]["nodes"]]
     blocked = (n.get("issueDependenciesSummary") or {}).get("blockedBy") or 0
     if blocked:
