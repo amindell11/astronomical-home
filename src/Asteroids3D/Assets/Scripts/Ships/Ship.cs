@@ -182,7 +182,7 @@ namespace Ships
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
-            // Flush transforms so collider bounds reflect the authored root scale before the radius is derived from them.
+            // Collider bounds must reflect authored root scale before deriving radius.
             Physics.SyncTransforms();
 
             if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
