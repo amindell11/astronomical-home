@@ -1,0 +1,72 @@
+using Game.Player;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace Tests.EditMode
+{
+    [Category("Core")]
+    public class PlayerInputReaderEditModeTests : InputTestFixture
+    {
+        private Keyboard keyboard;
+        private Mouse mouse;
+        private PlayerInputReader reader;
+
+        public override void Setup()
+        {
+            base.Setup();
+            keyboard = InputSystem.AddDevice<Keyboard>();
+            mouse = InputSystem.AddDevice<Mouse>();
+            reader = new PlayerInputReader(screen => screen);
+            reader.Enable();
+        }
+
+        public override void TearDown()
+        {
+            // Not Dispose: the generated wrapper's Dispose calls Object.Destroy, an error in edit mode.
+            reader.Disable();
+            base.TearDown();
+        }
+
+        [Test]
+        public void W_DrivesFullThrust()
+        {
+            Press(keyboard.wKey);
+
+            Assert.AreEqual(1f, reader.Thrust);
+        }
+
+        [Test]
+        public void RightMouse_HoldsHeading()
+        {
+            Assert.IsTrue(reader.WantsToRotate, "ship faces the cursor by default");
+
+            Press(mouse.rightButton);
+
+            Assert.IsFalse(reader.WantsToRotate);
+        }
+
+        [Test]
+        public void LeftMouse_FiresWithoutTouchingAim()
+        {
+            Set(mouse.position, new Vector2(40f, 60f));
+            var aimBefore = reader.GetMouseWorldPosition();
+
+            Press(mouse.leftButton);
+
+            Assert.IsTrue(reader.PrimaryFire);
+            Assert.IsTrue(reader.WantsToRotate, "firing does not hold heading");
+            Assert.AreEqual(aimBefore, reader.GetMouseWorldPosition());
+        }
+
+        [Test]
+        public void MousePosition_ReachesProjector()
+        {
+            reader.SetScreenToGamePlane(screen => screen * 2f);
+
+            Set(mouse.position, new Vector2(120f, 45f));
+
+            Assert.AreEqual(new Vector3(240f, 90f, 0f), reader.GetMouseWorldPosition());
+        }
+    }
+}
