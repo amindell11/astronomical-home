@@ -1,4 +1,4 @@
-"""Publish completed renders to the Unity companion's dedicated import folders."""
+"""Publish completed renders to the Unity companion's dedicated import folder."""
 
 import json
 import os
@@ -7,7 +7,6 @@ import re
 import shutil
 import tempfile
 
-ASSET_FOLDER = "Assets/Visuals/Environment/Sky/Generated"
 FLAT_FOLDER = "Assets/Visuals/Environment/Flat/Generated"
 
 
@@ -24,16 +23,7 @@ def sky_name(value):
     return value
 
 
-def check_sky(source, final):
-    report = json.loads(Path(source + "_render.json").read_text(encoding="utf-8"))
-    if report["format"] != "HDR" or report["width"] != 2 * report["height"]:
-        raise ValueError("Unity publishing requires a completed 2:1 HDR render")
-    if final and (report["width"], report["height"]) != (8192, 4096):
-        raise ValueError("Final Unity publishing requires the 8K export")
-
-
-def publish(out_base, project, name, final=False, folder=ASSET_FOLDER,
-            suffixes=("_preset.json", "_render.json", ".hdr"), tags=("-draft", "-8k"), check=check_sky):
+def publish(out_base, project, name, final, folder, suffixes, tags, check):
     """Replace sidecars, then atomically publish the image (last suffix); preserve Unity .meta identities."""
     project = project_folder(project)
     name = sky_name(name) + tags[final]
@@ -41,7 +31,7 @@ def publish(out_base, project, name, final=False, folder=ASSET_FOLDER,
     check(source, final)
     destination = project / folder
     destination.mkdir(parents=True, exist_ok=True)
-    staging_root = project / "Library/SkyboxAuthoring"
+    staging_root = project / "Library/FlatBackgroundAuthoring"
     staging_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=staging_root) as staging:
         for suffix in suffixes:

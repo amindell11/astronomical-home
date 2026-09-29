@@ -1,6 +1,6 @@
 """Render starless periodic clouds in Blender as a native repeating EXR plus JSON sidecar.
 
-CLI: blender -b --python-exit-code 1 -P skybox_flat.py -- --out PATH
+CLI: blender -b --python-exit-code 1 -P flat_render.py -- --out PATH
 --stage draft|final, --width N, --height N, --samples N, --preset JSON,
 --unity-project PATH and --name NAME are optional. Default sizes: 1024 draft,
 2048 final, square unless height is supplied. Exit 0 means complete; Blender's
@@ -8,8 +8,9 @@ CLI: blender -b --python-exit-code 1 -P skybox_flat.py -- --out PATH
 
 Outputs <out>.exr (scene-linear half float) and <out>.json: schema_version,
 stage, dimensions, four RGB palette roles (base/primary/secondary/accent) and
-provenance including the preset migration report. Unity publishing reuses
-skybox_unity.publish, which replaces the sidecar before the image.
+provenance including the migration report (non-empty only when a schema 1
+preset was read). Unity publishing uses flat_unity.publish, which replaces the
+sidecar before the image.
 """
 
 import argparse
@@ -22,25 +23,90 @@ import time
 import bpy
 
 if __package__:
-    from . import skybox_merged, skybox_preset, skybox_unity
+    from . import flat_preset, flat_unity
 else:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import skybox_merged
-    import skybox_preset
-    import skybox_unity
+    import flat_preset
+    import flat_unity
 
-MIGRATION = [
-    "Palette, variation, scale, coverage and core emission retain their authoring roles.",
-    "Stretch X/Y control torus radii; stretch Z controls cloud detail.",
-    "Rotation X/Y shift periodic phases; rotation Z offsets the 4D field.",
-    "Tiny stars, their seed, focal-star brightness and all anchors are ignored; stars belong to Unity.",
-    "Spherical cloud positions are regenerated; historical panoramas are not visually reproduced.",
-]
+
+def configure_scene(width, height, samples, out_path):
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.render.resolution_x = width
+    scene.render.resolution_y = height
+    scene.render.resolution_percentage = 100
+    scene.render.image_settings.file_format = "OPEN_EXR"
+    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.image_settings.color_depth = "16"
+    scene.render.image_settings.exr_codec = "ZIP"
+    scene.render.film_transparent = False
+    scene.render.use_file_extension = True
+    scene.render.filepath = out_path
+    scene.cycles.samples = samples
+    scene.cycles.sampling_pattern = "TABULATED_SOBOL"
+    scene.cycles.use_adaptive_sampling = False
+    scene.cycles.seed = 0
+    scene.cycles.max_bounces = 4
+    scene.cycles.diffuse_bounces = 1
+    scene.cycles.glossy_bounces = 1
+    scene.cycles.transmission_bounces = 1
+    scene.cycles.use_denoising = False
+
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        for backend in ("OPTIX", "HIP", "ONEAPI", "METAL", "CUDA"):
+            try:
+                prefs.compute_device_type = backend
+                prefs.get_devices()
+                enabled = False
+                for device in prefs.devices:
+                    device.use = device.type != "CPU"
+                    enabled = enabled or device.use
+                if enabled:
+                    scene.cycles.device = "GPU"
+                    print(f"Using Cycles GPU backend: {backend}")
+                    break
+            except Exception:
+                continue
+    except Exception as exc:
+        print(f"Cycles GPU selection unavailable; using CPU: {exc}")
+
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.0
+
+    bpy.ops.object.camera_add()
+    camera = bpy.context.object
+    camera.name = "Flat Background Camera"
+    camera.location = (0, 0, 2)
+    camera.rotation_euler = (0, 0, 0)
+    camera.data.type = "ORTHO"
+    camera.data.ortho_scale = 2 * max(1, width / height)
+    camera.data.clip_start = 0.01
+    camera.data.clip_end = 1000.0
+    scene.camera = camera
+
+
+def dispose_scene(scene):
+    for obj in list(scene.objects):
+        data = obj.data
+        materials = list(data.materials) if hasattr(data, "materials") else []
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if data.users == 0:
+            (bpy.data.cameras if isinstance(data, bpy.types.Camera) else bpy.data.meshes).remove(data)
+        for material in materials:
+            if material.users == 0:
+                bpy.data.materials.remove(material)
+    world = scene.world
+    bpy.data.scenes.remove(scene)
+    if world and world.users == 0:
+        bpy.data.worlds.remove(world)
 
 
 def build_scene(preset, out_base, width=1024, height=1024, samples=8):
     out_base = str(Path(out_base).resolve())
-    preset = skybox_preset.parse(preset)
+    preset = flat_preset.parse(preset)
     if not all(type(v) is int and 16 <= v <= 8192 for v in (width, height)):
         raise ValueError("Flat dimensions must be integers between 16 and 8192")
     if type(samples) is not int or not 1 <= samples <= 256:
@@ -49,14 +115,7 @@ def build_scene(preset, out_base, width=1024, height=1024, samples=8):
     previous = bpy.context.window.scene
     bpy.context.window.scene = scene
     try:
-        skybox_merged.configure_scene(width, height, samples, "EXR", out_base + ".exr")
-        scene.render.image_settings.color_depth = "16"
-        scene.cycles.use_adaptive_sampling = False
-        scene.cycles.seed = 0
-        scene.camera.data.type = "ORTHO"
-        scene.camera.data.ortho_scale = 2 * max(1, width / height)
-        scene.camera.location = (0, 0, 2)
-        scene.camera.rotation_euler = (0, 0, 0)
+        configure_scene(width, height, samples, out_base + ".exr")
         bpy.ops.mesh.primitive_plane_add(size=2)
         plane = bpy.context.object
         plane.scale.x = width / height
@@ -126,12 +185,12 @@ def build_scene(preset, out_base, width=1024, height=1024, samples=8):
         links.new(emission.outputs[0], output.inputs["Surface"])
     except Exception:
         bpy.context.window.scene = previous
-        skybox_merged.dispose_scene(scene)
+        dispose_scene(scene)
         raise
     return scene
 
 
-def save_outputs(scene, preset, out_base, stage, elapsed):
+def save_outputs(scene, preset, out_base, stage, elapsed, migration=()):
     out_base = str(Path(out_base).resolve())
     if stage not in ("draft", "final"):
         raise ValueError("Stage must be draft or final")
@@ -141,7 +200,7 @@ def save_outputs(scene, preset, out_base, stage, elapsed):
         "palette": dict(zip(("base", "primary", "secondary", "accent"), preset["nebula"]["palette"])),
         "provenance": {
             "blender_version": bpy.app.version_string, "generator": "4D torus clouds v1",
-            "samples": scene.cycles.samples, "render_seconds": elapsed, "preset": preset, "migration": MIGRATION,
+            "samples": scene.cycles.samples, "render_seconds": elapsed, "preset": preset, "migration": list(migration),
         },
     }
     Path(out_base + ".json").write_text(json.dumps(sidecar, indent=2, allow_nan=False), encoding="utf-8")
@@ -150,7 +209,7 @@ def save_outputs(scene, preset, out_base, stage, elapsed):
     scene.render.image_settings.color_depth = "8"
     scene.view_settings.view_transform = "AgX"
     bpy.data.images["Render Result"].save_render(out_base + "_preview.png", scene=scene)
-    print("FLATBG_MIGRATION=" + json.dumps(MIGRATION))
+    print("FLATBG_MIGRATION=" + json.dumps(list(migration)))
     print("FLATBG_PATH=" + out_base + ".exr")
 
 
@@ -165,7 +224,7 @@ def main():
     parser.add_argument("--unity-project")
     parser.add_argument("--name", default="clouds")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    preset = skybox_preset.load(args.preset) if args.preset else skybox_preset.defaults(glow=True)
+    preset, migration = flat_preset.load(args.preset) if args.preset else (flat_preset.defaults(), [])
     width = args.width or (2048 if args.stage == "final" else 1024)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     previous = bpy.context.window.scene
@@ -173,14 +232,14 @@ def main():
     try:
         started = time.perf_counter()
         bpy.ops.render.render(write_still=True)
-        save_outputs(scene, preset, args.out, args.stage, time.perf_counter() - started)
+        save_outputs(scene, preset, args.out, args.stage, time.perf_counter() - started, migration)
         if args.unity_project:
-            published = skybox_unity.publish(args.out, args.unity_project, args.name,
-                                             args.stage == "final", **skybox_unity.FLAT)
+            published = flat_unity.publish(args.out, args.unity_project, args.name,
+                                           args.stage == "final", **flat_unity.FLAT)
             print("FLATBG_PUBLISHED=" + str(published))
     finally:
         bpy.context.window.scene = previous
-        skybox_merged.dispose_scene(scene)
+        dispose_scene(scene)
 
 
 if __name__ == "__main__":
