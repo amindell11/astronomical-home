@@ -18,6 +18,21 @@ workspace to edit it. Save the external image and repack it when saving the blen
 The saved solid viewport uses Texture color and Flat lighting to show the painted
 highlights and shadows. The material also references the atlas for base color.
 
+UV islands are scaled against world-space surface area before packing. Preserve
+object transforms and Mirror modifiers by doing that calculation on temporary
+copies, then transfer the UV coordinates back. The atlas uses a 0.008 packing
+margin and 12 pixels of bake dilation. Rebake the paint into the new layout;
+resizing the old painted islands cannot recover their missing detail.
+
+Run `blender -b --python-exit-code 1 --python check_uv_density.py` from this folder
+to check evaluated surface density. `uv-density.json` records the current values;
+the check rejects a maximum/minimum ratio above 1.25.
+
+Unity uses copies of the FBX and atlas plus a saved combined mesh in
+`src/Asteroids3D/Assets/Visuals/Ships/Crimson/`. Update that mesh's UV coordinates
+alongside the source files; replacing the FBX alone does not update it. Preserve
+its separate paint and contour vertex ranges and their authored normals.
+
 `reference/approved-texture-concept.png` is the approved hand-drawn direction:
 silver armor, red insets, charcoal structure, dark outlines and broad painted
 light and shadow shapes. `textures/painted-brush-source.png` supplies the imagegen
@@ -28,7 +43,14 @@ paint treatment; the Blender geometry is authoritative.
 
 ![Textured ship](previews/textured-hero.png)
 
-![Original AI mesh and rebuilt ship rotating together](previews/old-vs-new-turntable.gif)
+![UV density correction](previews/uv-density-comparison.png)
+
+![Atlas allocation before and after correction](previews/uv-atlas-comparison.png)
+
+The following turntable records the original approved texture pass, before the
+UV density correction. The stills above and below use the current atlas.
+
+![Original AI mesh and first textured rebuild rotating together](previews/old-vs-new-turntable.gif)
 
 - [Full-resolution turntable video](previews/old-vs-new-turntable.mp4), original AI
   mesh on the left and rebuilt ship on the right, matched by nose-to-tail length.
@@ -42,5 +64,4 @@ The approved source retains 14 non-manifold edges across `Cube` and `Structural
 center web`; no faces have zero area. These authored parts are preserved in the
 render mesh rather than repaired as part of the asset handoff.
 
-These are Blender previews of the asset; this handoff does not replace the active
-gameplay ship or claim an in-engine rendering match.
+These are Blender previews of the asset, not an in-engine rendering match.

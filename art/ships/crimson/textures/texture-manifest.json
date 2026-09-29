@@ -11,5 +11,8 @@
   ],
   "image_packed": true,
   "style_reference": "reference/approved-texture-concept.png",
-  "texture_sha256": "225ecd81cd5add159f111b2a26c4c8d987db38a88543f865289fd6094e6f3f8d"
+  "texture_sha256": "151ef752427882b6032630a79789f5c78429368a41bd37fcc4e082aad5d5169f",
+  "uv_density_report": "uv-density.json",
+  "uv_pack_margin_fraction": 0.008,
+  "bake_margin_pixels": 12
 }

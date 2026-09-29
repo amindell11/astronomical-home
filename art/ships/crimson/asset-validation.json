@@ -1,6 +1,6 @@
 {
   "source": "Crimson.blend",
-  "source_sha256": "fbef279af2644b93a5546c4c8f41935516626f058e6a0fe7792383fe8a74245c",
+  "source_sha256": "74b5ac2a2b5e5c4cd991a272a6376ccfb9446d5bfb37c14b37035a72d6334611",
   "parts": [
     {
       "name": "Cube",
@@ -309,7 +309,7 @@
     }
   ],
   "fbx": "Crimson.fbx",
-  "fbx_sha256": "aae6832c409e358d50bc55b0e633c52a1cb39dea69ec89699845f3ccb5dbf873",
+  "fbx_sha256": "ec41c8deddf7081d1fe9f14e90212da74c5f05f9e1b7580be0d2c9bf916429cc",
   "fbx_axes": {
     "forward": "-Z",
     "up": "Y"
@@ -321,5 +321,14 @@
     "parts": 39,
     "triangles": 7618,
     "all_parts_have_uvs": true
-  }
+  },
+  "runtime_uv_update": {
+    "vertices_updated": 26778,
+    "maximum_uv_match_distance": 8.429369702178807e-08,
+    "positions_normals_tangents_byte_identical": true,
+    "indices_submeshes_bounds_unchanged": true,
+    "source_mesh_sha256": "d5a552ccbd4a38a3a7be63bad05cae0a8decce1c039907e24032ca23d370afc1",
+    "updated_mesh_sha256": "04d453e24a377cdbea98ac1458a6cb66d3cda31ee12b8e4f1378255a2092bdac"
+  },
+  "packed_atlas_matches_external": true
 }

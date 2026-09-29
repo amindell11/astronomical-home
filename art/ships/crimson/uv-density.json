@@ -1,0 +1,165 @@
+{
+  "texture_size": 4096,
+  "measurement": "4096 * sqrt(evaluated UV triangle area / world-space triangle area)",
+  "median_pixels_per_unit": 656.4977159200859,
+  "maximum_to_minimum_ratio": 1.0398214769968115,
+  "maximum_allowed_ratio": 1.25,
+  "parts": [
+    {
+      "name": "Cube",
+      "pixels_per_unit": 656.2790861721251
+    },
+    {
+      "name": "Structural center web",
+      "pixels_per_unit": 656.4977159200859
+    },
+    {
+      "name": "Central hull",
+      "pixels_per_unit": 653.4630552107674
+    },
+    {
+      "name": "Cockpit surround",
+      "pixels_per_unit": 657.2428558574768
+    },
+    {
+      "name": "Canopy",
+      "pixels_per_unit": 655.310998264155
+    },
+    {
+      "name": "Service channel floor",
+      "pixels_per_unit": 656.3225819476197
+    },
+    {
+      "name": "Dorsal service spine",
+      "pixels_per_unit": 656.5013890357399
+    },
+    {
+      "name": "Rear cockpit yoke",
+      "pixels_per_unit": 655.7157352806604
+    },
+    {
+      "name": "Canopy perimeter rim",
+      "pixels_per_unit": 671.5196950676726
+    },
+    {
+      "name": "Canopy transverse frame",
+      "pixels_per_unit": 675.7793234611822
+    },
+    {
+      "name": "Upper wing foundation",
+      "pixels_per_unit": 655.9369430082994
+    },
+    {
+      "name": "Upper aft shoulder armor",
+      "pixels_per_unit": 656.160583789712
+    },
+    {
+      "name": "Upper inner shoulder armor",
+      "pixels_per_unit": 653.689516758607
+    },
+    {
+      "name": "Upper prow armor",
+      "pixels_per_unit": 656.1866107679401
+    },
+    {
+      "name": "Upper prow tip",
+      "pixels_per_unit": 656.4843595021445
+    },
+    {
+      "name": "Upper outer armor rail",
+      "pixels_per_unit": 655.8874698482002
+    },
+    {
+      "name": "Lower wing foundation",
+      "pixels_per_unit": 656.503029671817
+    },
+    {
+      "name": "Lower aft shoulder armor",
+      "pixels_per_unit": 655.4584507977448
+    },
+    {
+      "name": "Lower inner shoulder armor",
+      "pixels_per_unit": 649.8993706236503
+    },
+    {
+      "name": "Lower prow armor",
+      "pixels_per_unit": 656.2735210772945
+    },
+    {
+      "name": "Lower prow tip",
+      "pixels_per_unit": 656.4955785276575
+    },
+    {
+      "name": "Lower outer armor rail",
+      "pixels_per_unit": 655.5967817758627
+    },
+    {
+      "name": "Wing root beam",
+      "pixels_per_unit": 656.346398920892
+    },
+    {
+      "name": "Shoulder underside link",
+      "pixels_per_unit": 655.1463211719229
+    },
+    {
+      "name": "Outer rail mounting block",
+      "pixels_per_unit": 656.5243567059241
+    },
+    {
+      "name": "Shoulder service pod",
+      "pixels_per_unit": 656.5048674104914
+    },
+    {
+      "name": "Service pod cap",
+      "pixels_per_unit": 656.5251421984321
+    },
+    {
+      "name": "Upper Aft swept fin",
+      "pixels_per_unit": 656.5277133278887
+    },
+    {
+      "name": "Lower Aft swept fin",
+      "pixels_per_unit": 656.5276232322698
+    },
+    {
+      "name": "Upper Outer swept fin",
+      "pixels_per_unit": 656.5272541630543
+    },
+    {
+      "name": "Lower Outer swept fin",
+      "pixels_per_unit": 656.528548922664
+    },
+    {
+      "name": "Upper Forward fin",
+      "pixels_per_unit": 656.5256202866092
+    },
+    {
+      "name": "Lower Forward fin",
+      "pixels_per_unit": 656.5264107363034
+    },
+    {
+      "name": "Engine support frame",
+      "pixels_per_unit": 653.5369575305326
+    },
+    {
+      "name": "Engine forward cowling",
+      "pixels_per_unit": 656.5269129632462
+    },
+    {
+      "name": "Engine housing",
+      "pixels_per_unit": 656.5271208877473
+    },
+    {
+      "name": "Engine neck",
+      "pixels_per_unit": 656.5271016939733
+    },
+    {
+      "name": "Engine nozzle",
+      "pixels_per_unit": 656.5269344008685
+    },
+    {
+      "name": "Engine throat",
+      "pixels_per_unit": 656.526749303502
+    }
+  ]
+}
