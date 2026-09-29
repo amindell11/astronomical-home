@@ -9,7 +9,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
     }
     SubShader
     {
-        Tags { "RenderPipeline"="UniversalPipeline" "RenderType"="Opaque" "Queue"="Geometry+1" }
+        Tags { "RenderPipeline"="UniversalPipeline" "RenderType"="Opaque" "Queue"="Transparent-5" }
         Pass
         {
             Name "DrawnContour"
