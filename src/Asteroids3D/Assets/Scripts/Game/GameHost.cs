@@ -151,6 +151,7 @@ namespace Game
 
                 SetSplashVisible(true);
                 yield return session.UnloadSector();
+                if (playerRig) playerRig.Park();
             }
         }
 
