@@ -1,4 +1,4 @@
-"""Windowed Blender regression for grouped colors, randomization, locks and Undo."""
+"""Windowed Blender regression for coverage, grouped colors, randomization, locks and Undo."""
 import argparse
 import colorsys
 import json
@@ -10,7 +10,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import flat_background
-from flat_background import flat_panel as panel
+from flat_background import flat_panel as panel, flat_preset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out', required=True)
@@ -26,6 +26,25 @@ def run():
     try:
         with bpy.context.temp_override(area=area, region=region):
             s = panel.get_settings(bpy.context.scene)
+            for coverage in (-0.2, -0.03424816578626633, 0, 0.07, 0.2):
+                preset = flat_preset.defaults()
+                preset['nebula']['coverage'] = coverage
+                panel.apply_preset(s, preset)
+                value = panel.to_preset(s)
+                assert abs(value['nebula']['coverage'] - coverage) < 1e-8, 'Coverage did not round-trip'
+                flat_preset.save(out / 'roundtrip.json', value)
+                assert flat_preset.load(out / 'roundtrip.json') == (value, [])
+            s.coverage_level = 0
+            baseline = panel.to_preset(s)
+            s.coverage_level = 1
+            fine = panel.to_preset(s)
+            assert 0.00199 < fine['nebula']['coverage'] - baseline['nebula']['coverage'] < 0.00201
+            fine['nebula']['coverage'] = baseline['nebula']['coverage']
+            assert fine == baseline, 'A coverage step changed another field'
+            for level in (-100, 0, 100):
+                s.coverage_level = level
+                assert panel.to_preset(s)['nebula']['coverage'] == level / 500
+            panel.apply_preset(s, flat_preset.defaults())
             s.output_name = 'keep-name'
             s.unity_project = 'D:/keep-project'
             before = panel.to_preset(s)
