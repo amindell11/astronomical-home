@@ -76,6 +76,34 @@ namespace Tests.EditMode.Rendering.Illustrated
         }
 
         [Test]
+        public void Builder_RebuildKeepsScorchedPaintAndContoursAheadOfExplosion_WithoutChangingSharedMaterials()
+        {
+            CrimsonBreakupBuilder.Build();
+            const string folder = "Assets/Visuals/Ships/Crimson/";
+            AssetDatabase.ImportAsset(folder + "Breakup/Debris paint.mat", ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(folder + "Breakup/Debris contour.mat", ImportAssetOptions.ForceUpdate);
+            var debris = AssetDatabase.LoadAssetAtPath<GameObject>(folder + "Breakup/CrimsonBreakup.prefab");
+            var explosion = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Visuals/Vfx/LayeredExplosion/Prefabs/LayeredAsteroidExplosion.prefab");
+            var explosionRenderers = explosion.GetComponentsInChildren<Renderer>();
+            var intactPaint = AssetDatabase.LoadAssetAtPath<Material>(folder + "Hull paint.mat");
+            var intactContour = AssetDatabase.LoadAssetAtPath<Material>("Assets/Visuals/Ships/Shared/Illustrated/Ship contour.mat");
+            foreach (var renderer in debris.GetComponentsInChildren<Renderer>())
+            {
+                var materials = renderer.sharedMaterials;
+                Assert.That(renderer.sortingOrder, Is.GreaterThan(explosionRenderers.Max(part => part.sortingOrder)));
+                Assert.That(materials[0].renderQueue, Is.GreaterThan(explosionRenderers.SelectMany(part => part.sharedMaterials).Max(material => material.renderQueue)));
+                Assert.That(materials[1].renderQueue, Is.GreaterThan(materials[0].renderQueue));
+                Assert.That(materials[0].GetFloat("_SootStrength"), Is.EqualTo(.9f));
+                Assert.That(materials[0], Is.Not.SameAs(intactPaint));
+                Assert.That(materials[1], Is.Not.SameAs(intactContour));
+                Assert.That(materials[0].shader, Is.SameAs(intactPaint.shader));
+                Assert.That(materials[1].shader, Is.SameAs(intactContour.shader));
+            }
+            Assert.That(intactPaint.renderQueue, Is.EqualTo(2000));
+            Assert.That(intactContour.renderQueue, Is.EqualTo(2995));
+        }
+
+        [Test]
         public void AuthoredBurst_FrontLoadsSeparation_AndFinsHaveDifferentPaths()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab");

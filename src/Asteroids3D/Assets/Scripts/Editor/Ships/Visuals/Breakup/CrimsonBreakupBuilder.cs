@@ -35,7 +35,7 @@ namespace Ships.Visuals.Breakup
         {
             var source = Load<GameObject>(Folder + "/Crimson.fbx");
             var intactPaint = Load<Material>(Folder + "/Hull paint.mat");
-            var contour = Load<Material>("Assets/Visuals/Ships/Shared/Illustrated/Ship contour.mat");
+            var intactContour = Load<Material>("Assets/Visuals/Ships/Shared/Illustrated/Ship contour.mat");
             var explosion = Load<GameObject>(ExplosionPath).GetComponent<PooledVFX>();
             if (!explosion) throw new InvalidOperationException("LayeredAsteroidExplosion requires PooledVFX.");
             var filters = source.GetComponentsInChildren<MeshFilter>(true).ToDictionary(filter => filter.name);
@@ -44,15 +44,26 @@ namespace Ships.Visuals.Breakup
                 throw new InvalidOperationException("Crimson FBX part names must match the approved 39-part source.");
             if (!AssetDatabase.IsValidFolder(Output)) AssetDatabase.CreateFolder(Folder, "Breakup");
             var paintPath = Output + "/Debris paint.mat";
-            var paint = AssetDatabase.LoadAssetAtPath<Material>(paintPath);
-            if (!paint)
-            {
-                paint = new Material(intactPaint);
-                AssetDatabase.CreateAsset(paint, paintPath);
-            }
-            else EditorUtility.CopySerialized(intactPaint, paint);
-            paint.name = "Debris paint";
+            var paint = new Material(intactPaint) { name = "Debris paint", renderQueue = 3100 };
             paint.SetFloat(Shader.PropertyToID("_SootStrength"), .9f);
+            var existingPaint = AssetDatabase.LoadAssetAtPath<Material>(paintPath);
+            if (existingPaint)
+            {
+                EditorUtility.CopySerialized(paint, existingPaint);
+                Object.DestroyImmediate(paint);
+                paint = existingPaint;
+            }
+            else AssetDatabase.CreateAsset(paint, paintPath);
+            var contourPath = Output + "/Debris contour.mat";
+            var contour = AssetDatabase.LoadAssetAtPath<Material>(contourPath);
+            if (!contour)
+            {
+                contour = new Material(intactContour);
+                AssetDatabase.CreateAsset(contour, contourPath);
+            }
+            else EditorUtility.CopySerialized(intactContour, contour);
+            contour.name = "Debris contour";
+            contour.renderQueue = 3101;
 
             var rig = PrefabUtility.LoadPrefabContents(RigPath);
             var root = new GameObject("Crimson breakup");
@@ -108,6 +119,7 @@ namespace Ships.Visuals.Breakup
                         piece.transform.localPosition = pivot;
                         piece.GetComponent<MeshFilter>().sharedMesh = mesh;
                         piece.GetComponent<MeshRenderer>().sharedMaterials = new[] { paint, contour };
+                        piece.GetComponent<MeshRenderer>().sortingOrder = 4;
                         var entry = pieces.GetArrayElementAtIndex(index++);
                         entry.FindPropertyRelative("renderer").objectReferenceValue = piece.GetComponent<Renderer>();
                         entry.FindPropertyRelative("lifetime").floatValue = group == 3 ? .85f + part * .035f + (side > 0 ? .025f : 0) : 1.4f;
