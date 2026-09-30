@@ -7,7 +7,7 @@ using UnityEngine;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 
 namespace Substrate.Sessions
 {
@@ -134,7 +134,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: true);
 
             if (presentation)
-                yield return locale.RestoreBootEnvironmentAsync();
+                yield return locale.RestoreBootLocaleAsync();
 
             phase = Phase.Composed;
         }
@@ -148,7 +148,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: false);
 
             if (presentation)
-                yield return locale.RestoreBootEnvironmentAsync();
+                yield return locale.RestoreBootLocaleAsync();
 
             Projectiles.ReturnAllToPool();
             Units.Clear();

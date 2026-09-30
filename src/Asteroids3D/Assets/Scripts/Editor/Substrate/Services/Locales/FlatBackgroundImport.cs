@@ -3,11 +3,11 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     public sealed class FlatBackgroundImport : AssetPostprocessor
     {
-        public const string Folder = "Assets/Visuals/Environment/Flat/Generated";
+        public const string Folder = "Assets/Visuals/Locales/Flat/Generated";
 
         public static bool IsFlatBackground(string path) =>
             path.StartsWith(Folder + "/", StringComparison.Ordinal) &&
@@ -46,9 +46,9 @@ namespace Substrate.Services.Environment
                 var materialPath = Path.ChangeExtension(path, ".mat");
                 if (!IsFlatBackground(path) || AssetDatabase.LoadAssetAtPath<Material>(materialPath))
                     continue;
-                var shader = Shader.Find("Environment/Flat Background");
+                var shader = Shader.Find("Locales/Flat Background");
                 if (!shader)
-                    throw new InvalidOperationException("Environment/Flat Background shader is unavailable.");
+                    throw new InvalidOperationException("Locales/Flat Background shader is unavailable.");
                 var material = new Material(shader) { mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path) };
                 AssetDatabase.CreateAsset(material, materialPath);
             }

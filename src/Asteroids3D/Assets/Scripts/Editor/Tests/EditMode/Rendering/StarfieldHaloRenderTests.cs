@@ -20,7 +20,7 @@ namespace Tests.EditMode.Rendering
             const int height = 512;
             const float halfStripWidth = 0.0004f;
             var source = AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat");
+                "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat");
             Assert.IsNotNull(source);
             var material = new Material(source);
             material.SetFloat("_ShootingBrightness", 0);
