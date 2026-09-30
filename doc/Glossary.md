@@ -206,6 +206,11 @@ Format: **term** — definition. *(authority)*
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
+- **merge turn** — the pool-wide right to run a merge gate, held by one gate at
+  a time from before its fetch through `gh pr merge`. Order among waiting gates
+  is not guaranteed. Machine-local: a base move from any other clone is caught
+  only by the gate's base re-check. Any other push to main takes the turn
+  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
