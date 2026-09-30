@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using NUnit.Framework;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
 
@@ -37,8 +37,8 @@ namespace Tests.EditMode.FlatBackground
 
             var far = PaletteParent("FarNebula");
             var close = PaletteParent("CloseNebula");
-            Assert.AreSame(Load("Assets/Visuals/Environment/Sky/NebulaMaterial.mat"), far.parent);
-            Assert.AreSame(Load("Assets/Visuals/Environment/Sky/ForegroundNebulaMaterial.mat"), close.parent);
+            Assert.AreSame(Load("Assets/Visuals/Locales/Sky/NebulaMaterial.mat"), far.parent);
+            Assert.AreSame(Load("Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat"), close.parent);
             AssertColour(Secondary.gamma, far.GetColor("_NebulaCool"));
             AssertColour(Primary.gamma, far.GetColor("_NebulaWarm"));
             AssertColour(Secondary.gamma, close.GetColor("_NebulaCool"));

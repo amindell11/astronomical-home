@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Locale switching for one session, held privately by it rather than exposed beside its services:
@@ -46,7 +46,7 @@ namespace Substrate.Services.Environment
         }
 
         /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
-        public IEnumerator RestoreBootEnvironmentAsync()
+        public IEnumerator RestoreBootLocaleAsync()
         {
             if (string.IsNullOrEmpty(loadedLocaleName))
                 yield break;
