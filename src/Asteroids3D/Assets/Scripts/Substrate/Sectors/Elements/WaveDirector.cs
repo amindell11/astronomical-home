@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AI.Scanning;
+using Combat.Weapons;
 using Ships;
 using Ships.Command;
+using Ships.Loadout;
 using Substrate.Services.Units;
 using UnityEngine;
 
@@ -13,11 +15,11 @@ namespace Substrate.Sectors.Elements
     /// Continuous producer for the survival trial: an opening wave on the first tick, then one spawn
     /// per interval while fewer than the alive cap live, interval and cap easing linearly from their
     /// start to end values over the ramp. Ships ring the hero just off screen, facing it, on the
-    /// first angle clear of asteroids. Dead products are despawned on the tick, and the tick idles
-    /// while the hero is inactive (the recap hold). Nothing spawns in Build: the sector builds under
-    /// an inactive holder and the asteroid field lays out at its Start, so a Build-time clearance
-    /// check would see no rocks. The base class's "produce exactly once" is about the activation
-    /// token, not lifetime.
+    /// first angle clear of asteroids, and each is re-armed from the loadout pool as it spawns.
+    /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
+    /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
+    /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
+    /// The base class's "produce exactly once" is about the activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner
     {
@@ -30,6 +32,9 @@ namespace Substrate.Sectors.Elements
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
+        [Tooltip("Engine, shield and weapon pool each spawn is re-armed from; the chassis stays the roster's. " +
+                 "Unset → products fly their template's authored build.")]
+        [SerializeField] private LoadoutConfig loadouts;
         [SerializeField] private int team = 1;
 
         [Header("Escalation")]
@@ -65,6 +70,12 @@ namespace Substrate.Sectors.Elements
             if (!ctx.Hero || roster.Length == 0 || Array.Exists(roster, e => !e.template))
             {
                 Debug.LogError($"WaveDirector on '{name}' has no hero or an empty/unset roster — director is inert.", this);
+                yield break;
+            }
+
+            if (loadouts && (IsEmpty(loadouts.engines) || IsEmpty(loadouts.shields) || IsEmpty(loadouts.weapons)))
+            {
+                Debug.LogError($"WaveDirector on '{name}' has a loadout pool with an empty slot — director is inert.", this);
                 yield break;
             }
 
@@ -118,6 +129,26 @@ namespace Substrate.Sectors.Elements
 
         internal int CapAt(float elapsed) => Mathf.RoundToInt(Mathf.Lerp(startCap, endCap, elapsed / rampSeconds));
 
+        /// <summary>One uniform pick per slot; the two mounts never repeat a weapon and the second may stay empty.</summary>
+        internal ShipLoadout Draw(Ship chassis)
+        {
+            var primary = Pick(loadouts.weapons);
+            return new ShipLoadout(chassis, Pick(loadouts.engines), Pick(loadouts.shields),
+                primary, DrawSecondary(loadouts.weapons, primary));
+        }
+
+        private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
+
+        // The remaining pool plus one empty outcome: a roll past the last remaining weapon leaves the mount bare.
+        private static WeaponComponent DrawSecondary(WeaponComponent[] pool, WeaponComponent primary)
+        {
+            var roll = UnityEngine.Random.Range(0, pool.Length);
+            if (roll == pool.Length - 1) return null;
+            return roll < Array.IndexOf(pool, primary) ? pool[roll] : pool[roll + 1];
+        }
+
+        private static bool IsEmpty<T>(T[] pool) => pool == null || pool.Length == 0;
+
         private void DespawnDead()
         {
             for (var i = products.Count - 1; i >= 0; i--)
@@ -141,17 +172,27 @@ namespace Substrate.Sectors.Elements
 
                 var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                products.Add(units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field));
+                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field);
+                if (loadouts) Arm(ship, Draw(entry.template));
+                products.Add(ship);
                 return true;
             }
             return false;
         }
 
+        // Swapped-in mounts carry world-facing parts the service wired at spawn; re-wire after the equip (PlayerRig's precedent).
+        private void Arm(Ship ship, ShipLoadout loadout)
+        {
+            ship.Reequip(loadout.Engine, loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
+            units.WireShipDependencies(ship, field);
+        }
+
 #if UNITY_EDITOR
         internal void Configure(RosterEntry[] roster, float startInterval, float endInterval,
-            int startCap, int endCap, float rampSeconds, float spawnRadius = 55f)
+            int startCap, int endCap, float rampSeconds, float spawnRadius = 55f, LoadoutConfig loadouts = null)
         {
             this.roster = roster;
+            this.loadouts = loadouts;
             this.startInterval = startInterval;
             this.endInterval = endInterval;
             this.startCap = startCap;
