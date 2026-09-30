@@ -15,7 +15,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
         public override CaptureConfig Config => new()
         {
-            clipName = "CrimsonBreakup", width = 1440, height = 810,
+            clipName = "CrimsonBreakupRevision", width = 1440, height = 810,
             everyFixedSteps = 1, minHalfHeight = 5, padding = 0,
             configureView = (camera, light) =>
             {
@@ -38,7 +38,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
             {
                 yield return null;
                 Film(ship);
-                for (var frame = 0; frame < 260; frame++)
+                for (var frame = 0; frame < 200; frame++)
                 {
                     if (frame == 65)
                     {

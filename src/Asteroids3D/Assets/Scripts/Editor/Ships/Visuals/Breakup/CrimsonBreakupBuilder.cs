@@ -34,7 +34,7 @@ namespace Ships.Visuals.Breakup
         public static void Build()
         {
             var source = Load<GameObject>(Folder + "/Crimson.fbx");
-            var paint = Load<Material>(Folder + "/Hull paint.mat");
+            var intactPaint = Load<Material>(Folder + "/Hull paint.mat");
             var contour = Load<Material>("Assets/Visuals/Ships/Shared/Illustrated/Ship contour.mat");
             var explosion = Load<GameObject>(ExplosionPath).GetComponent<PooledVFX>();
             if (!explosion) throw new InvalidOperationException("LayeredAsteroidExplosion requires PooledVFX.");
@@ -43,6 +43,16 @@ namespace Ships.Visuals.Breakup
             if (filters.Count != expected.Length || expected.Any(name => !filters.ContainsKey(name)))
                 throw new InvalidOperationException("Crimson FBX part names must match the approved 39-part source.");
             if (!AssetDatabase.IsValidFolder(Output)) AssetDatabase.CreateFolder(Folder, "Breakup");
+            var paintPath = Output + "/Debris paint.mat";
+            var paint = AssetDatabase.LoadAssetAtPath<Material>(paintPath);
+            if (!paint)
+            {
+                paint = new Material(intactPaint);
+                AssetDatabase.CreateAsset(paint, paintPath);
+            }
+            else EditorUtility.CopySerialized(intactPaint, paint);
+            paint.name = "Debris paint";
+            paint.SetFloat(Shader.PropertyToID("_SootStrength"), .9f);
 
             var rig = PrefabUtility.LoadPrefabContents(RigPath);
             var root = new GameObject("Crimson breakup");
@@ -50,32 +60,39 @@ namespace Ships.Visuals.Breakup
             {
                 var hull = rig.GetComponentsInChildren<Transform>(true).Single(transform => transform.name == "Crimson");
                 var debris = root.AddComponent<ShipBreakupDebris>();
+                var motion = root.AddComponent<Animation>();
+                motion.playAutomatically = false;
+                motion.cullingType = AnimationCullingType.AlwaysAnimate;
+                var clip = new AnimationClip { name = "Crimson burst", legacy = true, wrapMode = WrapMode.ClampForever };
                 var serialized = new SerializedObject(debris);
                 var pieces = serialized.FindProperty("pieces");
-                pieces.arraySize = 10;
+                pieces.arraySize = 18;
                 serialized.FindProperty("explosionPrefab").objectReferenceValue = explosion;
-                var names = new[] { "Wing", "Armor", "Engine", "Fins", "Core", "Canopy" };
-                var delays = new[] { .06f, .1f, .16f, .22f, .32f, .27f };
+                serialized.FindProperty("motion").objectReferenceValue = motion;
+                serialized.FindProperty("lifetime").floatValue = 1.4f;
+                serialized.FindProperty("fadeDuration").floatValue = .25f;
+                var names = new[] { "Wing", "Armor", "Engine" };
+                var delays = new[] { .015f, .025f, .04f, .03f };
                 var velocities = new[]
                 {
-                    new Vector3(.44f, .045f, -.05f), new Vector3(.60f, -.06f, -.15f),
-                    new Vector3(.17f, .025f, .52f), new Vector3(.67f, .08f, .24f),
-                    new Vector3(-.04f, -.06f, .09f), new Vector3(.08f, .16f, -.28f)
+                    new Vector3(.48f, .045f, -.05f), new Vector3(.68f, -.06f, -.15f),
+                    new Vector3(.17f, .025f, .52f), new Vector3(.67f, .08f, .24f)
                 };
                 var spins = new[]
                 {
                     new Vector3(18, 38, 25), new Vector3(-30, 48, 42), new Vector3(35, -24, 18),
-                    new Vector3(80, 100, 110), new Vector3(14, 22, -16), new Vector3(-52, 34, 65)
+                    new Vector3(80, 100, 110)
                 };
                 var width = hull.GetComponent<MeshFilter>().sharedMesh.bounds.size.x;
                 var index = 0;
-                for (var group = 0; group < PartGroups.Length; group++)
+                for (var group = 0; group < 4; group++)
                 {
-                    var sides = group < 4 ? new[] { -1, 1 } : new[] { 0 };
-                    foreach (var side in sides)
+                    var subdivisions = group == 3 ? PartGroups[group].Select(part => new[] { part }).ToArray() : new[] { PartGroups[group] };
+                    for (var part = 0; part < subdivisions.Length; part++)
+                    foreach (var side in new[] { -1, 1 })
                     {
-                        var name = names[group] + (side == 0 ? "" : side < 0 ? " left" : " right");
-                        var mesh = BuildMesh(source.transform, PartGroups[group].Select(part => filters[part]), side, name, out var pivot);
+                        var name = (group == 3 ? subdivisions[part][0] : names[group]) + (side < 0 ? " left" : " right");
+                        var mesh = BuildMesh(source.transform, subdivisions[part].Select(sourcePart => filters[sourcePart]), side, name, out var pivot);
                         var path = Output + "/" + name + ".asset";
                         var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
                         if (existing)
@@ -92,21 +109,41 @@ namespace Ships.Visuals.Breakup
                         piece.GetComponent<MeshFilter>().sharedMesh = mesh;
                         piece.GetComponent<MeshRenderer>().sharedMaterials = new[] { paint, contour };
                         var entry = pieces.GetArrayElementAtIndex(index++);
-                        entry.FindPropertyRelative("transform").objectReferenceValue = piece.transform;
+                        entry.FindPropertyRelative("renderer").objectReferenceValue = piece.GetComponent<Renderer>();
+                        entry.FindPropertyRelative("lifetime").floatValue = group == 3 ? .85f + part * .035f + (side > 0 ? .025f : 0) : 1.4f;
                         var velocity = velocities[group];
                         var spin = spins[group];
-                        if (side != 0)
+                        if (group == 3)
                         {
-                            velocity.x *= side;
-                            spin.y *= side;
-                            spin.z *= side;
-                            if (side > 0) { velocity *= .92f; spin *= 1.13f; }
+                            velocity.x *= .72f + part * .13f;
+                            velocity.y *= part % 2 == 0 ? 1.5f : -1.1f;
+                            velocity.z += (part - 2.5f) * .065f;
+                            spin *= .65f + part * .17f;
                         }
-                        entry.FindPropertyRelative("velocity").vector3Value = velocity * width;
-                        entry.FindPropertyRelative("spin").vector3Value = spin;
-                        entry.FindPropertyRelative("delay").floatValue = delays[group] + (side > 0 ? .035f : 0);
+                        velocity.x *= side;
+                        spin.y *= side;
+                        spin.z *= side;
+                        if (side > 0) { velocity *= .92f; spin *= 1.13f; }
+                        var delay = delays[group] + part * .008f + (side > 0 ? .012f : 0);
+                        for (var axis = 0; axis < 3; axis++)
+                        {
+                            var suffix = new[] { ".x", ".y", ".z" }[axis];
+                            SetMotionCurve(clip, name, "m_LocalPosition" + suffix, pivot[axis], velocity[axis] * width, delay);
+                            SetMotionCurve(clip, name, "localEulerAnglesRaw" + suffix, 0, spin[axis], delay);
+                        }
                     }
                 }
+                var clipPath = Output + "/Crimson burst.anim";
+                var existingClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+                if (existingClip)
+                {
+                    EditorUtility.CopySerialized(clip, existingClip);
+                    Object.DestroyImmediate(clip);
+                    clip = existingClip;
+                }
+                else AssetDatabase.CreateAsset(clip, clipPath);
+                motion.AddClip(clip, clip.name);
+                motion.clip = clip;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, Output + "/CrimsonBreakup.prefab");
                 var visual = rig.GetComponent<ShipBreakupVisual>();
@@ -116,6 +153,8 @@ namespace Ships.Visuals.Breakup
                 visualData.FindProperty("debrisPrefab").objectReferenceValue = saved.GetComponent<ShipBreakupDebris>();
                 visualData.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(rig, RigPath);
+                foreach (var obsolete in new[] { "Fins left", "Fins right", "Core", "Canopy" })
+                    AssetDatabase.DeleteAsset(Output + "/" + obsolete + ".asset");
                 AssetDatabase.SaveAssets();
             }
             finally
@@ -125,12 +164,26 @@ namespace Ships.Visuals.Breakup
             }
         }
 
+        private static void SetMotionCurve(AnimationClip clip, string path, string property, float start, float distance, float delay)
+        {
+            var curve = new AnimationCurve(new Keyframe(0, start), new Keyframe(delay, start),
+                new Keyframe(delay + .12f, start + distance * .62f), new Keyframe(.34f, start + distance * .78f),
+                new Keyframe(1.4f, start + distance));
+            for (var key = 0; key < curve.length; key++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(curve, key, AnimationUtility.TangentMode.ClampedAuto);
+                AnimationUtility.SetKeyRightTangentMode(curve, key, AnimationUtility.TangentMode.ClampedAuto);
+            }
+            AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, typeof(Transform), property), curve);
+        }
+
         private static Mesh BuildMesh(Transform root, IEnumerable<MeshFilter> filters, int side, string name, out Vector3 pivot)
         {
             var positions = new List<Vector3>();
             var normals = new List<Vector3>();
             var contourNormals = new List<Vector3>();
             var uvs = new List<Vector2>();
+            var colors = new List<Color>();
             var indices = new List<int>();
             foreach (var filter in filters)
             {
@@ -179,6 +232,13 @@ namespace Ships.Visuals.Breakup
                             normals.Add(normalMatrix.MultiplyVector(sourceNormals[sourceIndex]).normalized);
                             contourNormals.Add(sums[transformed[sourceIndex]].normalized);
                             uvs.Add(sourceUvs[sourceIndex]);
+                            var position = transformed[sourceIndex];
+                            var brush = Mathf.Sin(position.x * 11 + position.z * 7) * .14f
+                                + Mathf.Sin(position.y * 19 - position.z * 13) * .09f;
+                            var inward = Mathf.Clamp01(Vector3.Dot(normalMatrix.MultiplyVector(sourceNormals[sourceIndex]).normalized,
+                                -position.normalized) * .5f + .5f);
+                            var soot = Mathf.Clamp01(.25f + inward * .5f + brush);
+                            colors.Add(new Color(soot, soot, soot, 1));
                         }
                         indices.Add(targetIndex);
                     }
@@ -193,10 +253,12 @@ namespace Ships.Visuals.Breakup
             positions.AddRange(positions.ToArray());
             normals.AddRange(contourNormals);
             uvs.AddRange(uvs.ToArray());
+            colors.AddRange(colors.ToArray());
             var mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32, subMeshCount = 2 };
             mesh.SetVertices(positions);
             mesh.SetNormals(normals);
             mesh.SetUVs(0, uvs);
+            mesh.SetColors(colors);
             mesh.SetTriangles(indices, 0);
             mesh.SetTriangles(indices.Select(index => index + count).ToArray(), 1);
             mesh.RecalculateBounds();
