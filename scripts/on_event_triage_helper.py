@@ -5,6 +5,24 @@ Each stdin line is one request, `<op>\t<arg>...`. The helper writes the op's she
 to <tmp-dir>/reply.sh, then answers `ok` on stdout; the script sources the file. Paths travel
 only in argv, where Git Bash converts them for a native Python; a crash ends the helper, and
 the script reads the EOF as infra.
+
+Ops: `op <args>` - reads (bare names are in <tmp-dir>) -> assignments; extra files written.
+  event                            <event-json> -> ACTION NUMBER TITLE_CHANGED HAS_OLD_BODY;
+                                   old_body.txt when HAS_OLD_BODY=1
+  issue                            issue.json -> STATE AUTHOR NODE_ID LABELS ASSIGNED
+  keep <pri-label>...              events.json -> keep (the label added last)
+  board <project-id>               board.json -> ITEM_ID CURRENT_OPTION, only when the issue is
+                                   on that project (else nothing is assigned)
+  gate                             issue.json, old_body.txt -> gate_open (1 = the edit adds a
+                                   path-like token)
+  prompt                           <prompt-file>, issue.json, closed.json -> nothing; prompt.md
+  verdict <date> <assigned> <marker>
+                                   claude.json -> CLAUDE_ERROR alone on bad output; else
+                                   TOKENS_IN TOKENS_OUT TOKENS_CACHE COST_USD FINDINGS
+                                   VERDICT_JSON, plus note.md when FINDINGS > 0
+  prior <bot-login> <marker>       comments.json -> PRIOR_ID (empty when none)
+Failure: past verdict's CLAUDE_ERROR, an unknown op or a missing/malformed input raises; the
+helper exits non-zero and the caller's read hits EOF. Exit 0 only when stdin closes.
 """
 import json
 import os
