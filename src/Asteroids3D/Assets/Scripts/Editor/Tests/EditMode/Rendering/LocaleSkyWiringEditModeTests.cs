@@ -2,7 +2,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using Substrate;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -18,9 +18,9 @@ namespace Tests.EditMode.Rendering
         private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleScene_HasExactlyOneActiveLocaleSky(string scenePath)
         {
@@ -36,11 +36,11 @@ namespace Tests.EditMode.Rendering
             }
         }
 
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity", "nebula-glow-warm-flat-final")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity", "nebula-glow-flat-final")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity", "illustrated-blue-final")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity", "nebula-glow-warm-flat-final")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity", "nebula-glow-flat-final")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity", "illustrated-blue-final")]
         [TestCase("Assets/Scenes/InitScene.unity", "nebula-glow-flat-final")]
-        [TestCase("Assets/Scenes/EditScene.unity", "nebula-glow-flat-final", "Environment_2")]
+        [TestCase("Assets/Scenes/EditScene.unity", "nebula-glow-flat-final", "Locale_2")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
             string scenePath, string background, string localeFolder = null)
         {
@@ -53,7 +53,7 @@ namespace Tests.EditMode.Rendering
                 Assert.IsTrue(root.GetComponent<LocaleSky>());
                 Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
                 var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-                var illustrated = scene.name == "Environment_3";
+                var illustrated = scene.name == "Locale_3";
                 var names = illustrated
                     ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
                     : CandidateLayers;
@@ -65,7 +65,7 @@ namespace Tests.EditMode.Rendering
                 {
                     $"{FlatBackgroundImport.Folder}/{background}.mat",
                     PaletteParents.PathFor(sidecar, "FarNebula"),
-                    "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat",
+                    "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat",
                     PaletteParents.PathFor(sidecar, "CloseNebula"),
                 };
                 if (illustrated)
@@ -76,7 +76,7 @@ namespace Tests.EditMode.Rendering
                     var material = layers[i].GetComponent<MeshRenderer>().sharedMaterial;
                     Assert.That(layers[i].gameObject.layer, Is.EqualTo(LayerIds.Sky), $"{layers[i].name} layer");
                     Assert.That(AssetDatabase.GetAssetPath(material),
-                        Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{localeFolder}/"),
+                        Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{localeFolder}/"),
                         $"The {layers[i].name} sky layer must use a per-locale material variant.");
                     Assert.That(AssetDatabase.GetAssetPath(material.parent), Is.EqualTo(expectedParents[i]));
                     Assert.That(material.renderQueue, Is.EqualTo(queues[i]), $"{layers[i].name} draw order");
@@ -89,9 +89,9 @@ namespace Tests.EditMode.Rendering
         }
 
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void Scene_HasNoSkyboxRollbackRootOrLightingData(string scenePath)
         {
@@ -121,11 +121,11 @@ namespace Tests.EditMode.Rendering
             return new SerializedObject((Object)getter.Invoke(null, null)).FindProperty("m_LightingDataAsset");
         }
 
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/EditScene.unity", "Environment_2")]
+        [TestCase("Assets/Scenes/EditScene.unity", "Locale_2")]
         public void Scene_LightsFromFlatAmbientAndALocaleReflectionCubemap(string scenePath, string localeFolder = null)
         {
             var previous = SceneManager.GetActiveScene();
@@ -139,7 +139,7 @@ namespace Tests.EditMode.Rendering
                 Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
                 Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
                 Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),
-                    Does.StartWith($"Assets/Visuals/Environment/Sky/Locales/{localeFolder}/"));
+                    Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{localeFolder}/"));
             }
             finally
             {

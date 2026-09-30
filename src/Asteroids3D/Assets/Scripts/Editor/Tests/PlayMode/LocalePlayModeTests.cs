@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// PlayMode coverage for the locale (environment) scene seam on <see cref="LocaleService"/>:
+    /// PlayMode coverage for the locale scene seam on <see cref="LocaleService"/>:
     /// apply makes the locale the active scene, a repeat apply is a no-op, a different locale swaps the
     /// active scene (unloading the previous), and restore returns the boot scene to active. Locale
     /// scenes are created empty at runtime so the tests exercise the SetActive/diff/restore paths
@@ -17,7 +17,7 @@ namespace Tests.PlayMode
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
-    public class EnvironmentLocalePlayModeTests
+    public class LocalePlayModeTests
     {
         private const string LocaleA = "LocaleTestA";
         private const string LocaleB = "LocaleTestB";
@@ -85,7 +85,7 @@ namespace Tests.PlayMode
         {
             var env = new LocaleService();
             yield return env.ApplyLocaleAsync(LocaleA);
-            yield return env.RestoreBootEnvironmentAsync();
+            yield return env.RestoreBootLocaleAsync();
             Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
             Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
                 "The locale must unload on restore.");

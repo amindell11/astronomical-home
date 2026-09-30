@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Generates the fullscreen triangle every sky layer renders with. The sky shaders read
@@ -10,9 +10,9 @@ namespace Substrate.Services.Environment
     /// </summary>
     public static class SkyTriangleMesh
     {
-        public const string Path = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
+        public const string Path = "Assets/Visuals/Locales/Sky/SkyTriangle.asset";
 
-        [MenuItem("Tools/Environment/Generate Sky Triangle")]
+        [MenuItem("Tools/Locales/Generate Sky Triangle")]
         public static void Generate()
         {
             var mesh = new Mesh

@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Writes a flat background's palette parents: one generated Material Variant per palette-bound
@@ -16,9 +16,9 @@ namespace Substrate.Services.Environment
     {
         private static readonly Binding[] Bindings =
         {
-            new("FarNebula", "Assets/Visuals/Environment/Sky/NebulaMaterial.mat",
+            new("FarNebula", "Assets/Visuals/Locales/Sky/NebulaMaterial.mat",
                 palette => palette.Secondary, palette => palette.Primary),
-            new("CloseNebula", "Assets/Visuals/Environment/Sky/ForegroundNebulaMaterial.mat",
+            new("CloseNebula", "Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat",
                 palette => palette.Secondary, palette => palette.Accent),
         };
 
