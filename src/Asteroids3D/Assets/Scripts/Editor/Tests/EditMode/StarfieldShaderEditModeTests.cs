@@ -27,7 +27,7 @@ namespace Tests.EditMode
 
             Assert.AreEqual("Custom/StarField", material.shader.name);
             Assert.AreEqual(2950, material.renderQueue,
-                "The starfield must render after the skybox and before ordinary transparent effects.");
+                "The starfield must render after the background and far nebula and before ordinary transparent effects.");
 
             var properties = new[]
             {

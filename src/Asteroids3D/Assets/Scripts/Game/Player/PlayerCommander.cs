@@ -71,10 +71,15 @@ namespace Game.Player
             }
         }
 
+        private void OnEnable() => playerInput.Enable();
+
+        private void OnDestroy() => playerInput.Dispose();
+
         // MovementController latches the last pilot command and charge weapons fire on a
         // trigger-up step — release everything this commander drives when it goes silent.
         private void OnDisable()
         {
+            playerInput.Disable();
             if (context == null) return;
 
             thrustInput = 0f;

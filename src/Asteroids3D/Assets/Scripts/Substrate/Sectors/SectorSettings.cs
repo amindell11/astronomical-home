@@ -9,7 +9,7 @@ namespace Substrate.Sectors
         [SerializeField] private int difficultySeed;
 
         [Header("Environment")]
-        [Tooltip("Locale scene supplying this sector's skybox / ambient / reflection / fog / audio. " +
+        [Tooltip("Locale scene supplying this sector's sky layers / ambient / reflection / fog / audio. " +
                  "Unassigned → inherit boot-scene lighting (also the headless path).")]
         [SerializeField] private SceneReference locale;
 
