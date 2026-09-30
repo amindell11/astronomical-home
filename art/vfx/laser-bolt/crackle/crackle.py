@@ -213,7 +213,7 @@ def shrink(im):
     return im.convert("RGBa").resize(EXPORT_SIZE, Image.LANCZOS).convert("RGBA")
 
 
-def export_unity(bodies, glow, dest):
+def export_unity(bodies, glow, play_fps, dest):
     """One row of frames rotated so the head points up (+V), matching a quad whose travel axis is local +Y."""
     dest.mkdir(parents=True, exist_ok=True)
     frames = [shrink(b).rotate(90, expand=True) for b in bodies]
@@ -223,9 +223,8 @@ def export_unity(bodies, glow, dest):
         sheet.paste(f, (i * fw, 0))
     sheet.save(dest / "LaserBolt_Flipbook.png")
     shrink(glow).rotate(90, expand=True).save(dest / "LaserBolt_Glow.png")
-    fps = FPS * (TWEEN + 1) if SMOOTH == "tween" else FPS
     print(f"exported {len(frames)} frames of {fw}x{fh} to {dest}; material: _Frames={len(frames)} "
-          f"_Fps={fps} _Crossfade={int(SMOOTH == 'crossfade')} _Ease={int(TWEEN_EASE)}")
+          f"_Fps={play_fps} _Crossfade={int(SMOOTH == 'crossfade')} _Ease={int(TWEEN_EASE)}")
 
 
 def data_uri(im, fmt, mime):
@@ -250,7 +249,8 @@ def bake_tuner(dest):
             .replace("{{SOURCE_PALETTE}}", json.dumps(SOURCE_PALETTE.astype(int).tolist()))
             .replace("{{BOLT}}", bolt)
             .replace("{{BACKDROP}}", backdrop))
-    Path(dest).write_text(html, encoding="utf-8")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(html, encoding="utf-8")
     print(f"baked tuner to {dest}")
 
 
@@ -265,7 +265,7 @@ def main():
             return
     bodies, glow, keys, play_fps = build()
     if args.export:
-        export_unity(bodies, glow, args.export)
+        export_unity(bodies, glow, play_fps, args.export)
     else:
         write_previews(bodies, glow, play_fps)
     print("keys", len(keys), "frames", len(bodies), "size", *bodies[0].size)

@@ -4,7 +4,6 @@ import random
 from pathlib import Path
 
 OUT = Path(__file__).parent
-OUT.mkdir(exist_ok=True)
 
 W, H = 2048, 256
 CY = H / 2

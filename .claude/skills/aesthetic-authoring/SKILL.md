@@ -11,7 +11,7 @@ The user steers the look; you build the instruments. Every stage ends on the use
 pick, and the final stage hands them **knobs**: named constants for the design's key
 aspects, turned live on a tuner page (a published artifact that re-renders the asset as
 each knob moves and exports a settings block). Worked example: `art/vfx/laser-bolt/`
-(its README lists every file; the PR it links carries the dead ends).
+(its README lists every file; the PR that shipped it carries the dead ends).
 
 Show every candidate as a picture (SendUserFile, `display: "render"`), never as prose.
 Judge every candidate at **game scale** (the on-screen size in play, often 60–150 px) as

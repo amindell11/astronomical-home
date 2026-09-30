@@ -3,7 +3,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  /* Layout: a VFX bench. The stage and game-scale previews on the left, the knob rack on the right; stacks on phones. */
   :root {
     --void: #04060d;
     --panel: #0b1020;
@@ -430,7 +429,7 @@ function glowCanvas(labels) {
 }
 
 // ---------- build + playback ----------
-// phase runs in key units: key k spans [k, k+1). Smoothing fills the gap without changing the crackle rate.
+// phase counts keys, so smoothing fills between them without changing the crackle rate.
 let keys = [], frames = [], perKey = 1, glow = null, phase = 0, playing = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 const blend = document.createElement("canvas");
 
