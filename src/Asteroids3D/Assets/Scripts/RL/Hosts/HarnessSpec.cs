@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Capture;
+using Combat.Weapons;
 using Unity.InferenceEngine;
 using UnityEngine;
 using RL.Episodes.Compositions;
@@ -13,7 +14,7 @@ using RL.Probes;
 namespace RL.Hosts
 {
     /// <summary>Which lane client the host runs; every other axis of a harness run is a spec field.</summary>
-    public enum HarnessLane { Eval, Capture, Sentence }
+    public enum HarnessLane { Eval, Capture, Sentence, Duel }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -114,6 +115,8 @@ namespace RL.Hosts
         public string outDir;
         /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
         public SentenceRow[] sentenceRows;
+        /// <summary>Duel lane only: the weapon prefabs, each fought alone in the shooter's primary weapon slot.</summary>
+        public WeaponComponent[] duelWeapons;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
@@ -137,13 +140,14 @@ namespace RL.Hosts
 
         // A null source selects the smoke fixture; graphics detection is injected for tests.
         public static HarnessSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice)
+            Func<string, ModelAsset> resolveOpponent, Func<string, WeaponComponent> resolveWeapon,
+            Func<bool> hasGraphicsDevice)
         {
             // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
             if (getEnv("RL_HARNESS_BUNDLE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_BUNDLE names the player eval boot's model bundle; an editor session resolves RL_HARNESS_ONNX itself — unset it.");
-            return Parse(getEnv, resolveCandidate, resolveOpponent, hasGraphicsDevice, player: false);
+            return Parse(getEnv, resolveCandidate, resolveOpponent, resolveWeapon, hasGraphicsDevice, player: false);
         }
 
         // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
@@ -157,14 +161,16 @@ namespace RL.Hosts
             return Parse(getEnv,
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.CandidateAsset),
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.OpponentAsset),
-                hasGraphicsDevice, player: true);
+                resolveWeapon: null, hasGraphicsDevice, player: true);
         }
 
         private static HarnessSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice, bool player)
+            Func<string, ModelAsset> resolveOpponent, Func<string, WeaponComponent> resolveWeapon,
+            Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
             var sentence = getEnv("RL_HARNESS_SENTENCE");
+            var duel = getEnv("RL_HARNESS_DUEL");
             var source = getEnv("RL_HARNESS_ONNX");
             if (player && sentence != null)
                 throw new ArgumentException(
@@ -178,7 +184,23 @@ namespace RL.Hosts
             if (sentence != null && getEnv("RL_HARNESS_LANE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_SENTENCE implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
+            if (player && duel != null)
+                throw new ArgumentException(
+                    "The duel lane is editor-only; a player boot takes no RL_HARNESS_DUEL.");
+            if (duel != null && sentence != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_DUEL and RL_HARNESS_SENTENCE each imply their own lane; set one.");
+            if (duel != null && source != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_DUEL fights two scripted ships; RL_HARNESS_ONNX has no role in the duel lane.");
+            if (duel != null && getEnv("RL_HARNESS_OPPONENT") != null)
+                throw new ArgumentException(
+                    "The duel lane stages its own targets; RL_HARNESS_OPPONENT selects eval-lane opponents.");
+            if (duel != null && getEnv("RL_HARNESS_LANE") != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_DUEL implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             var lane = sentence != null ? HarnessLane.Sentence
+                : duel != null ? HarnessLane.Duel
                 : ParseLane(getEnv("RL_HARNESS_LANE"));
             var spec = new HarnessSpec
             {
@@ -203,6 +225,11 @@ namespace RL.Hosts
             {
                 spec.ParseSentence(sentence);
                 spec.tag = "sentence-" + spec.tag;
+            }
+            else if (duel != null)
+            {
+                spec.duelWeapons = ParseDuel(duel, resolveWeapon);
+                spec.tag = "duel-" + spec.tag;
             }
             else
             {
@@ -351,6 +378,27 @@ namespace RL.Hosts
             sentenceRows = rows.ToArray();
         }
 
+        /// <summary>Grammar: comma-separated distinct weapon prefab names; the boundary's resolver loads each one.</summary>
+        private static WeaponComponent[] ParseDuel(string token, Func<string, WeaponComponent> resolveWeapon)
+        {
+            var weapons = new List<WeaponComponent>();
+            foreach (var raw in token.Split(','))
+            {
+                var name = raw.Trim();
+                if (name.Length == 0) continue;
+                var weapon = resolveWeapon(name);
+                if (!weapon)
+                    throw new ArgumentException($"RL_HARNESS_DUEL='{token}': '{name}' loads no weapon prefab.");
+                if (weapons.Contains(weapon))
+                    throw new ArgumentException($"RL_HARNESS_DUEL='{token}': duplicate weapon '{name}'.");
+                weapons.Add(weapon);
+            }
+            if (weapons.Count == 0)
+                throw new ArgumentException(
+                    $"RL_HARNESS_DUEL='{token}' selected no weapons; use comma-separated weapon prefab names.");
+            return weapons.ToArray();
+        }
+
         // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).
         private static void ThrowOnRetiredNames(Func<string, string> getEnv)
         {
@@ -398,6 +446,7 @@ namespace RL.Hosts
                 return lane switch
                 {
                     HarnessLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
+                    HarnessLane.Duel => new[] { ProbeSpec.Named(MarksmanshipProbe.ProbeName) },
                     _ => new[]
                     {
                         ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
@@ -423,6 +472,12 @@ namespace RL.Hosts
                     if (entry.name == FacingProbe.ProbeName)
                         throw ProbeError(entry.name,
                             "the sentence lane's brain carries no policy readout");
+            // The combat probe normalizes by the primary FireRange; Missiles and Grenades report 0.
+            if (lane == HarnessLane.Duel)
+                foreach (var entry in entries)
+                    if (entry.name == CombatTelemetryProbe.ProbeName)
+                        throw ProbeError(entry.name,
+                            "the duel lane's weapons need not report a fire range");
             return entries.ToArray();
         }
 
