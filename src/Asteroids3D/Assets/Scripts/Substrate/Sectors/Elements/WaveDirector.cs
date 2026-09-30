@@ -15,7 +15,7 @@ namespace Substrate.Sectors.Elements
     /// Continuous producer for the survival trial: an opening wave on the first tick, then one spawn
     /// per interval while fewer than the alive cap live, interval and cap easing linearly from their
     /// start to end values over the ramp. Ships ring the hero just off screen, facing it, on the
-    /// first angle clear of asteroids, and each is re-armed from the loadout pool as it spawns.
+    /// first angle clear of asteroids, each spawned with a build drawn from the loadout pool.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
@@ -32,7 +32,7 @@ namespace Substrate.Sectors.Elements
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
-        [Tooltip("Engine, shield and weapon pool each spawn is re-armed from; the chassis stays the roster's. " +
+        [Tooltip("Engine, shield and weapon pool each spawn draws its build from; the chassis stays the roster's. " +
                  "Unset → products fly their template's authored build.")]
         [SerializeField] private LoadoutConfig loadouts;
         [SerializeField] private int team = 1;
@@ -74,10 +74,8 @@ namespace Substrate.Sectors.Elements
             }
 
             if (loadouts && (IsEmpty(loadouts.engines) || IsEmpty(loadouts.shields) || IsEmpty(loadouts.weapons)))
-            {
-                Debug.LogError($"WaveDirector on '{name}' has a loadout pool with an empty slot — director is inert.", this);
-                yield break;
-            }
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}': loadout pool '{loadouts.name}' needs at least one engine, shield and weapon.");
 
             units = ctx.Units;
             field = ctx.Field;
@@ -172,19 +170,11 @@ namespace Substrate.Sectors.Elements
 
                 var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field);
-                if (loadouts) Arm(ship, Draw(entry.template));
-                products.Add(ship);
+                products.Add(units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field,
+                    loadouts ? Draw(entry.template) : null));
                 return true;
             }
             return false;
-        }
-
-        // Swapped-in mounts carry lock sensors the service wired at spawn; re-wire them.
-        private void Arm(Ship ship, ShipLoadout loadout)
-        {
-            ship.Reequip(loadout.Engine, loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
-            units.WireShipDependencies(ship, field);
         }
 
 #if UNITY_EDITOR

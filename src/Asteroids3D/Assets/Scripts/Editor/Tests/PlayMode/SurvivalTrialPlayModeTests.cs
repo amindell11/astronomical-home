@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using AI;
 using Damage;
 using Game.Player;
 using NUnit.Framework;
@@ -121,6 +122,22 @@ namespace Tests.PlayMode
             Assert.IsFalse(enemy, "The despawned product is destroyed.");
 
             yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator SpawnWithLoadout_AiCommanderInitialisesAgainstTheEquippedEngine()
+        {
+            var engine = _pool.engines[0];
+            engine.maxSpeed = 7f;
+
+            var enemy = _unitService.SpawnShip(NewTemplate(), TestAssets.LoadTestPilotMpc(), 1,
+                GamePlane.PlanePointToWorld(new Vector2(SpawnRadius, 0f)), GamePlane.Rotation, null,
+                new ShipLoadout(null, engine, _pool.shields[0], null, null));
+
+            Assert.AreEqual(engine, enemy.Engine);
+            Assert.AreEqual(7f, ((AICommander)enemy.Commander).Navigator.dynamics.maxSpeed,
+                "The AI plans against the equipped engine, not the template's.");
+            yield return null;
         }
 
         private sealed class PoolWeapon : Combat.Weapons.WeaponComponent
