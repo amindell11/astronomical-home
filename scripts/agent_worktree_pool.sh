@@ -1855,7 +1855,8 @@ wait_for_remote_verdict() {
           echo "  Red tests or ratchet findings: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
           echo "  'gh run rerun $run_id' re-posts both verdicts on the same commit; then re-run 'merge $slot --remote'." >&2
           return 1 ;;
-        pending) owed=pending; named="$(run_id_from_url "$url")" ;;
+        # The job posts headless pending first, so the first pending context names the newest run.
+        pending) owed=pending; [[ -n "$named" ]] || named="$(run_id_from_url "$url")" ;;
         absent) owed="${owed:-absent}" ;;
         *)
           echo "merge: $context on $sha has unknown state '$state' — no remote proof; not merging." >&2
