@@ -2,6 +2,7 @@ using System;
 using AI.Scanning;
 using Ships;
 using Ships.Command;
+using Ships.Loadout;
 using UnityEngine;
 using Ships.Registry;
 
@@ -15,14 +16,15 @@ namespace Substrate.Services.Units
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
-        /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it.</summary>
+        /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it. A <paramref name="loadout"/> installs its module slots before the wiring, so an AI commander initialises against the build it flies; null keeps the template's authored build.</summary>
         Ship SpawnShip(
             Ship template,
             Commander commander,
             int team,
             Vector3 position,
             Quaternion rotation,
-            IObstacleField field);
+            IObstacleField field,
+            ShipLoadout loadout = null);
 
         /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, wire it against <paramref name="field"/>, and register it.</summary>
         Ship AdoptShip(Ship ship, IObstacleField field);

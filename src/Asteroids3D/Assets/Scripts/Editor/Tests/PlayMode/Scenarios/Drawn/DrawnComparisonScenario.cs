@@ -167,7 +167,7 @@ namespace Tests.PlayMode.Scenarios.Drawn
                 File.WriteAllText(Path.Combine(Capture.FrameDir, "rendering.txt"),
                     $"GPU: {SystemInfo.graphicsDeviceName}\nQuality: {QualitySettings.names[QualitySettings.GetQualityLevel()]}\n" +
                     $"Fixed timestep: {Time.fixedDeltaTime.ToString(CultureInfo.InvariantCulture)}\nInspection RT: 768x768\n" +
-                    "Environment_2; HighRes without grain, chromatic aberration or motion blur.\nFrame-dump timings are not performance evidence.\n");
+                    "Locale_2; HighRes without grain, chromatic aberration or motion blur.\nFrame-dump timings are not performance evidence.\n");
             }
             finally
             {

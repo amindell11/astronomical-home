@@ -40,7 +40,7 @@ Canonical prompts, with the task's own id in `name`:
 ```markdown
 ---
 name: drain-1
-description: One drain run in astronomical-home: pick, claim, build and PR one unity:none ready item (#617).
+description: One drain run in astronomical-home: pick, claim, build and PR one unity:none ready item, or one unity:headless item carrying drain:approved (#617).
 ---
 
 In the repo at D:\amind\git\astronomical-home, do one drain run: follow `.claude/skills/agent-worktree-pr-loop/SKILL.md` § Drain run.
@@ -109,8 +109,9 @@ drain-run or interactive:
 - every session titled `⛔ blocked | …` or `review | … | #<pr>`, linked;
 - **orphan PRs** — open PRs whose `#<pr>` no session title carries;
 - **labelled but unbuildable** — `SKIP=` lines with `no-scope-block`;
-- **ready headless items** — `SKIP=` lines whose only reason is
-  `unity:headless`, to build by hand (headless dispatch is deferred);
+- **headless items awaiting approval** — `SKIP=` lines whose only reasons are
+  `unity:headless,no-drain:approved`; the user's in-chat approval is applied as
+  the `drain:approved` label, after which a drain run picks the item;
 - **readiness proposals awaiting apply** — from step 1;
 - **stale slots** — `state=stale`, asked about by slot and lease; a stale slot
   is reclaimed only by the user.

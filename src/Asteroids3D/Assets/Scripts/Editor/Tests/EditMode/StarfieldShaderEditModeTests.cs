@@ -1,6 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace Tests.EditMode
     [Category("Sectors")]
     public class StarfieldShaderEditModeTests
     {
-        private const string MaterialPath = "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat";
+        private const string MaterialPath = "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat";
 
         private static Material LoadMaterial()
         {
@@ -27,7 +27,7 @@ namespace Tests.EditMode
 
             Assert.AreEqual("Custom/StarField", material.shader.name);
             Assert.AreEqual(2950, material.renderQueue,
-                "The starfield must render after the skybox and before ordinary transparent effects.");
+                "The starfield must render after the background and far nebula and before ordinary transparent effects.");
 
             var properties = new[]
             {
@@ -222,9 +222,9 @@ namespace Tests.EditMode
         }
 
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string scenePath)
         {

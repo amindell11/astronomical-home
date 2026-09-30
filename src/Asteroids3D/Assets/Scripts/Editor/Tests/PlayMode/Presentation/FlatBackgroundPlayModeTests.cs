@@ -11,7 +11,7 @@ namespace Tests.PlayMode.Presentation
     [Category("Sectors")]
     public sealed class FlatBackgroundPlayModeTests
     {
-        private const string SkyTrianglePath = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
+        private const string SkyTrianglePath = "Assets/Visuals/Locales/Sky/SkyTriangle.asset";
         // A power of two keeps whole-repeat camera positions and the shader's division exact.
         private const float RepeatDistance = 65536;
 
@@ -30,7 +30,7 @@ namespace Tests.PlayMode.Presentation
             for (var i = 0; i < colors.Length; i++) colors[i] = new Color(2 + i % 16 * 0.125f, 0.25f, i / 16 * 0.0625f, 1);
             texture.SetPixels(colors);
             texture.Apply();
-            background = new Material(Shader.Find("Environment/Flat Background")) { mainTexture = texture };
+            background = new Material(Shader.Find("Locales/Flat Background")) { mainTexture = texture };
             background.SetFloat("_RepeatDistance", RepeatDistance);
             background.SetFloat("_ViewHeightInTiles", 0.5f);
             layer = new GameObject("Flat background") { layer = LayerIds.Sky };

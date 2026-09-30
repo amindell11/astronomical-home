@@ -14,7 +14,9 @@
         "Capture",
         "Capture.GameView.Editor",
         "Unity.InferenceEngine",
-        "Unity.ML-Agents"
+        "Unity.ML-Agents",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [
         "Editor"
