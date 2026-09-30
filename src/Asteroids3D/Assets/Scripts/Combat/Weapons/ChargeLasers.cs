@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Combat.Projectiles;
 using UnityEngine;
 using Substrate.Services.Projectiles;
@@ -22,6 +23,7 @@ namespace Combat.Weapons
 
         [Header("Conditions")]
         [SerializeField] private ChargeTime charge;
+        [SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
@@ -29,10 +31,27 @@ namespace Combat.Weapons
         public float MinChargeDamage => projectilePrefab.Damage * minChargeDamageScale;
         public float FullChargeDamage => projectilePrefab.Damage * fullChargeDamageScale;
 
+        public override IReadOnlyList<WeaponCycleMode> CycleModes
+        {
+            get
+            {
+                var interval = cooldown.SecondsBetweenShots;
+                var fullCharge = charge.FullChargeTime;
+                // Charge accrues while the cooldown runs, so a tap waits for whichever is longer.
+                var tap = Mathf.Max(charge.MinChargeTime, interval);
+                return new[]
+                {
+                    new WeaponCycleMode("full charge", FullChargeDamage, fullCharge, Mathf.Max(0f, interval - fullCharge)),
+                    new WeaponCycleMode("min charge", projectilePrefab.Damage * DamageScaleAt(tap / fullCharge), tap, 0f),
+                };
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
             if (!charge) charge = GetComponent<ChargeTime>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
@@ -48,9 +67,12 @@ namespace Combat.Weapons
 
             var proj = base.Fire(projectiles);
             if (proj != null)
-                proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, charge));
+                proj.SetDamageScale(DamageScaleAt(charge));
             return proj;
         }
+
+        private float DamageScaleAt(float chargePct) =>
+            Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, chargePct);
 
         public override bool InEnvelope(in TargetingContext context) =>
             context.hasLineOfSight

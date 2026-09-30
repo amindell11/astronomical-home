@@ -83,6 +83,41 @@ namespace Combat.Weapons.Conditions
             return WouldBeOverheated(CurrentHeat + heatPerShot + extraHeatMargin);
         }
 
+        /// <summary>Seconds of lockout after an overheat: the penalty, then cooling a full gauge.</summary>
+        public float OverheatRecoverySeconds => overheatPenaltyTime + maxHeat / coolingRate;
+
+        /// <summary>Shots fired <paramref name="secondsBetweenShots"/> apart from cold until overheat; null when cooling keeps pace.</summary>
+        public int? ShotsToOverheat(float secondsBetweenShots)
+        {
+            var cooled = CooledBetweenShots(secondsBetweenShots);
+            if (heatPerShot <= 0f || (cooled >= heatPerShot && !WouldBeOverheated(heatPerShot))) return null;
+
+            var heat = heatPerShot;
+            var shots = 1;
+            while (!WouldBeOverheated(heat))
+            {
+                heat = HeatAfterNextShot(heat, cooled);
+                shots++;
+            }
+            return shots;
+        }
+
+        /// <summary>Seconds a burst of <paramref name="shots"/> that stops short of overheating takes to cool to zero.</summary>
+        public float BurstRecoverySeconds(int shots, float secondsBetweenShots)
+        {
+            var cooled = CooledBetweenShots(secondsBetweenShots);
+            var heat = 0f;
+            for (var i = 0; i < shots; i++)
+                heat = HeatAfterNextShot(heat, cooled);
+            return coolDownDelay + heat / coolingRate;
+        }
+
+        private float CooledBetweenShots(float secondsBetweenShots) =>
+            coolingRate * Mathf.Max(0f, secondsBetweenShots - coolDownDelay);
+
+        private float HeatAfterNextShot(float heat, float cooledSinceLastShot) =>
+            Mathf.Max(0f, heat - cooledSinceLastShot) + heatPerShot;
+
         public override void ProcessFire()
         {
             var previousHeat = CurrentHeat;

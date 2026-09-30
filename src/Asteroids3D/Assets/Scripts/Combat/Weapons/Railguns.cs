@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Combat.Projectiles;
 using Damage;
 using UnityEngine;
@@ -34,6 +35,7 @@ namespace Combat.Weapons
 
         [Header("Conditions")]
         [SerializeField] private ChargeTime charge;
+        [SerializeField] private Cooldown cooldown;
 
         public ChargeTime Charge => charge;
         public float Damage => damage;
@@ -43,10 +45,22 @@ namespace Combat.Weapons
 
         public override float FireRange => fireDistance;
 
+        public override IReadOnlyList<WeaponCycleMode> CycleModes
+        {
+            get
+            {
+                var fullCharge = charge.FullChargeTime;
+                // Charge accrues while the cooldown runs, so only the cooldown's remainder is recovery.
+                var recovery = Mathf.Max(0f, cooldown.SecondsBetweenShots - fullCharge);
+                return new[] { new WeaponCycleMode("full charge", damage, fullCharge, recovery) };
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
             if (!charge) charge = GetComponent<ChargeTime>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (hitMask == -1)
                 hitMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }

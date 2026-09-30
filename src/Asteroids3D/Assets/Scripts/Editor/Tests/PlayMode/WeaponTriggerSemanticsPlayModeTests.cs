@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using AI;
 using Combat;
@@ -9,7 +10,9 @@ using NUnit.Framework;
 using Ships.Command;
 using Tests.PlayMode.Common;
 using Substrate;
+using Substrate.Services.Projectiles;
 using UnityEngine;
+using UnityEngine.TestTools;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -20,7 +23,8 @@ namespace Tests.PlayMode
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
     /// charge weapons accumulate while held and fire on release or at full charge. The AI
     /// "mashes" (press every step it wants fire) and aims each slot with that slot's ballistics
-    /// — hitscan slots get no intercept lead.
+    /// — hitscan slots get no intercept lead. Holding the trigger on a shipped prefab delivers
+    /// the sustained DPS its own hold cycle mode states.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
@@ -30,11 +34,31 @@ namespace Tests.PlayMode
         private const string ChargeLasersPrefabPath = "Assets/Prefabs/Weapons/ChargeLasers.prefab";
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
 
+        private static readonly string[] ShippedWeaponPrefabPaths =
+        {
+            "Assets/Prefabs/Weapons/Lasers.prefab",
+            RippersPrefabPath,
+            ChargeLasersPrefabPath,
+            RailgunPrefabPath,
+            MissilesPrefabPath,
+            "Assets/Prefabs/Weapons/Grenades.prefab",
+        };
+
         private readonly List<GameObject> spawned = new();
+        private float savedCaptureDelta;
+
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            savedCaptureDelta = Time.captureDeltaTime;
+        }
 
         [TearDown]
         public override void TearDown()
         {
+            Time.captureDeltaTime = savedCaptureDelta;
+
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -212,6 +236,83 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
+        }
+
+        private sealed class LaunchRecorder : IProjectileService
+        {
+            private readonly IProjectileService inner;
+            private readonly List<ProjectileBase> launched = new();
+
+            public LaunchRecorder(IProjectileService inner) => this.inner = inner;
+
+            public int ActiveCount => inner.ActiveCount;
+
+            public void Register(MonoBehaviour instance, System.Action returnToPool)
+            {
+                inner.Register(instance, returnToPool);
+                if (instance is ProjectileBase projectile)
+                    launched.Add(projectile);
+            }
+
+            public void ReturnAllToPool() => inner.ReturnAllToPool();
+
+            public void ForEachLive(System.Action<MonoBehaviour> visit) => inner.ForEachLive(visit);
+
+            /// <summary>Damage carried by the projectiles launched since the last call; a grenade carries its blast.</summary>
+            public float TakeLaunchedDamage()
+            {
+                var damage = 0f;
+                foreach (var projectile in launched)
+                    damage += projectile is Grenade grenade
+                        ? grenade.WavePrefab.MaxDamage
+                        : projectile.Damage * projectile.DamageScale;
+                launched.Clear();
+                return damage;
+            }
+        }
+
+        // Reads authored values: a retune passes, a cycle model that stops matching the game fails.
+        [UnityTest]
+        public IEnumerator HeldTrigger_DeliversTheHoldModesSustainedDps(
+            [ValueSource(nameof(ShippedWeaponPrefabPaths))] string path)
+        {
+            const int cycles = 3;
+            // One Update per fixed step, so heat and reload tick in step with the trigger.
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+
+            var weapon = InstantiateWeapon<WeaponComponent>(path);
+            var hold = weapon.CycleModes[0];
+            var recorder = new LaunchRecorder(Projectiles);
+            var beamTarget = weapon is Railguns ? CreateTarget(weapon.transform.position + Vector3.up * 5f) : null;
+
+            var damage = 0f;
+            var firstShotTime = -1f;
+            var measuredSeconds = 0f;
+            var deadline = Time.fixedTime + (cycles + 1) * hold.CycleSeconds * 1.5f;
+            while (measuredSeconds <= 0f && Time.fixedTime < deadline)
+            {
+                yield return new WaitForFixedUpdate();
+
+                var beamBefore = beamTarget ? beamTarget.TotalDamage : 0f;
+                // Pressed and held together, as the AI mashes: semi-auto refires as soon as it can.
+                weapon.HandleTrigger(pressed: true, held: true, recorder);
+                var shot = recorder.TakeLaunchedDamage() + (beamTarget ? beamTarget.TotalDamage - beamBefore : 0f);
+                if (shot <= 0f) continue;
+
+                if (firstShotTime < 0f) firstShotTime = Time.fixedTime;
+                // The shot that opens the next cycle closes the measurement.
+                if (damage >= cycles * hold.MagazineDamage - 0.001f)
+                    measuredSeconds = Time.fixedTime - firstShotTime;
+                else
+                    damage += shot;
+            }
+
+            var measuredDps = measuredSeconds > 0f ? damage / measuredSeconds : 0f;
+            var report = $"{weapon.DisplayName} / {hold.Label}: model {hold.SustainedDps:0.###} DPS " +
+                         $"({hold.MagazineDamage:0.###} per {hold.CycleSeconds:0.###} s), " +
+                         $"game {measuredDps:0.###} DPS ({damage:0.###} over {measuredSeconds:0.###} s)";
+            TestContext.WriteLine(report);
+            Assert.AreEqual(hold.SustainedDps, measuredDps, hold.SustainedDps * 0.05f, report);
         }
 
         private sealed class FakeWeaponContext : IWeaponContext

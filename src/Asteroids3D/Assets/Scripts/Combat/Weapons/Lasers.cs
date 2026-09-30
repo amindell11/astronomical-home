@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -23,7 +24,27 @@ namespace Combat.Weapons
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
         public int? ShotsToOverheat =>
-            heat && heat.HeatPerShot > 0f ? Mathf.FloorToInt(heat.MaxHeat / heat.HeatPerShot) : (int?)null;
+            heat && cooldown ? heat.ShotsToOverheat(cooldown.SecondsBetweenShots) : null;
+
+        public override IReadOnlyList<WeaponCycleMode> CycleModes
+        {
+            get
+            {
+                var interval = cooldown.SecondsBetweenShots;
+                if (heat.ShotsToOverheat(interval) is not int shots)
+                    return new[] { new WeaponCycleMode("sustained", Damage, interval, 0f) };
+
+                var overheat = new WeaponCycleMode("overheat", shots * Damage, (shots - 1) * interval,
+                    heat.OverheatRecoverySeconds);
+                // AI gunners stop one shot short of overheating; a one-shot gauge leaves them nothing to fire.
+                var managedShots = shots - 1;
+                if (managedShots < 1) return new[] { overheat };
+
+                var managed = new WeaponCycleMode("managed", managedShots * Damage, (managedShots - 1) * interval,
+                    heat.BurstRecoverySeconds(managedShots, interval));
+                return new[] { overheat, managed };
+            }
+        }
 
         protected override void Awake()
         {

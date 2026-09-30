@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Combat.Projectiles;
 using Combat.Targeting;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace Combat.Weapons
 
         [Header("Conditions")]
         [SerializeField] private Rounds rounds;
+        [SerializeField] private Cooldown cooldown;
 
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
@@ -28,6 +30,20 @@ namespace Combat.Weapons
         public float Damage => projectilePrefab.Damage;
         public float SplashDamage => projectilePrefab.SplashDamage;
 
+        // Direct damage only: splash and lock-on time are left out of the cycle.
+        public override IReadOnlyList<WeaponCycleMode> CycleModes
+        {
+            get
+            {
+                var interval = cooldown.SecondsBetweenShots;
+                return new[]
+                {
+                    new WeaponCycleMode("regen", rounds.MaxAmmo * Damage, rounds.DumpSeconds(interval),
+                        rounds.RecoverySeconds(interval)),
+                };
+            }
+        }
+
         public override ILockStateSource LockSource => targetingComputer;
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
@@ -37,6 +53,7 @@ namespace Combat.Weapons
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;

@@ -42,6 +42,8 @@ namespace Combat.Weapons.Conditions
 
         public float FullChargeTime => chargeTime;
 
+        public float MinChargeTime => minChargeToFire * chargeTime;
+
         /// <summary>
         /// Advances the charge by one trigger step of <paramref name="dt"/> seconds and returns
         /// whether the weapon should attempt to fire this step.

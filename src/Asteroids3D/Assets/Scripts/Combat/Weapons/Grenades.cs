@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -15,6 +16,7 @@ namespace Combat.Weapons
 
         [Header("Conditions")]
         [SerializeField] private Rounds rounds;
+        [SerializeField] private Cooldown cooldown;
 
         public override bool AutoFire => false;
         public Rounds Rounds => rounds;
@@ -22,10 +24,25 @@ namespace Combat.Weapons
         public float BlastRadius => projectilePrefab.WavePrefab.MaxRadius;
         public float FuseSeconds => projectilePrefab.FuseSeconds;
 
+        // Blast damage at the centre of the wave, before falloff.
+        public override IReadOnlyList<WeaponCycleMode> CycleModes
+        {
+            get
+            {
+                var interval = cooldown.SecondsBetweenShots;
+                return new[]
+                {
+                    new WeaponCycleMode("regen", rounds.MaxAmmo * BlastDamage, rounds.DumpSeconds(interval),
+                        rounds.RecoverySeconds(interval)),
+                };
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         // Behind-arc drop: no LOS term by design — the charge releases backward at a pursuer.
