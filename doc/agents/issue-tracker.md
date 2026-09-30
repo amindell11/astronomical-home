@@ -44,7 +44,9 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   Unity boot; `unity:headless` — batch tests, no GPU, provable by the hosted
   suite; `unity:editor` — a live editor, rendering, capture or eyes on pixels.
   Minted only together with `ready-for-agent`, by a readiness proposal's
-  `Apply:` line; a drain run picks only `unity:none`. No board Status mapping.
+  `Apply:` line; a drain run picks `unity:none`, or `unity:headless` also
+  labelled `drain:approved` (the user's in-chat approval); never
+  `unity:editor`. No board Status mapping.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
 - **Domain labels** (`RL`, `Ship`, `Testing`, …) and `arc` (umbrella issue
