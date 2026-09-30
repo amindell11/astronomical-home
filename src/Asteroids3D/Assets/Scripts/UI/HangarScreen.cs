@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
+using Combat.Weapons.Conditions;
 using Ships;
 using Ships.Loadout;
 using Ships.Weapons;
@@ -121,8 +122,7 @@ namespace UI
                     setCurrent(captured);
                     RefreshHighlights();
                 });
-                // Stats are static serialized values; precompute so hover never runs the
-                // component lookups behind WeaponComponent.HangarStats.
+                // Stats are static serialized values; format once here, never per hover.
                 AddHoverStats(button.gameObject, describe(captured));
             }
 
@@ -152,7 +152,42 @@ namespace UI
         private static string Describe(ShieldModule shield) =>
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
 
-        private static string Describe(WeaponComponent weapon) => weapon.HangarStats;
+        // Reads catalog prefab assets, where Awake never runs: every weapon property used must be serialized state.
+        internal static string Describe(WeaponComponent weapon) => weapon switch
+        {
+            Lasers lasers =>
+                $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
+                (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : ""),
+            ChargeLasers chargeLasers =>
+                $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
+                $"   |   Speed {chargeLasers.ProjectileSpeed:0}",
+            Railguns railguns =>
+                $"Damage {railguns.Damage:0}   |   Range {railguns.BeamRange:0}{FullCharge(railguns.Charge)}   |   Hitscan",
+            Rippers rippers =>
+                $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
+                (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
+                $"   |   Speed {rippers.ProjectileSpeed:0}",
+            Missiles missiles =>
+                $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
+                (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
+                "   |   Lock-on homing",
+            Grenades grenades =>
+                $"Blast {grenades.BlastDamage:0} to {grenades.BlastRadius:0}u, hits friend and foe" +
+                (grenades.Rounds ? $"   |   {grenades.Rounds.MaxAmmo} charges{Refill(grenades.Rounds)}" : "") +
+                $"   |   Fuse {grenades.FuseSeconds:0.#}s",
+            _ => weapon.DisplayName,
+        };
+
+        private static string Rate(float? shotsPerSecond) =>
+            shotsPerSecond is float rate ? $"   |   Rate {rate:0.#}/s" : "";
+
+        private static string FullCharge(ChargeTime charge) =>
+            charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
+
+        private static string Refill(Rounds rounds) =>
+            rounds.ReloadTime <= 0f ? ""
+            : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
+            : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
 

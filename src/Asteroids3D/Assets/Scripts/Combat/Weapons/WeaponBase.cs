@@ -73,9 +73,6 @@ namespace Combat.Weapons
             ? name.Replace("(Clone)", string.Empty).Trim()
             : displayName;
 
-        /// <summary>Hangar hover stat line; read off the prefab asset where Awake never runs, so overrides must use only serialized state.</summary>
-        public virtual string HangarStats => DisplayName;
-
         /// <summary>Displayable state (readout conditions + lock source), built lazily post-Awake; pre-Awake returns empty WITHOUT caching.</summary>
         public IReadOnlyList<IWeaponReadout> Readouts
         {
