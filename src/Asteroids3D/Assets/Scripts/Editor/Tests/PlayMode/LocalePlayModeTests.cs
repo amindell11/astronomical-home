@@ -54,17 +54,17 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyLocale_MakesLocaleTheActiveScene()
         {
-            var env = new LocaleService();
-            yield return env.ApplyLocaleAsync(LocaleA);
+            var locale = new LocaleService();
+            yield return locale.ApplyLocaleAsync(LocaleA);
             Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
         }
 
         [UnityTest]
         public IEnumerator ApplySameLocaleTwice_StaysActiveAndLoaded()
         {
-            var env = new LocaleService();
-            yield return env.ApplyLocaleAsync(LocaleA);
-            yield return env.ApplyLocaleAsync(LocaleA);
+            var locale = new LocaleService();
+            yield return locale.ApplyLocaleAsync(LocaleA);
+            yield return locale.ApplyLocaleAsync(LocaleA);
             Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
             Assert.IsTrue(SceneManager.GetSceneByName(LocaleA).isLoaded);
         }
@@ -72,9 +72,9 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyDifferentLocale_SwapsActiveAndUnloadsPrevious()
         {
-            var env = new LocaleService();
-            yield return env.ApplyLocaleAsync(LocaleA);
-            yield return env.ApplyLocaleAsync(LocaleB);
+            var locale = new LocaleService();
+            yield return locale.ApplyLocaleAsync(LocaleA);
+            yield return locale.ApplyLocaleAsync(LocaleB);
             Assert.AreEqual(LocaleB, SceneManager.GetActiveScene().name);
             Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
                 "The previous locale must unload when a different one is applied.");
@@ -83,9 +83,9 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator RestoreBoot_RestoresActiveAndUnloadsLocale()
         {
-            var env = new LocaleService();
-            yield return env.ApplyLocaleAsync(LocaleA);
-            yield return env.RestoreBootLocaleAsync();
+            var locale = new LocaleService();
+            yield return locale.ApplyLocaleAsync(LocaleA);
+            yield return locale.RestoreBootLocaleAsync();
             Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
             Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
                 "The locale must unload on restore.");
@@ -94,10 +94,10 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyUnassignedLocale_IsNoOp()
         {
-            var env = new LocaleService();
+            var locale = new LocaleService();
             var before = SceneManager.GetActiveScene().handle;
-            yield return env.ApplyLocaleAsync(null);
-            yield return env.ApplyLocaleAsync(string.Empty);
+            yield return locale.ApplyLocaleAsync(null);
+            yield return locale.ApplyLocaleAsync(string.Empty);
             Assert.AreEqual(before, SceneManager.GetActiveScene().handle);
         }
 
