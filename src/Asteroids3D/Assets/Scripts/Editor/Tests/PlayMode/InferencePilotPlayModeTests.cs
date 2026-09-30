@@ -39,6 +39,27 @@ namespace Tests.PlayMode
             Assert.That(received, Is.InRange(3, 5),
                 $"Expected ~1 decision per {ShipCombatPolicy.DecisionIntervalSteps} fixed steps over 40 steps, got {received}");
         }
+
+        [UnityTest]
+        public IEnumerator InferenceBrain_TornDownBeforeFirstBoundary_DoesNotThrow()
+        {
+            var model = AssetDatabase.LoadAssetAtPath<ModelAsset>(ShipAgentFactory.SmokeFixturePath);
+            Assert.IsNotNull(model, "Smoke fixture missing");
+            // A lone ship has no enemy, so the brain composes its agent but never captures a boundary.
+            var (ship, cmdr) = CreateAIShip(Vector3.zero, team: 0);
+            var brain = cmdr.InstallBrain<InferenceBrain>();
+            brain.ConfigureModel(model, 120f);
+
+            // WaitUntil ends the test via Assert.Pass on success; WaitUntilThen lets the teardown below run.
+            yield return AsyncAssert.WaitUntilThen(
+                () => brain.Agent,
+                5f,
+                () => Assert.IsTrue(brain.Agent, "InferenceBrain never composed its agent"),
+                useFixedUpdate: true);
+
+            Object.DestroyImmediate(ship.gameObject);
+            yield return null;
+        }
     }
 }
 #endif
