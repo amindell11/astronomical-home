@@ -129,7 +129,7 @@ namespace Substrate.Sectors.Elements
 
         internal int CapAt(float elapsed) => Mathf.RoundToInt(Mathf.Lerp(startCap, endCap, elapsed / rampSeconds));
 
-        /// <summary>One uniform pick per slot; the two mounts never repeat a weapon and the second may stay empty.</summary>
+        /// <summary>One uniform pick per slot; the mounts never repeat and the second may be empty.</summary>
         internal ShipLoadout Draw(Ship chassis)
         {
             var primary = Pick(loadouts.weapons);
@@ -139,7 +139,7 @@ namespace Substrate.Sectors.Elements
 
         private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
 
-        // The remaining pool plus one empty outcome: a roll past the last remaining weapon leaves the mount bare.
+        // Uniform over the pool minus the primary, plus one empty-mount outcome.
         private static WeaponComponent DrawSecondary(WeaponComponent[] pool, WeaponComponent primary)
         {
             var roll = UnityEngine.Random.Range(0, pool.Length);
@@ -180,7 +180,7 @@ namespace Substrate.Sectors.Elements
             return false;
         }
 
-        // Swapped-in mounts carry world-facing parts the service wired at spawn; re-wire after the equip (PlayerRig's precedent).
+        // Swapped-in mounts carry lock sensors the service wired at spawn; re-wire them.
         private void Arm(Ship ship, ShipLoadout loadout)
         {
             ship.Reequip(loadout.Engine, loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
