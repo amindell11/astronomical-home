@@ -71,6 +71,10 @@ namespace Substrate.Services.Units
         {
             if (!ship)
                 return null;
+            if (!ship.gameObject.activeSelf)
+                throw new InvalidOperationException(
+                    $"Adopted ship '{ship.name}' is inactive: an adopted ship must be authored active " +
+                    "(use AdoptedShip.startActive to start it inactive).");
 
             // Re-home from the sector to the units root so lifetime/Clear() matches a spawned ship.
             ship.transform.SetParent(UnitsRoot, true);
