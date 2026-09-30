@@ -6,16 +6,18 @@ from `Assets/Visuals/Vfx/LaserBolt/`. Worked example for the `aesthetic-authorin
 skill; the rejected approaches and their reasons are in the PR that shipped it,
 [#767](https://github.com/amindell11/astronomical-home/pull/767).
 
-## Files, in the order they were made
+## Files
 
-| Stage | Files |
+| File | Role |
 |---|---|
-| References | `refs/`: the pick from the concept sketch, the drawn explosion sheet, the game style frame. The main inspiration, a Star Wars blaster-bolt still (thick white core, thin blue sheath, soft bloom), is left out of git. |
-| Concept sketch | `svg-concept/`: `gen.py` draws band, fringe, glow, muzzle, impact and spark layers in two colourways. The spark layer became the pick. The long thin streak is a candidate for the railgun beam. |
-| Imagegen | `bolt_refine*.jpg` + sidecars + prompts. Round 1 asked for a long streak; round 2 (short bolt, torn band edges, no floating filaments) gave `bolt_refine_r2_pro.jpg`. |
-| Hand cleanup | `bolt_flat.webp`: the user's flattened version of r2 pro. The generator's source. |
-| Generator | `crackle/crackle.py`: splits the source into rim, mid, hot and core bands and warps each band's edge per frame. The constants at the top are the knobs. |
-| Tuner | `crackle/tuner.template.html`: the generator ported to the browser with a slider per knob. |
+| `bolt_flat.webp` | The user's flattened cleanup of the favourite imagegen bolt. The generator's source. |
+| `refs/style_frame.webp` | The game style frame; backdrop for the game-scale previews and the tuner. |
+| `crackle/crackle.py` | Splits the source into rim, mid, hot and core bands and warps each band's edge per frame. The constants at the top are the knobs. |
+| `crackle/tuner.template.html` | The generator ported to the browser, a slider per knob. |
+
+The steps before the source (references, the SVG concept sketch, both imagegen rounds
+with prompts and sidecars) live on the `evidence/laser-bolt` branch:
+[design history](https://github.com/amindell11/astronomical-home/tree/fceab1bf6d12a858a5e0c0c2f4dd22a43b34d36d/history). The sketch's long thin streak is a candidate for the railgun beam.
 
 ## Regenerate
 

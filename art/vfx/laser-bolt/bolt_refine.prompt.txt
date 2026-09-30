@@ -1,7 +1,0 @@
-Image 1 is the design to refine: a laser bolt drawn as chunky, uneven cel-shaded bands (white-hot core, pale cyan, bright cyan, electric-blue rim) with irregular jagged edges. Keep that band structure, that palette and that chunky jagged edge language.
-Refine it into a full blaster bolt: one long, elongated streak travelling left to right, with a slightly fuller head that comes to a rounded point on the right and a long tail tapering to a point on the left.
-Image 2 is the main inspiration for the bolt's form and presence: a thick white-hot core filling about half the bolt's width, a thin saturated blue sheath, and a soft blue bloom around it. Borrow its intensity and the realism of that bloom, but keep the body hard-edged and cel-banded.
-Images 3 and 4 are style references from our game's effects: flat, hard-edged tone bands, a thin darker rim, a hand-painted anime-VFX feel. Match that finish.
-Image 5 is the game's style frame: a painterly blue nebula backdrop with cel-shaded ships. The bolt has to sit in that world and read clearly against it.
-Edges: jagged and electric but irregular. Calm stretches broken by sharp crackling spikes, never a uniform saw-tooth.
-Render a single bolt, horizontal and centred, spanning most of the frame width with some margin, on a pure flat black background (it becomes an additive game sprite). No other objects, no text, no ships, no scenery.

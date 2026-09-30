@@ -52,7 +52,10 @@ well as large; detail that won't read at game scale is cut, however good it look
 
 ## Folder shape
 
-`art/<category>/<asset>/`: `README.md` (the asset's story and how to regenerate),
-`refs/`, imagegen outputs with their sidecars and prompts, the concept script, and the
-generator folder (script, tuner template; its `out/` is ignored). Film stills and other
-third-party references stay out of git (the repo is public); the README describes them.
+Main carries what the generator runs on: `art/<category>/<asset>/` holds `README.md`
+(role of each file, how to regenerate), the hand-cleaned source, any file the script
+reads, and the generator folder (script, tuner template; its `out/` is ignored).
+Everything before the source (references, sketches, imagegen rounds with prompts and
+sidecars) goes on the PR's `evidence/<lease>` branch under `history/`, linked from the
+README by a commit-pinned URL. Film stills and other third-party references stay out
+of git entirely (the repo is public); the history README describes them.
