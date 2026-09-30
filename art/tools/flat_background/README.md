@@ -87,10 +87,10 @@ the remaining fields are interpreted. The report is printed as
 sidecar's `provenance.migration`; a version 2 preset reports nothing. Saving
 always writes version 2.
 
-## Illustrated blue (Environment_3)
+## Illustrated blue (Locale_3)
 
 `illustrated-blue.json` supplies the cool palette and subdued generated texture
-used by `Environment_3`. Its Background material adds a Solid Base and reduces
+used by `Locale_3`. Its Background material adds a Solid Base and reduces
 Cloud Texture Strength; the main visible cloud banks are the locale's FarNebula
 material. Cloud Bank Opacity enables shaded, partially opaque banks; zero keeps
 the additive wisps treatment. Coverage, Direction and Stretch shape the banks.
@@ -117,7 +117,7 @@ Set **Unity Project** to the folder containing `Assets` and `ProjectSettings`
 `flat_unity.publish` owns the export layout. It refuses a sidecar whose `stage`
 does not match the requested publish, stages both files under the project's
 `Library/FlatBackgroundAuthoring`, then replaces the `.json` sidecar before the
-`.exr` in `Assets/Visuals/Environment/Flat/Generated` as `<name>-draft` or
+`.exr` in `Assets/Visuals/Locales/Flat/Generated` as `<name>-draft` or
 `<name>-final`. Unity `.meta` files are retained, so re-sending keeps texture and
 material identities. A failed publish reports an error and leaves the local
 render available to resend.

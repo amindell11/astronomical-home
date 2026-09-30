@@ -15,5 +15,5 @@ MonoBehaviour:
   displayName: Survival Trial
   difficultySeed: 0
   locale:
-    sceneName: Environment_3
+    sceneName: Locale_3
     sceneAsset: {fileID: 102900000, guid: 698aaeb8a1d76a5479daa3c40fafa4ea, type: 3}

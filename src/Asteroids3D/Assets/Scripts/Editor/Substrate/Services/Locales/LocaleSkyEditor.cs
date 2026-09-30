@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Makes a <see cref="LocaleSky"/> root the one place its sky layers are edited together: each

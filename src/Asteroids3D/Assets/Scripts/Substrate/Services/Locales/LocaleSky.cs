@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// A locale scene's sky root. Each child renderer is one sky layer on the <c>Sky</c> Unity
