@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Substrate.Services.Environment
@@ -42,7 +41,7 @@ namespace Substrate.Services.Environment
             }
 
             if (scene.isLoaded)
-                MakeActive(scene);
+                SceneManager.SetActiveScene(scene);
             loadedLocaleName = localeSceneName;
         }
 
@@ -54,17 +53,10 @@ namespace Substrate.Services.Environment
 
             // Re-activate boot BEFORE the unload so RenderSettings never resolve against a scene going away this frame.
             if (bootScene.IsValid() && bootScene.isLoaded)
-                MakeActive(bootScene);
+                SceneManager.SetActiveScene(bootScene);
 
             yield return UnloadLocaleAsync(loadedLocaleName);
             loadedLocaleName = null;
-        }
-
-        // SetActiveScene does not recompute the skybox-derived ambient/reflection probe; refresh it here.
-        private static void MakeActive(Scene scene)
-        {
-            SceneManager.SetActiveScene(scene);
-            DynamicGI.UpdateEnvironment();
         }
 
         private static IEnumerator UnloadLocaleAsync(string sceneName)
