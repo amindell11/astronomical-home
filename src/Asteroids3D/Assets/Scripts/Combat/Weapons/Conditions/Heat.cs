@@ -83,7 +83,6 @@ namespace Combat.Weapons.Conditions
             return WouldBeOverheated(CurrentHeat + heatPerShot + extraHeatMargin);
         }
 
-        /// <summary>Seconds of lockout after an overheat: the penalty, then cooling a full gauge.</summary>
         public float OverheatRecoverySeconds => overheatPenaltyTime + maxHeat / coolingRate;
 
         /// <summary>Shots fired <paramref name="secondsBetweenShots"/> apart from cold until overheat; null when cooling keeps pace.</summary>

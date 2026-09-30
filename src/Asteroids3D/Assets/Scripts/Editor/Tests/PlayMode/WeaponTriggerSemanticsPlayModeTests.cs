@@ -250,7 +250,8 @@ namespace Tests.PlayMode
             public void Register(MonoBehaviour instance, System.Action returnToPool)
             {
                 inner.Register(instance, returnToPool);
-                if (instance is ProjectileBase projectile)
+                var projectile = instance as ProjectileBase;
+                if (projectile)
                     launched.Add(projectile);
             }
 
@@ -263,9 +264,10 @@ namespace Tests.PlayMode
             {
                 var damage = 0f;
                 foreach (var projectile in launched)
-                    damage += projectile is Grenade grenade
-                        ? grenade.WavePrefab.MaxDamage
-                        : projectile.Damage * projectile.DamageScale;
+                {
+                    var grenade = projectile as Grenade;
+                    damage += grenade ? grenade.WavePrefab.MaxDamage : projectile.Damage * projectile.DamageScale;
+                }
                 launched.Clear();
                 return damage;
             }
@@ -283,7 +285,7 @@ namespace Tests.PlayMode
             var weapon = InstantiateWeapon<WeaponComponent>(path);
             var hold = weapon.CycleModes[0];
             var recorder = new LaunchRecorder(Projectiles);
-            var beamTarget = weapon is Railguns ? CreateTarget(weapon.transform.position + Vector3.up * 5f) : null;
+            var beamTarget = weapon as Railguns ? CreateTarget(weapon.transform.position + Vector3.up * 5f) : null;
 
             var damage = 0f;
             var firstShotTime = -1f;
