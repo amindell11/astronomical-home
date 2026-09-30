@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Substrate.Services.Environment
+namespace Substrate.Services.Locales
 {
     /// <summary>
     /// The palette roles a flat background's Blender sidecar exports, parsed once at the import

@@ -112,7 +112,7 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EncounterLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MultiArenaSmokePlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EnvironmentLocalePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/LocalePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RespawnEditModeTests.cs*"
       ]
     },
