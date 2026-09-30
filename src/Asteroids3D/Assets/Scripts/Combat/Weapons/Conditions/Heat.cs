@@ -24,9 +24,12 @@ namespace Combat.Weapons.Conditions
         [Header("Heat System")]
         [Stat, SerializeField] private float maxHeat = 100f;
         [Stat, SerializeField] private float heatPerShot = 25f;
-        [Stat, SerializeField] private float coolingRate = 50f; // units per second
-        [Stat, SerializeField] private float coolDownDelay = 0.5f; // seconds before cooling starts after a normal shot
-        [Stat, SerializeField] private float overheatPenaltyTime = 1.5f; // seconds before cooling starts after overheating
+        [Tooltip("Heat units shed per second while cooling.")]
+        [Stat, SerializeField] private float coolingRate = 50f;
+        [Tooltip("Seconds before cooling starts after a normal shot.")]
+        [Stat, SerializeField] private float coolDownDelay = 0.5f;
+        [Tooltip("Seconds before cooling starts after overheating.")]
+        [Stat, SerializeField] private float overheatPenaltyTime = 1.5f;
 
         private float clock;                // internal time base, advanced by Tick(dt)
         private float lastShotTime = -100f; // Initialize to allow immediate firing
