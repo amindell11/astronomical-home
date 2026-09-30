@@ -76,6 +76,20 @@ tests. Use `--async_tests true` plus `test_status` polling (results also land in
 `Temp/pipeline_test_status.json`). `test_status` puts its payload in `data.result` as a
 JSON string; `--result-only` returns it parsed.
 
+## Moving assets
+
+`AssetDatabase.MoveAsset` in a live editor keeps every GUID (each `.meta` diffs
+as git `R100`), and `EditorBuildSettings.asset` follows a moved scene. Three
+references are keyed by path or name and stay behind; update them in the same
+diff:
+
+- `Settings/Rendering/Build Profiles/*.asset` `m_Scenes`: `m_path` only, no
+  GUID, so the profile keeps listing the old path.
+- A `SceneReference`'s baked `sceneName`: `SceneReferenceDrawer` re-bakes it
+  only when the inspector draws the field, so set it in the `.asset`.
+- String paths and scene names in code, tests and `art/` tool scripts and
+  READMEs: `git grep` the old path.
+
 ## Output paths
 
 - `capture_game_view` / `capture_scene_view` take `save_path`: project-relative,
@@ -104,6 +118,13 @@ JSON string; `--result-only` returns it parsed.
   message in `errors[]`. With `--format json`/`--result-only` that JSON is on stdout;
   in human format a failure prints only to stderr, so `2>$null` there reads as silence.
   Check the exit code.
+- A snippet slower than eval's main-thread timeout (5000 ms default) fails the
+  envelope with `Main thread operation timed out`, and the CLI's own `--timeout`
+  (transport, seconds) did not lift that cap. The outcome is indeterminate: one
+  timed-out `MoveAsset` script had finished every move, while a timed-out
+  `AssetDatabase.Refresh()` had imported nothing. After a timeout, read the state
+  the snippet mutates, then decide on a retry. For imports, call
+  `AssetDatabase.ImportAsset(<path>)` per file; it fits inside the cap.
 
 ## Selection
 
