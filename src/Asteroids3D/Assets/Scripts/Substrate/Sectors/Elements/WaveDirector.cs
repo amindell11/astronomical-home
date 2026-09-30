@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AI.Scanning;
-using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
@@ -127,23 +126,11 @@ namespace Substrate.Sectors.Elements
 
         internal int CapAt(float elapsed) => Mathf.RoundToInt(Mathf.Lerp(startCap, endCap, elapsed / rampSeconds));
 
-        /// <summary>One uniform pick per slot; the mounts never repeat and the second may be empty.</summary>
-        internal ShipLoadout Draw(Ship chassis)
-        {
-            var primary = Pick(loadouts.weapons);
-            return new ShipLoadout(chassis, Pick(loadouts.engines), Pick(loadouts.shields),
-                primary, DrawSecondary(loadouts.weapons, primary));
-        }
+        /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
+        internal ShipLoadout Draw(Ship chassis) =>
+            new(chassis, Pick(loadouts.engines), Pick(loadouts.shields), Pick(loadouts.weapons), null);
 
         private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
-
-        // Uniform over the pool minus the primary, plus one empty-mount outcome.
-        private static WeaponComponent DrawSecondary(WeaponComponent[] pool, WeaponComponent primary)
-        {
-            var roll = UnityEngine.Random.Range(0, pool.Length);
-            if (roll == pool.Length - 1) return null;
-            return roll < Array.IndexOf(pool, primary) ? pool[roll] : pool[roll + 1];
-        }
 
         private static bool IsEmpty<T>(T[] pool) => pool == null || pool.Length == 0;
 

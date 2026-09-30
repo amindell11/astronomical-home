@@ -3,6 +3,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
     Properties
     {
         _ContourColor ("Contour Color", Color) = (0.025,0.035,0.065,1)
+        _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
         _ContourPixels ("Contour Width (Pixels)", Range(0,12)) = 3.2
         _ContourMinimum ("Lit Side Width Fraction", Range(0,1)) = 0.25
         _UniformWidth ("Uniform Screen Width", Range(0,1)) = 0
@@ -23,6 +24,7 @@ Shader "Astronomical/Comparison/Drawn Contour"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _ContourColor;
+                half _DebrisVisibility;
                 float _ContourPixels, _ContourMinimum, _UniformWidth;
             CBUFFER_END
             struct ContourInput
@@ -47,8 +49,9 @@ Shader "Astronomical/Comparison/Drawn Contour"
                 positionCS.xy += direction * (2 * width / _ScaledScreenParams.xy) * positionCS.w;
                 return positionCS;
             }
-            half4 ContourFragment() : SV_Target
+            half4 ContourFragment(float4 positionCS : SV_POSITION) : SV_Target
             {
+                clip(_DebrisVisibility - InterleavedGradientNoise(positionCS.xy, 0));
                 return _ContourColor;
             }
             ENDHLSL

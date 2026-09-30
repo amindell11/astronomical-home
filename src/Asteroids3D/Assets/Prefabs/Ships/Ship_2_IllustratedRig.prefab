@@ -567,8 +567,33 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1749863938888754131}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 579888702181409527, guid: 7ea4dac0955778f47b9d2b953f107848,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5824650576717913025}
   m_SourcePrefab: {fileID: 100100000, guid: 7ea4dac0955778f47b9d2b953f107848, type: 3}
+--- !u!1 &5100611748941008240 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 579888702181409527, guid: 7ea4dac0955778f47b9d2b953f107848,
+    type: 3}
+  m_PrefabInstance: {fileID: 5675994510712704903}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5824650576717913025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5100611748941008240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b12e20613196a440ba2a066e73cbd38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hull: {fileID: 1749863938888754131}
+  debrisPrefab: {fileID: 995146176193022882, guid: 958b213122640184a8eb6c06512fb2fe,
+    type: 3}
 --- !u!4 &5376974609631014886 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 314116195773112417, guid: 7ea4dac0955778f47b9d2b953f107848,
