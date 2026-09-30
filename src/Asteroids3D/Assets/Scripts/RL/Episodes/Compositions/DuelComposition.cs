@@ -10,7 +10,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    /// <summary>The duel lane's composition: the shooter on the agent slot carries one weapon alone in its primary weapon slot and flies a fixed Aggressor bound to the target; the unarmed target on the baseline slot takes each block's opponent archetype per episode through the roster primitive. Both ships are scripted, so the driver paces with a null agent and episodes end by rule.</summary>
+    /// <summary>The duel lane's harness composition: the shooter on the agent slot carries one weapon alone in its primary weapon slot and flies a fixed Aggressor bound to the target; the unarmed target on the baseline slot takes each block's opponent archetype per episode through the roster primitive. Both ships are scripted, so the driver paces with a null agent and episodes end by rule.</summary>
     internal sealed class DuelComposition : IHarnessComposition
     {
         // ArchetypePilot.prefab's authored shape; 10 u is the Missiles dumbfire boundary.

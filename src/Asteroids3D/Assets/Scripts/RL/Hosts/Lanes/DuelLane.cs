@@ -11,7 +11,7 @@ using RL.Reward;
 
 namespace RL.Hosts.Lanes
 {
-    /// <summary>The duel lane client: for each seed, one composition per selected weapon — a scripted shooter carrying that weapon alone in its primary weapon slot — fought in an empty arena against an unarmed target, one block per target opponent archetype (Dummy still, Orbiter crossing). The marksmanship probe's sidecar is the instrument; this summary just fingerprints the run.</summary>
+    /// <summary>The duel lane client: for each seed, one harness composition per selected weapon — a scripted shooter carrying that weapon alone in its primary weapon slot — fought in an empty arena against an unarmed target, one block per target opponent archetype (Dummy still, Orbiter crossing). The marksmanship probe's sidecar is the instrument; this summary just fingerprints the run.</summary>
     public sealed class DuelLane : ILaneClient
     {
         IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
@@ -41,7 +41,7 @@ namespace RL.Hosts.Lanes
             public ProbeArtifacts[] probes;
         }
 
-        /// <summary>The duel's environment: the default empty arena, episodes cut at <see cref="TimeoutDecisions"/>.</summary>
+        /// <summary>The duel's episode spec: the default empty arena, episodes cut at <see cref="TimeoutDecisions"/>.</summary>
         public static RewardSpec DuelSpec()
         {
             var spec = RewardSpec.Default;
@@ -70,7 +70,7 @@ namespace RL.Hosts.Lanes
             {
                 var seedSpec = baseSpec;
                 seedSpec.runSeed = seed;
-                // One composition per weapon: the loadout binds at spawn, so a weapon change is a fresh pair.
+                // One harness composition per weapon: the loadout binds at spawn, so a weapon change is a fresh pair.
                 for (var w = 0; w < weapons.Length; w++)
                 {
                     var composition = host.NewDuelComposition(in seedSpec, weapons[w]);

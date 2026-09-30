@@ -8,7 +8,6 @@ using RL.Episodes;
 
 namespace RL.Probes
 {
-    /// <summary>One episode's marksmanship record: which block it ran in, how it ended, and the weapon's tally.</summary>
     [Serializable]
     public struct MarksmanshipRow
     {
