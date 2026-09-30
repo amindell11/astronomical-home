@@ -86,6 +86,7 @@ MonoBehaviour:
   maxBankAngle: 35
   engine: {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
   shield: {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}
+  weapons: {fileID: 3463944397451626889}
   teamNumber: 0
 --- !u!114 &8752571619316856911
 MonoBehaviour:

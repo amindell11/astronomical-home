@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace Substrate.Sectors
         [SerializeField] private AdoptedShip[] adopted = Array.Empty<AdoptedShip>();
 
         [Tooltip("Procedural spawner children (e.g. RingSpawner) built in list order at load.")]
-        [SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
+        [Stat, SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
 
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
         [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
