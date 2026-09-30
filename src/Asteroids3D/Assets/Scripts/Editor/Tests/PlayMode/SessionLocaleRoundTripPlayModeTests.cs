@@ -23,7 +23,7 @@ namespace Tests.PlayMode
     {
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
-        private const string BootCubemapPath = "Assets/Visuals/Environment/Sky/Locales/InitScene/ReflectionCubemap.asset";
+        private const string BootCubemapPath = "Assets/Visuals/Locales/Sky/Locales/InitScene/ReflectionCubemap.asset";
 
         private GameObject root;
         private Scene boot;

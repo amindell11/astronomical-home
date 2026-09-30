@@ -1,4 +1,4 @@
-Shader "Environment/Flat Background"
+Shader "Locales/Flat Background"
 {
     Properties
     {
