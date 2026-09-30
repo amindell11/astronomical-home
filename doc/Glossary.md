@@ -386,6 +386,16 @@ Format: **term** — definition. *(authority)*
   engage/disengage metrics. Definition lives at `EngagementTracker`
   (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
   as disengagement, geometric so heat lockouts do not.
+- **duel lane** — the harness lane that runs the baseline duel: a scripted
+  shooter carrying one weapon alone in its primary weapon slot against an
+  unarmed target. Its rows are a snapshot, not a constant: judge a change by
+  running the lane on the base and the head with the same seeds, and quote the
+  replicate gap between two identical runs as the noise. *(#409 · DuelLane.cs)*
+- **marksmanship probe** — the harness probe that counts, per episode, what the
+  shooter's weapon fired and what it hit. A hit is one damage event on the
+  target, so a missile's contact and splash are not told apart, and a shot
+  still in flight when the target dies is fired and never hits.
+  *(MarksmanshipProbe, MarksmanshipSampler)*
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.

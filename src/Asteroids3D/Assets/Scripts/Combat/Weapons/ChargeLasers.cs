@@ -26,18 +26,8 @@ namespace Combat.Weapons
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public ChargeTime Charge => charge;
-
-        public override string HangarStats
-        {
-            get
-            {
-                if (!projectilePrefab) return DisplayName;
-                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
-                var damage = projectilePrefab.Damage;
-                return $"Damage {damage * minChargeDamageScale:0}-{damage * fullChargeDamageScale:0}{chargeText}" +
-                       $"   |   Speed {projectilePrefab.LaserSpeed:0}";
-            }
-        }
+        public float MinChargeDamage => projectilePrefab.Damage * minChargeDamageScale;
+        public float FullChargeDamage => projectilePrefab.Damage * fullChargeDamageScale;
 
         protected override void Awake()
         {
