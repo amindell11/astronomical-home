@@ -6,6 +6,7 @@ using Balance;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Loadout;
 using Ships.Weapons;
 using Substrate.Sectors;
@@ -26,13 +27,18 @@ namespace Tests.EditMode
         private const float KillHullRestore = 0.25f;
         private const float StartInterval = 6f;
 
+        private sealed class ScratchCommander : Commander
+        {
+            public override void Initialize(in ShipControl control) { }
+        }
+
         private readonly List<Object> scratch = new();
 
         [TearDown]
         public void TearDown()
         {
             foreach (var copy in scratch)
-                if (copy) Object.DestroyImmediate(copy is Component component ? component.gameObject : copy);
+                if (copy) Object.DestroyImmediate(copy);
             scratch.Clear();
         }
 
@@ -103,7 +109,8 @@ namespace Tests.EditMode
             var offer = HangarOffer();
             var baseline = StatHash.OfSetting(offer, ScratchSector(RosterOf(offer.ships), StartInterval), KillHullRestore);
 
-            var reordered = Scratch(offer);
+            var reordered = Object.Instantiate(offer);
+            scratch.Add(reordered);
             Array.Reverse(reordered.ships);
             Array.Reverse(reordered.engines);
             Array.Reverse(reordered.shields);
@@ -112,6 +119,22 @@ namespace Tests.EditMode
 
             Assert.AreEqual(baseline,
                 StatHash.OfSetting(reordered, ScratchSector(reversedRoster, StartInterval), KillHullRestore));
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenTwoRosterEntriesSwapPilots()
+        {
+            var offer = HangarOffer();
+            var first = ScratchPilot("FirstPilot");
+            var second = ScratchPilot("SecondPilot");
+            WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
+
+            var paired = ScratchSector(new[] { Entry(0, first), Entry(1, second) }, StartInterval);
+            var swapped = ScratchSector(new[] { Entry(0, second), Entry(1, first) }, StartInterval);
+
+            Assert.AreNotEqual(StatHash.OfSetting(offer, paired, KillHullRestore),
+                StatHash.OfSetting(offer, swapped, KillHullRestore),
+                "Which pilot flies which hull is part of what a run can draw from.");
         }
 
         [Test]
@@ -139,7 +162,7 @@ namespace Tests.EditMode
             var lines = StatHash.SettingLines(HangarOffer(), sector, KillHullRestore);
 
             Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.startInterval="));
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/RosterEntry.template="));
+            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.roster={{"));
             Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/LoadoutConfig.weapons="));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/LoadoutConfig.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
@@ -175,17 +198,24 @@ namespace Tests.EditMode
         private static WaveDirector.RosterEntry[] RosterOf(IEnumerable<Ship> hulls) =>
             hulls.Select(hull => new WaveDirector.RosterEntry { template = hull }).ToArray();
 
-        private T Scratch<T>(T original) where T : Object
+        private T Scratch<T>(T original) where T : Component
         {
             var copy = Object.Instantiate(original);
-            scratch.Add(copy);
+            scratch.Add(copy.gameObject);
             return copy;
+        }
+
+        private Commander ScratchPilot(string pilotName)
+        {
+            var pilot = new GameObject(pilotName).AddComponent<ScratchCommander>();
+            scratch.Add(pilot.gameObject);
+            return pilot;
         }
 
         private Sector ScratchSector(WaveDirector.RosterEntry[] roster, float startInterval)
         {
             var sector = new GameObject("ScratchSector").AddComponent<Sector>();
-            scratch.Add(sector);
+            scratch.Add(sector.gameObject);
             var director = new GameObject("WaveDirector").AddComponent<WaveDirector>();
             director.transform.SetParent(sector.transform);
             director.Configure(roster, startInterval, endInterval: 2f, startCap: 2, endCap: 8, rampSeconds: 240f);

@@ -61,44 +61,52 @@ namespace Balance
         private static void Visit(Object source, ISet<string> lines, ISet<Object> visited)
         {
             if (!source || !visited.Add(source)) return;
-            ReadStatFields(source, AssetName(source), lines, visited);
-        }
 
-        private static void ReadStatFields(object owner, string asset, ISet<string> lines, ISet<Object> visited)
-        {
-            var type = owner.GetType();
+            var asset = AssetName(source);
+            var type = source.GetType();
             foreach (var field in StatFields(type))
-                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(owner), asset, lines, visited);
+                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(source), lines, visited);
         }
 
-        private static void Read(string key, object value, string asset, ISet<string> lines, ISet<Object> visited)
+        private static void Read(string key, object value, ISet<string> lines, ISet<Object> visited)
+        {
+            if (value is IList items)
+            {
+                foreach (var item in items)
+                    Read(key, item, lines, visited);
+                return;
+            }
+
+            var text = Text(key, value, lines, visited);
+            if (text != null) lines.Add($"{key}={text}");
+        }
+
+        private static string Text(string key, object value, ISet<string> lines, ISet<Object> visited)
         {
             switch (value)
             {
                 case null:
-                    return;
+                    return null;
                 case Object reference:
-                    if (!reference) return;
-                    lines.Add($"{key}={AssetName(reference)}");
+                    if (!reference) return null;
                     Visit(reference, lines, visited);
-                    return;
-                case IEnumerable items:
-                    foreach (var item in items)
-                        Read(key, item, asset, lines, visited);
-                    return;
+                    return AssetName(reference);
             }
 
             var number = Format(value);
-            if (number != null)
-            {
-                lines.Add($"{key}={number}");
-                return;
-            }
+            if (number != null) return number;
 
-            if (StatFields(value.GetType()).Length == 0)
+            var fields = StatFields(value.GetType());
+            if (fields.Length == 0)
                 throw new NotSupportedException(
                     $"[Stat] on {key}: {value.GetType().Name} is not a number, a reference, a list, or a type with [Stat] fields.");
-            ReadStatFields(value, asset, lines, visited);
+
+            // One line per entry keeps its fields paired, whatever order the list is in.
+            var parts = new List<string>(fields.Length);
+            foreach (var field in fields)
+                parts.Add($"{field.Name}={Text(key, field.GetValue(value), lines, visited)}");
+            parts.Sort(StringComparer.Ordinal);
+            return "{" + string.Join(",", parts) + "}";
         }
 
         private static string Format(object value) => value switch
