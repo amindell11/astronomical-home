@@ -28,7 +28,7 @@ namespace Tests.PlayMode
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
-        private const string CatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private GameObject servicesGo;
         private GameObject hostGo;
@@ -72,7 +72,7 @@ namespace Tests.PlayMode
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
             host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
-            host.loadoutCatalog = AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath);
+            host.hangarOffer = AssetDatabase.LoadAssetAtPath<LoadoutConfig>(OfferPath);
 
             var finished = false;
             IEnumerator Run()

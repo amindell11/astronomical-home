@@ -4,9 +4,11 @@ using UnityEngine;
 namespace Ships.Loadout
 {
     /// <summary>
-    /// The catalog of modules the hangar offers per slot — the pool a <see cref="ShipLoadout"/>
-    /// selection is chosen from. A static authored list for now; loot/ownership (which modules the
-    /// player has actually earned) is a later layer that would filter this pool.
+    /// An authored list of items to choose from, per loadout slot. Two assets use it: the hangar's
+    /// offer, which the player picks a <see cref="ShipLoadout"/> from, and the enemy loadout pool,
+    /// which a wave director draws each spawn's engine, shield and weapon from (its ships stay
+    /// empty). Both are subsets of the <see cref="ItemCatalog"/>. Loot/ownership (which items the
+    /// player has actually earned) is a later layer that would filter the hangar's offer.
     /// </summary>
     [CreateAssetMenu(fileName = "LoadoutConfig", menuName = "Ship/Loadout Config")]
     public class LoadoutConfig : ScriptableObject
