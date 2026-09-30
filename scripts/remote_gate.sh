@@ -9,6 +9,9 @@
 # Usage: remote_gate.sh [branch]          (default: current branch)
 # Env:   REMOTE_GATE_HOST (alastor) · REMOTE_GATE_REPO (C:/dev/astronomical-home)
 #        REMOTE_GATE_UNITY · REMOTE_GATE_MODE (Both) · REMOTE_GATE_TIMEOUT_MIN (45)
+# Exit:  0 suite passed · 1 suite failed · 2 timed out
+#        3 the remote lane is disabled (remote_lane.sh), nothing was sent
+#        any other nonzero: a transfer step failed (ssh's or git's own code)
 
 set -euo pipefail
 
@@ -17,6 +20,13 @@ RREPO="${REMOTE_GATE_REPO:-C:/dev/astronomical-home}"
 RUNITY="${REMOTE_GATE_UNITY:-C:\\Program Files\\Unity\\Hub\\Editor\\6000.1.8f1\\Editor\\Unity.exe}"
 MODE="${REMOTE_GATE_MODE:-Both}"
 TIMEOUT_MIN="${REMOTE_GATE_TIMEOUT_MIN:-45}"
+
+# Only `disabled` refuses: a failed report must not block the run that replaces the checkout.
+lane="$(REMOTE_LANE_HOST="$HOST" REMOTE_LANE_REPO="$RREPO" "$(dirname "${BASH_SOURCE[0]}")/remote_lane.sh" status)" || lane=""
+if grep -qx 'REMOTE_LANE=disabled' <<<"$lane"; then
+    echo "[remote_gate] refusing: the remote lane is disabled; remote_lane.sh enable turns it back on." >&2
+    exit 3
+fi
 
 ROOT="$(git rev-parse --show-toplevel)"
 BRANCH="${1:-$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)}"
