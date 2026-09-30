@@ -26,6 +26,8 @@ export GH_DISPATCH_LOG="$TMP/gh-dispatch.log"
 export GH_STATUS_SEQ="$TMP/gh-status.seq"
 export GH_RATCHET_SEQ="$TMP/gh-ratchet.seq"
 export GH_RUN_SEQ="$TMP/gh-run.seq"
+export GH_RUN_VIEW_SEQ="$TMP/gh-run-view.seq"
+export GH_RUN_VIEW_LOG="$TMP/gh-run-view.log"
 export ADMISSION_SEQ="$TMP/admission.seq"
 export ADMISSION_LOG="$TMP/admission.log"
 : > "$ADMISSION_LOG"
@@ -35,6 +37,8 @@ echo boot_admitted > "$ADMISSION_SEQ"
 : > "$RESHARPER_LOG"
 : > "$GH_MERGE_LOG"
 : > "$GH_DISPATCH_LOG"
+: > "$GH_RUN_VIEW_SEQ"
+: > "$GH_RUN_VIEW_LOG"
 echo 0 > "$RUNNER_EXIT_FILE"
 echo 0 > "$RESHARPER_EXIT_FILE"
 
@@ -163,6 +167,10 @@ case "$1 $2" in
     if [[ "$*" == *merge-proof/resharper* ]]; then seq="$GH_RATCHET_SEQ"; else seq="$GH_STATUS_SEQ"; fi
     next_answer "$seq" $'absent\037\037' ;;
   "run list") next_answer "$GH_RUN_SEQ" $'none\t' ;;
+  "run view")
+    echo "$*" >> "$GH_RUN_VIEW_LOG"
+    [[ -s "$GH_RUN_VIEW_SEQ" ]] || { echo "gh stub: no run view answer scripted" >&2; exit 97; }
+    next_answer "$GH_RUN_VIEW_SEQ" "" ;;
   "workflow run") echo "$*" >> "$GH_DISPATCH_LOG" ;;
   *) echo "gh stub: unmodelled call: $*" >&2; exit 97 ;;
 esac
@@ -533,6 +541,7 @@ push_slot() { git -C "$TMP/agent-1" push -q origin "agent-1:refs/heads/$TASK_BRA
 statuses() { printf '%s\n' "$@" > "$GH_STATUS_SEQ"; }
 ratchets() { printf '%s\n' "$@" > "$GH_RATCHET_SEQ"; }
 runs() { printf '%s\n' "$@" > "$GH_RUN_SEQ"; }
+run_views() { printf '%s\n' "$@" > "$GH_RUN_VIEW_SEQ"; }
 green() { printf 'success\037tree=%s total=5 passed=5 skipped=0\037%s/%s' "$(slot_tree)" "$RUN_URL" "$1"; }
 base_tree() { git -C "$TMP/agent-1" rev-parse 'origin/main^{tree}'; }
 ratchet_status() { printf '%s\037%s\037%s/%s' "$1" "$2" "$RUN_URL" "$3"; }
@@ -679,6 +688,22 @@ runs "$(printf 'completed\t46')"
 if wait_verdict; then fail "the wait must refuse pending with no live run"; fi
 expect_output "is pending but no headless-suite run is live" "the dead-pending refusal must say so"
 expect_output "gh run rerun 46" "the dead-pending refusal must name the recovery"
+
+# The runs listing lags the run's own pending status: the wait reads the run the status names.
+statuses "$(printf 'pending\037headless suite running\037%s/47' "$RUN_URL")" \
+  "$(printf 'pending\037headless suite running\037%s/47' "$RUN_URL")" "$(green 47)"
+ratchets "$(rgreen 47)"
+runs $'none\t'
+run_views "$(printf 'in_progress\t47')"
+wait_verdict || { cat "$TMP/merge.out" >&2; fail "a pending status whose run the listing lags must be waited on"; }
+grep -q "^run view 47 " "$GH_RUN_VIEW_LOG" || fail "the wait must read the run the pending status names"
+
+statuses "$(printf 'pending\037headless suite running\037%s/48' "$RUN_URL")"
+run_views "$(printf 'completed\t48')"
+if wait_verdict; then fail "a pending status whose named run completed must be refused"; fi
+expect_output "is pending but no headless-suite run is live" "the named-run dead-pending refusal must say so"
+expect_output "gh run rerun 48" "the named-run dead-pending refusal must name that run"
+: > "$GH_RUN_VIEW_SEQ"
 
 runs "$(printf 'in_progress\t46')"
 GH_API_FAIL=1 wait_verdict && fail "the wait must refuse when GitHub cannot be asked"

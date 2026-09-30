@@ -1762,9 +1762,14 @@ remote_status() {
     "[.[] | select(.context == \"$context\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | join(\"\")"
 }
 
-# Prints "<status>\t<run id>" for the newest headless-suite run on a commit; status "none" when there is none.
+# Prints "<status>\t<run id>" for run <id> when given, else for the newest headless-suite run on a commit;
+# status "none" when there is none.
 remote_run() {
-  local sha="$1"
+  local sha="$1" id="${2:-}"
+  if [[ -n "$id" ]]; then
+    gh run view "$id" --json databaseId,status --jq '[.status, .databaseId] | @tsv'
+    return
+  fi
   gh run list --workflow "$REMOTE_PROOF_WORKFLOW" --commit "$sha" --limit 1 --json databaseId,status --jq \
     '.[0] // {status: "none", databaseId: ""} | [.status, .databaseId] | @tsv'
 }
@@ -1827,14 +1832,14 @@ accept_remote_resharper_proof() {
 wait_for_remote_verdict() {
   local slot="$1" sha="$2" task_branch="$3"
   local started=$SECONDS phase_status="" phase_since=$SECONDS
-  local run run_status run_id context status state description url owed
+  local run run_status run_id context status state description url owed named run_ref=""
   while :; do
-    if ! run="$(remote_run "$sha")"; then
+    if ! run="$(remote_run "$sha" "$run_ref")"; then
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
     IFS=$'\t' read -r run_status run_id <<< "$run"
-    owed=""
+    owed="" named=""
     for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT"; do
       if ! status="$(remote_status "$sha" "$context")"; then
         echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
@@ -1850,7 +1855,7 @@ wait_for_remote_verdict() {
           echo "  Red tests or ratchet findings: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
           echo "  'gh run rerun $run_id' re-posts both verdicts on the same commit; then re-run 'merge $slot --remote'." >&2
           return 1 ;;
-        pending) owed=pending ;;
+        pending) owed=pending; named="$(run_id_from_url "$url")" ;;
         absent) owed="${owed:-absent}" ;;
         *)
           echo "merge: $context on $sha has unknown state '$state' — no remote proof; not merging." >&2
@@ -1858,6 +1863,11 @@ wait_for_remote_verdict() {
       esac
     done
     [[ -n "$owed" ]] || return 0
+    # The runs listing lags a run's own statuses: judge a pending status by the run it names, read first.
+    if [[ -n "$named" && "$named" != "$run_id" ]]; then
+      run_ref="$named"
+      continue
+    fi
     state="$owed"
     [[ "$run_status" == "$phase_status" ]] || { phase_status="$run_status"; phase_since=$SECONDS; }
     case "$run_status" in
