@@ -21,9 +21,9 @@ skill; the rejected approaches and their reasons are in the PR that shipped it,
 
 ```bash
 cd art/vfx/laser-bolt/crackle
-python crackle.py                                   # previews in out/
-python crackle.py --tuner out/tuner.html            # tuner page; publish it with the Artifact tool
-python crackle.py --export ../../../../src/Asteroids3D/Assets/Visuals/Vfx/LaserBolt/Textures
+uv run crackle.py                                   # previews in out/
+uv run crackle.py --tuner out/tuner.html            # tuner page; publish it with the Artifact tool
+uv run crackle.py --export ../../../../src/Asteroids3D/Assets/Visuals/Vfx/LaserBolt/Textures
 ```
 
 The export prints the material values the textures need (`_Frames`, `_Fps`,

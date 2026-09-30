@@ -415,10 +415,10 @@ function boxV(s, t, r) {
 
 function glowCanvas(labels) {
   const c = document.createElement("canvas"); c.width = W; c.height = H;
-  if (P.GLOW_SIGMA <= 0 || P.GLOW_ALPHA <= 0) return c;
+  if (P.GLOW_ALPHA <= 0) return c;
   const m = new Float32Array(W * H);
   for (let i = 0; i < m.length; i++) m[i] = labels[i] ? 1 : 0;
-  const b = blur2d(m, P.GLOW_SIGMA * WORK);
+  const b = P.GLOW_SIGMA > 0 ? blur2d(m, P.GLOW_SIGMA * WORK) : m;
   const g = c.getContext("2d"), img = g.createImageData(W, H), d = img.data, col = hex(P.CG);
   for (let i = 0, p = 0; i < b.length; i++, p += 4) {
     const a = Math.min(1, b[i] * P.GLOW_GAIN) * P.GLOW_ALPHA;

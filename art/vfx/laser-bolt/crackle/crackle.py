@@ -1,12 +1,16 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["numpy==2.4.2", "pillow==12.1.1", "scipy==1.17.0"]
+# ///
 """Animates bolt_flat.webp into a shape-changing crackle flipbook.
 
 Frame 0 is the drawing. Every other frame warps each band's mask vertically, away from
 and toward the centreline, with a backward-swept sawtooth (sharp jump, slow ease toward
 the head), so the drawn hooks shift and new ones form while the core and nose hold.
 
-    python crackle.py                     # previews into out/
-    python crackle.py --export <dir>      # Unity flipbook + glow textures
-    python crackle.py --tuner <file>      # bake the live tuner page with these constants as defaults
+    uv run crackle.py                     # previews into out/
+    uv run crackle.py --export <dir>      # Unity flipbook + glow textures
+    uv run crackle.py --tuner <file>      # bake the live tuner page with these constants as defaults
 """
 import argparse
 import base64
@@ -26,6 +30,7 @@ OUT = HERE / "out"
 TUNER_TEMPLATE = HERE / "tuner.template.html"
 BACKDROP_CROP = (380, 150, 1180, 600)   # the patch of the style frame used for game-scale previews
 EXPORT_SIZE = (512, 128)                # one flipbook frame before rotation, length x thickness
+PREVIEW_BLEND_STEPS = 3                 # crossfade preview frames per key; more drops GIF frames under browsers' 20 ms floor
 
 # Tunables; the crackle-tuner page exports this block ready to paste.
 FRAMES = 6
@@ -174,6 +179,16 @@ def build():
     return [to_rgba(l) for l in frame_labels], glow_layer(compose(drawn)), keys, FPS * per_key
 
 
+def crossfade(bodies):
+    """The shader's eased blend between neighbouring keys, lerped in premultiplied alpha as the shader does."""
+    frames = []
+    for i, body in enumerate(bodies):
+        a, b = body.convert("RGBa"), bodies[(i + 1) % len(bodies)].convert("RGBa")
+        for s in range(PREVIEW_BLEND_STEPS):
+            frames.append(Image.blend(a, b, ease(s / PREVIEW_BLEND_STEPS)).convert("RGBA"))
+    return frames
+
+
 def write_previews(bodies, glow, play_fps):
     OUT.mkdir(exist_ok=True)
     for f, body in enumerate(bodies):
@@ -182,14 +197,17 @@ def write_previews(bodies, glow, play_fps):
 
     bw, bh = bodies[0].size
     black = Image.new("RGB", (bw, bh))
-    big = [Image.alpha_composite(add(black, glow).convert("RGBA"), b).convert("RGB") for b in bodies]
-    small = [f.resize((bw // 2, bh // 2), Image.LANCZOS) for f in big]
-    small[0].save(OUT / "preview_large.gif", save_all=True, append_images=small[1:], duration=round(1000 / play_fps), loop=0)
-
+    on_black = lambda frames: [Image.alpha_composite(add(black, glow).convert("RGBA"), b).convert("RGB") for b in frames]
+    small = [f.resize((bw // 2, bh // 2), Image.LANCZOS) for f in on_black(bodies)]
     strip = Image.new("RGB", (bw // 2, (bh // 2) * len(bodies)))
     for f, frame in enumerate(small):
         strip.paste(frame, (0, f * (bh // 2)))
     strip.save(OUT / "frames_strip.png")
+
+    if SMOOTH == "crossfade":
+        bodies, play_fps = crossfade(bodies), play_fps * PREVIEW_BLEND_STEPS
+        small = [f.resize((bw // 2, bh // 2), Image.LANCZOS) for f in on_black(bodies)]
+    small[0].save(OUT / "preview_large.gif", save_all=True, append_images=small[1:], duration=round(1000 / play_fps), loop=0)
 
     # Game scale over the style frame; shown at 2x so the pixels are inspectable.
     crop = Image.open(BACKDROP).convert("RGB").crop(BACKDROP_CROP)
