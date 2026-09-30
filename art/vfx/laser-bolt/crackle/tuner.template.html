@@ -1,0 +1,629 @@
+<title>Laser Bolt Crackle Tuner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a VFX bench. The stage and game-scale previews on the left, the knob rack on the right; stacks on phones. */
+  :root {
+    --void: #04060d;
+    --panel: #0b1020;
+    --line: #1b2442;
+    --ink: #d9e2fb;
+    --dim: #7f8ab0;
+    --bolt: #5cd0ff;
+    --rim: #1f6bff;
+    --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    color-scheme: dark;
+  }
+  html, body { background: var(--void); color: var(--ink); }
+  body { font: 14px/1.45 var(--body); padding-inline: 16px; padding-block: 16px 32px; }
+  .bench { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; max-width: 1400px; margin-inline: auto; }
+  @media (max-width: 900px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; max-width: 1400px; margin: 0 auto 14px; }
+  h1 { font: 600 22px/1.1 var(--display); letter-spacing: .02em; margin: 0; text-wrap: balance; }
+  header p { margin: 0; color: var(--dim); max-width: 65ch; }
+  h2 { font: 600 12px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0 0 10px; }
+  .view { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .stage { position: relative; background: #000; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .stage canvas { display: block; width: 100%; height: auto; }
+  .transport { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; align-items: center; }
+  .readout { font: 12px var(--mono); color: var(--dim); background: rgba(4, 6, 13, .7); padding: 4px 8px; border-radius: 4px; font-variant-numeric: tabular-nums; }
+  button { font: 500 12px var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+  button:hover { border-color: var(--bolt); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--bolt); outline-offset: 2px; }
+  .ingame { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+  .ingame canvas { display: block; image-rendering: pixelated; }
+  .row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .row-head label { color: var(--dim); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+  .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .strip button { padding: 4px; background: #000; flex: 0 0 auto; display: grid; gap: 4px; justify-items: center; }
+  .strip button.on { border-color: var(--bolt); }
+  .strip canvas { width: 150px; height: auto; display: block; }
+  .strip span { font: 11px var(--mono); color: var(--dim); }
+  .rack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 12px 12px 10px; margin: 0; display: grid; gap: 8px; }
+  legend { font: 600 12px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); padding: 0 6px; }
+  .knob { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; }
+  .knob label { font-size: 13px; }
+  .knob output { font: 12px var(--mono); color: var(--bolt); font-variant-numeric: tabular-nums; }
+  .knob input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--bolt); }
+  .knob small { grid-column: 1 / -1; color: var(--dim); font-size: 11.5px; line-height: 1.35; }
+  .inline { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .inline label { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  input[type=number] { width: 72px; font: 12px var(--mono); color: var(--ink); background: var(--void); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+  input[type=color] { width: 34px; height: 24px; border: 1px solid var(--line); border-radius: 4px; background: var(--void); padding: 0; }
+  select { font: 12px var(--body); color: var(--ink); background: var(--void); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  pre { margin: 0; font: 12px/1.5 var(--mono); color: var(--ink); background: var(--void); border: 1px solid var(--line); border-radius: 4px; padding: 10px; overflow-x: auto; white-space: pre; }
+  .note { color: var(--dim); font-size: 11.5px; margin: 0; }
+  .busy { color: var(--bolt); }
+</style>
+
+<header>
+  <h1>Laser Bolt Crackle Tuner</h1>
+  <p>The flattened bolt, warped live the same way <code>crackle.py</code> does it. Move a knob and the flipbook rebuilds; copy the settings block into the script when it looks right.</p>
+</header>
+
+<div class="bench">
+  <main class="view">
+    <section>
+      <div class="stage">
+        <canvas id="stage" width="1200" height="340" aria-label="Animated laser bolt"></canvas>
+        <div class="transport">
+          <button id="play" type="button">Pause</button>
+          <button id="step" type="button">Step</button>
+          <span class="readout" id="readout">frame 1 / 6</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="row-head">
+        <h2>At game scale</h2>
+        <label for="zoom">Magnify
+          <select id="zoom"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select>
+        </label>
+      </div>
+      <div class="ingame"><canvas id="ingame" width="800" height="450" aria-label="Bolts at 150, 100 and 60 pixels over the style frame"></canvas></div>
+      <p class="note">Bolts are 150, 100 and 60 px long on an 1678-wide style frame. Pixels are shown unsmoothed so the crackle reads honestly.</p>
+    </section>
+
+    <section>
+      <h2>Frames</h2>
+      <div class="strip" id="strip"></div>
+    </section>
+  </main>
+
+  <aside class="rack">
+    <fieldset>
+      <legend>Animation</legend>
+      <div class="knob"><label for="FRAMES">Frames</label><output for="FRAMES"></output><input id="FRAMES" type="range" min="2" max="12" step="1"></div>
+      <div class="knob"><label for="FPS">Frames per second</label><output for="FPS"></output><input id="FPS" type="range" min="4" max="30" step="1"></div>
+      <div class="inline">
+        <label><input id="INCLUDE_DRAWN" type="checkbox"> Keep the drawn frame</label>
+        <label for="SEED">Seed <input id="SEED" type="number" min="0" step="1"></label>
+        <button id="reroll" type="button">Reroll</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Smoothing</legend>
+      <div class="inline">
+        <label for="SMOOTH">Between frames
+          <select id="SMOOTH"><option value="off">Hard cut</option><option value="tween">Shape tween</option><option value="crossfade">Crossfade</option></select>
+        </label>
+        <label><input id="TWEEN_EASE" type="checkbox"> Ease in and out</label>
+      </div>
+      <div class="knob"><label for="TWEEN">In-betweens per frame</label><output for="TWEEN"></output><input id="TWEEN" type="range" min="1" max="6" step="1"><small>Shape tween adds real in-between shapes to the flipbook, so edges stay crisp but the texture grows. Crossfade keeps the frame count, since Unity can blend flipbook frames at runtime, but shows a soft double edge mid-blend.</small></div>
+      <p class="note" id="flipcount"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Hooks</legend>
+      <div class="knob"><label for="SEG0">Shortest hook</label><output for="SEG0"></output><input id="SEG0" type="range" min="10" max="300" step="5"><small>Pixels along the bolt, in the source image.</small></div>
+      <div class="knob"><label for="SEG1">Longest hook</label><output for="SEG1"></output><input id="SEG1" type="range" min="10" max="400" step="5"></div>
+      <div class="knob"><label for="NOTCH_PULL">Inward pull</label><output for="NOTCH_PULL"></output><input id="NOTCH_PULL" type="range" min="0" max="1" step="0.05"><small>How far an edge may pull in, as a share of how far it pushes out.</small></div>
+      <div class="knob"><label for="EASE_END">Hook ease</label><output for="EASE_END"></output><input id="EASE_END" type="range" min="0" max="1" step="0.05"><small>0 sweeps each hook back to nothing; 1 makes flat steps.</small></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Edge push per band</legend>
+      <div class="knob"><label for="AMP0">Rim</label><output for="AMP0"></output><input id="AMP0" type="range" min="0" max="0.6" step="0.01"></div>
+      <div class="knob"><label for="AMP1">Mid</label><output for="AMP1"></output><input id="AMP1" type="range" min="0" max="0.6" step="0.01"></div>
+      <div class="knob"><label for="AMP2">Hot</label><output for="AMP2"></output><input id="AMP2" type="range" min="0" max="0.6" step="0.01"></div>
+      <div class="knob"><label for="AMP3">Core</label><output for="AMP3"></output><input id="AMP3" type="range" min="0" max="0.6" step="0.01"><small>Share of each band's half-height an edge may move.</small></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Head and tail</legend>
+      <div class="knob"><label for="DAMP_START">Head calm starts at</label><output for="DAMP_START"></output><input id="DAMP_START" type="range" min="0.5" max="1" step="0.01"></div>
+      <div class="knob"><label for="HEAD_DAMP">Crackle left at the nose</label><output for="HEAD_DAMP"></output><input id="HEAD_DAMP" type="range" min="0" max="1" step="0.05"></div>
+      <div class="knob"><label for="TAIL_FLICKER">Tail length flicker</label><output for="TAIL_FLICKER"></output><input id="TAIL_FLICKER" type="range" min="0" max="0.25" step="0.01"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Glow</legend>
+      <div class="knob"><label for="GLOW_SIGMA">Spread</label><output for="GLOW_SIGMA"></output><input id="GLOW_SIGMA" type="range" min="0" max="90" step="1"></div>
+      <div class="knob"><label for="GLOW_GAIN">Gain</label><output for="GLOW_GAIN"></output><input id="GLOW_GAIN" type="range" min="0" max="4" step="0.1"></div>
+      <div class="knob"><label for="GLOW_ALPHA">Strength</label><output for="GLOW_ALPHA"></output><input id="GLOW_ALPHA" type="range" min="0" max="1" step="0.05"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Colours</legend>
+      <div class="inline">
+        <label>Rim <input id="C0" type="color"></label>
+        <label>Mid <input id="C1" type="color"></label>
+        <label>Hot <input id="C2" type="color"></label>
+        <label>Core <input id="C3" type="color"></label>
+        <label>Glow <input id="CG" type="color"></label>
+      </div>
+      <div class="inline">
+        <label for="bg">Stage
+          <select id="bg"><option value="black">Black</option><option value="nebula">Style frame</option></select>
+        </label>
+        <button id="reset" type="button">Reset all</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Settings for crackle.py</legend>
+      <pre id="export"></pre>
+      <div class="inline"><button id="copy" type="button">Copy settings</button><span class="note" id="copied"></span></div>
+      <p class="note">Paste over the tunables block in crackle.py. The seed picks different frames there than here, since the two use different random generators.</p>
+    </fieldset>
+  </aside>
+</div>
+
+<script>
+const BOLT_SRC = "{{BOLT}}";
+const BACKDROP_SRC = "{{BACKDROP}}";
+const WORK = 0.75;   // work at 3/4 of the source resolution so rebuilds stay interactive
+const SOURCE_PALETTE = {{SOURCE_PALETTE}};
+const DEFAULTS = {{DEFAULTS}};   // baked from crackle.py's constants
+const STORE_KEY = "crackle-tuner-v2";
+
+let P = { ...DEFAULTS };
+try { Object.assign(P, JSON.parse(localStorage.getItem(STORE_KEY) || "{}")); } catch (e) {}
+
+// ---------- image model ----------
+let W, H, drawn, center, headX, tailX, backdrop;
+
+function loadImage(src) {
+  return new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
+}
+
+function classify(img) {
+  const c = document.createElement("canvas");
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext("2d"); g.drawImage(img, 0, 0);
+  const d = g.getImageData(0, 0, c.width, c.height).data;
+  const lab = new Uint8Array(c.width * c.height);
+  let x0 = c.width, x1 = -1, y0 = c.height, y1 = -1;
+  for (let i = 0, p = 0; i < lab.length; i++, p += 4) {
+    let best = 0, bd = Infinity;
+    for (let k = 0; k < 5; k++) {
+      const s = SOURCE_PALETTE[k], dr = d[p] - s[0], dg = d[p + 1] - s[1], db = d[p + 2] - s[2];
+      const dist = dr * dr + dg * dg + db * db;
+      if (dist < bd) { bd = dist; best = k; }
+    }
+    lab[i] = best;
+    if (best) { const x = i % c.width, y = (i / c.width) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  const pad = 60;
+  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+  x1 = Math.min(c.width - 1, x1 + pad); y1 = Math.min(c.height - 1, y1 + pad);
+  W = Math.round((x1 - x0 + 1) * WORK); H = Math.round((y1 - y0 + 1) * WORK);
+  const out = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+    out[y * W + x] = lab[(y0 + Math.floor(y / WORK)) * c.width + x0 + Math.floor(x / WORK)];
+  return out;
+}
+
+function erode(m, iters) {
+  let a = m;
+  for (let it = 0; it < iters; it++) {
+    const b = new Uint8Array(W * H);
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      b[i] = a[i] & a[i - 1] & a[i + 1] & a[i - W] & a[i + W];
+    }
+    a = b;
+  }
+  return a;
+}
+
+function dilate(m) {
+  const b = new Uint8Array(W * H);
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const i = y * W + x;
+    b[i] = m[i] | m[i - 1] | m[i + 1] | m[i - W] | m[i + W];
+  }
+  return b;
+}
+
+function gauss1d(arr, sigma) {
+  if (sigma <= 0) return Float32Array.from(arr);
+  const r = Math.ceil(sigma * 3), k = [];
+  let sum = 0;
+  for (let i = -r; i <= r; i++) { const v = Math.exp(-(i * i) / (2 * sigma * sigma)); k.push(v); sum += v; }
+  const out = new Float32Array(arr.length), n = arr.length;
+  for (let x = 0; x < n; x++) {
+    let acc = 0;
+    for (let i = -r; i <= r; i++) acc += arr[Math.min(n - 1, Math.max(0, x + i))] * k[i + r];
+    out[x] = acc / sum;
+  }
+  return out;
+}
+
+function prepare(labels) {
+  drawn = [1, 2, 3, 4].map(b => {
+    const m = new Uint8Array(W * H);
+    for (let i = 0; i < m.length; i++) m[i] = labels[i] >= b ? 1 : 0;
+    return dilate(erode(m, 1));
+  });
+  const rim = drawn[0], mid = new Float32Array(W), has = [];
+  for (let x = 0; x < W; x++) {
+    let top = -1, bot = -1;
+    for (let y = 0; y < H; y++) if (rim[y * W + x]) { if (top < 0) top = y; bot = y; }
+    if (top >= 0) { has.push(x); mid[x] = (top + bot) / 2; }
+  }
+  tailX = has[0]; headX = has[has.length - 1];
+  const filled = new Float32Array(W);
+  for (let x = 0; x < W; x++) filled[x] = mid[Math.min(headX, Math.max(tailX, x))];
+  for (let j = 1; j < has.length; j++) {
+    const a = has[j - 1], b = has[j];
+    for (let x = a + 1; x < b; x++) filled[x] = mid[a] + (mid[b] - mid[a]) * (x - a) / (b - a);
+  }
+  center = gauss1d(filled, 80 * WORK);
+}
+
+// ---------- crackle ----------
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+function sawtooth(rnd, amp) {
+  const out = new Float32Array(W);
+  const lo = Math.max(1, Math.round(Math.min(P.SEG0, P.SEG1) * WORK)), hi = Math.max(lo, Math.round(Math.max(P.SEG0, P.SEG1) * WORK));
+  let x = 0;
+  while (x < W) {
+    const n = lo + Math.floor(rnd() * (hi - lo + 1));
+    const v = (-P.NOTCH_PULL + rnd() * (1 + P.NOTCH_PULL)) * amp;
+    for (let i = 0; i < n && x + i < W; i++) out[x + i] = v * (1 + (P.EASE_END - 1) * (n > 1 ? i / (n - 1) : 0));
+    x += n;
+  }
+  return out;
+}
+
+function warp(mask, up, down, tailScale) {
+  const out = new Uint8Array(W * H);
+  for (let x = 0; x < W; x++) {
+    const xs = headX - (headX - x) / tailScale;
+    const xi = Math.min(W - 1, Math.max(0, Math.round(xs)));
+    const c = center[xi], x0 = Math.floor(xs), fx = xs - x0;
+    if (x0 < 0 || x0 >= W - 1) continue;
+    for (let y = 0; y < H; y++) {
+      const st = 1 + (y < c ? up[xi] : down[xi]);
+      const ys = c + (y - c) / st;
+      const y0 = Math.floor(ys), fy = ys - y0;
+      if (y0 < 0 || y0 >= H - 1) continue;
+      const i = y0 * W + x0;
+      const v = (mask[i] * (1 - fx) + mask[i + 1] * fx) * (1 - fy) + (mask[i + W] * (1 - fx) + mask[i + W + 1] * fx) * fy;
+      out[y * W + x] = v > 0.5 ? 1 : 0;
+    }
+  }
+  return out;
+}
+
+// A key is the warp's numbers: per band an up and a down push array, plus the tail stretch.
+// The drawn frame is the identity key, so it tweens like any other.
+function identityKey() {
+  return { tail: 1, bands: drawn.map(() => [new Float32Array(W), new Float32Array(W)]) };
+}
+
+function randomKey(rnd) {
+  const damp = new Float32Array(W);
+  for (let x = 0; x < W; x++) {
+    const t = Math.min(1, Math.max(0, (x - tailX) / (headX - tailX)));
+    damp[x] = t > P.DAMP_START ? 1 + (P.HEAD_DAMP - 1) * (t - P.DAMP_START) / (1 - P.DAMP_START || 1) : 1;
+  }
+  const tail = 1 + (rnd() * 2 - 1) * P.TAIL_FLICKER;
+  const amps = [P.AMP0, P.AMP1, P.AMP2, P.AMP3];
+  return {
+    tail,
+    bands: drawn.map((m, b) => {
+      const up = sawtooth(rnd, amps[b]), down = sawtooth(rnd, amps[b]);
+      for (let x = 0; x < W; x++) { up[x] *= damp[x]; down[x] *= damp[x]; }
+      return [up, down];
+    }),
+  };
+}
+
+function lerpKey(a, b, t) {
+  const mix = (p, q) => { const o = new Float32Array(W); for (let x = 0; x < W; x++) o[x] = p[x] + (q[x] - p[x]) * t; return o; };
+  return { tail: a.tail + (b.tail - a.tail) * t, bands: a.bands.map((pair, i) => [mix(pair[0], b.bands[i][0]), mix(pair[1], b.bands[i][1])]) };
+}
+
+function keyMasks(key) {
+  return drawn.map((m, b) => warp(m, key.bands[b][0], key.bands[b][1], key.tail));
+}
+
+const ease = t => P.TWEEN_EASE ? t * t * (3 - 2 * t) : t;
+
+function compose(masks) {
+  const labels = new Uint8Array(W * H);
+  const iters = Math.max(1, Math.round(2 * WORK));
+  let outer = null;
+  masks.forEach((m, b) => {
+    let mm = m;
+    if (outer) { const e = erode(outer, iters); mm = new Uint8Array(W * H); for (let i = 0; i < mm.length; i++) mm[i] = m[i] & e[i]; }
+    for (let i = 0; i < mm.length; i++) if (mm[i]) labels[i] = b + 1;
+    outer = mm;
+  });
+  return labels;
+}
+
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+function bodyCanvas(labels) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"), img = g.createImageData(W, H), d = img.data;
+  const paint = [null, hex(P.C0), hex(P.C1), hex(P.C2), hex(P.C3)];
+  for (let i = 0, p = 0; i < labels.length; i++, p += 4) {
+    const k = labels[i]; if (!k) continue;
+    d[p] = paint[k][0]; d[p + 1] = paint[k][1]; d[p + 2] = paint[k][2]; d[p + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+function blur2d(src, sigma) {
+  // Three box passes per axis approximate a gaussian.
+  const boxes = [], n = 3, wIdeal = Math.sqrt((12 * sigma * sigma / n) + 1);
+  let wl = Math.floor(wIdeal); if (wl % 2 === 0) wl--;
+  const m = Math.round((12 * sigma * sigma - n * wl * wl - 4 * n * wl - 3 * n) / (-4 * wl - 4));
+  for (let i = 0; i < n; i++) boxes.push(((i < m ? wl : wl + 2) - 1) / 2);
+  let a = Float32Array.from(src), b = new Float32Array(src.length);
+  for (const r of boxes) { boxH(a, b, r); boxV(b, a, r); }
+  return a;
+}
+function boxH(s, t, r) {
+  const iarr = 1 / (r + r + 1);
+  for (let y = 0; y < H; y++) {
+    let ti = y * W, li = ti, ri = ti + r;
+    const fv = s[ti], lv = s[ti + W - 1];
+    let val = (r + 1) * fv;
+    for (let j = 0; j < r; j++) val += s[ti + Math.min(j, W - 1)];
+    for (let j = 0; j <= r; j++) { val += s[Math.min(ri++, y * W + W - 1)] - fv; t[ti++] = val * iarr; }
+    for (let j = r + 1; j < W - r; j++) { val += s[ri++] - s[li++]; t[ti++] = val * iarr; }
+    for (let j = W - r; j < W; j++) { val += lv - s[li++]; t[ti++] = val * iarr; }
+  }
+}
+function boxV(s, t, r) {
+  const iarr = 1 / (r + r + 1);
+  for (let x = 0; x < W; x++) {
+    let ti = x, li = ti, ri = ti + r * W;
+    const fv = s[ti], lv = s[ti + W * (H - 1)];
+    let val = (r + 1) * fv;
+    for (let j = 0; j < r; j++) val += s[ti + Math.min(j, H - 1) * W];
+    for (let j = 0; j <= r; j++) { val += s[Math.min(ri, x + W * (H - 1))] - fv; ri += W; t[ti] = val * iarr; ti += W; }
+    for (let j = r + 1; j < H - r; j++) { val += s[ri] - s[li]; li += W; ri += W; t[ti] = val * iarr; ti += W; }
+    for (let j = H - r; j < H; j++) { val += lv - s[li]; li += W; t[ti] = val * iarr; ti += W; }
+  }
+}
+
+function glowCanvas(labels) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  if (P.GLOW_SIGMA <= 0 || P.GLOW_ALPHA <= 0) return c;
+  const m = new Float32Array(W * H);
+  for (let i = 0; i < m.length; i++) m[i] = labels[i] ? 1 : 0;
+  const b = blur2d(m, P.GLOW_SIGMA * WORK);
+  const g = c.getContext("2d"), img = g.createImageData(W, H), d = img.data, col = hex(P.CG);
+  for (let i = 0, p = 0; i < b.length; i++, p += 4) {
+    const a = Math.min(1, b[i] * P.GLOW_GAIN) * P.GLOW_ALPHA;
+    d[p] = col[0]; d[p + 1] = col[1]; d[p + 2] = col[2]; d[p + 3] = a * 255;
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+// ---------- build + playback ----------
+// phase runs in key units: key k spans [k, k+1). Smoothing fills the gap without changing the crackle rate.
+let keys = [], frames = [], perKey = 1, glow = null, phase = 0, playing = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+const blend = document.createElement("canvas");
+
+function build() {
+  const rnd = mulberry32(P.SEED * 2654435761);
+  const drawnLabels = compose(drawn);
+  const params = P.INCLUDE_DRAWN ? [null] : [];
+  while (params.length < P.FRAMES) params.push(randomKey(rnd));
+  keys = params.map(k => bodyCanvas(k ? compose(keyMasks(k)) : drawnLabels));
+  perKey = P.SMOOTH === "tween" ? P.TWEEN + 1 : 1;
+  frames = [];
+  params.forEach((k, i) => {
+    frames.push(keys[i]);
+    if (perKey === 1) return;
+    const a = k || identityKey(), next = params[(i + 1) % params.length], b = next || identityKey();
+    for (let j = 1; j < perKey; j++) frames.push(bodyCanvas(compose(keyMasks(lerpKey(a, b, ease(j / perKey))))));
+  });
+  glow = glowCanvas(drawnLabels);
+  blend.width = W; blend.height = H;
+  phase %= keys.length;
+  document.getElementById("flipcount").textContent = `Flipbook: ${frames.length} frames`;
+  buildStrip();
+  renderExport();
+  draw();
+}
+
+function currentBody() {
+  const n = keys.length;
+  if (P.SMOOTH === "crossfade") {
+    const k = Math.floor(phase) % n, f = ease(phase - Math.floor(phase));
+    const g = blend.getContext("2d");
+    g.globalCompositeOperation = "copy"; g.globalAlpha = 1 - f; g.drawImage(keys[k], 0, 0);
+    g.globalCompositeOperation = "lighter"; g.globalAlpha = f; g.drawImage(keys[(k + 1) % n], 0, 0);
+    g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+    return blend;
+  }
+  return frames[currentIndex()];
+}
+
+function currentIndex() { return Math.floor(phase * perKey + 1e-6) % Math.max(1, frames.length); }
+
+function drawBolt(g, body, x, y, length, angleDeg) {
+  const h = length * H / W;
+  g.save();
+  g.translate(x, y); g.rotate(angleDeg * Math.PI / 180);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+  g.globalCompositeOperation = "lighter";
+  g.drawImage(glow, -length / 2, -h / 2, length, h);
+  g.globalCompositeOperation = "source-over";
+  g.drawImage(body, -length / 2, -h / 2, length, h);
+  g.restore();
+}
+
+function draw() {
+  if (!frames.length) return;
+  const body = currentBody();
+  const s = document.getElementById("stage"), g = s.getContext("2d");
+  const aspect = H / W, sw = s.width, sh = Math.round(sw * aspect * 1.08);
+  if (s.height !== sh) s.height = sh;
+  g.globalCompositeOperation = "source-over";
+  if (document.getElementById("bg").value === "nebula" && backdrop) {
+    const r = Math.max(sw / backdrop.width, sh / backdrop.height);
+    g.drawImage(backdrop, (sw - backdrop.width * r) / 2, (sh - backdrop.height * r) / 2, backdrop.width * r, backdrop.height * r);
+  } else { g.fillStyle = "#000"; g.fillRect(0, 0, sw, sh); }
+  drawBolt(g, body, sw / 2, sh / 2, sw * 0.96, 0);
+
+  const c = document.getElementById("ingame"), gi = c.getContext("2d");
+  if (backdrop) gi.drawImage(backdrop, 0, 0, c.width, c.height);
+  for (const [len, x, y, ang] of [[150, 300, 250, 36], [100, 560, 120, 36], [60, 140, 380, -20]]) drawBolt(gi, body, x, y, len, ang);
+  const z = +document.getElementById("zoom").value;
+  c.style.width = c.width * z + "px";
+
+  const k = Math.floor(phase + 1e-6) % keys.length;
+  let detail = P.INCLUDE_DRAWN && k === 0 ? " (drawn)" : "";
+  if (P.SMOOTH === "tween") { const j = currentIndex() % perKey; if (j) detail = ` · in-between ${j}/${perKey - 1}`; }
+  if (P.SMOOTH === "crossfade") { const f = phase - Math.floor(phase); if (f > 0.01) detail = ` · ${Math.round(f * 100)}% to next`; }
+  document.getElementById("readout").textContent = `key ${k + 1} / ${keys.length}${detail}`;
+  document.querySelectorAll("#strip button").forEach((b, i) => b.classList.toggle("on", i === k));
+}
+
+function buildStrip() {
+  const strip = document.getElementById("strip");
+  strip.textContent = "";
+  keys.forEach((body, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", `Show key ${i + 1}`);
+    const c = document.createElement("canvas"); c.width = 300; c.height = Math.round(300 * H / W * 1.1);
+    const g = c.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height);
+    drawBolt(g, body, c.width / 2, c.height / 2, c.width * 0.96, 0);
+    const label = document.createElement("span");
+    label.textContent = P.INCLUDE_DRAWN && i === 0 ? "1 · drawn" : String(i + 1);
+    b.append(c, label);
+    b.addEventListener("click", () => { phase = i; setPlaying(false); draw(); });
+    strip.append(b);
+  });
+}
+
+function setPlaying(v) { playing = v; document.getElementById("play").textContent = v ? "Pause" : "Play"; }
+
+function step() {
+  setPlaying(false);
+  const unit = P.SMOOTH === "tween" ? 1 / perKey : P.SMOOTH === "crossfade" ? 0.25 : 1;
+  phase = ((Math.floor(phase / unit + 1e-6) + 1) * unit) % keys.length;
+  draw();
+}
+
+let last = null;
+function tick(t) {
+  if (last !== null && playing && keys.length) {
+    const before = currentIndex();
+    phase = (phase + (t - last) / 1000 * P.FPS) % keys.length;
+    if (P.SMOOTH === "crossfade" || currentIndex() !== before) draw();
+  }
+  last = t;
+  requestAnimationFrame(tick);
+}
+
+// ---------- knobs ----------
+const NUMERIC = ["FRAMES", "FPS", "SEG0", "SEG1", "AMP0", "AMP1", "AMP2", "AMP3", "NOTCH_PULL", "EASE_END", "DAMP_START", "HEAD_DAMP", "TAIL_FLICKER", "GLOW_SIGMA", "GLOW_GAIN", "GLOW_ALPHA", "SEED", "TWEEN"];
+const COLORS = ["C0", "C1", "C2", "C3", "CG"];
+const PLAYBACK_ONLY = new Set(["FPS"]);
+
+function syncInputs() {
+  for (const k of NUMERIC) { const el = document.getElementById(k); el.value = P[k]; showValue(k); }
+  document.getElementById("INCLUDE_DRAWN").checked = P.INCLUDE_DRAWN;
+  document.getElementById("TWEEN_EASE").checked = P.TWEEN_EASE;
+  document.getElementById("SMOOTH").value = P.SMOOTH;
+  document.getElementById("TWEEN").disabled = P.SMOOTH !== "tween";
+  for (const k of COLORS) document.getElementById(k).value = P[k];
+}
+function showValue(k) { const o = document.querySelector(`output[for="${k}"]`); if (o) o.textContent = P[k]; }
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(P)); } catch (e) {} }
+
+let pending = 0;
+function schedule() { clearTimeout(pending); pending = setTimeout(build, 60); }
+
+for (const k of NUMERIC) document.getElementById(k).addEventListener("input", e => {
+  P[k] = +e.target.value; showValue(k); save();
+  if (PLAYBACK_ONLY.has(k)) renderExport(); else schedule();
+});
+document.getElementById("INCLUDE_DRAWN").addEventListener("change", e => { P.INCLUDE_DRAWN = e.target.checked; save(); schedule(); });
+document.getElementById("TWEEN_EASE").addEventListener("change", e => { P.TWEEN_EASE = e.target.checked; save(); schedule(); });
+document.getElementById("SMOOTH").addEventListener("change", e => { P.SMOOTH = e.target.value; syncInputs(); save(); schedule(); });
+for (const k of COLORS) document.getElementById(k).addEventListener("input", e => { P[k] = e.target.value; save(); schedule(); });
+document.getElementById("reroll").addEventListener("click", () => { P.SEED = (P.SEED + 1 + Math.floor(Math.random() * 997)) % 100000; syncInputs(); save(); build(); });
+document.getElementById("reset").addEventListener("click", () => { P = { ...DEFAULTS }; syncInputs(); save(); build(); });
+document.getElementById("play").addEventListener("click", () => setPlaying(!playing));
+document.getElementById("step").addEventListener("click", step);
+document.getElementById("bg").addEventListener("change", draw);
+document.getElementById("zoom").addEventListener("change", draw);
+
+const tuple = h => `(${hex(h).join(", ")})`;
+function renderExport() {
+  const n = v => Number(v.toFixed(3));
+  document.getElementById("export").textContent =
+`FRAMES = ${P.FRAMES}
+FPS = ${P.FPS}
+INCLUDE_DRAWN = ${P.INCLUDE_DRAWN ? "True" : "False"}
+SEG = (${Math.min(P.SEG0, P.SEG1)}, ${Math.max(P.SEG0, P.SEG1)})
+AMP = [${[P.AMP0, P.AMP1, P.AMP2, P.AMP3].map(n).join(", ")}]
+NOTCH_PULL = ${n(P.NOTCH_PULL)}
+EASE_END = ${n(P.EASE_END)}
+DAMP_START = ${n(P.DAMP_START)}
+HEAD_DAMP = ${n(P.HEAD_DAMP)}
+TAIL_FLICKER = ${n(P.TAIL_FLICKER)}
+GLOW_SIGMA = ${P.GLOW_SIGMA}
+GLOW_GAIN = ${n(P.GLOW_GAIN)}
+GLOW_ALPHA = ${n(P.GLOW_ALPHA)}
+SEED = ${P.SEED}
+SMOOTH = "${P.SMOOTH}"
+TWEEN = ${P.TWEEN}
+TWEEN_EASE = ${P.TWEEN_EASE ? "True" : "False"}
+PAINT = [${[P.C0, P.C1, P.C2, P.C3].map(tuple).join(", ")}]
+GLOW = ${tuple(P.CG)}`;
+}
+document.getElementById("copy").addEventListener("click", () => {
+  const text = document.getElementById("export").textContent, note = document.getElementById("copied");
+  navigator.clipboard.writeText(text).then(() => { note.textContent = "Copied"; }, () => {
+    const r = document.createRange(); r.selectNodeContents(document.getElementById("export"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    note.textContent = "Selected; press Ctrl+C to copy";
+  });
+  setTimeout(() => { note.textContent = ""; }, 2500);
+});
+
+// ---------- boot ----------
+syncInputs();
+setPlaying(playing);
+Promise.all([loadImage(BOLT_SRC), loadImage(BACKDROP_SRC)]).then(([bolt, bd]) => {
+  backdrop = bd;
+  prepare(classify(bolt));
+  build();
+  requestAnimationFrame(tick);
+});
+</script>
