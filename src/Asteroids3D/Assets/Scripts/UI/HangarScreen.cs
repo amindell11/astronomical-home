@@ -153,30 +153,42 @@ namespace UI
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
 
         // Reads catalog prefab assets, where Awake never runs: every weapon property used must be serialized state.
-        internal static string Describe(WeaponComponent weapon) => weapon switch
+        internal static string Describe(WeaponComponent weapon)
         {
-            Lasers lasers =>
-                $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
-                (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : ""),
-            ChargeLasers chargeLasers =>
-                $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
-                $"   |   Speed {chargeLasers.ProjectileSpeed:0}",
-            Railguns railguns =>
-                $"Damage {railguns.Damage:0}   |   Range {railguns.BeamRange:0}{FullCharge(railguns.Charge)}   |   Hitscan",
-            Rippers rippers =>
-                $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
-                (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
-                $"   |   Speed {rippers.ProjectileSpeed:0}",
-            Missiles missiles =>
-                $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
-                (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
-                "   |   Lock-on homing",
-            Grenades grenades =>
-                $"Blast {grenades.BlastDamage:0} to {grenades.BlastRadius:0}u, hits friend and foe" +
-                (grenades.Rounds ? $"   |   {grenades.Rounds.MaxAmmo} charges{Refill(grenades.Rounds)}" : "") +
-                $"   |   Fuse {grenades.FuseSeconds:0.#}s",
-            _ => weapon.DisplayName,
-        };
+            var lasers = weapon as Lasers;
+            if (lasers)
+                return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
+                       (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
+
+            var chargeLasers = weapon as ChargeLasers;
+            if (chargeLasers)
+                return $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
+                       $"   |   Speed {chargeLasers.ProjectileSpeed:0}";
+
+            var railguns = weapon as Railguns;
+            if (railguns)
+                return $"Damage {railguns.Damage:0}   |   Range {railguns.BeamRange:0}{FullCharge(railguns.Charge)}   |   Hitscan";
+
+            var rippers = weapon as Rippers;
+            if (rippers)
+                return $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
+                       (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
+                       $"   |   Speed {rippers.ProjectileSpeed:0}";
+
+            var missiles = weapon as Missiles;
+            if (missiles)
+                return $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
+                       (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
+                       "   |   Lock-on homing";
+
+            var grenades = weapon as Grenades;
+            if (grenades)
+                return $"Blast {grenades.BlastDamage:0} to {grenades.BlastRadius:0}u, hits friend and foe" +
+                       (grenades.Rounds ? $"   |   {grenades.Rounds.MaxAmmo} charges{Refill(grenades.Rounds)}" : "") +
+                       $"   |   Fuse {grenades.FuseSeconds:0.#}s";
+
+            return weapon.DisplayName;
+        }
 
         private static string Rate(float? shotsPerSecond) =>
             shotsPerSecond is float rate ? $"   |   Rate {rate:0.#}/s" : "";
