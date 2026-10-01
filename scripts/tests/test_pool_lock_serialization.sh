@@ -58,7 +58,7 @@ git add file.txt && git commit -qm base && git push -q origin main
 git worktree add -q -b agent-1 "$TMP/agent-1" main
 git worktree add -q -b agent-2 "$TMP/agent-2" main
 age_lock() {
-  date -u -d "@$(( $(date +%s) - 100 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/timestamp"
+  date -u -d "@$(( $(date +%s) - 100 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/last_use"
 }
 start_slow() {
   rm -f "$SYNC/ready" "$SYNC/resume" "$SYNC/holder"
