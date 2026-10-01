@@ -206,6 +206,11 @@ Format: **term** — definition. *(authority)*
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
+- **merge turn** — the pool-wide right to run a merge gate, held by one gate at
+  a time from before its fetch through `gh pr merge`. Order among waiting gates
+  is not guaranteed. Machine-local: a base move from any other clone is caught
+  only by the gate's base re-check. Any other push to main takes the turn
+  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
@@ -381,6 +386,16 @@ Format: **term** — definition. *(authority)*
   engage/disengage metrics. Definition lives at `EngagementTracker`
   (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
   as disengagement, geometric so heat lockouts do not.
+- **duel lane** — the harness lane that runs the baseline duel: a scripted
+  shooter carrying one weapon alone in its primary weapon slot against an
+  unarmed target. Its rows are a snapshot, not a constant: judge a change by
+  running the lane on the base and the head with the same seeds, and quote the
+  replicate gap between two identical runs as the noise. *(#409 · DuelLane.cs)*
+- **marksmanship probe** — the harness probe that counts, per episode, what the
+  shooter's weapon fired and what it hit. A hit is one damage event on the
+  target, so a missile's contact and splash are not told apart, and a shot
+  still in flight when the target dies is fired and never hits.
+  *(MarksmanshipProbe, MarksmanshipSampler)*
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
