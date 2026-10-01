@@ -85,10 +85,11 @@ namespace Tests.EditMode
         {
             var offer = HangarOffer();
             var ship = Scratch(offer.ships[0]);
-            var weapon = Scratch(ship.Weapons.PrimaryMountPrefab);
+            var prefab = ship.Weapons.PrimaryMountPrefab;
+            var weapon = Scratch(prefab);
             ship.Weapons.primaryMount = weapon;
 
-            Assert.AreEqual(StatHash.Of(ship.Weapons.PrimaryMountPrefab), StatHash.Of(weapon),
+            Assert.AreEqual(StatHash.Of(prefab), StatHash.Of(weapon),
                 "A copy with the same name and numbers hashes like the prefab.");
             CollectionAssert.IsSubsetOf(StatHash.Lines(weapon), StatHash.Lines(ship),
                 "A mounted weapon's lines are part of its ship's lines.");
@@ -97,7 +98,7 @@ namespace Tests.EditMode
 
             var engine = StatHash.Of(ship.Engine);
             SetSerialized(weapon.GetComponent<Cooldown>(), "fireRate", property => property.floatValue += 0.01f);
-            Assert.AreNotEqual(StatHash.Of(ship.Weapons.PrimaryMountPrefab), StatHash.Of(weapon),
+            Assert.AreNotEqual(StatHash.Of(prefab), StatHash.Of(weapon),
                 "A marked number on the weapon's condition moves the weapon's hash.");
             Assert.AreEqual(engine, StatHash.Of(ship.Engine), "A weapon edit leaves the engine's hash alone.");
         }
