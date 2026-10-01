@@ -170,13 +170,16 @@ Commands:
       base: main) — submit without the test run. An explicit --title
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
-      PR already exists for that head/base, prints URL.
+      PR already exists for that head/base, prints URL. Exits 2 before
+      anything runs when the body negates a closing keyword ("does not
+      close #N"): GitHub still closes #N (scripts/lib/negated_close.py).
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
       branch (task/<lease>), and create PR — but keep the lock so the agent
       can respond to review feedback. An explicit --title and exactly one of
-      --body/--body-file are REQUIRED. Test args after -- are passed to
+      --body/--body-file are REQUIRED, and the body passes create-pr's
+      exit-2 check. Test args after -- are passed to
       unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
       -ScopeType Workspace, unfiltered) records merge-grade proof;
       scoped runs still open the PR but the merge gate will re-test.
@@ -1438,7 +1441,20 @@ parse_pr_flags() {
         return 1 ;;
     esac
   done
-  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE"
+  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE" || return 1
+  require_no_negated_close "$cmd"
+}
+
+# GitHub's keyword parser ignores negation: "does not close #N" still closes #N on merge.
+require_no_negated_close() {
+  local cmd="$1" rc=0
+  if [[ -n "$PR_BODY_FILE" ]]; then
+    python3 "$SCRIPT_DIR/lib/negated_close.py" < "$PR_BODY_FILE" || rc=$?
+  else
+    python3 "$SCRIPT_DIR/lib/negated_close.py" <<<"$PR_BODY" || rc=$?
+  fi
+  [[ "$rc" -eq 0 ]] || echo "$cmd: refusing the PR body — reword the lines above; no PR was created" >&2
+  return "$rc"
 }
 
 # Push the slot branch to its minted task branch and open the PR (or report the open one).
@@ -1473,7 +1489,7 @@ cmd_create_pr() {
     shift
   fi
 
-  parse_pr_flags "create-pr" 0 "$@" || return 1
+  parse_pr_flags "create-pr" 0 "$@" || return
   require_gh || return 1
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
@@ -1502,7 +1518,7 @@ cmd_submit() {
 
   # Preflight: flags and tooling are checked before the test run so a missing one fails in
   # seconds, not after a full suite.
-  parse_pr_flags "submit" 1 "$@" || return 1
+  parse_pr_flags "submit" 1 "$@" || return
   require_gh || return 1
 
   local base_branch
