@@ -1,0 +1,235 @@
+{
+  "verdict": "pass",
+  "mesh_parts": 37,
+  "external_dependencies": 0,
+  "checks": [
+    "finite geometry",
+    "live mirrors anchored to shared origin",
+    "evaluated bilateral symmetry",
+    "self-contained source"
+  ],
+  "parts": [
+    {
+      "part": "01 central fuselage",
+      "source_vertices": 45,
+      "evaluated_faces": 68,
+      "live_symmetry": true
+    },
+    {
+      "part": "02 black canopy",
+      "source_vertices": 25,
+      "evaluated_faces": 36,
+      "live_symmetry": true
+    },
+    {
+      "part": "03 canopy side cheeks",
+      "source_vertices": 8,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "04 dorsal armor",
+      "source_vertices": 6,
+      "evaluated_faces": 26,
+      "live_symmetry": true
+    },
+    {
+      "part": "05 dorsal shoulder bevel",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "06 dorsal lavender rails",
+      "source_vertices": 3,
+      "evaluated_faces": 10,
+      "live_symmetry": true
+    },
+    {
+      "part": "07 rear crest",
+      "source_vertices": 5,
+      "evaluated_faces": 20,
+      "live_symmetry": true
+    },
+    {
+      "part": "08 ventral armor",
+      "source_vertices": 18,
+      "evaluated_faces": 52,
+      "live_symmetry": true
+    },
+    {
+      "part": "10 upper swept wings",
+      "source_vertices": 15,
+      "evaluated_faces": 82,
+      "live_symmetry": true
+    },
+    {
+      "part": "11 upper wing gray planes",
+      "source_vertices": 12,
+      "evaluated_faces": 64,
+      "live_symmetry": true
+    },
+    {
+      "part": "12 upper wing lavender tips",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "13 charcoal trailing spars",
+      "source_vertices": 8,
+      "evaluated_faces": 40,
+      "live_symmetry": true
+    },
+    {
+      "part": "20 lower swept blades",
+      "source_vertices": 10,
+      "evaluated_faces": 52,
+      "live_symmetry": true
+    },
+    {
+      "part": "21 lower blade lavender tips",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "22 lower blade dark inner facets",
+      "source_vertices": 7,
+      "evaluated_faces": 34,
+      "live_symmetry": true
+    },
+    {
+      "part": "30 forward lower fins",
+      "source_vertices": 7,
+      "evaluated_faces": 34,
+      "live_symmetry": true
+    },
+    {
+      "part": "31 forward fin lavender edges",
+      "source_vertices": 5,
+      "evaluated_faces": 22,
+      "live_symmetry": true
+    },
+    {
+      "part": "40 forward outriggers",
+      "source_vertices": 13,
+      "evaluated_faces": 70,
+      "live_symmetry": true
+    },
+    {
+      "part": "41 outrigger lavender toes",
+      "source_vertices": 5,
+      "evaluated_faces": 22,
+      "live_symmetry": true
+    },
+    {
+      "part": "42 outrigger inner sockets",
+      "source_vertices": 5,
+      "evaluated_faces": 22,
+      "live_symmetry": true
+    },
+    {
+      "part": "50 aft split prongs",
+      "source_vertices": 19,
+      "evaluated_faces": 106,
+      "live_symmetry": true
+    },
+    {
+      "part": "51 midship auxiliary vanes",
+      "source_vertices": 7,
+      "evaluated_faces": 34,
+      "live_symmetry": true
+    },
+    {
+      "part": "53 auxiliary vane roots",
+      "source_vertices": 4,
+      "evaluated_faces": 16,
+      "live_symmetry": true
+    },
+    {
+      "part": "52 auxiliary vane feet",
+      "source_vertices": 5,
+      "evaluated_faces": 22,
+      "live_symmetry": true
+    },
+    {
+      "part": "60 engine spine",
+      "source_vertices": 20,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "61 engine side fairings",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "62 engine raised ribs",
+      "source_vertices": 4,
+      "evaluated_faces": 16,
+      "live_symmetry": true
+    },
+    {
+      "part": "63 ventral engine stripe",
+      "source_vertices": 12,
+      "evaluated_faces": 34,
+      "live_symmetry": true
+    },
+    {
+      "part": "70 shoulder pivot housing",
+      "source_vertices": 24,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "71 shoulder lavender cap",
+      "source_vertices": 24,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "70 forward fin pivot housing",
+      "source_vertices": 24,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "71 forward fin lavender cap",
+      "source_vertices": 24,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "64 exhaust rim",
+      "source_vertices": 36,
+      "evaluated_faces": 48,
+      "live_symmetry": true
+    },
+    {
+      "part": "65 exhaust recess",
+      "source_vertices": 10,
+      "evaluated_faces": 12,
+      "live_symmetry": true
+    },
+    {
+      "part": "12 upper wing lavender tips underside",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "21 lower blade lavender tips underside",
+      "source_vertices": 6,
+      "evaluated_faces": 28,
+      "live_symmetry": true
+    },
+    {
+      "part": "31 forward fin lavender edges underside",
+      "source_vertices": 5,
+      "evaluated_faces": 22,
+      "live_symmetry": true
+    }
+  ]
+}
