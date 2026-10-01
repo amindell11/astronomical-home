@@ -62,7 +62,7 @@ baked into the hull atlas, removing the overlay's triangular gray seams. The hul
 uses `Vanguard vivid paint.mat` with neutral orange gain; the texture GUID is
 unchanged. The production FBX is unchanged.
 
-The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/0715d97bfce2a4bcbf649d2398196dc6d3462bc9/pipeline/README.md)
+The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/3da0da5de39c07b98b49f203a13427ce2dbaf13d/pipeline/README.md)
 includes the recovered Crimson recipes, generation helpers and preservation
 checks. Use that pipeline for this source; `export_study.py` regenerates the older
 study overlays and is not the selected paint pipeline. The breakup work in
