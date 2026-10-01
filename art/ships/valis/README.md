@@ -4,4 +4,7 @@
 
 Approved concept C, top view and eight-view turnaround are the design authority. The center body and forward armor slope toward the nose; lower angled wings remain visible from above. Roster placement remains undecided.
 
-Review evidence and construction/validation helpers are preserved separately on `evidence/valis-geometry`, commit `e76beab8b18f64b1e54e9a5396c7289a0b38cdfd`. Publication is pending explicit approval because the repository is public. The local evidence checkout is `results/valis-evidence/`; its README indexes the complete review package.
+Review evidence and construction/validation helpers are preserved separately on `evidence/valis-geometry`, commit `f0a6977aa1aa34816c395e99bd7e7e6575ac08d4`. Publication is pending explicit approval because the repository is public. The local evidence checkout is `results/valis-evidence/`; its README indexes the complete review package.
+
+The current source includes the user's shape edits and fitted panel/edge cleanup. The original procedural build is historical; editing starts from this saved Blender file. The user's pre-cleanup live state is preserved in the evidence branch under history/user-shape-cleanup/.
+
