@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Linq;
 using Cameras;
 using Game;
 using Substrate.Sessions;
@@ -17,10 +18,10 @@ using Substrate.Services.Objectives;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
-    /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
-    /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
-    /// <see cref="GameHost.RunHangar"/>, so the flow is driven there.
+    /// While the hangar screen is open the player's commander must be inactive — primary fire shares
+    /// the left mouse button with UI clicks, so a live commander turns every hangar button press into a
+    /// weapon shot on the ship behind the screen — and its HUD hidden. Launch must bring both back.
+    /// The guarantee is the rig's park/unpark, not the hangar's, so the hangar flow drives it here.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
@@ -65,7 +66,7 @@ namespace Tests.PlayMode
                 servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
-            Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
+            Assert.IsNotNull(rig.Overlay, "rig built a HUD");
 
             // Host stays inactive so its flow never runs; the rig hosts the hangar coroutine.
             hostGo = new GameObject("TestHost");
@@ -85,8 +86,9 @@ namespace Tests.PlayMode
 
             var screen = Object.FindFirstObjectByType<HangarScreen>();
             Assert.IsNotNull(screen, "interactive path instantiated the hangar screen");
-            Assert.IsFalse(rig.Player.Commander.enabled,
+            Assert.IsFalse(rig.Player.Commander.isActiveAndEnabled,
                 "player input is disconnected while the hangar screen is open");
+            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar screen is open");
 
             var launchButton = screen.launchButton;
             Assert.IsNotNull(launchButton, "hangar screen has a launch button");
@@ -96,8 +98,16 @@ namespace Tests.PlayMode
             yield return null;
 
             Assert.IsTrue(finished, "RunHangar completed after Launch");
-            Assert.IsTrue(rig.Player.Commander.enabled, "player input is restored after launch");
+            Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
+            Assert.IsTrue(HudVisible(), "the HUD is back after launch");
             Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
+        }
+
+        private bool HudVisible()
+        {
+            var canvases = rig.Overlay.GetComponentsInChildren<Canvas>(true);
+            Assert.IsNotEmpty(canvases, "test premise: the HUD has canvases");
+            return canvases.All(c => c.enabled);
         }
     }
 }
