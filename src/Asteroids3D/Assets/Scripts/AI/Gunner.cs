@@ -48,7 +48,7 @@ namespace AI
             ClearTarget();
         }
 
-        /// <summary>Pushes each slot's raw trigger every step: held while its sight has a solution, pressed on the rising edge.</summary>
+        /// <summary>Pushes each slot's raw trigger every step; pressed marks only the step held rises.</summary>
         public void Fire(bool engagePrimary, bool engageSecondary)
         {
             if (weapons == null || actuator == null) return;
