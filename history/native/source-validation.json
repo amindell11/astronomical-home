@@ -1,0 +1,557 @@
+{
+  "source": "art\\ships\\vanguard\\drawn-study\\VanguardStructure.blend",
+  "source_sha256": "da5c7cc9591dd4455fee46c97c4f9747b801ecb6536efd5a5fbf4bf1573abbae",
+  "painted_source": "art\\ships\\vanguard\\drawn-study\\VanguardPainted.blend",
+  "painted_source_sha256": "9cf401f99b3c820d094409d512686a290770d5c9ac999de84d4a8dc8512a74ec",
+  "unchanged_all_scene_geometry_uvs_normals_transforms_modifiers": true,
+  "painted_atlas_size": [
+    4096,
+    4096
+  ],
+  "painted_atlas_packed": true,
+  "wear_hidden": true,
+  "service_overlay_hidden": true,
+  "scene_mesh_counts": {
+    "NebulaTest_SkyboxProto": 1,
+    "Scene": 29,
+    "Vanguard - Texture MVP": 14
+  },
+  "geometry_fingerprints": {
+    "NebulaTest_SkyboxProto": {
+      "NebulaDomain": {
+        "coordinates": "c6aa6a730aeda578a616845b184a0c0ca6c15244bbccb4a214c09ddeda0e9098",
+        "topology": "399abc92b4f3a4ba262b21cd3896a4da9fa39c0ac61b132d6cd0476316447241",
+        "uvs": {
+          "UVMap": "c137d30a4ac0a0f734f0fc9ff884887e723424011f4fac0b15acb137627ffa0c"
+        },
+        "normals": "5ce4318e7d84334541f8e98311d55e5319596de1b6a1e68e64e33017b7d81b80",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      }
+    },
+    "Scene": {
+      "Starship_Vanguard_0606163455_texture": {
+        "coordinates": "a6cd313dfdb3af6f65860fa511478ad631c77d0365fee5ff3677dc58557b6368",
+        "topology": "5754acfcd3608fc2b03728f89f3db34a895a271c3ad05921ebca1fcc095d08d4",
+        "uvs": {
+          "UVMap": "a77ac9250ffb99e7d48a375810ebbf2a3569f2ff50610fb10102be9da81dc02d"
+        },
+        "normals": "154e75483d8b4c479abe16ba40d012ff83fd5470fcb2b7de6e172c58e06866a8",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_01_Access_Panel": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "c692eacd8b2d8120cd6de1a57a1ed6cbfc833f95efa477ae184e36bc0f7ebced"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_02_Inset_Strip": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "65c95f69f6f0737fb58591f8fbdb50fe84bd7e40370b8308d9e2b88e9b22b9a6"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_03_Trapezoid_Panel": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "2fd0c90ca9a5a03087bf82e5a6873217b6a04f8543332ac201780a80ee940cc4"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_04_L_Seam": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "1795d1664f04b6b455fb7d91f39836074b02bf7df33e9b351052d29cf36a0999"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_05_Hex_Bolt": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "0b1c225e242790f7dd31dbad3ea21c1631dc3741e56268f7785f756d883d926f"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_06_Four_Bolt_Plate": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "ea8e32f6ed4ae47d26110f6dc98b628eb90a843e13607e7c2cb30fc7c82bb637"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_07_Countersunk_Screw": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "11a1c1868f4b08106a0379cbb3aee873abc198b4351b0835a7261c97734d51b6"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_08_Rivet_Strip": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "a11a44817c3440d0f1d418e1d869debcd514ddf21bb14ea4cc3c6b75e762a812"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_09_Slat_Vent": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "766c44a4cc3b3aff7be4237ba52b6f8e94686ccd1090ffcfba2122ec0ed7e360"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_10_Turbine_Vent": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "744b5f5b7b56b805e69d05ebab71f1e162c564466db92d3e08385bf1a44e1e10"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_11_Chevron_Intake": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "c273052f8a6f6bb5efd62f47b3a143db54dc96e7ae169d04c6ece31ceb9aae20"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_12_Honeycomb_Grille": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "4bdd4d5ba38f4ed1c71fd0faf9618d6ee97333bc9ee3234804dd92a8ee60b57b"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_13_Warning_Chevrons": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "14506e9acae6b5e3bca627e8425587d7ccc2dd58607f109d9e2fcdea8a34960f"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_14_Maintenance_Hatch": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "5541df29eba046461ca67a5715133548b9668bb99cad9ac4cd0256b04e5a41de"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_15_Service_Port": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "223e14432ffc4d8875575715fd1189981b7fe5879bc75e385a01e9e1bdbaaf80"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "STAMP_16_Greeble_Panel": {
+        "coordinates": "6ca0cb127739b5f9ffa36fdda379373811514db3d05cbc7f931d730884edd71e",
+        "topology": "a69bcf631fe57b2ac9d5423bf229ce0b20c596a987b76e512cbc7044195677a3",
+        "uvs": {
+          "StampUV": "9dceb81eb171d77908c4caf44b71ad7b69e2a884aa51254bc9d1409f45f1d1fd"
+        },
+        "normals": "74eebfa4afe94896e105604dda8fee612f57665b2b1892831ca3883c44ad2f78",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "Fuselage": {
+        "coordinates": "026b015108d682d674d472ae5f0be00bf3c38fe87fb98935215b1611258ca5f4",
+        "topology": "9780f99023cf106894d7db7bef8a64f4d2d0b91b0a681fcfda20b0ff21af4a7a",
+        "uvs": {
+          "UVMap": "9494e16e5d2ad8111c6f1ee03ea8b127948d4dfd178be06138ab4a316f7fb17a",
+          "LiveryUV": "f1124d9682c329799f3fc5fcd4b41ec78d1ba265183f3be429d28ce9416b80ef",
+          "LiveryUV_Work": "ac41f17013ebc1e577da3787cd88bf9aa815ece9a9860ff1bd0ba89b2ad57883"
+        },
+        "normals": "173beacbb0dd6c655b89db46bf0920f54e6c2d90bb3e0d6f193a8242ab41c897",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ]
+        ]
+      },
+      "Cockpit.001": {
+        "coordinates": "d4d3fb9377a703deab06b2d865d67b6ebaed7931df06cb7b5851c0d6f2454acf",
+        "topology": "a1baf7f72bac26055723c679b2fdba37ba8c0de79fb664e37db4f1173e5d04c3",
+        "uvs": {
+          "UVMap": "b59d665f9e194c79f78c7e1c8b4380f01f31fba637be9c1277646ecade1caf06",
+          "LiveryUV": "52978ce1cc97cfc71f23f4dc5be0ee6199b7aea1eaba503c80fbb6f3cff3e7dd",
+          "LiveryUV_Work": "fa15d667551dffc14985300b710c8eb1a869c7f34c8987c91cffa0abcb91e511"
+        },
+        "normals": "847fcbbafaddd2b88d39722b82f7f900727ff58d3e5c008875c1ce6584eb40d1",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ]
+        ]
+      },
+      "Sparrow Tail": {
+        "coordinates": "7ec4907dbd9ca4bdbbecadb1fda40c3ed5aadc7a6a2b2124a5aaed3d3510417a",
+        "topology": "f182fba2c81cd1bbf8411c36b791c69a68cc15d922a2ccde1265430cef688e01",
+        "uvs": {
+          "UVMap": "d5e73ce19ee41fd769a8eefbef55ad807dc756acba024325285a68c84c4a7512",
+          "LiveryUV": "c378ca443085df58550d82e7df21ccb4261cf5a584aba0ee5175239582128ce5"
+        },
+        "normals": "b7cb09e97ae81d5c05339323d22f64e0a6f1c35491e1bb5e00a3c142bc65a3c0",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ],
+          [
+            "Tapered Thickness",
+            "SOLIDIFY"
+          ]
+        ]
+      },
+      "Wing": {
+        "coordinates": "7267acc8116cfdcfe0894dfa6fc695e68fbf2e5df7967ee80ba2aaf354f4f5d5",
+        "topology": "c31451de308a677341d4040fd29b2c424a45fe293a2b6b3b34631cea5e6c640f",
+        "uvs": {
+          "UVMap": "33a4a9e06d6aebef52384bd94c578ea105f945fd70841288b249f0da1e4a4fa9",
+          "LiveryUV": "38455bd80aed006638085d09cb1907f3d90f416adb94e06fb3ba695b26d34bb9"
+        },
+        "normals": "693d313a8bc2ff5dbf760a557cbb526aef20b4369dbcdf8c4d91b42fad7c49c2",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ],
+          [
+            "Solidify",
+            "SOLIDIFY"
+          ]
+        ]
+      },
+      "Tail": {
+        "coordinates": "a9504a1d02091d78f380a86ec7e70fb0db59674c96065a7e96cf089b5735b969",
+        "topology": "0de122d15b7f0f2519a600b60f0a48d385f268a636ae81a9ac892f6ce44fdaa9",
+        "uvs": {
+          "UVMap": "20f82ecac7a333791659dce028186107d2e80f09a4ab08c356410c666e5fe008",
+          "LiveryUV": "a554766b3ce82d29cb3bb6760a2dc3dc03712748c76b629215844937852f1fa9"
+        },
+        "normals": "d90d42492a0dc1fad8e55ece31ad8252c809455484caed61b4aeaa58102ee447",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Solidify",
+            "SOLIDIFY"
+          ],
+          [
+            "Mirror",
+            "MIRROR"
+          ]
+        ]
+      },
+      "wing_armature": {
+        "coordinates": "6e4939aa38548ccc0677d3f848cfede200c057333712878c76abfeba5d621231",
+        "topology": "00058ff88c3bfaf11675769718b66790b772dabc9eb181bd562e0d056cccc941",
+        "uvs": {
+          "UVMap": "f4da7920860c9ad69f1a1351fab1c47a250ab74f81d1c49dd004d0562c27ad71"
+        },
+        "normals": "7d6fe96faf2bca727847ff0aa7d9b792ee84ac7f4d783bc2d0af0dfb945a8fb3",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ]
+        ]
+      },
+      "wing_armor": {
+        "coordinates": "57e883991924c66a928b8c7fa442d7cf52885615617705b0c50b94b29246e0c7",
+        "topology": "c31451de308a677341d4040fd29b2c424a45fe293a2b6b3b34631cea5e6c640f",
+        "uvs": {
+          "UVMap": "462f5e18ea9ce4ef4ab162ba52a76f153df11ab7c8605bf6e86d5b42681c9b3a"
+        },
+        "normals": "2a72409801c06c0952ef3501d6118723f82c856b82ca8e0cb4386cd74ddd1382",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ],
+          [
+            "Solidify",
+            "SOLIDIFY"
+          ]
+        ]
+      },
+      "wing_tail": {
+        "coordinates": "50fc814ee54df9063c06d9f413a05b067d3ee6edbb3a44e4cacede3e5e4b5462",
+        "topology": "f3e49bcac468b5dff9d7d3154cf1a5bb18d41916d251ddfa652c84823c5c1382",
+        "uvs": {
+          "UVMap": "18e5c2778211f4f08ac702293eb51aa0ff80593d050e6071e0ccb5809ba36e30",
+          "LiveryUV": "2f717673304871f8a929aebf7f2f68e1330457464a8b52abe9ae20710b591770"
+        },
+        "normals": "2b7c45bfb4b72fcc3683604c85ebf717d61790b1d3a3d8ef67a9e6f8038795aa",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Solidify",
+            "SOLIDIFY"
+          ],
+          [
+            "Mirror",
+            "MIRROR"
+          ]
+        ]
+      },
+      "Canopy": {
+        "coordinates": "4ddac97e81ecf414f3b350bdb2914d2bafdaa3a247abcc62e214f0ccc59b3c92",
+        "topology": "dfddc5a876a0c3ba83c580d8c099394ff2bf11e1d10e6661b9e37e5764621df2",
+        "uvs": {
+          "UVMap": "e784cd2acb1d2a5c85ee049cba97ccbf3901bc0c20d389bf012f95607102293c",
+          "LiveryUV_Work": "3b62806104798126aa1822c5258d4302a04ba7b96e907c37e747627e028b4b5a"
+        },
+        "normals": "3f40f5461392d786eaca07b1083a1c2156442b8084be1b4a51746f77b0dd26e4",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ],
+          [
+            "Subdivision",
+            "SUBSURF"
+          ]
+        ]
+      },
+      "Tail Paint": {
+        "coordinates": "a1a331273f26a60cac6d5fed3b94564f73c2a1941cfa023ebf4044b7730c27b5",
+        "topology": "c5ff70c5212a408d3e90812a8f76c087e1fa7994ac3acf9aa981d46d5a9d82f0",
+        "uvs": {
+          "UVMap": "17b0761f87b081d5cf10757ccc89f12be355c70e2e29df288b65b30710dcbcd1"
+        },
+        "normals": "3309cb700fdb9461044ff8efeb9eddd3194e6966a858a3456e7f0cd9a9043e85",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Mirror",
+            "MIRROR"
+          ],
+          [
+            "Shrinkwrap",
+            "SHRINKWRAP"
+          ],
+          [
+            "Mirror.001",
+            "MIRROR"
+          ]
+        ]
+      },
+      "Power Nacelle Housing": {
+        "coordinates": "0ebe1c4ea5ba3d36ce1c8e3a426ede3f9a09726c6040a857e6bf183f0e030d2d",
+        "topology": "5e80d18206939ab88adad9844ea5c7d03ccc457a72b00b7cf8808be89f161aef",
+        "uvs": {},
+        "normals": "13b86bca0f39e514ce70dd0aca8d7eba582018084f3f42df7ffce411865b44ff",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Opposite wing",
+            "MIRROR"
+          ]
+        ]
+      },
+      "Power Nacelle Core": {
+        "coordinates": "abaf80dc4e05aa3604fb83584f9f3d26dab390211fba3a30138c022586164647",
+        "topology": "afb834a20f312f7036a01da1a48385e9692c9aa80c6c6162e5a1f37536ac94c1",
+        "uvs": {},
+        "normals": "c7af389468b8def143d9f29e8f1de45998d24c76346f201e3b5b3069f6866dff",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": [
+          [
+            "Opposite wing",
+            "MIRROR"
+          ]
+        ]
+      }
+    },
+    "Vanguard - Texture MVP": {
+      "MVP Fuselage": {
+        "coordinates": "5e13c9452b0c5783e412414ec9ca43676291aa2b1949db0a67d42ed7829d684c",
+        "topology": "6742267a3ddcacda1599073c88bb7fd093f2420463070a1765907d5bcd7912a9",
+        "uvs": {
+          "MVP_Atlas": "3bc8b239cf411e3c8e545f7c4f71a434c0b0edb4056a7a0aec8631b64d8d57d1"
+        },
+        "normals": "754a920ec19f9efc14fb4061c1ad2b7d7ab7c3ae6a39a834f4d1ac2e71b93a9f",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Cockpit.001": {
+        "coordinates": "1f22eeab4506d26bf0387e0e0ad6d361fba0f9aaf1f25edf9a6e61ea3fcd2ed0",
+        "topology": "f3fb522f8a75384121d6bdce64c28e1f4846160399f6e07e92a1e664dd7aba68",
+        "uvs": {
+          "MVP_Atlas": "763b65b3870974ba89e5749b143e2959550dee0ed1eb20d235bf8c4fae8c3fc8"
+        },
+        "normals": "81e228c520d10e0d6f5323dd762cf37fa2c5820cbcbb6f7352c6e9d3b588ae16",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Sparrow Tail": {
+        "coordinates": "8a9a10a36f9a4dea3654f9145f39af957797adc025376b93c8a1a06b773418f0",
+        "topology": "6d5d5d640e75350f7f891d63896ea002435718ce8017ff55fa9263c525e415a8",
+        "uvs": {
+          "MVP_Atlas": "bf8932b10a7bcffe6c1da3a6e04f2ff39ab8acbf2a427053c763f592ea518508"
+        },
+        "normals": "243a0a98b0f3a43eb77d7affffbd04de6109ac9244b2961d76f056dad3252e58",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Wing": {
+        "coordinates": "a5b4d926dd59167129ccf22601d57509914cbb70e2e48fa6fd4bdcdca755ac9c",
+        "topology": "e99925f3af23ef0ba98bf160d333706577c2d602c46ee48b6c90ffe1ec2d58fd",
+        "uvs": {
+          "MVP_Atlas": "5a9adc56a89d82cfb56bcafc59dba98a9ede434a8dbc2cbce6ca45a65937880c"
+        },
+        "normals": "ba23ff3bac592deeb8593d789fbf5e311c0e0af2b7274efb0264b9666a1bc61c",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Tail": {
+        "coordinates": "9f7b60eda85af94b483fa6d5bc83771d50d59723596709934092c635d7060dd2",
+        "topology": "27b0f171763005e9c33cf79c91a3c92ce64e4c938bd5a8de671e541167359481",
+        "uvs": {
+          "MVP_Atlas": "da2181eaf4dd2cb8dabd8fc85c083405b57002ce1735ea2da54acab2d04ce110"
+        },
+        "normals": "fb869412b8fb586b2071c51e1c2cd9f9ccb09e2c46e7daffa9dd55e88239832d",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP wing_armature": {
+        "coordinates": "2dec82dc6cc72eb118039313712673a2ca1beb1f219936a64732a431342bce19",
+        "topology": "08833ca62c0b01d257a81cdef84be559630429c26c240255d2fc49faf528de52",
+        "uvs": {
+          "MVP_Atlas": "9d5762feed44cf0d696c49e71bf0f267c261a49170faceb41e98ea7e675cdcbb"
+        },
+        "normals": "802111f478c8da4a62d455cfc9bfccf5ee61f1130a83e4cf7ed42abcb2382cef",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP wing_armor": {
+        "coordinates": "ff5744d177530c69039f87bce3a571661d2dfe00a263178c0aed23ec5fc9582e",
+        "topology": "e99925f3af23ef0ba98bf160d333706577c2d602c46ee48b6c90ffe1ec2d58fd",
+        "uvs": {
+          "MVP_Atlas": "090bd560441f815881bc9cb42016dcf8b05e13800236125e6e57ead8badb56c2"
+        },
+        "normals": "2dffeaed3e44a7d3428cb13198b6fcdf64b21fab6a68e48dcf20cbfebd93a468",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP wing_tail": {
+        "coordinates": "b7852ba71d7a877248a87e5f6102191bb4bd5db4bc03f6df52acf170b8b90586",
+        "topology": "90960537318f1d5f54ac24bf69f874491d1823f9e8cfb9fdd3e1472edc8bb435",
+        "uvs": {
+          "MVP_Atlas": "58617fc12f0d25b903bfde3d6b19c496719630b50b3e13e56798afdf5a99dece"
+        },
+        "normals": "c8d56638746984672f6c9ed1d5fa5816ce0b2a8e6bb6c2793fd4b99fb27108e6",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Canopy": {
+        "coordinates": "9009d6012491f229b1bbe757407e757313cb6b6bd520d26485a82844730fd8a1",
+        "topology": "dc6256660f0cd2b7e75a0df6fc13f7ed162f4d1e4c4529fb43b8ea301317d12b",
+        "uvs": {
+          "UVMap": "3baa302a0488405a4e8056d2dd2bb632ccfe1b64fe4587b206defc8a4b059f37",
+          "LiveryUV_Work": "c3d0cee642bd06da86670f666c6525edf693dd8162ab2f9d3a35b68ef748692e"
+        },
+        "normals": "a14b5c12e5a72f20400ec454a013c4d35a1baff97bece0c3f3e788991eee6c9e",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Power Nacelle Housing": {
+        "coordinates": "51de9e29c75bb2a901b891ff2ca6b6730fa4d05ad2de7d90c531447c3f6aed8c",
+        "topology": "2a8b982e06f128697573b4c4ee39da71f5af73d5bfab3efe2c7ed4061253acec",
+        "uvs": {
+          "MVP_Atlas": "e4bb88a636a2ac332dcff36cb60419520cf4d8e52f28d87095b39fe56e875536"
+        },
+        "normals": "2a1a8875eb432783e3db61495da12ac56971b3f4d4254529ada6c82d17ccfd75",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "MVP Power Nacelle Core": {
+        "coordinates": "fbc6454d910763427e14b39041e043d3521da71c409db0b6a95048df440a6a03",
+        "topology": "a1530ba84b8bac402b15c73e8ba5932a04a4752b0a0ee6a8c39875158c671eb5",
+        "uvs": {},
+        "normals": "92221d8c942ac2fc1992232bb855dfa92e8522cff05528e57588d39738f83664",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "Vanguard structural ink": {
+        "coordinates": "6f4e4cd04eced55ab81a626089e9453ac2faf19f49e9d20ea1ecb73e8a67ef94",
+        "topology": "7e733d03441af5d3068d4ebedbe16a3479998bfd660bbffde974d104f0032475",
+        "uvs": {},
+        "normals": "90a2130df5e74f0d49f794d8e6dd31fe2cba7d38f9b97f6bc97a5b3044b33749",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "Vanguard surface wear": {
+        "coordinates": "088984510a6dea62ab67c26cf02b203ade426aafbd58357dd9541b14cb042fc1",
+        "topology": "fe21afe2080d2e62fd2a330b538857c55b5cc0b87477e24050b71bc878eea38c",
+        "uvs": {},
+        "normals": "300681b92b862dfbd4525386cbeeb86f4ed5277eef53cda6182344e46466b8e9",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      },
+      "Vanguard service panels": {
+        "coordinates": "fa250ef9d71a727169e2fc98c6031f1533f8da170169f31b83027cbca9b8d201",
+        "topology": "ab74fb113c0d17f26f603a068f2739da36eab552b24096349c792f75f297bcd1",
+        "uvs": {},
+        "normals": "e405a48e9c2fd63cce53e8f80c1903b6158ad8de4de9ce972adc1f9a2fc63a99",
+        "transform": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "modifiers": []
+      }
+    }
+  }
+}

@@ -67,7 +67,7 @@ public sealed class VanguardPaintComparison : CaptureScenario
             var hull = Array.Find(renderers, item => item.sharedMaterial.name == "Vanguard vivid paint");
             Assert.That(hull, Is.Not.Null);
             Assert.That(hull.sharedMaterial.GetColor("_OrangeGain"), Is.EqualTo(Color.white));
-            Assert.That(hull.sharedMaterial.mainTexture.width, Is.EqualTo(4096));
+            Assert.That(hull.sharedMaterial.GetTexture("_BaseMap").width, Is.EqualTo(4096));
             yield return null;
             Film(a, b);
             for (var step = 0; step < 240; step++)
