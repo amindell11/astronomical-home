@@ -19,6 +19,8 @@ namespace AI
         private Vector2 targetPos;
         private Vector2 targetVel;
         private bool hasTarget;
+        private bool prevPrimaryHeld;
+        private bool prevSecondaryHeld;
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
@@ -41,10 +43,12 @@ namespace AI
             hasTarget = false;
             targetPos = default;
             targetVel = default;
+            prevPrimaryHeld = false;
+            prevSecondaryHeld = false;
             ClearTarget();
         }
 
-        /// <summary>Evaluates each engaged slot with that slot's own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots. The brain gates, the gunner times: a disengaged slot pushes a released trigger.</summary>
+        /// <summary>Pushes each slot's raw trigger every step; pressed marks only the step held rises.</summary>
         public void Fire(bool engagePrimary, bool engageSecondary)
         {
             if (weapons == null || actuator == null) return;
@@ -54,9 +58,17 @@ namespace AI
             {
                 var slot = slots[i];
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
-                var fire = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
-                actuator.Fire(slot, new WeaponCommand { held = fire, pressed = fire });
+                var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
+                if (slot == WeaponSlot.Primary) FireSlot(slot, held, ref prevPrimaryHeld);
+                else FireSlot(slot, held, ref prevSecondaryHeld);
             }
+        }
+
+        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
+        {
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld };
+            prevHeld = held;
+            actuator.Fire(slot, cmd);
         }
 
         /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>

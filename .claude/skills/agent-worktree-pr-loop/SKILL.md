@@ -104,7 +104,7 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
 | merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
 | merge: `base moved during the merge gate` | Main moved from outside the merge turn: a push from another clone, or one that skipped `lock merge-turn` | Re-run `merge <slot>`. |
-| merge exits 75: `the merge turn is still held by <slot>` | That slot's gate has held the turn past the 60-minute cap | `merge-progress <slot>` shows its phase; report it to the user and re-run `merge` once that gate ends. The lock frees when its holder exits. |
+| merge exits 75: `<slot> has held the merge turn for 3600s` | This gate watched that one slot's gate hold the turn for the whole 60-minute cap: a stuck holder, not a long line | `merge-progress <slot>` shows its phase; report it to the user and re-run `merge` once that gate ends. The lock frees when its holder exits. |
 | `create-pr` push `! [rejected] … non-fast-forward` | Stale remote slot branch | `finalize`/`release` the slot (or `submit`, which re-preps) and retry. |
 | Child PR silently `CLOSED`, can't reopen/retarget | It was stacked on a task branch that got squash-merged + deleted | Retarget the child to `main` **before** merging its base, or `create-pr` a fresh one. |
 | `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync from the primary tree: `cd D:/amind/git/astronomical-home && git checkout main && git pull`. |
@@ -375,9 +375,10 @@ Just before `gh pr merge`, both paths re-check base: "base moved during the
 merge gate" means re-run `merge`.
 
 Gates run one at a time across the pool (the merge turn). A `merge` started
-while another gate runs waits in `turn-wait` until that gate ends, then fetches
-and proves on top of its landing; `merge-progress <slot>` names the slot it
-waits behind. Leave it waiting.
+while another gate runs waits in `turn-wait`, takes the turn in arrival order,
+then fetches and proves on top of the landings ahead of it; `merge-progress
+<slot>` shows its place in the line and the slot holding the turn. Leave it
+waiting: a re-run `merge` arrives at the back of the line.
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note and board Done on the PR-closed issues, so
