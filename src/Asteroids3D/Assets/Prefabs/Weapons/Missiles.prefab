@@ -53,6 +53,7 @@ MonoBehaviour:
     type: 3}
   targetingComputer: {fileID: 941428023342471022}
   rounds: {fileID: 8865327791154650922}
+  fallbackRange: 7
 --- !u!114 &8865327791154650922
 MonoBehaviour:
   m_ObjectHideFlags: 0

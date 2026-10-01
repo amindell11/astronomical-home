@@ -50,12 +50,7 @@ namespace Ships.Command
         /// <summary>True while the trigger is down this step.</summary>
         public bool held;
 
-        /// <summary>
-        /// True on a step the trigger was pulled. A human press is a rising edge of
-        /// <see cref="held"/>; an AI commander re-decides every step and truthfully reports a
-        /// press on <em>each</em> step it wants fire ("mashing"), which is what keeps semi-auto
-        /// weapons pacing by their own cooldown under sustained AI intent.
-        /// </summary>
+        /// <summary>True only on the step <see cref="held"/> rises, from a human or an AI commander alike.</summary>
         public bool pressed;
     }
 
