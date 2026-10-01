@@ -9,3 +9,5 @@ The side comparison includes the approved concept. fuselage-side.png hides wings
 ## User shape cleanup
 
 history/user-shape-cleanup preserves the user's complete live Blender state before cleanup, including unsaved edits. Cleanup fits the neighboring dorsal borders, cheeks, underside armor/stripe and accents to those edited forms. The central fuselage, canopy, primary wing outlines, outriggers, tail prongs and engine shape remain unchanged. A support's Solidify modifier now precedes Mirror to correct its asymmetric thickness. The final world-space bilateral error is below 0.000001 units. The original build helper is historical and must not overwrite the user's reshaped source.
+
+Shoulder repair: history/shoulder-repair/ preserves the pre-repair live model, replacement topology, validation, and actual-model before/after renders. The shoulder surface follows short cross sections through the notch; all original boundary corners and other parts remain unchanged. Mirror and thickness remain live.
