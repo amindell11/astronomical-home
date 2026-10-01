@@ -718,6 +718,22 @@ Format: **term** — definition. *(authority)*
   player each time the run tally counts a kill; hull only (ammo or heat on a kill
   would be a reset button, and the shield already regens). Interactive sessions
   only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+- **loadout stat hash** — a short hash of the balance numbers one ship flies with:
+  its hull, its engine, its shield and the weapon on each mount. Only fields marked
+  `[Stat]` count. The same parts with the same numbers give the same hash on any
+  commit and any machine, and a spawned ship hashes like its prefab asset, so facts
+  recorded about one loadout can be added up across runs. Two gotchas. Lines are
+  keyed by asset name and field name, so renaming a marked field, or the asset it
+  sits on, changes the hash with no number changed. A mount's numbers are read off
+  the weapon prefab, so an inspector edit to the prefab or to a module asset shows
+  up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
+- **stat fingerprint** — a short hash of every balance number a run can draw from:
+  what the hangar offers, the sector's wave director (its pacing, its roster and
+  the parts its enemies draw from) and the kill refill. Runs played against the
+  same numbers share a fingerprint, so results are grouped by it. A number no run
+  can reach does not move it, and neither does list order or listing a part twice.
+  Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
+  *(StatHash.OfSetting, StatAttribute)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.

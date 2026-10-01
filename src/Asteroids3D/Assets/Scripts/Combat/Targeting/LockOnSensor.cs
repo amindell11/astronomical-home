@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using AI.Scanning.Sensors;
 using Combat.Projectiles;
@@ -16,13 +17,13 @@ namespace Combat.Targeting
 
         [Header("Lock-On Settings")]
         [Tooltip("Full width (degrees) of the cone around the fire point in which a target can be acquired and held.")]
-        [SerializeField] internal float lockOnConeAngle = 30f;
+        [Stat, SerializeField] internal float lockOnConeAngle = 30f;
         [Tooltip("Seconds a target must stay in the cone before the lock is acquired.")]
-        [SerializeField] private float lockOnTime = 0.6f;
+        [Stat, SerializeField] private float lockOnTime = 0.6f;
         [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
-        [SerializeField] private float lockExpiry = 3f;
+        [Stat, SerializeField] private float lockExpiry = 3f;
         [Tooltip("Max distance from the fire point at which a target can be locked.")]
-        [SerializeField] internal float maxLockDistance = 100f;
+        [Stat, SerializeField] internal float maxLockDistance = 100f;
 
         [SerializeField] internal Transform firePoint;
         [SerializeField] internal WeaponBase<Missile> weapon;

@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections.Generic;
 using Damage;
@@ -11,12 +12,12 @@ namespace Combat.Projectiles
     public class ConcussionWave : MonoBehaviour
     {
         [Header("Wave")]
-        [SerializeField, Min(0.01f)] private float maxRadius = 12f;
-        [SerializeField, Min(0.01f)] private float expandSpeed = 20f;
+        [Stat, SerializeField, Min(0.01f)] private float maxRadius = 12f;
+        [Stat, SerializeField, Min(0.01f)] private float expandSpeed = 20f;
 
         [Header("Effect")]
-        [SerializeField, Min(0f)] private float maxDamage = 40f;
-        [SerializeField, Min(0f)] private float impulse = 8f;
+        [Stat, SerializeField, Min(0f)] private float maxDamage = 40f;
+        [Stat, SerializeField, Min(0f)] private float impulse = 8f;
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
 

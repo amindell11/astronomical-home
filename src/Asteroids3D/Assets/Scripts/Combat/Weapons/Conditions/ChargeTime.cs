@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Combat.Weapons;
 using UnityEngine;
@@ -29,10 +30,10 @@ namespace Combat.Weapons.Conditions
     {
         [Header("Charge System")]
         [Tooltip("Seconds of holding the trigger to reach full charge.")]
-        [SerializeField, Min(0.01f)] private float chargeTime = 1f;
+        [Stat, SerializeField, Min(0.01f)] private float chargeTime = 1f;
 
         [Tooltip("Fraction of full charge required to fire on release (1 = full charge only).")]
-        [SerializeField, Range(0f, 1f)] private float minChargeToFire = 0.3f;
+        [Stat, SerializeField, Range(0f, 1f)] private float minChargeToFire = 0.3f;
 
         private bool wasHeld;
 
