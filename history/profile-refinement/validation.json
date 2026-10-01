@@ -1,0 +1,15 @@
+{
+  "01 central fuselage": {
+    "nonmanifold_edges": 0,
+    "self_intersections": 0
+  },
+  "08 ventral armor": {
+    "nonmanifold_edges": 0,
+    "self_intersections": 0
+  },
+  "63 ventral engine stripe": {
+    "nonmanifold_edges": 0,
+    "self_intersections": 0
+  },
+  "upper_hull_cockpit_and_other_parts_unchanged": true
+}
