@@ -854,13 +854,13 @@ statuses "$(pending_headless 53)" "$(pending_headless 53)" "$(pending_headless 5
   "$(printf 'failure\037headless suite failed - see run\037%s/53' "$RUN_URL")"
 ratchets "$(ratchet_status pending "hosted ratchet running" 53)"
 runs "$(printf 'in_progress\t53')"
-rm -f "$TMP/hook.pid" "$TMP/sleep.pid" "$TMP/ps1.pid"
+rm -f "$TMP/hook.pid" "$TMP/sleep.pid" "$TMP/sleep.done" "$TMP/ps1.pid"
 runs_before="$(runner_runs)"; merges_before="$(gh_merges)"; dispatches_before="$(dispatches)"
-started=$SECONDS
 PS1_PROBE_PID="$ps1_pid_file" GH_STATUS_AWAITS="$ps1_pid_file" \
-  PROBE_HOOK="echo \$\$ > '$TMP/hook.pid'; sleep 60 & echo \$! > '$TMP/sleep.pid'; wait" remote_merge \
+  PROBE_HOOK="echo \$\$ > '$TMP/hook.pid'; sleep 60 & echo \$! > '$TMP/sleep.pid'; wait \$! && echo done > '$TMP/sleep.done'" remote_merge \
   && fail "--remote must refuse a failure status while the suite runs"
-(( SECONDS - started < 30 )) || fail "the refusal must not wait for the script suite ($((SECONDS - started))s)"
+# The marker appears only if the hook's sleep ran its full 60 s, i.e. the refusal waited for the suite.
+[[ ! -e "$TMP/sleep.done" ]] || fail "the refusal must not wait for the script suite (the hook's sleep ran to completion)"
 expect_output "merge-proof/headless on .* is 'failure' (headless suite failed - see run)" "a red verdict must be quoted"
 expect_output "gh run rerun 53" "a red verdict must name the rerun recovery"
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a red verdict must not dispatch a new run"
