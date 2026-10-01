@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
-# Locks go stale by AGE, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
+# Locks go stale by IDLE TIME since the slot's last use, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
@@ -15,7 +15,7 @@ mkdir -p "$LOCK_ROOT"
 #   Slot & lease resolution   slots_tsv .. ensure_task_branch
 #   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
 #   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
-#   Locks                     with_flock + cmd_lock, write_lock, lock_age_seconds, clobber safety
+#   Locks                     with_flock + cmd_lock, write_lock, mark_slot_used, lock_age_seconds, clobber safety
 #   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
@@ -45,15 +45,23 @@ Commands:
       shape; values may contain spaces, keys never do):
 
         slot=agent-1            always
-        state=free|locked|stale always; stale = locked past the lock TTL
+        state=free|locked|stale always; stale = locked, and not used for
+                                longer than the lock TTL
         path=<abs-path>         always
         lease=<lease-id>        locked/stale slots that have a lease
         task_branch=task/<lease>  when one is recorded or derivable; this is
                                 the branch a PR for the slot is opened FROM
-        age_seconds=<int>       locked/stale only
+        age_seconds=<int>       locked/stale only; seconds since last_used_at
         locked_by_pid=<pid>     locked/stale only, informational: pool locks
-                                go stale by AGE, never by pid liveness
-        locked_at=<iso8601>     locked/stale only
+                                go stale by idle time, never by pid liveness
+        locked_at=<iso8601>     locked/stale only; when the lease was acquired
+        last_used_at=<iso8601>  locked/stale only; the last acquire, resume or
+                                working command on the slot: prepare,
+                                run-tests, run-resharper, run-script-tests,
+                                create-pr, submit, revise, review-comments,
+                                merge. status and merge-progress are reads
+                                and never count as use. A lock with no
+                                last-use stamp reports its locked_at.
 
       After the slot records, one record per held lease (see hold), read
       from local held/* branches and origin/held/* remote-tracking refs as
@@ -81,6 +89,9 @@ Commands:
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
       last inheriting process exits.
+      A working command (see last_used_at) records its use under the same
+      lock before it runs, waiting up to 30s for it; still held, the command
+      exits 1 without running.
       Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
@@ -159,13 +170,16 @@ Commands:
       base: main) — submit without the test run. An explicit --title
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
-      PR already exists for that head/base, prints URL.
+      PR already exists for that head/base, prints URL. Exits 2 before
+      anything runs when the body negates a closing keyword ("does not
+      close #N"): GitHub still closes #N (scripts/lib/negated_close.py).
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
       branch (task/<lease>), and create PR — but keep the lock so the agent
       can respond to review feedback. An explicit --title and exactly one of
-      --body/--body-file are REQUIRED. Test args after -- are passed to
+      --body/--body-file are REQUIRED, and the body passes create-pr's
+      exit-2 check. Test args after -- are passed to
       unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
       -ScopeType Workspace, unfiltered) records merge-grade proof;
       scoped runs still open the PR but the merge gate will re-test.
@@ -583,6 +597,7 @@ write_lock() {
   printf '%s\n' "$lease" > "$ldir/lease"
   printf '%s\n' "$$" > "$ldir/pid"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
+  cp "$ldir/timestamp" "$ldir/last_use"
   if [[ -n "$path" ]]; then
     # Worktree-scoped, never the repo-shared .git/config: a plain write there clobbers every slot's lease (cross-slot LEASE RACE); the unqualified --unset keeps the shared key clear.
     git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
@@ -591,12 +606,37 @@ write_lock() {
   fi
 }
 
+# Reclaim decides under the slot's mutation lock, so this write takes it too.
+mark_slot_used() {
+  local slot="$1"
+  # Working commands also run on free slots, which have no lock to stamp.
+  [[ -d "$(lock_dir_for "$slot")" ]] || return 0
+  with_flock "$LOCK_ROOT/$slot.mutation" 30 \
+    "$slot's lease is still being changed after 30s ($LOCK_ROOT/$slot.mutation); its use was not recorded." \
+    stamp_last_use "$slot" || exit 1
+}
+
+stamp_last_use() {
+  local ldir
+  ldir="$(lock_dir_for "$1")"
+  # A release can land while this waits for the mutation lock.
+  [[ -d "$ldir" ]] || return 0
+  date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/last_use"
+}
+
+# A lock with no last-use stamp counts from its acquire time.
+lock_last_use() {
+  local ldir="$1" stamp="$1/last_use"
+  [[ -s "$stamp" ]] || stamp="$ldir/timestamp"
+  cat "$stamp" 2>/dev/null || true
+}
+
 lock_age_seconds() {
   local ldir="$1"
-  local ts_file="$ldir/timestamp"
-  [[ -f "$ts_file" ]] || { echo 999999999; return 0; }
-  local ts now
-  ts="$(date -u -d "$(cat "$ts_file")" +%s 2>/dev/null || echo 0)"
+  local used ts now
+  used="$(lock_last_use "$ldir")"
+  [[ -n "$used" ]] || { echo 999999999; return 0; }
+  ts="$(date -u -d "$used" +%s 2>/dev/null || echo 0)"
   now="$(date -u +%s)"
   echo $(( now - ts ))
 }
@@ -630,7 +670,7 @@ slot_is_clobber_safe() {
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
 collect_slot_records() {
-  local slot path ldir lease tb pid ts age state
+  local slot path ldir lease tb pid ts used age state
   while IFS=$'\t' read -r slot path; do
     ldir="$(lock_dir_for "$slot")"
     printf 'slot=%s\n' "$slot"
@@ -640,6 +680,7 @@ collect_slot_records() {
       tb="$(task_branch_for "$slot")"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+      used="$(lock_last_use "$ldir")"
       age="$(lock_age_seconds "$ldir")"
       state="locked"
       [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] && state="stale"
@@ -650,6 +691,7 @@ collect_slot_records() {
       printf 'age_seconds=%s\n' "$age"
       [[ -n "$pid" ]] && printf 'locked_by_pid=%s\n' "$pid"
       [[ -n "$ts" ]] && printf 'locked_at=%s\n' "$ts"
+      [[ -n "$used" ]] && printf 'last_used_at=%s\n' "$used"
     else
       printf 'state=free\n'
       printf 'path=%s\n' "$path"
@@ -1399,7 +1441,20 @@ parse_pr_flags() {
         return 1 ;;
     esac
   done
-  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE"
+  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE" || return 1
+  require_no_negated_close "$cmd"
+}
+
+# GitHub's keyword parser ignores negation: "does not close #N" still closes #N on merge.
+require_no_negated_close() {
+  local cmd="$1" rc=0
+  if [[ -n "$PR_BODY_FILE" ]]; then
+    python3 "$SCRIPT_DIR/lib/negated_close.py" < "$PR_BODY_FILE" || rc=$?
+  else
+    python3 "$SCRIPT_DIR/lib/negated_close.py" <<<"$PR_BODY" || rc=$?
+  fi
+  [[ "$rc" -eq 0 ]] || echo "$cmd: refusing the PR body — reword the lines above; no PR was created" >&2
+  return "$rc"
 }
 
 # Push the slot branch to its minted task branch and open the PR (or report the open one).
@@ -1434,7 +1489,7 @@ cmd_create_pr() {
     shift
   fi
 
-  parse_pr_flags "create-pr" 0 "$@" || return 1
+  parse_pr_flags "create-pr" 0 "$@" || return
   require_gh || return 1
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
@@ -1463,7 +1518,7 @@ cmd_submit() {
 
   # Preflight: flags and tooling are checked before the test run so a missing one fails in
   # seconds, not after a full suite.
-  parse_pr_flags "submit" 1 "$@" || return 1
+  parse_pr_flags "submit" 1 "$@" || return
   require_gh || return 1
 
   local base_branch
@@ -2407,6 +2462,13 @@ main() {
 
   local cmd="$1" path
   shift || true
+
+  # Reads (status, merge-progress) never count as use: the dashboard runs both on every slot.
+  case "$cmd" in
+    prepare|run-tests|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
+      if [[ $# -ge 1 ]]; then mark_slot_used "$1"; fi
+      ;;
+  esac
 
   case "$cmd" in
     status)

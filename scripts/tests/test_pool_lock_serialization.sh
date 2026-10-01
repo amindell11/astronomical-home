@@ -11,6 +11,8 @@ mkdir -p "$TMP/bin" "$SYNC"
 launcher=""
 trap ': > "$SYNC/resume"; : > "$SYNC/a-go"; if [[ -n "$launcher" ]]; then wait "$launcher" 2>/dev/null || true; fi; rm -rf -- "$TMP"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+# Bounds only the waits no live process can answer: a hang guard, never a speed claim.
+hang_guard=600
 export REAL_GIT="$(command -v git)" REAL_MKDIR="$(command -v mkdir)"
 export REAL_RM="$(command -v rm)" REAL_PERL="$(command -v perl)"
 export WORKTREE_POOL_LOCK_ROOT="$TMP/locks" WORKTREE_POOL_LOCK_TTL=60
@@ -56,15 +58,14 @@ git add file.txt && git commit -qm base && git push -q origin main
 git worktree add -q -b agent-1 "$TMP/agent-1" main
 git worktree add -q -b agent-2 "$TMP/agent-2" main
 age_lock() {
-  date -u -d "@$(( $(date +%s) - 100 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/timestamp"
+  date -u -d "@$(( $(date +%s) - 100 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/last_use"
 }
 start_slow() {
   rm -f "$SYNC/ready" "$SYNC/resume" "$SYNC/holder"
   RACE_ROLE=slow RACE_STAGE="$1" pool acquire slow agent-1 > "$TMP/slow.out" 2>&1 &
   launcher=$!
-  local deadline=$((SECONDS + 15))
   until [[ -e "$SYNC/ready" ]]; do
-    (( SECONDS < deadline )) || { cat "$TMP/slow.out"; fail "no $1 synchronization event"; }
+    kill -0 "$launcher" 2>/dev/null || { cat "$TMP/slow.out"; fail "acquire exited before the $1 synchronization event"; }
     sleep .02
   done
 }
@@ -123,16 +124,9 @@ wait "$launcher" 2>/dev/null || true
 launcher=""
 if pool acquire fast agent-1 >/dev/null 2>&1; then fail 'launcher death exposed surviving mutation'; fi
 : > "$SYNC/resume"
-deadline=$((SECONDS + 15))
-until grep -q '^SLOT=' "$TMP/slow.out"; do
-  (( SECONDS < deadline )) || { cat "$TMP/slow.out"; fail 'surviving mutation never finished'; }
-  sleep .02
-done
+until ! kill -0 "$holder" 2>/dev/null; do sleep .02; done
+grep -q '^SLOT=' "$TMP/slow.out" || { cat "$TMP/slow.out"; fail 'surviving mutation exited without finishing'; }
 assert_lease slow
-until ! kill -0 "$holder" 2>/dev/null; do
-  (( SECONDS < deadline )) || fail 'surviving mutation never exited'
-  sleep .02
-done
 pool release agent-1 >/dev/null
 echo 'PASS: launcher death preserves surviving mutation ownership'
 
@@ -144,7 +138,7 @@ kill -KILL "$holder"
 : > "$SYNC/resume"
 wait "$launcher" 2>/dev/null || true
 launcher=""
-deadline=$((SECONDS + 15))
+deadline=$((SECONDS + hang_guard))
 until pool acquire recovered agent-1 > "$TMP/recovered.out" 2>&1; do
   (( SECONDS < deadline )) || { cat "$TMP/recovered.out"; fail 'dead mutation retained its OS lock'; }
   sleep .02
@@ -158,9 +152,8 @@ echo 'PASS: mutation death releases its OS lock without deleting the advisory fi
 rm -f "$SYNC/a-in" "$SYNC/a-go" "$SYNC/order"
 pool lock named -- bash -c ': > "$SYNC/a-in"; until [[ -e "$SYNC/a-go" ]]; do sleep .02; done; echo a >> "$SYNC/order"' &
 first=$!
-deadline=$((SECONDS + 15))
-until [[ -e "$SYNC/a-in" ]]; do (( SECONDS < deadline )) || fail 'first lock holder never started'; sleep .02; done
-pool lock named --wait 15 -- bash -c 'echo b >> "$SYNC/order"' &
+until [[ -e "$SYNC/a-in" ]]; do kill -0 "$first" 2>/dev/null || fail 'first lock holder exited before starting'; sleep .02; done
+pool lock named --wait "$hang_guard" -- bash -c 'echo b >> "$SYNC/order"' &
 second=$!
 rc=0; pool lock named --wait 1 -- true 2> "$TMP/timeout.err" || rc=$?
 [[ "$rc" == 75 ]] && grep -q 'named is still held after 1s' "$TMP/timeout.err" || { cat "$TMP/timeout.err"; fail "lock --wait expiry exited $rc"; }

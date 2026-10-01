@@ -5,8 +5,9 @@ set -euo pipefail
 # Regression for the pool's locking contracts: auto-pick prefers free slots over
 # stale reclaims, a named slot never falls back, reclaim is TTL-gated and refuses
 # to clobber unpushed work, release clears both lease homes, acquire prepares a
-# free slot or releases it when prepare refuses, and prepare refuses a slot
-# holding unpushed work.
+# free slot or releases it when prepare refuses, prepare refuses a slot holding
+# unpushed work, and a lock goes stale by idle time: a working command on the
+# slot counts as use, a read does not.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -35,8 +36,9 @@ cd "$TMP/primary"
 
 lock_dir() { printf '%s/%s.lock' "$WORKTREE_POOL_LOCK_ROOT" "$1"; }
 acquired_slot() { sed -n 's/^SLOT=\([^ ]*\).*/\1/p' | head -n 1; }
-# Reclaim is age-gated, and the acquiring pid is dead by the next call; back-date the stamp instead.
-age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/timestamp"; }
+# Reclaim is idle-gated, and the acquiring pid is dead by the next call; back-date the last-use stamp instead.
+age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/${3:-last_use}"; }
+slot_key() { pool status --porcelain | awk -v RS= -v want="slot=$1" '{ split($0, l, "\n"); if (l[1] == want) print }' | sed -n "s/^$2=//p"; }
 
 # --- acquire ordering: a free slot beats a reclaimable stale one --------------
 pool acquire lease-one agent-1 >/dev/null
@@ -121,4 +123,36 @@ for iteration in 1 2 3 4 5; do
   pool release agent-1 >/dev/null
 done
 
-echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare-on-acquire + prepare refusal + reclaim contention"
+# --- staleness is idle time: a read leaves a slot reclaimable, a working command does not ---
+pool acquire lease-eight agent-1 >/dev/null 2>&1
+age_lock agent-1 1000
+pool status >/dev/null
+pool merge-progress agent-1 >/dev/null
+pool merge-progress agent-1 --oneline >/dev/null
+[[ "$(WORKTREE_POOL_LOCK_TTL=600 slot_key agent-1 state)" == stale ]] || fail "status and merge-progress must not count as use of a slot"
+got="$(WORKTREE_POOL_LOCK_TTL=600 pool acquire lease-nine agent-1 2>/dev/null | acquired_slot)"
+[[ "$got" == "agent-1" ]] || fail "a slot idle past the TTL must stay reclaimable after reads (got '$got')"
+
+age_lock agent-1 1000
+acquired_at="$(slot_key agent-1 locked_at)"
+idle_since="$(slot_key agent-1 last_used_at)"
+pool prepare agent-1 origin/main >/dev/null 2>&1
+if WORKTREE_POOL_LOCK_TTL=600 pool acquire lease-ten agent-1 >/dev/null 2>&1; then
+  fail "a slot used within the TTL must not be reclaimed, however long ago it was acquired"
+fi
+[[ "$(cat "$(lock_dir agent-1)/lease")" == "lease-nine" ]] || fail "a working command must keep its slot's lease from reclaim"
+[[ "$(slot_key agent-1 locked_at)" == "$acquired_at" ]] || fail "locked_at must stay the acquisition time"
+used="$(slot_key agent-1 last_used_at)"
+[[ -n "$used" && "$used" != "$idle_since" ]] || fail "a working command must move last_used_at (got '$used')"
+
+# --- a lock with no last-use stamp counts from its acquire time ---------------
+rm "$(lock_dir agent-1)/last_use"
+if WORKTREE_POOL_LOCK_TTL=600 pool acquire lease-ten agent-1 >/dev/null 2>&1; then
+  fail "a lock with no last-use stamp, acquired within the TTL, must not be reclaimed"
+fi
+age_lock agent-1 1000 timestamp
+got="$(WORKTREE_POOL_LOCK_TTL=600 pool acquire lease-ten agent-1 2>/dev/null | acquired_slot)"
+[[ "$got" == "agent-1" ]] || fail "a lock with no last-use stamp, acquired past the TTL, should be reclaimed (got '$got')"
+pool release agent-1 >/dev/null
+
+echo "PASS: pool locking — acquire ordering + named strictness + TTL reclaim + clobber safety + release + prepare-on-acquire + prepare refusal + reclaim contention + idle staleness"
