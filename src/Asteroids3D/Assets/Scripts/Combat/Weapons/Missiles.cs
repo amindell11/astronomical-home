@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using Combat.Targeting;
 using UnityEngine;
@@ -10,16 +11,17 @@ namespace Combat.Weapons
     public class Missiles : WeaponBase<Missile>
     {
         [Header("Targeting")]
-        [SerializeField] private LockOnSensor targetingComputer;
+        [Stat, SerializeField] private LockOnSensor targetingComputer;
 
         [Header("Conditions")]
-        [SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
-        [SerializeField, Min(0f)] private float fallbackRange = 10f;
+        [Stat, SerializeField, Min(0f)] private float fallbackRange = 10f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
-        [SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
         private ILockProvider lockProvider;
 
@@ -37,6 +39,7 @@ namespace Combat.Weapons
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;

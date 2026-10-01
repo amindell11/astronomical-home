@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -207,10 +207,19 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
-  a time from before its fetch through `gh pr merge`. Order among waiting gates
-  is not guaranteed. Machine-local: a base move from any other clone is caught
-  only by the gate's base re-check. Any other push to main takes the turn
-  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
+  a time from before its fetch through `gh pr merge`. Waiting gates take it in
+  arrival order (**turn ticket**). Any other push to main takes it through
+  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
+  free. A waiter gives up only after watching one holder keep the turn for the
+  cap; a line that keeps moving times nobody out. Machine-local: a base move
+  from any other clone is caught only by the gate's base re-check.
+  *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
+- **turn ticket** — a waiting merge gate's recorded arrival; the line for the
+  merge turn is the live tickets in arrival order. A ticket is live only while
+  its gate holds an OS lock on it — never by a timer or a pid check — so a dead
+  waiter cannot block the line, and a re-run gate arrives anew at the back.
+  Always "turn ticket": the Unity access coordinator's queue ticket is another
+  thing. *(`MERGE_TURN_LINE_PL`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
@@ -654,6 +663,19 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **item** — anything that fills a loadout slot: a chassis (a prefab with a root
+  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
+  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
+  but fill no slot, so they are not items.
+- **item catalog** — the one asset listing every item in the project, grouped
+  by item type. An index only: each item's stats stay on its own asset. Listing
+  is not what makes something an item — a test scans the project by type and
+  fails when the list and the scan differ. *(ItemCatalog)*
+- **item subset** — an authored list of items one consumer chooses from, per
+  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
+  "the catalog": neither lists everything. *(ItemSubset)*
+- **hangar's offer** — the item subset the hangar shows the player.
+  *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.
@@ -669,6 +691,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **weapon cycle** — one way of firing a weapon (a trigger pattern: hold, tap,
+  or as the AI fires), **measured** by firing the real weapon, never modeled: an
+  opening burst from cold, then the burst it repeats as a magazine, dump time
+  and recovery. "Magazine" here is **damage** per burst — not `Rounds`'
+  Magazine refill mode, and not the round count the hangar prints as "Mag".
+  Stakes reads the opening burst. Damage is counted at launch, so every shot is
+  a hit: missiles count direct damage only, grenades the blast at its centre.
+  *(WeaponCycleProbe · #772)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
@@ -688,6 +718,22 @@ Format: **term** — definition. *(authority)*
   player each time the run tally counts a kill; hull only (ammo or heat on a kill
   would be a reset button, and the shield already regens). Interactive sessions
   only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+- **loadout stat hash** — a short hash of the balance numbers one ship flies with:
+  its hull, its engine, its shield and the weapon on each mount. Only fields marked
+  `[Stat]` count. The same parts with the same numbers give the same hash on any
+  commit and any machine, and a spawned ship hashes like its prefab asset, so facts
+  recorded about one loadout can be added up across runs. Two gotchas. Lines are
+  keyed by asset name and field name, so renaming a marked field, or the asset it
+  sits on, changes the hash with no number changed. A mount's numbers are read off
+  the weapon prefab, so an inspector edit to the prefab or to a module asset shows
+  up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
+- **stat fingerprint** — a short hash of every balance number a run can draw from:
+  what the hangar offers, the sector's wave director (its pacing, its roster and
+  the parts its enemies draw from) and the kill refill. Runs played against the
+  same numbers share a fingerprint, so results are grouped by it. A number no run
+  can reach does not move it, and neither does list order or listing a part twice.
+  Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
+  *(StatHash.OfSetting, StatAttribute)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.

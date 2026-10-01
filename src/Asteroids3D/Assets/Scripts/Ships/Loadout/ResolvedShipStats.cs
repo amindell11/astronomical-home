@@ -40,6 +40,8 @@ namespace Ships.Loadout
         public float shieldRegenDelay = 4f;
         public float shieldRegenRate = 10f;
 
+        public float ShipResourcePool => maxHealth + maxShield;
+
         /// <summary>
         /// Build a resolved stat block by copying each field from its owner. Any null source leaves
         /// that owner's fields at their defaults.

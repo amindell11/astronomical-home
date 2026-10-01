@@ -53,6 +53,7 @@ MonoBehaviour:
   dropRange: 12
   minDropAngle: 120
   rounds: {fileID: 1100000000000000204}
+  cooldown: {fileID: 1100000000000000205}
 --- !u!114 &1100000000000000204
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -35,7 +35,7 @@ namespace Tests.PlayMode
         };
 
         private HangarScreen screen;
-        private LoadoutConfig catalog;
+        private ItemSubset catalog;
 
         public override void TearDown()
         {
@@ -55,7 +55,7 @@ namespace Tests.PlayMode
         {
             ship1 = Load<Ship>(Ship1Path);
 
-            catalog = ScriptableObject.CreateInstance<LoadoutConfig>();
+            catalog = ScriptableObject.CreateInstance<ItemSubset>();
             catalog.ships = new[] { ship1 };
             catalog.engines = new EngineModule[0];
             catalog.shields = new ShieldModule[0];
@@ -151,7 +151,7 @@ namespace Tests.PlayMode
         [Test]
         public void RealCatalog_WeaponOptionsFitWithinRowGrid()
         {
-            var realCatalog = Load<LoadoutConfig>(RealCatalogPath);
+            var realCatalog = Load<ItemSubset>(RealCatalogPath);
             var screenPrefab = Load<HangarScreen>(ScreenPrefabPath);
 
             var row = (RectTransform)screenPrefab.transform.Find("Panel/PrimaryWeaponRow");
