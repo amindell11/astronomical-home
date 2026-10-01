@@ -45,18 +45,6 @@ namespace Combat.Weapons.Conditions
         public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
 
-        public float DumpSeconds(float secondsBetweenShots) => (maxAmmo - 1) * secondsBetweenShots;
-
-        /// <summary>Seconds from a dump's last round until the next dump; infinite when rounds never refill.</summary>
-        public float RecoverySeconds(float secondsBetweenShots)
-        {
-            if (reloadTime <= 0f) return float.PositiveInfinity;
-            if (refill == RefillMode.Magazine) return reloadTime;
-
-            // Rounds return spaced as they were fired: the first, Reload Time after the first shot.
-            return Mathf.Max(secondsBetweenShots, reloadTime - DumpSeconds(secondsBetweenShots));
-        }
-
         public float ReloadProgress =>
             !IsReloading ? 0f
             : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / reloadTime)

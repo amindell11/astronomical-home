@@ -47,9 +47,6 @@ namespace Combat.Weapons
         /// <summary>Fires one shot. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
         public abstract ProjectileBase Fire(IProjectileService projectiles);
 
-        /// <summary>Held-trigger mode first. Serialized state only: prefab assets never run Awake.</summary>
-        public abstract IReadOnlyList<WeaponCycleMode> CycleModes { get; }
-
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
 

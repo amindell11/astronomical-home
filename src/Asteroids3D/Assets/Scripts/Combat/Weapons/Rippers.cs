@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -24,19 +23,6 @@ namespace Combat.Weapons
         public float Damage => projectilePrefab.Damage;
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
-
-        public override IReadOnlyList<WeaponCycleMode> CycleModes
-        {
-            get
-            {
-                var interval = cooldown.SecondsBetweenShots;
-                return new[]
-                {
-                    new WeaponCycleMode("magazine", rounds.MaxAmmo * Damage, rounds.DumpSeconds(interval),
-                        rounds.RecoverySeconds(interval)),
-                };
-            }
-        }
 
         protected override void Awake()
         {

@@ -143,8 +143,6 @@ namespace Tests.PlayMode
         private sealed class PoolWeapon : Combat.Weapons.WeaponComponent
         {
             public override Combat.Projectiles.ProjectileBase Fire(Substrate.Services.Projectiles.IProjectileService projectiles) => null;
-
-            public override System.Collections.Generic.IReadOnlyList<Combat.Weapons.WeaponCycleMode> CycleModes => System.Array.Empty<Combat.Weapons.WeaponCycleMode>();
         }
     }
 }

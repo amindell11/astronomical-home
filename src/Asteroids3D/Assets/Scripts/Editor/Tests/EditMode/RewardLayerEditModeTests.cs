@@ -231,8 +231,6 @@ namespace Tests.EditMode
                 && context.angleToTarget <= 5f;
 
             public override Combat.Projectiles.ProjectileBase Fire(Substrate.Services.Projectiles.IProjectileService projectiles) => null;
-
-            public override System.Collections.Generic.IReadOnlyList<Combat.Weapons.WeaponCycleMode> CycleModes => System.Array.Empty<Combat.Weapons.WeaponCycleMode>();
         }
 
         [Test]

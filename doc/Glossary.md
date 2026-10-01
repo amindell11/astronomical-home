@@ -664,12 +664,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **weapon cycle** — one way of firing a weapon: a magazine, its dump time and
-  the recovery before the next. "Magazine" here is **damage** delivered before
-  the weapon is forced to stop — not `Rounds`' Magazine refill mode, and not the
-  round count the hangar prints as "Mag". Counted for one mount at full
-  accuracy: missiles direct damage only, grenades the blast at its centre,
-  lock-on time left out. *(WeaponCycleMode, WeaponComponent.CycleModes · #772)*
+- **weapon cycle** — one way of firing a weapon (a trigger pattern: hold, tap,
+  or as the AI fires), **measured** by firing the real weapon, never modeled: an
+  opening burst from cold, then the burst it repeats as a magazine, dump time
+  and recovery. "Magazine" here is **damage** per burst — not `Rounds`'
+  Magazine refill mode, and not the round count the hangar prints as "Mag".
+  Stakes reads the opening burst. Damage is counted at launch, so every shot is
+  a hit: missiles count direct damage only, grenades the blast at its centre.
+  *(WeaponCycleProbe · #772)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through

@@ -88,7 +88,6 @@ MonoBehaviour:
   fireDistance: 45
   fireAngleTolerance: 2
   charge: {fileID: 6448982411033854647}
-  cooldown: {fileID: 8105349543242701031}
 --- !u!120 &1200000000000000001
 LineRenderer:
   m_ObjectHideFlags: 0
