@@ -152,7 +152,10 @@ namespace Game
             units = null;
         }
 
-        /// <summary>Withdraw the player between sectors; deactivating the ship (death's state too) also silences its input.</summary>
+        /// <summary>
+        /// Withdraw the player between sectors; deactivating the ship (death's state too) also
+        /// silences its input.
+        /// </summary>
         public void Park()
         {
             Player.gameObject.SetActive(false);
