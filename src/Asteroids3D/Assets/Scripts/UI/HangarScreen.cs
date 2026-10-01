@@ -4,7 +4,6 @@ using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using Ships;
 using Ships.Loadout;
-using Ships.Weapons;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -66,19 +65,13 @@ namespace UI
 
             if (offer)
             {
-                // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each offered
-                // ship's authored mounts here, once, off the prefab's own WeaponsController.
-                var authoredMounts = new Dictionary<Ship, WeaponsController>();
-                foreach (var ship in offer.ships ?? Array.Empty<Ship>())
-                    if (ship) authoredMounts[ship] = ship.GetComponent<WeaponsController>();
-
                 // Picking a ship reseeds the module slots to that ship's authored kit.
                 BuildRow(shipRow, offer.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
                     loadout.Shield = s.Shield;
-                    var mounts = authoredMounts[s];
+                    var mounts = s.Weapons;
                     loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);

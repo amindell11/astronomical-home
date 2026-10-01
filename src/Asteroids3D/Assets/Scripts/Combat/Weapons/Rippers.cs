@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -9,13 +10,13 @@ namespace Combat.Weapons
     {
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner will open fire.")]
-        [SerializeField, Min(0f)] private float fireDistance = 18f;
+        [Stat, SerializeField, Min(0f)] private float fireDistance = 18f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will open fire.")]
-        [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 6f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 6f;
 
         [Header("Conditions")]
-        [SerializeField] private Rounds rounds;
-        [SerializeField] private Cooldown cooldown;
+        [Stat, SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
