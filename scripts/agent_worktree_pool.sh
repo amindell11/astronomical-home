@@ -2035,7 +2035,7 @@ MERGE_TURN_POLL_SECONDS="${WORKTREE_POOL_MERGE_TURN_POLL_SECONDS:-0.1}"
 # The stamp tells two holds by one slot apart, for a waiter timing a single holder.
 merge_turn_publish() { printf '%s %s\n' "$1" "$EPOCHSECONDS" > "$MERGE_TURN_HOLDER"; }
 
-# The holder's slot; empty when the turn is free or a 'lock merge-turn' caller holds it.
+# Empty when the turn is free or a 'lock merge-turn' caller holds it.
 merge_turn_holder() { cut -d' ' -f1 "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
 
 # The line is the live turn tickets (<slot>.turn-ticket, one arrival time each) in arrival order.

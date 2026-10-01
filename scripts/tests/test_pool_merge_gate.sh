@@ -928,7 +928,7 @@ grep -q '"phase":"turn-wait".*"status":"failed"' "$(journal_for agent-2)" || fai
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "a gate refused the turn must run nothing"
 
 # The wait is called directly here, with no gate around it. This waiter gives up and is gone, so its
-# turn ticket, the earliest on disk, is dead: it holds no place in the line and does not block it.
+# turn ticket, left on disk ahead of the next gate's, is dead: it holds no place in the line.
 turn_rc=0
 WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool_fn with_merge_turn agent-9 true || turn_rc=$?
 [[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; fail "fixture: the direct waiter should give up behind gate 1 (got $turn_rc)"; }
