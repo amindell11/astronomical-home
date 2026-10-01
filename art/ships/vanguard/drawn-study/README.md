@@ -57,15 +57,23 @@ triangulation, corner normals, transforms, UV coordinates and symmetry modifiers
 The separate canopy and blue cores retain their materials.
 
 Damage and service-overlay objects remain recoverable but hidden in the painted
-source and inactive in the production prefab. Vent and service-panel color is
+source and absent from the live production prefab. Vent and service-panel color is
 baked into the hull atlas, removing the overlay's triangular gray seams. The hull
 uses `Vanguard vivid paint.mat` with neutral orange gain; the texture GUID is
 unchanged. The production FBX is unchanged.
 
-The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/b9bc31d9fd2381988ea7840a6489464e64686b75/pipeline/README.md)
+The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/0715d97bfce2a4bcbf649d2398196dc6d3462bc9/pipeline/README.md)
 includes the recovered Crimson recipes, generation helpers and preservation
 checks. Use that pipeline for this source; `export_study.py` regenerates the older
 study overlays and is not the selected paint pipeline. The breakup work in
 [#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
 painted source and material, retain the separate canopy/cores, and leave the
-rejected overlay objects inactive.
+rejected overlay objects out of the live breakup pieces.
+`DrawnStudy/Meshes/Vanguard painted hull.asset` combines the nine painted hull
+meshes, and `Vanguard contour.asset` combines eleven silhouette meshes. The live
+rig keeps five art renderers: hull, contour, structural ink, canopy and cores.
+The saved meshes preserve triangle indices, painted UVs and transformed positions
+and normals without welding or recalculation. Original source parts remain
+separate in `VanguardPainted.blend` for breakup; the consolidated intact meshes
+are runtime assets rather than the breakup authoring source. The existing
+`Ship_1.prefab` continues to reference the updated illustrated rig.
