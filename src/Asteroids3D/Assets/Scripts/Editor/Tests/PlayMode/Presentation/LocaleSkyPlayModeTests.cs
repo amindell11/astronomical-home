@@ -2,7 +2,7 @@
 using System.Collections;
 using NUnit.Framework;
 using Substrate;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,7 +13,7 @@ namespace Tests.PlayMode.Presentation
     [Category("Sectors")]
     public sealed class LocaleSkyPlayModeTests
     {
-        private const string SkyTrianglePath = "Assets/Visuals/Environment/Sky/SkyTriangle.asset";
+        private const string SkyTrianglePath = "Assets/Visuals/Locales/Sky/SkyTriangle.asset";
 
         private Scene original;
         private Scene first;
@@ -69,7 +69,7 @@ namespace Tests.PlayMode.Presentation
             for (var i = 0; i < colors.Length; i++) colors[i] = new Color(2, 0.25f, 0.125f, 1);
             texture.SetPixels(colors);
             texture.Apply();
-            material = new Material(Shader.Find("Environment/Flat Background")) { mainTexture = texture };
+            material = new Material(Shader.Find("Locales/Flat Background")) { mainTexture = texture };
             SceneManager.SetActiveScene(first);
             BuildRoot(first, material);
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# covers: scripts/on_event_triage.sh
+# covers: scripts/on_event_triage.sh scripts/on_event_triage_helper.py
 
 # Hermetic regression for scripts/on_event_triage.sh: the allowlist split, the edit gate, the
 # one-priority rule, needs-triage on a priority-less issue, note emission (new / edited in place /

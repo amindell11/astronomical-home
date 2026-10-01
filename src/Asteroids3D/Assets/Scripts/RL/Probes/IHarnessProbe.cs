@@ -64,6 +64,7 @@ namespace RL.Probes
                 new[] { ControllerProbe.YawRateDeadbandKey, ControllerProbe.TorqueDeadbandKey }),
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
+            [MarksmanshipProbe.ProbeName] = (_ => new MarksmanshipProbe(), Array.Empty<string>()),
             [SentenceProbe.ProbeName] = (_ => new SentenceProbe(), Array.Empty<string>()),
         };
 
