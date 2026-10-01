@@ -32,10 +32,7 @@ public static class AsyncAssert
         while (Time.realtimeSinceStartup < deadline)
         {
             if (condition())
-            {
-                Assert.Pass();
                 yield break;
-            }
 
             if (useFixedUpdate)
                 yield return new WaitForFixedUpdate();

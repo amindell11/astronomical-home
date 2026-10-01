@@ -9,6 +9,7 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | `agent_worktree_pool.sh` | Slot locks, task branches, PR open, gated squash-merge, merge journal. | `./scripts/agent_worktree_pool.sh <verb>` | `--help`; section map at top of file |
 | `worktree_dashboard.sh` | Read-only view of every slot: lock, branch, PR, ahead/behind, merge phase. | `./scripts/worktree_dashboard.sh [--watch]` | header comment |
 | `remote_gate.sh` | Ship a branch to the remote lane box over SSH and run the Unity gate there. | `./scripts/remote_gate.sh [branch]` | header comment |
+| `remote_lane.sh` | Remote lane front door: one availability verdict for the remote box, and the switch that turns the lane off. | `./scripts/remote_lane.sh status\|disable [reason]\|enable` | header comment |
 | `install_hooks.sh` | Point `core.hooksPath` at `.githooks/`. | `./scripts/install_hooks.sh` | header comment |
 
 ## Unity access & tests

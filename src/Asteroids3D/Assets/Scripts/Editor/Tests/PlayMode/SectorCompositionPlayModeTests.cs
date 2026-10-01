@@ -199,6 +199,22 @@ namespace Tests.PlayMode
                 "An adopt entry with startActive=false must leave the ship inactive.");
         }
 
+        [Test]
+        public void Adopt_AuthoredInactiveShip_ThrowsNamingStartActive()
+        {
+            var ship = TestAssets.LoadShip2Prefab();
+            var cmdr = TestAssets.LoadTestPilotMpc();
+            if (!ship || !cmdr) Assert.Ignore("Required test assets not found.");
+
+            var sector = CreateTestSector();
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr);
+            child.gameObject.SetActive(false);
+            SetManifest(sector, new[] { Entry(child) }, null);
+
+            var ex = Assert.Throws<System.InvalidOperationException>(() => sector.Setup().MoveNext());
+            StringAssert.Contains("AdoptedShip.startActive", ex.Message);
+        }
+
         [UnityTest]
         public IEnumerator Adopt_NestedPilotOverride_Survives()
         {

@@ -24,7 +24,7 @@ mkdir -p "$LOCK_ROOT"
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
-#   Merge gate                cmd_merge
+#   Merge gate                merge turn, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -218,6 +218,21 @@ Commands:
       doc/agents/script-contracts.md sec.4).
       One gate per slot: a second 'merge' on a slot whose gate is running is
       refused at once (flock on the slot's .merge file under the lock root).
+      One gate at a time, pool-wide (the merge turn): after the slot's lock
+      a gate takes the 'merge-turn' lock (see lock) and holds it from before
+      its fetch through gh pr merge, so no other gate on this machine moves
+      base under it. A gate that finds the turn taken waits in journal phase
+      turn-wait, which comes first in every ladder; merge-progress names the
+      slot it waits behind when a gate holds the turn. Order among waiters
+      is not guaranteed. A gate waiting for the turn already holds its
+      slot's .merge lock, so 'merge' and 'hold' on that slot refuse. After
+      WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS (default 3600) the waiter exits
+      75; stderr names the lock file and the holder slot, or says the holder
+      is not a merge gate.
+      Any other push to base takes the same turn, e.g. a docs-only landing:
+        lock merge-turn --wait 3600 -- <sync and push cmd>
+      The turn is machine-local: a base move from anywhere else is still
+      caught just before gh pr merge ("base moved during the merge gate").
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -517,7 +532,7 @@ with_flock() {
   shift 3
   command -v perl >/dev/null 2>&1 || { echo 'Pool locking requires Perl flock support.' >&2; return 1; }
   # The execed command inherits the lock; launcher death cannot expose a surviving child.
-  # POOL_FLOCK_FD lets a background child close the fd so it never keeps the lock past its holder.
+  # POOL_FLOCK_FDS lets a background child close every lock fd, so none outlives its holder.
   perl -e '
     use strict;
     use warnings;
@@ -533,7 +548,7 @@ with_flock() {
       select(undef, undef, undef, 0.1);
     }
     fcntl($lock, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
-    $ENV{POOL_FLOCK_FD} = fileno($lock);
+    $ENV{POOL_FLOCK_FDS} = join " ", split(" ", $ENV{POOL_FLOCK_FDS} // ""), fileno($lock);
     exec @ARGV or die "Pool lock exec: $!\n";
   ' "$file" "$wait" "$busy_msg" "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' \
     pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
@@ -1240,16 +1255,17 @@ run_script_test_lane() {
   return "$failed"
 }
 
-# Own process group lets a refusal stop the whole suite; closing the lock fd keeps it off the merge lock.
+# Own process group lets a refusal stop the suite, which must hold none of the gate's locks.
 SCRIPT_SUITE_PID=""
 SCRIPT_SUITE_LOG=""
 
 start_script_suite() {
-  local dir="$1" base_ref="$2" head_ref="$3"
+  local dir="$1" base_ref="$2" head_ref="$3" fd
   SCRIPT_SUITE_LOG="$(mktemp)"
   set -m
   (
-    [[ -z "${POOL_FLOCK_FD:-}" ]] || eval "exec ${POOL_FLOCK_FD}>&-"
+    for fd in ${POOL_FLOCK_FDS:-}; do eval "exec ${fd}>&-"; done
+    unset POOL_FLOCK_FDS
     cmd_run_script_tests "$dir" "$base_ref" "$head_ref"
   ) > "$SCRIPT_SUITE_LOG" 2>&1 &
   SCRIPT_SUITE_PID=$!
@@ -1481,6 +1497,7 @@ MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}
 # passes must still land.
 merge_phase_budget() {
   case "$1" in
+    turn-wait) echo 900 ;;
     preflight) echo 10 ;;
     fetch) echo 15 ;;
     base-merge) echo 15 ;;
@@ -1554,6 +1571,15 @@ merge_journal_open() {
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir" 2>/dev/null && printf '%s\n' "$MERGE_JOURNAL" > "$ldir/merge_run" 2>/dev/null || true
   journal_event run-start "" "slot=$slot" "base=$base_ref" "pid=$$" "epoch=$MERGE_RUN_START"
+}
+
+# with_flock's exec drops shell state, so the journal and open phase cross as arguments.
+merge_journal_adopt() {
+  MERGE_JOURNAL="$1"
+  MERGE_RUN_START="$2"
+  MERGE_PHASE="$3"
+  MERGE_PHASE_START="$4"
+  MERGE_JOURNAL_PID="$BASHPID"
 }
 
 # Reaching the next phase is itself proof the previous one succeeded, so a begin
@@ -1645,6 +1671,7 @@ END {
     if (openPhase == "" || ended) exit
     line = openPhase " " fmt(openElapsed) " OPEN"
     if (openBudget > 0 && openElapsed > openBudget) line = line " (over budget " fmt(openBudget) ")"
+    if (openDetail != "") line = line " " openDetail
     print line
     exit
   }
@@ -1671,6 +1698,7 @@ END {
       warned++
     }
     else if (openBudget > 0) line = line sprintf(" - budget %s", fmt(openBudget))
+    if (openDetail != "") line = line "   " openDetail
     if (openPhase in note) line = line "   " note[openPhase]
     print line
   }
@@ -1689,11 +1717,17 @@ merge_journal_open_phase() {
 }
 
 merge_journal_render() {
-  local journal="$1" oneline="${2:-0}" open_phase open_budget
+  local journal="$1" oneline="${2:-0}" open_phase open_budget open_detail="" holder
   [[ -f "$journal" ]] || return 0
   open_phase="$(merge_journal_open_phase "$journal")"
   open_budget="$(merge_phase_budget "${open_phase:-none}")"
-  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline"     "$MERGE_RENDER_AWK" "$journal"
+  # Read live rather than journaled: the turn can change hands while a gate waits.
+  if [[ "$open_phase" == turn-wait ]]; then
+    holder="$(merge_turn_holder)"
+    [[ -z "$holder" ]] || open_detail="behind $holder"
+  fi
+  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline" -v openDetail="$open_detail" \
+    "$MERGE_RENDER_AWK" "$journal"
 }
 
 # Resolve a slot's journal: the live pointer first, else the newest run file (the
@@ -1927,6 +1961,21 @@ boot_admission_status() {
 }
 
 # ---- Merge gate ------------------------------------------------------------
+# 'lock merge-turn' takes this same file, so any other push to base waits its turn.
+MERGE_TURN_LOCK="$LOCK_ROOT/merge-turn.lock"
+MERGE_TURN_HOLDER="$LOCK_ROOT/merge-turn.holder"
+MERGE_TURN_WAIT_SECONDS="${WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS:-3600}"
+
+# Empty when the turn is free or a 'lock merge-turn' caller holds it.
+merge_turn_holder() { cat "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
+
+merge_turn_release() {
+  # A ( ) subshell can run the inherited EXIT trap; only the gate's own shell ends its turn.
+  [[ "$BASHPID" == "$MERGE_JOURNAL_PID" ]] || return 0
+  rm -f "$MERGE_TURN_HOLDER"
+  if [[ "$1" -eq 0 ]]; then merge_phase_end ok; else merge_phase_end failed; fi
+}
+
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -1944,9 +1993,41 @@ cmd_merge() {
   fi
 
   merge_journal_open "$slot" "$base_ref"
+  trap 'merge_rc=$?; merge_journal_finish "$merge_rc"' EXIT
+  # Opened before the turn is asked for, so a waiting gate shows as one.
+  merge_phase_begin turn-wait
+
+  local turn_rc=0 holder
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" "" \
+    merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "${test_args[@]}" || turn_rc=$?
+  if [[ "$turn_rc" -eq "$LOCK_BUSY_EXIT" ]]; then
+    holder="$(merge_turn_holder)"
+    if [[ -n "$holder" ]]; then
+      echo "merge: the merge turn is still held by $holder after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not merging." >&2
+      echo "  Follow its gate with 'merge-progress $holder', then re-run 'merge $slot'." >&2
+    else
+      echo "merge: the merge turn is still taken after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK), and not by a merge gate — not merging." >&2
+      echo "  A 'lock merge-turn' caller (a docs-only landing) or a child of a killed gate holds it; re-run 'merge $slot' once it is gone." >&2
+    fi
+    merge_journal_note "turn still held by ${holder:-a holder that is not a merge gate} after ${MERGE_TURN_WAIT_SECONDS}s"
+    return "$turn_rc"
+  fi
+  # merge_gate's shell closes turn-wait and every later phase, so this shell must not.
+  MERGE_PHASE=""
+  return "$turn_rc"
+}
+
+# Runs holding the merge turn, in the shell with_flock starts for it.
+merge_gate() {
+  merge_journal_adopt "$1" "$2" turn-wait "$3"
+  local slot="$4" base_ref="$5" remote="$6"
+  shift 6
+  local test_args=("$@")
+
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
-  trap 'merge_rc=$?; stop_script_suite; merge_journal_finish "$merge_rc"' EXIT
+  trap 'merge_rc=$?; stop_script_suite; merge_turn_release "$merge_rc"' EXIT
+  printf '%s\n' "$slot" > "$MERGE_TURN_HOLDER"
   merge_phase_begin preflight
 
   require_gh || return 1

@@ -59,8 +59,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -89,7 +89,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) | Always qualified: "sky layer" vs "the `Sky` layer". |
-| **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · legacy name for a locale (`Environment_N.unity`, `Visuals/Environment`, `Substrate.Services.Environment`, the sector config's "Environment" header) | Never for the locale in new prose — say "locale". Qualify the rest. |
+| **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
 ---
 
@@ -206,6 +206,11 @@ Format: **term** — definition. *(authority)*
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
+- **merge turn** — the pool-wide right to run a merge gate, held by one gate at
+  a time from before its fetch through `gh pr merge`. Order among waiting gates
+  is not guaranteed. Machine-local: a base move from any other clone is caught
+  only by the gate's base re-check. Any other push to main takes the turn
+  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
@@ -245,8 +250,8 @@ Format: **term** — definition. *(authority)*
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
   gets a proposal instead of a build. A *drain run* takes only items also
-  labelled `unity:none`; its claim is the issue assignee plus the
-  worktree-pool lease.
+  labelled `unity:none`, or `unity:headless` plus `drain:approved`; its claim
+  is the issue assignee plus the worktree-pool lease.
   *(#617, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
   questions from interactive sessions: a fork posted on the issue with options,
@@ -281,7 +286,8 @@ Format: **term** — definition. *(authority)*
   *(.claude/skills/issue-triage/comment-formats.md)*
 - **drain run** — one unattended build session, started from a *drain task* by
   the *drain orchestrator* or by Run now, that picks, claims, builds, PRs and
-  holds one `unity:none` *ready queue* item; a claim lost to a concurrent run
+  holds one `unity:none` *ready queue* item, or one `unity:headless` item
+  carrying `drain:approved`; a claim lost to a concurrent run
   (`taken`) sends it back to pick. The user talks to it in its own chat.
   *(agent-worktree-pr-loop → Drain run)*
 - **drain task** — a desktop scheduled task a *drain run* is started from:
@@ -380,6 +386,16 @@ Format: **term** — definition. *(authority)*
   engage/disengage metrics. Definition lives at `EngagementTracker`
   (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
   as disengagement, geometric so heat lockouts do not.
+- **duel lane** — the harness lane that runs the baseline duel: a scripted
+  shooter carrying one weapon alone in its primary weapon slot against an
+  unarmed target. Its rows are a snapshot, not a constant: judge a change by
+  running the lane on the base and the head with the same seeds, and quote the
+  replicate gap between two identical runs as the noise. *(#409 · DuelLane.cs)*
+- **marksmanship probe** — the harness probe that counts, per episode, what the
+  shooter's weapon fired and what it hit. A hit is one damage event on the
+  target, so a missile's contact and splash are not told apart, and a shot
+  still in flight when the target dies is fired and never hits.
+  *(MarksmanshipProbe, MarksmanshipSampler)*
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
@@ -638,6 +654,19 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **item** — anything that fills a loadout slot: a chassis (a prefab with a root
+  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
+  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
+  but fill no slot, so they are not items.
+- **item catalog** — the one asset listing every item in the project, grouped
+  by item type. An index only: each item's stats stay on its own asset. Listing
+  is not what makes something an item — a test scans the project by type and
+  fails when the list and the scan differ. *(ItemCatalog)*
+- **item subset** — an authored list of items one consumer chooses from, per
+  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
+  "the catalog": neither lists everything. *(ItemSubset)*
+- **hangar's offer** — the item subset the hangar shows the player.
+  *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.

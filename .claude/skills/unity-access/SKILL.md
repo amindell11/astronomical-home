@@ -1,25 +1,34 @@
 ---
 name: unity-access
-description: Coordinate access to this repository's shared Unity editors. Use before running Unity tests, opening an interactive Unity editor, driving a live editor through the unity CLI, or diagnosing why another agent cannot use Unity.
+description: Coordinate access to this repository's shared Unity editors. Use before running Unity tests, opening an interactive Unity editor, driving a live editor through the unity CLI, handling a Unity boot refused for memory, or diagnosing why another agent cannot use Unity.
 ---
 
 # Unity Access
 
 Use `scripts/unity_access.ps1` as the authority for Unity process coordination. Ownership is **per project**: runs on different worktree projects overlap freely, and only Unity **startup** serializes through a machine-wide boot lane (concurrent boots were the deadlock hazard — postmortem D6). Prefer batch tests, wait in FIFO order when your project is busy, and leave owners, the boot lane, and the queue clean.
 
-Memory admission is the coordinator's, not yours: ask `-Action BootAdmission -Mode batch|editor -Json` for a verdict (`boot_admitted` / `boot_not_admitted`, both exit 0) instead of evaluating RAM by hand. The boot lane enforces the same verdict and refuses with `boot_refused_low_memory` (exit 28), immediately rather than waiting. On a `boot_not_admitted` verdict or that refusal, check whether Alastor is available and, if it is, propose the remote-gate fallback to the user (below); otherwise report the memory pressure and wait for an editor to exit. Pass `-AllowLowMemory` only after the user has explicitly approved that specific boot.
+Memory admission is the coordinator's, not yours: ask `-Action BootAdmission -Mode batch|editor -Json` for a verdict (`boot_admitted` / `boot_not_admitted`, both exit 0) instead of evaluating RAM by hand. The boot lane enforces the same verdict and refuses with `boot_refused_low_memory` (exit 28), immediately rather than waiting. A `boot_not_admitted` verdict or that refusal — editor or batch — starts the remote-lane fallback below. Pass `-AllowLowMemory` only after the user has explicitly approved that specific boot.
 
 Run commands from the repository root with PowerShell.
 
-## Alastor remote-gate fallback
+## Remote-lane fallback on a memory refusal
 
-When Mordechai will not admit a boot and a full batch gate is needed:
+The remote lane is a second Unity box (`alastor`) driven over SSH. A memory refusal on this machine — for an editor or a batch run — owes the user one verdict from it. The merge gate is the one exception: it routes its own refusal to the hosted suite.
 
-1. **Check availability first — read-only SSH checks need no permission.** Inspect Alastor's available RAM, `unity_access.ps1 -Action Status -Json`, remote `git status`, and any live Unity or `rg-*` gate run.
-2. **Then ask the user**, reporting what you found. Anything heavy on Alastor — a test run, a gate, an editor boot — needs the user's go-ahead each time; a past approval does not carry over. The lane has no cross-session checkout guard (#588), so an unannounced run can trample another session's. Don't suggest Alastor before step 1 shows it is usable.
-3. On a yes, run `scripts/remote_gate.sh <branch>` from the local branch being tested; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
+1. **Get the verdict as your next tool call:** `./scripts/remote_lane.sh status` — read-only, no permission needed. Its first stdout line is `REMOTE_LANE=<verdict>`.
+2. **Report the verdict in the same message as the refusal**, whichever it is:
+   - `available` — offer the lane beside waiting for local memory, with what it costs for this task (step 3). Whether that cost is worth paying is the user's call.
+   - `busy` — another run holds the box; offer it for once that run finishes.
+   - `unreachable` — asleep or off the network. It has no Wake-on-LAN, so say it needs waking at its keyboard.
+   - `disabled` — the user switched the lane off; relay `REASON`.
+   - exit 1, no verdict — the box answered but its report failed; relay the stderr lines.
+3. **On the user's yes**, dispatch by what the boot was for. Each heavy use — a test run, an editor boot — needs its own yes: the lane has no cross-session checkout guard (#588), so an unannounced run can swap the tree under another session's.
+   - **Batch tests** → `./scripts/remote_gate.sh <branch>` from the local branch under test; it owns the bundle/LFS transfer, remote checkout, detached launch, and summary retrieval.
+   - **Editor** → put the commit on the box with `remote_gate.sh <branch>` (it runs the suite too; skip it when status shows `CHECKOUT` is already that commit), then `remote_editor.sh start` (§ Remote lane). When status shows `CONSOLE_SESSION=false`, say someone must log in at the box's console first. The remote editor fits looking and capturing. Assets authored in it have no scripted way back, so say that in the offer when the task authors assets.
 
-`remote_gate.sh` force-checks out the target commit on Alastor. Preserve any remote dirty state first (back up and restore the exact changed files) or get explicit authority to discard it. A passing remote summary is valid test evidence, but it does not record merge-grade proof in `agent_worktree_pool.sh`; include it in the PR and let the pool's merge protocol run its required gate when local capacity is available.
+`remote_gate.sh` force-checks out the target commit. When status reports `DIRTY_FILES` above 0, back up and restore those exact files, or get explicit authority to discard them. A passing remote summary is test evidence for the PR, not merge-grade proof; the merge gate still produces its own.
+
+The switch — `remote_lane.sh disable [reason]` / `enable` — is the user's: run it on their instruction only.
 
 ## Choose the least disruptive path
 
@@ -136,7 +145,7 @@ Constraints the script enforces — don't work around them by hand:
 - Launches still go through the remote clone's `unity_access.ps1`
   coordinator — the lease rules above apply on that machine unchanged.
 - The lane machine has no Wake-on-LAN: if SSH is down, the box needs a
-  physical wake. Capabilities/paths: memory `reference_alastor_remote_machine.md`.
+  physical wake. Capabilities/paths: `doc/agents/environment.md` § Alastor.
 
 Remote captures land on the remote disk — `cmd screenshot --output C:/dev/x.png`
 then `scp` the file back.

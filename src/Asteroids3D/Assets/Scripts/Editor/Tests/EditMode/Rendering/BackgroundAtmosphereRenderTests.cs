@@ -1,6 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace Tests.EditMode.Rendering
             previousTime = Shader.GetGlobalVector("_Time");
             previousCamera = Shader.GetGlobalVector("_WorldSpaceCameraPos");
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/Visuals/Environment/Sky/NebulaMaterial.mat"));
+                "Assets/Visuals/Locales/Sky/NebulaMaterial.mat"));
             material.SetFloat("_NebulaStrength", 0);
             mesh = new Mesh
             {
@@ -57,9 +57,9 @@ namespace Tests.EditMode.Rendering
         }
 
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_1.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_2.unity")]
-        [TestCase("Assets/Scenes/Environments/Environment_3.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string scenePath)
         {
@@ -123,7 +123,7 @@ namespace Tests.EditMode.Rendering
         {
             Object.DestroyImmediate(material);
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/Visuals/Environment/Sky/ForegroundNebulaMaterial.mat"));
+                "Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat"));
             material.SetFloat("_NebulaForeground", 1);
             material.SetFloat("_NebulaStrength", 0.025f);
             material.SetFloat("_NebulaScale", 0.085f);
@@ -144,7 +144,7 @@ namespace Tests.EditMode.Rendering
         {
             Object.DestroyImmediate(material);
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat"));
+                "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat"));
             material.SetFloat("_StarDensity", 0);
             material.SetFloat("_ShootingBrightness", 0.65f);
             var litFrames = 0;

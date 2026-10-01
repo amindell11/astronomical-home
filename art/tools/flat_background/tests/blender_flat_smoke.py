@@ -84,7 +84,7 @@ shutil.rmtree(project, ignore_errors=True)
 (project / "ProjectSettings").mkdir()
 (project / "ProjectSettings/ProjectVersion.txt").write_text("m_EditorVersion: 6000.0.0f1\n")
 published = flat_unity.publish(base, project, "illustrated-blue", False)
-generated = project / "Assets/Visuals/Environment/Flat/Generated"
+generated = project / "Assets/Visuals/Locales/Flat/Generated"
 assert published == generated / "illustrated-blue-draft.exr", published
 assert published.read_bytes() == exr.read_bytes()
 assert json.loads((generated / "illustrated-blue-draft.json").read_text(encoding="utf-8")) == sidecar
