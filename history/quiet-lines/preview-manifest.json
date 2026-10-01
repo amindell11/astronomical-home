@@ -1,0 +1,28 @@
+[
+  {
+    "name": "rich",
+    "orange": [
+      0.98,
+      0.48,
+      0.1
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\rich-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\rich-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\rich-small.png"
+    ]
+  },
+  {
+    "name": "vivid",
+    "orange": [
+      1,
+      0.36,
+      0.065
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\vivid-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\vivid-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\quiet-lines\\vivid-small.png"
+    ]
+  }
+]

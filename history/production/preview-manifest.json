@@ -1,0 +1,18 @@
+[
+  {
+    "name": "vivid",
+    "orange": [
+      1,
+      0.36,
+      0.065
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\production\\vivid-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\production\\vivid-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\production\\vivid-small.png"
+    ],
+    "atlas": "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\production\\vivid-atlas.png",
+    "source": "D:\\amind\\git\\agent-3\\art\\ships\\vanguard\\drawn-study\\VanguardPainted.blend",
+    "resolution": 4096
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "variant": "rich",
+    "sources": [
+      {
+        "name": "Vanguard",
+        "source_length": 2.000259757041931,
+        "normalization": 0.499935069172637,
+        "meshes": 12
+      },
+      {
+        "name": "Crimson",
+        "source_length": 1.9963679313659668,
+        "normalization": 0.5009096691488998,
+        "meshes": 39
+      }
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\crimson-comparisons\\rich-with-crimson.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\crimson-comparisons\\rich-with-crimson-small.png"
+    ],
+    "lighting": "Flat texture; no cavity or shadow effects",
+    "scale": "Equal nose-to-tail length"
+  },
+  {
+    "variant": "vivid",
+    "sources": [
+      {
+        "name": "Vanguard",
+        "source_length": 2.000259757041931,
+        "normalization": 0.499935069172637,
+        "meshes": 12
+      },
+      {
+        "name": "Crimson",
+        "source_length": 1.9963679313659668,
+        "normalization": 0.5009096691488998,
+        "meshes": 39
+      }
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\crimson-comparisons\\vivid-with-crimson.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\crimson-comparisons\\vivid-with-crimson-small.png"
+    ],
+    "lighting": "Flat texture; no cavity or shadow effects",
+    "scale": "Equal nose-to-tail length"
+  }
+]

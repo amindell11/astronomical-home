@@ -1,0 +1,37 @@
+[
+  {
+    "name": "baseline",
+    "orange": null,
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\baseline-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\baseline-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\baseline-small.png"
+    ]
+  },
+  {
+    "name": "rich",
+    "orange": [
+      0.98,
+      0.48,
+      0.1
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\rich-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\rich-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\rich-small.png"
+    ]
+  },
+  {
+    "name": "vivid",
+    "orange": [
+      1,
+      0.36,
+      0.065
+    ],
+    "views": [
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\vivid-top.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\vivid-hero.png",
+      "D:\\amind\\git\\agent-3\\results\\vanguard-retexture\\previews\\vivid-small.png"
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "crimson_pr": 725,
+  "crimson_uv_pr": 731,
+  "selection": "vivid; no battle damage, gray seams or overlay triangle grids",
+  "source_sha256": "da5c7cc9591dd4455fee46c97c4f9747b801ecb6536efd5a5fbf4bf1573abbae",
+  "legacy_layout_sha256": "884f6685c909d0965ed6da81605f85bc47d868627f92df5c01f313c5bdb17b5a",
+  "crimson_recipe_sha256": "dd3365b366b157ea8650eb94518dda7d0cb59f30daa7891050c7020c367d8d16",
+  "crimson_uv_helper_sha256": "5fd20672b9112fa14cd7b04ba50aa512a0afc516810bbabf14fc4e174a6ea59a",
+  "production_atlas_sha256": "4693d7fccbc0dbb8a3a47a638b351f4c43d076ea4b31a5e96af6e3748ae2c542"
+}
