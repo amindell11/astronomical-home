@@ -24,10 +24,11 @@ namespace Game
     /// ledger and the run tally. Built <b>once</b> at session start against a viewport the host
     /// owns, and held for the whole session — sectors are swapped underneath it and reference the
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
-    /// player is live exactly while a sector is loaded; outside one it is parked (<see cref="Park"/>)
-    /// and <see cref="ApplyLoadout"/> revives it for the next load. Pure mechanism: the rig holds no
-    /// session policy — the host injects the player-death behavior via <see cref="Build"/> and the
-    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
+    /// player is parked (<see cref="Park"/>) from <see cref="Build"/> and from each sector's unload
+    /// until <see cref="ApplyLoadout"/> revives it at the end of the next hangar step, so it is never
+    /// live in the hangar. Pure mechanism: the rig holds no session policy — the host injects the
+    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it
+    /// builds. A host with no rig assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
