@@ -1,0 +1,12 @@
+{
+  "01 central fuselage": {
+    "nonmanifold_edges": 0,
+    "self_intersections": 0
+  },
+  "03 canopy side cheeks": {
+    "nonmanifold_edges": 0,
+    "self_intersections": 0
+  },
+  "minimum_lateral_margin": 0.10189414024353027,
+  "all_other_parts_unchanged": true
+}
