@@ -38,11 +38,11 @@ namespace Game
         public enum PlayerDeathBehavior { None = 0, RestartSector = 2 }
 
         [Header("Session")]
-        [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
+        [SerializeField] internal SessionProfile sessionProfile = new SessionProfile();
 
-        [Tooltip("The player and its HUD. Built once after session compose; persists across sector restarts. " +
-                 "Null → no player (spectator).")]
-        [SerializeField] private PlayerRig playerRig;
+        [Tooltip("Prefab of the player and its HUD. The host builds its own copy once after session " +
+                 "compose; it persists across sector restarts. Null → no player (spectator).")]
+        [SerializeField] internal PlayerRig playerRig;
 
         [Header("View")]
         [Tooltip("Observer camera spawned once at session start and framed on the fleet; the player " +
@@ -61,7 +61,7 @@ namespace Game
 
         [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
                  "prefab-authored modules).")]
-        [SerializeField] internal LoadoutConfig loadoutCatalog;
+        [SerializeField] internal ItemSubset hangarOffer;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +
@@ -86,6 +86,7 @@ namespace Game
 
         private Session session;
         private ObserverCam observer;
+        private PlayerRig rigInstance;
         private LoadingSplash splash;
 
         private Transform viewport;
@@ -124,22 +125,24 @@ namespace Game
             observer = BuildObserver(session.Units, presentation, viewport);
             if (playerRig)
             {
-                yield return playerRig.Build(session.Units, session.Objectives, presentation,
+                // An asset gets no lifecycle, and state parked on it would outlive the session.
+                rigInstance = Instantiate(playerRig, transform);
+                yield return rigInstance.Build(session.Units, session.Objectives, presentation,
                     observer, ui, session.Frame, BuildDeathCallback());
-                playerRig.Tally.Killed += RefillPlayerHull;
+                rigInstance.Tally.Killed += RefillPlayerHull;
             }
 
             while (true)
             {
                 SetSplashVisible(false);
-                if (playerRig)
-                    yield return RunHangar(playerRig, presentation, ui);
+                if (rigInstance)
+                    yield return RunHangar(rigInstance, presentation, ui);
 
                 SetSplashVisible(true);
                 playerDied = false;
                 sectorEnded = false;
-                yield return session.LoadSector(playerRig ? playerRig.Player : null, _ => sectorEnded = true);
-                if (playerRig) playerRig.Tally.Begin(Time.time);
+                yield return session.LoadSector(rigInstance ? rigInstance.Player : null, _ => sectorEnded = true);
+                if (rigInstance) rigInstance.Tally.Begin(Time.time);
                 SetSplashVisible(false);
 
                 // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
@@ -151,6 +154,7 @@ namespace Game
 
                 SetSplashVisible(true);
                 yield return session.UnloadSector();
+                if (rigInstance) rigInstance.Park();
             }
         }
 
@@ -201,7 +205,7 @@ namespace Game
                 case PlayerDeathBehavior.RestartSector:
                     return (_, killingBlow) =>
                     {
-                        playerRig.Tally.End(Time.time);
+                        rigInstance.Tally.End(Time.time);
                         lastKillingBlow = killingBlow;
                         playerDied = true;
                     };
@@ -211,7 +215,7 @@ namespace Game
             }
         }
 
-        private void RefillPlayerHull() => playerRig.Player.Damage.Health.RestoreFraction(killHullRestore);
+        private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
@@ -228,7 +232,7 @@ namespace Game
 
             var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
-            screen.Show(loadoutCatalog, rig.Loadout, () => launched = true);
+            screen.Show(hangarOffer, rig.Loadout, () => launched = true);
 
             yield return new WaitUntil(() => launched);
 
@@ -250,19 +254,19 @@ namespace Game
 
         private IEnumerator RunDeathRecap()
         {
-            var overlay = playerRig.Overlay;
+            var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(playerRig, false);
+            SetPlayerInputEnabled(rigInstance, false);
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(lastKillingBlow, playerRig.Ledger.Rows, playerRig.Tally, () => dismissed = true);
+            screen.Show(lastKillingBlow, rigInstance.Ledger.Rows, rigInstance.Tally, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
 
             Destroy(screen.gameObject);
-            SetPlayerInputEnabled(playerRig, true);
+            SetPlayerInputEnabled(rigInstance, true);
             if (overlay) overlay.SetVisible(true);
         }
     }

@@ -388,7 +388,7 @@ class FLATBG_PT_authoring(bpy.types.Panel):
         op = box.operator("flat_background.render", text="Send Final")
         op.final = True
         op.send_to_unity = True
-        box.label(text="Unity: assign its material on Environment")
+        box.label(text="Unity: assign its material on the locale's LocaleSky")
         layout.label(text=settings.status)
 
 

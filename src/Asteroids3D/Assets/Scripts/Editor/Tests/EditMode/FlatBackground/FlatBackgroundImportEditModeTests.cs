@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -33,7 +33,7 @@ namespace Tests.EditMode.FlatBackground
 
             var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             Assert.IsTrue(material, $"The import must build {materialPath}.");
-            Assert.AreEqual("Environment/Flat Background", material.shader.name);
+            Assert.AreEqual("Locales/Flat Background", material.shader.name);
             Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath), material.mainTexture);
             var importer = (TextureImporter)AssetImporter.GetAtPath(texturePath);
             Assert.IsFalse(importer.sRGBTexture, "HDR clouds are scene-linear.");

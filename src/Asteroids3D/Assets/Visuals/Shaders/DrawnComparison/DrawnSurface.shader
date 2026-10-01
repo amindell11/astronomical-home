@@ -3,6 +3,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
     Properties
     {
         _BaseMap ("Original Painted Surface", 2D) = "white" {}
+        _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
+        _SootStrength ("Destruction Soot", Range(0,1)) = 0
         [Toggle(_NORMALMAP)] _UseRelief ("Sculpted Relief", Float) = 0
         [Normal] _BumpMap ("Sculpted Relief Normal", 2D) = "bump" {}
         _BumpScale ("Relief Strength", Range(0,2)) = 1
@@ -44,6 +46,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
             half _SpecularStrength, _EmissionStrength;
             half _CastShadowStrength, _BumpScale;
+            half _DebrisVisibility, _SootStrength;
         CBUFFER_END
         TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
         half3 DrawnWorldNormal(half3 normalWS, half4 tangentWS, float2 uv)
@@ -80,6 +83,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 float3 normalOS : NORMAL;
                 float4 tangentOS : TANGENT;
                 float2 uv : TEXCOORD0;
+                half4 color : COLOR;
             };
             struct SurfaceOutput
             {
@@ -89,6 +93,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 float2 uv : TEXCOORD2;
                 half fog : TEXCOORD3;
                 half4 tangentWS : TEXCOORD4;
+                half soot : TEXCOORD5;
             };
             SurfaceOutput SurfaceVertex(SurfaceInput input)
             {
@@ -101,10 +106,12 @@ Shader "Astronomical/Comparison/Drawn Surface"
                     input.tangentOS.w * GetOddNegativeScale());
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.fog = ComputeFogFactor(position.positionCS.z);
+                output.soot = input.color.r;
                 return output;
             }
             half4 SurfaceFragment(SurfaceOutput input) : SV_Target
             {
+                clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
                 half3 painted = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
                 half orange = smoothstep(0.15, 0.3, painted.r - painted.g) * smoothstep(0.06, 0.15, painted.g - painted.b);
                 painted *= lerp(1, _OrangeGain.rgb, orange);
@@ -122,6 +129,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half mask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, input.uv).a;
                 albedo *= lerp(1, 2 * detail * _DetailAlbedoMapScale - _DetailAlbedoMapScale + 1, mask);
                 albedo *= _BaseColor.rgb;
+                half soot = smoothstep(0.22, 0.72, input.soot) * _SootStrength;
+                albedo = lerp(albedo * (1 - _SootStrength * 0.18), half3(0.065, 0.055, 0.05), soot * 0.88);
                 half3 normal = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
                 #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
                     float4 shadowCoord = ComputeScreenPos(TransformWorldToHClip(input.positionWS));
@@ -141,8 +150,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half peak = max(illumination.r, max(illumination.g, illumination.b));
                 illumination /= max(1, peak);
                 color = lerp(color, albedo * diffuse * illumination, _PaletteLighting);
-                color += light.color * highlight * _SpecularStrength * light.shadowAttenuation;
-                color += SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionStrength;
+                color += light.color * highlight * _SpecularStrength * light.shadowAttenuation * (1 - soot);
+                color += SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionStrength * (1 - _SootStrength);
                 return half4(MixFog(color, input.fog), 1);
             }
             ENDHLSL
@@ -155,9 +164,14 @@ Shader "Astronomical/Comparison/Drawn Surface"
             ColorMask 0
             HLSLPROGRAM
             #pragma vertex ShadowPassVertex
-            #pragma fragment ShadowPassFragment
+            #pragma fragment DebrisShadowFragment
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
+            half4 DebrisShadowFragment(Varyings input) : SV_Target
+            {
+                clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
+                return ShadowPassFragment(input);
+            }
             ENDHLSL
         }
         Pass
@@ -196,6 +210,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             }
             half4 DrawnDepthFragment(DepthOutput input) : SV_Target
             {
+                clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
                 half3 normalWS = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
                 #if defined(_GBUFFER_NORMALS_OCT)
                     float2 oct = saturate(PackNormalOctQuadEncode(normalWS) * 0.5 + 0.5);
@@ -221,6 +236,7 @@ Shader "Astronomical/Comparison/Drawn Surface"
             }
             half DepthFragment(float4 positionCS : SV_POSITION) : SV_Target
             {
+                clip(_DebrisVisibility - InterleavedGradientNoise(positionCS.xy, 0));
                 return positionCS.z;
             }
             ENDHLSL

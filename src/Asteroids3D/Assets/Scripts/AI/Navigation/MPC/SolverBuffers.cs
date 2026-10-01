@@ -20,6 +20,7 @@ namespace AI.Navigation.MPC
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
         private NativeArray<Control> result;
+        private NativeArray<float> resultCost;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
         private bool allocated;
@@ -119,30 +120,31 @@ namespace AI.Navigation.MPC
                 rngSeed = rngSeed
             }.Schedule(samples, 1).Complete();
 
-            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
-
-            return IncumbentElite(sequence, horizon, samples, eliteFraction);
-        }
-
-        private void Evaluate(State initialState, CostInput costInput,
-            Config cfg, Dynamics dynamics, Control lastControl, int samples)
-        {
-            // Inner batch 1: 51% better worst-frame than 8 when measured.
-            new EvaluateCandidatesJob
+            var evaluator = new EvaluateCandidatesJob
             {
-                candidates = candidates,
-                costs = costs,
                 costInput = costInput,
                 initialState = initialState,
                 cfg = cfg,
                 dynamics = dynamics,
                 lastControl = lastControl,
-            }.Schedule(samples, 1).Complete();
+            };
+            Evaluate(evaluator, candidates, costs, samples);
+
+            return IncumbentElite(sequence, horizon, samples, eliteFraction, evaluator);
         }
 
-        // Elite average restricted to candidates that strictly beat the incumbent (candidate 0, the shifted
-        // warm start already in sequence); none beating it leaves the incumbent emitted unchanged.
-        private float IncumbentElite(Control[] sequence, int horizon, int samples, float eliteFraction)
+        private static void Evaluate(EvaluateCandidatesJob evaluator,
+            NativeArray<Control> rows, NativeArray<float> rowCosts, int count)
+        {
+            evaluator.candidates = rows;
+            evaluator.costs = rowCosts;
+            // Inner batch 1: 51% better worst-frame than 8 when measured.
+            evaluator.Schedule(count, 1).Complete();
+        }
+
+        // Every contender is scored, so the emitted winner is returned with its own cost.
+        private float IncumbentElite(Control[] sequence, int horizon, int samples, float eliteFraction,
+            EvaluateCandidatesJob evaluator)
         {
             var incumbentCost = costs[0];
             var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
@@ -151,12 +153,12 @@ namespace AI.Navigation.MPC
             for (var j = 0; j < horizon; j++)
                 result[j] = default;
 
-            var bestCost = incumbentCost;
+            var bestIndex = 0;
             var counted = 0;
             for (var i = 1; i < samples && counted < eliteCount; i++)
             {
                 if (costs[i] > costThreshold || costs[i] >= incumbentCost) continue;
-                if (costs[i] < bestCost) bestCost = costs[i];
+                if (costs[i] < costs[bestIndex]) bestIndex = i;
 
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
@@ -179,7 +181,7 @@ namespace AI.Navigation.MPC
             for (var j = 0; j < horizon; j++)
             {
                 var c = result[j];
-                sequence[j] = new Control
+                result[j] = new Control
                 {
                     thrust = math.clamp(c.thrust * invCount, -1f, 1f),
                     strafe = math.clamp(c.strafe * invCount, -1f, 1f),
@@ -187,7 +189,18 @@ namespace AI.Navigation.MPC
                 };
             }
 
-            return bestCost;
+            Evaluate(evaluator, result, resultCost, 1);
+            if (resultCost[0] < costs[bestIndex])
+            {
+                for (var j = 0; j < horizon; j++)
+                    sequence[j] = result[j];
+                return resultCost[0];
+            }
+
+            var bestOffset = bestIndex * horizon;
+            for (var j = 0; j < horizon; j++)
+                sequence[j] = candidates[bestOffset + j];
+            return costs[bestIndex];
         }
 
         /// <summary>Single-pass K-th smallest of costs[0..count-1], returned as a threshold: at least K elements have cost &lt;= it.</summary>
@@ -313,6 +326,7 @@ namespace AI.Navigation.MPC
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
+            resultCost = new NativeArray<float>(1, Allocator.Persistent);
             allocated = true;
         }
 
@@ -325,6 +339,7 @@ namespace AI.Navigation.MPC
             obstacles.Dispose();
             enemyStates.Dispose();
             result.Dispose();
+            resultCost.Dispose();
             allocated = false;
         }
     }

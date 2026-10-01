@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
-# Locks go stale by AGE, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
+# Locks go stale by IDLE TIME since the slot's last use, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
@@ -15,7 +15,7 @@ mkdir -p "$LOCK_ROOT"
 #   Slot & lease resolution   slots_tsv .. ensure_task_branch
 #   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
 #   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
-#   Locks                     with_flock + cmd_lock, write_lock, lock_age_seconds, clobber safety
+#   Locks                     with_flock + cmd_lock, write_lock, mark_slot_used, lock_age_seconds, clobber safety
 #   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
@@ -24,7 +24,7 @@ mkdir -p "$LOCK_ROOT"
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
-#   Merge gate                cmd_merge
+#   Merge gate                merge turn, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -45,15 +45,23 @@ Commands:
       shape; values may contain spaces, keys never do):
 
         slot=agent-1            always
-        state=free|locked|stale always; stale = locked past the lock TTL
+        state=free|locked|stale always; stale = locked, and not used for
+                                longer than the lock TTL
         path=<abs-path>         always
         lease=<lease-id>        locked/stale slots that have a lease
         task_branch=task/<lease>  when one is recorded or derivable; this is
                                 the branch a PR for the slot is opened FROM
-        age_seconds=<int>       locked/stale only
+        age_seconds=<int>       locked/stale only; seconds since last_used_at
         locked_by_pid=<pid>     locked/stale only, informational: pool locks
-                                go stale by AGE, never by pid liveness
-        locked_at=<iso8601>     locked/stale only
+                                go stale by idle time, never by pid liveness
+        locked_at=<iso8601>     locked/stale only; when the lease was acquired
+        last_used_at=<iso8601>  locked/stale only; the last acquire, resume or
+                                working command on the slot: prepare,
+                                run-tests, run-resharper, run-script-tests,
+                                create-pr, submit, revise, review-comments,
+                                merge. status and merge-progress are reads
+                                and never count as use. A lock with no
+                                last-use stamp reports its locked_at.
 
       After the slot records, one record per held lease (see hold), read
       from local held/* branches and origin/held/* remote-tracking refs as
@@ -81,6 +89,9 @@ Commands:
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
       last inheriting process exits.
+      A working command (see last_used_at) records its use under the same
+      lock before it runs, waiting up to 30s for it; still held, the command
+      exits 1 without running.
       Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
@@ -221,6 +232,21 @@ Commands:
       doc/agents/script-contracts.md sec.4).
       One gate per slot: a second 'merge' on a slot whose gate is running is
       refused at once (flock on the slot's .merge file under the lock root).
+      One gate at a time, pool-wide (the merge turn): after the slot's lock
+      a gate takes the 'merge-turn' lock (see lock) and holds it from before
+      its fetch through gh pr merge, so no other gate on this machine moves
+      base under it. A gate that finds the turn taken waits in journal phase
+      turn-wait, which comes first in every ladder; merge-progress names the
+      slot it waits behind when a gate holds the turn. Order among waiters
+      is not guaranteed. A gate waiting for the turn already holds its
+      slot's .merge lock, so 'merge' and 'hold' on that slot refuse. After
+      WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS (default 3600) the waiter exits
+      75; stderr names the lock file and the holder slot, or says the holder
+      is not a merge gate.
+      Any other push to base takes the same turn, e.g. a docs-only landing:
+        lock merge-turn --wait 3600 -- <sync and push cmd>
+      The turn is machine-local: a base move from anywhere else is still
+      caught just before gh pr merge ("base moved during the merge gate").
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -520,7 +546,7 @@ with_flock() {
   shift 3
   command -v perl >/dev/null 2>&1 || { echo 'Pool locking requires Perl flock support.' >&2; return 1; }
   # The execed command inherits the lock; launcher death cannot expose a surviving child.
-  # POOL_FLOCK_FD lets a background child close the fd so it never keeps the lock past its holder.
+  # POOL_FLOCK_FDS lets a background child close every lock fd, so none outlives its holder.
   perl -e '
     use strict;
     use warnings;
@@ -536,7 +562,7 @@ with_flock() {
       select(undef, undef, undef, 0.1);
     }
     fcntl($lock, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
-    $ENV{POOL_FLOCK_FD} = fileno($lock);
+    $ENV{POOL_FLOCK_FDS} = join " ", split(" ", $ENV{POOL_FLOCK_FDS} // ""), fileno($lock);
     exec @ARGV or die "Pool lock exec: $!\n";
   ' "$file" "$wait" "$busy_msg" "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' \
     pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
@@ -571,6 +597,7 @@ write_lock() {
   printf '%s\n' "$lease" > "$ldir/lease"
   printf '%s\n' "$$" > "$ldir/pid"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
+  cp "$ldir/timestamp" "$ldir/last_use"
   if [[ -n "$path" ]]; then
     # Worktree-scoped, never the repo-shared .git/config: a plain write there clobbers every slot's lease (cross-slot LEASE RACE); the unqualified --unset keeps the shared key clear.
     git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
@@ -579,12 +606,37 @@ write_lock() {
   fi
 }
 
+# Reclaim decides under the slot's mutation lock, so this write takes it too.
+mark_slot_used() {
+  local slot="$1"
+  # Working commands also run on free slots, which have no lock to stamp.
+  [[ -d "$(lock_dir_for "$slot")" ]] || return 0
+  with_flock "$LOCK_ROOT/$slot.mutation" 30 \
+    "$slot's lease is still being changed after 30s ($LOCK_ROOT/$slot.mutation); its use was not recorded." \
+    stamp_last_use "$slot" || exit 1
+}
+
+stamp_last_use() {
+  local ldir
+  ldir="$(lock_dir_for "$1")"
+  # A release can land while this waits for the mutation lock.
+  [[ -d "$ldir" ]] || return 0
+  date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/last_use"
+}
+
+# A lock with no last-use stamp counts from its acquire time.
+lock_last_use() {
+  local ldir="$1" stamp="$1/last_use"
+  [[ -s "$stamp" ]] || stamp="$ldir/timestamp"
+  cat "$stamp" 2>/dev/null || true
+}
+
 lock_age_seconds() {
   local ldir="$1"
-  local ts_file="$ldir/timestamp"
-  [[ -f "$ts_file" ]] || { echo 999999999; return 0; }
-  local ts now
-  ts="$(date -u -d "$(cat "$ts_file")" +%s 2>/dev/null || echo 0)"
+  local used ts now
+  used="$(lock_last_use "$ldir")"
+  [[ -n "$used" ]] || { echo 999999999; return 0; }
+  ts="$(date -u -d "$used" +%s 2>/dev/null || echo 0)"
   now="$(date -u +%s)"
   echo $(( now - ts ))
 }
@@ -618,7 +670,7 @@ slot_is_clobber_safe() {
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
 collect_slot_records() {
-  local slot path ldir lease tb pid ts age state
+  local slot path ldir lease tb pid ts used age state
   while IFS=$'\t' read -r slot path; do
     ldir="$(lock_dir_for "$slot")"
     printf 'slot=%s\n' "$slot"
@@ -628,6 +680,7 @@ collect_slot_records() {
       tb="$(task_branch_for "$slot")"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+      used="$(lock_last_use "$ldir")"
       age="$(lock_age_seconds "$ldir")"
       state="locked"
       [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] && state="stale"
@@ -638,6 +691,7 @@ collect_slot_records() {
       printf 'age_seconds=%s\n' "$age"
       [[ -n "$pid" ]] && printf 'locked_by_pid=%s\n' "$pid"
       [[ -n "$ts" ]] && printf 'locked_at=%s\n' "$ts"
+      [[ -n "$used" ]] && printf 'last_used_at=%s\n' "$used"
     else
       printf 'state=free\n'
       printf 'path=%s\n' "$path"
@@ -1243,16 +1297,17 @@ run_script_test_lane() {
   return "$failed"
 }
 
-# Own process group lets a refusal stop the whole suite; closing the lock fd keeps it off the merge lock.
+# Own process group lets a refusal stop the suite, which must hold none of the gate's locks.
 SCRIPT_SUITE_PID=""
 SCRIPT_SUITE_LOG=""
 
 start_script_suite() {
-  local dir="$1" base_ref="$2" head_ref="$3"
+  local dir="$1" base_ref="$2" head_ref="$3" fd
   SCRIPT_SUITE_LOG="$(mktemp)"
   set -m
   (
-    [[ -z "${POOL_FLOCK_FD:-}" ]] || eval "exec ${POOL_FLOCK_FD}>&-"
+    for fd in ${POOL_FLOCK_FDS:-}; do eval "exec ${fd}>&-"; done
+    unset POOL_FLOCK_FDS
     cmd_run_script_tests "$dir" "$base_ref" "$head_ref"
   ) > "$SCRIPT_SUITE_LOG" 2>&1 &
   SCRIPT_SUITE_PID=$!
@@ -1497,6 +1552,7 @@ MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}
 # passes must still land.
 merge_phase_budget() {
   case "$1" in
+    turn-wait) echo 900 ;;
     preflight) echo 10 ;;
     fetch) echo 15 ;;
     base-merge) echo 15 ;;
@@ -1570,6 +1626,15 @@ merge_journal_open() {
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir" 2>/dev/null && printf '%s\n' "$MERGE_JOURNAL" > "$ldir/merge_run" 2>/dev/null || true
   journal_event run-start "" "slot=$slot" "base=$base_ref" "pid=$$" "epoch=$MERGE_RUN_START"
+}
+
+# with_flock's exec drops shell state, so the journal and open phase cross as arguments.
+merge_journal_adopt() {
+  MERGE_JOURNAL="$1"
+  MERGE_RUN_START="$2"
+  MERGE_PHASE="$3"
+  MERGE_PHASE_START="$4"
+  MERGE_JOURNAL_PID="$BASHPID"
 }
 
 # Reaching the next phase is itself proof the previous one succeeded, so a begin
@@ -1661,6 +1726,7 @@ END {
     if (openPhase == "" || ended) exit
     line = openPhase " " fmt(openElapsed) " OPEN"
     if (openBudget > 0 && openElapsed > openBudget) line = line " (over budget " fmt(openBudget) ")"
+    if (openDetail != "") line = line " " openDetail
     print line
     exit
   }
@@ -1687,6 +1753,7 @@ END {
       warned++
     }
     else if (openBudget > 0) line = line sprintf(" - budget %s", fmt(openBudget))
+    if (openDetail != "") line = line "   " openDetail
     if (openPhase in note) line = line "   " note[openPhase]
     print line
   }
@@ -1705,11 +1772,17 @@ merge_journal_open_phase() {
 }
 
 merge_journal_render() {
-  local journal="$1" oneline="${2:-0}" open_phase open_budget
+  local journal="$1" oneline="${2:-0}" open_phase open_budget open_detail="" holder
   [[ -f "$journal" ]] || return 0
   open_phase="$(merge_journal_open_phase "$journal")"
   open_budget="$(merge_phase_budget "${open_phase:-none}")"
-  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline"     "$MERGE_RENDER_AWK" "$journal"
+  # Read live rather than journaled: the turn can change hands while a gate waits.
+  if [[ "$open_phase" == turn-wait ]]; then
+    holder="$(merge_turn_holder)"
+    [[ -z "$holder" ]] || open_detail="behind $holder"
+  fi
+  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline" -v openDetail="$open_detail" \
+    "$MERGE_RENDER_AWK" "$journal"
 }
 
 # Resolve a slot's journal: the live pointer first, else the newest run file (the
@@ -1943,6 +2016,21 @@ boot_admission_status() {
 }
 
 # ---- Merge gate ------------------------------------------------------------
+# 'lock merge-turn' takes this same file, so any other push to base waits its turn.
+MERGE_TURN_LOCK="$LOCK_ROOT/merge-turn.lock"
+MERGE_TURN_HOLDER="$LOCK_ROOT/merge-turn.holder"
+MERGE_TURN_WAIT_SECONDS="${WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS:-3600}"
+
+# Empty when the turn is free or a 'lock merge-turn' caller holds it.
+merge_turn_holder() { cat "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
+
+merge_turn_release() {
+  # A ( ) subshell can run the inherited EXIT trap; only the gate's own shell ends its turn.
+  [[ "$BASHPID" == "$MERGE_JOURNAL_PID" ]] || return 0
+  rm -f "$MERGE_TURN_HOLDER"
+  if [[ "$1" -eq 0 ]]; then merge_phase_end ok; else merge_phase_end failed; fi
+}
+
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -1960,9 +2048,41 @@ cmd_merge() {
   fi
 
   merge_journal_open "$slot" "$base_ref"
+  trap 'merge_rc=$?; merge_journal_finish "$merge_rc"' EXIT
+  # Opened before the turn is asked for, so a waiting gate shows as one.
+  merge_phase_begin turn-wait
+
+  local turn_rc=0 holder
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" "" \
+    merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "${test_args[@]}" || turn_rc=$?
+  if [[ "$turn_rc" -eq "$LOCK_BUSY_EXIT" ]]; then
+    holder="$(merge_turn_holder)"
+    if [[ -n "$holder" ]]; then
+      echo "merge: the merge turn is still held by $holder after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not merging." >&2
+      echo "  Follow its gate with 'merge-progress $holder', then re-run 'merge $slot'." >&2
+    else
+      echo "merge: the merge turn is still taken after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK), and not by a merge gate — not merging." >&2
+      echo "  A 'lock merge-turn' caller (a docs-only landing) or a child of a killed gate holds it; re-run 'merge $slot' once it is gone." >&2
+    fi
+    merge_journal_note "turn still held by ${holder:-a holder that is not a merge gate} after ${MERGE_TURN_WAIT_SECONDS}s"
+    return "$turn_rc"
+  fi
+  # merge_gate's shell closes turn-wait and every later phase, so this shell must not.
+  MERGE_PHASE=""
+  return "$turn_rc"
+}
+
+# Runs holding the merge turn, in the shell with_flock starts for it.
+merge_gate() {
+  merge_journal_adopt "$1" "$2" turn-wait "$3"
+  local slot="$4" base_ref="$5" remote="$6"
+  shift 6
+  local test_args=("$@")
+
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
-  trap 'merge_rc=$?; stop_script_suite; merge_journal_finish "$merge_rc"' EXIT
+  trap 'merge_rc=$?; stop_script_suite; merge_turn_release "$merge_rc"' EXIT
+  printf '%s\n' "$slot" > "$MERGE_TURN_HOLDER"
   merge_phase_begin preflight
 
   require_gh || return 1
@@ -2342,6 +2462,13 @@ main() {
 
   local cmd="$1" path
   shift || true
+
+  # Reads (status, merge-progress) never count as use: the dashboard runs both on every slot.
+  case "$cmd" in
+    prepare|run-tests|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
+      if [[ $# -ge 1 ]]; then mark_slot_used "$1"; fi
+      ;;
+  esac
 
   case "$cmd" in
     status)
