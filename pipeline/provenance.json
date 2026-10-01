@@ -6,5 +6,8 @@
   "legacy_layout_sha256": "884f6685c909d0965ed6da81605f85bc47d868627f92df5c01f313c5bdb17b5a",
   "crimson_recipe_sha256": "dd3365b366b157ea8650eb94518dda7d0cb59f30daa7891050c7020c367d8d16",
   "crimson_uv_helper_sha256": "5fd20672b9112fa14cd7b04ba50aa512a0afc516810bbabf14fc4e174a6ea59a",
-  "production_atlas_sha256": "4693d7fccbc0dbb8a3a47a638b351f4c43d076ea4b31a5e96af6e3748ae2c542"
+  "production_atlas_sha256": "4693d7fccbc0dbb8a3a47a638b351f4c43d076ea4b31a5e96af6e3748ae2c542",
+  "consolidation_input_commit": "cd264037b6068b25db1af226a60e39b9ce414f97",
+  "painted_hull_sha256": "589ff4b901f20228a44434de05ec61d00e011d1ace5ce0bb745e5df90a214e16",
+  "contour_sha256": "0485b8416d391d92d56c8703caf5edbaaa74e3984e844b04c815edd11a2816ec"
 }

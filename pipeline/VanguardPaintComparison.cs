@@ -61,8 +61,7 @@ public sealed class VanguardPaintComparison : CaptureScenario
             foreach (var name in new[] { "Vanguard surface wear", "Vanguard service panels" })
             {
                 var renderer = Array.Find(renderers, item => item.name == name);
-                Assert.That(renderer, Is.Not.Null);
-                Assert.That(renderer.gameObject.activeInHierarchy, Is.False, name);
+                Assert.That(renderer, Is.Null, name);
             }
             var hull = Array.Find(renderers, item => item.sharedMaterial.name == "Vanguard vivid paint");
             Assert.That(hull, Is.Not.Null);

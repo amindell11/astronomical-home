@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-01T01:00:01.4930655-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-3\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  7,
+                   "passed":  7,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  0.591
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261001-005648-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261001-005648-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  7,
+                     "passed":  7,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0.5908509,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-01 07:59:54Z",
+                     "finishedAt":  "2026-10-01 07:59:55Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  193.515,
+                       "startupToFirstTestSec":  179.406,
+                       "executionSec":  1,
+                       "remainingSec":  13.109,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=EditMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  21632,
+                                         "rootPeakPrivateGB":  2.042,
+                                         "rootPeakWorkingSetGB":  1.887,
+                                         "treePeakSampledPrivateGB":  2.16,
+                                         "treePeakSampledWorkingSetGB":  2.125,
+                                         "treeSumOfPeaksPrivateGB":  2.748,
+                                         "commitHeadroomAtLaunchGB":  31.61,
+                                         "commitHeadroomMinGB":  27.29,
+                                         "availablePhysicalAtLaunchGB":  6.64,
+                                         "availablePhysicalMinGB":  2.47,
+                                         "bootLaneReleasedAtSec":  14.2,
+                                         "treePeakAtSec":  181.51,
+                                         "samples":  27,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

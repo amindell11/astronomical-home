@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-01T00:56:13.6028528-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-3\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Tests.PlayMode.CaptureScenarioPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  "VanguardConsolidation"
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  1,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  14.244
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261001-005444-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261001-005444-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  1,
+                     "passed":  1,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  14.2439782,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "VanguardConsolidation",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "Tests.PlayMode.CaptureScenarioPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-01 07:55:33Z",
+                     "finishedAt":  "2026-10-01 07:55:47Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  89.841,
+                       "startupToFirstTestSec":  43.787,
+                       "executionSec":  14,
+                       "remainingSec":  32.054,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  44028,
+                                         "rootPeakPrivateGB":  4.015,
+                                         "rootPeakWorkingSetGB":  3.191,
+                                         "treePeakSampledPrivateGB":  4.101,
+                                         "treePeakSampledWorkingSetGB":  3.387,
+                                         "treeSumOfPeaksPrivateGB":  4.412,
+                                         "commitHeadroomAtLaunchGB":  28.1,
+                                         "commitHeadroomMinGB":  24.73,
+                                         "availablePhysicalAtLaunchGB":  3.29,
+                                         "availablePhysicalMinGB":  0.65,
+                                         "bootLaneReleasedAtSec":  20.912,
+                                         "treePeakAtSec":  53.359,
+                                         "samples":  8,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

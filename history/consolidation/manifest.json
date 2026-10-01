@@ -1,0 +1,10 @@
+{
+    "width": 1280,
+    "height": 720,
+    "everyFixedSteps": 2,
+    "fixedDeltaTime": 0.019999992102384568,
+    "suggestedFps": 25.000009536743165,
+    "steps": 239,
+    "meanStepMs": 41.59812545776367,
+    "medianStepMs": 5.619500160217285
+}
