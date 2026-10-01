@@ -7,7 +7,7 @@ set -euo pipefail
 # journal records the ladder for both outcomes, remote proof is accepted only
 # from a green merge-proof/headless status stamping the landing tree, and an owed run with no
 # named producer goes local or hosted on the memory admission verdict. The script suite runs
-# beside the rest of the gate, and a slot runs one gate at a time.
+# beside the rest of the gate, a slot runs one gate at a time, and so does the pool (the merge turn).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -154,7 +154,9 @@ next_answer() {
 case "$1 $2" in
   "pr list") [[ "$*" == *"--json number"* ]] && echo 7 ;;
   "pr create") echo "https://example.test/pr/7" ;;
-  "pr merge") echo "$*" >> "$GH_MERGE_LOG" ;;
+  "pr merge")
+    echo "$*" >> "$GH_MERGE_LOG"
+    [[ -z "${GH_MERGE_HOOK:-}" ]] || bash -c "$GH_MERGE_HOOK" ;;
   "api repos/pool-test/repo/commits/"*)
     [[ "${GH_API_FAIL:-0}" != 1 ]] || { echo "gh stub: HTTP 502" >&2; exit 1; }
     if [[ -n "${GH_STATUS_AWAITS:-}" ]]; then
@@ -183,9 +185,9 @@ slot_tree() { git -C "$TMP/agent-1" rev-parse 'agent-1^{tree}'; }
 recorded_tree() { cat "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_tree" 2>/dev/null || true; }
 last_run_line() { grep '^run' "$RUNNER_LOG" | tail -n 1; }
 scope_field() { sed -n "s/^$1=//p" "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_scope" 2>/dev/null | head -n 1; }
-journal_for() { ls -1t "$TMP/primary/.worktree-pool/merge-runs/agent-1-"*.jsonl 2>/dev/null | head -n 1; }
-phase_order() { sed -n 's/.*"event":"phase-start","phase":"\([^"]*\)".*/\1/p' "$(journal_for)" | tr '\n' ' '; }
-run_status() { sed -n 's/.*"event":"run-end".*"status":"\([^"]*\)".*/\1/p' "$(journal_for)"; }
+journal_for() { ls -1t "$TMP/primary/.worktree-pool/merge-runs/${1:-agent-1}-"*.jsonl 2>/dev/null | head -n 1; }
+phase_order() { sed -n 's/.*"event":"phase-start","phase":"\([^"]*\)".*/\1/p' "$(journal_for "$@")" | tr '\n' ' '; }
+run_status() { sed -n 's/.*"event":"run-end".*"status":"\([^"]*\)".*/\1/p' "$(journal_for "$@")"; }
 # A direct call runs one pool function with no gate around it; call it from $TMP/primary.
 pool_fn() { (source "$POOL"; "$@"); }
 
@@ -398,12 +400,12 @@ if last_run_line | grep -q -- '-ScopeType Smoke'; then fail "code delta must not
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "code delta gate run should record proof"
 [[ "$(scope_field kind)" == "full-run" ]] || fail "code delta gate run should re-anchor as full-run"
 [[ -n "$(journal_for)" ]] || fail "merge must write a journal"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check tests resharper push base-recheck gh-merge " ]] \
+[[ "$(phase_order)" == "turn-wait preflight fetch base-merge proof-check tests resharper push base-recheck gh-merge " ]] \
   || fail "journal should record the full phase ladder (got '$(phase_order)')"
 [[ "$(run_status)" == "merged" ]] || fail "successful merge should close the journal as merged (got $(run_status))"
 # Every phase-end carries a duration and its budget — that pairing IS the profiling data.
 ends="$(grep -c '"event":"phase-end"' "$(journal_for)")"
-[[ "$ends" == 9 ]] || fail "every started phase should also end (got $ends)"
+[[ "$ends" == 10 ]] || fail "every started phase should also end (got $ends)"
 grep -q '"phase":"tests","sec":[0-9]*,"status":"ok","budget":480' "$(journal_for)" \
   || fail "phase-end should carry sec + status + budget"
 
@@ -727,7 +729,7 @@ remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote should merge once the
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "green rerun should reach gh pr merge"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "--remote proof must be kind=remote-run (got $(proof_kind))"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+[[ "$(phase_order)" == "turn-wait preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
   || fail "--remote waits on the hosted run, then accepts the hosted ratchet (got '$(phase_order)')"
 [[ "$(resharper_runs)" == "$resharper_before" ]] || fail "--remote must never run the local ratchet (got $(resharper_runs))"
 [[ "$(admission_queries)" == "$queries_before" ]] || fail "--remote names the producer, so memory admission must not be asked"
@@ -778,7 +780,7 @@ expect_output "boot_not_admitted) — the test run goes to the hosted headless s
 [[ "$(resharper_runs)" == "$resharper_before" ]] || fail "the hosted path must never run the local ratchet (got $(resharper_runs))"
 [[ "$(proof_kind)" == "remote-run" ]] || fail "the automatic hosted run must record kind=remote-run (got $(proof_kind))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "the automatic hosted run should reach gh pr merge"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+[[ "$(phase_order)" == "turn-wait preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
   || fail "the automatic hosted path takes the remote ladder (got '$(phase_order)')"
 grep -q 'memory admission boot_not_admitted - hosted run' "$(journal_for)" || fail "the journal must note the verdict and the chosen producer"
 admission boot_admitted
@@ -794,14 +796,20 @@ git -C "$TMP/agent-1" add scripts/tests/test_probe.sh
 git -C "$TMP/agent-1" commit -qm "probe can run a hook"
 
 # The hosted wait overlaps the script suite: a script-test event lands before the verdict, and the
-# suite never holds the slot's merge lock.
+# suite holds neither the slot's merge lock nor the merge turn.
 pending_headless() { printf 'pending\037headless suite running\037%s/%s' "$RUN_URL" "$1"; }
 cat > "$TMP/lock-probe.sh" <<'HOOK'
-[[ -n "${POOL_FLOCK_FD:-}" ]] || { echo nofd >> "$LOCK_PROBE_LOG"; exit 0; }
-[[ ! -e "/proc/$$/fd/$POOL_FLOCK_FD" ]] || echo held >> "$LOCK_PROBE_LOG"
+for fd in /proc/$$/fd/*; do
+  target="$(readlink "$fd" 2>/dev/null)"
+  [[ "$target" != "$WORKTREE_POOL_LOCK_ROOT"/* ]] || echo "held ${target##*/}" >> "$LOCK_PROBE_LOG"
+done
 echo checked >> "$LOCK_PROBE_LOG"
 HOOK
 export LOCK_PROBE_LOG="$TMP/lock-probe.log"
+# The probe is evidence only if it can see a lock that IS held.
+: > "$LOCK_PROBE_LOG"
+pool lock probe-control -- bash "$TMP/lock-probe.sh"
+grep -qx "held probe-control.lock" "$LOCK_PROBE_LOG" || fail "fixture: the lock probe cannot see a held lock (got '$(cat "$LOCK_PROBE_LOG")')"
 : > "$LOCK_PROBE_LOG"
 new_commit overlap-green
 statuses "$(pending_headless 51)" "$(pending_headless 51)" "$(pending_headless 51)" "$(green 51)"
@@ -810,12 +818,12 @@ runs "$(printf 'in_progress\t51')"
 merges_before="$(gh_merges)"
 PROBE_HOOK="bash '$TMP/lock-probe.sh'" remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote with a scripts/ diff should merge"; }
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "the overlapped hosted merge should reach gh pr merge"
-[[ "$(cat "$LOCK_PROBE_LOG")" == checked ]] || fail "the background suite must run with the merge lock fd closed (got '$(cat "$LOCK_PROBE_LOG")')"
+[[ "$(cat "$LOCK_PROBE_LOG")" == checked ]] || fail "the background suite must hold neither the slot's merge lock nor the merge turn (got '$(cat "$LOCK_PROBE_LOG")')"
 first_script_test="$(grep -n '"event":"script-test"' "$(journal_for)" | head -n 1 | cut -d: -f1)"
 remote_proof_end="$(grep -n '"event":"phase-end","phase":"remote-proof"' "$(journal_for)" | cut -d: -f1)"
 [[ -n "$first_script_test" && -n "$remote_proof_end" && "$first_script_test" -lt "$remote_proof_end" ]] \
   || fail "the script suite must run during the hosted wait (script-test line ${first_script_test:-none}, remote-proof end ${remote_proof_end:-none})"
-[[ "$(phase_order)" == "preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
+[[ "$(phase_order)" == "turn-wait preflight fetch base-merge proof-check remote-proof resharper script-tests push base-recheck gh-merge " ]] \
   || fail "overlap keeps the hosted ladder (got '$(phase_order)')"
 expect_output "PASS test_probe.sh" "the joined suite's output must reach the gate's output"
 
@@ -878,14 +886,23 @@ expect_output "base moved during the merge gate — re-run 'merge agent-1'" "the
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a moved base must not reach gh pr merge"
 grep -q '"phase":"base-recheck".*"status":"failed"' "$(journal_for)" || fail "the journal should name base-recheck as the phase that died"
 
+# A second slot with its own PR, for the merge turn cases.
+git -C "$TMP/primary" worktree add -q -b agent-2 "$TMP/agent-2" main
+pool acquire turn-test agent-2 >/dev/null
+echo turn > "$TMP/agent-2/turn.txt"
+git -C "$TMP/agent-2" add turn.txt
+git -C "$TMP/agent-2" commit -qm "second slot's change"
+
 # One gate per slot: a second merge while the first is running is refused at once. The first gate
-# is also the re-run after the moved base: it integrates that base and merges.
+# is also the re-run after the moved base: it integrates that base and merges. Its landing moves
+# main, as a real squash-merge does.
 git -C "$TMP/agent-1" rm -q scripts/tests/test_probe.ps1
 new_commit overlap-concurrent
 statuses $'absent\037\037'
 rm -f "$TMP/gate1.started" "$TMP/gate1.go"
 merges_before="$(gh_merges)"
 PROBE_HOOK="touch '$TMP/gate1.started'; while [[ ! -f '$TMP/gate1.go' ]]; do sleep 0.2; done" \
+  GH_MERGE_HOOK="echo landed > '$TMP/primary/landed1.txt' && git -C '$TMP/primary' add landed1.txt && git -C '$TMP/primary' commit -qm 'gate 1 lands' && git -C '$TMP/primary' push -q origin main" \
   pool merge agent-1 > "$TMP/merge1.out" 2>&1 &
 first_gate=$!
 # The suite starts before gate 1's test run, so wait until gate 1 is only joining it.
@@ -896,12 +913,44 @@ runs_before="$(runner_runs)"
 if pool merge agent-1 > "$TMP/merge.out" 2>&1; then touch "$TMP/gate1.go"; fail "a second merge on a slot with a running gate must refuse"; fi
 expect_output "a merge gate is already running on agent-1" "the refusal must say a gate is already running"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "the refused second gate must run nothing"
+
+# One gate at a time, pool-wide: another slot's gate cannot take the merge turn while gate 1 holds it.
+# Past the cap it gives up, naming the holder and the lock file. The cap is the env override, not a real wait.
+turn_rc=0
+WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool merge agent-2 > "$TMP/merge.out" 2>&1 || turn_rc=$?
+[[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; cat "$TMP/merge.out" >&2; fail "a gate that cannot take the turn within the cap must exit 75 (got $turn_rc)"; }
+expect_output "the merge turn is still held by agent-1 after 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock)" "the cap refusal must name the holder slot and the lock file"
+[[ "$(phase_order agent-2)" == "turn-wait " ]] || fail "a gate refused the turn must not start its ladder (got '$(phase_order agent-2)')"
+grep -q '"phase":"turn-wait".*"status":"failed"' "$(journal_for agent-2)" || fail "the journal should name turn-wait as the phase that died"
+[[ "$(run_status agent-2)" == "failed" ]] || fail "a gate refused the turn should close its journal as failed (got $(run_status agent-2))"
+[[ "$(runner_runs)" == "$runs_before" ]] || fail "a gate refused the turn must run nothing"
+
+# Within the cap it waits in turn-wait, and merge-progress names the slot it waits behind.
+pool merge agent-2 > "$TMP/merge2.out" 2>&1 &
+second_gate=$!
+gate2_waiting() { [[ "$(pool merge-progress agent-2 --oneline)" == "turn-wait "*" OPEN behind agent-1" ]]; }
+for _ in $(seq 1 100); do gate2_waiting && break; sleep 0.2; done
+gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait in turn-wait behind agent-1 (got '$(pool merge-progress agent-2 --oneline)')"; }
 touch "$TMP/gate1.go"
 wait "$first_gate" || { cat "$TMP/merge1.out" >&2; fail "the first gate should finish and merge"; }
-[[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "only the first gate should reach gh pr merge"
 grep -q "origin/main moved since agent-1 last synced: merging it in" "$TMP/merge1.out" \
   || { cat "$TMP/merge1.out" >&2; fail "re-running merge after a moved base should integrate it"; }
 git -C "$TMP/agent-1" cat-file -e agent-1:mid_gate.txt || fail "the merged landing tree must carry the moved base"
+# The waiter fetches only once it holds the turn, so it proves on gate 1's landing.
+wait "$second_gate" || { cat "$TMP/merge2.out" >&2; fail "the waiting gate should take the turn and merge once the first gate ends"; }
+[[ "$(gh_merges)" == $((merges_before + 2)) ]] || fail "both gates should reach gh pr merge, one after the other (got $(gh_merges))"
+git -C "$TMP/agent-2" cat-file -e agent-2:landed1.txt || { cat "$TMP/merge2.out" >&2; fail "the waiting gate's landing tree must carry the first gate's landing"; }
+if grep -q "base moved during the merge gate" "$TMP/merge2.out"; then fail "a gate that waited its turn must not lose to the gate it waited behind"; fi
+[[ "$(phase_order agent-2)" == "turn-wait preflight fetch base-merge proof-check tests resharper push base-recheck gh-merge " ]] \
+  || fail "the waiting gate runs its whole ladder after turn-wait (got '$(phase_order agent-2)')"
+grep -q '"event":"phase-end","phase":"turn-wait".*"status":"ok"' "$(journal_for agent-2)" || fail "a turn taken in time should close turn-wait as ok"
+[[ ! -e "$WORKTREE_POOL_LOCK_ROOT/merge-turn.holder" ]] || fail "a finished gate must not stay published as the turn's holder"
+
+# The turn is the lock 'lock merge-turn' takes, so a docs-only landing and a gate exclude each other.
+if pool lock merge-turn -- env WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 bash "$POOL" merge agent-2 > "$TMP/merge.out" 2>&1; then
+  fail "a gate must not take the turn while a 'lock merge-turn' caller holds it"
+fi
+expect_output "the merge turn is still taken after 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock), and not by a merge gate" "a holder that is not a gate must be reported as one"
 
 # A landing diff touching .github/ can edit the workflow that proves it: remote proof is refused on both paths.
 mkdir -p "$TMP/agent-1/.github/workflows"
@@ -933,4 +982,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot + merge turn (wait, cap refusal, no lock outliving the gate's suite)"
