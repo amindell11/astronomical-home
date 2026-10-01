@@ -23,10 +23,12 @@ namespace Game
     /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
     /// ledger and the run tally. Built <b>once</b> at session start against a viewport the host
     /// owns, and held for the whole session — sectors are swapped underneath it and reference the
-    /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. Pure
-    /// mechanism: the rig holds no session policy — the host injects the player-death behavior via
-    /// <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
-    /// assigned has no player.
+    /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
+    /// player is parked (<see cref="Park"/>) from <see cref="Build"/> and from each sector's unload
+    /// until <see cref="ApplyLoadout"/> revives it at the end of the next hangar step, so it is never
+    /// live in the hangar. Pure mechanism: the rig holds no session policy — the host injects the
+    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it
+    /// builds. A host with no rig assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
@@ -81,9 +83,9 @@ namespace Game
         /// <summary>
         /// Build the player and its HUD into the session's services, framed by the host's
         /// <paramref name="observer"/> with the overlay under its <paramref name="uiRoot"/>. Called
-        /// once, before the first sector loads. The ship is owned by the unit service and therefore
-        /// cleared by the session's teardown; the overlay is the rig's own and goes in
-        /// <see cref="Teardown"/>. The host-supplied <paramref name="onPlayerDeath"/> is stored and
+        /// once, before the first sector loads, and leaves the player parked. The ship is owned by
+        /// the unit service and therefore cleared by the session's teardown; the overlay is the rig's
+        /// own and goes in <see cref="Teardown"/>. The host-supplied <paramref name="onPlayerDeath"/> is stored and
         /// wired onto the player synchronously at spawn (before any yield), so a spawn-frame death
         /// already has a subscriber.
         /// </summary>
@@ -129,6 +131,7 @@ namespace Game
                     Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
             }
 
+            Park();
             yield return null;
         }
 
@@ -149,11 +152,14 @@ namespace Game
             units = null;
         }
 
+        /// <summary>Deactivate the player between sectors — the state death already leaves it in.</summary>
+        public void Park() => Player.gameObject.SetActive(false);
+
         /// <summary>
         /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
         /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
         /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
-        /// hangar step — never mid-sector.
+        /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()
         {
@@ -163,11 +169,9 @@ namespace Game
             Ledger.Clear();
             Tally.Reset();
 
-            // A dead player reaches the hangar deactivated (death disables the ship GameObject).
-            // Revive it before applying so swapped-in weapon mounts instantiate active and Awake-wire
-            // like on the alive path; the subsequent LoadSector repositions and resets it anyway.
-            if (!Player.gameObject.activeSelf)
-                Player.ResetShip();
+            // The player is always parked here. Revive it before applying so swapped-in weapon mounts
+            // instantiate active and Awake-wire; the subsequent LoadSector repositions and resets it anyway.
+            Player.ResetShip();
 
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
