@@ -24,7 +24,7 @@ mkdir -p "$LOCK_ROOT"
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
-#   Merge gate                merge turn, cmd_merge (takes the turn), merge_gate (runs under it)
+#   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -236,15 +236,23 @@ Commands:
       a gate takes the 'merge-turn' lock (see lock) and holds it from before
       its fetch through gh pr merge, so no other gate on this machine moves
       base under it. A gate that finds the turn taken waits in journal phase
-      turn-wait, which comes first in every ladder; merge-progress names the
-      slot it waits behind when a gate holds the turn. Order among waiters
-      is not guaranteed. A gate waiting for the turn already holds its
-      slot's .merge lock, so 'merge' and 'hold' on that slot refuse. After
-      WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS (default 3600) the waiter exits
-      75; stderr names the lock file and the holder slot, or says the holder
-      is not a merge gate.
+      turn-wait, which comes first in every ladder. Waiting gates take the
+      turn in arrival order: each records its arrival as a turn ticket
+      (<slot>.turn-ticket under the lock root) and holds a flock on it
+      while it waits. A ticket counts only while that flock is held, so a
+      waiter that died never blocks the line, and a re-run gate arrives
+      anew, at the back. merge-progress shows a waiter's place in the line,
+      and the slot it waits behind when a gate holds the turn. A gate
+      waiting for the turn already holds its slot's .merge lock, so 'merge'
+      and 'hold' on that slot refuse.
+      A waiter gives up only on a stuck holder: once it has watched one
+      holder keep the turn for WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS
+      (default 3600) it exits 75; stderr names the lock file and the holder
+      slot, or says the holder is not a merge gate. Each change of holder
+      restarts that count, so a line that keeps moving times nobody out.
       Any other push to base takes the same turn, e.g. a docs-only landing:
         lock merge-turn --wait 3600 -- <sync and push cmd>
+      Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
       caught just before gh pr merge ("base moved during the merge gate").
 
@@ -1772,14 +1780,16 @@ merge_journal_open_phase() {
 }
 
 merge_journal_render() {
-  local journal="$1" oneline="${2:-0}" open_phase open_budget open_detail="" holder
+  local journal="$1" oneline="${2:-0}" slot="${3:-}" open_phase open_budget open_detail="" holder place
   [[ -f "$journal" ]] || return 0
   open_phase="$(merge_journal_open_phase "$journal")"
   open_budget="$(merge_phase_budget "${open_phase:-none}")"
-  # Read live rather than journaled: the turn can change hands while a gate waits.
+  # Read live rather than journaled: the turn changes hands and the line moves while a gate waits.
   if [[ "$open_phase" == turn-wait ]]; then
     holder="$(merge_turn_holder)"
+    place="$(merge_turn_place "$slot")"
     [[ -z "$holder" ]] || open_detail="behind $holder"
+    [[ -z "$place" ]] || open_detail+="${open_detail:+, }place $place in line"
   fi
   awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline" -v openDetail="$open_detail" \
     "$MERGE_RENDER_AWK" "$journal"
@@ -1805,10 +1815,10 @@ cmd_merge_progress() {
     return 0
   fi
   if [[ "$mode" == "--oneline" ]]; then
-    merge_journal_render "$journal" 1
+    merge_journal_render "$journal" 1 "$slot"
     return 0
   fi
-  merge_journal_render "$journal"
+  merge_journal_render "$journal" 0 "$slot"
   echo "  journal: $journal"
 
   # Separates a hung editor from a slow suite far better than a pid check.
@@ -2020,9 +2030,87 @@ boot_admission_status() {
 MERGE_TURN_LOCK="$LOCK_ROOT/merge-turn.lock"
 MERGE_TURN_HOLDER="$LOCK_ROOT/merge-turn.holder"
 MERGE_TURN_WAIT_SECONDS="${WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS:-3600}"
+MERGE_TURN_POLL_SECONDS="${WORKTREE_POOL_MERGE_TURN_POLL_SECONDS:-0.1}"
+
+# The stamp tells two holds by one slot apart, for a waiter timing a single holder.
+merge_turn_publish() { printf '%s %s\n' "$1" "$EPOCHSECONDS" > "$MERGE_TURN_HOLDER"; }
 
 # Empty when the turn is free or a 'lock merge-turn' caller holds it.
-merge_turn_holder() { cat "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
+merge_turn_holder() { cut -d' ' -f1 "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
+
+# The line is the live turn tickets (<slot>.turn-ticket, one arrival time each) in arrival order.
+# A ticket is live while its gate holds its flock, so a probe that takes that flock found it dead.
+MERGE_TURN_LINE_PL='
+  use strict;
+  use warnings;
+  use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
+  use Time::HiRes qw(time);
+  sub ticket_path { "$_[0]/$_[1].turn-ticket" }
+  sub arrival {
+    open my $fh, "<", $_[0] or return;
+    my $line = <$fh>;
+    return defined $line && $line =~ /^(\d+\.\d+)$/ ? $1 : undef;
+  }
+  sub live {
+    open my $fh, ">>", $_[0] or return 0;
+    return !flock($fh, LOCK_EX | LOCK_NB);
+  }
+  # Live tickets ahead of the one <slot> holds; undef when it holds none.
+  sub ahead {
+    my ($root, $slot) = @_;
+    my $mine = arrival(ticket_path($root, $slot));
+    return unless defined $mine;
+    opendir my $dir, $root or die "Pool lock root $root: $!\n";
+    my $ahead = 0;
+    for my $name (readdir $dir) {
+      next unless $name =~ /^(.+)\.turn-ticket$/ && $1 ne $slot;
+      my $other = $1;
+      my $theirs = arrival("$root/$name");
+      next unless defined $theirs && ($theirs < $mine || ($theirs == $mine && $other lt $slot));
+      $ahead++ if live("$root/$name");
+    }
+    return $ahead;
+  }
+'
+
+# Runs <cmd...> holding the merge turn, taken in turn-ticket order behind every live earlier ticket.
+# Exits LOCK_BUSY_EXIT once it has watched one holder keep the turn for MERGE_TURN_WAIT_SECONDS.
+with_merge_turn() {
+  local slot="$1"
+  shift
+  perl -e "$MERGE_TURN_LINE_PL"'
+    my ($turn_path, $holder_path, $root, $slot, $cap, $poll, $busy_exit) = splice @ARGV, 0, 7;
+    open my $ticket, ">>", ticket_path($root, $slot) or die "Turn ticket for $slot: $!\n";
+    # Blocking: a probe holds this flock for an instant, and must not refuse the gate it probes.
+    flock($ticket, LOCK_EX) or die "Turn ticket lock for $slot: $!\n";
+    truncate($ticket, 0) or die "Turn ticket for $slot: $!\n";
+    syswrite($ticket, sprintf("%.6f\n", time())) or die "Turn ticket for $slot: $!\n";
+    open my $turn, ">>", $turn_path or die "Pool lock $turn_path: $!\n";
+    my $holder = sub { open my $fh, "<", $holder_path or return ""; local $/; return <$fh> // "" };
+    my ($watched, $since) = ($holder->(), time());
+    until (!ahead($root, $slot) && flock($turn, LOCK_EX | LOCK_NB)) {
+      my $now = $holder->();
+      if ($now ne $watched) { ($watched, $since) = ($now, time()) }
+      elsif (time() - $since >= $cap) { exit $busy_exit }
+      select(undef, undef, undef, $poll);
+    }
+    # A gate holding the turn has left the line.
+    close $ticket;
+    fcntl($turn, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
+    $ENV{POOL_FLOCK_FDS} = join " ", split(" ", $ENV{POOL_FLOCK_FDS} // ""), fileno($turn);
+    exec @ARGV or die "Pool lock exec: $!\n";
+  ' "$MERGE_TURN_LOCK" "$MERGE_TURN_HOLDER" "$LOCK_ROOT" "$slot" "$MERGE_TURN_WAIT_SECONDS" "$MERGE_TURN_POLL_SECONDS" \
+    "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
+# <slot>'s place in the line, 1 = next to take the turn; empty when it holds no live ticket.
+merge_turn_place() {
+  perl -e "$MERGE_TURN_LINE_PL"'
+    my ($root, $slot) = @ARGV;
+    my $ahead = ahead($root, $slot);
+    print(($ahead + 1) . "\n") if defined $ahead && live(ticket_path($root, $slot));
+  ' "$LOCK_ROOT" "$1"
+}
 
 merge_turn_release() {
   # A ( ) subshell can run the inherited EXIT trap; only the gate's own shell ends its turn.
@@ -2053,18 +2141,18 @@ cmd_merge() {
   merge_phase_begin turn-wait
 
   local turn_rc=0 holder
-  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" "" \
+  with_merge_turn "$slot" \
     merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "${test_args[@]}" || turn_rc=$?
   if [[ "$turn_rc" -eq "$LOCK_BUSY_EXIT" ]]; then
     holder="$(merge_turn_holder)"
     if [[ -n "$holder" ]]; then
-      echo "merge: the merge turn is still held by $holder after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not merging." >&2
+      echo "merge: $holder has held the merge turn for ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not merging." >&2
       echo "  Follow its gate with 'merge-progress $holder', then re-run 'merge $slot'." >&2
     else
-      echo "merge: the merge turn is still taken after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK), and not by a merge gate — not merging." >&2
+      echo "merge: the merge turn has been held for ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK), and not by a merge gate — not merging." >&2
       echo "  A 'lock merge-turn' caller (a docs-only landing) or a child of a killed gate holds it; re-run 'merge $slot' once it is gone." >&2
     fi
-    merge_journal_note "turn still held by ${holder:-a holder that is not a merge gate} after ${MERGE_TURN_WAIT_SECONDS}s"
+    merge_journal_note "turn held for ${MERGE_TURN_WAIT_SECONDS}s by ${holder:-a holder that is not a merge gate}"
     return "$turn_rc"
   fi
   # merge_gate's shell closes turn-wait and every later phase, so this shell must not.
@@ -2072,7 +2160,7 @@ cmd_merge() {
   return "$turn_rc"
 }
 
-# Runs holding the merge turn, in the shell with_flock starts for it.
+# Runs holding the merge turn, in the shell with_merge_turn starts for it.
 merge_gate() {
   merge_journal_adopt "$1" "$2" turn-wait "$3"
   local slot="$4" base_ref="$5" remote="$6"
@@ -2082,7 +2170,7 @@ merge_gate() {
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
   trap 'merge_rc=$?; stop_script_suite; merge_turn_release "$merge_rc"' EXIT
-  printf '%s\n' "$slot" > "$MERGE_TURN_HOLDER"
+  merge_turn_publish "$slot"
   merge_phase_begin preflight
 
   require_gh || return 1

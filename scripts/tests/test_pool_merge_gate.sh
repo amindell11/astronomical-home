@@ -7,7 +7,8 @@ set -euo pipefail
 # journal records the ladder for both outcomes, remote proof is accepted only
 # from a green merge-proof/headless status stamping the landing tree, and an owed run with no
 # named producer goes local or hosted on the memory admission verdict. The script suite runs
-# beside the rest of the gate, a slot runs one gate at a time, and so does the pool (the merge turn).
+# beside the rest of the gate, a slot runs one gate at a time, and so does the pool (the merge turn),
+# which waiting gates take in arrival order.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -915,22 +916,36 @@ expect_output "a merge gate is already running on agent-1" "the refusal must say
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "the refused second gate must run nothing"
 
 # One gate at a time, pool-wide: another slot's gate cannot take the merge turn while gate 1 holds it.
-# Past the cap it gives up, naming the holder and the lock file. The cap is the env override, not a real wait.
+# Once it has watched gate 1 hold the turn for the cap it gives up, naming the holder and the lock file.
+# The cap is the env override, not a real wait.
 turn_rc=0
 WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool merge agent-2 > "$TMP/merge.out" 2>&1 || turn_rc=$?
-[[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; cat "$TMP/merge.out" >&2; fail "a gate that cannot take the turn within the cap must exit 75 (got $turn_rc)"; }
-expect_output "the merge turn is still held by agent-1 after 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock)" "the cap refusal must name the holder slot and the lock file"
+[[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; cat "$TMP/merge.out" >&2; fail "a gate that watched one holder keep the turn for the cap must exit 75 (got $turn_rc)"; }
+expect_output "agent-1 has held the merge turn for 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock)" "the cap refusal must name the holder slot and the lock file"
 [[ "$(phase_order agent-2)" == "turn-wait " ]] || fail "a gate refused the turn must not start its ladder (got '$(phase_order agent-2)')"
 grep -q '"phase":"turn-wait".*"status":"failed"' "$(journal_for agent-2)" || fail "the journal should name turn-wait as the phase that died"
 [[ "$(run_status agent-2)" == "failed" ]] || fail "a gate refused the turn should close its journal as failed (got $(run_status agent-2))"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "a gate refused the turn must run nothing"
 
-# Within the cap it waits in turn-wait, and merge-progress names the slot it waits behind.
-pool merge agent-2 > "$TMP/merge2.out" 2>&1 &
+# The wait is called directly here, with no gate around it. This waiter gives up and is gone, so its
+# turn ticket, left on disk ahead of the next gate's, is dead: it holds no place in the line.
+turn_rc=0
+WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool_fn with_merge_turn agent-9 true || turn_rc=$?
+[[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; fail "fixture: the direct waiter should give up behind gate 1 (got $turn_rc)"; }
+
+# Within the cap a gate waits in turn-wait, and merge-progress names the slot it waits behind and its
+# place in the line. Its slow poll would lose an unordered race to the later arrival below.
+WORKTREE_POOL_MERGE_TURN_POLL_SECONDS=2 pool merge agent-2 > "$TMP/merge2.out" 2>&1 &
 second_gate=$!
-gate2_waiting() { [[ "$(pool merge-progress agent-2 --oneline)" == "turn-wait "*" OPEN behind agent-1" ]]; }
+gate2_waiting() { [[ "$(pool merge-progress agent-2 --oneline)" == "turn-wait "*" OPEN behind agent-1, place 1 in line" ]]; }
 for _ in $(seq 1 100); do gate2_waiting && break; sleep 0.2; done
-gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait in turn-wait behind agent-1 (got '$(pool merge-progress agent-2 --oneline)')"; }
+gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait first in line behind agent-1, the dead ticket uncounted (got '$(pool merge-progress agent-2 --oneline)')"; }
+# The later arrival polls twenty times as often. It records how many merges had landed when it took the turn.
+pool_fn with_merge_turn agent-3 bash -c "grep -c squash '$GH_MERGE_LOG' > '$TMP/late.saw'" &
+late_waiter=$!
+late_waiting() { [[ "$(pool_fn merge_turn_place agent-3)" == 2 ]]; }
+for _ in $(seq 1 100); do late_waiting && break; sleep 0.2; done
+late_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" "$late_waiter" || true; fail "a later arrival should stand second in line (got '$(pool_fn merge_turn_place agent-3)')"; }
 touch "$TMP/gate1.go"
 wait "$first_gate" || { cat "$TMP/merge1.out" >&2; fail "the first gate should finish and merge"; }
 grep -q "origin/main moved since agent-1 last synced: merging it in" "$TMP/merge1.out" \
@@ -944,13 +959,27 @@ if grep -q "base moved during the merge gate" "$TMP/merge2.out"; then fail "a ga
 [[ "$(phase_order agent-2)" == "turn-wait preflight fetch base-merge proof-check tests resharper push base-recheck gh-merge " ]] \
   || fail "the waiting gate runs its whole ladder after turn-wait (got '$(phase_order agent-2)')"
 grep -q '"event":"phase-end","phase":"turn-wait".*"status":"ok"' "$(journal_for agent-2)" || fail "a turn taken in time should close turn-wait as ok"
+wait "$late_waiter" || fail "the later arrival should take the turn once the line ahead of it has landed"
+[[ "$(cat "$TMP/late.saw")" == $((merges_before + 2)) ]] \
+  || fail "the later arrival must take the turn only after the earlier one lands (it saw $(cat "$TMP/late.saw") merges, not $((merges_before + 2)))"
 [[ ! -e "$WORKTREE_POOL_LOCK_ROOT/merge-turn.holder" ]] || fail "a finished gate must not stay published as the turn's holder"
+
+# The cap times one hold, not the whole wait. A slot that takes the turn again is a new holder, so a
+# waiter outlasts its cap while the turn changes hands. The holder's stamp is whole seconds, hence the sleeps.
+pool lock merge-turn -- bash -c "source '$POOL'; for _ in 1 2 3 4 5 6; do merge_turn_publish agent-1; sleep 1; done; rm -f \"\$MERGE_TURN_HOLDER\"" &
+changing_hands=$!
+for _ in $(seq 1 50); do [[ "$(pool_fn merge_turn_holder)" == agent-1 ]] && break; sleep 0.2; done
+waited_from=$SECONDS
+WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=3 pool_fn with_merge_turn agent-2 true \
+  || { wait "$changing_hands" || true; fail "a waiter must not give up while the turn keeps changing hands"; }
+[[ $((SECONDS - waited_from)) -ge 3 ]] || fail "fixture: the waiter should have outlasted its 3s cap (waited $((SECONDS - waited_from))s)"
+wait "$changing_hands" || fail "fixture: the holder that republishes itself should exit clean"
 
 # The turn is the lock 'lock merge-turn' takes, so a docs-only landing and a gate exclude each other.
 if pool lock merge-turn -- env WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 bash "$POOL" merge agent-2 > "$TMP/merge.out" 2>&1; then
   fail "a gate must not take the turn while a 'lock merge-turn' caller holds it"
 fi
-expect_output "the merge turn is still taken after 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock), and not by a merge gate" "a holder that is not a gate must be reported as one"
+expect_output "the merge turn has been held for 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock), and not by a merge gate" "a holder that is not a gate must be reported as one"
 
 # A landing diff touching .github/ can edit the workflow that proves it: remote proof is refused on both paths.
 mkdir -p "$TMP/agent-1/.github/workflows"
@@ -982,4 +1011,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot + merge turn (wait, cap refusal, no lock outliving the gate's suite)"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot + merge turn (wait in arrival order, dead turn ticket, stuck-holder cap, no lock outliving the gate's suite)"
