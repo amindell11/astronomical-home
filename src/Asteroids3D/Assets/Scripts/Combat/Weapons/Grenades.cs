@@ -17,21 +17,10 @@ namespace Combat.Weapons
         [SerializeField] private Rounds rounds;
 
         public override bool AutoFire => false;
-
-        public override string HangarStats
-        {
-            get
-            {
-                var wave = projectilePrefab ? projectilePrefab.WavePrefab : null;
-                if (!wave) return DisplayName;
-                var mag = rounds
-                    ? $"   |   {rounds.MaxAmmo} charges" + (rounds.ReloadTime <= 0f ? ""
-                        : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
-                        : $" (reload {rounds.ReloadTime:0.#}s)")
-                    : "";
-                return $"Blast {wave.MaxDamage:0} to {wave.MaxRadius:0}u, hits friend and foe{mag}   |   Fuse {projectilePrefab.FuseSeconds:0.#}s";
-            }
-        }
+        public Rounds Rounds => rounds;
+        public float BlastDamage => projectilePrefab.WavePrefab.MaxDamage;
+        public float BlastRadius => projectilePrefab.WavePrefab.MaxRadius;
+        public float FuseSeconds => projectilePrefab.FuseSeconds;
 
         protected override void Awake()
         {

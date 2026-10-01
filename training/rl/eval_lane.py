@@ -65,7 +65,7 @@ def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> di
 
 def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
-                  opponent=None, probes=None, sentence=None,
+                  opponent=None, probes=None, sentence=None, duel=None,
                   lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
@@ -84,6 +84,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_OPPONENT": opponent,
         "RL_HARNESS_PROBES": probes,
         "RL_HARNESS_SENTENCE": sentence,
+        "RL_HARNESS_DUEL": duel,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
     code = run_batch(lease, project, HARNESS_CHILD, env, wait_seconds=lease_wait, log_path=log)
@@ -147,6 +148,10 @@ def main() -> None:
     parser.add_argument("--sentence", default=None,
                         help="RL_HARNESS_SENTENCE: run the Stage A sentence lane on these session bingo rows "
                              "(comma-separated tokens, or \"all\") instead of a checkpoint eval")
+    parser.add_argument("--duel", default=None,
+                        help="RL_HARNESS_DUEL: run the duel lane on these weapons (comma-separated prefab names "
+                             "under Assets/Prefabs/Weapons, each alone in the shooter's primary weapon slot) "
+                             "instead of a checkpoint eval; the marksmanship table lands beside the summary")
     parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
                         help="editor: the calibrated reference protocol, sim in the leased batch child; "
                              "player: leased convert step, then the sim in the dedicated headless exe "
@@ -172,6 +177,8 @@ def main() -> None:
             parser.error("--exec player requires an explicit --onnx (a player has no smoke default)")
         if args.sentence:
             parser.error("--sentence is editor-only; the sentence lane has no player")
+        if args.duel:
+            parser.error("--duel is editor-only; the duel lane has no player")
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
         if not PLAYER_EXE.exists():
             sys.exit(f"FAIL: eval player exe missing at {PLAYER_EXE}; build it first "
@@ -180,6 +187,8 @@ def main() -> None:
     unity = args.unity or default_unity_exe(args.project)
     if args.sentence:
         stem = f"sentence-{args.sentence.lower().replace(',', '+')}"
+    elif args.duel:
+        stem = f"duel-{args.duel.lower().replace(',', '+')}"
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
     # Microseconds: two manual launches in the same second must not share a dir.
@@ -195,7 +204,7 @@ def main() -> None:
         summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
                                 onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
                                 density=args.density, opponent=args.opponent, probes=args.probes,
-                                sentence=args.sentence, lease_wait=args.lease_wait)
+                                sentence=args.sentence, duel=args.duel, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 

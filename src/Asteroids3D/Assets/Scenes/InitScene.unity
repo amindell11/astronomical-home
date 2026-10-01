@@ -180,7 +180,7 @@ MonoBehaviour:
     type: 3}
   hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
     type: 3}
-  loadoutCatalog: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
+  hangarOffer: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
   deathBehavior: 2
   killHullRestore: 0.25
   recapHoldSeconds: 8

@@ -36,19 +36,12 @@ namespace Combat.Weapons
         [SerializeField] private ChargeTime charge;
 
         public ChargeTime Charge => charge;
+        public float Damage => damage;
+        public float BeamRange => range;
 
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
-
-        public override string HangarStats
-        {
-            get
-            {
-                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
-                return $"Damage {damage:0}   |   Range {range:0}{chargeText}   |   Hitscan";
-            }
-        }
 
         protected override void Awake()
         {

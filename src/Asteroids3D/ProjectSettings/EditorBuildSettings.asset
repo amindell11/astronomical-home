@@ -9,13 +9,13 @@ EditorBuildSettings:
     path: Assets/Scenes/InitScene.unity
     guid: 5141a19f7b78aa64ca6f1a14f38f8022
   - enabled: 1
-    path: Assets/Scenes/Environments/Environment_1.unity
+    path: Assets/Scenes/Locales/Locale_1.unity
     guid: c6769c60dab772245bb6b149cda4f81b
   - enabled: 1
-    path: Assets/Scenes/Environments/Environment_2.unity
+    path: Assets/Scenes/Locales/Locale_2.unity
     guid: 1e74bde8878130343920c6da8b10638f
   - enabled: 1
-    path: Assets/Scenes/Environments/Environment_3.unity
+    path: Assets/Scenes/Locales/Locale_3.unity
     guid: 698aaeb8a1d76a5479daa3c40fafa4ea
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

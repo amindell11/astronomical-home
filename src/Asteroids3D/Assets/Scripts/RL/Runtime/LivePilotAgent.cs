@@ -58,6 +58,8 @@ namespace RL.Runtime
             ResolveLoadout(self);
             // The target can re-capture, so the enemy readout re-resolves per boundary — not under the self-loadout once-guard.
             enemyHeat = ResolvePrimaryHeat(target);
+            // Enabled only once a boundary exists: ML-Agents' OnDisable collects observations from it.
+            gameObject.SetActive(true);
         }
 
         /// <summary>The lasers-only loadout is fixed for a pilot's lifetime, so the mount and its Heat are read once rather than per decision.</summary>
