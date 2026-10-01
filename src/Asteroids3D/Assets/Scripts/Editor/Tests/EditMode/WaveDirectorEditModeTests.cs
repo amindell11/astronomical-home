@@ -70,7 +70,7 @@ namespace Tests.EditMode
         [Test]
         public void Draw_StaysInsidePool_AndLeavesTheSecondMountEmpty()
         {
-            var pool = ScriptableObject.CreateInstance<LoadoutConfig>();
+            var pool = ScriptableObject.CreateInstance<ItemSubset>();
             pool.engines = new[] { ScriptableObject.CreateInstance<EngineModule>(), ScriptableObject.CreateInstance<EngineModule>() };
             pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>(), ScriptableObject.CreateInstance<ShieldModule>() };
             pool.weapons = new WeaponComponent[]

@@ -12,9 +12,9 @@ using UnityEngine.UI;
 namespace UI
 {
     /// <summary>
-    /// Between-run hangar screen: populates the prefab-authored rows from the <see cref="LoadoutConfig"/>
-    /// catalog and writes picks into the pending <see cref="ShipLoadout"/>. Nothing touches the live
-    /// ship — the caller installs the selection when Launch fires.
+    /// Between-run hangar screen: populates the prefab-authored rows from the hangar's offer (a
+    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
+    /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class HangarScreen : MonoBehaviour
@@ -51,7 +51,7 @@ namespace UI
         private readonly List<Action> refreshers = new();
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
-        public void Show(LoadoutConfig catalog, ShipLoadout loadout, Action onLaunch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
         {
             if (optionButtonTemplate)
                 optionButtonTemplate.gameObject.SetActive(false);
@@ -64,16 +64,16 @@ namespace UI
                 previewStage.Show(loadout);
             }
 
-            if (catalog)
+            if (offer)
             {
-                // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each catalog
+                // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each offered
                 // ship's authored mounts here, once, off the prefab's own WeaponsController.
                 var authoredMounts = new Dictionary<Ship, WeaponsController>();
-                foreach (var ship in catalog.ships ?? Array.Empty<Ship>())
+                foreach (var ship in offer.ships ?? Array.Empty<Ship>())
                     if (ship) authoredMounts[ship] = ship.GetComponent<WeaponsController>();
 
                 // Picking a ship reseeds the module slots to that ship's authored kit.
-                BuildRow(shipRow, catalog.ships, () => loadout.Ship, s =>
+                BuildRow(shipRow, offer.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
@@ -83,11 +83,11 @@ namespace UI
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);
                 }, Describe);
-                BuildRow(engineRow, catalog.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
-                BuildRow(shieldRow, catalog.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
-                BuildRow(primaryWeaponRow, catalog.weapons, () => loadout.PrimaryWeapon,
+                BuildRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
+                BuildRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BuildRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
-                BuildRow(secondaryWeaponRow, catalog.weapons, () => loadout.SecondaryWeapon,
+                BuildRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
                     w => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
@@ -152,7 +152,7 @@ namespace UI
         private static string Describe(ShieldModule shield) =>
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
 
-        // Reads catalog prefab assets, where Awake never runs: every weapon property used must be serialized state.
+        // Reads offered prefab assets, where Awake never runs: every weapon property used must be serialized state.
         internal static string Describe(WeaponComponent weapon)
         {
             var lasers = weapon as Lasers;

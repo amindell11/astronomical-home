@@ -30,7 +30,7 @@ namespace Tests.PlayMode
         private UnitService _unitService;
         private ObjectiveService _objectives;
         private SectorSettings _config;
-        private LoadoutConfig _pool;
+        private ItemSubset _pool;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -43,7 +43,7 @@ namespace Tests.PlayMode
             _objectives = TrackGO(new GameObject("ObjectiveService")).AddComponent<ObjectiveService>();
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
             _config = ScriptableObject.CreateInstance<SectorSettings>();
-            _pool = ScriptableObject.CreateInstance<LoadoutConfig>();
+            _pool = ScriptableObject.CreateInstance<ItemSubset>();
             _pool.engines = new[] { ScriptableObject.CreateInstance<EngineModule>() };
             _pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>() };
             _pool.weapons = new[] { TrackGO(new GameObject("PoolWeapon")).AddComponent<PoolWeapon>() };
