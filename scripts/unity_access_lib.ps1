@@ -289,11 +289,18 @@ function Wait-ProcessExit {
     return $null -eq (Get-Process -Id $TargetProcessId -ErrorAction SilentlyContinue)
 }
 
+# PowerShell 7's ConvertFrom-Json yields a typed DateTime; a [string] cast would drop its Kind.
+# Every writer stamps UTC, so a zone-free value reads as UTC.
 function Get-DateValue {
     param([object]$Value)
+    if ($Value -is [datetime]) {
+        if ($Value.Kind -eq [System.DateTimeKind]::Unspecified) { return [datetime]::SpecifyKind($Value, [System.DateTimeKind]::Utc) }
+        return $Value.ToUniversalTime()
+    }
     $parsed = [datetime]::MinValue
-    if ($null -ne $Value) { [void][datetime]::TryParse([string]$Value, [ref]$parsed) }
-    return $parsed.ToUniversalTime()
+    $styles = [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal
+    if ($null -ne $Value) { [void][datetime]::TryParse([string]$Value, [System.Globalization.CultureInfo]::InvariantCulture, $styles, [ref]$parsed) }
+    return $parsed
 }
 
 function Get-MemberValue {
