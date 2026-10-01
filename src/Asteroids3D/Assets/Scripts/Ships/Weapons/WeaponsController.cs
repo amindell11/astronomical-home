@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections.Generic;
 using Combat;
@@ -14,8 +15,8 @@ namespace Ships.Weapons
     [DefaultExecutionOrder(-95)]
     public class WeaponsController : MonoBehaviour
     {
-        [SerializeField] internal WeaponComponent primaryMount;
-        [SerializeField] internal WeaponComponent secondaryMount;
+        [Stat, SerializeField] internal WeaponComponent primaryMount;
+        [Stat, SerializeField] internal WeaponComponent secondaryMount;
 
         /// <summary>A slot's mount point on the hull: the weapon instantiates here and fires from it.</summary>
         [Serializable]

@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Damage;
 using UnityEngine;
@@ -9,8 +10,8 @@ namespace Combat.Projectiles
     public abstract class ProjectileBase : MonoBehaviour
     {
         [Header("Base Projectile Settings")]
-        [SerializeField] protected float damage      = 10f;
-        [SerializeField] protected float maxDistance = 50f;
+        [Stat, SerializeField] protected float damage      = 10f;
+        [Stat, SerializeField] protected float maxDistance = 50f;
         [SerializeField] protected float mass        = 0.1f;
 
         protected internal Rigidbody rb;

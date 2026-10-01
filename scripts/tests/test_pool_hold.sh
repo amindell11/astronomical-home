@@ -29,7 +29,7 @@ A1="$TMP/agent-1"
 A2="$TMP/agent-2"
 
 lock_dir() { printf '%s/%s.lock' "$WORKTREE_POOL_LOCK_ROOT" "$1"; }
-age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/timestamp"; }
+age_lock() { date -u -d "@$(( $(date -u +%s) - $2 ))" +"%Y-%m-%dT%H:%M:%SZ" > "$(lock_dir "$1")/last_use"; }
 pick_held() { awk -v RS= -v want="held=$1" '{ split($0, l, "\n"); if (l[1] == want) print }'; }
 # Direct call to the collector; the one real `status --porcelain` read below guards the machine channel.
 held_record() { (source "$POOL"; collect_held_records) | pick_held "$1"; }

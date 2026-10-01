@@ -1,3 +1,4 @@
+using Balance;
 using UnityEngine;
 
 namespace Ships.Loadout
@@ -11,8 +12,8 @@ namespace Ships.Loadout
     public class ShieldModule : TunableModule
     {
         [Header("Shield")]
-        public float maxShield = 50f;
-        public float shieldRegenDelay = 4f;
-        public float shieldRegenRate = 10f;
+        [Stat] public float maxShield = 50f;
+        [Stat] public float shieldRegenDelay = 4f;
+        [Stat] public float shieldRegenRate = 10f;
     }
 }

@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using UnityEngine;
 
@@ -5,7 +6,7 @@ namespace Combat.Weapons.Conditions
 {
     public class Cooldown : WeaponCondition
     {
-        [SerializeField] private float fireRate = 0.2f;
+        [Stat, SerializeField] private float fireRate = 0.2f;
 
         // Internal dt-driven clock: resets with the weapon, so pacing replays identically regardless of absolute session time. Ticks on fixed steps because firing does.
         private float clock;

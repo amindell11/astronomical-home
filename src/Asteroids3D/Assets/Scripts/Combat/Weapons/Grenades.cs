@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -9,12 +10,13 @@ namespace Combat.Weapons
     {
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner drops a charge on a pursuer.")]
-        [SerializeField, Min(0f)] private float dropRange = 12f;
+        [Stat, SerializeField, Min(0f)] private float dropRange = 12f;
         [Tooltip("Min angle off the nose (degrees) before the AI drops — the target must be behind.")]
-        [SerializeField, Range(0f, 180f)] private float minDropAngle = 120f;
+        [Stat, SerializeField, Range(0f, 180f)] private float minDropAngle = 120f;
 
         [Header("Conditions")]
-        [SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         public override bool AutoFire => false;
         public Rounds Rounds => rounds;
@@ -26,6 +28,7 @@ namespace Combat.Weapons
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         // Behind-arc drop: no LOS term by design — the charge releases backward at a pursuer.

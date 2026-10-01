@@ -1,3 +1,4 @@
+using Balance;
 using UnityEngine;
 
 namespace Ships.Loadout
@@ -11,20 +12,20 @@ namespace Ships.Loadout
     public class EngineModule : TunableModule
     {
         [Header("Movement")]
-        public float maxSpeed = 25f;
-        public float maxYawRate = 180f;
-        public float forwardForce = 7000f;
-        public float reverseForce = 3500f;
-        public float yawTorque = 7000;
-        public float angularDrag = 1.7f;
-        public float bankTorque = 5000f;
-        public float bankDamping = 200f;
-        public float minStrafeForce = 4000f;
-        public float maxStrafeForce = 5000f;
-        public float linearDrag = .5f;
+        [Stat] public float maxSpeed = 25f;
+        [Stat] public float maxYawRate = 180f;
+        [Stat] public float forwardForce = 7000f;
+        [Stat] public float reverseForce = 3500f;
+        [Stat] public float yawTorque = 7000;
+        [Stat] public float angularDrag = 1.7f;
+        [Stat] public float bankTorque = 5000f;
+        [Stat] public float bankDamping = 200f;
+        [Stat] public float minStrafeForce = 4000f;
+        [Stat] public float maxStrafeForce = 5000f;
+        [Stat] public float linearDrag = .5f;
 
         [Header("Boost")]
-        public float boostImpulse = 14000f;
-        public float boostCooldown = 3f;
+        [Stat] public float boostImpulse = 14000f;
+        [Stat] public float boostCooldown = 3f;
     }
 }
