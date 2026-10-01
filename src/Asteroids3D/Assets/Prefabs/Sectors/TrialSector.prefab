@@ -55,12 +55,13 @@ MonoBehaviour:
   - template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
       type: 3}
     pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
+  loadouts: {fileID: 11400000, guid: c967b2c2f24e4ab280ca200ca84ba69a, type: 2}
   team: 1
   startInterval: 6
-  endInterval: 2
+  endInterval: 3
   startCap: 2
-  endCap: 8
-  rampSeconds: 240
+  endCap: 5
+  rampSeconds: 360
   spawnRadius: 55
   clearanceRadius: 6
   asteroidMask:

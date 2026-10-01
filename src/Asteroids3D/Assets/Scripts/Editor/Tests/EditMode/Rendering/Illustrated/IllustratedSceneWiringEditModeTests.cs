@@ -2,7 +2,7 @@ using System.Linq;
 using Asteroids.Spawning;
 using NUnit.Framework;
 using Substrate;
-using Substrate.Services.Environment;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         {
             var shader = Shader.Find("Astronomical/Comparison/Drawn Contour");
             Assert.That(shader, Is.Not.Null);
-            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Environments/Environment_3.unity", OpenSceneMode.Additive);
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Locales/Locale_3.unity", OpenSceneMode.Additive);
             try
             {
                 var sky = scene.GetRootGameObjects().Where(g => g.activeSelf)

@@ -7,7 +7,7 @@ import re
 import shutil
 import tempfile
 
-FLAT_FOLDER = "Assets/Visuals/Environment/Flat/Generated"
+FLAT_FOLDER = "Assets/Visuals/Locales/Flat/Generated"
 SUFFIXES = (".json", ".exr")
 
 

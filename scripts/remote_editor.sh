@@ -12,7 +12,8 @@
 # remote console. The task runs elevated, so git needs the repo in
 # safe.directory (ensured idempotently here).
 #
-# Usage: remote_editor.sh start [lease]     launch + wait until CLI-ready
+# Usage: remote_editor.sh start [lease]     launch + wait until CLI-ready; exit 8, nothing
+#                                           launched, while the remote lane is disabled (remote_lane.sh)
 #        remote_editor.sh status [lease]    editor_status passthrough
 #        remote_editor.sh cmd <args...>     unity CLI passthrough (quoting handled)
 #        remote_editor.sh stop [lease]      release lease, close editor, clean up
@@ -31,7 +32,7 @@ RPROJ_WIN="${RPROJ//\//\\}"
 RCLI='$env:LOCALAPPDATA\Unity\bin\unity.exe'
 
 ACTION="${1:-}"
-[ -n "$ACTION" ] || { sed -n '3,20p' "$0"; exit 1; }
+[ -n "$ACTION" ] || { sed -n '3,21p' "$0"; exit 1; }
 shift
 
 rssh() { ssh -o BatchMode=yes -o ConnectTimeout=10 "$HOST" "$@" | tr -d '\r'; }
@@ -74,6 +75,11 @@ case "$ACTION" in
 start)
     LEASE="${1:-remote-editor}"
     lease_paths "$LEASE"
+    lane="$(REMOTE_LANE_HOST="$HOST" REMOTE_LANE_REPO="$RREPO" "$(dirname "${BASH_SOURCE[0]}")/remote_lane.sh" status)" || lane=""
+    if grep -qx 'REMOTE_LANE=disabled' <<<"$lane"; then
+        echo "[remote_editor] refusing: the remote lane is disabled; remote_lane.sh enable turns it back on." >&2
+        exit 8
+    fi
     require_host
 
     # Preflight: an interactive desktop session must exist for the /IT task.

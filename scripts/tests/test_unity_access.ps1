@@ -242,6 +242,26 @@ try {
     [void](Invoke-Coordinator -Action Release -Lease reclaim)
     [void](Invoke-Coordinator -Action Release -Lease stale-boot)
 
+    # A record timestamp arrives as an ISO Z string (Windows PowerShell) or a typed DateTime
+    # (PowerShell 7); each must read back as the same UTC instant in any host time zone.
+    $instant = [datetime]::new(2026, 9, 24, 22, 39, 38, [System.DateTimeKind]::Utc).AddTicks(1234567)
+    foreach ($case in @(
+        @{ name = "Utc DateTime"; value = $instant },
+        @{ name = "Local DateTime"; value = $instant.ToLocalTime() },
+        @{ name = "ISO Z string"; value = $instant.ToString("o") })) {
+        Assert-Equal (Get-DateValue $case.value).ToString("o") $instant.ToString("o") "date value from a $($case.name)"
+    }
+    [void](Invoke-Coordinator -Action Acquire -Lease boot-ttl -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action BootAcquire -Lease boot-ttl -WaitSeconds 1)
+    foreach ($case in @(@{ age = 170; held = $true }, @{ age = 190; held = $false })) {
+        $bootJson = Get-Content $bootFile -Raw | ConvertFrom-Json
+        $bootJson.acquiredAt = [datetime]::UtcNow.AddSeconds(-$case.age).ToString("o")
+        [System.IO.File]::WriteAllText($bootFile, ($bootJson | ConvertTo-Json), $Utf8NoBom)
+        $ttlStatus = Invoke-Coordinator -Action Status
+        Assert-Equal ($null -ne $ttlStatus.value.boot) $case.held "boot lane held $($case.age)s into a 180s TTL"
+    }
+    [void](Invoke-Coordinator -Action Release -Lease boot-ttl)
+
     # A boot dir deleted out from under the coordinator self-heals: the lane is simply free again.
     [void](Invoke-Coordinator -Action Acquire -Lease heal -ProjectPath $projA)
     [void](Invoke-Coordinator -Action BootAcquire -Lease heal -WaitSeconds 1)
