@@ -142,9 +142,7 @@ namespace AI.Navigation.MPC
             evaluator.Schedule(count, 1).Complete();
         }
 
-        // Contenders: the incumbent (candidate 0, the shifted warm start already in sequence), the best
-        // candidate strictly beating it, and the average of the elites strictly beating it. Every contender
-        // is scored, so the emitted winner is returned with its own cost.
+        // Every contender is scored, so the emitted winner is returned with its own cost.
         private float IncumbentElite(Control[] sequence, int horizon, int samples, float eliteFraction,
             EvaluateCandidatesJob evaluator)
         {
