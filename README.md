@@ -5,3 +5,7 @@ Non-merge evidence branch for the editable Valis geometry milestone. Approved co
 history/helpers/build_valis.py records geometry construction and render cameras. Its OUT and SOURCE paths name the original agent-2 lease; change those explicitly for another checkout. Run with Blender 5.1 in background mode. validate.py reopens the source and verifies finite vertices, anchored live mirrors, evaluated bilateral symmetry and no external image/library dependencies. package_review.py assembles renders with Pillow and imageio. inspect_normals.py and refine.py record intermediate diagnosis/edits and are not needed to reproduce the final source.
 
 The side comparison includes the approved concept. fuselage-side.png hides wings to expose the revised rear-high, forward-low center-body profile. left-before-slope.png preserves the prior iteration. All other views show the latest complete model.
+
+## User shape cleanup
+
+history/user-shape-cleanup preserves the user's complete live Blender state before cleanup, including unsaved edits. Cleanup fits the neighboring dorsal borders, cheeks, underside armor/stripe and accents to those edited forms. The central fuselage, canopy, primary wing outlines, outriggers, tail prongs and engine shape remain unchanged. A support's Solidify modifier now precedes Mirror to correct its asymmetric thickness. The final world-space bilateral error is below 0.000001 units. The original build helper is historical and must not overwrite the user's reshaped source.

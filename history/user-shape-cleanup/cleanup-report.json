@@ -1,0 +1,46 @@
+{
+  "seam_gaps_before": [
+    0.21734514372781205,
+    0.2296140185065394,
+    0.19691085309207626,
+    0.1642554233073361
+  ],
+  "seam_gaps_after": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "protected_shape_parts_unchanged": [
+    "01 central fuselage",
+    "02 black canopy",
+    "10 upper swept wings",
+    "13 charcoal trailing spars",
+    "20 lower swept blades",
+    "30 forward lower fins",
+    "40 forward outriggers",
+    "41 outrigger lavender toes",
+    "42 outrigger inner sockets",
+    "50 aft split prongs",
+    "51 midship auxiliary vanes",
+    "60 engine spine",
+    "64 exhaust rim"
+  ],
+  "changed_parts": [
+    "03 canopy side cheeks",
+    "05 dorsal shoulder bevel",
+    "06 dorsal lavender rails",
+    "07 rear crest",
+    "08 ventral armor",
+    "11 upper wing gray planes",
+    "12 upper wing lavender tips",
+    "21 lower blade lavender tips",
+    "31 forward fin lavender edges",
+    "62 engine raised ribs",
+    "63 ventral engine stripe",
+    "12 upper wing lavender tips underside",
+    "21 lower blade lavender tips underside",
+    "31 forward fin lavender edges underside"
+  ],
+  "source_snapshot": "Valis-user-before-cleanup.blend"
+}
