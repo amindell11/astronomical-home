@@ -9,8 +9,8 @@ namespace Game.Runs
 
     /// <summary>
     /// The git side of what a run was played on: the commit, and whether the Unity project tree had
-    /// uncommitted work. The editor asks git on every read; a player build cannot, so its build
-    /// stamps a file into StreamingAssets that the player reads once. Informational only: run
+    /// uncommitted work. The editor asks git on every read; a player build cannot, so its pre-build
+    /// hook stamps a file into StreamingAssets that the player reads once. Informational only: run
     /// records are grouped by the stat fingerprint and the loadout stat hash, never by this.
     /// </summary>
     [Serializable]
@@ -67,7 +67,7 @@ namespace Game.Runs
         }
 
 #if UNITY_EDITOR
-        // The pathspec limits the dirty flag to the Unity project; no-optional-locks keeps the read off the index lock.
+        // The pathspec scopes the dirty flag to the Unity project; --no-optional-locks skips the index lock.
         private const string GitStatusArguments = "--no-optional-locks status --porcelain=v2 --branch -- .";
 
         public static bool TryReadGit(out BuildIdentity identity, out string failure)
