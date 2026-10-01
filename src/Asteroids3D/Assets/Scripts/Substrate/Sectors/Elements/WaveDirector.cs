@@ -34,7 +34,7 @@ namespace Substrate.Sectors.Elements
         [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
         [Tooltip("Engine, shield and weapon pool each spawn draws its build from; the chassis stays the roster's. " +
                  "Unset → products fly their template's authored build.")]
-        [Stat, SerializeField] private LoadoutConfig loadouts;
+        [Stat, SerializeField] private ItemSubset loadouts;
         [SerializeField] private int team = 1;
 
         [Header("Escalation")]
@@ -167,7 +167,7 @@ namespace Substrate.Sectors.Elements
 
 #if UNITY_EDITOR
         internal void Configure(RosterEntry[] roster, float startInterval, float endInterval,
-            int startCap, int endCap, float rampSeconds, float spawnRadius = 55f, LoadoutConfig loadouts = null)
+            int startCap, int endCap, float rampSeconds, float spawnRadius = 55f, ItemSubset loadouts = null)
         {
             this.roster = roster;
             this.loadouts = loadouts;

@@ -37,7 +37,7 @@ namespace Balance
         public static string OfLoadout(Ship ship) => Of(ship);
 
         /// <summary>The stat fingerprint: the hangar's offer, the sector's spawners and the kill refill.</summary>
-        public static string OfSetting(LoadoutConfig hangarOffer, Sector sectorPrefab, float killHullRestore) =>
+        public static string OfSetting(ItemSubset hangarOffer, Sector sectorPrefab, float killHullRestore) =>
             Digest(SettingLines(hangarOffer, sectorPrefab, killHullRestore));
 
         internal static SortedSet<string> Lines(Object item)
@@ -47,7 +47,7 @@ namespace Balance
             return lines;
         }
 
-        internal static SortedSet<string> SettingLines(LoadoutConfig hangarOffer, Sector sectorPrefab,
+        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, Sector sectorPrefab,
             float killHullRestore)
         {
             var lines = NewLines();

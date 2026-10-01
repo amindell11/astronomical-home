@@ -23,6 +23,9 @@ session landing it — that approval IS the review; (3) the commit message
 carries the story a PR body would have. Verify (1) mechanically
 (`git diff --cached --stat`) before pushing. These landings are cited by
 commit SHA, not PR number. Anything touching code takes the full loop.
+Sync and push as one command under the merge turn, so the push waits for the
+gate in flight instead of voiding it:
+`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c '<sync with origin/main> && git push origin main'`.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
@@ -100,7 +103,8 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
 | `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
 | merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
-| merge prints "…moved since… merging it in" then exits non-zero | Concurrent merge re-synced main | Re-run `merge <slot>` until it prints "squash-merged" — a mid-sequence exit is a re-sync, not a failure. |
+| merge: `base moved during the merge gate` | Main moved from outside the merge turn: a push from another clone, or one that skipped `lock merge-turn` | Re-run `merge <slot>`. |
+| merge exits 75: `the merge turn is still held by <slot>` | That slot's gate has held the turn past the 60-minute cap | `merge-progress <slot>` shows its phase; report it to the user and re-run `merge` once that gate ends. The lock frees when its holder exits. |
 | `create-pr` push `! [rejected] … non-fast-forward` | Stale remote slot branch | `finalize`/`release` the slot (or `submit`, which re-preps) and retry. |
 | Child PR silently `CLOSED`, can't reopen/retarget | It was stacked on a task branch that got squash-merged + deleted | Retarget the child to `main` **before** merging its base, or `create-pr` a fresh one. |
 | `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync from the primary tree: `cd D:/amind/git/astronomical-home && git checkout main && git pull`. |
@@ -367,6 +371,11 @@ specific boot — it covers the test boot only, not the ratchet's. On a
 `failure`/`error` verdict the gate refuses at once and prints the recovery (`gh run rerun <id>` when the run died before the suite started).
 Just before `gh pr merge`, both paths re-check base: "base moved during the
 merge gate" means re-run `merge`.
+
+Gates run one at a time across the pool (the merge turn). A `merge` started
+while another gate runs waits in `turn-wait` until that gate ends, then fetches
+and proves on top of its landing; `merge-progress <slot>` names the slot it
+waits behind. Leave it waiting.
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note and board Done on the PR-closed issues, so

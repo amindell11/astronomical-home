@@ -185,8 +185,8 @@ namespace Tests.EditMode
 
             Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.startInterval="));
             Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.roster={{"));
-            Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/LoadoutConfig.weapons="));
-            Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/LoadoutConfig.ships="));
+            Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/ItemSubset.weapons="));
+            Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }
 
@@ -210,9 +210,9 @@ namespace Tests.EditMode
             }
         }
 
-        private static LoadoutConfig HangarOffer()
+        private static ItemSubset HangarOffer()
         {
-            var offer = AssetDatabase.LoadAssetAtPath<LoadoutConfig>(HangarOfferPath);
+            var offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(HangarOfferPath);
             Assert.IsNotNull(offer, $"Hangar offer missing at {HangarOfferPath}");
             return offer;
         }
