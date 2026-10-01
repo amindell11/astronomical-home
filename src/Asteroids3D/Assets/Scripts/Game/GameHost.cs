@@ -226,10 +226,6 @@ namespace Game
                 yield break;
             }
 
-            var overlay = rig.Overlay;
-            if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(rig, false);
-
             var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
             screen.Show(hangarOffer, rig.Loadout, () => launched = true);
@@ -238,25 +234,12 @@ namespace Game
 
             rig.ApplyLoadout();
             Destroy(screen.gameObject);
-
-            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
-            SetPlayerInputEnabled(rig, true);
-            var activeOverlay = rig.Overlay;
-            if (activeOverlay) activeOverlay.SetVisible(true);
-        }
-
-        // Fire1 shares mouse 0 with UI clicks, so the commander sleeps for the hangar screen's lifetime.
-        private static void SetPlayerInputEnabled(PlayerRig rig, bool inputEnabled)
-        {
-            if (rig.Player && rig.Player.Commander)
-                rig.Player.Commander.enabled = inputEnabled;
         }
 
         private IEnumerator RunDeathRecap()
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(rigInstance, false);
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
@@ -266,7 +249,6 @@ namespace Game
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
 
             Destroy(screen.gameObject);
-            SetPlayerInputEnabled(rigInstance, true);
             if (overlay) overlay.SetVisible(true);
         }
     }
