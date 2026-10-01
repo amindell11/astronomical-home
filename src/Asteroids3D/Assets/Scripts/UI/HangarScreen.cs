@@ -13,7 +13,7 @@ namespace UI
 {
     /// <summary>
     /// Between-run hangar screen: populates the prefab-authored rows from the hangar's offer (a
-    /// <see cref="LoadoutConfig"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
+    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
     /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
@@ -51,7 +51,7 @@ namespace UI
         private readonly List<Action> refreshers = new();
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
-        public void Show(LoadoutConfig offer, ShipLoadout loadout, Action onLaunch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
         {
             if (optionButtonTemplate)
                 optionButtonTemplate.gameObject.SetActive(false);

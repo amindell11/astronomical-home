@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the `LoadoutConfig` a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -647,9 +647,11 @@ Format: **term** — definition. *(authority)*
   by item type. An index only: each item's stats stay on its own asset. Listing
   is not what makes something an item — a test scans the project by type and
   fails when the list and the scan differ. *(ItemCatalog)*
-- **hangar's offer** — the `LoadoutConfig` the hangar shows the player, a subset
-  of the item catalog. Never "the catalog": the enemy loadout pool is a second
-  `LoadoutConfig`, and neither lists everything. *(GameHost.hangarOffer)*
+- **item subset** — an authored list of items one consumer chooses from, per
+  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
+  "the catalog": neither lists everything. *(ItemSubset)*
+- **hangar's offer** — the item subset the hangar shows the player.
+  *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.

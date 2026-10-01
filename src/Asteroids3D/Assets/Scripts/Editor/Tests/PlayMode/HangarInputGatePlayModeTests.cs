@@ -72,7 +72,7 @@ namespace Tests.PlayMode
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
             host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
-            host.hangarOffer = AssetDatabase.LoadAssetAtPath<LoadoutConfig>(OfferPath);
+            host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
 
             var finished = false;
             IEnumerator Run()

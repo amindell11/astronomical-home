@@ -61,7 +61,7 @@ namespace Game
 
         [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
                  "prefab-authored modules).")]
-        [SerializeField] internal LoadoutConfig hangarOffer;
+        [SerializeField] internal ItemSubset hangarOffer;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +

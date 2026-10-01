@@ -8,8 +8,8 @@ namespace Ships.Loadout
     /// The index of every item in the project, grouped by item type; an item is anything that fills
     /// a loadout slot. It holds references only: each item's stats stay on its own asset. One asset
     /// at <see cref="AssetPath"/>, kept complete by an EditMode test that scans the project by type.
-    /// The hangar's offer and the enemy loadout pool are separate <see cref="LoadoutConfig"/> assets
-    /// that list subsets and do not reference this one (#775).
+    /// The hangar's offer and the enemy loadout pool are separate <see cref="ItemSubset"/> assets
+    /// and do not reference this one (#775).
     /// </summary>
     [CreateAssetMenu(fileName = "ItemCatalog", menuName = "Ship/Item Catalog")]
     public sealed class ItemCatalog : ScriptableObject
