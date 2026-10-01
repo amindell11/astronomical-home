@@ -52,12 +52,12 @@ namespace Tests.EditMode
                 Assert.AreSame(hull.GetComponent<WeaponsController>(), hull.Weapons,
                     $"{hull.name}: the wired weapons controller must be the hull's own.");
 
-                var assetLines = StatHash.LoadoutLines(hull);
+                var assetLines = StatHash.Lines(hull);
                 Assert.That(assetLines, Has.Some.StartsWith($"{hull.Weapons.PrimaryMountPrefab.name}/"),
                     $"{hull.name}: the prefab asset's lines must reach its primary mount's weapon.");
 
                 var instance = Scratch(hull);
-                CollectionAssert.AreEqual(assetLines, StatHash.LoadoutLines(instance), $"{hull.name}: asset and instance lines");
+                CollectionAssert.AreEqual(assetLines, StatHash.Lines(instance), $"{hull.name}: asset and instance lines");
                 Assert.AreEqual(StatHash.OfLoadout(hull), StatHash.OfLoadout(instance), $"{hull.name}: asset and instance hash");
             }
 
@@ -73,11 +73,33 @@ namespace Tests.EditMode
             foreach (var weapon in offer.weapons)
             {
                 ship.Weapons.primaryMount = weapon;
-                var lines = StatHash.LoadoutLines(ship);
+                var lines = StatHash.Lines(ship);
                 foreach (var condition in weapon.GetComponents<WeaponCondition>())
                     Assert.That(lines, Has.Some.StartsWith($"{weapon.name}/{condition.GetType().Name}."),
                         $"{weapon.name}: {condition.GetType().Name} sits on the prefab but no marked reference reaches it.");
             }
+        }
+
+        [Test]
+        public void Of_HashesOneItemsOwnSubtree_AndNothingElse()
+        {
+            var offer = HangarOffer();
+            var ship = Scratch(offer.ships[0]);
+            var weapon = Scratch(ship.Weapons.PrimaryMountPrefab);
+            ship.Weapons.primaryMount = weapon;
+
+            Assert.AreEqual(StatHash.Of(ship.Weapons.PrimaryMountPrefab), StatHash.Of(weapon),
+                "A copy with the same name and numbers hashes like the prefab.");
+            CollectionAssert.IsSubsetOf(StatHash.Lines(weapon), StatHash.Lines(ship),
+                "A mounted weapon's lines are part of its ship's lines.");
+            Assert.AreEqual(offer.weapons.Length, offer.weapons.Select(StatHash.Of).Distinct().Count(),
+                "Different weapons must not share a hash.");
+
+            var engine = StatHash.Of(ship.Engine);
+            SetSerialized(weapon.GetComponent<Cooldown>(), "fireRate", property => property.floatValue += 0.01f);
+            Assert.AreNotEqual(StatHash.Of(ship.Weapons.PrimaryMountPrefab), StatHash.Of(weapon),
+                "A marked number on the weapon's condition moves the weapon's hash.");
+            Assert.AreEqual(engine, StatHash.Of(ship.Engine), "A weapon edit leaves the engine's hash alone.");
         }
 
         [Test]

@@ -30,17 +30,20 @@ namespace Balance
 
         private static readonly Dictionary<Type, FieldInfo[]> statFieldsByType = new();
 
+        /// <summary>The hash of one item's own numbers: a hull, a module, a weapon, a wave director.</summary>
+        public static string Of(Object item) => Digest(Lines(item));
+
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
-        public static string OfLoadout(Ship ship) => Digest(LoadoutLines(ship));
+        public static string OfLoadout(Ship ship) => Of(ship);
 
         /// <summary>The stat fingerprint: the hangar's offer, the sector's spawners and the kill refill.</summary>
         public static string OfSetting(LoadoutConfig hangarOffer, Sector sectorPrefab, float killHullRestore) =>
             Digest(SettingLines(hangarOffer, sectorPrefab, killHullRestore));
 
-        internal static SortedSet<string> LoadoutLines(Ship ship)
+        internal static SortedSet<string> Lines(Object item)
         {
             var lines = NewLines();
-            Visit(ship, lines, new HashSet<Object>());
+            Visit(item, lines, new HashSet<Object>());
             return lines;
         }
 
