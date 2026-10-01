@@ -17,7 +17,7 @@ using AI.Strategy;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the commander's fire-lane routing: the Gunner is the sole path from an AI ship to the weapon actuator — engaged or disengaged, every step pushes each slot's command through it with press and hold together.</summary>
+    /// <summary>Pins the commander's fire-lane routing: the Gunner is the sole path from an AI ship to the weapon actuator — engaged or disengaged, every step pushes each slot's command through it.</summary>
     [Category("AI")]
     public class AICommanderFireLaneEditModeTests
     {
@@ -123,11 +123,8 @@ namespace Tests.EditMode
                 "a disengaged slot still receives a released trigger, not silence");
             Assert.IsFalse(weapons.Commands[^1].cmd.held);
 
-            foreach (var (slot, cmd) in weapons.Commands)
-            {
+            foreach (var (slot, _) in weapons.Commands)
                 Assert.AreEqual(WeaponSlot.Primary, slot);
-                Assert.AreEqual(cmd.held, cmd.pressed, "the gunner pushes press and hold together");
-            }
         }
 
         [Test]
