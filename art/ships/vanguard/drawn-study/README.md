@@ -47,3 +47,25 @@ the bloom effect. The UI plates retain their native resolution without mipmaps.
 
 The rendering brief and visual decisions live on
 [#685](https://github.com/amindell11/astronomical-home/issues/685#issuecomment-5853114008).
+
+## Selected Vivid production paint
+
+`VanguardPainted.blend` is the selected editable source for the production rig.
+It packs the 4096-pixel Vivid atlas and preserves every original scene's geometry,
+triangulation, corner normals, transforms, UV coordinates and symmetry modifiers.
+`VanguardStudy.blend` and `VanguardStructure.blend` remain the original baselines.
+The separate canopy and blue cores retain their materials.
+
+Damage and service-overlay objects remain recoverable but hidden in the painted
+source and inactive in the production prefab. Vent and service-panel color is
+baked into the hull atlas, removing the overlay's triangular gray seams. The hull
+uses `Vanguard vivid paint.mat` with neutral orange gain; the texture GUID is
+unchanged. The production FBX is unchanged.
+
+The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/b9bc31d9fd2381988ea7840a6489464e64686b75/pipeline/README.md)
+includes the recovered Crimson recipes, generation helpers and preservation
+checks. Use that pipeline for this source; `export_study.py` regenerates the older
+study overlays and is not the selected paint pipeline. The breakup work in
+[#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
+painted source and material, retain the separate canopy/cores, and leave the
+rejected overlay objects inactive.
