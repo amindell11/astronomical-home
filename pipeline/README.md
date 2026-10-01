@@ -77,3 +77,7 @@ VanguardPaintComparison helper checks their absence in the final live prefab.
 
 For breakup #795, use the separate parts and selected packed atlas in VanguardPainted.blend.
 The combined intact mesh assets are a runtime optimization, not the editable breakup source.
+The helper removes only four spurious inherited-Light bounding-sphere modifications
+introduced by Unity's prefab serializer; the original input has none. Their count
+is checked and all unrelated Light serialization remains inherited. Generated mesh
+byte hashes and committed hashes after trailing-whitespace normalization are both recorded.

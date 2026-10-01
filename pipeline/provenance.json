@@ -8,6 +8,11 @@
   "crimson_uv_helper_sha256": "5fd20672b9112fa14cd7b04ba50aa512a0afc516810bbabf14fc4e174a6ea59a",
   "production_atlas_sha256": "4693d7fccbc0dbb8a3a47a638b351f4c43d076ea4b31a5e96af6e3748ae2c542",
   "consolidation_input_commit": "cd264037b6068b25db1af226a60e39b9ce414f97",
-  "painted_hull_sha256": "589ff4b901f20228a44434de05ec61d00e011d1ace5ce0bb745e5df90a214e16",
-  "contour_sha256": "0485b8416d391d92d56c8703caf5edbaaa74e3984e844b04c815edd11a2816ec"
+  "painted_hull_sha256": "9770012c808747530d2205b0e295d0894ae6879f6320a60a5a92043ff6cf7e00",
+  "contour_sha256": "9244604521ac51877a85f4b50eecc78e1ecb023f05f940ed45abb24b7f8d5a19",
+  "generated_painted_hull_sha256": "589ff4b901f20228a44434de05ec61d00e011d1ace5ce0bb745e5df90a214e16",
+  "generated_contour_sha256": "0485b8416d391d92d56c8703caf5edbaaa74e3984e844b04c815edd11a2816ec",
+  "consolidated_production_commit": "b8c7a9bdd8e2c2d7aa1100166702b503e0fdfe33",
+  "serialization_normalization": "Only trailing YAML whitespace removed before commit; generated and committed mesh hashes are recorded separately.",
+  "validated_prefab_commit": "649bb35fd6d7742687856c541d7df41925a24fc6"
 }

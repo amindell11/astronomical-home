@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Capture;
 using NUnit.Framework;
 using Ships;
@@ -117,6 +118,10 @@ public sealed class VanguardConsolidation : CaptureScenario
             foreach (var item in all.Where(item => item && (item.name == "Vanguard surface wear" || item.name == "Vanguard service panels"))) Object.DestroyImmediate(item.gameObject);
             Assert.That(authored.GetComponentsInChildren<MeshRenderer>().Length, Is.EqualTo(5));
             PrefabUtility.SaveAsPrefabAsset(rig, rigPath);
+            var serialized = File.ReadAllText(rigPath);
+            const string lightPattern = @"    - target: \{fileID: 5361409938330929094, guid: 7ea4dac0955778f47b9d2b953f107848,\r?\n        type: 3\}\r?\n      propertyPath: m_BoundingSphereOverride\.[wxyz]\r?\n      value: [^\r\n]*\r?\n      objectReference: \{fileID: 0\}\r?\n";
+            Assert.That(Regex.Matches(serialized, lightPattern).Count, Is.AnyOf(0, 4));
+            File.WriteAllText(rigPath, Regex.Replace(serialized, lightPattern, ""));
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(rigPath, ImportAssetOptions.ForceSynchronousImport);
             Directory.CreateDirectory("../../results/vanguard-retexture/consolidation");
