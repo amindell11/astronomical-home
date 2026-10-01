@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
-using UnityEngine;
+using Substrate.Results;
 
 namespace RL.Episodes
 {
@@ -13,17 +13,7 @@ namespace RL.Episodes
         {
             // dirOverride is the launcher-owned absolute results dir (run_parallel.py --harness-jsonl-dir):
             // the exact location the parallel gate reads back, so parallel workers don't each reconstruct it.
-            string dir;
-            if (!string.IsNullOrEmpty(dirOverride))
-                dir = dirOverride;
-            else
-            {
-                // In a player Application.dataPath is the exe's Data dir, not the repo tree the editor layout climbs to.
-                var baseDir = Application.isEditor
-                    ? Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."))
-                    : Application.persistentDataPath;
-                dir = Path.Combine(baseDir, "results", folder);
-            }
+            var dir = string.IsNullOrEmpty(dirOverride) ? ResultsRoot.Folder(folder) : dirOverride;
             Directory.CreateDirectory(dir);
             var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
             return Path.Combine(dir, $"{stamp}-{tag}{workerSuffix}.jsonl");
