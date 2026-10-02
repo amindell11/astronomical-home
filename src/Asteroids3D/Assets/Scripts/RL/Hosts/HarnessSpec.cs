@@ -379,7 +379,7 @@ namespace RL.Hosts
             sentenceRows = rows.ToArray();
         }
 
-        /// <summary>Grammar: "all" (the item catalog's weapons, in catalog order) or comma-separated distinct names of the catalog's weapon prefabs.</summary>
+        /// <summary>Grammar: "all" (the item catalog's weapons, in catalog order) or comma-separated distinct catalog weapon names.</summary>
         private static WeaponComponent[] ParseDuel(string token, IReadOnlyList<WeaponComponent> catalogWeapons)
         {
             if (Matches(token, "all")) return catalogWeapons.ToArray();
