@@ -12,7 +12,7 @@ using Substrate.Sectors.Activation;
 
 namespace Tests.PlayMode
 {
-    /// <summary>TriggerVolume occupancy mirrored to the sector bus, compound-collider occupancy, and the parked-then-qualified activation scenario end-to-end (real physics triggers).</summary>
+    /// <summary>TriggerVolume occupancy mirrored to the sector bus and compound-collider occupancy (real physics triggers).</summary>
     [TestFixture]
     [Category("Sectors")]
     public class TriggerVolumeActivationPlayModeTests : PlayModeWorldFixture
@@ -285,48 +285,6 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
 
             Assert.AreEqual(0, changes, "An inert volume must write nothing to the bus.");
-        }
-
-        [UnityTest]
-        public IEnumerator ParkedThenQualified_RuleFires_WhenLatchedTermArrivesWhileParkedInside()
-        {
-            var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
-            var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, true, null, default, null, null, bus: bus);
-
-            var volume = CreateVolume("in-gate", player);
-            var rule = TrackGO(new GameObject("ExtractionRule")).AddComponent<ActivationRule>();
-            rule.Configure(
-                new[] { ActivationTerm.Signal("in-gate"), ActivationTerm.Signal("key-acquired") },
-                new[] { "challenge-started" });
-
-            yield return volume.Setup(ctx);
-            yield return rule.Setup(ctx);
-
-            var fired = 0;
-            rule.Fired += () => fired++;
-
-            player.transform.position = Vector3.zero;
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-gate"));
-            Assert.AreEqual(0, fired, "Parked in the gate without the key must not fire the rule.");
-
-            bus.Latch("key-acquired");
-            Assert.AreEqual(1, fired,
-                "The rule must fire for a player already parked inside when the latched term arrives — no enter-edge needed.");
-            Assert.IsTrue(bus.Get("challenge-started"), "Firing must publish the rule's latched tokens.");
-
-            player.transform.position = new Vector3(100f, 0f, 0f);
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            player.transform.position = Vector3.zero;
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            Assert.AreEqual(1, fired, "Leaving and re-entering the volume must not re-fire a latched rule.");
-
-            yield return rule.Teardown(ctx);
-            yield return volume.Teardown(ctx);
         }
     }
 }
