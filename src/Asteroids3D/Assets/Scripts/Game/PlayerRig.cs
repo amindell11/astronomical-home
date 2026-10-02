@@ -141,9 +141,8 @@ namespace Game
         }
 
         /// <summary>
-        /// Park the player, then drop its reference, unwire its death callback and destroy the
-        /// overlay. The service-owned player instance lives on until the session's teardown destroys
-        /// it; parking it first keeps its commander from projecting through the viewport cleared here.
+        /// Leaves the service-owned player to the session's teardown, parked so its commander stops
+        /// projecting through the viewport this clears.
         /// </summary>
         public void Teardown()
         {
