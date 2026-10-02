@@ -1,0 +1,21 @@
+{
+  "tool": "built-in imagegen",
+  "status": "paint source transferred to independent editable grayscale layers; native geometry authoritative",
+  "source_file": "paint-source.png",
+  "prompt": "Use case: style-transfer. Image 1 is the EDIT TARGET, an exact top orthographic albedo map of Valis, nose at bottom, split tail at top. Image 2 (Crimson top) and Image 3 (Crimson quarter) are PRIMARY PAINT STYLE references only. Paint ONLY the surfaces inside Image 1, preserving EXACT pixel silhouette, exact panel boundaries, dimensions, positions and all material color placement. Keep same square canvas and object size and center; no cropping, no rotation, no new geometry. This image will be projected straight onto the locked 3D model so geometric fidelity is critical. Preserve jade #329F91, petrol #47717B, iris #AF94D6, deep teal framework, dark midnight canopy and sage engine. Borrow Crimson's deliberate big painted light and shadow SHAPES, irregular dark ink at selected panel borders, pale selective edge accents, and tactile gouache. Each surface needs its OWN composition following its form: broad petrol swept wing planes get one large tapered slate-teal shadow wedge at the root and a broad lighter desaturated teal mass traveling toward tip, quieter midtone area; narrow jade leading strips get long composed jade and pale celadon tones with sparse broken highlights; forward jade cheek armor gets broad angular light patches and inward dark shadow; central jade dorsal plate gets a broad diagonal muted celadon light area, a quieter jade middle and one dark teal side mass; split tail prongs get irregular broad tone blocks fitted to their zigzag silhouette; iris accents get soft broad lavender light patches and deeper violet at inner borders; canopy gets two restrained broad slate reflections and mostly quiet dark interior. Main colors still dominate. Brush texture must SUPPORT these large designed masses; very low amplitude uneven paint inside tonal areas and drybrush only along their boundaries. Match the broad irregular organic tone masses seen in Crimson's silver armor rather than repeating diagonal brush marks. Strong readable 3-value treatment, tasteful understated. Keep broad wing faces mostly quiet. Very FEW fitted technical details: only a pair of short vent slots on shoulder roots and one small service seam near engine. NO microdetail, no fastener grids, no triangle lines, no streaks all over, no blanket grain, no scratches, no patterns plastered across ship, no uniform neon outlines. Preserve black/transparent background with no shadow or lettering. Output one square painted texture projection, exact Image 1 layout.",
+  "references": [
+    {
+      "path": "valis-flat-source.png",
+      "role": "exact approved model, layout and palette"
+    },
+    {
+      "path": "crimson-top.png",
+      "role": "primary painted style"
+    },
+    {
+      "path": "crimson-quarter.png",
+      "role": "primary painted style"
+    }
+  ],
+  "user_direction": "2026-10-02: prefer the asymmetric version; retain independent left and right paint"
+}
