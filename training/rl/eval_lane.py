@@ -149,8 +149,9 @@ def main() -> None:
                         help="RL_HARNESS_SENTENCE: run the Stage A sentence lane on these session bingo rows "
                              "(comma-separated tokens, or \"all\") instead of a checkpoint eval")
     parser.add_argument("--duel", default=None,
-                        help="RL_HARNESS_DUEL: run the duel lane on these weapons (comma-separated prefab names "
-                             "under Assets/Prefabs/Weapons, each alone in the shooter's primary weapon slot) "
+                        help="RL_HARNESS_DUEL: run the duel lane on these weapons (\"all\" for every weapon the item "
+                             "catalog lists, or comma-separated catalog weapon prefab names; each fights alone "
+                             "in the shooter's primary weapon slot) "
                              "instead of a checkpoint eval; the marksmanship table lands beside the summary")
     parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
                         help="editor: the calibrated reference protocol, sim in the leased batch child; "

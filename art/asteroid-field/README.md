@@ -8,8 +8,8 @@ The brush albedo and relief technique come from the accepted single-rock study. 
 
 A finer drawing layer adds short hatch bundles, crossed strokes and chisel ticks in 14 separated patches per shape. Marks follow the local surface beside ridges and avoid existing heavy lines. Stroke counts vary with available surface space. The `Fine crosshatching` vertex group isolates these additions in each Blender drawing mesh; the runtime drawing export includes them in the existing mesh and material.
 
-`DrawnFieldPlayModeTests` creates the field using the existing generator, spawn meshes, scale distribution, drift and collision assets. Its local settings clone limits field/load radius for capture. The editor-only study substitutes the converted surface and adds drawing/outline meshes to the live asteroids, including newly streamed or reused instances. Original production assets, spawning and ship art are unchanged.
+Production spawns these assets: `SpawnSettings` names `FragmentingDrawnAsteroid.prefab`, whose `DrawnAsteroidAppearance` binds each spawn shape to its converted surface, drawing mesh and paint. `IllustratedSceneWiringEditModeTests` checks that every bound surface stays within 2.5% of its source mesh's bounds diagonal.
 
-The field captures use the existing environment and canonical game-plane camera framing. The main art study uses a single directional light matching the accepted contrast; a separate still retains the existing scene lights. The flight uses the real ship movement and simulation. Batch captures read the native Unity camera directly, allowing the user's other editor to remain open. They contain no composited asteroid imagery.
+The saved `AsteroidField` study scene shows all ten shapes with the ship at gameplay distance; `src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/README.md` covers opening and capturing it.
 
-Validation checks all ten forms occur in the field, source-coordinate proximity, visible rendered detail and actual ship displacement. Production performance, distant-detail handling and a collision/volume rebake remain outside this art exploration.
+Production performance, distant-detail handling and a collision/volume rebake remain outside this art exploration.

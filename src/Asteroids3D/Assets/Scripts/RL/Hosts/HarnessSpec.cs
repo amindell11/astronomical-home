@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Capture;
 using Combat.Weapons;
 using Unity.InferenceEngine;
@@ -140,14 +141,14 @@ namespace RL.Hosts
 
         // A null source selects the smoke fixture; graphics detection is injected for tests.
         public static HarnessSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<string, WeaponComponent> resolveWeapon,
+            Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
             Func<bool> hasGraphicsDevice)
         {
             // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
             if (getEnv("RL_HARNESS_BUNDLE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_BUNDLE names the player eval boot's model bundle; an editor session resolves RL_HARNESS_ONNX itself — unset it.");
-            return Parse(getEnv, resolveCandidate, resolveOpponent, resolveWeapon, hasGraphicsDevice, player: false);
+            return Parse(getEnv, resolveCandidate, resolveOpponent, catalogWeapons, hasGraphicsDevice, player: false);
         }
 
         // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
@@ -161,11 +162,11 @@ namespace RL.Hosts
             return Parse(getEnv,
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.CandidateAsset),
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.OpponentAsset),
-                resolveWeapon: null, hasGraphicsDevice, player: true);
+                catalogWeapons: null, hasGraphicsDevice, player: true);
         }
 
         private static HarnessSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<string, WeaponComponent> resolveWeapon,
+            Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
             Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
@@ -228,7 +229,7 @@ namespace RL.Hosts
             }
             else if (duel != null)
             {
-                spec.duelWeapons = ParseDuel(duel, resolveWeapon);
+                spec.duelWeapons = ParseDuel(duel, catalogWeapons());
                 spec.tag = "duel-" + spec.tag;
             }
             else
@@ -378,24 +379,26 @@ namespace RL.Hosts
             sentenceRows = rows.ToArray();
         }
 
-        /// <summary>Grammar: comma-separated distinct weapon prefab names; the boundary's resolver loads each one.</summary>
-        private static WeaponComponent[] ParseDuel(string token, Func<string, WeaponComponent> resolveWeapon)
+        /// <summary>Grammar: "all" (the item catalog's weapons, in catalog order) or comma-separated distinct catalog weapon names.</summary>
+        private static WeaponComponent[] ParseDuel(string token, IReadOnlyList<WeaponComponent> catalogWeapons)
         {
+            if (Matches(token, "all")) return catalogWeapons.ToArray();
             var weapons = new List<WeaponComponent>();
             foreach (var raw in token.Split(','))
             {
                 var name = raw.Trim();
                 if (name.Length == 0) continue;
-                var weapon = resolveWeapon(name);
+                var weapon = catalogWeapons.FirstOrDefault(w => Matches(w.name, name));
                 if (!weapon)
-                    throw new ArgumentException($"RL_HARNESS_DUEL='{token}': '{name}' loads no weapon prefab.");
+                    throw new ArgumentException(
+                        $"RL_HARNESS_DUEL='{token}': '{name}' is not \"all\" or one of {string.Join(", ", catalogWeapons.Select(w => w.name))}.");
                 if (weapons.Contains(weapon))
                     throw new ArgumentException($"RL_HARNESS_DUEL='{token}': duplicate weapon '{name}'.");
                 weapons.Add(weapon);
             }
             if (weapons.Count == 0)
                 throw new ArgumentException(
-                    $"RL_HARNESS_DUEL='{token}' selected no weapons; use comma-separated weapon prefab names.");
+                    $"RL_HARNESS_DUEL='{token}' selected no weapons; use \"all\" or comma-separated weapon names.");
             return weapons.ToArray();
         }
 

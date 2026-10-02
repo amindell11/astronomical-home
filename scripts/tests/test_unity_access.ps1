@@ -209,7 +209,8 @@ try {
         [System.IO.File]::WriteAllText($ownerFile.FullName, ($ownerJson | ConvertTo-Json), $Utf8NoBom)
     }
     [void](Invoke-Coordinator -Action Acquire -Lease hb-holder -ProjectPath $projA)
-    [void](Invoke-Coordinator -Action BootAcquire -Lease hb-holder -WaitSeconds 1)
+    $hbHold = Invoke-Coordinator -Action BootAcquire -Lease hb-holder -WaitSeconds 1
+    Assert-Equal $hbHold.value.status "boot_acquired" "heartbeat holder takes the boot lane"
     [void](Invoke-Coordinator -Action Acquire -Lease hb-waiter -ProjectPath $projB)
     Backdate-Owner "hb-waiter"
     $hbWait = Invoke-Coordinator -Action BootAcquire -Lease hb-waiter -WaitSeconds 1

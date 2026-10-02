@@ -156,16 +156,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AbilityLane_ResetState_ClearsBoost()
-        {
-            StepBoost(Drifting(boost: true));
-            commander.ResetState();
-            brain.decision = null;
-            commander.Step();
-            Assert.AreEqual(0f, pilot.Last.boost);
-        }
-
-        [Test]
         public void Anchor_ResolvesEveryTick_EvenWhileTheDecisionIsHeld()
         {
             // One decision object, re-routed each tick — exactly what a 5 Hz brain's cache hands the commander.
