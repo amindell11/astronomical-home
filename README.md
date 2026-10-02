@@ -17,3 +17,5 @@ Cockpit fit: history/cockpit-fit/ preserves the live pre-edit model, final topol
 Profile refinement: history/profile-refinement/ preserves the user-edited starting model and before/after side profiles. The lower hull uses a tucked chin and straighter rear taper; underside armor follows. Upper hull, canopy fit, width, and other parts are unchanged.
 
 Flat shoulder and symmetry repair: history/flat-shading-symmetry/ preserves the live starting state and checks. Shoulder smooth shading is disabled. Outrigger, toe and socket Solidify modifiers precede Mirror so the rotated and scaled parts have symmetric thickness. Source vertices and transforms are unchanged.
+
+Canopy joins: history/canopy-joins/ preserves the starting state, fitted dorsal/shoulder termination, nose ventral fit, and validation. Canopy, fuselage and all outer silhouette parts are unchanged.
