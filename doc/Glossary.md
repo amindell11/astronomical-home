@@ -474,7 +474,7 @@ Format: **term** — definition. *(authority)*
   worktree machine.
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
-  the pending loadout, the damage ledger, the run tally and the death hook. Built once by the
+  the pending loadout, the damage ledger, the run tally, the spawn log and the death hook. Built once by the
   game host against the viewport it owns, injected into every sector load, torn
   down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
@@ -734,6 +734,30 @@ Format: **term** — definition. *(authority)*
   can reach does not move it, and neither does list order or listing a part twice.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
+- **run record** — one JSON line appended when a run ends in the player's death:
+  what it was played on (build identity, stat fingerprint), the player's loadout,
+  kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
+  log. Player death is the only exit that writes; quitting mid-run writes nothing.
+  Every record goes to one append-only file under the results root, which in the
+  editor is the worktree's own `results/`, so an agent's editor runs never land in
+  the user's file. A failed write, or an unreadable build identity, is logged and
+  that run goes unrecorded. Rows name a ship by its position in the record's spawn
+  list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **spawn log** — one entry per ship spawned or sector-adopted in a run, other
+  than the player: its parts by asset name, its loadout stat hash taken at spawn,
+  when it spawned, how long it lived and whether the player's shot killed it (the
+  run tally's rule). A consumer-side recorder on the player rig beside the damage
+  ledger and the run tally, never sim state. It exists because damage kind cannot
+  say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
+  projectile. A ship placed during the sector load reads as spawned at second 0.
+  *(SpawnLog)*
+- **build identity** — the git side of what a run was played on: the commit and a
+  dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
+  editor asks git at run end; a player build carries a file its pre-build hook
+  stamped, and the game host throws at startup when that file is missing.
+  Informational only: records are grouped by stat fingerprint and loadout stat
+  hash. "Build" in this term is the git side, never a ship's parts, which are its
+  loadout. *(BuildIdentity, BuildIdentityStamp)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.
