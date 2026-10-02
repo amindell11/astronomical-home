@@ -20,6 +20,8 @@ namespace Combat.Weapons
         [Stat, SerializeField, Min(0f)] private float fireDistance = 25f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
+        [Tooltip("Seconds an AI gunner keeps the charge trigger held after its firing solution drops.")]
+        [SerializeField, Min(0f)] private float holdThroughSeconds;
 
         [Header("Conditions")]
         [Stat, SerializeField] private ChargeTime charge;
@@ -27,6 +29,7 @@ namespace Combat.Weapons
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
+        public override float HoldThroughSeconds => holdThroughSeconds;
         public ChargeTime Charge => charge;
         public float MinChargeDamage => projectilePrefab.Damage * minChargeDamageScale;
         public float FullChargeDamage => projectilePrefab.Damage * fullChargeDamageScale;

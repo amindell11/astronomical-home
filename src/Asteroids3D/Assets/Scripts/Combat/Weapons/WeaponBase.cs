@@ -54,6 +54,9 @@ namespace Combat.Weapons
         /// <summary>Max distance at which an AI gunner engages with this weapon, for diagnostics/telemetry. 0 if not distance-gated.</summary>
         public virtual float FireRange => 0f;
 
+        /// <summary>Seconds an AI gunner keeps this weapon's trigger down after its firing solution drops. 0 = none.</summary>
+        public virtual float HoldThroughSeconds => 0f;
+
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 

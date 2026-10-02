@@ -21,6 +21,8 @@ namespace AI
         private bool hasTarget;
         private bool prevPrimaryHeld;
         private bool prevSecondaryHeld;
+        private int primaryAbsentSteps;
+        private int secondaryAbsentSteps;
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
@@ -45,10 +47,12 @@ namespace AI
             targetVel = default;
             prevPrimaryHeld = false;
             prevSecondaryHeld = false;
+            primaryAbsentSteps = 0;
+            secondaryAbsentSteps = 0;
             ClearTarget();
         }
 
-        /// <summary>Pushes each slot's raw trigger every step; pressed marks only the step held rises.</summary>
+        /// <summary>Each step, per slot: held is the firing solution extended by the weapon's hold-through; pressed marks held rising.</summary>
         public void Fire(bool engagePrimary, bool engageSecondary)
         {
             if (weapons == null || actuator == null) return;
@@ -58,18 +62,34 @@ namespace AI
             {
                 var slot = slots[i];
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
-                var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
-                if (slot == WeaponSlot.Primary) FireSlot(slot, held, ref prevPrimaryHeld);
-                else FireSlot(slot, held, ref prevSecondaryHeld);
+                var solution = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
+                if (slot == WeaponSlot.Primary) FireSlot(slot, engage, solution, ref prevPrimaryHeld, ref primaryAbsentSteps);
+                else FireSlot(slot, engage, solution, ref prevSecondaryHeld, ref secondaryAbsentSteps);
             }
         }
 
-        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
+        private void FireSlot(WeaponSlot slot, bool engage, bool solution, ref bool prevHeld, ref int absentSteps)
         {
+            bool held;
+            if (solution)
+            {
+                held = true;
+                absentSteps = 0;
+            }
+            else
+            {
+                // Bridges a dropped solution only: never starts a hold, never outlasts disengage or lost target.
+                held = prevHeld && engage && hasTarget && ++absentSteps <= HoldThroughSteps(slot);
+            }
+
             var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld };
             prevHeld = held;
             actuator.Fire(slot, cmd);
         }
+
+        // Whole fixed steps: an accumulated float clock misses exact thresholds.
+        private int HoldThroughSteps(WeaponSlot slot) =>
+            Mathf.RoundToInt(weapons.HoldThroughSeconds(slot) / Time.fixedDeltaTime);
 
         /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>

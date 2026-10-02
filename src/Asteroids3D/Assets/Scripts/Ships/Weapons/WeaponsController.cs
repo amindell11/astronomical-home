@@ -200,6 +200,8 @@ namespace Ships.Weapons
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
 
+            public float HoldThroughSeconds(WeaponSlot slot) => owner.Mount(slot)?.HoldThroughSeconds ?? 0f;
+
             public Gunsight Sight(WeaponSlot slot) => slot switch
             {
                 WeaponSlot.Primary => primarySight,

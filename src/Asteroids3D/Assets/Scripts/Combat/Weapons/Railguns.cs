@@ -29,6 +29,8 @@ namespace Combat.Weapons
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Tooltip("Seconds an AI gunner keeps the charge trigger held after its firing solution drops.")]
+        [SerializeField, Min(0f)] private float holdThroughSeconds;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
@@ -44,6 +46,8 @@ namespace Combat.Weapons
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
+
+        public override float HoldThroughSeconds => holdThroughSeconds;
 
         protected override void Awake()
         {
