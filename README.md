@@ -15,3 +15,5 @@ Shoulder repair: history/shoulder-repair/ preserves the pre-repair live model, r
 Cockpit fit: history/cockpit-fit/ preserves the live pre-edit model, final topology and actual-model renders. The cockpit upper hull extends beyond the canopy outline; cheek panels follow the widened hull. The canopy and all other parts are unchanged.
 
 Profile refinement: history/profile-refinement/ preserves the user-edited starting model and before/after side profiles. The lower hull uses a tucked chin and straighter rear taper; underside armor follows. Upper hull, canopy fit, width, and other parts are unchanged.
+
+Flat shoulder and symmetry repair: history/flat-shading-symmetry/ preserves the live starting state and checks. Shoulder smooth shading is disabled. Outrigger, toe and socket Solidify modifiers precede Mirror so the rotated and scaled parts have symmetric thickness. Source vertices and transforms are unchanged.
