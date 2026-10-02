@@ -80,7 +80,6 @@ def spread(name, values):
 
 
 def mixed_loadouts(record):
-    """Named loadouts that show more than one loadout stat hash inside this run."""
     hashes = defaultdict(set)
     for loadout in [record["player"]] + [spawn["loadout"] for spawn in record["spawns"]]:
         hashes[label(loadout)].add(loadout["statHash"])
