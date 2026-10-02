@@ -36,7 +36,7 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
+            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
             var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");

@@ -31,7 +31,7 @@ namespace Tests.PlayMode
         public IEnumerator Ship1_WithRegistryInjection_LockOnSensorHasRegistryAndIsEnabled()
         {
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
+            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab");
             testPilot = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
@@ -71,7 +71,7 @@ namespace Tests.PlayMode
         public IEnumerator Ship1_WithoutRegistryInjection_LockOnSensorIsDisabled()
         {
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
+            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab");
             testPilot = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
