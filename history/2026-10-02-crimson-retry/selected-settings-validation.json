@@ -1,0 +1,31 @@
+{
+  "geometry_sha256": "c713fb3e410c5c6b66c74ad0e5d5b4885984cfe709b026866cdc6e6ae8d73981",
+  "packed_texture_sha256": {
+    "Valis Ink \u2014 editable": "91dbcf963e366bb8a8afcddd835b6f65392cafbbe3a0d1cd0a9ad86c28e207e8",
+    "Valis Light \u2014 editable": "ce1deec0684d15256f9b4bef094184e72f4502981a025cf4c49e0f0d80ca7305",
+    "Valis Shadow \u2014 editable": "cb21abeb6d9bcd9a10087a1f3e0e801a09c47d03872416259e23cfc1e2339ffc"
+  },
+  "base_palette_matches": true,
+  "independent_mirror_uvs": true,
+  "uv_range_valid": true,
+  "selected_settings": {
+    "shadow_strength": 1.02,
+    "light_strength": 0.2,
+    "ink_strength": 1.5,
+    "light_color_linear": [
+      0.82,
+      0.93,
+      0.88,
+      1
+    ],
+    "ink_color_linear": [
+      0.006,
+      0.012,
+      0.018,
+      1
+    ],
+    "palette": "jade-iris"
+  },
+  "material_controls_verified": 7,
+  "geometry_and_packed_paint_unchanged": true
+}
