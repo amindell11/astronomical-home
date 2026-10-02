@@ -112,18 +112,23 @@ namespace Tests.PlayMode
         }
 
         /// <summary>
-        /// An unbound StatusBarUI (never injected) is inert — it neither throws nor logs, it simply does
-        /// nothing until a ShipView is bound.
+        /// An unbound StatusBarUI (never injected) is inert — it neither throws nor logs, and leaves
+        /// its authored fill alone until a ShipView is bound.
         /// </summary>
         [UnityTest]
         public IEnumerator StatusBarUI_Unbound_IsInertAndDoesNotThrow()
         {
             var parent = CreateRoot("RigRoot");
-            var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out _);
+            var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out var fill);
 
             yield return null;
 
-            Assert.IsTrue(bar.gameObject.activeInHierarchy);
+            // OnEnable first ran inside AddComponent, before CreateBar assigned the fill.
+            bar.enabled = false;
+            bar.enabled = true;
+            yield return null;
+
+            Assert.AreEqual(1f, fill.fillAmount, 0.001f, "An unbound bar should leave its authored fill untouched");
         }
 
         /// <summary>

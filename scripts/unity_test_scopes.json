@@ -32,7 +32,7 @@
       "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests"
     },
     "sectors": {
-      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests|MultiArenaSmokePlayMode"
+      "testFilter": "SectorCompositionPlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests|MultiArenaSmokePlayMode"
     },
     "damage": {
       "testFilter": "ShipRespawnDamagePlayMode|CollisionDamageUtilityTests"
@@ -44,10 +44,10 @@
       "testFilter": "ShipChildComponentStatePlayMode"
     },
     "services": {
-      "testFilter": "ServiceContractsEditModeTests|GameContextDecouplingEditModeTests"
+      "testFilter": "ServiceContractsEditModeTests"
     },
     "bootstrap": {
-      "testFilter": "SessionContractsEditModeTests"
+      "testFilter": "SessionContractsEditModeTests|GameHostRigPlayModeTests"
     }
   },
   "modules": {
@@ -107,7 +107,6 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorManifestSyncEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EncounterLifecycleEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorCompositionPlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TriggerVolumeActivationPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EncounterLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*",
