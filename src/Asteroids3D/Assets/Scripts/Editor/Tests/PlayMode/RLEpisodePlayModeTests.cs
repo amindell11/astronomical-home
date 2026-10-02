@@ -1,8 +1,6 @@
 #if UNITY_EDITOR
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using AI;
 using AI.Observation;
 using NUnit.Framework;
@@ -15,7 +13,6 @@ using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
-using RL.Hosts;
 using RL.Opponents;
 using RL.Reward;
 using RL.Runtime;
@@ -387,41 +384,6 @@ namespace Tests.PlayMode
                 "A full-clock draw nets the whole time-cost drag — waiting is never free");
 
             AssertShapingTelescopes(result);
-        }
-
-        [UnityTest]
-        [Timeout(3600000)]
-        public IEnumerator Characterization_WritesJsonl()
-        {
-            var resultsDir = Path.GetFullPath(Path.Combine(
-                Application.dataPath, "..", "..", "..", "results", "rl-episodes"));
-            var watchFlag = File.Exists(Path.Combine(resultsDir, "watch.flag"));
-            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
-
-            var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
-            // Watch (human real-time eyeball) is the one unlocked mode; measurement runs keep the pacing contract.
-            if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
-                Time.timeScale = 1f;
-            else
-                PacingContract.Apply();
-
-            var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag ? 3 : 20));
-
-            var spec = RewardSpec.Default;
-            SpawnPair(in spec);
-
-            var path = EpisodeJsonl.NewRunPath("ranger-vs-baseline");
-            for (var i = 0; i < episodes; i++)
-            {
-                pair.Reset(in spec, i);
-                var runner = new EpisodeRunner(agent, baseline, spec, i, Vector2.zero, trace);
-                yield return RunToCompletion(runner, spec);
-                EpisodeJsonl.Append(path, runner.Result);
-            }
-
-            Debug.Log($"[RLEpisode] wrote {episodes} rows to {path}");
         }
 
         private void SpawnPair(in RewardSpec spec)
