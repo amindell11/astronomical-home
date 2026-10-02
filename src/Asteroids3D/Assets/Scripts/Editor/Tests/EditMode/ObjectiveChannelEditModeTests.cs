@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UI;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Substrate.Services.Objectives;
 
@@ -35,7 +38,7 @@ namespace Tests.EditMode
         private static SpineObjectiveHandle InstallSpine(ObjectiveService svc) =>
             svc.SetSpineObjective(
                 new MissionDefinition("run", new Dictionary<string, string>()),
-                new Dictionary<string, Func<ObjectiveState>> { ["run"] = () => new CompletedState() });
+                new Dictionary<string, Func<ObjectiveState>> { ["run"] = () => new KeyAcquiredState() });
 
         [Test]
         public void HandleTargetSet_UpdatesSpineTarget_AndRaisesOnChangeOnly()
@@ -63,20 +66,39 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Marker_Bind_SubscribesToChannel_WithoutThrowing()
+        public void Marker_Bind_ShowsATargetPublishedAfterBinding()
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
             var handle = InstallSpine(svc);
+            var cam = NewGO("MinimapCam").AddComponent<Camera>();
+            cam.orthographic = true;
+            cam.orthographicSize = 50f;
+            cam.transform.position = new Vector3(0f, 0f, -10f);
+            var minimap = NewGO("Minimap").AddComponent<RectTransform>();
+            minimap.sizeDelta = new Vector2(200f, 200f);
+            var icon = NewGO("Icon").AddComponent<Image>();
             var marker = NewGO("Marker").AddComponent<MinimapObjectiveMarker>();
-            var t = NewGO("Target").transform;
+            var serialized = new SerializedObject(marker);
+            serialized.FindProperty("icon").objectReferenceValue = icon;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            marker.Initialize(cam, minimap);
+            var lateUpdate = typeof(MinimapObjectiveMarker)
+                .GetMethod("LateUpdate", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            Assert.DoesNotThrow(() =>
-            {
-                marker.BindObjectiveService(svc);
-                handle.Target = t;
-                handle.Target = null;
-                marker.BindObjectiveService(svc);
-            });
+            marker.BindObjectiveService(svc);
+            var target = NewGO("Target").transform;
+            target.position = new Vector3(0f, 25f, 0f);
+            handle.Target = target;
+            lateUpdate.Invoke(marker, null);
+
+            Assert.IsTrue(icon.enabled, "a target published after binding must show on the minimap");
+            Assert.AreEqual(50f, icon.rectTransform.anchoredPosition.y, 0.01f,
+                "the icon sits at the target's place on the minimap");
+
+            handle.Target = null;
+            lateUpdate.Invoke(marker, null);
+
+            Assert.IsFalse(icon.enabled, "clearing the target must hide the icon");
         }
     }
 }
