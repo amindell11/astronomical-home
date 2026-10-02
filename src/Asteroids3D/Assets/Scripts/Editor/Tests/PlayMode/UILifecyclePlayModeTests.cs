@@ -42,6 +42,16 @@ namespace Tests.PlayMode
             public float MaxYawRate => 90f;
         }
 
+        private GameObject root;
+
+        public override void TearDown()
+        {
+            DestroyTestObject(root);
+            base.TearDown();
+        }
+
+        private GameObject CreateRoot(string name) => root = new GameObject(name);
+
         /// <summary>
         /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
         /// once a LockChannel is injected, the indicator responds to lock progress, and it re-subscribes
@@ -53,7 +63,7 @@ namespace Tests.PlayMode
             var channel = new LockChannel();
 
             // The indicator lives under a parent in the rig; LateUpdate reads transform.parent.
-            var parent = new GameObject("RigRoot");
+            var parent = CreateRoot("RigRoot");
             var indicatorGo = new GameObject("LockOnIndicator");
             indicatorGo.transform.SetParent(parent.transform, false);
             indicatorGo.AddComponent<CanvasGroup>();
@@ -84,8 +94,6 @@ namespace Tests.PlayMode
             yield return null;
             Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
                 "Indicator should resubscribe and show again after disable/enable");
-
-            Object.Destroy(parent);
         }
 
         // Bars live under a parent in the rig; LateUpdate reads transform.parent.
@@ -110,13 +118,12 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator StatusBarUI_Unbound_IsInertAndDoesNotThrow()
         {
-            var parent = new GameObject("RigRoot");
+            var parent = CreateRoot("RigRoot");
             var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out _);
 
             yield return null;
 
             Assert.IsTrue(bar.gameObject.activeInHierarchy);
-            Object.Destroy(parent);
         }
 
         /// <summary>
@@ -130,7 +137,7 @@ namespace Tests.PlayMode
             damage.Health.ApplyDamage(40f); // 60 %
             damage.Shield.ApplyDamage(25f); // 50 %
 
-            var parent = new GameObject("RigRoot");
+            var parent = CreateRoot("RigRoot");
             var shieldBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out var shieldFill);
             var healthBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Health, out var healthFill);
 
@@ -141,8 +148,6 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(0.5f, shieldFill.fillAmount, 0.001f, "Shield bar should seed from the bound shield fraction");
             Assert.AreEqual(0.6f, healthFill.fillAmount, 0.001f, "Health bar should seed from the bound health fraction");
-
-            Object.Destroy(parent);
         }
 
         /// <summary>
@@ -154,7 +159,7 @@ namespace Tests.PlayMode
         {
             var status = new StubStatus { BoostAvailable = false, BoostCooldownPct = 0.6f };
 
-            var go = new GameObject("BoostGauge");
+            var go = CreateRoot("BoostGauge");
             var image = go.AddComponent<Image>();
             var gauge = go.AddComponent<BoostGaugeUI>();
 
@@ -168,8 +173,6 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(1f, image.fillAmount, 0.001f, "Fill should be full once boost is ready");
             Assert.AreNotEqual(coolingColor, image.color, "Gauge should recolor at the ready edge");
-
-            Object.Destroy(go);
         }
     }
 }
