@@ -316,11 +316,11 @@ Format: **term** — definition. *(authority)*
 - **verify queue** — the *pipeline PRs* with an owed `unity` or `script` item
   no run has tried on the head commit. An item that failed there leaves the
   queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
-- **merge queue** — the *pipeline PRs* with nothing owed open, with their
-  facts and landing order; it never says who may merge. Always qualified
-  ("the pipeline's merge queue", or the verb `merge-queue`): it is neither
-  GitHub's merge-queue feature nor the line for the *merge turn*.
-  *(scripts/drain_pick.sh `merge-queue`)*
+- **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
+  ticked, with their facts and landing order; it never says who may merge.
+  Always qualified ("the pipeline's merge queue", or the verb `merge-queue`):
+  it is neither GitHub's merge-queue feature nor the line for the *merge
+  turn*. *(scripts/drain_pick.sh `merge-queue`)*
 - **pipeline digest** — the Markdown report of what waits on the user and on a
   session the user starts, relayed as printed. Bare "digest" reads this way
   only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*

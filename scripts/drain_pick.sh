@@ -52,8 +52,9 @@ set -euo pipefail
 #   merge-queue   facts and landing order for the candidates: the pipeline PRs whose verdict is
 #           none or discharged. It never says who may merge. Every pipeline PR's `## Merge order`
 #           is read, so a fault in one shows before its PR is a candidate. Landing order:
-#           repeatedly take, from the candidates not yet placed, the lowest by (has the fact
-#           scripts or github, PR number) among those whose live constraints name only placed PRs.
+#           repeatedly take the lowest by (has the fact scripts or github, PR number) among the
+#           unplaced candidates with no merge-order-malformed, hosted:failure or order-cycle
+#           reason whose live constraints name only placed PRs.
 #           `## Merge order` grammar:
 #             section     from the line `## Merge order` to the next heading or the end of the
 #                         body; LF or CRLF.
@@ -126,8 +127,7 @@ scratch() {
   trap 'rm -rf "$TMP" 2>/dev/null || true' EXIT
 }
 
-# The one reading of the ready queue, pick's rule: ready_queue <owner/repo> <pick|digest> prints
-# pick's trailers, and for digest also ADMITTED=<count>, which no verb prints.
+# Pick's one reading of the ready queue; digest mode adds ADMITTED, which no verb prints.
 ready_queue() {
   gh api graphql -F owner="${1%%/*}" -F name="${1##*/}" -f query='query($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
@@ -240,8 +240,7 @@ cmd_release() {
   echo "RELEASE=released"
 }
 
-# Every view of the open PRs: pr_views <verb> <json> [<ready_queue output> <owner/repo>]. <json>
-# is one PR for owed, the open-PR read for the queue verbs.
+# pr_views <verb> <json> [<ready_queue output> <owner/repo>]; <json>: one PR for owed, else every open PR.
 pr_views() {
   python3 - "$@" <<'PY'
 import json, re, sys
@@ -255,7 +254,6 @@ STATE = {(False, False): "untried", (False, True): "tried", (True, False): "behi
 PROOF = ("merge-proof/headless", "merge-proof/resharper")
 CANNOT_BUILD = ("no-scope-block", "no-unity-label", "unity-conflict")
 
-# How many `heading` lines the body has, and the first one's non-blank lines up to the next heading.
 def section(body, heading):
     lines = body.splitlines()
     starts = [i for i, l in enumerate(lines) if l.rstrip() == heading]
