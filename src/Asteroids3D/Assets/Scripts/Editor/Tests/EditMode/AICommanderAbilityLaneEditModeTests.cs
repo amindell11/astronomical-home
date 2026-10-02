@@ -60,6 +60,7 @@ namespace Tests.EditMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => 40f;
+            public float HoldThroughSeconds(WeaponSlot slot) => 0f;
             public Gunsight Sight(WeaponSlot slot) => null;
         }
 

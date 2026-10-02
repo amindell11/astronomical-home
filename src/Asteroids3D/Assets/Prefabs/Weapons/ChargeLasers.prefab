@@ -84,3 +84,4 @@ MonoBehaviour:
   fullChargeDamageScale: 1
   fireDistance: 25
   fireAngleTolerance: 5
+  holdThroughSeconds: 1.2

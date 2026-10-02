@@ -222,6 +222,7 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => slot == WeaponSlot.Primary ? PrimarySpeed : SecondarySpeed;
+            public float HoldThroughSeconds(WeaponSlot slot) => 0f;
             public Combat.Weapons.Gunsight Sight(WeaponSlot slot) => null;
         }
 

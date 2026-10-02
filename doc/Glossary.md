@@ -548,6 +548,13 @@ Format: **term** — definition. *(authority)*
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
   "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
   2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **hold-through** — the Gunner keeping a weapon's trigger down for a short time
+  after that weapon's fire decision (`ShouldFire`) turns false, so a charge
+  survives a brief exit from the firing envelope. It bridges those drops only:
+  a brain's disengage or a lost target releases on that step, and it never
+  puts a trigger down by itself. The length is the weapon's, in seconds; the
+  count is the Gunner's, in whole fixed steps.
+  *(WeaponComponent.HoldThroughSeconds, Gunner.Fire)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).

@@ -118,6 +118,9 @@ namespace Ships.Command
         /// <summary>Muzzle speed of the slot's projectile (for AI intercept lead). 0 = hitscan/no lead.</summary>
         float ProjectileSpeed(WeaponSlot slot);
 
+        /// <summary>Seconds the slot's trigger stays down after its firing solution drops (hold-through). 0 = none.</summary>
+        float HoldThroughSeconds(WeaponSlot slot);
+
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
         Gunsight Sight(WeaponSlot slot);
     }
