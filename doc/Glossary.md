@@ -258,15 +258,16 @@ Format: **term** — definition. *(authority)*
   unassigned, carrying a build-scope block (a `Ready proposal` comment the user
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
-  gets a proposal instead of a build. A *drain run* takes only items also
-  labelled `unity:none`, or `unity:headless` plus `drain:approved`; its claim
-  is the issue assignee plus the worktree-pool lease.
-  *(#617, scripts/drain_pick.sh)*
+  gets a proposal instead of a build. A *cloud batch* admits items by their
+  `unity:*` label and claims each with the assignee plus `drain:building`: the
+  user and every session are one GitHub account, so only the label marks a
+  machine claim. *(#617, #830, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
-  questions from interactive sessions: a fork posted on the issue with options,
-  a recommendation and evidence, the slot held. A *drain run* asks in its own
-  chat instead, surfaced by its `⛔ blocked` title. Routine priority / bench /
-  park calls are proposals on their own issue, never inbox items. *(#617)*
+  questions: a fork posted on the issue with options, a recommendation and
+  evidence. An interactive session holds its slot while it waits; a *cloud
+  build* releases its claim and names its pushed branch. Routine priority /
+  bench / park calls are proposals on their own issue, never inbox items.
+  *(#617, #830)*
 - **triage sweep** — the on-demand or daily triage run over the open tracker,
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
@@ -289,25 +290,29 @@ Format: **term** — definition. *(authority)*
   catches it. Always "sweep lead" outside the triage skill (the Gunner's
   firing lead is unrelated). *(scripts/sweep_leads.sh)*
 - **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
-  comment proposing `ready-for-agent`; its `Unity:` field mints the matching
-  `unity:*` label on the same `Apply:` line. Once the user applies the label it
-  is the issue's build-scope block.
+  comment proposing `ready-for-agent`; its `Unity:` field, one of four values,
+  mints the matching `unity:*` label on the same `Apply:` line. Once the user
+  applies the label it is the issue's build-scope block.
   *(.claude/skills/issue-triage/comment-formats.md)*
-- **drain run** — one unattended build session, started from a *drain task* by
-  the *drain orchestrator* or by Run now, that picks, claims, builds, PRs and
-  holds one `unity:none` *ready queue* item, or one `unity:headless` item
-  carrying `drain:approved`; a claim lost to a concurrent run
-  (`taken`) sends it back to pick. The user talks to it in its own chat.
-  *(agent-worktree-pr-loop → Drain run)*
-- **drain task** — a desktop scheduled task a *drain run* is started from:
-  exactly three, `drain-1..3`, with identical one-line prompts, and that count
-  is the drain-run cap. Never a *lane* (collision table).
-  *(.claude/skills/drain-orchestrator)*
-- **drain orchestrator** — the pinned `/loop` chat that dispatches *drain runs*
-  across the *drain tasks*, surfaces what waits on the user, and restocks the
-  *ready queue* via the *triage sweep*. Titled `orchestrator | drain — …`;
-  distinct from an `Arc` orchestrator chat.
-  *(.claude/skills/drain-orchestrator)*
+- **drain pipeline** — build, verify and merge of *ready queue* items as three
+  steps, each started from queue state on GitHub and never from a chat
+  handoff, so a fresh session continues where a dead one stopped. *(#830)*
+- **cloud batch** — the *drain pipeline*'s build step: one hand-started cloud
+  session that picks and claims every item the *ready queue* admits, then
+  builds them in parallel. One at a time, which is what makes a claimed issue
+  with no PR a dead batch's. Always "cloud batch": bare *batch* is the
+  letter-bucket scheme above, and Unity has its batch mode.
+  *(agent-worktree-pr-loop → Cloud batch)*
+- **cloud build** — one item's build inside a *cloud batch*, ending in a draft
+  PR that closes the issue. *(agent-worktree-pr-loop → Cloud batch)*
+- **owed-local checklist** — the `### Owed local` list in a *cloud build*'s PR
+  body: the tests the hosted suite cannot run, written by the builder and
+  ticked by a local session. `None.` means nothing was ever owed, as against
+  owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
+- **drain orchestrator** — the pinned `/loop` chat that surfaces what waits on
+  the user and restocks the *ready queue* via the *triage sweep*; it starts no
+  build. Titled `orchestrator | drain — …`; distinct from an `Arc`
+  orchestrator chat. *(.claude/skills/drain-orchestrator)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
@@ -858,3 +863,4 @@ Format: **term** — definition. *(authority)*
 | ledger row, work ledger | *(retired 2026-09-22)* — in-flight state is the pool (`status`, dashboard) plus open PRs |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
+| drain run, drain task | *(retired 2026-10-01)* — the ready queue is built by a **cloud batch**; one item's build is a **cloud build** |

@@ -40,13 +40,20 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   fully specified, an AFK agent can take it. `ready-for-human` — needs human
   judgment or hands. `wontfix` — closed, not actioned; the closing comment
   links the memory file recording why.
-- **Execution axis** (what the build needs to prove itself): `unity:none` — no
-  Unity boot; `unity:headless` — batch tests, no GPU, provable by the hosted
-  suite; `unity:editor` — a live editor, rendering, capture or eyes on pixels.
+- **Execution axis** (what the build needs to prove itself), one per issue:
+  - `unity:none` — no Unity run.
+  - `unity:headless` — a PR the hosted suite fully proves.
+  - `unity:local-proof` — the hosted suite proves the code does not regress;
+    the acceptance proof runs locally (a graphics-tagged test, a live editor, a
+    person looking) and is written as owed-local items.
+  - `unity:editor` — the work itself needs local Unity (authoring, capture, or
+    a local run whose output is the deliverable). Stays interactive.
+
   Minted only together with `ready-for-agent`, by a readiness proposal's
-  `Apply:` line; a drain run picks `unity:none`, or `unity:headless` also
-  labelled `drain:approved` (the user's in-chat approval); never
-  `unity:editor`. No board Status mapping.
+  `Apply:` line. A cloud batch builds the first three, never `unity:editor`
+  (`scripts/drain_pick.sh pick`). No board Status mapping.
+- **`drain:building`**: a cloud build's claim marker, beside the assignee;
+  written and removed by `scripts/drain_pick.sh claim` / `release`.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
 - **Domain labels** (`RL`, `Ship`, `Testing`, …) and `arc` (umbrella issue

@@ -46,7 +46,8 @@ Apply: gh issue close <N> --reason "not planned" --comment "Duplicate of #M"
 The build-scope block a build session restates as its Step-1 scope once the
 user applies the label (#617 *Ruled: the label as scope confirmation*). The
 `Unity:` value rides the `Apply:` line as the `unity:*` label, so the field and
-the label are one fact.
+the label are one fact; what each value means is label law
+(`doc/agents/issue-tracker.md` → Execution axis).
 
 ```
 Ready proposal <date>
@@ -54,7 +55,7 @@ Scope: <end-to-end, 1–3 lines>
 Acceptance: <observable>
 Approach: <one line naming the seam>
 Size: S (<100 changed lines) | M (<300) | L (over the anti-churn bar)
-Unity: none | headless | editor
+Unity: none | headless | local-proof | editor
 Blocked by: none | #N
 Apply: gh issue edit <N> --add-label ready-for-agent,unity:<value>
 ```
