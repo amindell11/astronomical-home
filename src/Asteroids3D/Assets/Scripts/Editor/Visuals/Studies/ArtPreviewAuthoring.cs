@@ -73,9 +73,7 @@ namespace Visuals.Studies
             var texture = Load<Texture2D>(ShipFolder + "VanguardBaseColor.png");
             var paint = Paint(Color.white);
             paint.SetTexture("_BaseMap", texture);
-            var source = new Color(234 / 255f, 148 / 255f, 31 / 255f).linear;
-            var reference = new Color(251 / 255f, 135 / 255f, 22 / 255f).linear;
-            paint.SetVector("_OrangeGain", new Vector4(reference.r / source.r, reference.g / source.g, reference.b / source.b, 0));
+            paint.SetVector("_OrangeGain", Vector4.one);
             paint = Save(paint, "Materials/Ship/Surface/Hull paint.mat");
             var canopy = new Material(Shader.Find("Astronomical/Comparison/Drawn Canopy"));
             canopy.SetColor("_BaseColor", new Color(.025f, .065f, .15f));
