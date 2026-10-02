@@ -87,6 +87,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   fireDistance: 45
   fireAngleTolerance: 2
+  holdThroughSeconds: 1.5
   charge: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!120 &1200000000000000001
