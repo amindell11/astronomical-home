@@ -65,11 +65,20 @@ namespace Tests.EditMode.Rendering.Illustrated
             {
                 Assert.That(AssetDatabase.GetAssetPath(material), Does.Contain("jade-iris"));
                 Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.white));
-                Assert.That(material.GetFloat("_TextureStrength"), Is.Zero);
+                Assert.That(material.IsKeywordEnabled("_PAINT_LAYERS"), Is.True);
+                foreach (var layer in new[] { "Shadow", "Light", "Ink" })
+                    Assert.That(AssetDatabase.GetAssetPath(material.GetTexture("_Paint" + layer + "Map")),
+                        Is.EqualTo("Assets/Visuals/Ships/Valis/Paint/" + layer + ".png"));
+                Assert.That(material.GetFloat("_PaintShadowStrength"), Is.EqualTo(1.02f));
+                Assert.That(material.GetFloat("_PaintLightStrength"), Is.EqualTo(.2f));
+                Assert.That(material.GetFloat("_PaintInkStrength"), Is.EqualTo(1.5f));
+                Assert.That(AssetDatabase.GetAssetPath(material.GetTexture("_EmissionMap")),
+                    Is.EqualTo("Assets/Visuals/Ships/Valis/Paint/Accent emission.png"));
+                Assert.That(material.GetColor("_EmissionColor").maxColorComponent,
+                    material.name == "Lavender" ? Is.GreaterThan(1f) : Is.Zero);
             }
             Assert.That(hull.sharedMaterials.Take(7).Select(m => m.GetColor("_PaperColor")).Distinct().Count(), Is.EqualTo(7));
             Assert.That(hull.sharedMaterials[7].shader.name, Is.EqualTo("Astronomical/Comparison/Drawn Contour"));
         }
     }
 }
-
