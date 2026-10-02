@@ -10,7 +10,7 @@ namespace Game
     /// <summary>
     /// Edit-mode entry the live CLI lane calls to get a presentation-off game: a <see cref="GameHost"/>
     /// in a new empty scene, given the rig, camera and sector assets InitScene serializes, then play.
-    /// The splash, hangar screen and hangar offer stay unset, so the host goes straight to the sector.
+    /// The splash, hangar screen and hangar offer stay unset: a presentation-off host shows neither screen.
     /// </summary>
     public static class PresentationOffBootstrap
     {

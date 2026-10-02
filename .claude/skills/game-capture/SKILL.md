@@ -171,10 +171,10 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   first compose, so the rocks' silhouettes are **collider gizmos** (the capture drives
   `CollidersOn`), not meshes. A still is a mid-clip frame — read it before
   `assemble.py`, or pass `--keep-frames`. A presentation-off live game to poke at over
-  the CLI: from edit mode, eval `Game.PresentationOffBootstrap.EnterPlayMode();` — it
-  replaces the open scene (save edits first), builds a GameHost with presentation off and
-  enters play; gate on `editor_status` through the play-enter reload
-  (`doc/agents/unity-cli.md` → Domain-reload dead zones).
+  the CLI: from edit mode, eval
+  `Game.PresentationOffBootstrap.EnterPlayMode(); return "entering play";` — it replaces
+  the open scene (save edits first) and enters play; gate on `editor_status` through the
+  play-enter reload (`doc/agents/unity-cli.md` → Domain-reload dead zones).
 - **Asset stills (edit mode, own camera)** — a finding about something visual (mesh,
   collider, layout) ships as a picture when an editor is already held or the user asks;
   otherwise offer the picture in one line and let the user spend the boot. Worked
