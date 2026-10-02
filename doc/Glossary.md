@@ -207,10 +207,19 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
-  a time from before its fetch through `gh pr merge`. Order among waiting gates
-  is not guaranteed. Machine-local: a base move from any other clone is caught
-  only by the gate's base re-check. Any other push to main takes the turn
-  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
+  a time from before its fetch through `gh pr merge`. Waiting gates take it in
+  arrival order (**turn ticket**). Any other push to main takes it through
+  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
+  free. A waiter gives up only after watching one holder keep the turn for the
+  cap; a line that keeps moving times nobody out. Machine-local: a base move
+  from any other clone is caught only by the gate's base re-check.
+  *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
+- **turn ticket** — a waiting merge gate's recorded arrival; the line for the
+  merge turn is the live tickets in arrival order. A ticket is live only while
+  its gate holds an OS lock on it — never by a timer or a pid check — so a dead
+  waiter cannot block the line, and a re-run gate arrives anew at the back.
+  Always "turn ticket": the Unity access coordinator's queue ticket is another
+  thing. *(`MERGE_TURN_LINE_PL`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
@@ -465,7 +474,7 @@ Format: **term** — definition. *(authority)*
   worktree machine.
 - **player rig** — what the interactive game puts into a session for the human:
   the player ship and its commander, the HUD (overlay, UI and minimap cameras),
-  the pending loadout, the damage ledger, the run tally and the death hook. Built once by the
+  the pending loadout, the damage ledger, the run tally, the spawn log and the death hook. Built once by the
   game host against the viewport it owns, injected into every sector load, torn
   down at session exit. A host with no rig assigned has no player.
   *(`PlayerRig`, `Game/`)*
@@ -682,6 +691,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **weapon cycle** — one way of firing a weapon (a trigger pattern: hold, tap,
+  or as the AI fires), **measured** by firing the real weapon, never modeled: an
+  opening burst from cold, then the burst it repeats as a magazine, dump time
+  and recovery. "Magazine" here is **damage** per burst — not `Rounds`'
+  Magazine refill mode, and not the round count the hangar prints as "Mag".
+  Stakes reads the opening burst. Damage is counted at launch, so every shot is
+  a hit: missiles count direct damage only, grenades the blast at its centre.
+  *(WeaponCycleProbe · #772)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
@@ -701,6 +718,46 @@ Format: **term** — definition. *(authority)*
   player each time the run tally counts a kill; hull only (ammo or heat on a kill
   would be a reset button, and the shield already regens). Interactive sessions
   only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+- **loadout stat hash** — a short hash of the balance numbers one ship flies with:
+  its hull, its engine, its shield and the weapon on each mount. Only fields marked
+  `[Stat]` count. The same parts with the same numbers give the same hash on any
+  commit and any machine, and a spawned ship hashes like its prefab asset, so facts
+  recorded about one loadout can be added up across runs. Two gotchas. Lines are
+  keyed by asset name and field name, so renaming a marked field, or the asset it
+  sits on, changes the hash with no number changed. A mount's numbers are read off
+  the weapon prefab, so an inspector edit to the prefab or to a module asset shows
+  up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
+- **stat fingerprint** — a short hash of every balance number a run can draw from:
+  what the hangar offers, the sector's wave director (its pacing, its roster and
+  the parts its enemies draw from) and the kill refill. Runs played against the
+  same numbers share a fingerprint, so results are grouped by it. A number no run
+  can reach does not move it, and neither does list order or listing a part twice.
+  Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
+  *(StatHash.OfSetting, StatAttribute)*
+- **run record** — one JSON line appended when a run ends in the player's death:
+  what it was played on (build identity, stat fingerprint), the player's loadout,
+  kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
+  log. Player death is the only exit that writes; quitting mid-run writes nothing.
+  Every record goes to one append-only file under the results root, which in the
+  editor is the worktree's own `results/`, so an agent's editor runs never land in
+  the user's file. A failed write, or an unreadable build identity, is logged and
+  that run goes unrecorded. Rows name a ship by its position in the record's spawn
+  list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **spawn log** — one entry per ship spawned or sector-adopted in a run, other
+  than the player: its parts by asset name, its loadout stat hash taken at spawn,
+  when it spawned, how long it lived and whether the player's shot killed it (the
+  run tally's rule). A consumer-side recorder on the player rig beside the damage
+  ledger and the run tally, never sim state. It exists because damage kind cannot
+  say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
+  projectile. A ship placed during the sector load reads as spawned at second 0.
+  *(SpawnLog)*
+- **build identity** — the git side of what a run was played on: the commit and a
+  dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
+  editor asks git at run end; a player build carries a file its pre-build hook
+  stamped, and the game host throws at startup when that file is missing.
+  Informational only: records are grouped by stat fingerprint and loadout stat
+  hash. "Build" in this term is the git side, never a ship's parts, which are its
+  loadout. *(BuildIdentity, BuildIdentityStamp)*
 - **death recap** — the post-death summary rendered from the damage ledger and
   the run tally at the game host's hold between death and sector unload; presentation-gated, so a
   game host with presentation off goes straight to the unload.

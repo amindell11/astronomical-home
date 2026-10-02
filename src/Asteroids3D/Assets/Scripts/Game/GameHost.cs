@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using Balance;
 using Cameras;
 using Damage;
+using Game.Runs;
 using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
@@ -21,8 +23,8 @@ namespace Game
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
     /// observer camera) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
-    /// sector, play until the sector ends or the player dies, death recap, unload. It owns the clock,
-    /// splash, hangar, recap, restart, kill refill and the one EventSystem; the session only composes,
+    /// sector, play until the sector ends or the player dies, run record, death recap, unload. It owns the
+    /// clock, splash, hangar, run record, recap, restart, kill refill and the one EventSystem; the session only composes,
     /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer
     /// camera), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
@@ -77,6 +79,11 @@ namespace Game
                  "the wait. Shown only under RestartSector with presentation on.")]
         [SerializeField, Min(0f)] private float recapHoldSeconds = 8f;
 
+        // Test seams, set before the host activates: null → the default store path and the real source.
+        internal string runRecordPath;
+        internal BuildIdentitySource buildIdentity;
+
+        private RunRecordStore runRecords;
         private DamageInfo lastKillingBlow;
         private bool playerDied;
         private bool sectorEnded;
@@ -103,6 +110,9 @@ namespace Game
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
             arena = NewRoot("Arena");
+
+            buildIdentity ??= BuildIdentity.Source();
+            runRecords = new RunRecordStore(runRecordPath);
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(Run());
@@ -142,18 +152,23 @@ namespace Game
                 playerDied = false;
                 sectorEnded = false;
                 yield return session.LoadSector(rigInstance ? rigInstance.Player : null, _ => sectorEnded = true);
-                if (rigInstance) rigInstance.Tally.Begin(Time.time);
+                var playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                 SetSplashVisible(false);
 
                 // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
                 while (!playerDied && !sectorEnded)
                     yield return null;
 
-                if (playerDied && presentation)
-                    yield return RunDeathRecap();
+                if (playerDied)
+                {
+                    AppendRunRecord(playerLoadoutStatHash);
+                    if (presentation)
+                        yield return RunDeathRecap();
+                }
 
                 SetSplashVisible(true);
                 yield return session.UnloadSector();
+                if (rigInstance) rigInstance.Park();
             }
         }
 
@@ -205,6 +220,7 @@ namespace Game
                     return (_, killingBlow) =>
                     {
                         rigInstance.Tally.End(Time.time);
+                        rigInstance.Spawns.End(Time.time);
                         lastKillingBlow = killingBlow;
                         playerDied = true;
                     };
@@ -212,6 +228,29 @@ namespace Game
                 default:
                     return null;
             }
+        }
+
+        /// <summary>Starts the rig's run clocks and returns the loadout stat hash the player flies this run.</summary>
+        private string BeginRun()
+        {
+            rigInstance.Tally.Begin(Time.time);
+            rigInstance.Spawns.Begin(Time.time);
+            return StatHash.OfLoadout(rigInstance.Player);
+        }
+
+        // An unreadable build identity is treated like the store's failed write: the run goes unrecorded.
+        private void AppendRunRecord(string playerLoadoutStatHash)
+        {
+            if (!buildIdentity(out var identity, out var failure))
+            {
+                Debug.LogError($"Run record skipped, build identity unreadable: {failure}", this);
+                return;
+            }
+
+            var sector = sessionProfile.sectorEntry.prefab;
+            runRecords.Append(RunRecord.Compose(DateTime.UtcNow, sector.name, identity,
+                StatHash.OfSetting(hangarOffer, sector, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
+                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, lastKillingBlow));
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
@@ -225,10 +264,6 @@ namespace Game
                 yield break;
             }
 
-            var overlay = rig.Overlay;
-            if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(rig, false);
-
             var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
             screen.Show(hangarOffer, rig.Loadout, () => launched = true);
@@ -237,25 +272,12 @@ namespace Game
 
             rig.ApplyLoadout();
             Destroy(screen.gameObject);
-
-            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
-            SetPlayerInputEnabled(rig, true);
-            var activeOverlay = rig.Overlay;
-            if (activeOverlay) activeOverlay.SetVisible(true);
-        }
-
-        // Fire1 shares mouse 0 with UI clicks, so the commander sleeps for the hangar screen's lifetime.
-        private static void SetPlayerInputEnabled(PlayerRig rig, bool inputEnabled)
-        {
-            if (rig.Player && rig.Player.Commander)
-                rig.Player.Commander.enabled = inputEnabled;
         }
 
         private IEnumerator RunDeathRecap()
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(rigInstance, false);
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
@@ -265,7 +287,6 @@ namespace Game
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
 
             Destroy(screen.gameObject);
-            SetPlayerInputEnabled(rigInstance, true);
             if (overlay) overlay.SetVisible(true);
         }
     }

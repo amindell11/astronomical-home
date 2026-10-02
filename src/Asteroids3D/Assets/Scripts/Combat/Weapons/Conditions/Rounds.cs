@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
@@ -26,14 +27,14 @@ namespace Combat.Weapons.Conditions
         public enum RefillMode { Magazine = 0, PerRound = 1 }
 
         [Header("Ammo System")]
-        [SerializeField] private int maxAmmo = 4;
+        [Stat, SerializeField] private int maxAmmo = 4;
 
         [Tooltip("Seconds until spent rounds come back (see Refill). 0 = never; ammo only refills on Reset (ship respawn).")]
-        [SerializeField, Min(0f)] private float reloadTime = 0f;
+        [Stat, SerializeField, Min(0f)] private float reloadTime = 0f;
 
         [Tooltip("Magazine: the whole magazine refills Reload Time after it empties. " +
                  "PerRound: each round comes back Reload Time after it was fired.")]
-        [SerializeField] private RefillMode refill = RefillMode.Magazine;
+        [Stat, SerializeField] private RefillMode refill = RefillMode.Magazine;
 
         public event Action<int> OnAmmoCountChanged;
         public event Action OnReloadStarted;

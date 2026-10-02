@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Weapons;
 using UnityEngine;
 
@@ -14,16 +15,16 @@ namespace Ships.Loadout
     public class ItemSubset : ScriptableObject
     {
         [Tooltip("Ship prefabs selectable in the hangar's Ship slot (the chassis choice).")]
-        public Ship[] ships;
+        [Stat] public Ship[] ships;
 
         [Tooltip("Engine modules selectable in the hangar's Engine slot.")]
-        public EngineModule[] engines;
+        [Stat] public EngineModule[] engines;
 
         [Tooltip("Shield modules selectable in the hangar's Shield slot.")]
-        public ShieldModule[] shields;
+        [Stat] public ShieldModule[] shields;
 
         [Tooltip("Weapon prefabs selectable in either weapon slot — one shared pool; the two mounts " +
                  "are identical hardware, only their trigger bindings differ.")]
-        public WeaponComponent[] weapons;
+        [Stat] public WeaponComponent[] weapons;
     }
 }

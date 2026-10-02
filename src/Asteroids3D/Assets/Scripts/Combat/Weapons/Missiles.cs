@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using Combat.Targeting;
 using UnityEngine;
@@ -10,16 +11,17 @@ namespace Combat.Weapons
     public class Missiles : WeaponBase<Missile>
     {
         [Header("Targeting")]
-        [SerializeField] private LockOnSensor targetingComputer;
+        [Stat, SerializeField] private LockOnSensor targetingComputer;
 
         [Header("Conditions")]
-        [SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         [Header("AI Firing (No Lock)")]
-        [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
-        [SerializeField, Min(0f)] private float fallbackRange = 10f;
+        [Tooltip("Max distance at which an AI gunner will fire unguided (no lock). Keep it inside the distance the scripted pilots hold from their target: a pilot hovering on this edge launches unguided.")]
+        [Stat, SerializeField, Min(0f)] private float fallbackRange = 7f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
-        [SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
         private ILockProvider lockProvider;
 
@@ -37,6 +39,7 @@ namespace Combat.Weapons
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;
@@ -55,7 +58,7 @@ namespace Combat.Weapons
             return proj;
         }
 
-        // Honest geometry: the sensor's lock cone (with LOS) or the unguided dumbfire window (no LOS, matching ShouldFire's fallback).
+        // The lock cone, or the dumbfire window where an AI gunner launches without a lock.
         public override bool InEnvelope(in TargetingContext context) =>
             InLockCone(in context) || InFallbackEnvelope(in context);
 
@@ -66,12 +69,15 @@ namespace Combat.Weapons
             && context.angleToTarget <= targetingComputer.lockOnConeAngle * 0.5f;
 
         private bool InFallbackEnvelope(in TargetingContext context) =>
-            context.distanceToTarget <= fallbackRange && context.angleToTarget <= fallbackAngleTolerance;
+            context.hasLineOfSight
+            && context.distanceToTarget <= fallbackRange
+            && context.angleToTarget <= fallbackAngleTolerance;
 
         // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
         public override bool ShouldFire(TargetingContext context)
         {
-            if (!Rounds || Rounds.AmmoCount <= 0)
+            // Readiness drops the solution after each launch, so the gunner's press edge re-arms.
+            if (!CanFire())
                 return false;
 
             return (lockProvider?.State ?? LockState.Idle) switch

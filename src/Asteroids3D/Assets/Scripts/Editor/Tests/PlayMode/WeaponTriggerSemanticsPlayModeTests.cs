@@ -19,8 +19,7 @@ namespace Tests.PlayMode
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
     /// charge weapons accumulate while held and fire on release or at full charge. The AI
-    /// "mashes" (press every step it wants fire) and aims each slot with that slot's ballistics
-    /// — hitscan slots get no intercept lead.
+    /// gunner aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
@@ -279,14 +278,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(Substrate.GamePlane.PlanePointToWorld(expectedLead), ballisticAim);
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 
-            // The AI mashes: pressed and held both reflect its per-step decision.
-            gunner.Fire(engagePrimary: true, engageSecondary: true);
-            Assert.AreEqual(2, recorder.Commands.Count);
-            foreach (var (_, cmd) in recorder.Commands)
-                Assert.AreEqual(cmd.held, cmd.pressed, "AI reports press and hold together.");
-
             // Disengaging releases the trigger rather than going silent.
-            recorder.Commands.Clear();
             gunner.Fire(engagePrimary: false, engageSecondary: false);
             Assert.AreEqual(2, recorder.Commands.Count);
             foreach (var (_, cmd) in recorder.Commands)

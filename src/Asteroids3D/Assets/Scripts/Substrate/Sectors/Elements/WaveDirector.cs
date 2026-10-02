@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,24 +26,24 @@ namespace Substrate.Sectors.Elements
         [Serializable]
         public struct RosterEntry
         {
-            public Ship template;
-            public Commander pilot;
+            [Stat] public Ship template;
+            [Stat] public Commander pilot;
         }
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
-        [SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
+        [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
         [Tooltip("Engine, shield and weapon pool each spawn draws its build from; the chassis stays the roster's. " +
                  "Unset → products fly their template's authored build.")]
-        [SerializeField] private ItemSubset loadouts;
+        [Stat, SerializeField] private ItemSubset loadouts;
         [SerializeField] private int team = 1;
 
         [Header("Escalation")]
-        [SerializeField, Min(0.1f)] private float startInterval = 6f;
-        [SerializeField, Min(0.1f)] private float endInterval = 2f;
-        [SerializeField, Min(0)] private int startCap = 2;
-        [SerializeField, Min(0)] private int endCap = 8;
+        [Stat, SerializeField, Min(0.1f)] private float startInterval = 6f;
+        [Stat, SerializeField, Min(0.1f)] private float endInterval = 2f;
+        [Stat, SerializeField, Min(0)] private int startCap = 2;
+        [Stat, SerializeField, Min(0)] private int endCap = 8;
         [Tooltip("Seconds from Build until interval and cap reach their end values.")]
-        [SerializeField, Min(1f)] private float rampSeconds = 240f;
+        [Stat, SerializeField, Min(1f)] private float rampSeconds = 240f;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
