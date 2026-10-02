@@ -185,6 +185,18 @@ export PATH="$STUB_BIN:$PATH"
 export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
 
 fail() { echo "FAIL: $1" >&2; exit 1; }
+# Bounds only a wedged wait: a hang guard, never a speed claim.
+hang_guard=600
+# Ends on the watched process's exit, not a clock: load slows the wait but cannot fail it.
+poll_while_alive() {
+  local pid="$1" deadline=$((SECONDS + hang_guard))
+  shift
+  until "$@"; do
+    kill -0 "$pid" 2>/dev/null || { echo "the watched process (pid $pid) exited first" >&2; return 1; }
+    (( SECONDS < deadline )) || { echo "the watched process (pid $pid) was still waiting after ${hang_guard}s" >&2; return 1; }
+    sleep 0.2
+  done
+}
 runner_runs() { grep -c '^run' "$RUNNER_LOG" || true; }
 resharper_runs() { grep -c '^run' "$RESHARPER_LOG" || true; }
 admission_queries() { grep -c '^query' "$ADMISSION_LOG" || true; }
@@ -938,9 +950,8 @@ PROBE_HOOK="touch '$TMP/gate1.started'; while [[ ! -f '$TMP/gate1.go' ]]; do sle
   pool merge agent-1 > "$TMP/merge1.out" 2>&1 &
 first_gate=$!
 # The suite starts before gate 1's test run, so wait until gate 1 is only joining it.
-gate1_joining() { grep -q '"event":"phase-start","phase":"script-tests"' "$(journal_for)" 2>/dev/null; }
-for _ in $(seq 1 600); do [[ -f "$TMP/gate1.started" ]] && gate1_joining && break; sleep 0.2; done
-gate1_joining || { touch "$TMP/gate1.go"; wait "$first_gate" || true; cat "$TMP/merge1.out" >&2; fail "fixture: the first gate never reached the script-tests join"; }
+gate1_joining() { [[ -f "$TMP/gate1.started" ]] && grep -q '"event":"phase-start","phase":"script-tests"' "$(journal_for)" 2>/dev/null; }
+poll_while_alive "$first_gate" gate1_joining || { touch "$TMP/gate1.go"; wait "$first_gate" || true; cat "$TMP/merge1.out" >&2; fail "fixture: the first gate never reached the script-tests join"; }
 runs_before="$(runner_runs)"
 if pool merge agent-1 > "$TMP/merge.out" 2>&1; then touch "$TMP/gate1.go"; fail "a second merge on a slot with a running gate must refuse"; fi
 expect_output "a merge gate is already running on agent-1" "the refusal must say a gate is already running"
@@ -968,15 +979,14 @@ WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool_fn with_merge_turn agent-9 true || 
 # place in the line. Its slow poll would lose an unordered race to the later arrival below.
 WORKTREE_POOL_MERGE_TURN_POLL_SECONDS=2 pool merge agent-2 > "$TMP/merge2.out" 2>&1 &
 second_gate=$!
-gate2_waiting() { [[ "$(pool merge-progress agent-2 --oneline)" == "turn-wait "*" OPEN behind agent-1, place 1 in line" ]]; }
-for _ in $(seq 1 100); do gate2_waiting && break; sleep 0.2; done
-gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait first in line behind agent-1, the dead ticket uncounted (got '$(pool merge-progress agent-2 --oneline)')"; }
+# Polled, never read once: another prober can make a dead ticket count for an instant.
+gate2_waiting() { gate2_progress="$(pool merge-progress agent-2 --oneline)"; [[ "$gate2_progress" == "turn-wait "*" OPEN behind agent-1, place 1 in line" ]]; }
+poll_while_alive "$second_gate" gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait first in line behind agent-1, the dead ticket uncounted (last saw '$gate2_progress')"; }
 # The later arrival polls twenty times as often. It records how many merges had landed when it took the turn.
 pool_fn with_merge_turn agent-3 bash -c "grep -c squash '$GH_MERGE_LOG' > '$TMP/late.saw'" &
 late_waiter=$!
-late_waiting() { [[ "$(pool_fn merge_turn_place agent-3)" == 2 ]]; }
-for _ in $(seq 1 100); do late_waiting && break; sleep 0.2; done
-late_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" "$late_waiter" || true; fail "a later arrival should stand second in line (got '$(pool_fn merge_turn_place agent-3)')"; }
+late_waiting() { late_place="$(pool_fn merge_turn_place agent-3)"; [[ "$late_place" == 2 ]]; }
+poll_while_alive "$late_waiter" late_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" "$late_waiter" || true; fail "a later arrival should stand second in line (last saw place '$late_place')"; }
 touch "$TMP/gate1.go"
 wait "$first_gate" || { cat "$TMP/merge1.out" >&2; fail "the first gate should finish and merge"; }
 grep -q "origin/main moved since agent-1 last synced: merging it in" "$TMP/merge1.out" \
@@ -999,7 +1009,8 @@ wait "$late_waiter" || fail "the later arrival should take the turn once the lin
 # waiter outlasts its cap while the turn changes hands. The holder's stamp is whole seconds, hence the sleeps.
 pool lock merge-turn -- bash -c "source '$POOL'; for _ in 1 2 3 4 5 6; do merge_turn_publish agent-1; sleep 1; done; rm -f \"\$MERGE_TURN_HOLDER\"" &
 changing_hands=$!
-for _ in $(seq 1 50); do [[ "$(pool_fn merge_turn_holder)" == agent-1 ]] && break; sleep 0.2; done
+holder_published() { [[ "$(pool_fn merge_turn_holder)" == agent-1 ]]; }
+poll_while_alive "$changing_hands" holder_published || { wait "$changing_hands" || true; fail "fixture: the republishing holder should publish agent-1 before it exits"; }
 waited_from=$SECONDS
 WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=3 pool_fn with_merge_turn agent-2 true \
   || { wait "$changing_hands" || true; fail "a waiter must not give up while the turn keeps changing hands"; }
