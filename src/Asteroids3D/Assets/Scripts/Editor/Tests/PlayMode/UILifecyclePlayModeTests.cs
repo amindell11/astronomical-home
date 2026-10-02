@@ -42,15 +42,15 @@ namespace Tests.PlayMode
             public float MaxYawRate => 90f;
         }
 
-        private GameObject root;
+        private GameObject ownedRoot;
 
         public override void TearDown()
         {
-            DestroyTestObject(root);
+            DestroyTestObject(ownedRoot);
             base.TearDown();
         }
 
-        private GameObject CreateRoot(string name) => root = new GameObject(name);
+        private GameObject CreateRoot(string name) => ownedRoot = new GameObject(name);
 
         /// <summary>
         /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
