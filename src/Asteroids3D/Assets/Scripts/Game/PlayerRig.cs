@@ -141,11 +141,13 @@ namespace Game
         }
 
         /// <summary>
-        /// Drop the player reference, unwire its death callback and destroy the overlay. The
-        /// service-owned player instance is destroyed by the session's teardown.
+        /// Park the player, then drop its reference, unwire its death callback and destroy the
+        /// overlay. The service-owned player instance lives on until the session's teardown destroys
+        /// it; parking it first keeps its commander from projecting through the viewport cleared here.
         /// </summary>
         public void Teardown()
         {
+            Park();
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
             Tally.Bind(null, null);
