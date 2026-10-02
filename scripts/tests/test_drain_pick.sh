@@ -113,10 +113,10 @@ issue 54 2026-09-01T00:00:00Z ready-for-agent,unity:headless,unity:editor "" 0 "
 issue 55 2026-09-01T00:00:00Z ready-for-agent,unity:none,unity:local-proof "" 0 "$SLICE_BODY"
 write_queue
 out="$(bash "$DRAIN" pick 2>/dev/null)"
-[[ "$(skip_of 51 <<<"$out")" == unity:editor ]] || fail "editor is never admitted, and drain:approved is not read (got: $out)"
+[[ "$(skip_of 51 <<<"$out")" == unity:editor ]] || fail "editor is never admitted, whatever else it carries (got: $out)"
 [[ "$(skip_of 54 <<<"$out")" == unity:editor,unity:headless,unity-conflict ]] || fail "an editor label beside headless is a conflict (got: $out)"
 [[ "$(skip_of 55 <<<"$out")" == unity:local-proof,unity:none,unity-conflict ]] || fail "two admitted unity labels are still a conflict (got: $out)"
-[[ "$(grep -c '^SKIP=' <<<"$out")" -eq 3 ]] || fail "none, headless and local-proof are all admitted (got: $out)"
+[[ "$(grep -c '^SKIP=' <<<"$out")" -eq 3 ]] || fail "none, headless (with no drain:approved) and local-proof are all admitted (got: $out)"
 [[ "$(trailer ISSUE <<<"$out")" == 53 ]] || fail "the three admitted labels share one priority-then-age order (got: $out)"
 
 # --- pick: priority, then age ------------------------------------------------------------------
@@ -201,9 +201,10 @@ owed_is open 1 0 1 "CRLF bodies parse, and the section ends at the next heading"
 owed_is malformed 0 0 0 "an unknown kind is malformed" "${HEAD}"$'- [ ] unity: boot\n- [ ] manual: something\n'
 owed_is malformed 0 0 0 "nothing owed is never a checkbox" "${HEAD}"$'- [ ] None\n'
 owed_is malformed 0 0 0 "None. beside items is malformed" "${HEAD}"$'- [x] script: ran\nNone.\n'
+owed_is malformed 0 0 0 "None. before an item is malformed, not nothing owed" "${HEAD}None."$'\n- [ ] unity: boot\n'
 owed_is malformed 0 0 0 "an empty section is malformed" "${HEAD}"$'## Merge order\n'
 owed_is malformed 0 0 0 "prose in the section is malformed" "${HEAD}"$'The hosted run skips graphics.\n- [ ] unity: boot\n'
-owed_is malformed 0 0 0 "an indented line under no item is malformed" "${HEAD}"$'  - [ ] unity: boot\n'
+owed_is malformed 0 0 0 "an indented line under no item is malformed" "${HEAD}"$'  - [ ] unity: boot\n- [ ] unity: boot\n'
 owed_is malformed 0 0 0 "two sections are malformed" "${HEAD}None."$'\n\n### Owed local\n\n- [ ] unity: boot\n'
 grep -q 'more than one' "$TMP/err" || fail "malformed names why on stderr (got: $(cat "$TMP/err"))"
 [[ ! -s "$GH_WRITE_LOG" ]] || fail "owed must write nothing"

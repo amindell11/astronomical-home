@@ -259,9 +259,8 @@ Format: **term** — definition. *(authority)*
   saw before labelling — see *readiness proposal* — or a body in slice-issue
   shape). A labelled issue with no build-scope block stays out of the queue: it
   gets a proposal instead of a build. A *cloud batch* admits items by their
-  `unity:*` label and claims each with the assignee plus `drain:building`: the
-  user and every session are one GitHub account, so only the label marks a
-  machine claim. *(#617, #830, scripts/drain_pick.sh)*
+  `unity:*` label and claims each with the assignee plus `drain:building`.
+  *(#617, #830, scripts/drain_pick.sh)*
 - **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
   questions: a fork posted on the issue with options, a recommendation and
   evidence. An interactive session holds its slot while it waits; a *cloud
@@ -300,8 +299,9 @@ Format: **term** — definition. *(authority)*
 - **cloud batch** — the *drain pipeline*'s build step: one hand-started cloud
   session that picks and claims every item the *ready queue* admits, then
   builds them in parallel. One at a time, which is what makes a claimed issue
-  with no PR a dead batch's. Always "cloud batch": bare *batch* is the
-  letter-bucket scheme above, and Unity has its batch mode.
+  with no PR a dead batch's. Bare "batch" reads this way only inside that
+  skill section; elsewhere it is the letter-bucket scheme above or Unity's
+  batch mode.
   *(agent-worktree-pr-loop → Cloud batch)*
 - **cloud build** — one item's build inside a *cloud batch*, ending in a draft
   PR that closes the issue. *(agent-worktree-pr-loop → Cloud batch)*

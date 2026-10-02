@@ -41,7 +41,7 @@ set -euo pipefail
 #       claim — 0 claimed · 1 infra (gh failed; the issue may be half-written) · 2 usage · 4 taken.
 #       release — 0 released · 1 infra (as claim) · 2 usage.
 # Stdout trailers, one per line, stable:
-#   pick:    SKIP=<n> <reason>[,<reason>…]  (one per queue issue neither picked nor unfinished;
+#   pick:    SKIP=<n> <reason>[,<reason>…]  (one per queue issue neither admitted nor unfinished;
 #            reasons: no-unity-label unity:<value> unity-conflict (more than one unity:*)
 #            drain:building pr-closed:<pr> assigned:<login> blocked:<open-count> no-scope-block)
 #            UNFINISHED=<n> <scope>  (one per dead build's issue; <scope> as SCOPE's value)

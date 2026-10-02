@@ -280,8 +280,7 @@ Hosted: green on `76b9204` — 896/901, 5 skipped as on main; <what the new test
   checkbox.
 - Prose goes above the heading. Indented lines under an item are the
   verifier's result lines.
-- The grammar's authority is `./scripts/drain_pick.sh owed <pr>`: the body is
-  right when it prints `OWED=open` or `OWED=none`.
+- The grammar's authority is `./scripts/drain_pick.sh owed <pr>`.
 
 **Merge order.** A `## Merge order` section exists only when the PR must land
 after another: one line per constraint, declared by the PR that lands second —
@@ -438,7 +437,7 @@ build*, runs in a subagent. Start prompt:
    way.
 3. **Pick and claim** until `ISSUE=none`: `claim <issue>`, then `pick` again.
    `CLAIM=claimed` puts the item on the build list; `CLAIM=taken` → pick
-   again. The batch takes everything `pick` admits.
+   again.
 4. **Fan out** one subagent per item, each in its own plain git worktree on
    the cloud box, on branch `task/<lease>`, the lease named from the scope
    block (§ Pool commands → branch naming). The hosted run and the merge gate
