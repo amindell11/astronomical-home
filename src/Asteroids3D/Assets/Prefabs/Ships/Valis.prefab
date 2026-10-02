@@ -10442,6 +10442,7 @@ MonoBehaviour:
   engine: {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
   shield: {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}
   teamNumber: 0
+  weapons: {fileID: 4841671523571436666}
 --- !u!114 &5221774157900420185
 MonoBehaviour:
   m_ObjectHideFlags: 0
