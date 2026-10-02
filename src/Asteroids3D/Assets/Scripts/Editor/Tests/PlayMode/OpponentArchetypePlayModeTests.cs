@@ -16,7 +16,7 @@ using RL.Reward;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Smoke for the per-archetype degeneracy gate: each scripted opponent archetype runs one episode against the deterministic <see cref="RangerBrain"/> stand-in on the agent side, and its gate row must show the archetype's signature behaviour.</summary>
+    /// <summary>Smoke for the per-archetype degeneracy gate: each scripted opponent archetype runs one episode against the deterministic <see cref="RangerBrain"/> stand-in on the agent side, and its <see cref="ArchetypeGateRow"/> must show the archetype's signature behaviour.</summary>
     [TestFixture]
     [Category("AI")]
     public class OpponentArchetypePlayModeTests
