@@ -52,7 +52,7 @@ namespace AI
             ClearTarget();
         }
 
-        /// <summary>Each step, per slot: held is the firing solution extended by the weapon's hold-through; pressed marks held rising.</summary>
+        /// <summary>Per slot each step: held is the solution extended by hold-through; pressed marks held rising.</summary>
         public void Fire(bool engagePrimary, bool engageSecondary)
         {
             if (weapons == null || actuator == null) return;
