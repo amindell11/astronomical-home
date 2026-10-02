@@ -19,7 +19,7 @@
     <figure><figcaption>150 px · Crimson / Valis</figcaption><canvas data-scale="150" aria-label="Crimson and Valis at 150 pixels"></canvas></figure>
   </div>
   <div class="viz-row"><button class="btn" type="button" data-export>Export paint settings</button><span class="text-small text-muted">Blender model preview</span></div>
-  <textarea class="form-control" data-settings aria-label="Paint settings" rows="8" hidden readonly></textarea>
+  <div data-settings-panel hidden><textarea class="form-control" data-settings aria-label="Paint settings" rows="8" readonly></textarea></div>
   <div class="sr-only" data-status aria-live="polite"></div>
 </div>
 <style>
@@ -81,7 +81,7 @@
  root.querySelector('[data-view]').addEventListener('change',e=>{state.view=e.target.value;draw();save()});
  root.querySelector('[data-palette]').addEventListener('change',e=>{state.palette=e.target.value;draw();save()});
  root.querySelector('[data-reset]').addEventListener('click',()=>{state={...defaults};draw();save()});
- root.querySelector('[data-export]').addEventListener('click',()=>{const ta=root.querySelector('[data-settings]');ta.hidden=false;ta.select();root.querySelector('[data-status]').textContent='Paint settings ready';save()});
+ root.querySelector('[data-export]').addEventListener('click',()=>{const ta=root.querySelector('[data-settings]');root.querySelector('[data-settings-panel]').hidden=false;ta.select();root.querySelector('[data-status]').textContent='Paint settings ready';save()});
  window.addEventListener('openai:set_globals',e=>{const next=e.detail?.globals?.widgetState?.modelContent?.valisPaint;if(next){state={...defaults,...next};draw()}});
  draw();root.dataset.ready='true';
 })().catch(error=>{const r=document.getElementById('valis-paint-review');const s=r.querySelector('[data-status]');s.className='text-destructive';s.textContent=error.message;s.setAttribute('role','alert')});
