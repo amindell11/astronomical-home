@@ -1,0 +1,10 @@
+{
+  "matches_approved_geometry": true,
+  "mesh_parts": 36,
+  "uv_map": "ValisPaintUV",
+  "layers": [
+    "Paint_Shadow.png",
+    "Paint_Light.png",
+    "Paint_Ink.png"
+  ]
+}
