@@ -13,7 +13,7 @@ using UI.PlayerState;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) deactivate with the ship on death and come back functional — still firing, still event-subscribed — after reset, across repeated cycles.</summary>
+    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) come back active and functional — still firing, still event-subscribed — after death and reset, across repeated cycles.</summary>
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
