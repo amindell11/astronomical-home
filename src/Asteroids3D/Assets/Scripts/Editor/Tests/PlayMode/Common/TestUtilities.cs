@@ -1,5 +1,4 @@
 using UnityEngine;
-using Substrate;
 
 namespace Tests.PlayMode.Common
 {
@@ -10,30 +9,6 @@ namespace Tests.PlayMode.Common
 /// </summary>
 public static class TestUtilities
 {
-    /// <summary>
-    /// Calculates the 2D plane distance between a transform and a target point.
-    /// </summary>
-    /// <param name="transform">Transform to measure from</param>
-    /// <param name="target">Target position on the game plane</param>
-    /// <returns>Distance in plane coordinates</returns>
-    public static float DistanceToPlaneTarget(Transform transform, Vector2 target)
-    {
-        var pos2D = GamePlane.WorldPointToPlane(transform.position);
-        return Vector2.Distance(pos2D, target);
-    }
-
-    /// <summary>
-    /// Calculates the 2D plane distance between a world position and a target point.
-    /// </summary>
-    /// <param name="worldPosition">World position to measure from</param>
-    /// <param name="target">Target position on the game plane</param>
-    /// <returns>Distance in plane coordinates</returns>
-    public static float DistanceToPlaneTarget(Vector3 worldPosition, Vector2 target)
-    {
-        var pos2D = GamePlane.WorldPointToPlane(worldPosition);
-        return Vector2.Distance(pos2D, target);
-    }
-
     /// <summary>
     /// Gets the 2D facing angle of a transform on the game plane.
     /// </summary>
@@ -54,22 +29,6 @@ public static class TestUtilities
     {
         var facingAngle = GetPlaneFacingAngle(transform);
         return Mathf.Abs(Mathf.DeltaAngle(facingAngle, targetAngle));
-    }
-
-    /// <summary>
-    /// Pauses the AudioListener (useful in SetUp to prevent audio spam in tests).
-    /// </summary>
-    public static void PauseAudio()
-    {
-        AudioListener.pause = true;
-    }
-
-    /// <summary>
-    /// Resumes the AudioListener (useful in TearDown).
-    /// </summary>
-    public static void ResumeAudio()
-    {
-        AudioListener.pause = false;
     }
 }
 
