@@ -574,7 +574,7 @@ PrefabInstance:
     - target: {fileID: 4368679400082138271, guid: 7ea4dac0955778f47b9d2b953f107848,
         type: 3}
       propertyPath: hull
-      value:
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4368679400082138271, guid: 7ea4dac0955778f47b9d2b953f107848,
         type: 3}
@@ -599,7 +599,7 @@ PrefabInstance:
     - target: {fileID: 6235842355525634722, guid: 7ea4dac0955778f47b9d2b953f107848,
         type: 3}
       propertyPath: m_Mesh
-      value:
+      value: 
       objectReference: {fileID: 4300000, guid: e785e7f9b86bc69499b33ef303615eb4, type: 2}
     - target: {fileID: 6567524228965887451, guid: 7ea4dac0955778f47b9d2b953f107848,
         type: 3}
@@ -691,7 +691,11 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4014303835516908205}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 579888702181409527, guid: 7ea4dac0955778f47b9d2b953f107848,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8631670254118786440}
   m_SourcePrefab: {fileID: 100100000, guid: 7ea4dac0955778f47b9d2b953f107848, type: 3}
 --- !u!4 &8075261916404280786 stripped
 Transform:
@@ -699,3 +703,24 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 8379757350705466803}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8955070697215725380 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 579888702181409527, guid: 7ea4dac0955778f47b9d2b953f107848,
+    type: 3}
+  m_PrefabInstance: {fileID: 8379757350705466803}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8631670254118786440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8955070697215725380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b12e20613196a440ba2a066e73cbd38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hull: {fileID: 4014303835516908205}
+  debrisPrefab: {fileID: 8099732086905725629, guid: d2381f46d902c3444bc716bc9d56e79b,
+    type: 3}
