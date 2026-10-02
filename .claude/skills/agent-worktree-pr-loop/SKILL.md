@@ -445,9 +445,9 @@ build*, runs in a subagent. Start prompt:
    on the `task/*` branch its dead build pushed, when origin has one.
 5. **Build**, per item: restate the scope block as the Step-1 scope, build,
    run the Step-3 quality subagent (the hosted ratchet stands in for the local
-   ReSharper run), push with plain git, and wait for a `success`
-   `merge-proof/headless` status on the head commit. Red → at most two fix
-   rounds.
+   ReSharper run), push with plain git, and wait for `success` on both
+   `merge-proof/headless` and `merge-proof/resharper` on the head commit.
+   Red → at most two fix rounds.
 6. **Open the PR**, per item: a body per Step 4 with `Closes #<issue>`,
    `## Test status` and `### Owed local`, passed through
    `python3 scripts/lib/negated_close.py < <body-file>`; `gh pr create --draft`;
