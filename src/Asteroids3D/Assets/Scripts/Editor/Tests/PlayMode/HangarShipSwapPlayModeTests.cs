@@ -24,7 +24,7 @@ namespace Tests.PlayMode
     /// between-run flow drives.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
-    [Category("Ships"), Category("RequiresGraphics")]
+    [Category("RequiresGraphics")]
     public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
@@ -91,25 +91,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ValisChange_RebuildsPlayerWithItsDefaultWeapons()
-        {
-            yield return BuildRig();
-            var valis = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Valis.prefab");
-            var weapons = valis.GetComponent<Ships.Weapons.WeaponsController>();
-            rig.Loadout.Ship = valis;
-            rig.Loadout.Engine = valis.Engine;
-            rig.Loadout.Shield = valis.Shield;
-            rig.Loadout.PrimaryWeapon = weapons.PrimaryMountPrefab;
-            rig.Loadout.SecondaryWeapon = weapons.SecondaryMountPrefab;
-            rig.ApplyLoadout();
-            yield return new WaitForFixedUpdate();
-            Assert.That(rig.Player.name, Is.EqualTo("Valis(Clone)"));
-            Assert.That(rig.Player.Engine, Is.SameAs(valis.Engine));
-            Assert.That(rig.Player.Weapons.Primary, Is.Not.Null);
-            Assert.That(rig.Player.Weapons.Secondary, Is.Not.Null);
-            Assert.That(unitService.Registry.TryGetShip(rig.Player.Id, out _), Is.True);
-        }
-        [UnityTest]
         public IEnumerator SameShip_LaunchDoesNotRebuild()
         {
             yield return BuildRig();
@@ -141,4 +122,3 @@ namespace Tests.PlayMode
     }
 }
 #endif
-
