@@ -1,0 +1,17 @@
+# Vanguard breakup authoring snapshot
+
+Non-merge helper branch for #795. Production assets are the fourteen meshes, four dedicated materials, legacy animation clip, debris prefab, and intact rig death binding. This snapshot retains the generator, meaningful geometry/lifecycle tests and native capture scenarios; none belongs in the production PR.
+
+Source base: 2a468928087c886ebdb56f9a212b392daedfceae (Vivid retexture/consolidation, #814). The unchanged split VanguardStructure.fbx supplies surviving authored triangles, UVs and normals. The live Vivid atlas/material supply paint. Cockpit, fuselage, canopy and their ink disappear; rejected wear/service overlay geometry is excluded. Structural-lines.json owns seams; complete imported connected line components bind to its owners using FBX handedness and axis conversion. Paired dead blue cores stay with nacelle housings.
+
+Generator: src/Asteroids3D/Assets/Scripts/Editor/Ships/Visuals/Breakup/VanguardBreakupBuilder.cs. Run its Tools/Ships/Build Vanguard Breakup menu in an owned Unity editor, or unity command run_script --file Assets/Scripts/Editor/Ships/Visuals/Breakup/VanguardBreakupBuilder.cs --entry Ships.Visuals.Breakup.VanguardBreakupBuilder.Build --project-path <project>. It requires the repository's authored structural line layout. Rebuilding retains generated asset GUIDs.
+
+Motion settings live at the generator top: BurstDuration .12 seconds, seven travel/spin/delay arrays with paired asymmetric variations, Soot .9, Lifetime 1.4 and Fade .25. Fins expire at .95/1.05; wing roots/nacelles at1.25; wings/armor/sparrow tails at1.4. Clip separation reaches over60% of travel by .2s. Root inherits world ship velocity using the existing Crimson runtime; no per-piece physics.
+
+Validation: VanguardBreakupEditModeTests checks surviving triangle positions, UVs and normals, atlas reuse, attached ink/core ownership and independent frontloaded paths. VanguardBreakupPlayModeTests checks actual death, exact spawn pose/scale, one explosion, velocity, fade/cleanup, reset and dark presentation. VanguardBreakupHangarPlayModeTests runs real visible PlayerRig rebuilds; its death test waits one frame for the existing ShipVisualRig.Start binding.
+
+Capture: compile VanguardBreakupScenario (close half-height5) or VanguardBreakupGameplayScenario (half-height16), attach capture_lane_attach, queue capture_request_scenario, then run unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter CaptureScenarioPlayModeTests -ExcludeCategory '' against the owned GUI editor. Release capture_lane_release afterward. These scenarios use real UnitService/Ship_1 death and .4/.2 inherited velocity, fixed50Hz, one existing layered explosion and PodBloom lighting. Encode scripts/capture/assemble.py; use --fps 50 for GIF because its millisecond duration must represent the exact cadence. Read a mid-frame PNG before encoding. These plain-background clips demonstrate motion/scale, not world-occluder overlap.
+
+Quality pass: no blocking production findings. Corrected retained hangar helper namespace/comment hygiene. No runtime C# or shader changes.
+
+Depth: VanguardBreakupDepthPlayModeTests renders actual debris with an opaque magenta quad at front/back positions through normal rendering frames. Front has0 non-magenta pixels; back has8907. This discriminating check establishes normal world-depth occlusion. The matching native PNGs are retained with evidence.
