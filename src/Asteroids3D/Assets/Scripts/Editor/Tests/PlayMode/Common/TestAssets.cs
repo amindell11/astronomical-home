@@ -21,14 +21,8 @@ public static class TestAssets
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
-    /// <summary>
-    /// Loads the Ship_2 prefab (commonly used in tests).
-    /// </summary>
     public static Ship LoadShip2Prefab() => Load<Ship>(Ship2PrefabPath);
 
-    /// <summary>
-    /// Loads the MPC test pilot AI commander prefab.
-    /// </summary>
     public static AICommander LoadTestPilotMpc() => Load<AICommander>(TestPilotMpcPath);
 
     public static T Load<T>(string assetPath) where T : UnityEngine.Object
