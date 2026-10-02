@@ -2,6 +2,8 @@
 
 Usage: python plot_rig_trace.py trace.csv [more.csv ...] [--out-dir DIR]
        python plot_rig_trace.py --in-dir ../../results/mpc-rig/bingo
+
+The CSVs come from the editor entries RL.SolverRig.RigTraceEmit.BingoRows and .VersusDummy.
 """
 import argparse
 import csv
