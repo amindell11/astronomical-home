@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Capture;
 using Combat.Weapons;
@@ -8,6 +9,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using RL.Arena;
 using RL.Episodes.Compositions;
+using Ships.Loadout;
 
 namespace RL.Hosts
 {
@@ -18,7 +20,6 @@ namespace RL.Hosts
             "Capture.GameView.GameViewEpisodeCapture, Capture.GameView.Editor";
         private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         private const string EvalOpponentAssetPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
-        private const string WeaponPrefabFolder = "Assets/Prefabs/Weapons";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(
             Application.dataPath, "..", "..", "..", "results", "rl-training", "start-play.flag"));
 
@@ -46,7 +47,7 @@ namespace RL.Hosts
         public static void RunHarness()
         {
             var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
-                ResolveEvalOpponent, ResolveDuelWeapon, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
+                ResolveEvalOpponent, CatalogWeapons, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[HarnessHost]").AddComponent<HarnessHost>();
@@ -79,9 +80,8 @@ namespace RL.Hosts
         internal static Unity.InferenceEngine.ModelAsset ResolveEvalOpponent(string sourceFile) =>
             LoadModelAsset(ImportEvalOpponent(sourceFile));
 
-        /// <summary>A duel lane weapon name is its prefab's name; null when no weapon prefab carries it.</summary>
-        internal static WeaponComponent ResolveDuelWeapon(string name) =>
-            AssetDatabase.LoadAssetAtPath<WeaponComponent>($"{WeaponPrefabFolder}/{name}.prefab");
+        internal static IReadOnlyList<WeaponComponent> CatalogWeapons() =>
+            AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath).Weapons;
 
         private static Unity.InferenceEngine.ModelAsset LoadModelAsset(string assetPath)
         {
