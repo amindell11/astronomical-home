@@ -6,7 +6,7 @@ namespace Tests.EditMode
 {
     /// <summary>Pins the run-seed decorrelation layered base → worker (--num-envs) → arena (--harness-num-arenas): index 0 of either layer is the identity so the single-env, M=1 run and every pin/fixture/eval stay byte-identical, and distinct indices derive distinct, stable seeds — a re-correlated worker or arena silently buys near-duplicate experience.</summary>
     [Category("AI")]
-    public class RLArenaSeedEditModeTests
+    public class RLSeedDerivationEditModeTests
     {
         public enum Layer { Worker, Arena }
 
