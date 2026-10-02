@@ -3,6 +3,7 @@ using Asteroids.Spawning;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Services.Locales;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -67,6 +68,38 @@ namespace Tests.EditMode.Rendering.Illustrated
             Assert.That(settings.asteroidPrefab.transform.Find("LowLODMESH").GetComponent<MeshRenderer>().sharedMaterial, Is.Not.Null);
             Assert.That(AssetDatabase.GetAssetPath(settings.asteroidPrefab),
                 Is.EqualTo("Assets/Visuals/Vfx/LayeredExplosion/Prefabs/FragmentingDrawnAsteroid.prefab"));
+            var explosion = new SerializedObject(settings.asteroidPrefab.GetComponent<Asteroids.Visual.AsteroidVisual>())
+                .FindProperty("explosionPrefab").objectReferenceValue;
+            Assert.That(AssetDatabase.GetAssetPath(explosion),
+                Is.EqualTo("Assets/Visuals/Vfx/LayeredExplosion/Prefabs/LayeredAsteroidExplosion.prefab"));
+        }
+
+        [Test]
+        public void SavedDrawnSurfaces_PreserveEachSpawnShapeSilhouette()
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<AsteroidSpawnSettings>("Assets/Settings/Asteroids/SpawnSettings.asset");
+            var shapes = new SerializedObject(settings.asteroidPrefab.GetComponent<Asteroids.Visual.DrawnAsteroidAppearance>())
+                .FindProperty("shapes");
+            Assert.That(shapes.arraySize, Is.EqualTo(settings.meshInfos.Length));
+            for (var i = 0; i < settings.meshInfos.Length; i++)
+            {
+                var source = settings.meshInfos[i].mesh;
+                var surface = (Mesh)shapes.GetArrayElementAtIndex(i).FindPropertyRelative("surface").objectReferenceValue;
+                using var sourceData = MeshUtility.AcquireReadOnlyMeshData(source);
+                using var vertices = new NativeArray<Vector3>(sourceData[0].vertexCount, Allocator.Temp);
+                sourceData[0].GetVertices(vertices);
+                Assert.That(vertices.Length, Is.GreaterThan(0), $"Shape {i + 1} source mesh must be readable.");
+                var converted = surface.vertices;
+                var worst = 0f;
+                for (var vertex = 0; vertex < vertices.Length; vertex += 13)
+                {
+                    var nearest = float.MaxValue;
+                    foreach (var point in converted) nearest = Mathf.Min(nearest, (point - vertices[vertex]).sqrMagnitude);
+                    worst = Mathf.Max(worst, Mathf.Sqrt(nearest));
+                }
+                Assert.That(worst, Is.LessThan(source.bounds.size.magnitude * .025f),
+                    $"Shape {i + 1} must preserve source coordinates and silhouette.");
+            }
         }
     }
 }
