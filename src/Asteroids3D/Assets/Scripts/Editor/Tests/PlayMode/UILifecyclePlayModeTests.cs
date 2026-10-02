@@ -42,6 +42,16 @@ namespace Tests.PlayMode
             public float MaxYawRate => 90f;
         }
 
+        private GameObject ownedRoot;
+
+        public override void TearDown()
+        {
+            DestroyTestObject(ownedRoot);
+            base.TearDown();
+        }
+
+        private GameObject CreateRoot(string name) => ownedRoot = new GameObject(name);
+
         /// <summary>
         /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
         /// once a LockChannel is injected, the indicator responds to lock progress, and it re-subscribes
@@ -53,7 +63,7 @@ namespace Tests.PlayMode
             var channel = new LockChannel();
 
             // The indicator lives under a parent in the rig; LateUpdate reads transform.parent.
-            var parent = new GameObject("RigRoot");
+            var parent = CreateRoot("RigRoot");
             var indicatorGo = new GameObject("LockOnIndicator");
             indicatorGo.transform.SetParent(parent.transform, false);
             indicatorGo.AddComponent<CanvasGroup>();
@@ -84,8 +94,6 @@ namespace Tests.PlayMode
             yield return null;
             Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
                 "Indicator should resubscribe and show again after disable/enable");
-
-            Object.Destroy(parent);
         }
 
         // Bars live under a parent in the rig; LateUpdate reads transform.parent.
@@ -104,19 +112,23 @@ namespace Tests.PlayMode
         }
 
         /// <summary>
-        /// An unbound StatusBarUI (never injected) is inert — it neither throws nor logs, it simply does
-        /// nothing until a ShipView is bound.
+        /// An unbound StatusBarUI (never injected) is inert — it neither throws nor logs, and leaves
+        /// its authored fill alone until a ShipView is bound.
         /// </summary>
         [UnityTest]
         public IEnumerator StatusBarUI_Unbound_IsInertAndDoesNotThrow()
         {
-            var parent = new GameObject("RigRoot");
-            var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out _);
+            var parent = CreateRoot("RigRoot");
+            var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out var fill);
 
             yield return null;
 
-            Assert.IsTrue(bar.gameObject.activeInHierarchy);
-            Object.Destroy(parent);
+            // OnEnable first ran inside AddComponent, before CreateBar assigned the fill.
+            bar.enabled = false;
+            bar.enabled = true;
+            yield return null;
+
+            Assert.AreEqual(1f, fill.fillAmount, 0.001f, "An unbound bar should leave its authored fill untouched");
         }
 
         /// <summary>
@@ -130,7 +142,7 @@ namespace Tests.PlayMode
             damage.Health.ApplyDamage(40f); // 60 %
             damage.Shield.ApplyDamage(25f); // 50 %
 
-            var parent = new GameObject("RigRoot");
+            var parent = CreateRoot("RigRoot");
             var shieldBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out var shieldFill);
             var healthBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Health, out var healthFill);
 
@@ -141,8 +153,6 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(0.5f, shieldFill.fillAmount, 0.001f, "Shield bar should seed from the bound shield fraction");
             Assert.AreEqual(0.6f, healthFill.fillAmount, 0.001f, "Health bar should seed from the bound health fraction");
-
-            Object.Destroy(parent);
         }
 
         /// <summary>
@@ -154,7 +164,7 @@ namespace Tests.PlayMode
         {
             var status = new StubStatus { BoostAvailable = false, BoostCooldownPct = 0.6f };
 
-            var go = new GameObject("BoostGauge");
+            var go = CreateRoot("BoostGauge");
             var image = go.AddComponent<Image>();
             var gauge = go.AddComponent<BoostGaugeUI>();
 
@@ -168,8 +178,6 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(1f, image.fillAmount, 0.001f, "Fill should be full once boost is ready");
             Assert.AreNotEqual(coolingColor, image.color, "Gauge should recolor at the ready edge");
-
-            Object.Destroy(go);
         }
     }
 }

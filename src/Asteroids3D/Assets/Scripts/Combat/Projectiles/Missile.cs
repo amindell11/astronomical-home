@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Damage;
 using Movement;
@@ -11,20 +12,20 @@ namespace Combat.Projectiles
     public class Missile : Projectile<Missile>, IDamageable
     {
         [Header("Homing")]
-        [SerializeField] private float homingSpeed    = 15f;
-        [SerializeField] private float homingTurnRate = 90f;
+        [Stat, SerializeField] private float homingSpeed    = 15f;
+        [Stat, SerializeField] private float homingTurnRate = 90f;
 
         [Header("Explosion")]
-        [SerializeField] internal float explosionRadius = 3f;
-        [SerializeField] private float splashDamage    = 5f;
+        [Stat, SerializeField] internal float explosionRadius = 3f;
+        [Stat, SerializeField] private float splashDamage    = 5f;
         [SerializeField] private LayerMask damageLayerMask = -1;
 
         [Header("Motion")]
-        [SerializeField] private float initialSpeed = 15f;
-        [SerializeField] private float acceleration = 40f;
+        [Stat, SerializeField] private float initialSpeed = 15f;
+        [Stat, SerializeField] private float acceleration = 40f;
 
         [Header("Lifetime")]
-        [SerializeField] private float maxLifetime = 4f;
+        [Stat, SerializeField] private float maxLifetime = 4f;
 
         internal Transform target;
         private KinematicsPoller kinematicsPoller;

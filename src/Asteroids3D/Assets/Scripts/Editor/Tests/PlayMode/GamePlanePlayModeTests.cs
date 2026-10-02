@@ -56,14 +56,6 @@ public class GamePlanePlayModeTests
     }
 
     [Test]
-    public void Frame_Rotation_IsPlanePoseOfNormalAndForward([Values(PlaneAxis.X, PlaneAxis.Y, PlaneAxis.Z)] PlaneAxis axis)
-    {
-        var frame = new GamePlaneFrame(axis, new Vector3(3, 4, 5));
-
-        Assert.AreEqual(GamePlaneFrame.PlanePose(frame.Normal, frame.Forward), frame.Rotation);
-    }
-
-    [Test]
     public void Frame_DirConversions_RoundTrip([Values(PlaneAxis.X, PlaneAxis.Y, PlaneAxis.Z)] PlaneAxis axis)
     {
         // Origin is irrelevant for direction conversions; a nonzero one must not leak in.

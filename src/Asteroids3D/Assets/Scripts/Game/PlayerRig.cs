@@ -21,14 +21,14 @@ namespace Game
     /// <summary>
     /// Everything the interactive game puts into a session for the human: the player ship and its
     /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
-    /// ledger and the run tally. Built <b>once</b> at session start against a viewport the host
+    /// ledger, the run tally and the spawn log. Built <b>once</b> at session start against a viewport the host
     /// owns, and held for the whole session — sectors are swapped underneath it and reference the
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
-    /// player is parked (<see cref="Park"/>) from <see cref="Build"/> and from each sector's unload
-    /// until <see cref="ApplyLoadout"/> revives it at the end of the next hangar step, so it is never
-    /// live in the hangar. Pure mechanism: the rig holds no session policy — the host injects the
-    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it
-    /// builds. A host with no rig assigned has no player.
+    /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
+    /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
+    /// hangar step, so the hangar never handles player presence. Pure mechanism: the rig holds no
+    /// session policy — the host injects the player-death behavior via <see cref="Build"/> and the
+    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
@@ -60,6 +60,9 @@ namespace Game
 
         /// <summary>Kills and time survived this run; the host stamps its clock, the loadout step resets it.</summary>
         public RunTally Tally { get; } = new();
+
+        /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
+        public SpawnLog Spawns { get; } = new();
 
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
@@ -97,7 +100,9 @@ namespace Game
             this.frame = frame;
             this.onPlayerDeath = onPlayerDeath;
 
-            Tally.Bind(units, () => Player ? Player.Id : ShipId.Invalid);
+            Func<ShipId> currentPlayerId = () => Player ? Player.Id : ShipId.Invalid;
+            Tally.Bind(units, currentPlayerId);
+            Spawns.Bind(units, currentPlayerId);
             BuildPlayer(playerTemplate);
 
             Ledger.Bind(Player.Damage, units.Registry);
@@ -144,6 +149,7 @@ namespace Game
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
             Tally.Bind(null, null);
+            Spawns.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
             Overlay = null;
@@ -152,8 +158,22 @@ namespace Game
             units = null;
         }
 
-        /// <summary>Deactivate the player between sectors — the state death already leaves it in.</summary>
-        public void Park() => Player.gameObject.SetActive(false);
+        /// <summary>
+        /// Withdraw the player between sectors; deactivating the ship (death's state too) also
+        /// silences its input.
+        /// </summary>
+        public void Park()
+        {
+            Player.gameObject.SetActive(false);
+            if (Overlay) Overlay.SetVisible(false);
+        }
+
+        // A fire button held across the revive reads unpressed until pressed afresh (initialStateCheck off).
+        private void Unpark()
+        {
+            Player.ResetShip();
+            if (Overlay) Overlay.SetVisible(true);
+        }
 
         /// <summary>
         /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
@@ -168,10 +188,11 @@ namespace Game
             // A new run starts here; the previous life's recap has already consumed the rows.
             Ledger.Clear();
             Tally.Reset();
+            Spawns.Reset();
 
-            // The player is always parked here. Revive it before applying so swapped-in weapon mounts
+            // The player is always parked here. Unpark it before applying so swapped-in weapon mounts
             // instantiate active and Awake-wire; the subsequent LoadSector repositions and resets it anyway.
-            Player.ResetShip();
+            Unpark();
 
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);

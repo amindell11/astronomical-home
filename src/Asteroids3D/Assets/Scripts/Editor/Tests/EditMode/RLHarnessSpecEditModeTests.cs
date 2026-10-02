@@ -8,6 +8,8 @@ using RL.Hosts;
 using RL.Hosts.Lanes;
 using RL.Opponents;
 using RL.Probes;
+using Ships.Loadout;
+using UnityEditor;
 
 namespace Tests.EditMode
 {
@@ -45,7 +47,7 @@ namespace Tests.EditMode
                 {
                     opponentSource = s;
                     return null;
-                }, TrainingBootstrap.ResolveDuelWeapon, () => hasGraphics);
+                }, TrainingBootstrap.CatalogWeapons, () => hasGraphics);
         }
 
         private HarnessSpec ParsePlayer(params string[] keyValuePairs)
@@ -280,12 +282,33 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void DuelGrammar_RefusesNamesThatLoadNoWeaponAndConflictingSelectors()
+        public void DuelGrammar_AllSelectsTheCatalogsWeaponsInCatalogOrder()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            Assert.IsNotEmpty(catalog.Weapons);
+
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "all").duelWeapons);
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "ALL").duelWeapons);
+        }
+
+        [Test]
+        public void DuelGrammar_ResolvesANameWithoutRegardToCase()
+        {
+            Assert.AreEqual(new[] { "Lasers" },
+                Array.ConvertAll(Parse("RL_HARNESS_DUEL", "lasers").duelWeapons, w => w.name),
+                "block labels come from the prefab's own name, not the typed token");
+        }
+
+        [Test]
+        public void DuelGrammar_RefusesNamesTheCatalogDoesNotListAndConflictingSelectors()
         {
             var projectile = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Laser"),
                 "Laser.prefab is a projectile, not a weapon");
             StringAssert.Contains("'Laser'", projectile.Message);
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "all"), "no catalog, so no \"all\"");
+            foreach (var weapon in TrainingBootstrap.CatalogWeapons())
+                StringAssert.Contains(weapon.name, projectile.Message, "a refused name must list the legal set");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "all,Lasers"),
+                "\"all\" is the whole value, never a list entry");
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", ""));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Lasers"));
             Assert.Throws<ArgumentException>(() =>
@@ -312,7 +335,8 @@ namespace Tests.EditMode
         [Test]
         public void DuelBlockLabels_NameTheWeaponAndTheTarget()
         {
-            var block = DuelLane.Block(TrainingBootstrap.ResolveDuelWeapon("Railgun"), OpponentArchetype.Orbiter);
+            var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
+            var block = DuelLane.Block(railgun, OpponentArchetype.Orbiter);
             Assert.AreEqual(OpponentKind.Archetype, block.kind);
             Assert.AreEqual(OpponentArchetype.Orbiter, block.archetype);
             Assert.AreEqual("Railgun-Orbiter", block.Label, "every weapon meets the same targets — probe pools key on the label");

@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,7 +121,7 @@ namespace Combat.Weapons
     public abstract class WeaponBase<TProj> : WeaponComponent where TProj : ProjectileBase
     {
         [Header("Launcher Settings")]
-        [SerializeField] internal TProj projectilePrefab;
+        [Stat, SerializeField] internal TProj projectilePrefab;
 
         protected override void Awake()
         {

@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using Combat.Weapons;
 using Damage;
 using NUnit.Framework;
@@ -40,8 +41,8 @@ namespace Tests.PlayMode
             projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: false);
             assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
-            lasers = TrainingBootstrap.ResolveDuelWeapon("Lasers");
-            Assert.IsNotNull(lasers, "the Lasers weapon prefab must resolve by name");
+            lasers = TrainingBootstrap.CatalogWeapons().FirstOrDefault(w => w.name == "Lasers");
+            Assert.IsNotNull(lasers, "the item catalog must list the Lasers weapon prefab");
             PacingContract.Apply();
             Time.maximumDeltaTime = 1f;
             outDir = Path.Combine(Path.GetTempPath(), "duel-lane-test-" + Guid.NewGuid().ToString("N"));

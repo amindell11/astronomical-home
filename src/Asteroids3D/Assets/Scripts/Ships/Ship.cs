@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Combat;
 using Combat.Targeting;
@@ -21,23 +22,27 @@ namespace Ships
     {
         [Header("Chassis")]
         [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
-        public float mass = 800f;
+        [Stat] public float mass = 800f;
 
         [Tooltip("Lives before the ship is permanently destroyed.")]
-        public int startingLives = 1;
+        [Stat] public int startingLives = 1;
 
         [Tooltip("Hull hit points.")]
-        public float maxHealth = 100f;
+        [Stat] public float maxHealth = 100f;
 
         [Tooltip("Maximum roll (bank) angle, in degrees, entered while turning.")]
-        public float maxBankAngle = 35f;
+        [Stat] public float maxBankAngle = 35f;
 
         [Header("Modules")]
         [Tooltip("Engine module: movement/handling stats. Required for a mobile ship.")]
-        public EngineModule engine;
+        [Stat] public EngineModule engine;
 
         [Tooltip("Shield module: shield capacity/regen. Null → the ship carries no shield.")]
-        public ShieldModule shield;
+        [Stat] public ShieldModule shield;
+
+        [Tooltip("The hull's weapons controller, wired on the prefab so the prefab asset reaches its mounts. " +
+                 "Null → the ship is unarmed.")]
+        [Stat, SerializeField] private WeaponsController weapons;
 
         /// <summary>Change via <see cref="Reequip"/>, not by writing the field.</summary>
         public EngineModule Engine => engine;
@@ -57,7 +62,7 @@ namespace Ships
         public DamageController Damage { get; private set; }
 
         /// <summary>Null if the ship is unarmed.</summary>
-        public WeaponsController Weapons { get; private set; }
+        public WeaponsController Weapons => weapons;
 
         /// <summary>Null if no mounted weapon carries a sensor; reads through the weapons controller so it stays current across reequips.</summary>
         public LockOnSensor Targeting => Weapons ? Weapons.Sensor : null;
@@ -97,8 +102,8 @@ namespace Ships
             Colliders        = GetComponentsInChildren<Collider>();
             Rigidbody        = GetComponent<Rigidbody>();
 
-            Weapons  = GetComponent<WeaponsController>();
-            Weapons?.Initialize(() => Kinematics);
+            if (!weapons) weapons = GetComponent<WeaponsController>();
+            if (weapons) weapons.Initialize(() => Kinematics);
         }
 
         private void OnEnable() => PopulateSettings();
