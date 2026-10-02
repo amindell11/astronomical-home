@@ -84,6 +84,11 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Build identity stamped into a player build by BuildIdentityStamp and removed after it
+/[Aa]ssets/[Ss]treamingAssets.meta
+/[Aa]ssets/[Ss]treamingAssets/build-identity.json
+/[Aa]ssets/[Ss]treamingAssets/build-identity.json.meta
+
 # ML-Agents runtime stats residue (regenerated every editor training/inference run)
 /[Aa]ssets/ML-Agents/
 /[Aa]ssets/ML-Agents.meta
