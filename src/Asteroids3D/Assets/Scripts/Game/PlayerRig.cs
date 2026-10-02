@@ -140,12 +140,9 @@ namespace Game
             yield return null;
         }
 
-        /// <summary>
-        /// Leaves the service-owned player to the session's teardown, parked so its commander stops
-        /// projecting through the viewport this clears.
-        /// </summary>
         public void Teardown()
         {
+            // The service-owned ship outlives this call; parking stops its commander reading the cleared observer.
             Park();
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
