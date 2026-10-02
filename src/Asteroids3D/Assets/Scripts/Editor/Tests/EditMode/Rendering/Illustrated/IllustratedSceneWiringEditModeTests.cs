@@ -88,7 +88,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 using var sourceData = MeshUtility.AcquireReadOnlyMeshData(source);
                 using var vertices = new NativeArray<Vector3>(sourceData[0].vertexCount, Allocator.Temp);
                 sourceData[0].GetVertices(vertices);
-                Assert.That(vertices.Length, Is.GreaterThan(0), $"Shape {i + 1} source mesh must be readable.");
+                Assert.That(vertices.Length, Is.GreaterThan(0), $"Shape {i + 1} source mesh must have vertices.");
                 var converted = surface.vertices;
                 var worst = 0f;
                 for (var vertex = 0; vertex < vertices.Length; vertex += 13)

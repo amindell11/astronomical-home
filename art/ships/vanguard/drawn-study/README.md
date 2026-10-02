@@ -39,7 +39,7 @@ shadow-receiving plate, not a modeled environment or functional menu.
 
 Contour-only mesh copies join normals at shared positions and use a uniform
 black screen width. The painted mesh retains its authored normals. Three native
-poses verify a two-pixel contact band at the reduced contour width. A material gain shifts the
+poses verified a two-pixel contact band at the reduced contour width. A material gain shifts the
 original gold-orange toward the reference orange without editing the texture.
 HDR emission and camera bloom light the blue pods; paired space captures isolate
 the bloom effect. The UI plates retain their native resolution without mipmaps.
