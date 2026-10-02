@@ -59,6 +59,25 @@ namespace Tests.EditMode
             Assert.AreEqual(aimBefore, reader.GetMouseWorldPosition());
         }
 
+        // Unpark has no input gate of its own; a trigger held through Launch must not fire.
+        [Test]
+        public void FireHeldBeforeEnable_ReadsUnpressedUntilPressedAfresh()
+        {
+            reader.Disable();
+            Press(mouse.leftButton);
+            Press(keyboard.fKey);
+            reader.Enable();
+            InputSystem.Update();
+
+            Assert.IsFalse(reader.PrimaryFire, "a primary trigger held across enable does not fire");
+            Assert.IsFalse(reader.SecondaryFire, "a secondary trigger held across enable does not fire");
+
+            Release(mouse.leftButton);
+            Press(mouse.leftButton);
+
+            Assert.IsTrue(reader.PrimaryFire, "a fresh press after enable fires");
+        }
+
         [Test]
         public void MousePosition_ReachesProjector()
         {

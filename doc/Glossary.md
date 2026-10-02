@@ -207,10 +207,19 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
-  a time from before its fetch through `gh pr merge`. Order among waiting gates
-  is not guaranteed. Machine-local: a base move from any other clone is caught
-  only by the gate's base re-check. Any other push to main takes the turn
-  through `lock merge-turn`. *(`MERGE_TURN_LOCK`, agent_worktree_pool.sh; #639)*
+  a time from before its fetch through `gh pr merge`. Waiting gates take it in
+  arrival order (**turn ticket**). Any other push to main takes it through
+  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
+  free. A waiter gives up only after watching one holder keep the turn for the
+  cap; a line that keeps moving times nobody out. Machine-local: a base move
+  from any other clone is caught only by the gate's base re-check.
+  *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
+- **turn ticket** — a waiting merge gate's recorded arrival; the line for the
+  merge turn is the live tickets in arrival order. A ticket is live only while
+  its gate holds an OS lock on it — never by a timer or a pid check — so a dead
+  waiter cannot block the line, and a re-run gate arrives anew at the back.
+  Always "turn ticket": the Unity access coordinator's queue ticket is another
+  thing. *(`MERGE_TURN_LINE_PL`, agent_worktree_pool.sh; #639)*
 - **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
   full run, produced on this machine or as **remote proof**. Scoped runs never
   produce one.
