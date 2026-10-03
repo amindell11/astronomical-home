@@ -126,11 +126,8 @@ namespace Combat.Weapons
         protected override void Awake()
         {
             base.Awake();
-            if (projectilePrefab)
-                SimplePool<TProj>.Warm(projectilePrefab);
+            SimplePool<TProj>.Warm(projectilePrefab);
         }
-
-        public override bool CanFire() => projectilePrefab && base.CanFire();
 
         public override ProjectileBase Fire(IProjectileService projectiles)
         {

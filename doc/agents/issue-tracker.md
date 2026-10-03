@@ -14,14 +14,22 @@ code says; point at the symbol. The tracker says *what / for-when / why*;
 live in-flight claims are the pool's slot leases and open PRs; memory holds
 only feedback notes (`doc/agents/memory.md`). Body shapes:
 
-- **Arc issue**: the brief — design, forks, rulings — written before the
-  build; slices are sub-issues. The completing PR carries the shipped why;
-  the arc issue closes with a link to it.
+- **Arc issue**: the brief — design, forks, rulings, and a `## Exit criterion`
+  — written before the build. Slices are one line each in the body; only the
+  next unbuilt slice is a sub-issue.
+  - **State**: an *active arc* carries `pri:now`. Any other open arc is a
+    *waiting arc*: `pri:next` or `pri:later`, and a first body line
+    `Waiting <date> — resumes when …; next slice unblocks …`.
+  - **End**: SHIPPED when the last slice is done and the criterion is met (the
+    completing PR carries the shipped why and the issue closes with a link to
+    it); otherwise CLOSED, the remainder filed as plain issues and named in
+    the closing comment.
 - **Deferral issue** (default for mid-task punts): scannable title + enough
   why to act on later. No essay for a one-liner, but the rationale goes here,
   not in memory.
-- **Slice issue** (published by to-tickets): `What to build` (end-to-end
-  behaviour) + acceptance criteria + `Blocked by`.
+- **Slice issue** (published by to-tickets; on an arc it publishes the next
+  slice only): `What to build` (end-to-end behaviour) + acceptance criteria +
+  `Blocked by`.
 - **Design record** (`design-record` label, closed): the why/results/rulings
   of a shipped or shelved arc that outlived its PR bodies; migrated plan docs
   live here. Amend by comment, never by editing history away.
@@ -56,8 +64,10 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   written and removed by `scripts/drain_pick.sh claim` / `release`.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
-- **Domain labels** (`RL`, `Ship`, `Testing`, …) and `arc` (umbrella issue
-  for a multi-PR arc) as today. Rename freely, don't proliferate.
+- **Domain labels** (`RL`, `Ship`, `Testing`, …) as today; a parent issue that
+  only groups a theme carries these alone. `arc` goes only on an arc issue: a
+  brief with a `## Exit criterion` (Body law). Rename freely, don't
+  proliferate.
 
 ## Operations
 
@@ -108,7 +118,11 @@ Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 Used by the wayfinder skill; body law above applies.
 
 - **Map**: one issue labelled `wayfinder:map` holding the
-  Destination / Notes / Decisions-so-far / fog body.
+  Destination / Notes / Decisions-so-far / fog body. Its destination is a
+  decision or an approved example. It ends there as an arc does (Body law),
+  and the build is a new arc whose brief links the map: this overrules the
+  skill's Notes execution override. An open map is active or waiting as an
+  arc is.
 - **Child ticket**: `gh issue edit <n> --parent <map>` + a `wayfinder:<type>`
   label and the map's priority label (default `pri:now` — a live effort's
   tickets are near-term by definition). Add to the Projects board like any
