@@ -23,7 +23,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
   - {fileID: 11400000, guid: 10ec8e4942e547f6bcc00b2007781243, type: 2}
   - {fileID: 11400000, guid: b63b46134abb483586d8c315401f3d4a, type: 2}
-  - {fileID: 11400000, guid: 8b9b8c7c6d664169897fdbfd232593d7, type: 2}
   shields:
   - {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}
   - {fileID: 11400000, guid: 7febe5b6ce0a40599f8ca461fed3a61a, type: 2}
