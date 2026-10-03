@@ -42,7 +42,7 @@ public abstract class CaptureScenario
     /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
-        var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
+        var pilot = TestAssets.Load<AICommander>(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
         var ship = Session.Units.SpawnShip(

@@ -178,7 +178,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_UnarmedChassis_IgnoresWeaponSlots()
         {
-            var junkerPrefab = TestAssets.LoadShipPrefab(JunkerPrefabPath);
+            var junkerPrefab = TestAssets.Load<Ship>(JunkerPrefabPath);
             Assert.IsNotNull(junkerPrefab, "junker prefab loaded");
             ship = Object.Instantiate(junkerPrefab);
             ship.Initialize(0, 0, Projectiles); // commander-less; wires movement like Factory.CreateShip does

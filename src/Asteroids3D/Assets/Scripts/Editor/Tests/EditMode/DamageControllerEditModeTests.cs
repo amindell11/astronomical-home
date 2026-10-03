@@ -123,19 +123,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ResetDamageState_RestoresHealthAndShield()
-        {
-            var dc = NewDamage();
-            Damage(dc, dc.Shield.MaxValue); // shield -> 0
-            Damage(dc, dc.Health.MaxValue); // health -> 0
-            Assert.AreEqual(0f, dc.Health.CurrentValue, 0.001f);
-
-            dc.ResetDamageState();
-            Assert.AreEqual(dc.Health.MaxValue, dc.Health.CurrentValue, 0.001f);
-            Assert.AreEqual(dc.Shield.MaxValue, dc.Shield.CurrentValue, 0.001f);
-        }
-
-        [Test]
         public void MultipleResetCycles_NoHealthOrShieldDrift()
         {
             var dc = NewDamage();

@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Cool gray
+  m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _PAINT_LAYERS
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: 8ba47f142a33e4c4fab11b42562c4f9f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintInkMap:
+        m_Texture: {fileID: 2800000, guid: 6b87fcb667999a34e9b96c4f1001efc9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintLightMap:
+        m_Texture: {fileID: 2800000, guid: 04300f2e9797de64d8cd6df29fff48d8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintShadowMap:
+        m_Texture: {fileID: 2800000, guid: fa4e40d3c223cea41a5b4ca3cad05ada, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WearMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientStrength: 0.35
+    - _BumpScale: 1
+    - _CastShadowStrength: 0.6
+    - _DebrisVisibility: 1
+    - _DetailAlbedoMapScale: 0
+    - _EmissionStrength: 0.35
+    - _LineSoftness: 0.08
+    - _LineStrength: 0
+    - _LineThreshold: 0.12
+    - _PaintInkStrength: 1.5
+    - _PaintLayers: 1
+    - _PaintLightStrength: 0.2
+    - _PaintShadowStrength: 1.02
+    - _PaletteLighting: 1
+    - _PigmentPreservation: 0
+    - _ShadowSoftness: 0.1
+    - _ShadowThreshold: 0.35
+    - _SootStrength: 0
+    - _SpecularStrength: 0
+    - _TextureStrength: 0
+    - _UseRelief: 0
+    - _WearStrength: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
+    - _PaintInkColor: {r: 0.07016476, g: 0.11207492, b: 0.14282566, a: 1}
+    - _PaintLightColor: {r: 0.9162735, g: 0.9685765, b: 0.9452768, a: 1}
+    - _PaperColor: {r: 0.7220273, g: 0.7353569, b: 0.76111215, a: 1}
+    - _ShadowColor: {r: 0.5, g: 0.6, b: 0.72, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

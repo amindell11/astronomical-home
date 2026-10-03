@@ -2,7 +2,6 @@ using System;
 using AI;
 using Capture;
 using Ships;
-using Ships.Loadout;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -22,73 +21,14 @@ public static class TestAssets
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
-    /// <summary>
-    /// Loads the Ship_2 prefab (commonly used in tests).
-    /// </summary>
-    public static Ship LoadShip2Prefab()
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<Ship>(Ship2PrefabPath);
-#else
-        return null;
-#endif
-    }
+    public static Ship LoadShip2Prefab() => Load<Ship>(Ship2PrefabPath);
 
-    /// <summary>
-    /// Loads the MPC test pilot AI commander prefab.
-    /// </summary>
-    public static AICommander LoadTestPilotMpc()
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<AICommander>(TestPilotMpcPath);
-#else
-        return null;
-#endif
-    }
+    public static AICommander LoadTestPilotMpc() => Load<AICommander>(TestPilotMpcPath);
 
-    /// <summary>
-    /// Loads a ship prefab from a custom path.
-    /// </summary>
-    public static Ship LoadShipPrefab(string assetPath)
+    public static T Load<T>(string assetPath) where T : UnityEngine.Object
     {
 #if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<Ship>(assetPath);
-#else
-        return null;
-#endif
-    }
-
-    /// <summary>
-    /// Loads an AI commander prefab from a custom path.
-    /// </summary>
-    public static AICommander LoadCommanderPrefab(string assetPath)
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<AICommander>(assetPath);
-#else
-        return null;
-#endif
-    }
-
-    /// <summary>
-    /// Loads an engine module asset from a custom path.
-    /// </summary>
-    public static EngineModule LoadEngineModule(string assetPath)
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<EngineModule>(assetPath);
-#else
-        return null;
-#endif
-    }
-
-    /// <summary>
-    /// Loads a shield module asset from a custom path.
-    /// </summary>
-    public static ShieldModule LoadShieldModule(string assetPath)
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<ShieldModule>(assetPath);
+        return AssetDatabase.LoadAssetAtPath<T>(assetPath);
 #else
         return null;
 #endif
