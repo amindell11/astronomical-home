@@ -9,6 +9,7 @@ resolving at the old paths.
 | Stage | Where | Notes |
 | --- | --- | --- |
 | concept, model | tag `archive/codex/art-preview-scenes` (`28730a31`) | Drawn-study history and preview scenes, based on main, so kept as a tag rather than merged. |
+| model | `model/source-reorganization-2026-09-09/` | The abandoned September reorganization: `vanguard.blend` (the renamed `starship_scratch_model_3.blend` working copy), its README, `textures/`, `guides/`, `reference/`. History only: `drawn-study/VanguardPainted.blend` on main is the one editable Vanguard source. |
 | paint | `paint/retexture/` | All of `evidence/vanguard-retexture`: `history/` (decisions and captures) and `pipeline/` (paint scripts, `VanguardConsolidation.cs`, inputs). |
 | integration | `paint/retexture/pipeline/VanguardConsolidation.cs`, `paint/retexture/history/consolidation/`, `history/native/` | The Unity-side merge helper and its checks. |
 | motion | `motion/breakup/` | `evidence/vanguard-breakup:results/vanguard-breakup/evidence` (PR #821 captures). |
@@ -19,4 +20,4 @@ resolving at the old paths.
 `paint/experiments/` holds the dated experiment folders that sat untracked under
 `art/ships/vanguard/experiments/` in the primary tree (pre-livery checkpoint, AI livery
 review variants, image-generation proof, texture concept and MVP, packed-texture
-snapshots, `vanguard_uv_work.blend`), including their `.blend1` backups.
+snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are in this branch's history at `662b3cd4`).
