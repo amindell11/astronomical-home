@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Substrate.Services.Projectiles;
@@ -10,39 +11,31 @@ namespace Combat.Weapons
     {
         [Header("Charge Damage")]
         [Tooltip("Damage multiplier at minimum charge; scales linearly to the full-charge multiplier.")]
-        [SerializeField, Min(0f)] private float minChargeDamageScale = 0.4f;
+        [Stat, SerializeField, Min(0f)] private float minChargeDamageScale = 0.4f;
         [Tooltip("Damage multiplier at full charge.")]
-        [SerializeField, Min(0f)] private float fullChargeDamageScale = 1f;
+        [Stat, SerializeField, Min(0f)] private float fullChargeDamageScale = 1f;
 
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
-        [SerializeField, Min(0f)] private float fireDistance = 25f;
+        [Stat, SerializeField, Min(0f)] private float fireDistance = 25f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
-        [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
 
         [Header("Conditions")]
-        [SerializeField] private ChargeTime charge;
+        [Stat, SerializeField] private ChargeTime charge;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public ChargeTime Charge => charge;
-
-        public override string HangarStats
-        {
-            get
-            {
-                if (!projectilePrefab) return DisplayName;
-                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
-                var damage = projectilePrefab.Damage;
-                return $"Damage {damage * minChargeDamageScale:0}-{damage * fullChargeDamageScale:0}{chargeText}" +
-                       $"   |   Speed {projectilePrefab.LaserSpeed:0}";
-            }
-        }
+        public float MinChargeDamage => projectilePrefab.Damage * minChargeDamageScale;
+        public float FullChargeDamage => projectilePrefab.Damage * fullChargeDamageScale;
 
         protected override void Awake()
         {
             base.Awake();
             if (!charge) charge = GetComponent<ChargeTime>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)

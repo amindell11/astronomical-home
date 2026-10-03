@@ -25,11 +25,6 @@ namespace Tests.PlayMode
         private class TestSector : Sector
         {
             public bool IsBuilt => IsSetUp;
-            protected override IEnumerator OnAfterTeardown()
-            {
-                Units.Clear();
-                yield break;
-            }
         }
 
         private class TeardownStubSpawner : SectorSpawner
@@ -106,7 +101,6 @@ namespace Tests.PlayMode
             return sector;
         }
 
-        // Bare base Sector without force-Clear on teardown, so the per-producer despawn path itself is observable.
         private Sector CreateBareSector()
         {
             var go = TrackGO(new GameObject("BareSector"));
@@ -205,6 +199,22 @@ namespace Tests.PlayMode
                 "An adopt entry with startActive=false must leave the ship inactive.");
         }
 
+        [Test]
+        public void Adopt_AuthoredInactiveShip_ThrowsNamingStartActive()
+        {
+            var ship = TestAssets.LoadShip2Prefab();
+            var cmdr = TestAssets.LoadTestPilotMpc();
+            if (!ship || !cmdr) Assert.Ignore("Required test assets not found.");
+
+            var sector = CreateTestSector();
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr);
+            child.gameObject.SetActive(false);
+            SetManifest(sector, new[] { Entry(child) }, null);
+
+            var ex = Assert.Throws<System.InvalidOperationException>(() => sector.Setup().MoveNext());
+            StringAssert.Contains("AdoptedShip.startActive", ex.Message);
+        }
+
         [UnityTest]
         public IEnumerator Adopt_NestedPilotOverride_Survives()
         {
@@ -271,6 +281,7 @@ namespace Tests.PlayMode
             Assert.IsFalse(sector.IsBuilt, "IsSetUp must be false after Teardown.");
             Assert.AreEqual(0, _unitService.ActiveRegistry.ActiveShips.Count,
                 "Adopted/spawned ships must be cleared on teardown.");
+            _unitService.Clear();
         }
 
         [UnityTest]
@@ -328,6 +339,7 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
             yield return sector.Teardown();
+            _unitService.Clear();
 
             CollectionAssert.AreEqual(
                 new[] { "setup:A", "setup:B", "teardown:B", "teardown:A" }, log,
@@ -353,6 +365,7 @@ namespace Tests.PlayMode
             Assert.IsFalse(got.Value.Success);
 
             yield return sector.Teardown();
+            _unitService.Clear();
             got = null;
             end.Fire(SectorResult.Extracted());
             Assert.IsFalse(got.HasValue, "Module end signal must be unsubscribed after teardown.");

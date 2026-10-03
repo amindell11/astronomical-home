@@ -1,0 +1,234 @@
+using System.Linq;
+using NUnit.Framework;
+using Substrate.Services.Locales;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace Tests.EditMode.Rendering
+{
+    [TestFixture, Category("Sectors"), Category("RequiresGraphics")]
+    public class BackgroundAtmosphereRenderTests
+    {
+        private Material material;
+        private Mesh mesh;
+        private RenderTexture target;
+        private Texture2D pixels;
+        private CommandBuffer commands;
+        private RenderTexture previousTarget;
+        private Vector4 previousTime;
+        private Vector4 previousCamera;
+
+        [SetUp]
+        public void SetUp()
+        {
+            previousTarget = RenderTexture.active;
+            previousTime = Shader.GetGlobalVector("_Time");
+            previousCamera = Shader.GetGlobalVector("_WorldSpaceCameraPos");
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Locales/Sky/NebulaMaterial.mat"));
+            material.SetFloat("_NebulaStrength", 0);
+            mesh = new Mesh
+            {
+                vertices = new[] { new Vector3(-100, -100), new Vector3(100, -100),
+                    new Vector3(100, 100), new Vector3(-100, 100) },
+                triangles = new[] { 0, 1, 2, 0, 2, 3 }
+            };
+            target = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGBFloat,
+                RenderTextureReadWrite.Linear);
+            target.Create();
+            pixels = new Texture2D(256, 256, TextureFormat.RGBAFloat, false, true);
+            commands = new CommandBuffer();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            RenderTexture.active = previousTarget;
+            Shader.SetGlobalVector("_Time", previousTime);
+            Shader.SetGlobalVector("_WorldSpaceCameraPos", previousCamera);
+            commands?.Release();
+            if (target) target.Release();
+            Object.DestroyImmediate(target);
+            Object.DestroyImmediate(pixels);
+            Object.DestroyImmediate(mesh);
+            Object.DestroyImmediate(material);
+        }
+
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity")]
+        public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string scenePath)
+        {
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
+                var far = root.Find("FarNebula").GetComponent<MeshRenderer>().sharedMaterial;
+                var stars = root.Find("StarField").GetComponent<MeshRenderer>().sharedMaterial;
+                var close = root.Find("CloseNebula").GetComponent<MeshRenderer>().sharedMaterial;
+                Assert.That(stars.HasProperty("_NebulaStrength"), Is.False);
+                Assert.That(far.HasProperty("_StarDensity"), Is.False);
+                Assert.That(close.shader, Is.EqualTo(far.shader));
+                Assert.That(close, Is.Not.EqualTo(far));
+                Assert.That(far.renderQueue, Is.EqualTo(2940));
+                Assert.That(stars.renderQueue, Is.EqualTo(2950));
+                Assert.That(close.renderQueue, Is.EqualTo(2990));
+                Assert.That(far.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.LessEqual));
+                Assert.That(close.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.Always),
+                    "The close nebula must draw over gameplay.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void Nebula_HasDarkGapsEvolvesAndReturnsAfterCameraTravel()
+        {
+            Assert.That(Render(0).Max(c => c.maxColorComponent), Is.Zero);
+            material.SetFloat("_NebulaStrength", 0.12f);
+            var baseline = Render(0);
+            Assert.Greater(baseline.Max(c => c.r), 0.002f, "Clouds must be visible.");
+            Assert.Less(baseline.Min(c => c.r), 0.001f, "Clouds must leave dark gaps.");
+            Assert.Greater(Difference(baseline, Render(60)), 0.0001f, "Clouds must evolve.");
+            Assert.Greater(Difference(baseline, Render(0, 70)), 0.0001f, "Camera travel must reveal new clouds.");
+            Assert.That(Difference(baseline, Render(0)), Is.Zero, "Returning must not accumulate drift.");
+            material.SetFloat("_NebulaStrength", 0);
+            Assert.That(Render(60).Max(c => c.maxColorComponent), Is.Zero);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(bool foreground)
+        {
+            material.SetFloat("_NebulaStrength", 0.12f);
+            material.SetFloat("_NebulaForeground", foreground ? 1 : 0);
+            foreach (var time in new[] { 0f, 30f })
+            {
+                var baseline = Render(time, 40);
+                Assert.Less(Difference(baseline, Render(time, 40, 3.5f)), 0.0001f);
+                Assert.Less(Difference(baseline, Render(time, 40, 28)), 0.0001f);
+            }
+            material.SetFloat("_NebulaZoomResponse", 1);
+            Assert.Greater(Difference(Render(0), Render(0, 0, 28)), 0.0001f);
+        }
+
+        [Test]
+        public void ForegroundWisps_AtLowStrengthAreSparseFaintAndMoveWithoutDrawingStars()
+        {
+            Object.DestroyImmediate(material);
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat"));
+            material.SetFloat("_NebulaForeground", 1);
+            material.SetFloat("_NebulaStrength", 0.025f);
+            material.SetFloat("_NebulaScale", 0.085f);
+            material.SetFloat("_NebulaSpeed", 0.008f);
+            material.SetFloat("_NebulaParallax", 0.07f);
+            var baseline = Render(0);
+            Assert.Greater(baseline.Max(c => c.r), 0.0001f);
+            Assert.Less(baseline.Max(c => c.maxColorComponent), 0.02f);
+            Assert.Greater(baseline.Count(c => c.r < 0.0001f), baseline.Length / 2);
+            Assert.Greater(Difference(baseline, Render(60)), 0.0001f);
+            Assert.Greater(Difference(baseline, Render(0, 70)), 0.0001f);
+            material.SetFloat("_NebulaStrength", 0);
+            Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
+        }
+
+        [Test]
+        public void ShootingStars_AppearMoveAndLeaveQuietIntervals()
+        {
+            Object.DestroyImmediate(material);
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat"));
+            material.SetFloat("_StarDensity", 0);
+            material.SetFloat("_ShootingBrightness", 0.65f);
+            var litFrames = 0;
+            var quietFrames = 0;
+            var movingFrames = 0;
+            Color[] previous = null;
+            for (var step = 0; step < 240; step++)
+            {
+                var frame = Render(step * 0.25f);
+                if (frame.Max(c => c.r) > 0.003f) litFrames++;
+                else quietFrames++;
+                if (previous != null && Difference(previous, frame) > 0.003f) movingFrames++;
+                previous = frame;
+            }
+            Assert.Greater(litFrames, 0, "A streak must appear during the sampled interval.");
+            Assert.Greater(quietFrames, litFrames, "Quiet frames must dominate.");
+            Assert.Greater(movingFrames, 1, "A streak must change across frames.");
+            material.SetFloat("_ShootingBrightness", 0);
+            Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
+        }
+
+        [Test]
+        public void CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel()
+        {
+            material.SetFloat("_CloudOpacity", 0.95f);
+            material.SetFloat("_CloudCoverage", 0.55f);
+            material.SetFloat("_NebulaScale", 0.25f);
+            material.SetFloat("_NebulaStrength", 0.6f);
+            material.SetFloat("_NebulaParallax", 0.025f);
+            var black = Render(0);
+            var white = Render(0, background: Color.white);
+            var transmission = white.Zip(black, (w, b) => w.r - b.r).ToArray();
+            Assert.Less(transmission.Min(), 0.5f, "Dense clouds must hide distant starlight.");
+            Assert.Greater(transmission.Max(), 0.95f, "Open space must retain distant starlight.");
+            Assert.Greater(Difference(black, Render(0, 500)), 0.01f);
+            Assert.Less(Difference(black, Render(0, halfHeight: 28)), 0.0001f);
+            Assert.That(Difference(black, Render(0)), Is.Zero);
+        }
+
+        [Test]
+        public void CloudGlow_SpreadsBeyondDenseCloudsWithoutChangingStarTransmission()
+        {
+            material.SetFloat("_CloudOpacity", 0.95f);
+            material.SetFloat("_CloudCoverage", 0.55f);
+            material.SetFloat("_NebulaScale", 0.25f);
+            material.SetFloat("_NebulaStrength", 0.6f);
+            var unlit = Render(0);
+            var unlitWhite = Render(0, background: Color.white);
+            material.SetFloat("_CloudGlow", 1.5f);
+            var glowing = Render(0);
+            var glowingWhite = Render(0, background: Color.white);
+            var unlitTransmission = unlitWhite.Zip(unlit, (w, b) => w - b).ToArray();
+            var glowingTransmission = glowingWhite.Zip(glowing, (w, b) => w - b).ToArray();
+            Assert.Less(Difference(unlitTransmission, glowingTransmission), 0.0001f);
+            Assert.Greater(unlitTransmission.Where((c, i) => c.r > 0.8f && glowing[i].b - unlit[i].b > 0.01f).Count(), 100,
+                "Interior light must spread beyond the dense silhouettes.");
+        }
+
+        private Color[] Render(float time, float cameraX = 0, float halfHeight = 7, Color? background = null)
+        {
+            var cameraPosition = new Vector3(cameraX, 0, -10);
+            commands.Clear();
+            commands.SetRenderTarget(target);
+            commands.ClearRenderTarget(true, true, background ?? Color.black);
+            commands.SetViewProjectionMatrices(
+                Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.Translate(-cameraPosition),
+                GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfHeight * 16 / 9, halfHeight * 16 / 9, -halfHeight, halfHeight, 0.1f, 100), true));
+            commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
+            commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
+            commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            Graphics.ExecuteCommandBuffer(commands);
+            RenderTexture.active = target;
+            pixels.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
+            pixels.Apply();
+            Assert.IsFalse(ShaderUtil.ShaderHasError(material.shader));
+            return pixels.GetPixels();
+        }
+
+        private static float Difference(Color[] first, Color[] second)
+        {
+            var maximum = 0f;
+            for (var i = 0; i < first.Length; i++)
+                maximum = Mathf.Max(maximum, Mathf.Abs(first[i].r - second[i].r));
+            return maximum;
+        }
+    }
+}

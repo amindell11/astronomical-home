@@ -34,3 +34,8 @@
 
 nul
 __pycache__/
+
+# Obsidian per-machine UI state for the design vault (doc/design)
+doc/design/.obsidian/workspace.json
+doc/design/.obsidian/cache/
+doc/design/.trash/

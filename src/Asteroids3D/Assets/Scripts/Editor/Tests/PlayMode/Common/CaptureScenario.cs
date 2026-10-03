@@ -16,10 +16,13 @@ public abstract class CaptureScenario
 {
     private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
 
-    /// <summary>The headless session the runner composed — real services and UnitService, no sector.</summary>
+    /// <summary>The headless session the runner composed — real services and UnitService, with <see cref="SectorEntry"/>'s sector loaded when one is named.</summary>
     public Session Session { get; internal set; }
 
     public virtual CaptureConfig Config => new() { clipName = GetType().Name };
+
+    /// <summary>The sector the runner loads, with no hero, before Run. Null films in an empty session.</summary>
+    public virtual SectorEntry SectorEntry => null;
 
     /// <summary>Which native gizmo types the footage carries. None films the game alone, with presentation visuals.</summary>
     public virtual GizmoCaptureProfile Profile => GizmoCaptureProfile.Everything;
@@ -36,17 +39,17 @@ public abstract class CaptureScenario
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();
 
-    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. No sector is loaded, so the ship senses no obstacles.</summary>
+    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
-        var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
+        var pilot = TestAssets.Load<AICommander>(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
         var ship = Session.Units.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,
             Session.Frame.Place(planePos),
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),
-            field: null);
+            field: Session.ActiveSector ? Session.ActiveSector.ObstacleField : null);
         Assert.IsNotNull(ship, "Failed to create scenario ship — check test asset paths");
 
         var cmdr = ship.GetComponentInChildren<AICommander>();

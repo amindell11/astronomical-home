@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace Substrate.Sectors
         [SerializeField] private AdoptedShip[] adopted = Array.Empty<AdoptedShip>();
 
         [Tooltip("Procedural spawner children (e.g. RingSpawner) built in list order at load.")]
-        [SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
+        [Stat, SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
 
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
         [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
@@ -71,15 +72,11 @@ namespace Substrate.Sectors
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, Context.Frame,
                 Context.Field, Context.Hero, new SectorEventBus());
 
-            yield return OnBeforeContent();
-
             foreach (var t in adopted)
                 AdoptShip(t);
 
             foreach (var t in spawners)
                 if (t) yield return t.Build(Context);
-
-            yield return OnAfterContent();
 
             foreach (var m in modules)
             {
@@ -105,16 +102,12 @@ namespace Substrate.Sectors
                 yield return m.Teardown(Context);
             }
 
-            yield return OnBeforeTeardown();
-
             for (var i = spawners.Length - 1; i >= 0; i--)
                 if (spawners[i]) yield return spawners[i].Teardown(Context);
 
             // Despawn adopted ships so NPCs don't accumulate across restarts.
             foreach (var entry in adopted)
                 if (entry.target) Units.DespawnShip(entry.target);
-
-            yield return OnAfterTeardown();
         }
 
         protected void CompleteSector(SectorResult result)
@@ -161,10 +154,5 @@ namespace Substrate.Sectors
             if (obstacleField) this.obstacleField = obstacleField;
         }
 #endif
-
-        protected virtual IEnumerator OnBeforeContent() { yield break; }
-        protected virtual IEnumerator OnAfterContent() { yield break; }
-        protected virtual IEnumerator OnBeforeTeardown() { yield break; }
-        protected virtual IEnumerator OnAfterTeardown() { yield break; }
     }
 }

@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
-# Locks go stale by AGE, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
+# Locks go stale by IDLE TIME since the slot's last use, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
@@ -15,15 +15,16 @@ mkdir -p "$LOCK_ROOT"
 #   Slot & lease resolution   slots_tsv .. ensure_task_branch
 #   Run summary & proof       RUN_OUTDIR_REL, summary_coverage, tested_tree/tested_scope, require_clean_slot
 #   Inert-delta classification caller_info_attrs_present, classify_diff_since_proof, cs_diff_is_comment_only
-#   Locks                     write_lock, lock_age_seconds, clobber safety
-#   Status                    collect_slot_records (porcelain), cmd_status
+#   Locks                     with_flock + cmd_lock, write_lock, mark_slot_used, lock_age_seconds, clobber safety
+#   Status                    collect_slot_records + collect_held_records (porcelain), cmd_status
 #   Acquire / release / prepare
+#   Hold / resume             held_snapshot, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
-#   Merge gate                cmd_merge
+#   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -44,15 +45,33 @@ Commands:
       shape; values may contain spaces, keys never do):
 
         slot=agent-1            always
-        state=free|locked|stale always; stale = locked past the lock TTL
+        state=free|locked|stale always; stale = locked, and not used for
+                                longer than the lock TTL
         path=<abs-path>         always
         lease=<lease-id>        locked/stale slots that have a lease
         task_branch=task/<lease>  when one is recorded or derivable; this is
                                 the branch a PR for the slot is opened FROM
-        age_seconds=<int>       locked/stale only
+        age_seconds=<int>       locked/stale only; seconds since last_used_at
         locked_by_pid=<pid>     locked/stale only, informational: pool locks
-                                go stale by AGE, never by pid liveness
-        locked_at=<iso8601>     locked/stale only
+                                go stale by idle time, never by pid liveness
+        locked_at=<iso8601>     locked/stale only; when the lease was acquired
+        last_used_at=<iso8601>  locked/stale only; the last acquire, resume or
+                                working command on the slot: prepare,
+                                run-tests, run-resharper, run-script-tests,
+                                create-pr, submit, revise, review-comments,
+                                merge. status and merge-progress are reads
+                                and never count as use. A lock with no
+                                last-use stamp reports its locked_at.
+
+      After the slot records, one record per held lease (see hold), read
+      from local held/* branches and origin/held/* remote-tracking refs as
+      of the last fetch. It leads with held= instead of slot=:
+
+        held=<lease>            always
+        branch=held/<lease>     always
+        left_slot=<slot>        the slot the work was held from, when recorded
+        held_at=<iso8601>       when the snapshot was taken
+        pushed=0|1              origin/held/<lease> exists as of the last fetch
 
       Keys may be added; consumers must ignore unknown keys and tolerate any
       optional key being absent.
@@ -62,10 +81,17 @@ Commands:
       free slots over stale-lock reclaims. Naming a slot is strict:
       if it isn't free (or safely reclaimable) acquire FAILS — no
       silent fallback to auto-pick.
+      A free slot is handed back prepared at origin/main (as prepare,
+      keeping ignored dirs); when prepare refuses (the slot holds unpushed
+      work) acquire releases the slot untouched and fails - auto-pick does
+      not move on to another slot. A reclaimed stale slot is not prepared.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
       last inheriting process exits.
+      A working command (see last_used_at) records its use under the same
+      lock before it runs, waiting up to 30s for it; still held, the command
+      exits 1 without running.
       Never delete .mutation files: existing holders must share the same file.
 
   release <slot>
@@ -76,6 +102,39 @@ Commands:
       Reset slot branch/worktree to base ref (default: origin/main)
       while preserving ignored dirs (e.g., Unity Library/).
 
+  hold <slot> [--local]
+      Free a slot whose work waits on the user, keeping the work. Snapshots
+      HEAD plus the dirty tree (tracked edits and untracked non-ignored
+      files) as one commit whose only parent is HEAD, on branch
+      held/<lease>, pushed to origin unless --local; then prepares the slot
+      to origin/main and releases it. task/<lease> is never touched.
+      Holds the slot's merge gate flock throughout, so it refuses while a
+      merge gate runs on the slot and no gate starts mid-hold. Also refuses
+      a free or lease-less slot, and a held/<lease> that exists locally or
+      on origin as of the last fetch. Local merge and
+      ReSharper proof live in the lock and are lost; the merge gate re-proves.
+      Output: HELD=<lease> RESUME="agent_worktree_pool.sh resume <lease>"
+
+  resume <lease> [slot]
+      Put held work back on a slot. Reads local held/<lease>, else
+      origin/held/<lease>. Acquires <slot> (strict, as acquire, but never
+      prepared), else the slot the work left if free, else any; refuses a
+      slot holding unpushed work.
+      Resets the slot branch to the held HEAD and restores the snapshot as
+      uncommitted changes (staged edits come back unstaged), then deletes
+      held/<lease> locally and on origin.
+      Output: SLOT=<name> PATH=<abs-path> RESUMED=<lease>
+      Exit 1 after that line means the work is restored but held/<lease>
+      could not be deleted everywhere.
+
+  lock <name> [--wait <seconds>] -- <cmd...>
+      Run <cmd> holding an exclusive machine-wide lock named <name> (a flock
+      on <name>.lock under the lock root, the same primitive the slot
+      mutation and merge gate locks use). Waits up to --wait seconds
+      (default 30) for another holder to finish. <name> is [A-Za-z0-9._-]+.
+      Exit: <cmd>'s own exit code; 75 when the lock is still held after the
+      wait (stderr names the lock file); 1 on a usage error.
+
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
@@ -84,17 +143,26 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
-  run-script-tests [dir]
+  run-script-tests <slot>
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
-      (powershell.exe) under dir (default: the primary worktree). Prints
-      one PASS/FAIL line per file and stops at the first failure (exit 1).
-      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
-      SCRIPT_TEST_TOTAL_SECONDS=<wall seconds> includes the failed final file.
+      (powershell.exe) in that slot's worktree: the .sh files in one lane,
+      the .ps1 files in a second lane beside it. Every file runs; each
+      file's output is buffered and printed once the suite ends, .sh files
+      then .ps1 files, each ending in one PASS/FAIL line. Any failure exits
+      1 after the whole suite. An unknown slot, a missing scripts/tests,
+      or one with no test files also exits 1.
+      Trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>
+      per file; SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>.
       During a merge, journal event script-test (phase script-tests) carries
       file, sec and exit for each completed file.
       Non-hermetic files are SKIPped unless
-      SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. The merge
-      gate runs this when the landing diff touches scripts/.
+      SCRIPT_TESTS_INCLUDE_NONHERMETIC=1. Exit 0 = all green. A covers
+      line entry that matches no file exits 1 before any file runs. The
+      first line names the files that run; during a merge, journal event
+      script-selection carries mode, reason, files and unlisted. The merge
+      gate runs this when the landing diff touches scripts/, handing it
+      the landing range so only the test files that range selects run
+      (doc/agents/script-contracts.md sec.4).
 
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push the slot's work to its task branch (task/<lease>, recorded
@@ -102,13 +170,16 @@ Commands:
       base: main) — submit without the test run. An explicit --title
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
-      PR already exists for that head/base, prints URL.
+      PR already exists for that head/base, prints URL. Exits 2 before
+      anything runs when the body negates a closing keyword ("does not
+      close #N"): GitHub still closes #N (scripts/lib/negated_close.py).
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
       branch (task/<lease>), and create PR — but keep the lock so the agent
       can respond to review feedback. An explicit --title and exactly one of
-      --body/--body-file are REQUIRED. Test args after -- are passed to
+      --body/--body-file are REQUIRED, and the body passes create-pr's
+      exit-2 check. Test args after -- are passed to
       unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
       -ScopeType Workspace, unfiltered) records merge-grade proof;
       scoped runs still open the PR but the merge gate will re-test.
@@ -151,7 +222,39 @@ Commands:
       Hosted ladder (... proof-check remote-proof resharper ...): one hosted
       run posts both statuses, the gate waits for both, and the resharper
       phase accepts the hosted ratchet with no local ratchet run and no Unity
-      boot here; without an acceptable merge-proof/resharper it refuses.
+      boot here; without an acceptable merge-proof/resharper it refuses, and
+      one stamping another baseTree means main moved: re-run
+      'merge <slot> --remote'.
+      When the landing diff touches scripts/, the script suite starts at the
+      end of proof-check and runs beside the test run or hosted wait and the
+      ratchet; the script-tests phase joins it. It runs only the test files
+      whose covers line the landing diff touches (script-suite selection,
+      doc/agents/script-contracts.md sec.4).
+      One gate per slot: a second 'merge' on a slot whose gate is running is
+      refused at once (flock on the slot's .merge file under the lock root).
+      One gate at a time, pool-wide (the merge turn): after the slot's lock
+      a gate takes the 'merge-turn' lock (see lock) and holds it from before
+      its fetch through gh pr merge, so no other gate on this machine moves
+      base under it. A gate that finds the turn taken waits in journal phase
+      turn-wait, which comes first in every ladder. Waiting gates take the
+      turn in arrival order: each records its arrival as a turn ticket
+      (<slot>.turn-ticket under the lock root) and holds a flock on it
+      while it waits. A ticket counts only while that flock is held, so a
+      waiter that died never blocks the line, and a re-run gate arrives
+      anew, at the back. merge-progress shows a waiter's place in the line,
+      and the slot it waits behind when a gate holds the turn. A gate
+      waiting for the turn already holds its slot's .merge lock, so 'merge'
+      and 'hold' on that slot refuse.
+      A waiter gives up only on a stuck holder: once it has watched one
+      holder keep the turn for WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS
+      (default 3600) it exits 75; stderr names the lock file and the holder
+      slot, or says the holder is not a merge gate. Each change of holder
+      restarts that count, so a line that keeps moving times nobody out.
+      Any other push to base takes the same turn, e.g. a docs-only landing:
+        lock merge-turn --wait 3600 -- <sync and push cmd>
+      Such a caller holds no ticket: it takes the turn whenever it is free.
+      The turn is machine-local: a base move from anywhere else is still
+      caught just before gh pr merge ("base moved during the merge gate").
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -184,6 +287,8 @@ Examples:
   scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
+  scripts/agent_worktree_pool.sh hold agent-1 --local
+  scripts/agent_worktree_pool.sh resume task-123
 EOF
 }
 
@@ -338,8 +443,15 @@ tested_tree_for() {
 
 # First value of KEY= in a KEY=value record file; empty when absent.
 record_field() {
-  local file="$1" key="$2"
-  sed -n "s/^${key}=//p" "$file" 2>/dev/null | head -n 1
+  local file="$1" key="$2" line
+  [[ -r "$file" ]] || return 2
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    if [[ "$line" == "$key="* ]]; then
+      printf '%s\n' "${line#"$key="}"
+      return 0
+    fi
+  done < "$file"
 }
 
 tested_scope_field() {
@@ -434,22 +546,56 @@ cs_diff_is_comment_only() {
 }
 
 # ---- Locks -----------------------------------------------------------------
-with_slot_mutation() {
-  local slot="$1"
-  shift
-  command -v perl >/dev/null 2>&1 || { echo 'Pool mutation requires Perl flock support.' >&2; return 1; }
-  # The execed mutator inherits the lock; launcher death cannot expose a surviving child.
+LOCK_BUSY_EXIT=75
+
+# Runs <cmd...> under an exclusive flock on <file>; still held after <wait>s → LOCK_BUSY_EXIT, printing any <busy_msg>.
+with_flock() {
+  local file="$1" wait="$2" busy_msg="$3"
+  shift 3
+  command -v perl >/dev/null 2>&1 || { echo 'Pool locking requires Perl flock support.' >&2; return 1; }
+  # The execed command inherits the lock; launcher death cannot expose a surviving child.
+  # POOL_FLOCK_FDS lets a background child close every lock fd, so none outlives its holder.
   perl -e '
     use strict;
     use warnings;
     use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
-    my $path = shift @ARGV;
-    open my $lock, ">>", $path or die "Pool mutation lock $path: $!\n";
-    flock($lock, LOCK_EX | LOCK_NB) or exit 1;
-    fcntl($lock, F_SETFD, 0) or die "Pool mutation lock inheritance: $!\n";
-    exec @ARGV or die "Pool mutation exec: $!\n";
-  ' "$LOCK_ROOT/$slot.mutation" bash -c 'source "$1"; shift; "$@"' \
+    my ($path, $wait, $busy, $busy_exit) = splice @ARGV, 0, 4;
+    open my $lock, ">>", $path or die "Pool lock $path: $!\n";
+    my $deadline = time + $wait;
+    until (flock($lock, LOCK_EX | LOCK_NB)) {
+      if (time >= $deadline) {
+        print STDERR "$busy\n" if length $busy;
+        exit $busy_exit;
+      }
+      select(undef, undef, undef, 0.1);
+    }
+    fcntl($lock, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
+    $ENV{POOL_FLOCK_FDS} = join " ", split(" ", $ENV{POOL_FLOCK_FDS} // ""), fileno($lock);
+    exec @ARGV or die "Pool lock exec: $!\n";
+  ' "$file" "$wait" "$busy_msg" "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' \
     pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
+with_slot_mutation() {
+  local slot="$1"
+  shift
+  with_flock "$LOCK_ROOT/$slot.mutation" 0 "" "$@"
+}
+
+cmd_lock() {
+  local usage_line="lock requires <name> [--wait <seconds>] -- <cmd...>" name="${1:-}" wait=30
+  [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "$usage_line" >&2; return 1; }
+  shift
+  if [[ "${1:-}" == --wait ]]; then
+    [[ "${2:-}" =~ ^[0-9]+$ ]] || { echo "$usage_line" >&2; return 1; }
+    wait="$2"
+    shift 2
+  fi
+  [[ "${1:-}" == -- && $# -ge 2 ]] || { echo "$usage_line" >&2; return 1; }
+  shift
+  # `command` runs <cmd> itself even when it shares a name with a pool function.
+  with_flock "$LOCK_ROOT/$name.lock" "$wait" \
+    "lock: $name is still held after ${wait}s ($LOCK_ROOT/$name.lock)" command "$@"
 }
 
 write_lock() {
@@ -459,6 +605,7 @@ write_lock() {
   printf '%s\n' "$lease" > "$ldir/lease"
   printf '%s\n' "$$" > "$ldir/pid"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
+  cp "$ldir/timestamp" "$ldir/last_use"
   if [[ -n "$path" ]]; then
     # Worktree-scoped, never the repo-shared .git/config: a plain write there clobbers every slot's lease (cross-slot LEASE RACE); the unqualified --unset keeps the shared key clear.
     git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
@@ -467,12 +614,37 @@ write_lock() {
   fi
 }
 
+# Reclaim decides under the slot's mutation lock, so this write takes it too.
+mark_slot_used() {
+  local slot="$1"
+  # Working commands also run on free slots, which have no lock to stamp.
+  [[ -d "$(lock_dir_for "$slot")" ]] || return 0
+  with_flock "$LOCK_ROOT/$slot.mutation" 30 \
+    "$slot's lease is still being changed after 30s ($LOCK_ROOT/$slot.mutation); its use was not recorded." \
+    stamp_last_use "$slot" || exit 1
+}
+
+stamp_last_use() {
+  local ldir
+  ldir="$(lock_dir_for "$1")"
+  # A release can land while this waits for the mutation lock.
+  [[ -d "$ldir" ]] || return 0
+  date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/last_use"
+}
+
+# A lock with no last-use stamp counts from its acquire time.
+lock_last_use() {
+  local ldir="$1" stamp="$1/last_use"
+  [[ -s "$stamp" ]] || stamp="$ldir/timestamp"
+  cat "$stamp" 2>/dev/null || true
+}
+
 lock_age_seconds() {
   local ldir="$1"
-  local ts_file="$ldir/timestamp"
-  [[ -f "$ts_file" ]] || { echo 999999999; return 0; }
-  local ts now
-  ts="$(date -u -d "$(cat "$ts_file")" +%s 2>/dev/null || echo 0)"
+  local used ts now
+  used="$(lock_last_use "$ldir")"
+  [[ -n "$used" ]] || { echo 999999999; return 0; }
+  ts="$(date -u -d "$used" +%s 2>/dev/null || echo 0)"
   now="$(date -u +%s)"
   echo $(( now - ts ))
 }
@@ -485,7 +657,12 @@ is_head_pushed() {
   [[ -n "$remotes" ]]
 }
 
-# Clobber-safe: no uncommitted changes and no local commits absent from every remote branch.
+# A local held/* branch keeps HEAD reachable through a reset, pushed or not (hold --local).
+is_head_held() {
+  local path="$1"
+  [[ -n "$(git -C "$path" for-each-ref --contains HEAD --format='%(refname)' refs/heads/held/ 2>/dev/null)" ]]
+}
+
 slot_is_clobber_safe() {
   local path="$1" base="${2:-origin/main}"
   local dirty ahead
@@ -493,15 +670,15 @@ slot_is_clobber_safe() {
   [[ "${dirty:-0}" -eq 0 ]] || return 1
   ahead="$(git -C "$path" rev-list --count "$base"..HEAD 2>/dev/null || echo 0)"
   [[ "${ahead:-0}" -eq 0 ]] && return 0
-  is_head_pushed "$path"
+  is_head_pushed "$path" || is_head_held "$path"
 }
 
 # ---- Status ----------------------------------------------------------------
-# The pool's read interface: one blank-line-separated record per slot, KEY=value per line (git's own
+# The pool's read interface: blank-line-separated records (slots, then held leases), KEY=value per line (git's own
 # --porcelain shape, and the only shape safe for paths with spaces). Both `status` renderings are
 # adapters over this - nothing else may read the lock dir or re-derive a lease.
 collect_slot_records() {
-  local slot path ldir lease tb pid ts age state
+  local slot path ldir lease tb pid ts used age state
   while IFS=$'\t' read -r slot path; do
     ldir="$(lock_dir_for "$slot")"
     printf 'slot=%s\n' "$slot"
@@ -511,6 +688,7 @@ collect_slot_records() {
       tb="$(task_branch_for "$slot")"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
+      used="$(lock_last_use "$ldir")"
       age="$(lock_age_seconds "$ldir")"
       state="locked"
       [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] && state="stale"
@@ -521,6 +699,7 @@ collect_slot_records() {
       printf 'age_seconds=%s\n' "$age"
       [[ -n "$pid" ]] && printf 'locked_by_pid=%s\n' "$pid"
       [[ -n "$ts" ]] && printf 'locked_at=%s\n' "$ts"
+      [[ -n "$used" ]] && printf 'last_used_at=%s\n' "$used"
     else
       printf 'state=free\n'
       printf 'path=%s\n' "$path"
@@ -529,8 +708,27 @@ collect_slot_records() {
   done < <(slots_tsv)
 }
 
+# The local branch wins when both exist; an origin-only lease was held from another clone.
+collect_held_records() {
+  local lease branch ref pushed left at
+  while IFS= read -r lease; do
+    [[ -n "$lease" ]] || continue
+    branch="held/$lease"
+    pushed=0
+    git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null && pushed=1
+    ref="refs/heads/$branch"
+    git -C "$ROOT" rev-parse -q --verify "$ref" >/dev/null || ref="refs/remotes/origin/$branch"
+    left="$(held_trailer "$ref" Held-Slot)"
+    at="$(TZ=UTC git -C "$ROOT" log -1 --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd "$ref")"
+    printf 'held=%s\nbranch=%s\n' "$lease" "$branch"
+    [[ -n "$left" ]] && printf 'left_slot=%s\n' "$left"
+    printf 'held_at=%s\npushed=%s\n\n' "$at" "$pushed"
+  done < <(git -C "$ROOT" for-each-ref --format='%(refname)' refs/heads/held/ refs/remotes/origin/held/ \
+    | sed -e 's#^refs/heads/held/##' -e 's#^refs/remotes/origin/held/##' | sort -u)
+}
+
 cmd_status() {
-  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" line key value
+  local any=0 slot="" state="" path="" lease="" tb="" pid="" ts="" held="" left="" pushed="" line key value
   # One collection pass feeds both renderings; a record ends at its blank line.
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ -n "$line" ]]; then
@@ -544,7 +742,17 @@ cmd_status() {
         task_branch) tb="$value" ;;
         locked_by_pid) pid="$value" ;;
         locked_at) ts="$value" ;;
+        held) held="$value" ;;
+        left_slot) left="$value" ;;
+        pushed) pushed="$value" ;;
       esac
+      continue
+    fi
+    if [[ -n "$held" ]]; then
+      local where="local"
+      [[ "$pushed" == 1 ]] && where="pushed"
+      echo "held/$held | HELD   | left=${left:-unknown} $where"
+      held=""; left=""; pushed=""
       continue
     fi
     [[ -n "$slot" ]] || continue
@@ -557,7 +765,7 @@ cmd_status() {
       echo "$slot | $label | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
     fi
     slot=""; state=""; path=""; lease=""; tb=""; pid=""; ts=""
-  done < <(collect_slot_records)
+  done < <(collect_slot_records; collect_held_records)
 
   if [[ "$any" -eq 0 ]]; then
     echo "No agent-* worktrees found."
@@ -597,15 +805,28 @@ reclaim_stale_slot() {
   echo "SLOT=$slot PATH=$path"
 }
 
-cmd_acquire() {
-  local lease="${1:-task-$(date +%Y%m%d-%H%M%S)}"
-  local wanted="${2:-}"
+# A released slot keeps its old tree, so a free slot is only handed out prepared.
+claim_prepared_slot() {
+  local slot="$1" lease="$2" path="$3" out
+  out="$(try_lock_slot "$slot" "$lease" "$path")" || return 1
+  # A child process keeps prepare's errexit, which a failure-handling context would switch off.
+  if ! bash "$SCRIPT_DIR/agent_worktree_pool.sh" prepare "$slot" origin/main >&2; then
+    with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || true
+    echo "acquire: $slot is free but could not be prepared, so it was released untouched." >&2
+    exit 1
+  fi
+  echo "$out"
+}
+
+# resume claims lock-only: it resets the slot to its held snapshot itself.
+lock_slot() {
+  local lease="$1" wanted="$2" claim="$3"
 
   # A named slot is strict: the caller chose it for state the pool can't see — silently handing back a different slot recreates the surprise naming was meant to remove.
   if [[ -n "$wanted" ]]; then
     local path
     path="$(slot_path "$wanted")" || { echo "acquire: unknown slot '$wanted'" >&2; return 1; }
-    try_lock_slot "$wanted" "$lease" "$path" && return 0
+    "$claim" "$wanted" "$lease" "$path" && return 0
     try_reclaim_slot "$wanted" "$lease" "$path" && return 0
     echo "acquire: $wanted unavailable (lease=$(lease_for "$wanted")); no fallback when a slot is named." >&2
     return 1
@@ -614,7 +835,7 @@ cmd_acquire() {
   # Free slots first; reclaiming a stale lock crosses another session's expectations, so it is a fallback pass, never interleaved.
   local slot path
   while IFS=$'\t' read -r slot path; do
-    try_lock_slot "$slot" "$lease" "$path" && return 0
+    "$claim" "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
   while IFS=$'\t' read -r slot path; do
     try_reclaim_slot "$slot" "$lease" "$path" && return 0
@@ -624,13 +845,23 @@ cmd_acquire() {
   return 1
 }
 
+cmd_acquire() { lock_slot "${1:-task-$(date +%Y%m%d-%H%M%S)}" "${2:-}" claim_prepared_slot; }
+
 cmd_release() { with_slot_mutation "$1" release_slot "$@"; }
 
+# An expected lease makes it compare-and-release: a slot reclaimed meanwhile keeps its new holder.
 release_slot() {
-  local slot="$1"
-  local ldir path
+  local slot="$1" expected="${2:-}"
+  local ldir path current
   ldir="$(lock_dir_for "$slot")"
   path="$(slot_path "$slot" 2>/dev/null || true)"
+  if [[ -n "$expected" ]]; then
+    current="$(lease_for "$slot")"
+    if [[ "$current" != "$expected" ]]; then
+      echo "$slot now holds lease '${current:-none}', not '$expected'; left locked." >&2
+      return 1
+    fi
+  fi
   if [[ -n "$path" ]]; then
     git -C "$path" config --worktree --unset worktree-pool.lease 2>/dev/null || true
     git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
@@ -659,9 +890,11 @@ cmd_prepare() {
     dirty="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
     echo "REFUSING to prepare $slot: it holds unpushed work" >&2
     echo "  ($ahead commit(s) ahead of $base, $dirty uncommitted change(s))." >&2
-    echo "  Preserve it first, e.g.:" >&2
+    echo "  Work that must not be pushed (held for approval): hold it, which also frees the slot:" >&2
+    echo "    $0 hold $slot --local" >&2
+    echo "  Work that may be pushed but waits on the user: $0 hold $slot" >&2
+    echo "  Work that belongs on its task branch: push it, then re-run with --force:" >&2
     echo "    git -C $path push origin HEAD:refs/heads/task/<lease>" >&2
-    echo "  then re-run with --force:" >&2
     echo "    $0 prepare $slot $base --force" >&2
     return 1
   fi
@@ -673,6 +906,120 @@ cmd_prepare() {
   rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"
+}
+
+# ---- Hold / resume -----------------------------------------------------------
+# Resume reads trailers, not a local file, so an origin-only held branch is the whole record.
+held_trailer() {
+  local ref="$1" key="$2" value
+  value="$(git -C "$ROOT" log -1 --format="%(trailers:key=$key,valueonly)" "$ref")"
+  printf '%s' "${value%%$'\n'*}"
+}
+
+# Built in a copy of the index so the slot's own index and worktree stay untouched until prepare.
+held_snapshot() {
+  local path="$1" lease="$2" slot="$3"
+  local index tmp_index tree rc=0
+  # Callers run this in $( ), where errexit is off: every step feeds rc.
+  index="$(git -C "$path" rev-parse --path-format=absolute --git-path index)" || return 1
+  tmp_index="$(mktemp)" || return 1
+  cp "$index" "$tmp_index" || rc=$?
+  [[ "$rc" -ne 0 ]] || GIT_INDEX_FILE="$tmp_index" git -C "$path" add -A || rc=$?
+  [[ "$rc" -ne 0 ]] || tree="$(GIT_INDEX_FILE="$tmp_index" git -C "$path" write-tree)" || rc=$?
+  rm -f "$tmp_index"
+  [[ "$rc" -eq 0 ]] || return "$rc"
+  printf 'hold: %s\n\nHeld-Lease: %s\nHeld-Slot: %s\n' "$lease" "$lease" "$slot" \
+    | git -C "$path" commit-tree "$tree" -p HEAD
+}
+
+# Runs under the slot's .merge flock (see main): no merge gate is live, and none starts mid-hold.
+cmd_hold() {
+  local slot="$1" mode="${2:-}"
+  local path lease branch snap where="origin" self="$SCRIPT_DIR/agent_worktree_pool.sh"
+  case "$mode" in
+    ""|--local) ;;
+    *) echo "hold: unknown argument '$mode' (hold <slot> [--local])" >&2; return 1 ;;
+  esac
+  path="$(slot_path "$slot")" || { echo "hold: unknown slot '$slot'" >&2; return 1; }
+  [[ -d "$(lock_dir_for "$slot")" ]] || { echo "hold: $slot is not locked; there is no work to hold." >&2; return 1; }
+  lease="$(lease_for "$slot")"
+  [[ -n "$lease" ]] || { echo "hold: $slot has no lease, and held work is keyed on it." >&2; return 1; }
+
+  branch="held/$lease"
+  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null \
+    || git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
+    echo "hold: $branch already exists here or on origin; resume it ('$self resume $lease') before holding $slot again." >&2
+    return 1
+  fi
+  snap="$(held_snapshot "$path" "$lease" "$slot")"
+  git -C "$ROOT" update-ref "refs/heads/$branch" "$snap" ""
+
+  if [[ "$mode" == "--local" ]]; then
+    where="this clone only"
+  elif ! git -C "$path" push -q --force-with-lease="refs/heads/$branch:" origin "$snap:refs/heads/$branch"; then
+    git -C "$ROOT" update-ref -d "refs/heads/$branch" "$snap"
+    echo "hold: pushing $branch failed, so $slot is untouched. For work that must not be pushed: $self hold $slot --local" >&2
+    return 1
+  fi
+
+  # The snapshot is on its branch, so this reset destroys nothing.
+  cmd_prepare "$slot" origin/main --force >&2
+  with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || {
+    echo "hold: $slot was prepared but not released; the work is safe on $branch." >&2
+    return 1
+  }
+  echo "Held $slot's work on $branch ($where); $slot is prepared and free." >&2
+  echo "HELD=$lease RESUME=\"agent_worktree_pool.sh resume $lease\""
+}
+
+cmd_resume() {
+  local lease="$1" wanted="${2:-}"
+  local branch ref snap base hint hint_path out="" slot path rc=0
+  branch="held/$lease"
+  ref="refs/heads/$branch"
+  if ! git -C "$ROOT" rev-parse -q --verify "$ref" >/dev/null; then
+    ref="refs/remotes/origin/$branch"
+    git -C "$ROOT" fetch -q origin "+refs/heads/$branch:$ref" 2>/dev/null || {
+      echo "resume: no held work for '$lease': $branch is not local and could not be fetched from origin." >&2
+      return 1
+    }
+  fi
+  snap="$(git -C "$ROOT" rev-parse "$ref^{commit}")"
+  base="$(git -C "$ROOT" rev-parse "$snap^1")"
+
+  if [[ -n "$wanted" ]]; then
+    out="$(lock_slot "$lease" "$wanted" try_lock_slot)" || return 1
+  else
+    hint="$(held_trailer "$snap" Held-Slot)"
+    if [[ -n "$hint" ]] && hint_path="$(slot_path "$hint" 2>/dev/null)"; then
+      out="$(try_lock_slot "$hint" "$lease" "$hint_path")" || out=""
+    fi
+    [[ -n "$out" ]] || out="$(lock_slot "$lease" "" try_lock_slot)" || return 1
+  fi
+  slot="${out#SLOT=}"
+  slot="${slot%% PATH=*}"
+  path="${out#* PATH=}"
+
+  if ! slot_is_clobber_safe "$path"; then
+    with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || true
+    echo "resume: $slot holds unpushed or uncommitted work, so it was released untouched; name another slot." >&2
+    return 1
+  fi
+  git -C "$path" checkout -q "$slot"
+  git -C "$path" reset -q --hard "$snap"
+  git -C "$path" reset -q "$base"
+
+  if git -C "$ROOT" rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    git -C "$ROOT" update-ref -d "refs/heads/$branch" "$snap" || rc=1
+  fi
+  if git -C "$ROOT" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
+    git -C "$ROOT" push -q --force-with-lease="refs/heads/$branch:$snap" origin --delete "$branch" || rc=1
+  fi
+  if [[ "$rc" -ne 0 ]]; then
+    echo "resume: the work is restored on $slot, but $branch could not be deleted everywhere; delete it once checked." >&2
+  fi
+  echo "SLOT=$slot PATH=$path RESUMED=$lease"
+  return "$rc"
 }
 
 # ---- Unity test runs -------------------------------------------------------
@@ -741,16 +1088,18 @@ run_tests_for_proof() {
 
 # ---- ReSharper ratchet -----------------------------------------------------
 resharper_fingerprint() {
-  local path="$1" file hashes=""
-  for file in \
-    .config/dotnet-tools.json \
-    scripts/agent_worktree_pool.sh \
-    scripts/resharper-unity.DotSettings \
-    scripts/resharper_ratchet.ps1 \
-    scripts/sync_unity_solution.ps1; do
+  local path="$1" file hash hashes="" i=0 files=(
+    .config/dotnet-tools.json
+    scripts/agent_worktree_pool.sh
+    scripts/resharper-unity.DotSettings
+    scripts/resharper_ratchet.ps1
+    scripts/sync_unity_solution.ps1)
+  for file in "${files[@]}"; do
     [[ -f "$path/$file" ]] || { echo "missing:$file"; return 0; }
-    hashes+="$(git -C "$path" hash-object "$path/$file"):$file"$'\n'
   done
+  while IFS= read -r hash; do
+    hashes+="$hash:${files[i++]}"$'\n'
+  done < <(git -C "$path" hash-object "${files[@]/#/$path/}")
   printf '%s' "$hashes" | git hash-object --stdin
 }
 
@@ -805,43 +1154,195 @@ cmd_run_resharper() {
 
 # ---- Script tests ----------------------------------------------------------
 # run-script-tests trailers: SCRIPT_TEST_FILE=<name> SECONDS=<wall seconds> EXIT=<child exit>;
-# SCRIPT_TEST_TOTAL_SECONDS=<wall seconds>, including a failed final file. First failure exits 1.
-cmd_run_script_tests() {
-  local dir="${1:-$ROOT}"
-  local tests_dir="$dir/scripts/tests" file base rc=0 ran=0 started suite_started=$SECONDS
+# SCRIPT_TEST_TOTAL_SECONDS=<suite wall seconds>. Every selected file runs; any failure exits 1.
+# Internal: callers supply a resolved worktree path and, from the merge gate, the landing range
+# (<base> <head>) that script-suite selection reads. A subshell body keeps its EXIT trap off the caller.
+cmd_run_script_tests() (
+  local dir="$1" base_ref="${2:-}" head_ref="${3:-}"
+  local tests_dir="$dir/scripts/tests" file base rc=0 suite_started=$SECONDS buf sh_lane ps1_lane
+  local mode=all reason=no-diff changed entry hit diff_out
+  local -a found=() sh_files=() ps1_files=() names=() unlisted=() changes=() entries=()
+  local -A covers_of=() picked=()
   # A name here is skipped because its state escapes a temp dir, so another session can turn it red.
   # Empty is the goal state (test_unity_access.ps1 left in #454 by injecting its state+primary root).
   local nonhermetic=" "
+  # A changed path here runs every file: tests load these without listing them on a covers line.
+  # scripts/tests/* means its non-test files (fixtures); a changed test file selects only itself.
+  local -a shared=("scripts/lib/*" "scripts/tests/*")
   if [[ ! -d "$tests_dir" ]]; then
-    echo "run-script-tests: no $tests_dir — nothing to run." >&2
-    return 0
+    echo "run-script-tests: $tests_dir is missing — the suite did not run." >&2
+    return 1
   fi
   for file in "$tests_dir"/test_*.sh "$tests_dir"/test_*.ps1; do
     [[ -f "$file" ]] || continue
-    base="$(basename "$file")"
+    base="${file##*/}"
     if [[ "${SCRIPT_TESTS_INCLUDE_NONHERMETIC:-0}" != 1 && "$nonhermetic" == *" $base "* ]]; then
       echo "SKIP: $base — non-hermetic (its state escapes a temp dir); runs with SCRIPT_TESTS_INCLUDE_NONHERMETIC=1"
       continue
     fi
-    ran=1
-    rc=0
-    started=$SECONDS
-    case "$file" in
-      *.sh) bash "$file" || rc=$? ;;
-      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" || rc=$? ;;
-    esac
-    journal_event script-test script-tests "file=$base" "sec=$((SECONDS - started))" "exit=$rc"
-    echo "SCRIPT_TEST_FILE=$base SECONDS=$((SECONDS - started)) EXIT=$rc"
-    if [[ "$rc" -eq 0 ]]; then
-      echo "PASS $base"
-    else
-      echo "FAIL $base (exit $rc)"
-      echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+    found+=("$file")
+  done
+  if (( ${#found[@]} == 0 )); then
+    echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+    echo "run-script-tests: no test files under $tests_dir — the suite did not run." >&2
+    return 1
+  fi
+  for file in "${found[@]}"; do
+    base="${file##*/}"
+    read_covers_line "$file" || continue
+    covers_of[$base]="$SCRIPT_TEST_COVERS"
+    read -ra entries <<< "$SCRIPT_TEST_COVERS"
+    for entry in "${entries[@]}"; do
+      if ! compgen -G "$dir/$entry" > /dev/null; then
+        echo "run-script-tests: $base covers '$entry', which matches no file in the tree — fix its covers line; the suite did not run." >&2
+        return 1
+      fi
+    done
+  done
+  if [[ -n "$base_ref" ]]; then
+    diff_out="$(git -C "$dir" diff --name-only --no-renames "$base_ref" "$head_ref" -- scripts)" || {
+      rc=$?
+      echo "run-script-tests: could not compute the landing diff $base_ref..$head_ref (git exit $rc) — the suite did not run." >&2
       return 1
-    fi
+    }
+    mapfile -t changes <<< "$diff_out"
+    mode=selected reason=diff
+    for file in "${found[@]}"; do
+      base="${file##*/}"
+      [[ -v "covers_of[$base]" ]] || { mode=all reason="undeclared:$base"; break; }
+    done
+  fi
+  if [[ "$mode" == selected ]]; then
+    for changed in "${changes[@]}"; do
+      [[ -n "$changed" ]] || continue
+      if [[ "$changed" =~ ^scripts/tests/test_[^/]*$ ]]; then
+        picked[${changed##*/}]=1
+        continue
+      fi
+      for entry in "${shared[@]}"; do
+        # shellcheck disable=SC2053  # the entry is a glob pattern
+        [[ "$changed" == $entry ]] && { mode=all reason="shared:$changed"; break 2; }
+      done
+      hit=0
+      for base in "${!covers_of[@]}"; do
+        read -ra entries <<< "${covers_of[$base]}"
+        for entry in "${entries[@]}"; do
+          # shellcheck disable=SC2053  # the entry is a glob pattern
+          [[ "$changed" == $entry ]] && { picked[$base]=1; hit=1; break; }
+        done
+      done
+      (( hit )) || unlisted+=("$changed")
+    done
+  fi
+  [[ "$mode" == selected ]] || unlisted=()
+  for file in "${found[@]}"; do
+    base="${file##*/}"
+    [[ "$mode" == all || -v "picked[$base]" ]] || continue
+    names+=("$base")
+    case "$file" in
+      *.sh) sh_files+=("$file") ;;
+      *) ps1_files+=("$file") ;;
+    esac
+  done
+  echo "Script-suite selection: ${#names[@]} of ${#found[@]} files run (mode=$mode reason=$reason)${names[*]:+: ${names[*]}}${unlisted[*]:+; no covers line lists: ${unlisted[*]}}"
+  journal_event script-selection script-tests "mode=$mode" "reason=$reason" "files=${names[*]}" "unlisted=${unlisted[*]}"
+  if (( ${#names[@]} == 0 )); then
+    echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
+    return 0
+  fi
+  buf="$(mktemp -d)"
+  # Bash pairs with PowerShell only: same-runtime lanes contend on process-spawn cost.
+  run_script_test_lane "$buf" "${sh_files[@]}" &
+  sh_lane=$!
+  run_script_test_lane "$buf" "${ps1_files[@]}" &
+  ps1_lane=$!
+  # Armed after the fork: some bash builds run an inherited EXIT trap on lane exit.
+  trap "rm -rf '$buf'" EXIT
+  wait "$sh_lane" || rc=1
+  wait "$ps1_lane" || rc=1
+  for base in "${names[@]}"; do
+    cat "$buf/$base"
   done
   echo "SCRIPT_TEST_TOTAL_SECONDS=$((SECONDS - suite_started))"
-  [[ "$ran" -eq 1 ]] || echo "run-script-tests: no test files under $tests_dir." >&2
+  return "$rc"
+)
+
+# Sets SCRIPT_TEST_COVERS to the file's covers-line entries; 1 = none in its first 10 lines.
+read_covers_line() {
+  local line n=0
+  while (( n++ < 10 )) && IFS= read -r line; do
+    line="${line%$'\r'}"
+    if [[ "$line" == "# covers:"* ]]; then
+      SCRIPT_TEST_COVERS="${line#"# covers:"}"
+      return 0
+    fi
+  done < "$1"
+  return 1
+}
+
+# Runs its files in order; each file's output, trailer and verdict land in <buf>/<name>.
+run_script_test_lane() {
+  local buf="$1" file base rc sec started failed=0
+  shift
+  for file in "$@"; do
+    base="$(basename "$file")"
+    rc=0
+    started=$SECONDS
+    # A file must not read the runner's stdin: a pipe nobody closes would hang it.
+    case "$file" in
+      *.sh) bash "$file" < /dev/null > "$buf/$base" 2>&1 || rc=$? ;;
+      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" < /dev/null > "$buf/$base" 2>&1 || rc=$? ;;
+    esac
+    sec=$((SECONDS - started))
+    journal_event script-test script-tests "file=$base" "sec=$sec" "exit=$rc"
+    echo "SCRIPT_TEST_FILE=$base SECONDS=$sec EXIT=$rc" >> "$buf/$base"
+    if [[ "$rc" -eq 0 ]]; then
+      echo "PASS $base" >> "$buf/$base"
+    else
+      echo "FAIL $base (exit $rc)" >> "$buf/$base"
+      failed=1
+    fi
+  done
+  return "$failed"
+}
+
+# Own process group lets a refusal stop the suite, which must hold none of the gate's locks.
+SCRIPT_SUITE_PID=""
+SCRIPT_SUITE_LOG=""
+
+start_script_suite() {
+  local dir="$1" base_ref="$2" head_ref="$3" fd
+  SCRIPT_SUITE_LOG="$(mktemp)"
+  set -m
+  (
+    for fd in ${POOL_FLOCK_FDS:-}; do eval "exec ${fd}>&-"; done
+    unset POOL_FLOCK_FDS
+    cmd_run_script_tests "$dir" "$base_ref" "$head_ref"
+  ) > "$SCRIPT_SUITE_LOG" 2>&1 &
+  SCRIPT_SUITE_PID=$!
+  set +m
+}
+
+join_script_suite() {
+  local rc=0
+  wait "$SCRIPT_SUITE_PID" || rc=$?
+  SCRIPT_SUITE_PID=""
+  cat "$SCRIPT_SUITE_LOG"
+  rm -f "$SCRIPT_SUITE_LOG"
+  return "$rc"
+}
+
+stop_script_suite() {
+  [[ -n "$SCRIPT_SUITE_PID" ]] || return 0
+  local attempt
+  # Under Git Bash a child caught mid-exec can miss one group signal, so repeat until the group is empty.
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    kill -TERM -- "-$SCRIPT_SUITE_PID" 2>/dev/null || break
+    sleep 0.2
+  done
+  wait "$SCRIPT_SUITE_PID" 2>/dev/null || true
+  SCRIPT_SUITE_PID=""
+  rm -f "$SCRIPT_SUITE_LOG"
 }
 
 # 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
@@ -874,15 +1375,6 @@ require_pr_title_body() {
   if [[ -n "$body_file" && ! -f "$body_file" ]]; then
     echo "$cmd: --body-file not found: $body_file" >&2
     return 1
-  fi
-}
-
-resolve_pr_body() {
-  local body="$1" body_file="$2"
-  if [[ -n "$body_file" ]]; then
-    cat "$body_file"
-  else
-    printf '%s' "$body"
   fi
 }
 
@@ -958,7 +1450,20 @@ parse_pr_flags() {
         return 1 ;;
     esac
   done
-  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE"
+  require_pr_title_body "$cmd" "$PR_TITLE" "$PR_BODY" "$PR_BODY_FILE" || return 1
+  require_no_negated_close "$cmd"
+}
+
+# GitHub's keyword parser ignores negation: "does not close #N" still closes #N on merge.
+require_no_negated_close() {
+  local cmd="$1" rc=0
+  if [[ -n "$PR_BODY_FILE" ]]; then
+    python3 "$SCRIPT_DIR/lib/negated_close.py" < "$PR_BODY_FILE" || rc=$?
+  else
+    python3 "$SCRIPT_DIR/lib/negated_close.py" <<<"$PR_BODY" || rc=$?
+  fi
+  [[ "$rc" -eq 0 ]] || echo "$cmd: refusing the PR body — reword the lines above; no PR was created" >&2
+  return "$rc"
 }
 
 # Push the slot branch to its minted task branch and open the PR (or report the open one).
@@ -975,8 +1480,11 @@ push_and_open_pr() {
     return 0
   fi
 
+  # gh reads the file itself: inlining a large body overflows Windows' ~32 KB command line.
+  local body_args=(--body "$PR_BODY")
+  [[ -z "$PR_BODY_FILE" ]] || body_args=(--body-file "$PR_BODY_FILE")
   local url
-  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" --body "$(resolve_pr_body "$PR_BODY" "$PR_BODY_FILE")")"
+  url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$PR_TITLE" "${body_args[@]}")"
   echo "$slot PR created: $url"
 }
 
@@ -990,7 +1498,7 @@ cmd_create_pr() {
     shift
   fi
 
-  parse_pr_flags "create-pr" 0 "$@" || return 1
+  parse_pr_flags "create-pr" 0 "$@" || return
   require_gh || return 1
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
@@ -1019,7 +1527,7 @@ cmd_submit() {
 
   # Preflight: flags and tooling are checked before the test run so a missing one fails in
   # seconds, not after a full suite.
-  parse_pr_flags "submit" 1 "$@" || return 1
+  parse_pr_flags "submit" 1 "$@" || return
   require_gh || return 1
 
   local base_branch
@@ -1053,6 +1561,7 @@ MERGE_RUNS_DIR="${WORKTREE_POOL_MERGE_RUNS_DIR:-$ROOT/.worktree-pool/merge-runs}
 # passes must still land.
 merge_phase_budget() {
   case "$1" in
+    turn-wait) echo 900 ;;
     preflight) echo 10 ;;
     fetch) echo 15 ;;
     base-merge) echo 15 ;;
@@ -1060,7 +1569,7 @@ merge_phase_budget() {
     tests) echo 480 ;;
     remote-proof) echo 900 ;;
     resharper) echo 360 ;;
-    script-tests) echo 360 ;;
+    script-tests) echo 1200 ;;
     push) echo 30 ;;
     base-recheck) echo 15 ;;
     gh-merge) echo 20 ;;
@@ -1116,7 +1625,7 @@ journal_event() {
 
 merge_journal_open() {
   local slot="$1" base_ref="$2" ldir
-  MERGE_RUN_START="$(date +%s)"
+  MERGE_RUN_START=$EPOCHSECONDS
   MERGE_JOURNAL_PID="$BASHPID"
   mkdir -p "$MERGE_RUNS_DIR" 2>/dev/null || return 0
   # $$ disambiguates two runs opening in the same second; the truncation below would eat the earlier journal.
@@ -1128,19 +1637,28 @@ merge_journal_open() {
   journal_event run-start "" "slot=$slot" "base=$base_ref" "pid=$$" "epoch=$MERGE_RUN_START"
 }
 
+# with_flock's exec drops shell state, so the journal and open phase cross as arguments.
+merge_journal_adopt() {
+  MERGE_JOURNAL="$1"
+  MERGE_RUN_START="$2"
+  MERGE_PHASE="$3"
+  MERGE_PHASE_START="$4"
+  MERGE_JOURNAL_PID="$BASHPID"
+}
+
 # Reaching the next phase is itself proof the previous one succeeded, so a begin
 # closes the open phase and no call site has to pair them.
 merge_phase_begin() {
   merge_phase_end ok
   MERGE_PHASE="$1"
-  MERGE_PHASE_START="$(date +%s)"
+  MERGE_PHASE_START=$EPOCHSECONDS
   journal_event phase-start "$MERGE_PHASE"
 }
 
 merge_phase_end() {
   [[ -n "$MERGE_PHASE" ]] || return 0
   local status="${1:-ok}" sec
-  sec=$(( $(date +%s) - MERGE_PHASE_START ))
+  sec=$(( EPOCHSECONDS - MERGE_PHASE_START ))
   journal_event phase-end "$MERGE_PHASE" "sec=$sec" "status=$status" "budget=$(merge_phase_budget "$MERGE_PHASE")"
   MERGE_PHASE=""
 }
@@ -1161,7 +1679,7 @@ merge_journal_finish() {
     merge_phase_end failed
     status="failed"
   fi
-  journal_event run-end "" "sec=$(( $(date +%s) - MERGE_RUN_START ))" "status=$status" "exit=$code"
+  journal_event run-end "" "sec=$(( EPOCHSECONDS - MERGE_RUN_START ))" "status=$status" "exit=$code"
   echo ""
   merge_journal_render "$MERGE_JOURNAL"
 }
@@ -1217,6 +1735,7 @@ END {
     if (openPhase == "" || ended) exit
     line = openPhase " " fmt(openElapsed) " OPEN"
     if (openBudget > 0 && openElapsed > openBudget) line = line " (over budget " fmt(openBudget) ")"
+    if (openDetail != "") line = line " " openDetail
     print line
     exit
   }
@@ -1243,6 +1762,7 @@ END {
       warned++
     }
     else if (openBudget > 0) line = line sprintf(" - budget %s", fmt(openBudget))
+    if (openDetail != "") line = line "   " openDetail
     if (openPhase in note) line = line "   " note[openPhase]
     print line
   }
@@ -1261,11 +1781,19 @@ merge_journal_open_phase() {
 }
 
 merge_journal_render() {
-  local journal="$1" oneline="${2:-0}" open_phase open_budget
+  local journal="$1" oneline="${2:-0}" slot="${3:-}" open_phase open_budget open_detail="" holder place
   [[ -f "$journal" ]] || return 0
   open_phase="$(merge_journal_open_phase "$journal")"
   open_budget="$(merge_phase_budget "${open_phase:-none}")"
-  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline"     "$MERGE_RENDER_AWK" "$journal"
+  # Read live rather than journaled: the turn changes hands and the line moves while a gate waits.
+  if [[ "$open_phase" == turn-wait ]]; then
+    holder="$(merge_turn_holder)"
+    place="$(merge_turn_place "$slot")"
+    [[ -z "$holder" ]] || open_detail="behind $holder"
+    [[ -z "$place" ]] || open_detail+="${open_detail:+, }place $place in line"
+  fi
+  awk -v nowEpoch="$(date +%s)" -v openBudget="$open_budget" -v oneline="$oneline" -v openDetail="$open_detail" \
+    "$MERGE_RENDER_AWK" "$journal"
 }
 
 # Resolve a slot's journal: the live pointer first, else the newest run file (the
@@ -1288,10 +1816,10 @@ cmd_merge_progress() {
     return 0
   fi
   if [[ "$mode" == "--oneline" ]]; then
-    merge_journal_render "$journal" 1
+    merge_journal_render "$journal" 1 "$slot"
     return 0
   fi
-  merge_journal_render "$journal"
+  merge_journal_render "$journal" 0 "$slot"
   echo "  journal: $journal"
 
   # Separates a hung editor from a slow suite far better than a pid check.
@@ -1334,9 +1862,14 @@ remote_status() {
     "[.[] | select(.context == \"$context\")][0] // {state: \"absent\"} | [.state, .description // \"\", .target_url // \"\"] | join(\"\")"
 }
 
-# Prints "<status>\t<run id>" for the newest headless-suite run on a commit; status "none" when there is none.
+# Prints "<status>\t<run id>" for run <id> when given, else for the newest headless-suite run on a commit;
+# status "none" when there is none.
 remote_run() {
-  local sha="$1"
+  local sha="$1" id="${2:-}"
+  if [[ -n "$id" ]]; then
+    gh run view "$id" --json databaseId,status --jq '[.status, .databaseId] | @tsv'
+    return
+  fi
   gh run list --workflow "$REMOTE_PROOF_WORKFLOW" --commit "$sha" --limit 1 --json databaseId,status --jq \
     '.[0] // {status: "none", databaseId: ""} | [.status, .databaseId] | @tsv'
 }
@@ -1399,14 +1932,14 @@ accept_remote_resharper_proof() {
 wait_for_remote_verdict() {
   local slot="$1" sha="$2" task_branch="$3"
   local started=$SECONDS phase_status="" phase_since=$SECONDS
-  local run run_status run_id context status state description url owed
+  local run run_status run_id context status state description url owed named run_ref=""
   while :; do
-    if ! run="$(remote_run "$sha")"; then
+    if ! run="$(remote_run "$sha" "$run_ref")"; then
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
     IFS=$'\t' read -r run_status run_id <<< "$run"
-    owed=""
+    owed="" named=""
     for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT"; do
       if ! status="$(remote_status "$sha" "$context")"; then
         echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
@@ -1422,7 +1955,8 @@ wait_for_remote_verdict() {
           echo "  Red tests or ratchet findings: fix, 'revise', re-run merge. A run that died before the suite started (runner/infra):" >&2
           echo "  'gh run rerun $run_id' re-posts both verdicts on the same commit; then re-run 'merge $slot --remote'." >&2
           return 1 ;;
-        pending) owed=pending ;;
+        # The job posts headless pending first, so the first pending context names the newest run.
+        pending) owed=pending; [[ -n "$named" ]] || named="$(run_id_from_url "$url")" ;;
         absent) owed="${owed:-absent}" ;;
         *)
           echo "merge: $context on $sha has unknown state '$state' — no remote proof; not merging." >&2
@@ -1430,6 +1964,11 @@ wait_for_remote_verdict() {
       esac
     done
     [[ -n "$owed" ]] || return 0
+    # The runs listing lags a run's own statuses: judge a pending status by the run it names, read first.
+    if [[ -n "$named" && "$named" != "$run_id" ]]; then
+      run_ref="$named"
+      continue
+    fi
     state="$owed"
     [[ "$run_status" == "$phase_status" ]] || { phase_status="$run_status"; phase_since=$SECONDS; }
     case "$run_status" in
@@ -1499,6 +2038,99 @@ boot_admission_status() {
 }
 
 # ---- Merge gate ------------------------------------------------------------
+# 'lock merge-turn' takes this same file, so any other push to base waits its turn.
+MERGE_TURN_LOCK="$LOCK_ROOT/merge-turn.lock"
+MERGE_TURN_HOLDER="$LOCK_ROOT/merge-turn.holder"
+MERGE_TURN_WAIT_SECONDS="${WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS:-3600}"
+MERGE_TURN_POLL_SECONDS="${WORKTREE_POOL_MERGE_TURN_POLL_SECONDS:-0.1}"
+
+# The stamp tells two holds by one slot apart, for a waiter timing a single holder.
+merge_turn_publish() { printf '%s %s\n' "$1" "$EPOCHSECONDS" > "$MERGE_TURN_HOLDER"; }
+
+# Empty when the turn is free or a 'lock merge-turn' caller holds it.
+merge_turn_holder() { cut -d' ' -f1 "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
+
+# The line is the live turn tickets (<slot>.turn-ticket, one arrival time each) in arrival order.
+# A ticket is live while its gate holds its flock, so a probe that takes that flock found it dead.
+MERGE_TURN_LINE_PL='
+  use strict;
+  use warnings;
+  use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
+  use Time::HiRes qw(time);
+  sub ticket_path { "$_[0]/$_[1].turn-ticket" }
+  sub arrival {
+    open my $fh, "<", $_[0] or return;
+    my $line = <$fh>;
+    return defined $line && $line =~ /^(\d+\.\d+)$/ ? $1 : undef;
+  }
+  sub live {
+    open my $fh, ">>", $_[0] or return 0;
+    return !flock($fh, LOCK_EX | LOCK_NB);
+  }
+  # Live tickets ahead of the one <slot> holds; undef when it holds none.
+  sub ahead {
+    my ($root, $slot) = @_;
+    my $mine = arrival(ticket_path($root, $slot));
+    return unless defined $mine;
+    opendir my $dir, $root or die "Pool lock root $root: $!\n";
+    my $ahead = 0;
+    for my $name (readdir $dir) {
+      next unless $name =~ /^(.+)\.turn-ticket$/ && $1 ne $slot;
+      my $other = $1;
+      my $theirs = arrival("$root/$name");
+      next unless defined $theirs && ($theirs < $mine || ($theirs == $mine && $other lt $slot));
+      $ahead++ if live("$root/$name");
+    }
+    return $ahead;
+  }
+'
+
+# Runs <cmd...> holding the merge turn, taken in turn-ticket order behind every live earlier ticket.
+# Exits LOCK_BUSY_EXIT once it has watched one holder keep the turn for MERGE_TURN_WAIT_SECONDS.
+with_merge_turn() {
+  local slot="$1"
+  shift
+  perl -e "$MERGE_TURN_LINE_PL"'
+    my ($turn_path, $holder_path, $root, $slot, $cap, $poll, $busy_exit) = splice @ARGV, 0, 7;
+    open my $ticket, ">>", ticket_path($root, $slot) or die "Turn ticket for $slot: $!\n";
+    # Blocking: a probe holds this flock for an instant, and must not refuse the gate it probes.
+    flock($ticket, LOCK_EX) or die "Turn ticket lock for $slot: $!\n";
+    truncate($ticket, 0) or die "Turn ticket for $slot: $!\n";
+    syswrite($ticket, sprintf("%.6f\n", time())) or die "Turn ticket for $slot: $!\n";
+    open my $turn, ">>", $turn_path or die "Pool lock $turn_path: $!\n";
+    my $holder = sub { open my $fh, "<", $holder_path or return ""; local $/; return <$fh> // "" };
+    my ($watched, $since) = ($holder->(), time());
+    until (!ahead($root, $slot) && flock($turn, LOCK_EX | LOCK_NB)) {
+      my $now = $holder->();
+      if ($now ne $watched) { ($watched, $since) = ($now, time()) }
+      elsif (time() - $since >= $cap) { exit $busy_exit }
+      select(undef, undef, undef, $poll);
+    }
+    # A gate holding the turn has left the line.
+    close $ticket;
+    fcntl($turn, F_SETFD, 0) or die "Pool lock inheritance: $!\n";
+    $ENV{POOL_FLOCK_FDS} = join " ", split(" ", $ENV{POOL_FLOCK_FDS} // ""), fileno($turn);
+    exec @ARGV or die "Pool lock exec: $!\n";
+  ' "$MERGE_TURN_LOCK" "$MERGE_TURN_HOLDER" "$LOCK_ROOT" "$slot" "$MERGE_TURN_WAIT_SECONDS" "$MERGE_TURN_POLL_SECONDS" \
+    "$LOCK_BUSY_EXIT" bash -c 'source "$1"; shift; "$@"' pool-mutation "$SCRIPT_DIR/agent_worktree_pool.sh" "$@"
+}
+
+# <slot>'s place in the line, 1 = next to take the turn; empty when it holds no live ticket.
+merge_turn_place() {
+  perl -e "$MERGE_TURN_LINE_PL"'
+    my ($root, $slot) = @ARGV;
+    my $ahead = ahead($root, $slot);
+    print(($ahead + 1) . "\n") if defined $ahead && live(ticket_path($root, $slot));
+  ' "$LOCK_ROOT" "$1"
+}
+
+merge_turn_release() {
+  # A ( ) subshell can run the inherited EXIT trap; only the gate's own shell ends its turn.
+  [[ "$BASHPID" == "$MERGE_JOURNAL_PID" ]] || return 0
+  rm -f "$MERGE_TURN_HOLDER"
+  if [[ "$1" -eq 0 ]]; then merge_phase_end ok; else merge_phase_end failed; fi
+}
+
 cmd_merge() {
   local slot="$1"
   shift || true
@@ -1516,9 +2148,41 @@ cmd_merge() {
   fi
 
   merge_journal_open "$slot" "$base_ref"
+  trap 'merge_rc=$?; merge_journal_finish "$merge_rc"' EXIT
+  # Opened before the turn is asked for, so a waiting gate shows as one.
+  merge_phase_begin turn-wait
+
+  local turn_rc=0 holder
+  with_merge_turn "$slot" \
+    merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "${test_args[@]}" || turn_rc=$?
+  if [[ "$turn_rc" -eq "$LOCK_BUSY_EXIT" ]]; then
+    holder="$(merge_turn_holder)"
+    if [[ -n "$holder" ]]; then
+      echo "merge: $holder has held the merge turn for ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not merging." >&2
+      echo "  Follow its gate with 'merge-progress $holder', then re-run 'merge $slot'." >&2
+    else
+      echo "merge: the merge turn has been held for ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK), and not by a merge gate — not merging." >&2
+      echo "  A 'lock merge-turn' caller (a docs-only landing) or a child of a killed gate holds it; re-run 'merge $slot' once it is gone." >&2
+    fi
+    merge_journal_note "turn held for ${MERGE_TURN_WAIT_SECONDS}s by ${holder:-a holder that is not a merge gate}"
+    return "$turn_rc"
+  fi
+  # merge_gate's shell closes turn-wait and every later phase, so this shell must not.
+  MERGE_PHASE=""
+  return "$turn_rc"
+}
+
+# Runs holding the merge turn, in the shell with_merge_turn starts for it.
+merge_gate() {
+  merge_journal_adopt "$1" "$2" turn-wait "$3"
+  local slot="$4" base_ref="$5" remote="$6"
+  shift 6
+  local test_args=("$@")
+
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
-  trap 'merge_journal_finish "$?"' EXIT
+  trap 'merge_rc=$?; stop_script_suite; merge_turn_release "$merge_rc"' EXIT
+  merge_turn_publish "$slot"
   merge_phase_begin preflight
 
   require_gh || return 1
@@ -1581,6 +2245,16 @@ cmd_merge() {
   [[ "$github_diff_rc" -ne 2 ]] || return 1
   if [[ "$github_diff_rc" -eq 0 ]]; then
     remote_reason="no remote proof: the landing diff touches .github/, so this merge needs the local run"
+  fi
+  local scripts_diff_rc=0
+  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
+  [[ "$scripts_diff_rc" -ne 2 ]] || return 1
+  # Needs only the landing tree, so it overlaps the test run, hosted wait and ratchet.
+  # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
+  if [[ "$scripts_diff_rc" -eq 0 ]]; then
+    echo "Landing diff touches scripts/ — the script suite runs alongside the rest of the gate."
+    merge_journal_note "script suite started alongside the gate"
+    start_script_suite "$path" "$base_ref" "$slot"
   fi
 
   case "$delta" in
@@ -1680,6 +2354,10 @@ cmd_merge() {
     && ratchet_reason="$(accept_remote_resharper_proof "$slot" "$path" "$landing_sha" "$base_ref")"; then
     echo "Landing commit $landing_sha carries a green $REMOTE_RESHARPER_CONTEXT status for this tree and base — hosted ratchet accepted, no local ratchet run."
     merge_journal_note "hosted ratchet accepted on the landing commit"
+  elif [[ "$remote" -eq 1 && "$base_ref" == origin/main && "$ratchet_reason" == *" stamps baseTree "* ]]; then
+    # The hosted ratchet stamps the main it fetched; another baseTree means main moved since.
+    echo "merge: $ratchet_reason; base moved during the merge gate — re-run 'merge $slot --remote'." >&2
+    return 1
   elif [[ "$remote" -eq 1 ]]; then
     echo "merge: $ratchet_reason; the hosted path runs no local ReSharper ratchet — not merging." >&2
     echo "  'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch' re-posts both verdicts; then re-run 'merge $slot --remote'." >&2
@@ -1689,14 +2367,10 @@ cmd_merge() {
     cmd_run_resharper "$slot" "$base_ref"
   fi
 
-  local scripts_diff_rc=0
-  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
-  [[ "$scripts_diff_rc" -ne 2 ]] || return 1
-  # Depth is bounded: the suite runs the SLOT's scripts/tests, and a test fixture's slot carries none.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
     merge_phase_begin script-tests
-    merge_journal_note "landing diff touches scripts/ - running the script suite"
-    cmd_run_script_tests "$path"
+    merge_journal_note "joining the script suite started alongside the gate"
+    join_script_suite
   fi
 
   merge_phase_begin push
@@ -1886,12 +2560,19 @@ main() {
     exit 1
   fi
 
-  local cmd="$1"
+  local cmd="$1" path
   shift || true
+
+  # Reads (status, merge-progress) never count as use: the dashboard runs both on every slot.
+  case "$cmd" in
+    prepare|run-tests|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
+      if [[ $# -ge 1 ]]; then mark_slot_used "$1"; fi
+      ;;
+  esac
 
   case "$cmd" in
     status)
-      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; else cmd_status; fi
+      if [[ "${1:-}" == "--porcelain" ]]; then collect_slot_records; collect_held_records; else cmd_status; fi
       ;;
     acquire) cmd_acquire "$@" ;;
     release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
@@ -1899,15 +2580,31 @@ main() {
     run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
     run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
-      cmd_run_script_tests "$@"
+      require_slot_arg "run-script-tests requires <slot>" "$#"
+      path="$(slot_path "$1")" || { echo "run-script-tests: unknown slot '$1'" >&2; exit 1; }
+      cmd_run_script_tests "$path"
       ;;
     create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
     submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
-    merge) require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"; cmd_merge "$@" ;;
+    merge)
+      require_slot_arg "merge requires <slot> [base_ref] [-- test_args...]" "$#"
+      # Two gates on one slot race each other's pushes and cancel each other's hosted runs.
+      with_flock "$LOCK_ROOT/$1.merge" 0 \
+        "merge: a merge gate is already running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
+        cmd_merge "$@"
+      ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
     revise) require_slot_arg "revise requires <slot> [--no-test] [-- test_args...]" "$#"; cmd_revise "$@" ;;
+    hold)
+      require_slot_arg "hold requires <slot> [--local]" "$#"
+      with_flock "$LOCK_ROOT/$1.merge" 0 \
+        "hold: a merge gate is running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
+        cmd_hold "$@"
+      ;;
+    resume) require_slot_arg "resume requires <lease> [slot]" "$#"; cmd_resume "$@" ;;
+    lock) cmd_lock "$@" ;;
     -h|--help|help) usage ;;
     *)
       echo "Unknown command: $cmd" >&2

@@ -4,6 +4,7 @@ using AI;
 using AI.Scanning;
 using Ships;
 using Ships.Command;
+using Ships.Loadout;
 using UnityEngine;
 using ShipFactory = Ships.Factory;
 using Ships.Registry;
@@ -30,11 +31,16 @@ namespace Substrate.Services.Units
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
+        /// <summary>Every spawned or adopted ship is parented here; null until <see cref="Initialize"/>.</summary>
+        public Transform UnitsRoot { get; private set; }
+
         /// <summary>Composition-time wiring only (<c>ShipServices.Compose</c>): arming a weapon throws until the projectile registry lands here.</summary>
-        public void Initialize(IProjectileService projectiles, bool presentationEnabled)
+        public void Initialize(IProjectileService projectiles, bool presentationEnabled, Transform root)
         {
             this.projectiles = projectiles;
             this.presentationEnabled = presentationEnabled;
+            UnitsRoot = new GameObject("Units").transform;
+            UnitsRoot.SetParent(root, false);
         }
 
         public event Action<Ship> OnShipSpawned;
@@ -45,7 +51,8 @@ namespace Substrate.Services.Units
             int team,
             Vector3 position,
             Quaternion rotation,
-            IObstacleField field)
+            IObstacleField field,
+            ShipLoadout loadout = null)
         {
             if (!template)
                 throw new ArgumentNullException(nameof(template));
@@ -53,9 +60,15 @@ namespace Substrate.Services.Units
             var ship = ShipFactory.CreateShip(
                 template, commander, team, NextDecisionSeed(team), projectiles,
                 position, rotation,
-                postInitialize: spawned => WireShipDependencies(spawned, field));
+                postInitialize: spawned =>
+                {
+                    // An AI commander captures dynamics and muzzle speed when wired, so the equip lands first.
+                    if (loadout != null)
+                        spawned.Reequip(loadout.Engine, loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
+                    WireShipDependencies(spawned, field);
+                });
 
-            ship.transform.SetParent(transform, true);
+            ship.transform.SetParent(UnitsRoot, true);
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
             OnShipSpawned?.Invoke(ship);
@@ -66,9 +79,13 @@ namespace Substrate.Services.Units
         {
             if (!ship)
                 return null;
+            if (!ship.gameObject.activeSelf)
+                throw new InvalidOperationException(
+                    $"Adopted ship '{ship.name}' is inactive: an adopted ship must be authored active " +
+                    "(use AdoptedShip.startActive to start it inactive).");
 
-            // Re-home from the sector to the arena root so lifetime/Clear() matches a spawned ship.
-            ship.transform.SetParent(transform, true);
+            // Re-home from the sector to the units root so lifetime/Clear() matches a spawned ship.
+            ship.transform.SetParent(UnitsRoot, true);
 
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)

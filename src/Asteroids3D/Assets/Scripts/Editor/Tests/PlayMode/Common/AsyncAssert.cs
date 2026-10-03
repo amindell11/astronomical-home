@@ -32,10 +32,7 @@ public static class AsyncAssert
         while (Time.realtimeSinceStartup < deadline)
         {
             if (condition())
-            {
-                Assert.Pass();
                 yield break;
-            }
 
             if (useFixedUpdate)
                 yield return new WaitForFixedUpdate();
@@ -104,56 +101,6 @@ public static class AsyncAssert
         }
         if (condition())
             Assert.Fail(failureMessage);
-    }
-
-    /// <summary>
-    /// Polls until a float value is within tolerance of a target, or times out.
-    /// </summary>
-    /// <param name="getValue">Function that returns the current value</param>
-    /// <param name="target">Target value</param>
-    /// <param name="tolerance">Acceptable tolerance</param>
-    /// <param name="timeoutSec">Timeout in seconds</param>
-    /// <param name="failureMessage">Custom failure message</param>
-    /// <param name="useFixedUpdate">If true, uses WaitForFixedUpdate; otherwise yields null (default)</param>
-    /// <returns>IEnumerator for use in UnityTest</returns>
-    public static IEnumerator WaitForFloatWithinTolerance(
-        Func<float> getValue,
-        float target,
-        float tolerance,
-        float timeoutSec,
-        string failureMessage = "Value did not reach target within timeout",
-        bool useFixedUpdate = false)
-    {
-        return WaitUntilThen(
-            () => Mathf.Abs(getValue() - target) < tolerance,
-            timeoutSec,
-            () => Assert.That(getValue(), Is.EqualTo(target).Within(tolerance), failureMessage),
-            useFixedUpdate);
-    }
-
-    /// <summary>
-    /// Polls until a Vector2 distance is within threshold of target, or times out.
-    /// </summary>
-    /// <param name="getPosition">Function that returns the current position</param>
-    /// <param name="target">Target position</param>
-    /// <param name="threshold">Distance threshold</param>
-    /// <param name="timeoutSec">Timeout in seconds</param>
-    /// <param name="failureMessage">Custom failure message</param>
-    /// <param name="useFixedUpdate">If true, uses WaitForFixedUpdate; otherwise yields null (default)</param>
-    /// <returns>IEnumerator for use in UnityTest</returns>
-    public static IEnumerator WaitForVector2NearTarget(
-        Func<Vector2> getPosition,
-        Vector2 target,
-        float threshold,
-        float timeoutSec,
-        string failureMessage = "Position did not reach target within timeout",
-        bool useFixedUpdate = false)
-    {
-        return WaitUntilThen(
-            () => Vector2.Distance(getPosition(), target) < threshold,
-            timeoutSec,
-            () => Assert.That(Vector2.Distance(getPosition(), target), Is.LessThan(threshold), failureMessage),
-            useFixedUpdate);
     }
 }
 

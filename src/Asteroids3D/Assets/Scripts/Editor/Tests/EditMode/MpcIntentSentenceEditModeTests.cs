@@ -155,63 +155,46 @@ namespace Tests.EditMode
             Assert.That(Cost.Pos(default, ctx, BareConfig()), Is.EqualTo(0f));
         }
 
-        [Test]
-        public void SyntheticReferent_ExtrapolatesLinearly_PerStep()
+        // Three seats because AIM/POS/VEL can each bind a distinct rock — one seat per slot.
+        private static CostInput WithReferent(CostInput input, int seat, ReferentSnapshot snapshot)
+        {
+            switch (seat)
+            {
+                case 1: input.referent1 = snapshot; break;
+                case 2: input.referent2 = snapshot; break;
+                case 3: input.referent3 = snapshot; break;
+            }
+            return input;
+        }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        public void SyntheticReferent_ExtrapolatesLinearly_PerStep(int seat)
         {
             // dt 0.1 × step 5 = 0.5 s: the snapshot at (0,10) moving +X at 2 m/s resolves to (1,10).
-            var input = new CostInput
+            var input = WithReferent(new CostInput
             {
                 enemyYaw = float.NaN,   // no enemy at all — the slot lives on the synthetic referent alone
-                referent1 = new ReferentSnapshot { valid = true, pos = new float2(0f, 10f), vel = new float2(2f, 0f) },
-                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 1),
-            };
+                sentence = PosSentence(0f, 0f, 0f, 1f, referent: seat),
+            }, seat, new ReferentSnapshot { valid = true, pos = new float2(0f, 10f), vel = new float2(2f, 0f) });
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 5);
             Assert.That(ctx.posPoint.x, Is.EqualTo(1f).Within(1e-5f));
             Assert.That(ctx.posPoint.y, Is.EqualTo(10f).Within(1e-5f));
             Assert.That(ctx.posWeightScale, Is.EqualTo(1f));
         }
 
-        [Test]
-        public void SyntheticReferent_Invalid_DropsItsSlot()
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        public void SyntheticReferent_Invalid_DropsItsSlot(int seat)
         {
-            var input = new CostInput
+            var input = WithReferent(new CostInput
             {
                 enemyYaw = 0f,
                 enemyPos = new float2(0f, 10f),
-                referent2 = new ReferentSnapshot { valid = false },
-                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 2),
-            };
-            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
-            Assert.That(ctx.posWeightScale, Is.EqualTo(0f),
-                "a despawned referent silences its slot; the live enemy must not stand in for it");
-        }
-
-        [Test]
-        public void SyntheticReferent_ThirdSeat_ResolvesLikeTheFirstTwo()
-        {
-            // Seat 3 exists because AIM/POS/VEL can each bind a distinct rock — one seat per slot.
-            var input = new CostInput
-            {
-                enemyYaw = float.NaN,
-                referent3 = new ReferentSnapshot { valid = true, pos = new float2(0f, 10f), vel = new float2(2f, 0f) },
-                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 3),
-            };
-            var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 5);
-            Assert.That(ctx.posPoint.x, Is.EqualTo(1f).Within(1e-5f));
-            Assert.That(ctx.posPoint.y, Is.EqualTo(10f).Within(1e-5f));
-            Assert.That(ctx.posWeightScale, Is.EqualTo(1f));
-        }
-
-        [Test]
-        public void SyntheticReferent_ThirdSeatInvalid_DropsItsSlot()
-        {
-            var input = new CostInput
-            {
-                enemyYaw = 0f,
-                enemyPos = new float2(0f, 10f),
-                referent3 = new ReferentSnapshot { valid = false },
-                sentence = PosSentence(0f, 0f, 0f, 1f, referent: 3),
-            };
+                sentence = PosSentence(0f, 0f, 0f, 1f, referent: seat),
+            }, seat, new ReferentSnapshot { valid = false });
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
             Assert.That(ctx.posWeightScale, Is.EqualTo(0f),
                 "a despawned referent silences its slot; the live enemy must not stand in for it");

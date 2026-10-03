@@ -1,3 +1,4 @@
+# covers: scripts/unity_test_agent.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $tokens = $null

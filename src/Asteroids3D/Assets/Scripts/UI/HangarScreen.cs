@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
+using Combat.Weapons.Conditions;
 using Ships;
 using Ships.Loadout;
-using Ships.Weapons;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,9 +11,9 @@ using UnityEngine.UI;
 namespace UI
 {
     /// <summary>
-    /// Between-run hangar screen: populates the prefab-authored rows from the <see cref="LoadoutConfig"/>
-    /// catalog and writes picks into the pending <see cref="ShipLoadout"/>. Nothing touches the live
-    /// ship — the caller installs the selection when Launch fires.
+    /// Between-run hangar screen: populates the prefab-authored rows from the hangar's offer (a
+    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
+    /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class HangarScreen : MonoBehaviour
@@ -29,7 +29,7 @@ namespace UI
         [SerializeField] private Button optionButtonTemplate;
 
         [Header("Commit")]
-        [SerializeField] private Button launchButton;
+        [SerializeField] internal Button launchButton;
 
         [Header("Stats readout")]
         [Tooltip("Shows the hovered option's stats; falls back to the current selection.")]
@@ -50,44 +50,37 @@ namespace UI
         private readonly List<Action> refreshers = new();
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
-        public void Show(LoadoutConfig catalog, ShipLoadout loadout, Action onLaunch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
         {
-            EnsureEventSystem();
-
             if (optionButtonTemplate)
                 optionButtonTemplate.gameObject.SetActive(false);
 
             if (previewImage)
             {
-                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch);
+                // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
+                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent);
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);
             }
 
-            if (catalog)
+            if (offer)
             {
-                // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each catalog
-                // ship's authored mounts here, once, off the prefab's own WeaponsController.
-                var authoredMounts = new Dictionary<Ship, WeaponsController>();
-                foreach (var ship in catalog.ships ?? Array.Empty<Ship>())
-                    if (ship) authoredMounts[ship] = ship.GetComponent<WeaponsController>();
-
                 // Picking a ship reseeds the module slots to that ship's authored kit.
-                BuildRow(shipRow, catalog.ships, () => loadout.Ship, s =>
+                BuildRow(shipRow, offer.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
                     loadout.Shield = s.Shield;
-                    var mounts = authoredMounts[s];
+                    var mounts = s.Weapons;
                     loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);
                 }, Describe);
-                BuildRow(engineRow, catalog.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
-                BuildRow(shieldRow, catalog.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
-                BuildRow(primaryWeaponRow, catalog.weapons, () => loadout.PrimaryWeapon,
+                BuildRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
+                BuildRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BuildRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
-                BuildRow(secondaryWeaponRow, catalog.weapons, () => loadout.SecondaryWeapon,
+                BuildRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
                     w => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
@@ -122,8 +115,7 @@ namespace UI
                     setCurrent(captured);
                     RefreshHighlights();
                 });
-                // Stats are static serialized values; precompute so hover never runs the
-                // component lookups behind WeaponComponent.HangarStats.
+                // Stats are static serialized values; format once here, never per hover.
                 AddHoverStats(button.gameObject, describe(captured));
             }
 
@@ -153,7 +145,54 @@ namespace UI
         private static string Describe(ShieldModule shield) =>
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
 
-        private static string Describe(WeaponComponent weapon) => weapon.HangarStats;
+        // Reads offered prefab assets, where Awake never runs: every weapon property used must be serialized state.
+        internal static string Describe(WeaponComponent weapon)
+        {
+            var lasers = weapon as Lasers;
+            if (lasers)
+                return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
+                       (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
+
+            var chargeLasers = weapon as ChargeLasers;
+            if (chargeLasers)
+                return $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
+                       $"   |   Speed {chargeLasers.ProjectileSpeed:0}";
+
+            var railguns = weapon as Railguns;
+            if (railguns)
+                return $"Damage {railguns.Damage:0}   |   Range {railguns.BeamRange:0}{FullCharge(railguns.Charge)}   |   Hitscan";
+
+            var rippers = weapon as Rippers;
+            if (rippers)
+                return $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
+                       (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
+                       $"   |   Speed {rippers.ProjectileSpeed:0}";
+
+            var missiles = weapon as Missiles;
+            if (missiles)
+                return $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
+                       (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
+                       "   |   Lock-on homing";
+
+            var grenades = weapon as Grenades;
+            if (grenades)
+                return $"Blast {grenades.BlastDamage:0} to {grenades.BlastRadius:0}u, hits friend and foe" +
+                       (grenades.Rounds ? $"   |   {grenades.Rounds.MaxAmmo} charges{Refill(grenades.Rounds)}" : "") +
+                       $"   |   Fuse {grenades.FuseSeconds:0.#}s";
+
+            return weapon.DisplayName;
+        }
+
+        private static string Rate(float? shotsPerSecond) =>
+            shotsPerSecond is float rate ? $"   |   Rate {rate:0.#}/s" : "";
+
+        private static string FullCharge(ChargeTime charge) =>
+            charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
+
+        private static string Refill(Rounds rounds) =>
+            rounds.ReloadTime <= 0f ? ""
+            : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
+            : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
 
@@ -181,15 +220,6 @@ namespace UI
         {
             if (previewStage)
                 Destroy(previewStage.gameObject);
-        }
-
-        // uGUI needs an EventSystem to route pointer clicks; the game ships without one (HUD is
-        // display-only), so create a legacy-input one on demand if the scene has none.
-        private static void EnsureEventSystem()
-        {
-            if (EventSystem.current) return;
-            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-            DontDestroyOnLoad(go);
         }
     }
 }

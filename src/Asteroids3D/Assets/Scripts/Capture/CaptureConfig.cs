@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Capture
 {
@@ -23,6 +24,7 @@ namespace Capture
         public string runStamp;
         public int width = 960;
         public int height = 540;
+        [NonSerialized] public Action<Camera, Light> configureView;
         /// <summary>Capture cadence in fixed steps. 5 → 0.1 s of sim per frame at the default 0.02 fixed dt, real-time playback at 10 fps.</summary>
         public int everyFixedSteps = 5;
         public float minHalfHeight = 22f;

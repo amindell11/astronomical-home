@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Combat.Weapons;
 using UnityEngine;
@@ -20,22 +21,19 @@ namespace Combat.Weapons.Conditions
     /// Charge-up gate for hold-to-charge weapons. The owning weapon feeds it raw trigger state
     /// each physics step via <see cref="HandleTrigger"/>, which implements the shared charge
     /// semantics: charge accumulates while the trigger is held, the weapon fires on release at
-    /// or above <see cref="minChargeToFire"/> (or automatically the moment full charge is
-    /// reached, when <see cref="autoFireAtFull"/> — which is also how the AI fires charge
-    /// weapons, since it holds rather than timing a release). An unfired release drops the
-    /// charge; firing consumes it (<see cref="ProcessFire"/>).
+    /// or above <see cref="minChargeToFire"/>, or automatically the moment full charge is
+    /// reached while still held — which is also how the AI fires charge weapons, since it
+    /// holds rather than timing a release. An unfired release drops the charge; firing
+    /// consumes it (<see cref="ProcessFire"/>).
     /// </summary>
     public class ChargeTime : WeaponCondition, IChargeReadout
     {
         [Header("Charge System")]
         [Tooltip("Seconds of holding the trigger to reach full charge.")]
-        [SerializeField, Min(0.01f)] private float chargeTime = 1f;
+        [Stat, SerializeField, Min(0.01f)] private float chargeTime = 1f;
 
         [Tooltip("Fraction of full charge required to fire on release (1 = full charge only).")]
-        [SerializeField, Range(0f, 1f)] private float minChargeToFire = 0.3f;
-
-        [Tooltip("Fire automatically the moment full charge is reached while still holding.")]
-        [SerializeField] private bool autoFireAtFull = true;
+        [Stat, SerializeField, Range(0f, 1f)] private float minChargeToFire = 0.3f;
 
         private bool wasHeld;
 
@@ -57,7 +55,7 @@ namespace Combat.Weapons.Conditions
             if (held)
             {
                 SetCharge(Mathf.Min(1f, ChargePct + dt / chargeTime));
-                return autoFireAtFull && ChargePct >= 1f;
+                return ChargePct >= 1f;
             }
 
             if (releaseEdge && ChargePct >= minChargeToFire)
@@ -89,11 +87,10 @@ namespace Combat.Weapons.Conditions
         /// Configures the charge curve at runtime (weapon tuning / tests) and resets to empty.
         /// Serialized fields act as the authored inspector defaults.
         /// </summary>
-        public void Configure(float chargeTime, float minChargeToFire, bool autoFireAtFull)
+        public void Configure(float chargeTime, float minChargeToFire)
         {
             this.chargeTime = chargeTime;
             this.minChargeToFire = minChargeToFire;
-            this.autoFireAtFull = autoFireAtFull;
             Reset();
         }
 

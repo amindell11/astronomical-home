@@ -1,4 +1,6 @@
+using Balance;
 using System;
+using System.Collections.Generic;
 using Combat.Weapons;
 using UnityEngine;
 
@@ -22,11 +24,17 @@ namespace Combat.Weapons.Conditions
 
     public class Rounds : WeaponCondition, IAmmoReadout
     {
-        [Header("Ammo System")]
-        [SerializeField] private int maxAmmo = 4;
+        public enum RefillMode { Magazine = 0, PerRound = 1 }
 
-        [Tooltip("Seconds to auto-refill the magazine after it empties. 0 = never; ammo only refills on Reset (ship respawn).")]
-        [SerializeField, Min(0f)] private float reloadTime = 0f;
+        [Header("Ammo System")]
+        [Stat, SerializeField] private int maxAmmo = 4;
+
+        [Tooltip("Seconds until spent rounds come back (see Refill). 0 = never; ammo only refills on Reset (ship respawn).")]
+        [Stat, SerializeField, Min(0f)] private float reloadTime = 0f;
+
+        [Tooltip("Magazine: the whole magazine refills Reload Time after it empties. " +
+                 "PerRound: each round comes back Reload Time after it was fired.")]
+        [Stat, SerializeField] private RefillMode refill = RefillMode.Magazine;
 
         public event Action<int> OnAmmoCountChanged;
         public event Action OnReloadStarted;
@@ -35,10 +43,19 @@ namespace Combat.Weapons.Conditions
         public int AmmoCount { get; private set; }
         public int MaxAmmo => maxAmmo;
         public float ReloadTime => reloadTime;
+        public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
-        public float ReloadProgress => IsReloading ? Mathf.Clamp01(reloadElapsed / reloadTime) : 0f;
+
+        public float ReloadProgress =>
+            !IsReloading ? 0f
+            : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / reloadTime)
+            : Mathf.Clamp01(reloadElapsed / reloadTime);
 
         private float reloadElapsed;
+
+        // FIFO works because every round shares one duration: the front always lands first.
+        private readonly Queue<float> roundDueTimes = new();
+        private float regenClock;
 
         private void Awake()
         {
@@ -56,6 +73,14 @@ namespace Combat.Weapons.Conditions
         {
             if (!IsReloading) return;
 
+            if (refill == RefillMode.PerRound)
+                TickPerRound(dt);
+            else
+                TickMagazine(dt);
+        }
+
+        private void TickMagazine(float dt)
+        {
             reloadElapsed += dt;
             if (reloadElapsed < reloadTime) return;
 
@@ -65,10 +90,33 @@ namespace Combat.Weapons.Conditions
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
 
+        private void TickPerRound(float dt)
+        {
+            regenClock += dt;
+            var restored = 0;
+            while (roundDueTimes.Count > 0 && roundDueTimes.Peek() <= regenClock)
+            {
+                roundDueTimes.Dequeue();
+                restored++;
+            }
+            if (restored == 0) return;
+
+            AmmoCount += restored;
+            if (roundDueTimes.Count == 0)
+            {
+                IsReloading = false;
+                regenClock = 0f;
+                OnReloadCompleted?.Invoke();
+            }
+            OnAmmoCountChanged?.Invoke(AmmoCount);
+        }
+
         public override void Reset()
         {
             IsReloading = false;
             reloadElapsed = 0f;
+            roundDueTimes.Clear();
+            regenClock = 0f;
             AmmoCount = maxAmmo;
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
@@ -82,23 +130,35 @@ namespace Combat.Weapons.Conditions
         {
             AmmoCount--;
             OnAmmoCountChanged?.Invoke(AmmoCount);
+            if (reloadTime <= 0f) return;
 
-            if (AmmoCount <= 0 && reloadTime > 0f)
+            if (refill == RefillMode.PerRound)
             {
-                IsReloading = true;
-                reloadElapsed = 0f;
-                OnReloadStarted?.Invoke();
+                roundDueTimes.Enqueue(regenClock + reloadTime);
+                if (!IsReloading) StartReload();
             }
+            else if (AmmoCount <= 0)
+            {
+                reloadElapsed = 0f;
+                StartReload();
+            }
+        }
+
+        private void StartReload()
+        {
+            IsReloading = true;
+            OnReloadStarted?.Invoke();
         }
 
         /// <summary>
         /// Configures the magazine at runtime (weapon tuning / upgrades) and resets it to full.
         /// Serialized fields act as the authored inspector defaults.
         /// </summary>
-        public void Configure(int maxAmmo, float reloadTime)
+        public void Configure(int maxAmmo, float reloadTime, RefillMode refill = RefillMode.Magazine)
         {
             this.maxAmmo = maxAmmo;
             this.reloadTime = reloadTime;
+            this.refill = refill;
             Reset();
         }
     }

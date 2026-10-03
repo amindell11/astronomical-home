@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
 
 # Regression for the shared PR seams (#456): one flag grammar for create-pr/submit, a PR lookup
 # that refuses a missing head branch, and the single-owner Unity churn classifier the pool shells
@@ -67,6 +68,26 @@ out="$(expect_reject "submit must reject a bare positional before --" submit age
 out="$(expect_reject "submit must require a body" submit agent-1 --title t -- -Mode EditMode)"
 [[ "$out" == *"missing required --body"* ]] || fail "submit should validate flags before running tests (got: $out)"
 
+# --- a negated closing keyword still closes on merge: refused before anything runs ----------
+rc=0; out="$(pool create-pr agent-1 --title t --body $'Summary.\nDoes not close #617; the arc stays open.' 2>&1)" || rc=$?
+[[ "$rc" -eq 2 ]] || fail "create-pr should exit 2 on a negated close (rc=$rc, got: $out)"
+[[ "$out" == *"line 2: Does not close #617; the arc stays open."* && "$out" == *'"Relates to #617"'* ]] \
+  || fail "create-pr should print the offending line and the rewording (got: $out)"
+
+printf "Won't fix: #12\n" > "$TMP/negated-body.md"
+rc=0; out="$(pool submit agent-1 --title t --body-file "$TMP/negated-body.md" -- -Mode EditMode 2>&1)" || rc=$?
+[[ "$rc" -eq 2 && "$out" == *"line 1: Won't fix: #12"* ]] || fail "submit should refuse a negated close in a body file (rc=$rc, got: $out)"
+
+# The check passes these bodies, so the run goes on to the (empty) slot's no-commits skip; the gh
+# stub only satisfies require_gh and fails any real call.
+mkdir -p "$TMP/bin"
+printf '#!/usr/bin/env bash\necho "unexpected gh call: $*" >&2\nexit 99\n' > "$TMP/bin/gh"
+chmod +x "$TMP/bin/gh"
+for body in "Closes #617." "Not closing #617: GitHub has no 'closing' keyword." "No issue refs at all."; do
+  rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 --title t --body "$body" 2>&1)" || rc=$?
+  [[ "$rc" -eq 0 && "$out" == *"no commits ahead"* ]] || fail "create-pr should accept '$body' (rc=$rc, got: $out)"
+done
+
 # --- PR lookup refuses a missing head branch ---------------------------------------------
 # Sourced, not executed: the guard at the foot of the pool script leaves the functions defined.
 set +u
@@ -76,6 +97,21 @@ set -u
 if pr_number_for_pushed_head "" main >/dev/null 2>&1; then
   fail "pr_number_for_pushed_head must refuse an empty head branch rather than listing every PR"
 fi
+
+# --- a body file reaches gh as a path, never inlined onto the command line -------------------
+big_body="$TMP/big-body.md"
+head -c 45000 /dev/zero | tr '\0' 'x' > "$big_body"
+(
+  git() { :; }
+  gh() {
+    if [[ "$1 $2" == "pr create" ]]; then printf '%s\n' "$@" > "$TMP/gh-create-args"; echo "https://example.test/pr/1"; fi
+  }
+  PR_TITLE=t PR_BODY="" PR_BODY_FILE="$big_body"
+  push_and_open_pr "$TMP/agent-1" agent-1 main task/big >/dev/null
+)
+grep -qxF -- "--body-file" "$TMP/gh-create-args" || fail "gh pr create should receive --body-file for a body file"
+grep -qxF -- "$big_body" "$TMP/gh-create-args" || fail "gh pr create should receive the body file's path"
+! grep -qxF -- "--body" "$TMP/gh-create-args" || fail "a body file must not be inlined as --body"
 
 # --- churn classifier is the single owner of the restore allowlist ------------------------
 churn() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$CHURN" -WorktreePath "$1"; }
@@ -100,4 +136,4 @@ git -C "$TMP/primary" restore --worktree -- .
 printf 'edited\n' > "$TMP/primary/file.txt"
 [[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "an unrelated tracked edit is not allowlisted"
 
-echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + single-owner churn classifier"
+echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + body-file pass-through + single-owner churn classifier"

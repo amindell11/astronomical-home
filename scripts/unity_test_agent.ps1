@@ -4,12 +4,15 @@
     run summary other tools read.
 
 .DESCRIPTION
-    Exit codes: 0 all green, 1 test failures, 2 infra_error (nothing executed - compile failure or
-    a launch problem), any other non-zero = the wrapper itself failed before a summary existed.
+    Exit codes: 0 all green, 1 test failures, 2 infra_error (no trustworthy verdict - compile
+    failure, a launch problem, a Unity access refusal, or an unreadable Unity exit code), any other
+    non-zero = the wrapper itself failed before a summary existed.
 
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
     content). Fields consumers depend on:
       projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      runs[].unityExitCode - the Unity process exit code; null when it could not be read, and
+                       that run is then infra_error whatever its XML says.
       wallTiming     - elapsedSec from runner entry to summary construction; cold startupToFirstTestSec
                        sums process launch to first XML test-run start; executionSec sums XML
                        test-run start/end intervals (second precision). remainingSec covers access
@@ -186,6 +189,9 @@ function Add-StateRootArgument {
     return $Arguments + @("-StateRoot", $UnityAccessStateRoot)
 }
 
+# Acquire and BootAcquire gate a launch, so their refusal comes back as a message ($null when
+# granted) and travels up to the summary as infra_error runs; any other action's failure throws.
+# No status, or the coordinator's own coordinator_error, is the coordinator failing: that throws too.
 function Invoke-UnityAccess {
     param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
     if ($SkipUnityAccess.IsPresent) { return $null }
@@ -206,25 +212,32 @@ function Invoke-UnityAccess {
 
     $call = Invoke-UnityAccessCoordinator -CoordinatorArgs $arguments
     $result = $call.result
-    if ($call.exitCode -ne 0) {
-        if ($Action -in @("Acquire", "Wait")) {
-            [void](Invoke-UnityAccessCoordinator -CoordinatorArgs @(Add-StateRootArgument @("-Action", "Cancel", "-Lease", $lease)))
-        }
-        if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
-            $blocker = @($result.blockers | Select-Object -First 1)
-            throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
-        }
-        if ($null -ne $result -and $result.status -eq "boot_refused_low_memory") {
-            throw "Unity access refused the boot: $($result.commitHeadroomGB) GB commit headroom, below the required $($result.requiredHeadroomGB) GB. Free memory and rerun, or pass -AllowLowMemory once the user has approved this specific boot."
-        }
+    if ($call.exitCode -eq 0) { return $null }
+
+    if ($Action -in @("Acquire", "Wait")) {
+        [void](Invoke-UnityAccessCoordinator -CoordinatorArgs @(Add-StateRootArgument @("-Action", "Cancel", "-Lease", $lease)))
+    }
+    $status = [string](Get-JsonProp $result 'status')
+    if ([string]::IsNullOrWhiteSpace($status) -or $status -eq "coordinator_error") {
         throw "Unity access $Action failed (exit=$($call.exitCode)): $($call.stdout) $($call.stderr)"
     }
-    return $result
+    $message = switch ($status) {
+        "blocked_user_editor" {
+            $blocker = @($result.blockers | Select-Object -First 1)
+            "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
+        }
+        "boot_refused_low_memory" {
+            "Unity access refused the boot: $($result.commitHeadroomGB) GB commit headroom, below the required $($result.requiredHeadroomGB) GB. Free memory and rerun, or pass -AllowLowMemory once the user has approved this specific boot."
+        }
+        default { "Unity access $Action refused (status=$status, exit=$($call.exitCode)): $($call.stdout) $($call.stderr)" }
+    }
+    if ($Action -in @("Acquire", "BootAcquire")) { return $message }
+    throw $message
 }
 
 function Enter-UnityAccess {
     param([string]$ProjectFullPath)
-    [void](Invoke-UnityAccess -Action "Acquire" -ProjectFullPath $ProjectFullPath)
+    return Invoke-UnityAccess -Action "Acquire" -ProjectFullPath $ProjectFullPath
 }
 
 function Attach-UnityAccess {
@@ -239,9 +252,7 @@ function Exit-UnityAccess {
 
 function Enter-UnityBootLane {
     param([string]$ProjectFullPath)
-    if ($SkipUnityAccess.IsPresent) { return $false }
-    [void](Invoke-UnityAccess -Action "BootAcquire" -ProjectFullPath $ProjectFullPath -WaitSecondsOverride $Script:BootAcquireWaitSec)
-    return $true
+    return Invoke-UnityAccess -Action "BootAcquire" -ProjectFullPath $ProjectFullPath -WaitSecondsOverride $Script:BootAcquireWaitSec
 }
 
 function Exit-UnityBootLane {
@@ -428,7 +439,8 @@ function Test-ScopeFilterMatchesTests {
             "-testFilter", $TestFilter
         )
 
-        [void](Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args)
+        $probe = Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args
+        if ($null -ne $probe.refusal) { throw $probe.refusal }
 
         if (Test-Path -LiteralPath $xmlPath) {
             [xml]$xml = Get-Content -LiteralPath $xmlPath -Raw
@@ -647,15 +659,18 @@ function Invoke-UnityProcess {
 
     $processProject = Get-ArgumentValue -Arguments $Arguments -Name "-projectPath"
     $processLog = Get-ArgumentValue -Arguments $Arguments -Name "-logFile"
-    $accessHeld = $false
-    Enter-UnityAccess -ProjectFullPath $processProject
-    $accessHeld = $true
+    $refusal = Enter-UnityAccess -ProjectFullPath $processProject
+    if ($null -ne $refusal) { return [ordered]@{ refusal = $refusal } }
     $bootHeld = $false
 
     try {
-        $bootHeld = Enter-UnityBootLane -ProjectFullPath $processProject
+        $refusal = Enter-UnityBootLane -ProjectFullPath $processProject
+        if ($null -ne $refusal) { return [ordered]@{ refusal = $refusal } }
+        $bootHeld = -not $SkipUnityAccess.IsPresent
         $launchedAt = [DateTimeOffset]::UtcNow
         $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
+        # PS 5.1: without a cached handle, ExitCode reads $null once the process is gone.
+        $null = $proc.Handle
         Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
 
         if ($TimeoutSec -le 0) {
@@ -715,6 +730,7 @@ function Invoke-UnityProcess {
 
                 Start-Sleep -Milliseconds 300
                 return [ordered]@{
+                    refusal = $null
                     launchedAt = $launchedAt
                     exitCode = 124
                     timedOut = -not $hungAfterResults
@@ -729,14 +745,11 @@ function Invoke-UnityProcess {
             Start-Sleep -Milliseconds 500
         }
 
-        $exitCode = 0
-        if ($null -ne $proc.ExitCode) {
-            $exitCode = [int]$proc.ExitCode
-        }
-
         return [ordered]@{
+            refusal = $null
             launchedAt = $launchedAt
-            exitCode = $exitCode
+            # $null when the handle was cached too late (process already gone); callers void the run.
+            exitCode = $proc.ExitCode
             timedOut = $false
             killedAfterResults = $false
             pid = [int]$proc.Id
@@ -747,7 +760,7 @@ function Invoke-UnityProcess {
     }
     finally {
         if ($bootHeld) { Exit-UnityBootLane -ProjectFullPath $processProject }
-        if ($accessHeld) { Exit-UnityAccess -ProjectFullPath $processProject }
+        Exit-UnityAccess -ProjectFullPath $processProject
     }
 }
 
@@ -784,7 +797,7 @@ function New-RunRecord {
         [string]$Platform,
         [string]$XmlPath = "",
         [string]$LogPath = "",
-        [int]$UnityExitCode = 0,
+        [Nullable[int]]$UnityExitCode = 0,
         [string]$Status = "infra_error",
         [object]$Selection
     )
@@ -835,7 +848,7 @@ function Parse-UnityResultXml {
         [string]$XmlPath,
         [string]$Platform,
         [string]$LogPath,
-        [int]$UnityExitCode,
+        [Nullable[int]]$UnityExitCode,
         [int]$FailureLimit,
         [int]$MessageLimit,
         [switch]$WithStackTrace,
@@ -845,6 +858,13 @@ function Parse-UnityResultXml {
 
     $base = New-RunRecord -Platform $Platform -XmlPath $XmlPath -LogPath $LogPath `
         -UnityExitCode $UnityExitCode -Selection $Selection
+
+    if ($null -eq $UnityExitCode) {
+        $base.logTail = Get-LogTail -LogPath $LogPath -TailLines $TailLines
+        $xmlState = if (Test-Path -LiteralPath $XmlPath) { "present but unconfirmed" } else { "not found" }
+        $base.note = "Unity exit code unknown (process gone before its handle was read); result XML $xmlState"
+        return $base
+    }
 
     if (-not (Test-Path -LiteralPath $XmlPath)) {
         $base.logTail = Get-LogTail -LogPath $LogPath -TailLines $TailLines
@@ -1038,14 +1058,6 @@ function Wait-RoutedEditorReady {
     throw "-Routed: $What not reached within ${TimeoutSec}s (editor_status must answer with no compile/domain-reload in progress). Last output: $(Normalize-Message -Message $lastText -MaxLen 400)"
 }
 
-function Set-RoutedAutotick {
-    # Autotick resets on every domain reload; an unticked idle editor starves command servicing into 30s timeouts.
-    $call = Invoke-PipelineCommand -CommandName "set_autotick" -CommandParams @("--enable", "true") -What "set_autotick"
-    if (-not $call.ok) {
-        Write-Warning "set_autotick failed (a starved editor will surface as poll timeouts): $(Normalize-Message -Message $call.text -MaxLen 240)"
-    }
-}
-
 function Get-RoutedTestCatalog {
     param([string]$PipelineMode)
 
@@ -1188,15 +1200,16 @@ function Invoke-RoutedPlatformRun {
     $byName = [ordered]@{}
     $duplicates = 0
     $durationSum = 0.0
+    $droppedResults = @()
     foreach ($callSpec in $Plan.calls) {
         [void](Wait-RoutedEditorReady -TimeoutSec 120 -What "$platform pre-run readiness")
-        Set-RoutedAutotick
 
         $runParams = @("--mode", $Plan.pipelineMode, "--async_tests", "true", "--timeout", [string]$UnityTimeoutSec)
         if (-not [string]::IsNullOrWhiteSpace([string]$callSpec.filter)) {
             $runParams += @("--filter", [string]$callSpec.filter, "--filter_type", [string]$callSpec.filterType)
         }
-        Write-Host "Routed ${platform}: run_tests $(if ($callSpec.filter) { "$($callSpec.filterType)=$($callSpec.filter)" } else { '(unfiltered)' }) ..."
+        $callLabel = if ($callSpec.filter) { "$($callSpec.filterType)=$($callSpec.filter)" } else { '(unfiltered)' }
+        Write-Host "Routed ${platform}: run_tests $callLabel ..."
         $launch = Invoke-PipelineCommand -CommandName "run_tests" -CommandParams $runParams -What "run_tests $platform"
         $launchState = [string](Get-JsonProp $launch.result 'result')
         if (-not $launch.ok -or $launchState -ne "running") {
@@ -1206,10 +1219,17 @@ function Invoke-RoutedPlatformRun {
         }
 
         $final = Wait-RoutedTestCompletion -TimeoutSec ($UnityTimeoutSec + 60) -What "run_tests $platform"
-        Set-RoutedAutotick
 
         $durationSum += [double](Get-JsonProp $final 'duration')
-        foreach ($result in @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })) {
+        $reported = @(@(Get-JsonProp $final 'results') | Where-Object { $null -ne $_ })
+        $summary = Get-JsonProp $final 'summary'
+        $summaryTotal = [int](Get-JsonProp $summary 'total')
+        if ($reported.Count -ne $summaryTotal) {
+            $droppedResults += ("run_tests $platform ${callLabel}: the pipeline returned $($reported.Count) per-test result(s) " +
+                "for a $summaryTotal-test run (root summary: $(Get-JsonProp $summary 'passed') passed, $(Get-JsonProp $summary 'failed') failed). " +
+                "com.unity.pipeline drops results from before a mid-run domain reload (an EditMode test entering Play Mode); run this selection cold (drop -Routed).")
+        }
+        foreach ($result in $reported) {
             $fullName = [string](Get-JsonProp $result 'FullName')
             if ($byName.Contains($fullName)) { $duplicates++ } else { $byName[$fullName] = $result }
         }
@@ -1256,6 +1276,11 @@ function Invoke-RoutedPlatformRun {
         if ($missing.Count -gt 0) { $notes += "Executed set is missing $($missing.Count) expected test(s): $(@($missing | Select-Object -First 10) -join ', ')" }
         if ($extra.Count -gt 0) { $notes += "Executed set has $($extra.Count) unexpected test(s): $(@($extra | Select-Object -First 10) -join ', ')" }
     }
+    # A dropped result may be a failure another call's rerun masked; fail regardless of parity.
+    if ($droppedResults.Count -gt 0) {
+        $status = "infra_error"
+        $notes = $droppedResults + $notes
+    }
 
     $run = New-RunRecord -Platform $platform -Status $status -Selection $Selection
     $run.total = $byName.Count
@@ -1269,7 +1294,8 @@ function Invoke-RoutedPlatformRun {
     return $run
 }
 
-function New-RoutedRefusal {
+# A refusal is a verdict, not a crash: one infra_error run per platform.
+function New-RefusalRuns {
     param([string[]]$Platforms, [object]$Selection, [string]$Reason)
 
     $records = @()
@@ -1308,7 +1334,6 @@ function Invoke-RoutedSuite {
     if ($isPlaying) {
         throw "-Routed: the resident editor is in Play Mode; stop it before routing tests (unity command editor_stop --project-path $ProjectFullPath)."
     }
-    Set-RoutedAutotick
 
     # Plan every platform before running any: a selection the routed transport cannot honor must refuse up front, not half-run.
     $plans = @()
@@ -1321,7 +1346,7 @@ function Invoke-RoutedSuite {
         $lines = foreach ($plan in $refusals) {
             "[$($plan.platform)] $(@($plan.excludedHits | Select-Object -First 10) -join ', ')$(if (@($plan.excludedHits).Count -gt 10) { ", ... ($(@($plan.excludedHits).Count) total)" })"
         }
-        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+        return New-RefusalRuns -Platforms $Platforms -Selection $Selection -Reason (
             "-Routed cannot honor -ExcludeCategory '$ExcludeCategory': run_tests has no exclusion filter and the selection matches excluded-category tests: " +
             ($lines -join "; ") + ". Run this selection cold (drop -Routed), or pass -ExcludeCategory '' to run them deliberately in the resident editor.")
     }
@@ -1329,7 +1354,7 @@ function Invoke-RoutedSuite {
     $expectedTotal = 0
     foreach ($plan in $plans) { $expectedTotal += $plan.expected.Count }
     if ($expectedTotal -eq 0) {
-        return New-RoutedRefusal -Platforms $Platforms -Selection $Selection -Reason (
+        return New-RefusalRuns -Platforms $Platforms -Selection $Selection -Reason (
             "-Routed: the selection matches no tests on any requested platform (list_tests ground truth). A zero-test run reports success it never earned; fix the selection.")
     }
 
@@ -1577,37 +1602,42 @@ try {
 
         $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec `
             -CompletionFiles @($xmlEdit, $xmlPlay)
-        $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
-        $memoryProcesses += , $invoke.memory
-        $unityExit = [int]$invoke.exitCode
+        if ($null -ne $invoke.refusal) {
+            $runs = @(New-RefusalRuns -Platforms $platforms -Selection $selection -Reason $invoke.refusal)
+        }
+        else {
+            $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
+            $memoryProcesses += , $invoke.memory
+            $unityExit = $invoke.exitCode
 
-        # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
-        # the XMLs carry the verdict, so parse them as truth instead of voiding a green run.
-        $processKilled = $invoke.timedOut -or $invoke.killedAfterResults
-        $resultsComplete = (Test-Path -LiteralPath $xmlEdit) -and (Test-Path -LiteralPath $xmlPlay)
+            # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
+            # the XMLs carry the verdict, so parse them as truth instead of voiding a green run.
+            $processKilled = $invoke.timedOut -or $invoke.killedAfterResults
+            $resultsComplete = (Test-Path -LiteralPath $xmlEdit) -and (Test-Path -LiteralPath $xmlPlay)
 
-        foreach ($entry in @(@{ platform = "EditMode"; xml = $xmlEdit }, @{ platform = "PlayMode"; xml = $xmlPlay })) {
-            # Exit 2 means both phases completed and the XMLs carry the failures; feeding 2 into the
-            # per-platform parse would misread a passing phase (exit!=0 + failed==0) as infra_error.
-            $phaseExit = if ($unityExit -eq 2 -or ($processKilled -and $resultsComplete)) { 0 } else { $unityExit }
+            foreach ($entry in @(@{ platform = "EditMode"; xml = $xmlEdit }, @{ platform = "PlayMode"; xml = $xmlPlay })) {
+                # Exit 2 means both phases completed and the XMLs carry the failures; feeding 2 into the
+                # per-platform parse would misread a passing phase (exit!=0 + failed==0) as infra_error.
+                $phaseExit = if ($unityExit -eq 2 -or ($processKilled -and $resultsComplete)) { 0 } else { $unityExit }
 
-            $parsed = Parse-UnityResultXml -XmlPath $entry.xml -Platform $entry.platform -LogPath $logPath -UnityExitCode $phaseExit @parseOptions
+                $parsed = Parse-UnityResultXml -XmlPath $entry.xml -Platform $entry.platform -LogPath $logPath -UnityExitCode $phaseExit @parseOptions
 
-            if ($processKilled) {
-                if ($resultsComplete -and $parsed.status -ne "infra_error") {
-                    $parsed.note = if ($invoke.killedAfterResults) {
-                        "Unity editor hung after writing results and was killed by the watchdog (pid=$($invoke.pid)); results parsed from XML. A killed cleanup can leave Assets/InitTestScene*.unity scaffold."
-                    } else {
-                        "Unity test run hit the ${UnityTimeoutSec}s timeout with complete results on disk (pid=$($invoke.pid)); results parsed from XML."
+                if ($processKilled) {
+                    if ($resultsComplete -and $parsed.status -ne "infra_error") {
+                        $parsed.note = if ($invoke.killedAfterResults) {
+                            "Unity editor hung after writing results and was killed by the watchdog (pid=$($invoke.pid)); results parsed from XML. A killed cleanup can leave Assets/InitTestScene*.unity scaffold."
+                        } else {
+                            "Unity test run hit the ${UnityTimeoutSec}s timeout with complete results on disk (pid=$($invoke.pid)); results parsed from XML."
+                        }
+                    }
+                    else {
+                        $parsed.status = "infra_error"
+                        $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
                     }
                 }
-                else {
-                    $parsed.status = "infra_error"
-                    $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
-                }
-            }
 
-            $runs += $parsed
+                $runs += $parsed
+            }
         }
     }
     else {
@@ -1641,9 +1671,13 @@ try {
             Write-Host "Running Unity $platform tests..."
 
             $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+            if ($null -ne $invoke.refusal) {
+                $runs += New-RefusalRuns -Platforms @($platforms | Select-Object -Skip $runs.Count) -Selection $selection -Reason $invoke.refusal
+                break
+            }
             $processTimings += @{ launchedAt = $invoke.launchedAt; firstRun = $runs.Count }
             $memoryProcesses += , $invoke.memory
-            $unityExit = [int]$invoke.exitCode
+            $unityExit = $invoke.exitCode
 
             $parsed = Parse-UnityResultXml -XmlPath $xmlPath -Platform $platform -LogPath $logPath -UnityExitCode $unityExit @parseOptions
 
@@ -1736,7 +1770,7 @@ Write-Host ("STATUS={0} total={1} passed={2} failed={3} skipped={4}" -f $overall
 
 if ($overallStatus -eq "infra_error") {
     # No tests ran — surface the cause (usually a compile failure) inline so callers don't have to spelunk the log.
-    Write-Host "INFRA ERROR: no tests executed (compile failure or Unity launch problem, not a test failure)."
+    Write-Host "INFRA ERROR: no tests executed (compile failure, Unity launch problem or access refusal, not a test failure)."
     foreach ($run in $runs) {
         if ($run.status -ne "infra_error") { continue }
         $note = if ($run.Contains('note')) { [string]$run.note } else { "" }

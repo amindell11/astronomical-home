@@ -35,8 +35,6 @@ namespace Substrate.Services.Objectives
 
         IReadOnlyList<LocalObjectiveHandle> Locals { get; }
 
-        event Action OnLocalsChanged;
-
         void ClearAll();
     }
 }

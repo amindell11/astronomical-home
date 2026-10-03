@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Combat.Projectiles;
 using Damage;
@@ -13,47 +14,42 @@ namespace Combat.Weapons
     {
         [Header("Beam")]
         [Tooltip("Damage applied to the first thing the beam hits.")]
-        [SerializeField, Min(0f)] private float damage = 45f;
+        [Stat, SerializeField, Min(0f)] private float damage = 45f;
         [Tooltip("Max beam length.")]
-        [SerializeField, Min(0f)] private float range = 60f;
-        [Tooltip("Nominal impact speed reported to damage handling (knockback/VFX plausibility).")]
+        [Stat, SerializeField, Min(0f)] private float range = 60f;
+        [Tooltip("Impact speed the beam reports on hit; with impactMass it sets the momentum share and impact direction when the beam breaks an asteroid.")]
         [SerializeField, Min(0f)] private float impactSpeed = 120f;
-        [Tooltip("Mass reported to damage handling.")]
+        [Tooltip("Impact mass the beam reports on hit; with impactSpeed it sets how much momentum fragments take when the beam breaks an asteroid.")]
         [SerializeField, Min(0f)] private float impactMass = 0.05f;
         [Tooltip("Layers the beam can hit. -1 = Ship | Asteroid.")]
         [SerializeField] private LayerMask hitMask = -1;
 
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
-        [SerializeField, Min(0f)] private float fireDistance = 45f;
+        [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
-        [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
 
         [Header("Conditions")]
-        [SerializeField] private ChargeTime charge;
+        [Stat, SerializeField] private ChargeTime charge;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         public ChargeTime Charge => charge;
+        public float Damage => damage;
+        public float BeamRange => range;
 
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
 
-        public override string HangarStats
-        {
-            get
-            {
-                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
-                return $"Damage {damage:0}   |   Range {range:0}{chargeText}   |   Hitscan";
-            }
-        }
-
         protected override void Awake()
         {
             base.Awake();
             if (!charge) charge = GetComponent<ChargeTime>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (hitMask == -1)
                 hitMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }

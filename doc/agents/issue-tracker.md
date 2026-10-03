@@ -11,17 +11,25 @@ The tracker is where design prose lives (ruling 2026-09-02; before it, bodies
 were thin links to plan docs). Bodies and comments carry the why, the
 rejected alternatives, results and rulings — never a restatement of what the
 code says; point at the symbol. The tracker says *what / for-when / why*;
-memory holds machine-local session state; live in-flight claims go in the
-active-work ledger (see `AGENTS.md`). Body shapes:
+live in-flight claims are the pool's slot leases and open PRs; memory holds
+only feedback notes (`doc/agents/memory.md`). Body shapes:
 
-- **Arc issue**: the brief — design, forks, rulings — written before the
-  build; slices are sub-issues. The completing PR carries the shipped why;
-  the arc issue closes with a link to it.
+- **Arc issue**: the brief — design, forks, rulings, and a `## Exit criterion`
+  — written before the build. Slices are one line each in the body; only the
+  next unbuilt slice is a sub-issue.
+  - **State**: an *active arc* carries `pri:now`. Any other open arc is a
+    *waiting arc*: `pri:next` or `pri:later`, and a first body line
+    `Waiting <date> — resumes when …; next slice unblocks …`.
+  - **End**: SHIPPED when the last slice is done and the criterion is met (the
+    completing PR carries the shipped why and the issue closes with a link to
+    it); otherwise CLOSED, the remainder filed as plain issues and named in
+    the closing comment.
 - **Deferral issue** (default for mid-task punts): scannable title + enough
   why to act on later. No essay for a one-liner, but the rationale goes here,
   not in memory.
-- **Slice issue** (published by to-tickets): `What to build` (end-to-end
-  behaviour) + acceptance criteria + `Blocked by`.
+- **Slice issue** (published by to-tickets; on an arc it publishes the next
+  slice only): `What to build` (end-to-end behaviour) + acceptance criteria +
+  `Blocked by`.
 - **Design record** (`design-record` label, closed): the why/results/rulings
   of a shipped or shelved arc that outlived its PR bodies; migrated plan docs
   live here. Amend by comment, never by editing history away.
@@ -35,14 +43,31 @@ active-work ledger (see `AGENTS.md`). Body shapes:
 - **`design-record`**: closed issue holding an arc's why/results/rulings (see body law).
 - **Triage states**: `needs-triage` — agent-created, awaiting user review
   (**default on every deferral issue an agent mints mid-task**; the user
-  clears it to a priority/readiness label on review). `ready-for-agent` —
+  clears it to a priority/readiness label on review), and any open issue
+  carrying no priority label (the on-event triage adds it). `ready-for-agent` —
   fully specified, an AFK agent can take it. `ready-for-human` — needs human
   judgment or hands. `wontfix` — closed, not actioned; the closing comment
   links the memory file recording why.
+- **Execution axis** (what the build needs to prove itself), one per issue:
+  - `unity:none` — no Unity run.
+  - `unity:headless` — a PR the hosted suite fully proves.
+  - `unity:local-proof` — the hosted suite proves the code does not regress;
+    the acceptance proof runs locally (a graphics-tagged test, a live editor, a
+    person looking) and is written as owed-local items.
+  - `unity:editor` — the work itself needs local Unity (authoring, capture, or
+    a local run whose output is the deliverable). Stays interactive.
+
+  Minted only together with `ready-for-agent`, by a readiness proposal's
+  `Apply:` line. A cloud batch builds the first three, never `unity:editor`
+  (`scripts/drain_pick.sh pick`). No board Status mapping.
+- **`drain:building`**: a cloud build's claim marker, beside the assignee;
+  written and removed by `scripts/drain_pick.sh claim` / `release`.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
-- **Domain labels** (`RL`, `Ship`, `Testing`, …) and `arc` (umbrella issue
-  for a multi-PR arc) as today. Rename freely, don't proliferate.
+- **Domain labels** (`RL`, `Ship`, `Testing`, …) as today; a parent issue that
+  only groups a theme carries these alone. `arc` goes only on an arc issue: a
+  brief with a `## Exit criterion` (Body law). Rename freely, don't
+  proliferate.
 
 ## Operations
 
@@ -73,7 +98,9 @@ gh api graphql -f query='mutation { addProjectV2ItemById(input: {projectId: "PVT
 gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: {projectId: "PVT_kwHOAJsCkc4BfiTv", itemId: "<item-id>", fieldId: "PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE", value: {singleSelectOptionId: "<option-id>"}}) { projectV2Item { id } } }'
 ```
 
-(`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.)
+(`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.) Actions runs
+mutate the board under the `PROJECTS_TOKEN` secret (classic PAT, `project`
+scope only): `GITHUB_TOKEN` cannot mutate a user-owned project.
 
 ⚠ `updateProjectV2Field`'s `singleSelectOptions` is a **REPLACE, not a merge**
 — always carry the existing option ids to rename in place. A rename mutation
@@ -82,15 +109,20 @@ Status was unrecoverable.
 
 Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `76914216`; `pri:now` → Now `291743a0`; `pri:next` → Next `4dbdbff5`;
-`pri:later` → Later `225f15fa`; Doing `772cf1a0` and Done `165b6aec` are
-human/close-time states. First match in that order wins.
+`pri:later` → Later `225f15fa`; Doing `772cf1a0` is a human state. Done
+`165b6aec` is set by the merge reconcile at close for PR-closed issues
+(`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
 
 ## Wayfinding operations
 
 Used by the wayfinder skill; body law above applies.
 
 - **Map**: one issue labelled `wayfinder:map` holding the
-  Destination / Notes / Decisions-so-far / fog body.
+  Destination / Notes / Decisions-so-far / fog body. Its destination is a
+  decision or an approved example. It ends there as an arc does (Body law),
+  and the build is a new arc whose brief links the map: this overrules the
+  skill's Notes execution override. An open map is active or waiting as an
+  arc is.
 - **Child ticket**: `gh issue edit <n> --parent <map>` + a `wayfinder:<type>`
   label and the map's priority label (default `pri:now` — a live effort's
   tickets are near-term by definition). Add to the Projects board like any
@@ -102,4 +134,5 @@ Used by the wayfinder skill; body law above applies.
   order wins. **Claim** = `gh issue edit <n> --add-assignee @me`, before any
   work.
 - **Resolve**: gist comment (+ memory link when deep) → close → append the
-  context pointer to the map's Decisions-so-far.
+  context pointer to the map's Decisions-so-far. The merge reconcile posts the
+  shipped pointer and Done for PR-closed issues.

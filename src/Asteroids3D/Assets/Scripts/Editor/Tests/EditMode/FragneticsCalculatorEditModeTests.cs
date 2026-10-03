@@ -93,10 +93,11 @@ namespace Tests.EditMode
 
             var (pLin, pAng) = calc.CalculateInitialMomentum(astData, hit);
 
-            var expectedPLin = astData.Mass * astData.Velocity + hit.Mass * hit.Velocity;
+            var retained = asteroidFragSettings.massLossFactor;
+            var expectedPLin = retained * astData.Mass * astData.Velocity + hit.Mass * hit.Velocity;
             var localW = Quaternion.Inverse(astData.Rotation) * astData.AngularVelocity;
             var localL = Vector3.Scale(astData.InertiaTensor, localW);
-            var asteroidL = astData.Rotation * localL;
+            var asteroidL = retained * (astData.Rotation * localL);
             var r = hit.HitPoint - astData.Position;
             var projectileL = Vector3.Cross(r, hit.Mass * hit.Velocity);
             var expectedPAng = asteroidL + projectileL;

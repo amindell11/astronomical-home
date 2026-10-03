@@ -1,7 +1,6 @@
 using Combat.Projectiles;
 using Combat.Weapons;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -24,22 +23,6 @@ namespace Tests.EditMode
         {
             Assert.AreEqual(0f, ConcussionWave.Falloff(20f, 12f), 0.0001f);
             Assert.AreEqual(0f, ConcussionWave.Falloff(1f, 0f), 0.0001f);
-        }
-
-        // ── Hangar stat line ──
-
-        [Test]
-        public void HangarStats_ReadsBlastAndMagazine_OffThePrefabAsset()
-        {
-            // The hangar evaluates HangarStats on the asset, where Awake never runs — this only
-            // passes if the condition ref and projectile/wave chain are serialized, not looked up.
-            var prefab = AssetDatabase.LoadAssetAtPath<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab");
-            Assert.IsNotNull(prefab, "Grenades weapon prefab must exist.");
-
-            var stats = prefab.HangarStats;
-            StringAssert.Contains("Blast 40 to 12u", stats);
-            StringAssert.Contains("3 charges (reload 12s)", stats);
-            StringAssert.Contains("Fuse 2.5s", stats);
         }
 
         // ── AI drop heuristic ──

@@ -286,13 +286,6 @@ the canonical thresholds), and appends to the auditable usage registry
 .venv\Scripts\python eval_bank.py --candidate <ckpt.onnx> --incumbent <banked.onnx> --project <pool-slot>
 ```
 
-## Characterization floor
-
-`RLEpisodePlayModeTests.Characterization_WritesJsonl` (env `RL_EPISODES=1`,
-optional `RL_EPISODE_COUNT`) re-measures the scripted ranger-vs-baseline
-floor under the current harness (boost sampling zeroed on the agent's MPC
-clone, contract pacing).
-
 ## Run runbook — launching, monitoring, recovering
 
 Proven across run 1 (2M curriculum) and the 500k retrain. Read before any launch.
@@ -318,8 +311,8 @@ Proven across run 1 (2M curriculum) and the 500k retrain. Read before any launch
   judging free RAM by hand.
 - Pick a unique run id and assert `results/rl-training/<run-id>` does not exist.
   A first launch never uses `--force`.
-- Base port 5006 is single-occupancy machine-wide — check the work ledger and for
-  live fleets first.
+- Base port 5006 is single-occupancy machine-wide — check for a live
+  `RLTraining`/`mlagents` fleet first.
 
 ### While running
 

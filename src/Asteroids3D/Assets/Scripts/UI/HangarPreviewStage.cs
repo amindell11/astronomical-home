@@ -40,9 +40,10 @@ namespace UI
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch)
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent)
         {
             var go = new GameObject("HangarPreviewStage");
+            go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.continueSpinOnSwitch = continueSpinOnSwitch;
@@ -66,7 +67,7 @@ namespace UI
             var layer = PreviewLayer();
             gameObject.layer = layer;
 
-            texture = new RenderTexture(TextureSize, TextureSize, 16) { name = "HangarPreviewRT" };
+            texture = new RenderTexture(TextureSize, TextureSize, 24) { name = "HangarPreviewRT" };
 
             anchor = new GameObject("Anchor").transform;
             anchor.SetParent(transform, false);

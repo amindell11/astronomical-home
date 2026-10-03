@@ -34,9 +34,8 @@ namespace Audio
                 _prefab = CreateNewInstance();
                 _prefab.gameObject.name = "PooledAudioSource_Prefab";
 
-                // Hide the prefab in hierarchy & keep across scenes
                 _prefab.gameObject.SetActive(false);
-                Object.DontDestroyOnLoad(_prefab.gameObject);
+                _prefab.transform.SetParent(PoolsRoot.Transform, false);
             }
 
             // Retrieve an instance from the pool (will instantiate the first time)

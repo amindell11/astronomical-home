@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using AI.Scanning.Sensors;
 using Combat.Projectiles;
@@ -12,12 +13,17 @@ namespace Combat.Targeting
 {
     public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
     {
+        private const float ScanInterval = 0.1f;
+
         [Header("Lock-On Settings")]
-        [SerializeField] internal float lockOnConeAngle = 30f;
-        [SerializeField] private float lockOnTime = 0.6f;
-        [SerializeField] private float lockExpiry = 3f;
-        [SerializeField] internal float maxLockDistance = 100f;
-        [SerializeField] private float scanInterval = 0.1f;
+        [Tooltip("Full width (degrees) of the cone around the fire point in which a target can be acquired and held.")]
+        [Stat, SerializeField] internal float lockOnConeAngle = 30f;
+        [Tooltip("Seconds a target must stay in the cone before the lock is acquired.")]
+        [Stat, SerializeField] private float lockOnTime = 0.6f;
+        [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
+        [Stat, SerializeField] private float lockExpiry = 3f;
+        [Tooltip("Max distance from the fire point at which a target can be locked.")]
+        [Stat, SerializeField] internal float maxLockDistance = 100f;
 
         [SerializeField] internal Transform firePoint;
         [SerializeField] internal WeaponBase<Missile> weapon;
@@ -87,7 +93,7 @@ namespace Combat.Targeting
 
         private void Start()
         {
-            scanWait = new WaitForSeconds(scanInterval);
+            scanWait = new WaitForSeconds(ScanInterval);
             if (registry == null)
                 enabled = false;
         }

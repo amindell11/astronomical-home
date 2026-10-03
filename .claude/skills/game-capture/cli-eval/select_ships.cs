@@ -1,5 +1,5 @@
 // args via file edit: NAMES holds ship-name prefixes; SUB optionally targets a child component's object.
-var NAMES = new string[] { "Ship_2", "EyeballEnemy" };
+var NAMES = new string[] { "Ship_2" };
 string SUB = null;
 var picked = new System.Collections.Generic.List<UnityEngine.Object>();
 foreach (var s in UnityEngine.Object.FindObjectsByType<Ships.Ship>(UnityEngine.FindObjectsSortMode.None))

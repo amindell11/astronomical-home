@@ -9,7 +9,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 using Ships.Registry;
 using Substrate.Services;
 using Substrate.Services.Units;
@@ -36,16 +35,8 @@ namespace Tests.PlayMode
         private ObserverCam observer;
         private UnitService unitService;
 
-        public override void SetUp()
-        {
-            base.SetUp();
-            // Headless presentation: no HUD/hangar UI needed to exercise the rebuild seam.
-            GameSettings.SetPresentationEnabled(false);
-        }
-
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             if (rig) rig.Teardown();
             if (unitService) unitService.Clear();
             DestroyTestObject(rig ? rig.gameObject : null);
@@ -66,7 +57,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
             yield return rig.Build(unitService, objectiveService, presentationEnabled: false, observer,
-                new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
+                servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 

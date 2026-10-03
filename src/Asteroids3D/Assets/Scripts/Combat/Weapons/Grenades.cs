@@ -1,3 +1,4 @@
+using Balance;
 using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -9,32 +10,25 @@ namespace Combat.Weapons
     {
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner drops a charge on a pursuer.")]
-        [SerializeField, Min(0f)] private float dropRange = 12f;
+        [Stat, SerializeField, Min(0f)] private float dropRange = 12f;
         [Tooltip("Min angle off the nose (degrees) before the AI drops — the target must be behind.")]
-        [SerializeField, Range(0f, 180f)] private float minDropAngle = 120f;
+        [Stat, SerializeField, Range(0f, 180f)] private float minDropAngle = 120f;
 
         [Header("Conditions")]
-        [SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Rounds rounds;
+        [Stat, SerializeField] private Cooldown cooldown;
 
         public override bool AutoFire => false;
-
-        public override string HangarStats
-        {
-            get
-            {
-                var wave = projectilePrefab ? projectilePrefab.WavePrefab : null;
-                if (!wave) return DisplayName;
-                var mag = rounds
-                    ? $"   |   {rounds.MaxAmmo} charges" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
-                    : "";
-                return $"Blast {wave.MaxDamage:0} to {wave.MaxRadius:0}u, hits friend and foe{mag}   |   Fuse {projectilePrefab.FuseSeconds:0.#}s";
-            }
-        }
+        public Rounds Rounds => rounds;
+        public float BlastDamage => projectilePrefab.WavePrefab.MaxDamage;
+        public float BlastRadius => projectilePrefab.WavePrefab.MaxRadius;
+        public float FuseSeconds => projectilePrefab.FuseSeconds;
 
         protected override void Awake()
         {
             base.Awake();
             if (!rounds) rounds = GetComponent<Rounds>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         // Behind-arc drop: no LOS term by design — the charge releases backward at a pursuer.

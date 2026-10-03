@@ -1,5 +1,8 @@
+using System.Linq;
 using NUnit.Framework;
+using Substrate.Services.Locales;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -8,8 +11,7 @@ namespace Tests.EditMode
     [Category("Sectors")]
     public class StarfieldShaderEditModeTests
     {
-        private const string MaterialPath = "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat";
-        private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
+        private const string MaterialPath = "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat";
 
         private static Material LoadMaterial()
         {
@@ -25,7 +27,7 @@ namespace Tests.EditMode
 
             Assert.AreEqual("Custom/StarField", material.shader.name);
             Assert.AreEqual(2950, material.renderQueue,
-                "The starfield must render after the skybox and before ordinary transparent effects.");
+                "The starfield must render after the background and far nebula and before ordinary transparent effects.");
 
             var properties = new[]
             {
@@ -68,6 +70,7 @@ namespace Tests.EditMode
             const float halfHeight = 7f;
             const float cellScale = 0.8f;
             var material = new Material(LoadMaterial());
+            material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_Seed", 0f);
             material.SetFloat("_StarDensity", 0.12f);
             material.SetFloat("_CellScale", cellScale);
@@ -150,6 +153,7 @@ namespace Tests.EditMode
         public void Material_TwinkleDurationIsAFullCycleInSeconds()
         {
             var material = new Material(LoadMaterial());
+            material.SetFloat("_ShootingBrightness", 0);
             material.SetFloat("_TwinkleDurationMin", 4);
             material.SetFloat("_TwinkleDurationMax", 4);
             material.SetFloat("_TwinkleAmount", 1);
@@ -217,15 +221,27 @@ namespace Tests.EditMode
             }
         }
 
-        [Test]
-        public void AuthoredStarfield_RidesTheObserverCamera_WithTheProductionMaterial()
+        [TestCase("Assets/Scenes/InitScene.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity")]
+        public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string scenePath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ObserverCamPrefabPath);
-            Assert.IsNotNull(prefab, $"Observer camera prefab missing at {ObserverCamPrefabPath}.");
-
-            var renderer = prefab.GetComponentInChildren<SpriteRenderer>(true);
-            Assert.IsNotNull(renderer, $"No starfield SpriteRenderer found under {ObserverCamPrefabPath}.");
-            Assert.AreSame(LoadMaterial(), renderer.sharedMaterial);
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
+                var starfield = root.Find("StarField");
+                Assert.IsNotNull(starfield, $"No StarField sky layer under {scenePath}'s LocaleSky root.");
+                var material = starfield.GetComponent<MeshRenderer>().sharedMaterial;
+                Assert.AreSame(LoadMaterial(), material.parent ? material.parent : material,
+                    "The starfield must use the production material or a per-locale variant of it.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
     }
 }

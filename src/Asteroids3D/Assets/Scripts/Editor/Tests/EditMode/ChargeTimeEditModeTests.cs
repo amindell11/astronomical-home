@@ -26,18 +26,18 @@ namespace Tests.EditMode
         [Test]
         public void Charge_AccumulatesWhileHeld()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
 
             var fire = charge.HandleTrigger(held: true, dt: 0.5f);
 
-            Assert.IsFalse(fire, "No auto-fire when autoFireAtFull is off.");
+            Assert.IsFalse(fire, "Half charge while held does not fire.");
             Assert.AreEqual(0.5f, charge.ChargePct, 0.0001f);
         }
 
         [Test]
         public void FullCharge_AutoFiresWhileHeld()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: true);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
 
             Assert.IsFalse(charge.HandleTrigger(held: true, dt: 0.5f));
             Assert.IsTrue(charge.HandleTrigger(held: true, dt: 0.6f), "Reaching full charge while held should fire.");
@@ -48,7 +48,7 @@ namespace Tests.EditMode
         [Test]
         public void ReleaseAboveMinimum_Fires_AndFiringConsumesCharge()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
             charge.HandleTrigger(held: true, dt: 0.5f);
 
             var fire = charge.HandleTrigger(held: false, dt: 0.02f);
@@ -64,7 +64,7 @@ namespace Tests.EditMode
         [Test]
         public void ReleaseBelowMinimum_DropsChargeWithoutFiring()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
             charge.HandleTrigger(held: true, dt: 0.2f);
 
             var fire = charge.HandleTrigger(held: false, dt: 0.02f);
@@ -78,7 +78,7 @@ namespace Tests.EditMode
         {
             // Release fires, but if the weapon was blocked (e.g. cooldown) and never called
             // ProcessFire, the loose charge drains on the next idle step.
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
             charge.HandleTrigger(held: true, dt: 0.5f);
             Assert.IsTrue(charge.HandleTrigger(held: false, dt: 0.02f));
 
@@ -89,7 +89,7 @@ namespace Tests.EditMode
         [Test]
         public void Reset_EmptiesChargeAndHeldState()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
             charge.HandleTrigger(held: true, dt: 0.5f);
 
             charge.Reset();
@@ -105,7 +105,7 @@ namespace Tests.EditMode
             // Regression: 1.5s charge in 0.02s steps accumulates to ~0.9999999 one step before
             // the clamp; the change guard must not swallow the final step to exactly 1, or the
             // weapon pins just below full and can never fire.
-            charge.Configure(chargeTime: 1.5f, minChargeToFire: 1f, autoFireAtFull: true);
+            charge.Configure(chargeTime: 1.5f, minChargeToFire: 1f);
 
             var fired = false;
             for (var i = 0; i < 200 && !fired; i++)
@@ -119,7 +119,7 @@ namespace Tests.EditMode
         [Test]
         public void ChargeEvents_ReportProgress()
         {
-            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f);
 
             var lastPct = -1f;
             charge.OnChargeChanged += pct => lastPct = pct;

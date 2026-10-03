@@ -55,6 +55,8 @@ namespace Utils
             }
 
             instance.gameObject.SetActive(false);
+            EnsurePoolParent();
+            instance.transform.SetParent(_poolParent);
 
             if (!InstanceToKey.TryGetValue(instance, out var key))
             {
@@ -114,9 +116,8 @@ namespace Utils
         {
             if (_poolParent) return;
 
-            var poolObj = new GameObject($"Pool_{typeof(T).Name}");
-            _poolParent = poolObj.transform;
-            Object.DontDestroyOnLoad(poolObj);
+            _poolParent = new GameObject($"Pool_{typeof(T).Name}").transform;
+            _poolParent.SetParent(PoolsRoot.Transform, false);
         }
     
         public static int PoolSize
@@ -127,6 +128,25 @@ namespace Utils
                 foreach (var stack in Pools.Values)
                     total += stack.Count;
                 return total;
+            }
+        }
+    }
+
+    /// <summary>The one DontDestroyOnLoad root every <see cref="SimplePool{T}"/> and pooled template parks under; generic statics are per-T, so it lives outside them.</summary>
+    internal static class PoolsRoot
+    {
+        private static Transform root;
+
+        public static Transform Transform
+        {
+            get
+            {
+                if (root) return root;
+                var go = new GameObject("Pools");
+                // DontDestroyOnLoad throws outside play mode; edit-mode tests release into pools too.
+                if (Application.isPlaying) Object.DontDestroyOnLoad(go);
+                root = go.transform;
+                return root;
             }
         }
     }

@@ -9,8 +9,8 @@ metadata:
 
 Record PNG frame dumps of a game situation through the Editor's Game View, with
 native gizmos drawn over it, then assemble them into mp4/gif. **The footage is the
-deliverable** — always end by reading a mid-clip PNG yourself and handing the user
-the clip path.
+deliverable** — always read a mid-clip PNG yourself before assembling (the encode
+step deletes the frames on a verified clip) and end by handing the user the clip path.
 
 Capture needs a rendering Game View — a **windowed Editor** booted by the test runner
 (`-WithGraphics -Windowed`), or a **resident GUI editor** via the warm lane. This is
@@ -78,8 +78,10 @@ public sealed class MyProbe : CaptureScenario
 
 `Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
 advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, and
-`Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose gizmos draw.
+Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, `SectorEntry`
+to film inside a sector (loaded hero-less before `Run`; `SpawnCombatShip` ships sense its
+rocks), and `Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose
+gizmos draw.
 
 **Define the gizmo set and scope from what the clip must show.** Pick the narrowest
 `Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
@@ -119,20 +121,21 @@ itself on the editor's next load via the lane journal). A leased slot editor
 ```powershell
 unity command capture_lane_attach --project-path <proj>   # once per session
 unity command capture_request_scenario --scenario TwoShipSkirmishScenario --project-path <proj>
-./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
+./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
 unity command capture_lane_release --project-path <proj>  # restores EPO
 ```
 
 - `-ExcludeCategory ''` is required: the capture fixture is `RequiresGraphics`,
   and `-Routed` makes running excluded categories in a resident editor a
   deliberate act. The editor must not already be in Play Mode.
+- `-Routed` takes literal fixture names: a dotted name reads as regex and is refused.
 - The request is one-shot — cleared when the runner reads it, dead with the
   editor — so a stale scenario can never refilm. The run prints the frame dir;
   assemble as below.
 - Scenario types must already be compiled in the resident editor: promoted
   scenarios just work. A scratch scenario must be copied under `Assets/` (e.g.
-  `.../Editor/Tests/PlayMode/Scenarios/`) first — wait out the recompile, re-arm
-  `set_autotick --enable true`, delete the file (and `.meta`) after. The cold
+  `.../Editor/Tests/PlayMode/Scenarios/`) first — wait out the recompile, delete the
+  file (and `.meta`) after. The cold
   runner's automatic scratch staging never runs here.
 
 ## Live-editor stills (CLI lane)
@@ -159,15 +162,19 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   `enable_gizmo_annotations.cs`; the #401 flake family).
 - **Select via eval** (`cli-eval/select_ships.cs`) and bracket each capture with a
   state-read eval so you know what was actually on screen when the frame was taken.
-- **Live-fire scene without playing the game:** boot InitScene, then
-  `cli-eval/launch_no_presentation.cs`, `spawn_enemy.cs` (`UnitService.SpawnShip` with a
-  Ship prefab + AgentPilot Commander), `teleport_close.cs` for tight ObserverCam framing.
-  `launch_no_presentation.cs` flips `GameHost.sessionProfile.presentation = false`
-  **before** clicking hangar launch, so the pre-spawn compose suppresses the asteroid
-  field's renderers too — poking only the `GameSettings` static after compose leaves the
-  field lit (the "magenta asteroid" leak). With presentation off, the environment
-  silhouette comes from **collider gizmos** (the Gizmo View Colliders toggle / the capture
-  transaction's `CollidersOn`), not unlit meshes.
+- **Hierarchy dump** (`cli-eval/dump_hierarchy.cs`) writes every loaded scene, the
+  DontDestroyOnLoad scene and hidden roots to `results/hierarchy/hierarchy.txt`;
+  `cli-eval/launch_hangar.cs` clicks the hangar's Launch button so a dump can reach a
+  live sector from InitScene play.
+- **Live-fire scene** → film `TwoShipSkirmishScenario` (cold runner or warm lane): two
+  policy-pilot ships inside `TuningSector`'s asteroid field, presentation off from the
+  first compose, so the rocks' silhouettes are **collider gizmos** (the capture drives
+  `CollidersOn`), not meshes. A still is a mid-clip frame — read it before
+  `assemble.py`, or pass `--keep-frames`. A presentation-off live game to poke at over
+  the CLI: from edit mode, eval
+  `Game.PresentationOffBootstrap.EnterPlayMode(); return "entering play";` — it replaces
+  the open scene (save edits first) and enters play; gate on `editor_status` through the
+  play-enter reload (`doc/agents/unity-cli.md` → Domain-reload dead zones).
 - **Asset stills (edit mode, own camera)** — a finding about something visual (mesh,
   collider, layout) ships as a picture when an editor is already held or the user asks;
   otherwise offer the picture in one line and let the user spend the boot. Worked
@@ -175,9 +182,11 @@ snippets live in this skill's `cli-eval/` — run them with `eval_file`.
   line-topology meshes, since gizmos never reach an own-camera render) → PNG in the
   scratchpad → SendUserFile. Load an empty scene before closing the editor so nothing
   prompts to save. The lane is young: extend the snippets as uses accumulate.
-- **Sub-second subjects are out of reach**: a select→capture round-trip is ~0.5–1 s, so
-  laser bolts and projectiles-in-flight cannot be stilled from outside — that needs an
-  editor-side atomic `[CliCommand]`, `capture.gizmo_still` (carded #446).
+- **Sub-second subjects**: a select→capture round-trip is ~0.5–1 s, too slow for laser
+  bolts and projectiles-in-flight. `wait_for` with an `on_met` capture fires in the frame
+  its condition holds (`doc/agents/unity-cli.md` → Latency envelope); whether that
+  composites gizmos is untested. The atomic `capture.gizmo_still` is benched as #446;
+  evaluate `wait_for` first if that ticket reopens.
   Meanwhile: pause with the subject in flight and select it manually.
 
 ## Run + assemble (one command each)
@@ -192,6 +201,12 @@ frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
 replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
 needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
+The frame dir is the encode step's intermediate: `assemble.py` reads the clip
+back, checks its length, and deletes the frame dir on a verified encode — so the
+mid-clip PNG eyeball happens **before** this command, not after. Pass
+`--keep-frames` when the raw PNGs are the deliverable (stills, contact sheets)
+or a re-encode at another `--step`/`--fps` is likely; a failed read-back keeps
+everything and exits nonzero.
 
 ## Deliver
 
@@ -201,8 +216,9 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
   there both as a file attachment and as an artifact data-URI `<video>`. Proven:
   `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
   embedded as an `<img>` data URI in an artifact.
-- Note the delivered clip's absolute path in the ledger row / topic file — the next
-  session otherwise greps every worktree hunting for it.
+- Embed the clip in the PR body or issue comment, never just its path: a
+  `--format gif` inline plus the `--web` mp4 linked, pushed per
+  `agent-worktree-pr-loop` → Step 4 → Visual evidence.
 
 ## Hard-won constraints (violate = silent garbage)
 
@@ -231,9 +247,10 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 - **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
   AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
   unlock if ever needed.
-- **Eyeball a mid-clip PNG (Read the file) before claiming success** — compile-green
-  says nothing about render output; v1's overlay failed only at render time. For label
-  checks, confirm the label *changes* across frames.
+- **Eyeball a mid-clip PNG (Read the file) before assembling** — compile-green
+  says nothing about render output, a frame-count read-back cannot see a blank
+  render, and the frames are gone once the clip verifies. For label checks,
+  confirm the label *changes* across frames.
 - Scratch scenarios are staged into `Tests/PlayMode/Scratch/` only for the run and
   auto-removed; if a run died hard, the next run sweeps leftovers. Don't put files
   there yourself.

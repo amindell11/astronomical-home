@@ -42,7 +42,7 @@ namespace Capture.GameView
                 foreach (var type in profileTypes) GizmoUtility.SetGizmoEnabled(type, true, false);
                 DriveGizmoView(profileTypes, scope, scopeTeam);
                 SetSelection(subjects, activeSubject);
-                gameView.Prepare(width, height);
+                gameView.Prepare(width, height, profileTypes.Length > 0);
             }
             catch
             {
@@ -60,7 +60,7 @@ namespace Capture.GameView
                     GizmoView.SetOn(subview.ComponentType, subview.Key, true);
             GizmoView.Scope = scope;
             if (scope == GizmoScope.Team) GizmoView.ScopeTeam = scopeTeam;
-            GizmoView.CollidersOn = true;
+            GizmoView.CollidersOn = profileTypes.Length > 0;
         }
 
         // activeObject narrows the selection to itself, so the full subject set must land last or child drawers go dark.

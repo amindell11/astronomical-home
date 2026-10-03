@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Linq;
 using Cameras;
-using System.Reflection;
 using Game;
 using Substrate.Sessions;
 using NUnit.Framework;
@@ -10,10 +10,7 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
-using UnityEngine.UI;
-using Utils;
 using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
@@ -21,10 +18,10 @@ using Substrate.Services.Objectives;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
-    /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
-    /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
-    /// <see cref="GameHost.RunHangar"/>, so the flow is driven there.
+    /// While the hangar screen is open the player's commander must be inactive — primary fire shares
+    /// the left mouse button with UI clicks, so a live commander turns every hangar button press into a
+    /// weapon shot on the ship behind the screen — and its HUD hidden. Launch must bring both back.
+    /// The guarantee is the rig's park/unpark, not the hangar's, so the hangar flow drives it here.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
@@ -32,7 +29,7 @@ namespace Tests.PlayMode
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
-        private const string CatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private GameObject servicesGo;
         private GameObject hostGo;
@@ -42,10 +39,8 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             var screen = Object.FindFirstObjectByType<HangarScreen>();
             if (screen) DestroyTestObject(screen.gameObject);
-            if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
             if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
@@ -58,8 +53,6 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator RunHangar_GatesPlayerInput_UntilLaunch()
         {
-            GameSettings.SetPresentationEnabled(true);
-
             servicesGo = new GameObject("TestServices");
             unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
@@ -70,22 +63,22 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
             yield return rig.Build(unitService, objectiveService, presentationEnabled: true, observer,
-                new SessionFrame(Vector2.zero), onPlayerDeath: null);
+                servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
-            Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
+            Assert.IsNotNull(rig.Overlay, "rig built a HUD");
 
-            // Supply screen + catalog to an inactive host (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
+            // Host stays inactive so its flow never runs; the rig hosts the hangar coroutine.
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
-            SetPrivate(host, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
-            SetPrivate(host, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
+            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
+            host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
 
             var finished = false;
             IEnumerator Run()
             {
-                yield return host.RunHangar(rig);
+                yield return host.RunHangar(rig, presentationEnabled: true, servicesGo.transform);
                 finished = true;
             }
             rig.StartCoroutine(Run());
@@ -93,11 +86,11 @@ namespace Tests.PlayMode
 
             var screen = Object.FindFirstObjectByType<HangarScreen>();
             Assert.IsNotNull(screen, "interactive path instantiated the hangar screen");
-            Assert.IsFalse(rig.Player.Commander.enabled,
+            Assert.IsFalse(rig.Player.Commander.isActiveAndEnabled,
                 "player input is disconnected while the hangar screen is open");
+            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar screen is open");
 
-            var launchButton = new SerializedObject(screen)
-                .FindProperty("launchButton").objectReferenceValue as Button;
+            var launchButton = screen.launchButton;
             Assert.IsNotNull(launchButton, "hangar screen has a launch button");
             launchButton.onClick.Invoke();
 
@@ -105,13 +98,17 @@ namespace Tests.PlayMode
             yield return null;
 
             Assert.IsTrue(finished, "RunHangar completed after Launch");
-            Assert.IsTrue(rig.Player.Commander.enabled, "player input is restored after launch");
+            Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
+            Assert.IsTrue(HudVisible(), "the HUD is back after launch");
             Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
         }
 
-        private static void SetPrivate(object target, string field, Object value) =>
-            target.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(target, value);
+        private bool HudVisible()
+        {
+            var canvases = rig.Overlay.GetComponentsInChildren<Canvas>(true);
+            Assert.IsNotEmpty(canvases, "test premise: the HUD has canvases");
+            return canvases.All(c => c.enabled);
+        }
     }
 }
 #endif

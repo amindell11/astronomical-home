@@ -5,8 +5,11 @@ using System.Linq;
 using Capture;
 using NUnit.Framework;
 using RL.Hosts;
+using RL.Hosts.Lanes;
 using RL.Opponents;
 using RL.Probes;
+using Ships.Loadout;
+using UnityEditor;
 
 namespace Tests.EditMode
 {
@@ -44,7 +47,7 @@ namespace Tests.EditMode
                 {
                     opponentSource = s;
                     return null;
-                }, () => hasGraphics);
+                }, TrainingBootstrap.CatalogWeapons, () => hasGraphics);
         }
 
         private HarnessSpec ParsePlayer(params string[] keyValuePairs)
@@ -267,6 +270,79 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void DuelGrammar_SelectsTheLaneAndResolvesItsWeaponPrefabs()
+        {
+            var spec = Parse("RL_HARNESS_DUEL", "Lasers, Missiles", "RL_HARNESS_SEEDS", "3001");
+
+            Assert.AreEqual(HarnessLane.Duel, spec.lane);
+            Assert.AreEqual(new[] { "Lasers", "Missiles" }, Array.ConvertAll(spec.duelWeapons, w => w.name));
+            Assert.AreEqual("duel-custom", spec.tag, "duel artifacts must never pass as an eval");
+            Assert.AreEqual(new[] { MarksmanshipProbe.ProbeName }, Names(spec.probes),
+                "the eval-lane default probes would throw on a weapon with no fire range");
+        }
+
+        [Test]
+        public void DuelGrammar_AllSelectsTheCatalogsWeaponsInCatalogOrder()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            Assert.IsNotEmpty(catalog.Weapons);
+
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "all").duelWeapons);
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "ALL").duelWeapons);
+        }
+
+        [Test]
+        public void DuelGrammar_ResolvesANameWithoutRegardToCase()
+        {
+            Assert.AreEqual(new[] { "Lasers" },
+                Array.ConvertAll(Parse("RL_HARNESS_DUEL", "lasers").duelWeapons, w => w.name),
+                "block labels come from the prefab's own name, not the typed token");
+        }
+
+        [Test]
+        public void DuelGrammar_RefusesNamesTheCatalogDoesNotListAndConflictingSelectors()
+        {
+            var projectile = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Laser"),
+                "Laser.prefab is a projectile, not a weapon");
+            StringAssert.Contains("'Laser'", projectile.Message);
+            foreach (var weapon in TrainingBootstrap.CatalogWeapons())
+                StringAssert.Contains(weapon.name, projectile.Message, "a refused name must list the legal set");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "all,Lasers"),
+                "\"all\" is the whole value, never a list entry");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", ""));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Lasers"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_ONNX", "ckpt.onnx"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_OPPONENT", "dummy"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_LANE", "capture"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_SENTENCE", "all"));
+        }
+
+        [Test]
+        public void DuelLane_RefusesTheCombatProbe()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,combat"));
+            StringAssert.Contains(CombatTelemetryProbe.ProbeName, thrown.Message);
+            Assert.AreEqual(new[] { MarksmanshipProbe.ProbeName, ContactProbe.ProbeName },
+                Names(Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,contact").probes),
+                "probes that need no fire range stay selectable");
+        }
+
+        [Test]
+        public void DuelBlockLabels_NameTheWeaponAndTheTarget()
+        {
+            var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
+            var block = DuelLane.Block(railgun, OpponentArchetype.Orbiter);
+            Assert.AreEqual(OpponentKind.Archetype, block.kind);
+            Assert.AreEqual(OpponentArchetype.Orbiter, block.archetype);
+            Assert.AreEqual("Railgun-Orbiter", block.Label, "every weapon meets the same targets — probe pools key on the label");
+        }
+
+        [Test]
         public void RetiredEnvName_ThrowsNamingItsReplacement()
         {
             var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),
@@ -420,6 +496,8 @@ namespace Tests.EditMode
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_LANE", "capture"), "capture lane");
             Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_SENTENCE", "all"), "sentence lane");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_DUEL", "Lasers"), "duel lane");
         }
 
         [Test]

@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using Damage;
 using UnityEngine;
@@ -10,14 +11,14 @@ namespace Combat.Projectiles
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
     {
         [Header("Charge")]
-        [SerializeField, Min(0f)] private float fuseSeconds = 2.5f;
+        [Stat, SerializeField, Min(0f)] private float fuseSeconds = 2.5f;
         [Tooltip("Grace period before contact can detonate the charge (fuse and gunfire always can).")]
-        [SerializeField, Min(0f)] private float armingSeconds = 0.3f;
+        [Stat, SerializeField, Min(0f)] private float armingSeconds = 0.3f;
         [Tooltip("Backward push relative to the fire direction at release.")]
-        [SerializeField, Min(0f)] private float dropSpeed = 3f;
+        [Stat, SerializeField, Min(0f)] private float dropSpeed = 3f;
 
         [Header("Blast")]
-        [SerializeField] private ConcussionWave wavePrefab;
+        [Stat, SerializeField] private ConcussionWave wavePrefab;
 
         private float aliveTime;
         private bool detonated;
@@ -46,8 +47,7 @@ namespace Combat.Projectiles
         protected override void Awake()
         {
             base.Awake();
-            if (wavePrefab)
-                SimplePool<ConcussionWave>.Warm(wavePrefab);
+            SimplePool<ConcussionWave>.Warm(wavePrefab);
         }
 
         public override void Launch(Vector3 direction)
@@ -87,12 +87,9 @@ namespace Combat.Projectiles
             if (detonated) return;
             detonated = true;
 
-            if (wavePrefab)
-            {
-                var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-                wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
-                Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
-            }
+            var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
+            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
+            Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
 
             OnDetonated?.Invoke(transform.position);
             Dispose();

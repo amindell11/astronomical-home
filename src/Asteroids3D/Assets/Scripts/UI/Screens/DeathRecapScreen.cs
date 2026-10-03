@@ -4,24 +4,25 @@ using System.Text;
 using Damage;
 using Game.Player;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.Screens
 {
     /// <summary>
-    /// Post-death recap panel rendered from the damage ledger: what killed you, and what hurt
-    /// you this life, aggregated per source. Code-built (no prefab) so headless paths never
-    /// touch it; the host creates it during <see cref="Game.GameState.DeathRecap"/>.
+    /// Post-death recap panel rendered from the damage ledger and the run tally: what killed you,
+    /// this run's kills and time survived, and what hurt you this life, aggregated per source.
+    /// Code-built (no prefab) so headless paths never touch it; <see cref="Game.GameHost"/> creates
+    /// it for the recap hold between death and unload.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class DeathRecapScreen : MonoBehaviour
     {
         private const int MaxRows = 6;
 
-        public static DeathRecapScreen Create()
+        public static DeathRecapScreen Create(Transform parent)
         {
             var go = new GameObject("DeathRecapScreen");
+            go.transform.SetParent(parent, false);
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
@@ -29,10 +30,9 @@ namespace UI.Screens
             return go.AddComponent<DeathRecapScreen>();
         }
 
-        public void Show(in DamageInfo killingBlow, IReadOnlyList<DamageLedger.Row> rows, Action onContinue)
+        public void Show(in DamageInfo killingBlow, IReadOnlyList<DamageLedger.Row> rows, IRunTally tally,
+            Action onContinue)
         {
-            EnsureEventSystem();
-
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             var dim = AddStretchedImage(transform, "Dim", new Color(0f, 0f, 0f, 0.65f));
@@ -55,6 +55,7 @@ namespace UI.Screens
             AddText(panel.transform, "Title", "SHIP DESTROYED", font, 34,
                 new Color(1f, 0.45f, 0.35f), FontStyle.Bold);
             AddText(panel.transform, "Cause", CauseLine(killingBlow, rows), font, 22, Color.white);
+            AddText(panel.transform, "Tally", TallyBlock(tally), font, 22, Color.white);
             AddText(panel.transform, "Rows", RowsBlock(rows), font, 17, new Color(0.8f, 0.83f, 0.88f));
 
             AddContinueButton(panel.transform, font, onContinue);
@@ -70,6 +71,9 @@ namespace UI.Screens
                 ? $"Destroyed by {name} — {DamageLedger.DescribeKind(killingBlow.Kind)}."
                 : $"Destroyed by {DamageLedger.DescribeKind(killingBlow.Kind)}.";
         }
+
+        internal static string TallyBlock(IRunTally tally) =>
+            $"Kills: {tally.Kills}\nTime survived: {RunTally.FormatSeconds(tally.SecondsSurvived)}";
 
         internal static string RowsBlock(IReadOnlyList<DamageLedger.Row> rows)
         {
@@ -153,13 +157,6 @@ namespace UI.Screens
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             go.AddComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
-        }
-
-        private static void EnsureEventSystem()
-        {
-            if (EventSystem.current) return;
-            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-            DontDestroyOnLoad(go);
         }
     }
 }

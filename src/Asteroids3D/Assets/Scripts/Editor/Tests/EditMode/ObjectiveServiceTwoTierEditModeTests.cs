@@ -139,31 +139,11 @@ namespace Tests.EditMode
             var svc = NewService();
             var handle = svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
 
-            var raised = 0;
-            svc.OnLocalsChanged += () => raised++;
-
             handle.Close();
-            Assert.AreEqual(1, raised);
+            Assert.AreEqual(0, svc.Locals.Count);
 
             Assert.DoesNotThrow(() => handle.Close());
-            Assert.AreEqual(1, raised, "Double-close must not re-raise OnLocalsChanged.");
-        }
-
-        [Test]
-        public void OnLocalsChanged_FiresOnOpenAndClose()
-        {
-            var svc = NewService();
-            var raised = 0;
-            svc.OnLocalsChanged += () => raised++;
-
-            var a = svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            Assert.AreEqual(1, raised);
-
-            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            Assert.AreEqual(2, raised);
-
-            a.Close();
-            Assert.AreEqual(3, raised);
+            Assert.AreEqual(0, svc.Locals.Count);
         }
 
         [Test]
@@ -190,47 +170,6 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.Completed, svc.SpineState);
             Assert.AreEqual(1, spineTransitions);
             Assert.AreEqual(1, svc.Locals.Count, "Spine transitions must not close locals.");
-        }
-
-        [Test]
-        public void ClearAll_HandlerClosingAnotherLocal_MidSweep_StillEmpties()
-        {
-            var svc = NewService();
-            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-
-            var closedOther = false;
-            svc.OnLocalsChanged += () =>
-            {
-                if (closedOther || svc.Locals.Count == 0) return;
-                closedOther = true;
-                svc.Locals[0].Close();
-            };
-
-            Assert.DoesNotThrow(() => svc.ClearAll());
-            Assert.AreEqual(0, svc.Locals.Count);
-        }
-
-        [Test]
-        public void ClearAll_HandlerOpeningNewLocal_MidSweep_NewLocalAlsoClosed()
-        {
-            var svc = NewService();
-            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-
-            var openedOne = false;
-            LocalObjectiveHandle opened = null;
-            svc.OnLocalsChanged += () =>
-            {
-                if (openedOne) return;
-                openedOne = true;
-                opened = svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            };
-
-            Assert.DoesNotThrow(() => svc.ClearAll());
-            Assert.IsNotNull(opened);
-            Assert.AreEqual(0, svc.Locals.Count,
-                "A local opened by a handler during ClearAll must be closed before ClearAll returns.");
         }
 
         [Test]

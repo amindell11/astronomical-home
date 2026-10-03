@@ -1,12 +1,15 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Capture;
+using Combat.Weapons;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using RL.Arena;
 using RL.Episodes.Compositions;
+using Ships.Loadout;
 
 namespace RL.Hosts
 {
@@ -44,7 +47,7 @@ namespace RL.Hosts
         public static void RunHarness()
         {
             var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
-                ResolveEvalOpponent, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
+                ResolveEvalOpponent, CatalogWeapons, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[HarnessHost]").AddComponent<HarnessHost>();
@@ -76,6 +79,9 @@ namespace RL.Hosts
 
         internal static Unity.InferenceEngine.ModelAsset ResolveEvalOpponent(string sourceFile) =>
             LoadModelAsset(ImportEvalOpponent(sourceFile));
+
+        internal static IReadOnlyList<WeaponComponent> CatalogWeapons() =>
+            AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath).Weapons;
 
         private static Unity.InferenceEngine.ModelAsset LoadModelAsset(string assetPath)
         {

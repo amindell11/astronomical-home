@@ -1,10 +1,7 @@
-using Combat.Weapons;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
-using AI.Context;
 using Combat;
-using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
@@ -12,39 +9,15 @@ using Ships.Command;
 using Tests.Common;
 using UnityEditor;
 using UnityEngine;
-using Ships.Registry;
 using AI.Strategy;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the commander's fire-lane routing: the Gunner is the sole path from an AI ship to the weapon actuator — engaged or disengaged, every step pushes each slot's command through it with press and hold together.</summary>
+    /// <summary>Pins the commander's fire-lane routing: the Gunner is the sole path from an AI ship to the weapon actuator — engaged or disengaged, every step pushes each slot's command through it.</summary>
     [Category("AI")]
     public class AICommanderFireLaneEditModeTests
     {
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
-
-        private sealed class TestableCommander : AICommander
-        {
-            public void CallAwake() => Awake();
-            public void Step() => FixedUpdate();
-        }
-
-        private sealed class StubStatus : IShipStatus
-        {
-            public Transform transform;
-            public Dynamics dynamics;
-            public ShipId Id => default;
-            public Transform Transform => transform;
-            public Kinematics Kinematics => default;
-            public Dynamics Dynamics => dynamics;
-            public float HealthPct => 1f;
-            public float ShieldPct => 1f;
-            public bool BoostAvailable => true;
-            public float BoostCooldownRemaining => 0f;
-            public float BoostCooldownPct => 0f;
-            public float MaxSpeed => dynamics.maxSpeed;
-            public float MaxYawRate => dynamics.maxYawRate;
-        }
 
         private sealed class StubPilot : IPilot
         {
@@ -55,21 +28,6 @@ namespace Tests.EditMode
         {
             public readonly List<(WeaponSlot slot, WeaponCommand cmd)> Commands = new();
             public void Fire(WeaponSlot slot, in WeaponCommand cmd) => Commands.Add((slot, cmd));
-        }
-
-        private sealed class StubWeaponContext : IWeaponContext
-        {
-            private static readonly WeaponSlot[] slots = { WeaponSlot.Primary };
-            public IReadOnlyList<WeaponSlot> Slots => slots;
-            public bool IsReady(WeaponSlot slot) => true;
-            public float ProjectileSpeed(WeaponSlot slot) => 40f;
-            public Gunsight Sight(WeaponSlot slot) => null;
-        }
-
-        private sealed class ScriptedBrain : Brain
-        {
-            public BrainDecision? decision;
-            public override BrainDecision? Decide(AIContext ctx) => decision;
         }
 
         private GameObject host;
@@ -93,7 +51,7 @@ namespace Tests.EditMode
             brain = commander.InstallBrain<ScriptedBrain>();
 
             weapons = new SpyWeapons();
-            var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
+            var status = new StubShipStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
             commander.SetSensing(new StubShipRegistry(), null);
             commander.Initialize(new ShipControl(status, new StubPilot(), new SeedScope(1),
                 new StubWeaponContext(), weapons));
@@ -123,11 +81,8 @@ namespace Tests.EditMode
                 "a disengaged slot still receives a released trigger, not silence");
             Assert.IsFalse(weapons.Commands[^1].cmd.held);
 
-            foreach (var (slot, cmd) in weapons.Commands)
-            {
+            foreach (var (slot, _) in weapons.Commands)
                 Assert.AreEqual(WeaponSlot.Primary, slot);
-                Assert.AreEqual(cmd.held, cmd.pressed, "the gunner pushes press and hold together");
-            }
         }
 
         [Test]

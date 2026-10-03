@@ -1,8 +1,5 @@
 #if UNITY_EDITOR
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -13,14 +10,13 @@ using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using RL.Arena;
 using RL.Episodes;
-using RL.Hosts;
 using RL.Opponents;
 using RL.Probes;
 using RL.Reward;
 
 namespace Tests.PlayMode
 {
-    /// <summary>The per-archetype degeneracy gate (env PR-C): each scripted opponent archetype exercised against the deterministic <see cref="RangerBrain"/> stand-in on the agent side, with per-episode JSONL rows + per-archetype summaries for the human go/no-go before any training hours. The sweep is opt-in (RL_ARCHETYPES env / results/rl-archetypes/watch.flag); the smoke always runs.</summary>
+    /// <summary>Smoke for the per-archetype degeneracy gate: each scripted opponent archetype runs one episode against the deterministic <see cref="RangerBrain"/> stand-in on the agent side, and its <see cref="ArchetypeGateRow"/> must show the archetype's signature behaviour.</summary>
     [TestFixture]
     [Category("AI")]
     public class OpponentArchetypePlayModeTests
@@ -135,51 +131,6 @@ namespace Tests.PlayMode
                 Assert.AreEqual(EpisodeResult.SchemaId, episodeRoundTrip.schema);
                 Assert.AreEqual(archetype.ToString(), episodeRoundTrip.opponent.archetype);
             }
-        }
-
-        [UnityTest]
-        [Timeout(3600000)]
-        public IEnumerator Sweep_WritesJsonl()
-        {
-            var resultsDir = Path.GetFullPath(Path.Combine(
-                Application.dataPath, "..", "..", "..", "results", "rl-archetypes"));
-            var watchFlag = File.Exists(Path.Combine(resultsDir, "watch.flag"));
-            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_ARCHETYPES")))
-                Assert.Ignore("Set RL_ARCHETYPES=1 (or create results/rl-archetypes/watch.flag) to run the archetype degeneracy sweep.");
-
-            // Watch (human real-time eyeball) is the one unlocked mode; measurement runs keep the pacing contract.
-            if (watchFlag) Time.timeScale = 1f;
-            else PacingContract.Apply();
-
-            var episodesPerArchetype = watchFlag ? 1 : 10;
-
-            var spec = RewardSpec.Default;
-            spec.timeoutDecisions = 300;
-
-            SpawnPairWithRoster(in spec);
-
-            var path = EpisodeJsonl.NewRunPath("archetype-gate", "rl-archetypes");
-            var episodes = 0;
-            foreach (var archetype in Archetypes)
-            {
-                var rows = new List<ArchetypeGateRow>();
-                for (var i = 0; i < episodesPerArchetype; i++)
-                {
-                    var draw = roster.Install(archetype, in spec, i, Vector2.zero);
-                    pair.Reset(in spec, i);
-                    using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, Vector2.zero,
-                        spec.arenaRadius, in draw);
-                    var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, i, Vector2.zero);
-                    yield return RunToCompletion(runner, spec, probe);
-                    var row = probe.ToRow(runner.Result);
-                    rows.Add(row);
-                    File.AppendAllText(path, row.ToJsonLine() + "\n");
-                    episodes++;
-                }
-                File.AppendAllText(path, ArchetypeGateSummary.Summarize(archetype.ToString(), rows).ToJsonLine() + "\n");
-            }
-
-            Debug.Log($"[ArchetypeGate] wrote {episodes} episodes (+{Archetypes.Length} summaries) to {path}");
         }
 
         /// <summary>The gate composition: the canonical pair with the deterministic ranger stand-in on the agent side, and the roster bound to the opponent while its prefab-default utility brain is still installed.</summary>

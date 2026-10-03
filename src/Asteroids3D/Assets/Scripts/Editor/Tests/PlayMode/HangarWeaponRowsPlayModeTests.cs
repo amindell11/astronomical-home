@@ -8,7 +8,6 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Tests.PlayMode
@@ -36,13 +35,12 @@ namespace Tests.PlayMode
         };
 
         private HangarScreen screen;
-        private LoadoutConfig catalog;
+        private ItemSubset catalog;
 
         public override void TearDown()
         {
             DestroyTestObject(screen);
             if (catalog) Object.DestroyImmediate(catalog);
-            if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             base.TearDown();
         }
 
@@ -57,7 +55,7 @@ namespace Tests.PlayMode
         {
             ship1 = Load<Ship>(Ship1Path);
 
-            catalog = ScriptableObject.CreateInstance<LoadoutConfig>();
+            catalog = ScriptableObject.CreateInstance<ItemSubset>();
             catalog.ships = new[] { ship1 };
             catalog.engines = new EngineModule[0];
             catalog.shields = new ShieldModule[0];
@@ -131,36 +129,46 @@ namespace Tests.PlayMode
                 "ship pick reseeds the secondary mount to the ship's authored kit");
         }
 
-        [Test]
-        public void HangarStats_ReadableOnEveryCatalogWeaponAsset()
+        // Read off the prefab asset, where Awake never runs: passes only if every stat source is serialized.
+        [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
+            "Damage 20   |   Rate 5/s   |   Speed 50   |   Overheats after 4 shots")]
+        [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab",
+            "Damage 12-30   |   Full charge 1.2s   |   Speed 45")]
+        [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
+            "Damage 45   |   Range 60   |   Full charge 1.5s   |   Hitscan")]
+        [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
+            "Damage 6   |   Rate 10/s   |   Mag 24 (reload 1.5s)   |   Speed 40")]
+        [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
+            "Damage 35 + 15 splash   |   2 rounds (regen 15s/round)   |   Lock-on homing")]
+        [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
+            "Blast 40 to 12u, hits friend and foe   |   3 charges (regen 12s/round)   |   Fuse 2.5s")]
+        public void Describe_FormatsCatalogWeaponAsset(string path, string expected)
         {
-            foreach (var path in WeaponPaths)
-            {
-                var weapon = Load<WeaponComponent>(path);
-                Assert.IsNotEmpty(weapon.HangarStats, $"{path} produces a hangar stats line on the prefab asset");
-            }
+            Assert.AreEqual(expected, HangarScreen.Describe(Load<WeaponComponent>(path)));
         }
 
-        // Checks authored prefab widths directly, so a catalog weapon that overflows the row fails without a layout pass.
+        // Checks authored prefab sizes directly, so a catalog weapon that overflows the grid fails without a layout pass.
         [Test]
-        public void RealCatalog_WeaponOptionsFitWithinRowWidth()
+        public void RealCatalog_WeaponOptionsFitWithinRowGrid()
         {
-            var realCatalog = Load<LoadoutConfig>(RealCatalogPath);
+            var realCatalog = Load<ItemSubset>(RealCatalogPath);
             var screenPrefab = Load<HangarScreen>(ScreenPrefabPath);
 
-            var template = (Button)new SerializedObject(screenPrefab)
-                .FindProperty("optionButtonTemplate").objectReferenceValue;
-            Assert.IsNotNull(template, "screen prefab wires an option button template");
-            var buttonWidth = ((RectTransform)template.transform).sizeDelta.x;
-
             var row = (RectTransform)screenPrefab.transform.Find("Panel/PrimaryWeaponRow");
-            var layout = row.GetComponent<HorizontalLayoutGroup>();
-            var count = realCatalog.weapons.Length;
-            var needed = count * buttonWidth + (count - 1) * layout.spacing + layout.padding.horizontal;
+            var grid = row.GetComponent<GridLayoutGroup>();
+            Assert.AreEqual(GridLayoutGroup.Constraint.FixedColumnCount, grid.constraint, "weapon row wraps by column count");
 
-            Assert.LessOrEqual(needed, row.sizeDelta.x,
-                $"{count} catalog weapons need {needed}px but the row is {row.sizeDelta.x}px — " +
-                "shrink OptionTemplate or rework the row layout");
+            var count = realCatalog.weapons.Length;
+            var columns = grid.constraintCount;
+            var rows = (count + columns - 1) / columns;
+            var neededWidth = columns * grid.cellSize.x + (columns - 1) * grid.spacing.x + grid.padding.horizontal;
+            var neededHeight = rows * grid.cellSize.y + (rows - 1) * grid.spacing.y + grid.padding.vertical;
+
+            Assert.LessOrEqual(neededWidth, row.sizeDelta.x,
+                $"{columns} weapon columns need {neededWidth}px but the row is {row.sizeDelta.x}px wide");
+            Assert.LessOrEqual(neededHeight, row.sizeDelta.y,
+                $"{count} catalog weapons wrap to {rows} rows needing {neededHeight}px but the row is " +
+                $"{row.sizeDelta.y}px tall — grow the row or add a column");
         }
     }
 }

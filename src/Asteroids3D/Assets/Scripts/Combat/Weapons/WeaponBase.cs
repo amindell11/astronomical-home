@@ -1,3 +1,4 @@
+using Balance;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,9 +74,6 @@ namespace Combat.Weapons
             ? name.Replace("(Clone)", string.Empty).Trim()
             : displayName;
 
-        /// <summary>Hangar hover stat line; read off the prefab asset where Awake never runs, so overrides must use only serialized state.</summary>
-        public virtual string HangarStats => DisplayName;
-
         /// <summary>Displayable state (readout conditions + lock source), built lazily post-Awake; pre-Awake returns empty WITHOUT caching.</summary>
         public IReadOnlyList<IWeaponReadout> Readouts
         {
@@ -123,16 +121,13 @@ namespace Combat.Weapons
     public abstract class WeaponBase<TProj> : WeaponComponent where TProj : ProjectileBase
     {
         [Header("Launcher Settings")]
-        [SerializeField] internal TProj projectilePrefab;
+        [Stat, SerializeField] internal TProj projectilePrefab;
 
         protected override void Awake()
         {
             base.Awake();
-            if (projectilePrefab)
-                SimplePool<TProj>.Warm(projectilePrefab);
+            SimplePool<TProj>.Warm(projectilePrefab);
         }
-
-        public override bool CanFire() => projectilePrefab && base.CanFire();
 
         public override ProjectileBase Fire(IProjectileService projectiles)
         {

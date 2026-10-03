@@ -8,8 +8,8 @@ restating it.
 
 ## Worktree pool capacity
 
-Pool is `agent-1..5`. Grow only when EVERY slot holds a live claim in the work
-ledger (a stale lock is reclaimable by plain `acquire`):
+Pool is `agent-1..5`. Grow only when EVERY slot holds a live lease (`pool status`;
+a stale lock is reclaimable by plain `acquire`):
 `git worktree add -b agent-6 D:/amind/git/agent-6 origin/main` from the primary
 tree — the pool script discovers slots by the `agent-N` branch pattern. **Never
 past `agent-7` without asking the user.** A fresh slot is Unity-cold (full asset
@@ -42,6 +42,15 @@ The rule for both: the constant is the **maximum observed upper-bracket peak,
 rounded up to the next 0.5 GB**; retune when that maximum moves by 0.5 GB or
 more. Summaries accumulate across slot resets (`results/` is ignored and
 `git clean -fd` leaves it), so the history is already on disk.
+
+## Hub-launched editors
+
+`unity open` and a Unity Hub click launch outside the coordinator by
+construction (`-useHub -hubIPC`, parent = Unity Hub): the process is untracked
+from birth, and on this machine such editors have hung in Unity 6 teardown
+after a clean project load — windowless, lockfile gone, never exiting. The
+coordinator names that state `zombie_unity`; `-Action Reap` clears it
+(unity-access skill → Queue and blockers).
 
 ## Alastor — second Windows box (remote Unity lane)
 
@@ -129,6 +138,15 @@ the id form only. Supporting facts, all measured:
 ⚠ Provenance: reading the id-form refusal as "a session cannot rename itself"
 cost two weeks of dismantled workarounds in 2026-08. When a tool refuses, re-read
 its parameter docs for the sanctioned form before architecting around it.
+
+## Image generation (Nano Banana)
+
+`art/tools/imagegen/imagegen.py` reads `GEMINI_API_KEY`, an AI Studio key on a
+billing-enabled account that is *not* the banned ai-counsel Gemini account. The
+user stores it as a Windows user env var; agents never print or copy it. The
+Claude app only sees it after a restart. Until then, lift it into a single
+command without echoing it:
+`GEMINI_API_KEY="$(powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('GEMINI_API_KEY','User')")" uv run art/tools/imagegen/imagegen.py ...`
 
 ## ai-counsel (cross-model debate MCP)
 

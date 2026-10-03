@@ -43,9 +43,31 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 ## 4. Enforcement
 
 `scripts/tests/` runs in the merge gate whenever the landing diff touches `scripts/**`
-(`agent_worktree_pool.sh run-script-tests`). Tests keep their state inside a temp dir
-and inject every root the script would otherwise take from this machine; the
-non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
+(`agent_worktree_pool.sh run-script-tests <slot>`), under script-suite selection: the gate hands
+the runner its landing range, and only the test files that range selects run.
+
+- **Covers line.** Every `scripts/tests/test_*` file carries `# covers: <path-or-glob> …` within
+  its first 10 lines: repo-relative paths or bash globs, space-separated. List every non-lib
+  script the test runs or loads, directly or through the script under test
+  (`test_resharper_ratchet.ps1` lists `scripts/unity_access_client.ps1`); never the file itself.
+- **Selection.** A changed path selects each file whose covers line matches it; a changed test
+  file selects itself. A rename counts its old and new path. A changed script no covers line
+  lists runs nothing; the suite's first line and the `script-selection` journal event name it,
+  and a run that selects nothing passes.
+- **Every file runs** with no landing range (`run-script-tests <slot>` by hand), when the diff
+  touches a shared path (`scripts/lib/**`, or a non-`test_*` path under `scripts/tests/`), or
+  when a test file has no covers line.
+- **A stale covers entry refuses.** An entry matching no file fails every run, full runs
+  included, before any file starts.
+
+Tests keep their state inside a temp dir and inject every root the script would otherwise take
+from this machine; the non-hermetic skiplist in `cmd_run_script_tests` is empty and should stay that way.
+The gate runs the suite in the slot beside its own test run and ratchet, so a test that writes
+into the worktree trips the gate's clean-tree checks.
+The `.ps1` files run in a lane beside the `.sh` files, so a test file may run beside any other
+and must share no state with another file. Every selected file runs and the suite fails at the end; each file's
+output prints as one block in a fixed order, and its trailer and journal event stay per file.
+Lanes pair bash with PowerShell only; concurrent bash copies contend on spawn cost (#611).
 
 ## 5. Shared primitives live in `scripts/lib/`
 
@@ -54,11 +76,17 @@ logic (each with >=2 divergent copies). Nothing enters with one caller - one ada
 hypothetical seam. A coordinated tool's own front door is a sanctioned client (section 3),
 not a shared primitive.
 
-Splitting the monolith scripts (`agent_worktree_pool.sh`, `unity_test_agent.ps1`,
-`unity_access.ps1`) into smaller files is a standing NON-GOAL: depth is a property of the
-interface, not the implementation, so a 1,500-line module behind a small honest interface is
-already the goal state. Splits buy maintainer locality only; they re-earn a place in the
-backlog via an observed maintenance failure, as their own hygiene arc.
+Splitting the monolith scripts (`agent_worktree_pool.sh`, `unity_test_agent.ps1`) into smaller
+files is a standing NON-GOAL: depth is a property of the interface, not the implementation, so a
+1,500-line module behind a small honest interface is already the goal state. Splits buy
+maintainer locality only; they re-earn a place in the backlog via an observed maintenance
+failure, as their own hygiene arc.
+
+The one lifted case is `unity_access.ps1` (user, 2026-09-23, #664): its test spawned a process
+per call, so the functions live in `unity_access_lib.ps1` and the entry point keeps the whole
+published interface. The library adds no interface and is not a second front door. An in-process
+caller becomes the lease holder, so only the entry point and its test load it; every other
+caller uses the client (section 3).
 
 ## 6. PowerShell 5.1 trap
 

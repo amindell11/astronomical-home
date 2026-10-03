@@ -8,7 +8,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -28,7 +27,6 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            GameSettings.SetPresentationEnabled(true);
             DestroyTestObject(hostGo);
             DestroyTestObject(rigInstance ? rigInstance.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
@@ -56,7 +54,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(session.Units, "Compose must populate the session's services");
 
             yield return rigInstance.Build(session.Units, session.Objectives, presentationEnabled: false,
-                observer, session.Frame, onPlayerDeath: null);
+                observer, hostGo.transform, session.Frame, onPlayerDeath: null);
 
             Assert.IsNotNull(rigInstance.Player, "the rig builds the player against the session's services");
 

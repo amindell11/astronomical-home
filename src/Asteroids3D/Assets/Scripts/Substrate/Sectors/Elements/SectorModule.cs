@@ -10,9 +10,9 @@ namespace Substrate.Sectors.Elements
     /// gameplay logic / control behaviors (e.g. spectator camera, encounter sequence). Pure
     /// presentation that can subscribe to a service channel is NOT a module.
     ///
-    /// A module runs its <see cref="Setup"/> after the sector's content (adopt + spawners +
-    /// <c>OnAfterContent</c>) and its <see cref="Teardown"/> before the sector's
-    /// <c>OnBeforeTeardown</c>, in reverse list order. A module may end the sector by raising
+    /// A module runs its <see cref="Setup"/> after the sector's content (adopted ships + spawners)
+    /// and its <see cref="Teardown"/> first, in reverse list order, before spawner and adopted-ship
+    /// teardown. A module may end the sector by raising
     /// <see cref="SectorEndRequested"/> via <see cref="RequestSectorEnd"/>; the base sector
     /// auto-subscribes that event to its completion sink. A module that never raises never ends the
     /// sector.
@@ -25,7 +25,7 @@ namespace Substrate.Sectors.Elements
         /// <summary>Build this module's behavior. Runs after content, in manifest list order.</summary>
         public virtual IEnumerator Setup(SectorBuildContext ctx) { yield break; }
 
-        /// <summary>Tear down this module's behavior. Runs before OnBeforeTeardown, in reverse order.</summary>
+        /// <summary>Tear down this module's behavior. Runs before spawner/adopted teardown, in reverse order.</summary>
         public virtual IEnumerator Teardown(SectorBuildContext ctx) { yield break; }
 
         /// <summary>Request that the owning sector ends with the given result.</summary>

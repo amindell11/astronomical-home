@@ -3,25 +3,18 @@ using UnityEngine;
 
 namespace Game.Player
 {
-    public class PlayerInputReader
+    public class PlayerInputReader : IDisposable
     {
-        private const string VerticalAxis = "Vertical";
-        private const string HorizontalAxis = "Horizontal";
-        private const string RotationAxis = "Rotation";
-        private const string BoostButton = "Boost";
-        private const string Fire1Button = "Fire1";
-        private const string Fire2Button = "Fire2";
-        private const string DirectionButton = "Direction";
+        private readonly PlayerControls controls = new();
 
-        public float Thrust => Input.GetAxis(VerticalAxis);
-        public float Strafe => Input.GetAxis(HorizontalAxis);
-        public float Rotation => Input.GetAxis(RotationAxis);
-        public bool BoostDown => Input.GetButtonDown(BoostButton);
+        public float Thrust => controls.Flight.Thrust.ReadValue<float>();
+        public float Strafe => controls.Flight.Strafe.ReadValue<float>();
+        public bool BoostDown => controls.Flight.Boost.WasPressedThisFrame();
         // Both triggers report the held (level) state; the weapon decides auto vs semi-auto,
         // and PlayerCommander derives the press edge for semi-auto weapons.
-        public bool PrimaryFire => Input.GetButton(Fire1Button);
-        public bool SecondaryFire => Input.GetButton(Fire2Button);
-        public bool WantsToRotate => Input.GetButton(DirectionButton);
+        public bool PrimaryFire => controls.Flight.PrimaryFire.IsPressed();
+        public bool SecondaryFire => controls.Flight.SecondaryFire.IsPressed();
+        public bool WantsToRotate => !controls.Flight.HoldHeading.IsPressed();
 
         private Func<Vector3, Vector3> screenToGamePlane;
 
@@ -37,7 +30,13 @@ namespace Game.Player
 
         public Vector3 GetMouseWorldPosition()
         {
-            return screenToGamePlane(Input.mousePosition);
+            return screenToGamePlane(controls.Flight.AimPoint.ReadValue<Vector2>());
         }
+
+        public void Enable() => controls.Flight.Enable();
+
+        public void Disable() => controls.Flight.Disable();
+
+        public void Dispose() => controls.Dispose();
     }
 }

@@ -354,6 +354,7 @@ namespace Tests.PlayMode
                     ? ShipAgentFactory.SmokeFixturePath
                     : TrainingBootstrap.ImportEvalCandidate(source)),
                 source => LoadModel(TrainingBootstrap.ImportEvalOpponent(source)),
+                TrainingBootstrap.CatalogWeapons,
                 () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
             // Only the temp out dir is ours to delete; a caller-named one is the caller's to keep.
             if (string.IsNullOrEmpty(spec.outDir)) spec.outDir = outDir;

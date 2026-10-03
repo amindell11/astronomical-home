@@ -1,0 +1,325 @@
+{
+  "source": "Crimson.blend",
+  "source_sha256": "fbef279af2644b93a5546c4c8f41935516626f058e6a0fe7792383fe8a74245c",
+  "parts": [
+    {
+      "name": "Cube",
+      "control_vertices": 18,
+      "evaluated_triangles": 60,
+      "nonmanifold_edges": 6,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Structural center web",
+      "control_vertices": 112,
+      "evaluated_triangles": 434,
+      "nonmanifold_edges": 8,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Central hull",
+      "control_vertices": 104,
+      "evaluated_triangles": 204,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Cockpit surround",
+      "control_vertices": 144,
+      "evaluated_triangles": 428,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Canopy",
+      "control_vertices": 120,
+      "evaluated_triangles": 236,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Service channel floor",
+      "control_vertices": 48,
+      "evaluated_triangles": 92,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Dorsal service spine",
+      "control_vertices": 40,
+      "evaluated_triangles": 76,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Rear cockpit yoke",
+      "control_vertices": 96,
+      "evaluated_triangles": 188,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Canopy perimeter rim",
+      "control_vertices": 52,
+      "evaluated_triangles": 752,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Canopy transverse frame",
+      "control_vertices": 36,
+      "evaluated_triangles": 468,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper wing foundation",
+      "control_vertices": 80,
+      "evaluated_triangles": 312,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper aft shoulder armor",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper inner shoulder armor",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper prow armor",
+      "control_vertices": 48,
+      "evaluated_triangles": 184,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper prow tip",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper outer armor rail",
+      "control_vertices": 56,
+      "evaluated_triangles": 216,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower wing foundation",
+      "control_vertices": 80,
+      "evaluated_triangles": 312,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower aft shoulder armor",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower inner shoulder armor",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower prow armor",
+      "control_vertices": 48,
+      "evaluated_triangles": 184,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower prow tip",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower outer armor rail",
+      "control_vertices": 56,
+      "evaluated_triangles": 216,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Wing root beam",
+      "control_vertices": 20,
+      "evaluated_triangles": 72,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Shoulder underside link",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Outer rail mounting block",
+      "control_vertices": 16,
+      "evaluated_triangles": 56,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Shoulder service pod",
+      "control_vertices": 24,
+      "evaluated_triangles": 88,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Service pod cap",
+      "control_vertices": 16,
+      "evaluated_triangles": 56,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper Aft swept fin",
+      "control_vertices": 12,
+      "evaluated_triangles": 40,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower Aft swept fin",
+      "control_vertices": 12,
+      "evaluated_triangles": 40,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper Outer swept fin",
+      "control_vertices": 12,
+      "evaluated_triangles": 40,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower Outer swept fin",
+      "control_vertices": 12,
+      "evaluated_triangles": 40,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Upper Forward fin",
+      "control_vertices": 16,
+      "evaluated_triangles": 56,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Lower Forward fin",
+      "control_vertices": 16,
+      "evaluated_triangles": 56,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine support frame",
+      "control_vertices": 36,
+      "evaluated_triangles": 136,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine forward cowling",
+      "control_vertices": 20,
+      "evaluated_triangles": 72,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine housing",
+      "control_vertices": 120,
+      "evaluated_triangles": 472,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine neck",
+      "control_vertices": 96,
+      "evaluated_triangles": 376,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine nozzle",
+      "control_vertices": 216,
+      "evaluated_triangles": 856,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    },
+    {
+      "name": "Engine throat",
+      "control_vertices": 48,
+      "evaluated_triangles": 184,
+      "nonmanifold_edges": 0,
+      "degenerate_faces": 0
+    }
+  ],
+  "mesh_parts": 39,
+  "evaluated_triangles": 7618,
+  "live_mirrors": 33,
+  "images": [
+    {
+      "name": "approved-profile.png",
+      "path": "reference/approved-profile.png",
+      "size": [
+        1420,
+        1108
+      ],
+      "packed": true
+    },
+    {
+      "name": "Crimson painted base color",
+      "path": "textures/Crimson_BaseColor.png",
+      "size": [
+        4096,
+        4096
+      ],
+      "packed": true
+    },
+    {
+      "name": "original-top.png",
+      "path": "reference/original-top.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "packed": true
+    }
+  ],
+  "fbx": "Crimson.fbx",
+  "fbx_sha256": "aae6832c409e358d50bc55b0e633c52a1cb39dea69ec89699845f3ccb5dbf873",
+  "fbx_axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "missing_textures": 0,
+  "nonfinite_vertices": 0,
+  "out_of_bounds_uvs": 0,
+  "fbx_roundtrip": {
+    "parts": 39,
+    "triangles": 7618,
+    "all_parts_have_uvs": true
+  }
+}

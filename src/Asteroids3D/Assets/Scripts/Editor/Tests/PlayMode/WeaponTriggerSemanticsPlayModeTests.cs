@@ -19,8 +19,7 @@ namespace Tests.PlayMode
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
     /// charge weapons accumulate while held and fire on release or at full charge. The AI
-    /// "mashes" (press every step it wants fire) and aims each slot with that slot's ballistics
-    /// — hitscan slots get no intercept lead.
+    /// gunner aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
@@ -87,7 +86,7 @@ namespace Tests.PlayMode
         {
             var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
             // 10 physics steps to full, independent of the project's fixed timestep.
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f, autoFireAtFull: true);
+            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
             var fired = 0;
             laser.OnFire += () => fired++;
 
@@ -105,7 +104,7 @@ namespace Tests.PlayMode
         public void ChargeWeapon_ReleaseFires_WithChargeScaledDamage()
         {
             var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f, autoFireAtFull: false);
+            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
 
             // Hold for half the charge time, then release.
             for (var i = 0; i < 5; i++)
@@ -155,7 +154,7 @@ namespace Tests.PlayMode
             var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             var target = CreateTarget(railgun.transform.position + Vector3.up * 5f);
 
-            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
+            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             var fired = 0;
             railgun.OnFire += () => fired++;
 
@@ -207,7 +206,7 @@ namespace Tests.PlayMode
 
             var enemy = CreateTarget(ship.transform.position + Vector3.up * 6f);
 
-            mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
+            mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             mounted.HandleTrigger(pressed: false, held: true, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
@@ -279,14 +278,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(Substrate.GamePlane.PlanePointToWorld(expectedLead), ballisticAim);
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 
-            // The AI mashes: pressed and held both reflect its per-step decision.
-            gunner.Fire(engagePrimary: true, engageSecondary: true);
-            Assert.AreEqual(2, recorder.Commands.Count);
-            foreach (var (_, cmd) in recorder.Commands)
-                Assert.AreEqual(cmd.held, cmd.pressed, "AI reports press and hold together.");
-
             // Disengaging releases the trigger rather than going silent.
-            recorder.Commands.Clear();
             gunner.Fire(engagePrimary: false, engageSecondary: false);
             Assert.AreEqual(2, recorder.Commands.Count);
             foreach (var (_, cmd) in recorder.Commands)

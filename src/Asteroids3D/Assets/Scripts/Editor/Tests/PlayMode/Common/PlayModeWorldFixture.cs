@@ -7,7 +7,7 @@ using Substrate.Services.Projectiles;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Per-test world fixture: a swappable obstacle field, projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
+/// <summary>Per-test world fixture: a swappable obstacle field, projectile registry, and audio pause.</summary>
 public abstract class PlayModeWorldFixture
 {
     /// <summary>Override false if a test needs audio.</summary>
@@ -44,8 +44,6 @@ public abstract class PlayModeWorldFixture
             Time.maximumDeltaTime = 1f;
         }
 
-        TestSceneBuilder.CreateTestArena();
-
         arenaHost = new GameObject("[TestArena]");
         ObstacleField = new SwappableField();
         Field = ObstacleField;
@@ -60,8 +58,6 @@ public abstract class PlayModeWorldFixture
         Field = null;
         ObstacleField = null;
         Projectiles = null;
-
-        TestSceneBuilder.CleanupTestArena();
 
         if (AccelerateTime)
         {

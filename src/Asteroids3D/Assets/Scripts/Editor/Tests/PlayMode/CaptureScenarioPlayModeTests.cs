@@ -11,11 +11,10 @@ using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a sector-less Session — scenarios get the session's real services and UnitService spawn path — with presentation decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
+    /// <summary>Generic runner for capture scenarios. Two dispatch paths pick the CaptureScenario: a one-shot CaptureDispatch request (warm lane, queued via capture_request_scenario) or -captureScenario &lt;TypeName&gt; on Unity's command line (cold runs, forwarded by unity_test_agent.ps1 -CaptureScenario); with neither the test ignores, so the suite stays green. Composes a Session — scenarios get the session's real services and UnitService spawn path — and loads the scenario's sector entry, if any, hero-less; presentation is decided pre-spawn by the scenario's gizmo profile (GizmoCaptureProfiles.PresentationFor).</summary>
     [TestFixture]
     [Category("Camera")]
     [Category("RequiresGraphics")]
@@ -24,13 +23,6 @@ namespace Tests.PlayMode
         private GameObject sessionRoot;
         private IEpisodeCapture capture;
         private Session session;
-        private bool savedPresentation;
-
-        public override void SetUp()
-        {
-            base.SetUp();
-            savedPresentation = GameSettings.PresentationEnabled;
-        }
 
         public override void TearDown()
         {
@@ -49,9 +41,6 @@ namespace Tests.PlayMode
                 capture = null;
             }
 
-            // Compose overrides this process-global and Teardown does not restore it.
-            GameSettings.SetPresentationEnabled(savedPresentation);
-
             base.TearDown();
         }
 
@@ -64,14 +53,17 @@ namespace Tests.PlayMode
                 Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
 
             var scenario = CreateScenario(typeName);
+            var sectorEntry = scenario.SectorEntry;
 
             sessionRoot = new GameObject("CaptureScenarioSession");
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
-                sectorEntry = null,
+                sectorEntry = sectorEntry,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();
+            if (sectorEntry != null)
+                yield return session.LoadSector();
             scenario.Session = session;
 
             using var pacing = CapturePacing.Locked();

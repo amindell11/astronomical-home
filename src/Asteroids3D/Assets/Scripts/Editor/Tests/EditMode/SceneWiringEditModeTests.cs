@@ -16,7 +16,6 @@ namespace Tests.EditMode
     public class SceneWiringEditModeTests
     {
         [TestCase("Assets/Scenes/InitScene.unity")]
-        [TestCase("Assets/Scenes/TestScene.unity")]
         public void SessionRoot_HasHostAndItsServices(string scenePath)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);

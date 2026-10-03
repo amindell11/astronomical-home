@@ -1,3 +1,4 @@
+# covers: scripts/resharper_ratchet.ps1 scripts/sync_unity_solution.ps1 scripts/unity_access_client.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 

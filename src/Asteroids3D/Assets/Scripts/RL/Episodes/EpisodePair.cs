@@ -1,6 +1,7 @@
 using System;
 using AI;
 using AI.Scanning;
+using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -99,6 +100,24 @@ namespace RL.Episodes
             return new EpisodePair(units, projectiles, offset, shipA, shipB);
         }
 
+        /// <summary>The armed pair for a scripted duel: the agent slot carries <paramref name="shooterWeapon"/> alone in its primary weapon slot and the baseline slot carries no weapon. Poses and seeds derive exactly as <see cref="Spawn"/>; no brain is installed. No policy observes this pair, so the lasers-only loadout does not bind it.</summary>
+        public static EpisodePair SpawnArmedPair(UnitService units, Vector2 offset, IObstacleField field,
+            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets, WeaponComponent shooterWeapon)
+        {
+            var poses = EpisodePoses.Derive(in spec, 0, offset);
+            var rootScope = new SeedScope(spec.runSeed);
+
+            var shooter = SpawnShipWithPrimary(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed(), shooterWeapon);
+            var target = SpawnShipWithPrimary(units, projectiles, assets.ShipPrefab, assets.BaselinePilot,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed(), null);
+
+            // Equipped before wiring: the AI commander captures the primary muzzle speed when it wires.
+            units.WireShipDependencies(shooter, field);
+            units.WireShipDependencies(target, field);
+            return new EpisodePair(units, projectiles, offset, shooter, target);
+        }
+
         private static PolicyBrain InstallAgentBrain(Ship ship, Ship opponent)
         {
             var brain = ship.GetComponentInChildren<AICommander>().InstallBrain<PolicyBrain>();
@@ -135,13 +154,27 @@ namespace RL.Episodes
             var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
                 GamePlane.PlanePointToWorld(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
-            // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.
-            ship.transform.SetParent(units.transform, true);
+            // Parent under the units root like SpawnShip so a crash-path host teardown can't strand it.
+            ship.transform.SetParent(units.UnitsRoot, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
 
             ship.Reequip(ship.Engine, ship.Shield, ship.Weapons.PrimaryMountPrefab, null);
             if (ship.Weapons.Context.Slots.Count != 1)
                 throw new InvalidOperationException("Episode loadout must be lasers-only.");
+            return ship;
+        }
+
+        private static Ship SpawnShipWithPrimary(UnitService units, IProjectileService projectiles,
+            Ship shipPrefab, AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed,
+            WeaponComponent primary)
+        {
+            var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
+                GamePlane.PlanePointToWorld(planePos),
+                GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
+            ship.transform.SetParent(units.UnitsRoot, true);
+            units.ActiveRegistry.ActiveShips.Add(ship);
+
+            ship.Reequip(ship.Engine, ship.Shield, primary, null);
             return ship;
         }
     }

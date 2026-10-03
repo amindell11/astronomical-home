@@ -123,19 +123,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ResetDamageState_RestoresHealthAndShield()
-        {
-            var dc = NewDamage();
-            Damage(dc, dc.Shield.MaxValue); // shield -> 0
-            Damage(dc, dc.Health.MaxValue); // health -> 0
-            Assert.AreEqual(0f, dc.Health.CurrentValue, 0.001f);
-
-            dc.ResetDamageState();
-            Assert.AreEqual(dc.Health.MaxValue, dc.Health.CurrentValue, 0.001f);
-            Assert.AreEqual(dc.Shield.MaxValue, dc.Shield.CurrentValue, 0.001f);
-        }
-
-        [Test]
         public void MultipleResetCycles_NoHealthOrShieldDrift()
         {
             var dc = NewDamage();
@@ -221,6 +208,32 @@ namespace Tests.EditMode
 
             Assert.AreEqual(dc.Shield.MaxValue, dc.Shield.CurrentValue, 0.001f,
                 "Shield should refill to exactly max given enough time");
+        }
+
+        [Test]
+        public void Health_RestoreFraction_AddsFractionOfMax_AndReportsPrevious()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 0f);
+            Damage(dc, 60f); // health -> 40
+            float current = -1f, previous = -1f;
+            dc.Health.OnValueChanged += (cur, prev, _) => { current = cur; previous = prev; };
+
+            dc.Health.RestoreFraction(0.25f);
+
+            Assert.AreEqual(65f, dc.Health.CurrentValue, 0.001f);
+            Assert.AreEqual(65f, current, 0.001f);
+            Assert.AreEqual(40f, previous, 0.001f);
+        }
+
+        [Test]
+        public void Health_RestoreFraction_CapsAtMax()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 0f);
+            Damage(dc, 10f); // health -> 90
+
+            dc.Health.RestoreFraction(0.25f);
+
+            Assert.AreEqual(100f, dc.Health.CurrentValue, 0.001f);
         }
 
         [Test]

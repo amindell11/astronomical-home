@@ -17,10 +17,10 @@ namespace Game.Player
         private static void Draw(PlayerCommander commander, GizmoType gizmoType)
         {
             if (!GizmoView.IsOn(typeof(PlayerCommander), "mouse") || !GizmoView.InScope(commander) ||
-                !Application.isPlaying || !commander.useMouseDirection || !commander.playerInput.WantsToRotate) return;
+                !Application.isPlaying || !commander.playerInput.WantsToRotate) return;
 
             var position = commander.transform.position;
-            var scale = commander.mouseGizmoScale;
+            const float scale = 3f;
 
             SuperGizmos.DrawArrow(position, commander.directionToMouse,
                 SuperGizmos.HeadType.Sphere, 0.1f * scale, Color.red, scale);

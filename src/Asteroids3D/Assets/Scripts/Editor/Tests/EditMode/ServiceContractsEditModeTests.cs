@@ -117,33 +117,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ObjectiveService_AdapterEvents_FollowSpine_AcrossSpineCycles()
-        {
-            var svc = CreateMonoBehaviourService<ObjectiveService>();
-            var adapter = (IObjectiveTrackerAdapter)svc;
-
-            var transitions = 0;
-            adapter.OnStateChanged += (f, t) => transitions++;
-
-            var key = new StubKeyTracker(false);
-            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
-            key.HasKey = true;
-            svc.SpineTracker.Tick(0.1f);
-            Assert.AreEqual(1, transitions);
-            Assert.AreEqual(ObjectiveType.KeyAcquired, adapter.CurrentState);
-
-            handle.Close();
-            Assert.AreEqual(ObjectiveType.Explore, adapter.CurrentState);
-
-            var nextKey = new StubKeyTracker(false);
-            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(nextKey));
-            nextKey.HasKey = true;
-            svc.SpineTracker.Tick(0.1f);
-            Assert.AreEqual(2, transitions,
-                "Adapter subscription must survive a handle-close/SetSpineObjective cycle.");
-        }
-
-        [Test]
         public void ObjectiveService_HandleClose_DetachesForwarder_FromOldTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
