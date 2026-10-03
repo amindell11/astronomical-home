@@ -1,0 +1,1 @@
+All 14880 Unity surface/contour vertices match the user's Blender forward pose, maximum error 6.343066E-07.

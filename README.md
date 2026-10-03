@@ -1,25 +1,38 @@
-# Valis geometry review evidence
+# Valis evidence
 
-Non-merge evidence branch for the editable Valis geometry milestone. Approved concept C, top view and turnaround are in history/concepts. Actual model renders and the 72-frame, six-second turntable are in history/review. Flat materials are geometry-review color blocks, not production textures. Game-scale images are 60, 100 and 150 pixel Blender approximations, not Unity captures.
+One branch for Valis's per-asset scratch and evidence, a folder per stage. Nothing here
+merges to main. Consolidated 2026-10-03 under issue #869 from `evidence/valis-geometry`
+and `evidence/valis-wings`; their commits stay reachable from this branch, so
+commit-pinned links in merged PRs (#843, #852, #865) keep resolving at the old paths.
 
-history/helpers/build_valis.py records geometry construction and render cameras. Its OUT and SOURCE paths name the original agent-2 lease; change those explicitly for another checkout. Run with Blender 5.1 in background mode. validate.py reopens the source and verifies finite vertices, anchored live mirrors, evaluated bilateral symmetry and no external image/library dependencies. package_review.py assembles renders with Pillow and imageio. inspect_normals.py and refine.py record intermediate diagnosis/edits and are not needed to reproduce the final source.
+| Stage | Folder | Came from |
+| --- | --- | --- |
+| concept | `concept/approved-views/` | `valis-geometry:history/concepts` (concept C, top view, turnaround; issue #796 names these as design authority) |
+| concept | `concept/texture-direction/` | `valis-geometry:history/texture-direction` |
+| model | `model/review/`, `model/user-shape-cleanup/`, `model/shoulder-repair/`, `model/cockpit-fit/`, `model/profile-refinement/`, `model/flat-shading-symmetry/`, `model/canopy-joins/` | same names under `valis-geometry:history/` |
+| paint | `paint/layered-paint-prototype/`, `paint/2026-10-02-crimson-retry/` | same names under `valis-geometry:history/` |
+| integration | `integration/baseline/`, `integration/helpers/` | `valis-geometry:history/integration-baseline`, `history/helpers` |
+| motion | `motion/2026-10-02-wing-motion-and-profiles/` | same name under `valis-geometry:history/` |
+| motion | `motion/wings-evidence/` | all of `evidence/valis-wings` (PR #852 captures) |
+| producers | `producers/wing-motion/` | local files saved 2026-10-03, see below |
 
-The side comparison includes the approved concept. fuselage-side.png hides wings to expose the revised rear-high, forward-low center-body profile. left-before-slope.png preserves the prior iteration. All other views show the latest complete model.
+`legacy/valis-geometry-README.md` is the old branch README; its `history/...` paths map
+through the table above.
 
-## User shape cleanup
+## Where the builders are
 
-history/user-shape-cleanup preserves the user's complete live Blender state before cleanup, including unsaved edits. Cleanup fits the neighboring dorsal borders, cheeks, underside armor/stripe and accents to those edited forms. The central fuselage, canopy, primary wing outlines, outriggers, tail prongs and engine shape remain unchanged. A support's Solidify modifier now precedes Mirror to correct its asymmetric thickness. The final world-space bilateral error is below 0.000001 units. The original build helper is historical and must not overwrite the user's reshaped source.
+- Skinned-hull builders `RebuildValis.cs`, `InspectSkin.cs`, `VerifyReimport.cs` and the
+  Blender helpers: `motion/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/`.
+- Hull scale and recentring (`unity-build.json`, scale 0.228625789, centre y -0.335398436):
+  same folder, and `integration/baseline/unity-build.json` for the first integration.
+- Paint authoring tools and tests: tag `archive/codex/valis-paint-authoring-archive`
+  (`2d433ca2`), based on main, so kept as a tag rather than merged.
+- Breakup builder and its input `approved-export.json`: branch `evidence/valis-breakup`,
+  `v01/authoring/` (not folded in here; it backs work in flight).
 
-Shoulder repair: history/shoulder-repair/ preserves the pre-repair live model, replacement topology, validation, and actual-model before/after renders. The shoulder surface follows short cross sections through the notch; all original boundary corners and other parts remain unchanged. Mirror and thickness remain live.
+## producers/wing-motion/
 
-Cockpit fit: history/cockpit-fit/ preserves the live pre-edit model, final topology and actual-model renders. The cockpit upper hull extends beyond the canopy outline; cheek panels follow the widened hull. The canopy and all other parts are unchanged.
-
-Profile refinement: history/profile-refinement/ preserves the user-edited starting model and before/after side profiles. The lower hull uses a tucked chin and straighter rear taper; underside armor follows. Upper hull, canopy fit, width, and other parts are unchanged.
-
-Flat shoulder and symmetry repair: history/flat-shading-symmetry/ preserves the live starting state and checks. Shoulder smooth shading is disabled. Outrigger, toe and socket Solidify modifiers precede Mirror so the rotated and scaled parts have symmetric thickness. Source vertices and transforms are unchanged.
-
-Canopy joins: history/canopy-joins/ preserves the starting state, fitted dorsal/shoulder termination, nose ventral fit, and validation. Canopy, fuselage and all outer silhouette parts are unchanged.
-
-## Wing animation, tapered profiles and paint concepts
-
-history/2026-10-02-wing-motion-and-profiles/ preserves the approved PR #852 source, editable intermediate models, profile and wing authoring helpers, palette/paint concepts, masks, previews and Unity clips. Its archive-manifest.json records byte-checked copies. Original concept images remain at history/concepts/.
+Files from the primary tree's gitignored `results/valis-wing-motion/` that were on no
+branch: `archive_valis.py` and `v02/publish_evidence.py` (the archive and evidence
+publishers), the Unity brief, PR and issue drafts, test summaries, and two prefab
+snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
