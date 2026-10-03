@@ -460,7 +460,9 @@ build*, runs in a subagent. Start prompt:
    Red → at most two fix rounds.
 6. **Open the PR**, per item: a body per Step 4 with `Closes #<issue>`,
    `## Test status` and `### Owed local`, passed through
-   `python3 scripts/lib/negated_close.py < <body-file>`; `gh pr create --draft`;
+   `python3 scripts/lib/negated_close.py < <body-file>`; open it as a draft
+   over REST (cloud sessions refuse GraphQL, which `gh pr create` uses):
+   `gh api -X POST 'repos/{owner}/{repo}/pulls' -f title=<title> -f head=task/<lease> -f base=main -F body=@<body-file> -F draft=true --jq .number`;
    then `./scripts/drain_pick.sh owed <pr>`, fixing the body until it prints
    `OWED=open` or `OWED=none`. A `unity:local-proof` item writes its
    acceptance proof as an owed item.
