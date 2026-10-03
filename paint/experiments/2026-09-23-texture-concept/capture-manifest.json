@@ -1,0 +1,97 @@
+{
+  "source": {
+    "source": {
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\vanguard_uv_work.blend",
+      "dirty": true,
+      "scene": "Scene"
+    },
+    "visible_meshes": [
+      "Fuselage",
+      "Cockpit.001",
+      "Sparrow Tail",
+      "Wing",
+      "Tail",
+      "wing_armature",
+      "wing_armor",
+      "wing_tail",
+      "Canopy",
+      "Tail Paint",
+      "Power Nacelle Housing",
+      "Power Nacelle Core"
+    ]
+  },
+  "bounds": [
+    [
+      -0.6490750312805176,
+      -1.0007667541503906,
+      -0.1406465470790863
+    ],
+    [
+      0.6490751504898071,
+      0.9994930624961853,
+      0.33304306864738464
+    ]
+  ],
+  "views": [
+    {
+      "view": "01-top",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\01-top.png",
+      "direction": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "orthographic_scale": 3.0040266513824463
+    },
+    {
+      "view": "02-front-quarter",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\02-front-quarter.png",
+      "direction": [
+        0.4928319752216339,
+        0.6856793165206909,
+        0.5356869697570801
+      ],
+      "orthographic_scale": 1.9540349245071411
+    },
+    {
+      "view": "03-rear-quarter",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\03-rear-quarter.png",
+      "direction": [
+        -0.5150688290596008,
+        -0.7166175246238708,
+        0.4702802002429962
+      ],
+      "orthographic_scale": 1.9540351629257202
+    },
+    {
+      "view": "04-underside",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\04-underside.png",
+      "direction": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "orthographic_scale": 3.0040266513824463
+    },
+    {
+      "view": "05-side",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\05-side.png",
+      "direction": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "orthographic_scale": 2.36030650138855
+    },
+    {
+      "view": "06-front",
+      "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-concept\\06-front.png",
+      "direction": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "orthographic_scale": 1.5318171977996826
+    }
+  ]
+}

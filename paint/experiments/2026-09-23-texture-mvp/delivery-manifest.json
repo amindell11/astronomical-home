@@ -1,0 +1,24 @@
+{
+  "file": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\vanguard-textured-mvp.blend",
+  "texture": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\textures\\vanguard-basecolor-v2.png",
+  "active_scene": "Vanguard - Texture MVP",
+  "texture_size": [
+    4096,
+    4096
+  ],
+  "verified_uv_range": true,
+  "source_scene_retained": true,
+  "renders": [
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-final\\front-quarter.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-final\\top.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-final\\rear-quarter.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-final\\underside.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-final\\front.png"
+  ],
+  "preview_only": [
+    "Eevee cel-shading nodes",
+    "Freestyle ink contours",
+    "Compositor bloom"
+  ],
+  "unity_modified": false
+}

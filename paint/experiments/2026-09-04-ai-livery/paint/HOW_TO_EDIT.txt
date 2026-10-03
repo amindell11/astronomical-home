@@ -1,0 +1,36 @@
+EDITING THE SHIP PAINT
+
+QUICK CONTROLS
+Select DETAIL REVIEW - A B C in the Outliner.
+Object Properties > Custom Properties:
+Orange_Color changes the shared orange on wings, body and tails.
+Center_Stripe_Width changes the constant full width of the center stripe.
+A_Cockpit_Fuselage: 0 previous body paint, 1 new body paint.
+Tail_Paint: 0 previous inner tails, 1 new tail markings.
+A_Orange_Livery and B_Hull_Balance retain their earlier comparisons.
+C_Smoky_Canopy controls the approved smoky glass.
+
+EDIT THE SHAPES
+The paint is made with texture masks, not separate mesh strips.
+In an Image Editor, choose one of these images from its image selector:
+EDIT - Cockpit shoulder orange mask
+EDIT - Cockpit side orange mask
+EDIT - Tail orange mask
+EDIT - Sparrow Tail orange mask
+A2 - Wing edge-parallel band
+A2 - Tail inset spear
+B2 - Parallel armor border
+
+Switch the Image Editor to Paint. Paint white to add orange, black to erase it.
+For the B2 armor mask, white means light armor and black means gray border.
+Use a hard brush and Line stroke for straight strokes; avoid soft falloff.
+The left/right parts share the paint layout, so edits appear on both sides.
+The side mask is a side elevation: horizontal = ship length, vertical = height.
+The shoulder and wing masks are top projections.
+The inner tail masks use their own flat local projection.
+Save the image, update its packed copy with Image > Pack, and save the blend.
+PNG copies are in the adjacent detail_review_paint folder.
+For external editing, unpack the image first, edit that file and reload it in Blender.
+
+The center stripe uses the width control, not an image mask.
+Geometry and Solidify modifiers are unchanged.

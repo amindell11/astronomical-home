@@ -1,0 +1,7 @@
+Make ONE narrowly targeted correction to this six-view concept sheet: change the small red CANOPY-ADJACENT decals from squares/rectangles to small TRIANGLES. Leave everything else exactly unchanged.
+
+In the TOP panel (upper left), two small red SQUARES currently sit on the ivory shoulders immediately alongside the back of the dark blue canopy, at whole-image coordinates approximately (15.0%,35.8%) and (18.7%,35.8%). Replace each square with a little SOLID BRICK-RED EQUILATERAL TRIANGLE, with three visibly distinct corners, apex toward the nose, about 6 pixels wide at this image's scale. Think the silhouette of a simple filled triangle, not a diamond, rectangle, boxed symbol or tiny text. They should remain small and understated but visibly triangular. Do NOT change the red service marks farther back on the wings.
+
+In FRONT 3/4 (upper middle), replace the corresponding small red square on the near cockpit shoulder around (57.5%,36%) and corresponding far-shoulder red rectangle around (60%,32%) with those SAME triangular marks, correctly foreshortened. Add the consistent tiny triangles beside the canopy in FRONT if those surfaces are visible; do not add any nose-center decal. The small triangles should follow the same physical positions when visible in REAR 3/4. No new labels, no other changes.
+
+Preserve the one-sided ladder, small vent banks, nacelle collars and blue faces, complete ship silhouette and panel linework, all paint, six cameras, every layout detail and background. No restyling. Output the entire corrected sheet.

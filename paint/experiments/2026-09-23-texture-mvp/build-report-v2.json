@@ -1,0 +1,89 @@
+{
+  "blend": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\vanguard-textured-v2.blend",
+  "atlas": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\textures\\vanguard-basecolor-v2.png",
+  "resolution": 4096,
+  "atlas_objects": [
+    "MVP Fuselage",
+    "MVP Cockpit.001",
+    "MVP Sparrow Tail",
+    "MVP Wing",
+    "MVP Tail",
+    "MVP wing_armature",
+    "MVP wing_armor",
+    "MVP wing_tail",
+    "MVP Power Nacelle Housing"
+  ],
+  "objects": {
+    "Fuselage": {
+      "vertices": 99,
+      "faces": 92
+    },
+    "Cockpit.001": {
+      "vertices": 158,
+      "faces": 154
+    },
+    "Sparrow Tail": {
+      "vertices": 52,
+      "faces": 46
+    },
+    "Wing": {
+      "vertices": 28,
+      "faces": 18
+    },
+    "Tail": {
+      "vertices": 24,
+      "faces": 16
+    },
+    "wing_armature": {
+      "vertices": 32,
+      "faces": 20
+    },
+    "wing_armor": {
+      "vertices": 28,
+      "faces": 18
+    },
+    "wing_tail": {
+      "vertices": 12,
+      "faces": 10
+    },
+    "Canopy": {
+      "vertices": 21762,
+      "faces": 21760
+    },
+    "Power Nacelle Housing": {
+      "vertices": 896,
+      "faces": 772
+    },
+    "Power Nacelle Core": {
+      "vertices": 384,
+      "faces": 260
+    }
+  },
+  "renders": [
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-v2\\top.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-v2\\front-quarter.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-v2\\rear-quarter.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-v2\\underside.png",
+    "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\2026-09-23-texture-mvp\\renders-v2\\front.png"
+  ],
+  "emission_strength": 3.0,
+  "source": {
+    "source": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\vanguard_uv_work.blend",
+    "dirty": true,
+    "scene": "Scene",
+    "visible_meshes": [
+      "Fuselage",
+      "Cockpit.001",
+      "Sparrow Tail",
+      "Wing",
+      "Tail",
+      "wing_armature",
+      "wing_armor",
+      "wing_tail",
+      "Canopy",
+      "Tail Paint",
+      "Power Nacelle Housing",
+      "Power Nacelle Core"
+    ]
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "output": "texture-concept-v1.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_Chd0QXUwYXJqektiejhxdHNQcHZhNnVRVRIXdEF1MGFyanpLYno4cXRzUHB2YTZ1UVU",
+  "created_utc": "2026-09-23T17:25:38+00:00",
+  "prompt": "Use case: stylized-concept / geometry-preserving texture paintover.\nCreate ONE coherent six-view texture-design sheet for the existing Vanguard spaceship model. This is a coating/material concept for a mesh we already own, NOT a redesign of its shape. Show the SAME livery consistently from six cameras so a texture artist can later apply it to this exact model.\n\nInput authority and roles:\nImages 1 through 6 are authoritative neutral Blender renders of the exact model, in this order: top, front three-quarter, rear three-quarter, underside, side, front. Match each source camera and silhouette precisely. The top view has its cockpit/nose toward the bottom of the image; preserve that orientation. Preserve proportions, the shallow fuselage, dark teardrop canopy, wafer-thin layered wings, two circular nacelle disks on the wing panels, central rear spine, tall fins, and all thin tapered rear blades. Keep all existing geometry and gaps. Gray polygon shading is NOT a request for a dense wireframe texture.\nImage 7 is STYLE AND PALETTE ONLY: the orange/ivory ship in the hangar. Borrow its readable hand-inked illustration, broad paint shapes and lightly used condition. Do NOT borrow its different stockier ship silhouette, extra machinery, landing gear, UI or scenery.\nImage 8 is STYLE ONLY: approved gameplay art showing clear silhouettes, confident ink contours and simplified dimensional color planes. Do NOT copy its red ships, HUD, explosion or environment.\n\nSheet layout: clean 3-column by 2-row grid on a uniform dark slate-blue background, thin unobtrusive dividers, generous breathing room. Row one: TOP, FRONT 3/4, REAR 3/4. Row two: UNDERSIDE, SIDE, FRONT. Six views, each appears once. Small condensed off-white labels only; no explanatory paragraphs, no UI panels, no color palette legend. Make the ships as large as each cell allows without clipping. Use all the exact source orientations, with no perspective invention.\n\nPaint direction: warm ivory primary hull, saturated amber-orange accents, cool charcoal/blue-gray recessed structure and belly; deep midnight canopy with one simple restrained cool highlight. Put a clear orange rim around the canopy and controlled orange bands on the dorsal spine and outer wing panels, with a few orange fin tips. Repeat exactly the same placement between cameras, wrapping logically around edges. Keep substantial quiet ivory surfaces. Existing round wing nacelles are simple subdued pale steel/cyan centers with dark rings, NOT turbines, holes or giant glowing lamps. Underside is deliberate and simpler, mostly cool slate with ivory outer panels and sparse orange edge continuations. No earthly hazard triangles, warning signs, letters, logos or military insignia. A couple of tiny abstract alien service marks are sufficient.\n\nRendering language: hand-drawn 2.5D game art, selective dark ink outlines, crisp but slightly organic painted boundaries, broad two-to-three-value light/shadow groups and restrained cool shadow planes. Authored comic/game illustration with enough dimensionality to read this actual rotating 3D object. Cheerful daring space-adventure hero, capable and agile, not grimdark. Surface is matte painted metal, not plastic. Preserve the quiet surfaces and restrained line density from the approved hangar shot. Scuffs should be sparse and faint, only a few short hairline abrasions near service edges; well maintained and lived-in, NOT battered, rusty, chipped all over, or grungy.\n\nCritical constraints: geometry fidelity outranks stylization. Paint over the supplied model. Do not add engines, guns, vents, landing gear, new fins, thick armor blocks, exposed tubes, raised greebles or embellishments that would need remodeling. Do not fatten the wing thickness or shorten the long rear structures. No photoreal PBR, smooth glossy product rendering, airbrushed shine, watercolor mottling, scratchy brush noise, heavy texture, or bloom over paint. Match livery identity across all six views; cast shadows are lighting, not black paint. This is a multi-view appearance concept, not a flattened UV texture atlas.\n",
+  "parent": null,
+  "references": [
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/01-top.png",
+      "sha256": "87bdebaaa5d69800854a555c247490de289830a1de46a72647ddf61e77928575"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/02-front-quarter.png",
+      "sha256": "0d496dd1e7ed8f2ca00696d43763faece7eceb80f7a89bbd9e8bb673c69c4713"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/03-rear-quarter.png",
+      "sha256": "5ab50ad346fb2bcd5827f4d6bf94f588e32b2e16ef4c5f5be99b92a5a6017929"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/04-underside.png",
+      "sha256": "50402384e6b3843f7f982359686b75fd6505a13549042b6c8ed05d976517bc0d"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/05-side.png",
+      "sha256": "61a445a247e0b007a201cbed011521af2c88fe108e32d802d3b275914344abbd"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/06-front.png",
+      "sha256": "7c2e1e5882b38e10d7bd2d763a5fb4fcb3f8459339ca3c7e619c4dec8e44d936"
+    },
+    {
+      "path": "art/hangar/experiments/2026-09-23-style-board/hangar-orange-asteroids-lived-in.jpg",
+      "sha256": "67825d2ad8bdf673b3b03d5ea39e1fe549a3d17601ba557ec8979369885c92c7"
+    },
+    {
+      "path": "C:/Users/amind/.codex/generated_images/01a0cc1b-3ea1-7522-adad-56a84604be1f/exec-73d08519-d951-46d5-aa32-44c9bc0342be.png",
+      "sha256": "019303813c7f349e2eebd60319e5786a71210aaa46a2c63cbeab3493d740612d"
+    }
+  ],
+  "params": {
+    "image_size": "4K",
+    "aspect_ratio": "3:2",
+    "thinking_level": "high"
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.151,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 849
+      },
+      {
+        "modality": "image",
+        "tokens": 2064
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 2913,
+    "total_output_tokens": 1678,
+    "total_thought_tokens": 1019,
+    "total_tokens": 5610,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 10421,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1461
+          },
+          {
+            "modality": "image",
+            "tokens": 8960
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 484
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1019
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 2988
+          },
+          {
+            "modality": "image",
+            "tokens": 9718
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 86
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 103
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1461
+          },
+          {
+            "modality": "image",
+            "tokens": 8960
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 484
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1019
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 2988
+          },
+          {
+            "modality": "image",
+            "tokens": 9718
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 86
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 103
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": "I have created this coherent texture design sheet by paintovering the six authoritative renders you provided. This 2.5D game art concept features the warm ivory hull and amber-orange accents from the approved style guide while meticulously preserving the exact geometry and proportions of your existing Vanguard spaceship model."
+}

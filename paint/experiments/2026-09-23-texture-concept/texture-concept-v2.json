@@ -1,0 +1,163 @@
+{
+  "output": "texture-concept-v2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdBZ3kwYXMzN0ctYWtqTWNQeTlIZjhRYxIXQWd5MGFzMzdHLWFrak1jUHk5SGY4UWM",
+  "created_utc": "2026-09-23T17:26:57+00:00",
+  "prompt": "Use case: precise-object-edit.\nRevise the existing six-view spaceship texture concept in image 1. Keep its exact six-cell composition, camera angles, model geometry, silhouettes, ivory/orange/slate palette, simple hand-drawn ink style, sparse fine wear and all labels. This is a consistency correction to ONE paint feature only, not a new design.\n\nThe paired UPRIGHT VERTICAL FINS currently contradict each other across views: the top and front three-quarter cells have mostly ivory upright fins with small orange tip caps, while the side cell and the nearest upright fin in the rear three-quarter cell are mostly orange. Normalize BOTH upright fins on BOTH faces to warm ivory with ONLY a small amber-orange cap along the upper tip, about the last 10 percent of the fin. Follow this rule in TOP, FRONT 3/4, REAR 3/4, SIDE and FRONT. Their shadow sides can be muted warm gray, but NOT orange-filled. Keep their exact geometry and height. Do not confuse these upright fins with the flat outboard diagonal pointed winglets: those flat winglets remain orange as they already are. Do not change the existing broad orange wing bands, orange dorsal spine stripes or orange canopy rim.\n\nImages 2, 3 and 4 are the original neutral front-quarter, rear-quarter and side Blender captures, supplied ONLY to clarify which fins are upright and preserve exact geometry. Image 1 remains the texture/style/composition authority. Do not reconstruct shapes, fatten wings, invent panel details, brighten the backdrop, add weathering, or alter anything else. Output the complete corrected six-view sheet at high resolution.\n",
+  "parent": {
+    "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/texture-concept-v1.jpg",
+    "sha256": "c7a64e3ab003adfd50372c8391ac50c8797c778f2e37bc0805dcce07c73fa909"
+  },
+  "references": [
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/02-front-quarter.png",
+      "sha256": "0d496dd1e7ed8f2ca00696d43763faece7eceb80f7a89bbd9e8bb673c69c4713"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/03-rear-quarter.png",
+      "sha256": "5ab50ad346fb2bcd5827f4d6bf94f588e32b2e16ef4c5f5be99b92a5a6017929"
+    },
+    {
+      "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/05-side.png",
+      "sha256": "61a445a247e0b007a201cbed011521af2c88fe108e32d802d3b275914344abbd"
+    }
+  ],
+  "params": {
+    "image_size": "4K",
+    "aspect_ratio": "3:2",
+    "thinking_level": "high"
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.151,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 347
+      },
+      {
+        "modality": "image",
+        "tokens": 1032
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 1379,
+    "total_output_tokens": 1655,
+    "total_thought_tokens": 1925,
+    "total_tokens": 4959,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 5395,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 915
+          },
+          {
+            "modality": "image",
+            "tokens": 4480
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 519
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1925
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 3383
+          },
+          {
+            "modality": "image",
+            "tokens": 5379
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 28
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 148
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 915
+          },
+          {
+            "modality": "image",
+            "tokens": 4480
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 519
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1925
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 3383
+          },
+          {
+            "modality": "image",
+            "tokens": 5379
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 28
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 148
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

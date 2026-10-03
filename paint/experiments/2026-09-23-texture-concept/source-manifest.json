@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\experiments\\vanguard_uv_work.blend",
+    "dirty": true,
+    "scene": "Scene"
+  },
+  "visible_meshes": [
+    "Fuselage",
+    "Cockpit.001",
+    "Sparrow Tail",
+    "Wing",
+    "Tail",
+    "wing_armature",
+    "wing_armor",
+    "wing_tail",
+    "Canopy",
+    "Tail Paint",
+    "Power Nacelle Housing",
+    "Power Nacelle Core"
+  ]
+}

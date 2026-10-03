@@ -1,0 +1,13 @@
+Perform a precise cleanup of this six-view ship sheet. Keep the new nacelle collars/mounts, approved wing panel seams, orange/ivory livery, six cameras and exact ship shape. Only make the following small surface-mark changes:
+
+A. In TOP, the dark four-slot vent groups behind the canopy (at approximately 15.1%,30% and 18.5%,30% of the whole sheet) are too big. Make BOTH groups half their current width and half their height, retaining their orderly short slots. They are small vents, NOT the access ladder. Reduce the corresponding behind-canopy slot banks in FRONT 3/4 and REAR 3/4 to the same smaller physical size.
+
+B. The ACCESS LADDER is a DIFFERENT detail: the two or three small horizontal dark steps on the SIDE OF THE NOSE beside the canopy, visible near (71.3%,15.3%) of the sheet in REAR 3/4. Keep that exact restrained ladder appearance. It exists on ONE side of the ship only, the side facing the REAR 3/4 camera. NO mirrored ladder on the other side. Make the view consistency reflect this: in TOP the ladder is just two short dark transverse rungs at the outer RIGHT side edge alongside the canopy, below the vent bank, not repeated on the left. In the FRONT 3/4 and SIDE cameras the ladder-bearing side is turned away, so don't draw access rungs on the visible near side. Keep other approved dark wing access marks.
+
+C. In TOP, at (15%,36.4%) and (18.7%,36.4%), replace the tiny RED RECTANGLES beside the canopy with tiny solid muted RED TRIANGLES. Actual three-sided triangular decals, about the same SMALL scale as the current reduced rectangles. Carry the same triangular shape to corresponding canopy markings in FRONT 3/4 and REAR 3/4. FRONT already has small reddish triangles by the canopy; keep those. No red rectangular canopy placards. The tiny muted red square service stamps farther back on the central body may stay.
+
+D. In FRONT remove ALL the small YELLOW marks above and beside the canopy. They have no counterpart in the other views. Keep clean ivory there. Keep the nose tip free of any red emblem.
+
+E. Keep the nacelle mounting support art, but make the blue inner faces genuinely FLAT UNIFORM blue, without the shiny gradient introduced in the previous edit. Blue fill bounded by dark rim; no bloom or white hotspot.
+
+Do not change anything else. This is an edit to small markings, not a new illustration. Preserve the full six-view sheet and selective hand-drawn lineart.

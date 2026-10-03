@@ -1,0 +1,150 @@
+{
+  "output": "texture-concept-v3.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdRd3kwYXJUTkF2S2Y2ZGtQamRXTndRVRIXUXd5MGFyVE5BdktmNmRrUGpkV053UVU",
+  "created_utc": "2026-09-23T17:28:04+00:00",
+  "prompt": "Make one tiny targeted color correction to this six-view ship concept sheet. In the TOP RIGHT cell labeled REAR 3/4, at approximately x=81 percent, y=26 percent of the full image, the nearer upright fin has a solid orange face. Change that single face to the same warm ivory / muted gray shaded ivory as the opposite upright fin, retaining a narrow orange tip cap. It is the small upright trapezoid directly below the orange central spine in that cell, between the left round wing disk and the rear spine. It is NOT the large flat orange outer winglet farther down-left, which must remain orange. Both upright fins need matching ivory paint as shown in the SIDE and FRONT 3/4 cells. Keep its black outline and exact shape, and keep the rest of every cell and every marking unchanged. Do not add new detail, alter any geometry, shift the color palette, or change the layout. Output the entire sheet.\n",
+  "parent": {
+    "path": "art/ships/vanguard/experiments/2026-09-23-texture-concept/texture-concept-v2.jpg",
+    "sha256": "7ebdfbf20a0b71a737e8796e2117bd7dbf13726741211178377bc6392687a5e2"
+  },
+  "references": [],
+  "params": {
+    "image_size": "4K",
+    "aspect_ratio": "3:2",
+    "thinking_level": "high"
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.151,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 198
+      },
+      {
+        "modality": "image",
+        "tokens": 258
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 456,
+    "total_output_tokens": 1483,
+    "total_thought_tokens": 1272,
+    "total_tokens": 3211,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 1853,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 733
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 347
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1272
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 2376
+          },
+          {
+            "modality": "image",
+            "tokens": 2160
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 28
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 113
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 733
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 347
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1272
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 2376
+          },
+          {
+            "modality": "image",
+            "tokens": 2160
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 28
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 113
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

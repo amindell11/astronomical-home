@@ -1,0 +1,156 @@
+{
+  "output": "vanguard_hero_02_pro.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3-pro-image",
+  "interaction_id": "v1_ChdZMkt6YXNuY0YtVHp6N0lQeTdQVHFRSRIXWTJLemFzbmNGLVR6ejdJUHk3UFRxUUk",
+  "created_utc": "2026-09-23T05:23:28+00:00",
+  "prompt": "Image 1 is the top view and image 2 is the side view of the same spaceship. Render that exact ship: keep its shape, proportions, panel layout, engine pods, intakes, tail spikes and white/orange/grey livery unchanged. Do not redesign it or add parts.\n\nOnly the presentation changes: a three-quarter front view from slightly above, the ship in deep space against a dark starfield with a faint nebula, soft key light from one side. Clean game concept art. No text.\n",
+  "parent": null,
+  "references": [
+    {
+      "path": "art/ships/vanguard/reference/top.png",
+      "sha256": "8d179dfdbf06ec47277f3e35ec97f5725004ce1c7e59a7719037de5ca511481c"
+    },
+    {
+      "path": "art/ships/vanguard/reference/side.png",
+      "sha256": "1f5548470f31894696e41dfdc9d0b859610f0c6d53d6877e84dcc99d0d55cf0a"
+    }
+  ],
+  "params": {
+    "image_size": "1K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.134,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 106
+      },
+      {
+        "modality": "image",
+        "tokens": 516
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 622,
+    "total_output_tokens": 1266,
+    "total_thought_tokens": 137,
+    "total_tokens": 2025,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 1694,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 574
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 136
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 137
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 871
+          },
+          {
+            "modality": "image",
+            "tokens": 1585
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 22
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 78
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 574
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 136
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 137
+          }
+        ]
+      },
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 871
+          },
+          {
+            "modality": "image",
+            "tokens": 1585
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 22
+          }
+        ],
+        "thoughts_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 78
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}
