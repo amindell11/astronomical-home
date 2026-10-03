@@ -109,6 +109,10 @@ namespace Tests.PlayMode.Presentation.Breakup
             Kill(ship);
             var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
             Assert.That(hull.gameObject.activeSelf, Is.False);
+            var effects = Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
+                .Where(e => e.gameObject.activeInHierarchy).ToArray();
+            Assert.That(effects, Has.Length.EqualTo(1));
+            Assert.That(effects[0].name, Does.StartWith("LayeredAsteroidExplosion"));
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
             Assert.That(pieces, Has.Length.EqualTo(16));
             var after = pieces.SelectMany(p => p.sharedMesh.vertices.Select(p.transform.TransformPoint)).ToArray();

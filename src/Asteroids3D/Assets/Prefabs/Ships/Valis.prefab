@@ -21573,8 +21573,7 @@ MonoBehaviour:
   sparksPrefab: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashTime: 0.15
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
+  explosionPrefab: {fileID: 0}
   collisionExplosionPrefab: {fileID: 0}
 --- !u!82 &26992000559413095
 AudioSource:
