@@ -1,0 +1,82 @@
+[
+  {
+    "name": "10 upper swept wings",
+    "vertices": 254,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.1416520133918357,
+    "tip_thickness": 0.016998241607020282,
+    "root_thickness": 0.07365904696375457
+  },
+  {
+    "name": "11 upper wing gray planes",
+    "vertices": 200,
+    "xy_max_error": 2.384185791015625e-07,
+    "original_vertical_thickness": 0.1416520133918357,
+    "tip_thickness": 0.016998241607020282,
+    "root_thickness": 0.07365904696375457
+  },
+  {
+    "name": "12 upper wing lavender tips",
+    "vertices": 92,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.1416520133918357,
+    "tip_thickness": 0.016998241607020282,
+    "root_thickness": 0.07365904696375457
+  },
+  {
+    "name": "13 charcoal trailing spars",
+    "vertices": 128,
+    "xy_max_error": 2.384185791015625e-07,
+    "original_vertical_thickness": 0.2411630762951558,
+    "tip_thickness": 0.028939569155418694,
+    "root_thickness": 0.125404799673481
+  },
+  {
+    "name": "12 upper wing lavender tips underside",
+    "vertices": 92,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.2411630762951558,
+    "tip_thickness": 0.028939569155418694,
+    "root_thickness": 0.125404799673481
+  },
+  {
+    "name": "20 lower swept blades",
+    "vertices": 164,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.13812738492575957,
+    "tip_thickness": 0.016575286191091148,
+    "root_thickness": 0.07182624016139498
+  },
+  {
+    "name": "21 lower blade lavender tips",
+    "vertices": 92,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.13812738492575957,
+    "tip_thickness": 0.016575286191091148,
+    "root_thickness": 0.07182624016139498
+  },
+  {
+    "name": "21 lower blade lavender tips underside",
+    "vertices": 92,
+    "xy_max_error": 2.384185791015625e-07,
+    "original_vertical_thickness": 0.13812738492575957,
+    "tip_thickness": 0.016575286191091148,
+    "root_thickness": 0.07182624016139498
+  },
+  {
+    "name": "22 lower blade dark inner facets",
+    "vertices": 110,
+    "xy_max_error": 2.384185791015625e-07,
+    "original_vertical_thickness": 0.13812738492575957,
+    "tip_thickness": 0.016575286191091148,
+    "root_thickness": 0.07182624016139498
+  },
+  {
+    "name": "50 aft split prongs",
+    "vertices": 326,
+    "xy_max_error": 4.76837158203125e-07,
+    "original_vertical_thickness": 0.1514307957582022,
+    "tip_thickness": 0.012114463660656176,
+    "root_thickness": 0.08480124562459324
+  }
+]

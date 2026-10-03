@@ -1,0 +1,952 @@
+{
+  "fps": 20,
+  "frames": [
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "t1-01",
+      "command": 0.028000000000000004,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-02",
+      "command": 0.10400000000000002,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-03",
+      "command": 0.216,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-04",
+      "command": 0.3520000000000001,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-05",
+      "command": 0.5,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-06",
+      "command": 0.648,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-07",
+      "command": 0.7839999999999999,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-08",
+      "command": 0.8960000000000001,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-09",
+      "command": 0.972,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t1-10",
+      "command": 1.0,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "forward",
+      "command": 1,
+      "label": "Forward thrust"
+    },
+    {
+      "key": "t2-01",
+      "command": 0.972,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-02",
+      "command": 0.896,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-03",
+      "command": 0.784,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-04",
+      "command": 0.6479999999999999,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-05",
+      "command": 0.5,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-06",
+      "command": 0.352,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-07",
+      "command": 0.21600000000000008,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-08",
+      "command": 0.10399999999999987,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-09",
+      "command": 0.028000000000000025,
+      "label": "Idle"
+    },
+    {
+      "key": "t2-10",
+      "command": 0.0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "t3-01",
+      "command": -0.028000000000000004,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-02",
+      "command": -0.10400000000000002,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-03",
+      "command": -0.216,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-04",
+      "command": -0.3520000000000001,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-05",
+      "command": -0.5,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-06",
+      "command": -0.648,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-07",
+      "command": -0.7839999999999999,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-08",
+      "command": -0.8960000000000001,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-09",
+      "command": -0.972,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t3-10",
+      "command": -1.0,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "reverse",
+      "command": -1,
+      "label": "Reverse thrust"
+    },
+    {
+      "key": "t4-01",
+      "command": -0.972,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-02",
+      "command": -0.896,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-03",
+      "command": -0.784,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-04",
+      "command": -0.6479999999999999,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-05",
+      "command": -0.5,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-06",
+      "command": -0.352,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-07",
+      "command": -0.21600000000000008,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-08",
+      "command": -0.10399999999999987,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-09",
+      "command": -0.028000000000000025,
+      "label": "Idle"
+    },
+    {
+      "key": "t4-10",
+      "command": 0.0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    },
+    {
+      "key": "idle",
+      "command": 0,
+      "label": "Idle"
+    }
+  ],
+  "main_idle_fraction": 0.08,
+  "fin_idle_fraction": 0.5,
+  "pose_models": {
+    "10 upper swept wings": {
+      "idle_fraction": 0.08,
+      "angle_degrees": 19.344791323937567,
+      "axis": [
+        -0.007563396356999874,
+        -0.4246360659599304,
+        0.9053338766098022
+      ],
+      "effective_pivot": [
+        -0.000425916118532684,
+        0.013273765121904257,
+        0.006222343287879763
+      ],
+      "axis_translation": [
+        8.377901599609591e-07,
+        4.703650751342037e-05,
+        -0.00010028291957162678
+      ]
+    },
+    "11 upper wing gray planes": {
+      "idle_fraction": 0.08,
+      "angle_degrees": 19.344791323937567,
+      "axis": [
+        -0.007563396356999874,
+        -0.4246360659599304,
+        0.9053338766098022
+      ],
+      "effective_pivot": [
+        -0.0003492815880453183,
+        0.012705386768675248,
+        0.005956392412777029
+      ],
+      "axis_translation": [
+        7.28050175935642e-07,
+        4.087531604826189e-05,
+        -8.71471171741013e-05
+      ]
+    },
+    "12 upper wing lavender tips": {
+      "idle_fraction": 0.08,
+      "angle_degrees": 19.344791323937567,
+      "axis": [
+        -0.007563396356999874,
+        -0.4246360659599304,
+        0.9053338766098022
+      ],
+      "effective_pivot": [
+        -0.000425916118532684,
+        0.013273765121904257,
+        0.006222343287879763
+      ],
+      "axis_translation": [
+        8.377901599609591e-07,
+        4.703650751342037e-05,
+        -0.00010028291957162678
+      ]
+    },
+    "13 charcoal trailing spars": {
+      "idle_fraction": 0.08,
+      "angle_degrees": 19.344791323937567,
+      "axis": [
+        -0.007563396356999874,
+        -0.4246360659599304,
+        0.9053338766098022
+      ],
+      "effective_pivot": [
+        0.002422720473287439,
+        -0.007853786887980878,
+        -0.0036634852028246487
+      ],
+      "axis_translation": [
+        -3.2414123111064452e-06,
+        -0.00018198437008644592,
+        0.00038799487703174065
+      ]
+    },
+    "30 forward lower fins": {
+      "idle_fraction": 0.5,
+      "angle_degrees": 123.73312519244473,
+      "axis": [
+        0.9377906918525696,
+        0.3360995650291443,
+        -0.0870957002043724
+      ],
+      "effective_pivot": [
+        0.9043865643363953,
+        -2.5894735639204782,
+        -0.2548418309006154
+      ],
+      "axis_translation": [
+        -0.3053438617551836,
+        -0.1094337354807351,
+        0.02835828881189295
+      ]
+    },
+    "31 forward fin lavender edges": {
+      "idle_fraction": 0.5,
+      "angle_degrees": 123.73312519244473,
+      "axis": [
+        0.9377906918525696,
+        0.3360995650291443,
+        -0.0870957002043724
+      ],
+      "effective_pivot": [
+        0.9043865643363953,
+        -2.5894735639204782,
+        -0.2548418309006154
+      ],
+      "axis_translation": [
+        -0.3053438617551836,
+        -0.1094337354807351,
+        0.02835828881189295
+      ]
+    },
+    "70 forward fin pivot housing": {
+      "idle_fraction": 0.5,
+      "angle_degrees": 23.388768746583697,
+      "axis": [
+        1.0000003576278687,
+        -7.42464649761132e-08,
+        -1.237103077755819e-07
+      ],
+      "effective_pivot": [
+        -1.800917366861399e-07,
+        -1.8019286275029915,
+        -0.37430156167421025
+      ],
+      "axis_translation": [
+        -0.22851887650979041,
+        1.6966707927501545e-08,
+        2.8270130236762725e-08
+      ]
+    },
+    "71 forward fin lavender cap": {
+      "idle_fraction": 0.5,
+      "angle_degrees": 23.388768746583697,
+      "axis": [
+        1.0000003576278687,
+        -7.42464649761132e-08,
+        -1.237103077755819e-07
+      ],
+      "effective_pivot": [
+        -1.800917366861399e-07,
+        -1.8019286275029915,
+        -0.37430156167421025
+      ],
+      "axis_translation": [
+        -0.22851887650979041,
+        1.6966707927501545e-08,
+        2.8270130236762725e-08
+      ]
+    },
+    "12 upper wing lavender tips underside": {
+      "idle_fraction": 0.08,
+      "angle_degrees": 19.344791323937567,
+      "axis": [
+        -0.007563396356999874,
+        -0.4246360659599304,
+        0.9053338766098022
+      ],
+      "effective_pivot": [
+        -0.000425916118532684,
+        0.013273765121904257,
+        0.006222343287879763
+      ],
+      "axis_translation": [
+        8.377901599609591e-07,
+        4.703650751342037e-05,
+        -0.00010028291957162678
+      ]
+    },
+    "31 forward fin lavender edges underside": {
+      "idle_fraction": 0.5,
+      "angle_degrees": 123.73312519244473,
+      "axis": [
+        0.9377906918525696,
+        0.3360995650291443,
+        -0.0870957002043724
+      ],
+      "effective_pivot": [
+        0.9043865643363953,
+        -2.5894735639204782,
+        -0.2548418309006154
+      ],
+      "axis_translation": [
+        -0.3053438617551836,
+        -0.1094337354807351,
+        0.02835828881189295
+      ]
+    }
+  },
+  "geometry_vertices_unchanged": true,
+  "source": "D:\\amind\\git\\agent-2\\art\\ships\\valis\\Valis.blend",
+  "reference": "D:\\amind\\git\\astronomical-home\\results\\valis-wing-motion\\v01\\forward-reference.json"
+}

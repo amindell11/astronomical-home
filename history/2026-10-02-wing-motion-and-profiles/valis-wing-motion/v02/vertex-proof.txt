@@ -1,0 +1,1 @@
+All 45384 surface/contour vertices and UVs match the approved swept Blender source; maximum position error 1.692447E-07. All four complete wings have rigid weights, and the fixed body uses its root bone. Eight existing material sections retained.

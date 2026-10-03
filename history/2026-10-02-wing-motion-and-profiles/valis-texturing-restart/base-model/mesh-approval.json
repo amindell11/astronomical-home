@@ -1,0 +1,6 @@
+{
+  "status": "approved-geometry-locked",
+  "geometry_sha256": "c713fb3e410c5c6b66c74ad0e5d5b4885984cfe709b026866cdc6e6ae8d73981",
+  "mesh_parts": 36,
+  "scope": "Geometry frozen; materials, UVs and painted finish may evolve without changing the approved shape."
+}

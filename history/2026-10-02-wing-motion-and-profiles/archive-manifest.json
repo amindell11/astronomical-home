@@ -1,0 +1,791 @@
+{
+  "productionCommit": "1fe918ce10a5ceb3aa5ae91ed5ebc447381f611a",
+  "files": [
+    {
+      "source": "art/ships/valis/concepts/valis-c.jpg",
+      "archive": "history/concepts/valis-c.jpg",
+      "bytes": 1589504,
+      "sha256": "801646d7b90298d801a0e35038e253f4e30268640163292c01733833b9b8322b"
+    },
+    {
+      "source": "art/ships/valis/concepts/valis-top.png",
+      "archive": "history/concepts/valis-top.png",
+      "bytes": 1291999,
+      "sha256": "4fa455a98397383256c3c6def9ed89325cad84d0d9f23a1d7abe28bf537080ef"
+    },
+    {
+      "source": "art/ships/valis/concepts/valis-turnaround.png",
+      "archive": "history/concepts/valis-turnaround.png",
+      "bytes": 1710516,
+      "sha256": "9ea9f23e0cb4b14e2e5f31543cf86b7b08bfb4c8caa85890137ac984478e066c"
+    },
+    {
+      "source": "art/ships/valis/mesh-approval.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/mesh-approval.json",
+      "bytes": 461,
+      "sha256": "4eb54ced1ec4bc354fcbc9ac63f2b3197d2bb17d4c62202e3074bc013d083dff"
+    },
+    {
+      "source": "art/ships/valis/paint-settings.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/paint-settings.json",
+      "bytes": 207,
+      "sha256": "4799879f6c3d758ccdf2e7c64f2a9299ea0aa2f9ae26af4c942297613d832924"
+    },
+    {
+      "source": "art/ships/valis/palettes.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/palettes.json",
+      "bytes": 2903,
+      "sha256": "4d542bf0d0a1394d8e12783637c3e67a10b98e3af80da98830daa74a58043fba"
+    },
+    {
+      "source": "art/ships/valis/README.md",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/README.md",
+      "bytes": 1945,
+      "sha256": "9609c8d874ba1be07af9efabfc9f7639e541269cb692cf2a1e8812d6fdd5e081"
+    },
+    {
+      "source": "art/ships/valis/UV-guide.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/UV-guide.png",
+      "bytes": 520581,
+      "sha256": "6b2d1cedec13dc1567441b24728123c71fe6f884758049689aa37b7cfe0c6468"
+    },
+    {
+      "source": "art/ships/valis/Valis-Paint-Layers.ora",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/Valis-Paint-Layers.ora",
+      "bytes": 2314391,
+      "sha256": "d23e95c79a87f256dddf4c0c9ab5466421f2473a15113962b8c53913c633533a"
+    },
+    {
+      "source": "art/ships/valis/Valis.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/Valis.blend",
+      "bytes": 2146629,
+      "sha256": "0db0addaf80d5cba1bd8440de6f8e84583cd515d6a6def6d4c334fbc3e5193fe"
+    },
+    {
+      "source": "art/ships/valis/layers/Ink.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/layers/Ink.png",
+      "bytes": 140705,
+      "sha256": "91dbcf963e366bb8a8afcddd835b6f65392cafbbe3a0d1cd0a9ad86c28e207e8"
+    },
+    {
+      "source": "art/ships/valis/layers/Light.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/layers/Light.png",
+      "bytes": 614652,
+      "sha256": "ce1deec0684d15256f9b4bef094184e72f4502981a025cf4c49e0f0d80ca7305"
+    },
+    {
+      "source": "art/ships/valis/layers/Shadow.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/approved-source/layers/Shadow.png",
+      "bytes": 1037380,
+      "sha256": "cb21abeb6d9bcd9a10087a1f3e0e801a09c47d03872416259e23cfc1e2339ffc"
+    },
+    {
+      "source": "results/valis-wing-motion/BuildValisWings.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/BuildValisWings.cs",
+      "bytes": 8878,
+      "sha256": "2473c785bf45ff24297c1b2484417c27fb6a50574cde63544dfa36fb9736b01f"
+    },
+    {
+      "source": "results/valis-wing-motion/export_motion.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/export_motion.py",
+      "bytes": 2388,
+      "sha256": "a5fdf9b6832853938bf7fd37648ce7822b00b3ec359f24205e2b70d2b50d4a6b"
+    },
+    {
+      "source": "results/valis-wing-motion/inspect.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/inspect.cs",
+      "bytes": 718,
+      "sha256": "88e71d4f41dc884704b3b18676167db7b106c3a4fd943d38cf122b6d6d832d58"
+    },
+    {
+      "source": "results/valis-wing-motion/rig-export.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/rig-export.json",
+      "bytes": 1414047,
+      "sha256": "adbe256a8419495cad4af2a16376e336948ee1e3a005226629c9c0c231d74382"
+    },
+    {
+      "source": "results/valis-wing-motion/Unity-forward.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/Unity-forward.png",
+      "bytes": 417927,
+      "sha256": "0a814f12d67c4d760e0357924f3e24585b5f4241fc8548a676d635b94a079282"
+    },
+    {
+      "source": "results/valis-wing-motion/Unity-reverse.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/Unity-reverse.png",
+      "bytes": 423361,
+      "sha256": "a9a587f0ca68002a3ec8ed349ba339e68f51cdd49cc4af5449a5e1371826077d"
+    },
+    {
+      "source": "results/valis-wing-motion/Valis-wing-authoring-archive.zip",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/Valis-wing-authoring-archive.zip",
+      "bytes": 2032667,
+      "sha256": "8270daa314f69aa08fd11a0483b3dc951bc292a4be986110f4c46b21efe84ee2"
+    },
+    {
+      "source": "results/valis-wing-motion/Valis-wing-motion-unity.gif",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/Valis-wing-motion-unity.gif",
+      "bytes": 3155675,
+      "sha256": "c14a9456054fa6c63f5bce17b4ce2ffdc6a7e2d08e36531d9aa071817602e4b5"
+    },
+    {
+      "source": "results/valis-wing-motion/Valis-wing-motion-unity.mp4",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/Valis-wing-motion-unity.mp4",
+      "bytes": 117081,
+      "sha256": "c2feac13356091f9e9bcbf7f3fcd617b0427dd3c53d392f4c960c1025474ed6d"
+    },
+    {
+      "source": "results/valis-wing-motion/ValisWingCapture.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/ValisWingCapture.cs",
+      "bytes": 1803,
+      "sha256": "55267d859cb6aac9dab6fc2244fa81dc81482dd074cef824510076cf6e408565"
+    },
+    {
+      "source": "results/valis-wing-motion/VerifyValisWings.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/VerifyValisWings.cs",
+      "bytes": 2905,
+      "sha256": "f065305b6dc4ca3660b970494b31abf9d7e513b46399a786a891bc0c00cc377a"
+    },
+    {
+      "source": "results/valis-wing-motion/vertex-proof.txt",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/vertex-proof.txt",
+      "bytes": 107,
+      "sha256": "81c079509c7c197da313297d4ab95b6366e5534560fe7e75fdde10d6dd79b499"
+    },
+    {
+      "source": "results/valis-wing-motion/WingVisuals.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/WingVisuals.cs",
+      "bytes": 2726,
+      "sha256": "11501d355760261641844ddb6d5b433193e449220c831a3bac39c32ffefb9062"
+    },
+    {
+      "source": "results/valis-wing-motion/WingVisualsPlayModeTests.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/WingVisualsPlayModeTests.cs",
+      "bytes": 4063,
+      "sha256": "ef839b94838da1b59c3efe7e1e1952165e616978ec887e4c80b7f2f0b99e553c"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/assemble_motion.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/assemble_motion.py",
+      "bytes": 3663,
+      "sha256": "85fb5902bd815b41ef55f38394cfe6a63254f4664096dca8b6c7b7cfe1e08905"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/forward-reference.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/forward-reference.json",
+      "bytes": 98591,
+      "sha256": "2e4e5d7a80f51de2144633eb5619dc6c102cd18dea42abe39086d618eaa6668a"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/manifest.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/manifest.json",
+      "bytes": 18732,
+      "sha256": "b1d4ddf30e49ebbaf0eba5f5b96f4dc76cc4e8c774fbdcfce34850315190c06e"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/poses.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/poses.png",
+      "bytes": 165732,
+      "sha256": "464114a67ccaf186cdc79b9982d5193ff53aaf8796154737da18ba1ef4d44f60"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/preview.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/preview.png",
+      "bytes": 158188,
+      "sha256": "f27ff5548620596ca01c73762fab5d828498a873e83b472c2bb4f156b1c9190c"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/render_motion.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/render_motion.py",
+      "bytes": 6043,
+      "sha256": "26df0da58e8a068da21df9cda3fbe04e84613ee9dfa174566d2551e94e68e1d8"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/Valis-wing-motion-v01.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/Valis-wing-motion-v01.blend",
+      "bytes": 1939577,
+      "sha256": "a86e96b37c663464a5fb2e13938b150765b9fb4a71c02a9c61464b33dff135bb"
+    },
+    {
+      "source": "results/valis-wing-motion/v01/Valis-wing-motion-v01.gif",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v01/Valis-wing-motion-v01.gif",
+      "bytes": 2776076,
+      "sha256": "65966c6a23b2a3d8959e1a73b90eb90a54ed9cde01603cad77f9db4d8583ed13"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/after-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/after-low.png",
+      "bytes": 233983,
+      "sha256": "44781aaf5fa115672845dd20b023801d4751ee2017b04a1d1a6f83ee19c1edf9"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/after-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/after-side.png",
+      "bytes": 178631,
+      "sha256": "03904d62df183c202fbde51b13a630cf43266c9eb64309fd8b854e19eb7c34d4"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/after-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/after-top.png",
+      "bytes": 399226,
+      "sha256": "9b252ec55a8b696b80e046da56fc5456d3e0522ebd4901e8cb729d88647e2e00"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/aligned-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/aligned-low.png",
+      "bytes": 235933,
+      "sha256": "70fa2c1657baf6c661a60ea0fec301b9f0dd1abce03f706b4df54fbdce760ff0"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/aligned-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/aligned-side.png",
+      "bytes": 178573,
+      "sha256": "0d99bdb235ecad20b01ace03c649c31f286f40790dfc4e48cdaf53e3f712ef25"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/aligned-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/aligned-top.png",
+      "bytes": 400530,
+      "sha256": "bcc5486d34172e22d076ef878423c7977930cfd1086a61e8d7bb2ee1569176b1"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/align_restored_parts.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/align_restored_parts.py",
+      "bytes": 2260,
+      "sha256": "1e0bd85f49c3c1a4a886b7da6c7ed1cbaf940270948132d0c5009f8542e87dce"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/approved-export.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/approved-export.json",
+      "bytes": 4396360,
+      "sha256": "2a7a137c2f3776f0821efea6a7c347565a0b313f52c48f6cb939bb3a61642025"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/assembly-edits-check.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/assembly-edits-check.json",
+      "bytes": 143,
+      "sha256": "728a02d1ed345eb06c58e13b5f216235187d7cea0fb3a4b80fd76d47692af2dd"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/assembly-proof.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/assembly-proof.json",
+      "bytes": 3280,
+      "sha256": "ffd6eb57a776fbdee731614c63ca2786a4f15bdea236054427e433dbbd7e07b4"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/assembly-render-proof.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/assembly-render-proof.json",
+      "bytes": 208,
+      "sha256": "f68a398ba48251523cea464321d41134eeeea56abefed5ddf22d3f12fa282554"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/before-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/before-low.png",
+      "bytes": 242872,
+      "sha256": "d789130c8589f70d05e9298ab5ed4f645e948dd3a360c2a8d459ea49846e15a6"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/before-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/before-side.png",
+      "bytes": 180094,
+      "sha256": "e29274057e1ae765e484479e9d53c960cdc4a2b00d2789e02484e9dd0b97f4e1"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/before-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/before-top.png",
+      "bytes": 398678,
+      "sha256": "777ee0208767086e703980b3058ace529684aeb395da97782a4b7b84459e92f0"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/check_assembly_edits.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/check_assembly_edits.py",
+      "bytes": 774,
+      "sha256": "b594d8381243c1fd1fbbd5ac5a9c48c95595551df2dfd7b90b327298009b49e6"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/check_grouping.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/check_grouping.py",
+      "bytes": 1127,
+      "sha256": "d21459eac8fd1afcc9589ecd6f2920aa726589ec6e16ade95e9bf301bc0f3181"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/compare_profiles.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/compare_profiles.py",
+      "bytes": 2163,
+      "sha256": "cd6654431387323e50ac7f4dadbefd47666f2f303788d44d140824c154940c63"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/export_approved.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/export_approved.py",
+      "bytes": 2901,
+      "sha256": "de63dab0f65dc78400791809636d29207254e50843da7a0c8e06cab1e9a42508"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouped-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouped-low.png",
+      "bytes": 233752,
+      "sha256": "23b3713ded9a4d24ed8cb9a325f2672a1cfb83f4d607b809dc756a902d9e2bc5"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouped-preview.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouped-preview.png",
+      "bytes": 376274,
+      "sha256": "3801baf8f0d00b4c049375978bad06e7ee9c19b55f0bcc673efc69e78debe1d8"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouped-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouped-side.png",
+      "bytes": 178594,
+      "sha256": "7075f7e7e3c09b752c8265e5acf40361008340efe3a4025b3b7909aed6786d35"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouped-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouped-top.png",
+      "bytes": 399534,
+      "sha256": "ead78726fee6696be7114c91c0de2847cc3fd61888ad7c255f2838530776082f"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouping-diagnosis.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouping-diagnosis.json",
+      "bytes": 1777,
+      "sha256": "5f2cef019b245a172b7d1a0985c8c01c3e20575217881d9be2857e61de8a809b"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/grouping-diff.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/grouping-diff.png",
+      "bytes": 59051,
+      "sha256": "eb9bc034681b53efebc9eb05a602e32629e55f9b283de5cbef3c52aa8925cff6"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/group_assemblies.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/group_assemblies.py",
+      "bytes": 6715,
+      "sha256": "a7cf0d458bc4d77bb27bba4aea7cb5647658052f452a4bcdc8d0d44603beecf8"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/InspectSkin.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/InspectSkin.cs",
+      "bytes": 862,
+      "sha256": "9472ee621b6f39cc1e29f000da22f499bdb3a0ffb5536739183de83730df8a8d"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/latest-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/latest-low.png",
+      "bytes": 233704,
+      "sha256": "4d1360c7a635b60eb1959773779c7ee09620b494afbe35ab94be8a498d709898"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/latest-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/latest-side.png",
+      "bytes": 178627,
+      "sha256": "a7c64fd2d2664c489938a4700c44b196b0957357a7f9bb6b5dad79661bce22f3"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/latest-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/latest-top.png",
+      "bytes": 399535,
+      "sha256": "289092a77248c2b243ba240c5761142b3cb06dffb908f176ae6cecf0fd7e6288"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/live-assembly-hashes.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/live-assembly-hashes.json",
+      "bytes": 515,
+      "sha256": "3232e8ddd096ca638036b63dca335777851a7d427cda5e60a075e39024af1b58"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/mesh-approval.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/mesh-approval.json",
+      "bytes": 461,
+      "sha256": "4eb54ced1ec4bc354fcbc9ac63f2b3197d2bb17d4c62202e3074bc013d083dff"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nested-groups-proof.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nested-groups-proof.json",
+      "bytes": 1985,
+      "sha256": "f112349c18f61c3f58137692896162dc0eea8bc5658ce96cc655a226f3d1b6b0"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nested-low.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nested-low.png",
+      "bytes": 249490,
+      "sha256": "6ee50706407037e38f7fad163073e1721e2dea3be1f6c0ae704ad9561a7c1644"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nested-preview.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nested-preview.png",
+      "bytes": 377355,
+      "sha256": "e0626128e5d8a86cebb4a8f4e65d418551275f13f5cd12d9273c1143cc007b82"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nested-side.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nested-side.png",
+      "bytes": 183568,
+      "sha256": "893f0157a913b32cf05b775293c5ba32c8501961578833d7602627324b6221cc"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nested-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nested-top.png",
+      "bytes": 402777,
+      "sha256": "f22955def8d8e82d85ea2ee584e9c25390a5d81de88c3e3b0f2479244e655dbd"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/nest_editable_parts.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/nest_editable_parts.py",
+      "bytes": 5056,
+      "sha256": "cecdc77829a6803a1dbe5f0b84755a2b3e691a40f94daed5e2af515e267b2014"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/prepare_capture.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/prepare_capture.py",
+      "bytes": 577,
+      "sha256": "5d10b0547b7a4da942407ccc80b189289ad73f7e66b32ca5c7e62f263dff1173"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/profile-comparison.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/profile-comparison.png",
+      "bytes": 438083,
+      "sha256": "bb8ba46dfea05893ac9cb125ab30163813668cc72cbd4ef08d110b13811fcb46"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/profile-proof.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/profile-proof.json",
+      "bytes": 2636,
+      "sha256": "2b984be8a92b82ba2daa07c1fb3fabc5e6151932c16ce6d530ce93f9da43813e"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/RebuildValis.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/RebuildValis.cs",
+      "bytes": 7570,
+      "sha256": "c16099337f134c89f2bd344c7d5bd0fb73c76d84d3268f4bd9f689e1fd8f79c4"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/render-proof.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/render-proof.json",
+      "bytes": 121,
+      "sha256": "7157cacf4c0fd61d2e5fa64aea6e09f32bc5abeb4ac636e63c370fc3b8cb9a81"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/render_profile.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/render_profile.py",
+      "bytes": 1369,
+      "sha256": "de54d95fa5d0f88d88b2df950c9d37a2ac53f73cff875667db1bea3e7975cc47"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/shape_profiles.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/shape_profiles.py",
+      "bytes": 5516,
+      "sha256": "27930a349a8b87bb81f354db0fb4e8407de7d19de04375e64c7de52b8cec4aae"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/stage_update.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/stage_update.py",
+      "bytes": 1870,
+      "sha256": "f2deb56d33ba3a9b95968dd9fbfee3343a2237ee9faff57ae157d238410e43d1"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/unity-build.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/unity-build.json",
+      "bytes": 155,
+      "sha256": "e154023d57b0c74b780f00fe9eb705195982370117e9f2dcdcb269b2f1835942"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Unity-rest-v02.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Unity-rest-v02.png",
+      "bytes": 280867,
+      "sha256": "32fc340a477cf1c9c75f263e091ab2c0754542ada464b6f48338f634e3d3dade"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Unity-swept-v02.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Unity-swept-v02.png",
+      "bytes": 276348,
+      "sha256": "013505d6861a9c8c1b0dc799011b6a10f2f5d78a8e2a1e3a4603c10efd1cc938"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/update_readme.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/update_readme.py",
+      "bytes": 1155,
+      "sha256": "682ddf8f1ed70e5d019424337a8704411881036846966db97dc581976d9da7f1"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/update_runtime.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/update_runtime.py",
+      "bytes": 2948,
+      "sha256": "35f46589172b298bc6e6b14a349459568bb18ede457bb1c5bef16fa561e337d6"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-before-grouping.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-before-grouping.blend",
+      "bytes": 1985966,
+      "sha256": "847e9b0bf3cb451bc520e84079a69ecbf33c4753a32e0a86cc70f4156a210b15"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-before-nested-groups.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-before-nested-groups.blend",
+      "bytes": 2145117,
+      "sha256": "5abc9ced8e853ad41412179865dc4bd13a18430ec29813a4a79c2b72bfd7ddac"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-profile-assemblies.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-profile-assemblies.blend",
+      "bytes": 2143633,
+      "sha256": "9576cdc3b08926ff7c49d565c86f23aab890f325b8fbfc51930fd9c9138c1610"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-profile-nested.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-profile-nested.blend",
+      "bytes": 2146629,
+      "sha256": "0db0addaf80d5cba1bd8440de6f8e84583cd515d6a6def6d4c334fbc3e5193fe"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-profile-nested.blend1",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-profile-nested.blend1",
+      "bytes": 2147126,
+      "sha256": "43ed132c42826273e996a1155858f53f3da9440f388d2c7489a33a9d50fb3f1d"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-profile-pass.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-profile-pass.blend",
+      "bytes": 1986934,
+      "sha256": "67291cc4ca758db72d58c3db0f22cb4be46455b06f1452f7da54da5b161727f9"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-restored-before-alignment.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-restored-before-alignment.blend",
+      "bytes": 2147126,
+      "sha256": "ca5f71117641a014226cc3487afd3bd915fcd7b2686902201434a64c2cb5b055"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/Valis-user-before-profile.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/Valis-user-before-profile.blend",
+      "bytes": 1909356,
+      "sha256": "74e6b3604b054dc5a1d47f444ae628e683a768c8d18a1ed756aa4587467ebb44"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/VerifyReimport.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/VerifyReimport.cs",
+      "bytes": 3282,
+      "sha256": "3879632f81adc58824fda0e4c6c9f2c6c3cbf8f4f82f927a53c368a1860efa06"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/vertex-proof.txt",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/vertex-proof.txt",
+      "bytes": 246,
+      "sha256": "bbb34d723a29d9cc2221196be50fb0de09e9bde4092e1e7d23b2025b94d5f327"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/unity/frames/20261002-204811-Valis-updated-wing-motion-unity.gif",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/unity/frames/20261002-204811-Valis-updated-wing-motion-unity.gif",
+      "bytes": 14499527,
+      "sha256": "093d3e9269bafcfcb3f9d2c47ee00ec14a0f086ac151aa18403253b19c3925ac"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/unity/frames/20261002-204811-Valis-updated-wing-motion-unity.mp4",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/unity/frames/20261002-204811-Valis-updated-wing-motion-unity.mp4",
+      "bytes": 89591,
+      "sha256": "c313e0a24b82a0580cf54d3c6a8201483e17730d4bab4cdc74ebbdfd141b9a4d"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/unity/frames/20261002-210534-Valis-updated-wing-motion-unity.gif",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/unity/frames/20261002-210534-Valis-updated-wing-motion-unity.gif",
+      "bytes": 7931370,
+      "sha256": "0ec25eeb483450a38aafe266358ae4bc976007d11df8a4f8a7e581bce2a2bcb9"
+    },
+    {
+      "source": "results/valis-wing-motion/v02/unity/frames/20261002-210534-Valis-updated-wing-motion-unity.mp4",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/v02/unity/frames/20261002-210534-Valis-updated-wing-motion-unity.mp4",
+      "bytes": 67292,
+      "sha256": "1e551884a636dda177f0d396e4ab6a141d48035855ff5b02168be1d105cd29bd"
+    },
+    {
+      "source": "results/valis-wing-motion/unity/frames/20261002-084521-Valis-wing-motion-unity.gif",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/unity/frames/20261002-084521-Valis-wing-motion-unity.gif",
+      "bytes": 3155675,
+      "sha256": "c14a9456054fa6c63f5bce17b4ce2ffdc6a7e2d08e36531d9aa071817602e4b5"
+    },
+    {
+      "source": "results/valis-wing-motion/unity/frames/20261002-084521-Valis-wing-motion-unity.mp4",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-wing-motion/unity/frames/20261002-084521-Valis-wing-motion-unity.mp4",
+      "bytes": 117081,
+      "sha256": "c2feac13356091f9e9bcbf7f3fcd617b0427dd3c53d392f4c960c1025474ed6d"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/game-scale.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/game-scale.png",
+      "bytes": 37371,
+      "sha256": "521b1cee9dd26fb0d028cc37d2d5c79ee830b005f5e2b008cd295b2a2b30d85b"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/geometry-verification.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/geometry-verification.json",
+      "bytes": 182,
+      "sha256": "021beea5102176b81cb58c7af9a96e35528ad7dea49b918386b401ab66add069"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/ivory-lavender.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/ivory-lavender.png",
+      "bytes": 1288297,
+      "sha256": "41286d4585b45f6077dee8060412b998a02ae4588b3cdf17911214d2d1b2a038"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/jade-gray.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/jade-gray.png",
+      "bytes": 1313753,
+      "sha256": "7c890212c74adfaa9e618620a33a26ce34200d01e8d4399c2cc68275a1bfa128"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/Paint_Ink.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/Paint_Ink.png",
+      "bytes": 72056,
+      "sha256": "62234f55c69de1c1a66bd9a76aa9590620202e3c274d544e10fe06d6e092eac2"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/Paint_Light.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/Paint_Light.png",
+      "bytes": 1517291,
+      "sha256": "c4b07e3ca5c67872625962b7a440cd45f9c6b4064ef30cca8ed322a6ba7f5dbd"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/Paint_Shadow.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/Paint_Shadow.png",
+      "bytes": 1676215,
+      "sha256": "4ac2179d32b9f622a1c1c0dd2c993bc7191ede096e185159b7994d7170fa716a"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/quarter.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/quarter.png",
+      "bytes": 1324500,
+      "sha256": "03335850025d8451f9922eb75df922df14f13aa6b5a29b5856369c2ca4bdeefb"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/README.md",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/README.md",
+      "bytes": 1919,
+      "sha256": "577af12e24d434ed235966ff9899fd66875a42d5ceda9dac15e1f1297e68b473"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/top.png",
+      "bytes": 1303558,
+      "sha256": "d453a0767f9309f6ace649d57867e689c7068d68e4d3f5f6c4a293945c524192"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/UV_Layout.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/UV_Layout.png",
+      "bytes": 251079,
+      "sha256": "9f1c31b1c771b1a4013a7ee8722c29c4afc19b7fa8dcea2498bdd8d63588d44c"
+    },
+    {
+      "source": "results/valis-texture-review/20261002-layered-prototype/Valis-painted-v2.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texture-review/20261002-layered-prototype/Valis-painted-v2.blend",
+      "bytes": 3397202,
+      "sha256": "8f2be707f902004b65c38c7104d5fff5645f33b4dcd389cea683556cbb2832ce"
+    },
+    {
+      "source": "results/valis-texturing-restart/ApplyValisPaint.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/ApplyValisPaint.cs",
+      "bytes": 4596,
+      "sha256": "09b4d7bbfc809cec819597dafd41d949f5901afd651ca634d6811bffb8f0d4a0"
+    },
+    {
+      "source": "results/valis-texturing-restart/prepare_game_paint.py",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/prepare_game_paint.py",
+      "bytes": 6238,
+      "sha256": "3a0f17ad4ba0ab7b93ae0fa0acb85933e0ca37febcd3b9619cfedb8fb357f6d6"
+    },
+    {
+      "source": "results/valis-texturing-restart/RenderValisPaint.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/RenderValisPaint.cs",
+      "bytes": 5042,
+      "sha256": "ef1979c85413b1cd37d5a6e20d934bd5ac0318e42273c4f43e485c6b4da51ec7"
+    },
+    {
+      "source": "results/valis-texturing-restart/ValisPaintCapture.cs",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/ValisPaintCapture.cs",
+      "bytes": 2567,
+      "sha256": "22210e1cdbc3701ac33618cc3afc0021137c812eb92c0e60925e2e87919da15d"
+    },
+    {
+      "source": "results/valis-texturing-restart/base-model/mesh-approval.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/base-model/mesh-approval.json",
+      "bytes": 269,
+      "sha256": "97b1b75d6249bfc5bb5989b7f55fa4e2d132667c217c72f760e85bbfb3f3fcc1"
+    },
+    {
+      "source": "results/valis-texturing-restart/base-model/palettes.json",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/base-model/palettes.json",
+      "bytes": 2903,
+      "sha256": "4d542bf0d0a1394d8e12783637c3e67a10b98e3af80da98830daa74a58043fba"
+    },
+    {
+      "source": "results/valis-texturing-restart/base-model/valis-base-quarter.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/base-model/valis-base-quarter.png",
+      "bytes": 1240093,
+      "sha256": "6c565bcb8a79671d8e8fc84baf88fea123e3624d16111b656b9f2adb0a368831"
+    },
+    {
+      "source": "results/valis-texturing-restart/base-model/valis-base-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/base-model/valis-base-top.png",
+      "bytes": 1229619,
+      "sha256": "aadd58494f543bb6dff74250e0531e38dec928de2d1d1855e4371a0814a9ce32"
+    },
+    {
+      "source": "results/valis-texturing-restart/base-model/Valis.blend",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/base-model/Valis.blend",
+      "bytes": 124039,
+      "sha256": "9d51f21e3407529244b92f3d43e69726decec4c75c2755f50cc9252c103cdb9d"
+    },
+    {
+      "source": "results/valis-texturing-restart/concepts/brushed-panel-concept-v2.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/concepts/brushed-panel-concept-v2.png",
+      "bytes": 2026767,
+      "sha256": "13dcb8357ce21b3c72fb72230bd793dcb9698f3a9019f6fd884fbfebaa41533d"
+    },
+    {
+      "source": "results/valis-texturing-restart/concepts/directions-v1.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/concepts/directions-v1.png",
+      "bytes": 1701328,
+      "sha256": "02724150068dc2412132ea35f58547e1e13458dac92821f92cb09d34f8072174"
+    },
+    {
+      "source": "results/valis-texturing-restart/concepts/valis-c.jpg",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/concepts/valis-c.jpg",
+      "bytes": 1589504,
+      "sha256": "801646d7b90298d801a0e35038e253f4e30268640163292c01733833b9b8322b"
+    },
+    {
+      "source": "results/valis-texturing-restart/concepts/valis-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/concepts/valis-top.png",
+      "bytes": 1291999,
+      "sha256": "4fa455a98397383256c3c6def9ed89325cad84d0d9f23a1d7abe28bf537080ef"
+    },
+    {
+      "source": "results/valis-texturing-restart/concepts/valis-turnaround.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/concepts/valis-turnaround.png",
+      "bytes": 1710516,
+      "sha256": "9ea9f23e0cb4b14e2e5f31543cf86b7b08bfb4c8caa85890137ac984478e066c"
+    },
+    {
+      "source": "results/valis-texturing-restart/style/crimson-approved-concept.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/style/crimson-approved-concept.png",
+      "bytes": 2089657,
+      "sha256": "a82526015c925ef42b5fb1e9afb96207b8bb36bacf12f47b7b2b19f30ddb64d7"
+    },
+    {
+      "source": "results/valis-texturing-restart/style/crimson-quarter.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/style/crimson-quarter.png",
+      "bytes": 2335605,
+      "sha256": "b406526e3abb803afa8eab4c273fc03510570d685bd8cd7f7aa6d2e697a721d0"
+    },
+    {
+      "source": "results/valis-texturing-restart/style/crimson-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/style/crimson-top.png",
+      "bytes": 2558045,
+      "sha256": "c4686e51d7c53d2c7cb6a88db384a0a29f419597d2ea7d1968a68b08d2c05fd8"
+    },
+    {
+      "source": "results/valis-texturing-restart/style/vanguard-top.png",
+      "archive": "history/2026-10-02-wing-motion-and-profiles/valis-texturing-restart/style/vanguard-top.png",
+      "bytes": 1992010,
+      "sha256": "334d8ad551ec77968a861cd027a56a13acb024544994995933896fa9b1d6792d"
+    }
+  ]
+}

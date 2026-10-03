@@ -1,0 +1,151 @@
+[
+  {
+    "name": "Body",
+    "parts": [
+      "01 central fuselage",
+      "02 black canopy",
+      "03 canopy side cheeks",
+      "04 dorsal armor",
+      "05 dorsal shoulder bevel",
+      "06 dorsal lavender rails",
+      "07 rear crest",
+      "08 ventral armor",
+      "40 forward outriggers",
+      "41 outrigger lavender toes",
+      "42 outrigger inner sockets",
+      "51 midship auxiliary vanes",
+      "53 auxiliary vane roots",
+      "52 auxiliary vane feet",
+      "60 engine spine",
+      "61 engine side fairings",
+      "62 engine raised ribs",
+      "64 exhaust rim"
+    ],
+    "vertices": 706,
+    "faces": 718,
+    "materials": [
+      "Graphite",
+      "Canopy",
+      "Lavender",
+      "Ivory",
+      "Cool gray",
+      "Edge",
+      "Engine"
+    ],
+    "pivot": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_position_error": 2.9802322387695312e-08
+  },
+  {
+    "name": "Wing upper.R",
+    "parts": [
+      "10 upper swept wings",
+      "11 upper wing gray planes",
+      "12 upper wing lavender tips",
+      "70 shoulder pivot housing",
+      "71 shoulder lavender cap"
+    ],
+    "vertices": 594,
+    "faces": 811,
+    "materials": [
+      "Ivory",
+      "Cool gray",
+      "Lavender",
+      "Graphite"
+    ],
+    "pivot": [
+      1.012399435043335,
+      -1.0419061183929443,
+      0.314323753118515
+    ],
+    "max_position_error": 5.364418029785156e-07
+  },
+  {
+    "name": "Wing upper.L",
+    "parts": [
+      "10 upper swept wings",
+      "11 upper wing gray planes",
+      "12 upper wing lavender tips",
+      "70 shoulder pivot housing",
+      "71 shoulder lavender cap"
+    ],
+    "vertices": 594,
+    "faces": 811,
+    "materials": [
+      "Ivory",
+      "Cool gray",
+      "Lavender",
+      "Graphite"
+    ],
+    "pivot": [
+      -1.012399435043335,
+      -1.0419061183929443,
+      0.314323753118515
+    ],
+    "max_position_error": 5.364418029785156e-07
+  },
+  {
+    "name": "Wing lower.R",
+    "parts": [
+      "20 lower swept blades",
+      "21 lower blade lavender tips",
+      "21 lower blade lavender tips underside",
+      "22 lower blade dark inner facets"
+    ],
+    "vertices": 458,
+    "faces": 639,
+    "materials": [
+      "Cool gray",
+      "Lavender",
+      "Edge"
+    ],
+    "pivot": [
+      0.9953190684318542,
+      -1.5950168371200562,
+      -0.11466366797685623
+    ],
+    "max_position_error": 2.384185791015625e-07
+  },
+  {
+    "name": "Wing lower.L",
+    "parts": [
+      "20 lower swept blades",
+      "21 lower blade lavender tips",
+      "21 lower blade lavender tips underside",
+      "22 lower blade dark inner facets"
+    ],
+    "vertices": 458,
+    "faces": 639,
+    "materials": [
+      "Cool gray",
+      "Lavender",
+      "Edge"
+    ],
+    "pivot": [
+      -0.9953191876411438,
+      -1.5950169563293457,
+      -0.11466378718614578
+    ],
+    "max_position_error": 2.384185791015625e-07
+  },
+  {
+    "name": "Aft prongs",
+    "parts": [
+      "50 aft split prongs"
+    ],
+    "vertices": 652,
+    "faces": 954,
+    "materials": [
+      "Ivory"
+    ],
+    "pivot": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_position_error": 1.4901161193847656e-08
+  }
+]

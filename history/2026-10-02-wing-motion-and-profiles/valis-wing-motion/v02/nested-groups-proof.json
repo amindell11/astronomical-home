@@ -1,0 +1,81 @@
+{
+  "visible_mesh_parts": 30,
+  "parent_groups": {
+    "Body": [
+      "Auxiliary vanes",
+      "Canopy",
+      "Dorsal armor",
+      "Engine",
+      "Forward outriggers",
+      "Fuselage"
+    ],
+    "Fuselage": [
+      "01 central fuselage",
+      "08 ventral armor"
+    ],
+    "Canopy": [
+      "02 black canopy",
+      "03 canopy side cheeks"
+    ],
+    "Dorsal armor": [
+      "04 dorsal armor",
+      "05 dorsal shoulder bevel",
+      "06 dorsal lavender rails",
+      "07 rear crest"
+    ],
+    "Engine": [
+      "60 engine spine",
+      "61 engine side fairings",
+      "62 engine raised ribs",
+      "64 exhaust rim"
+    ],
+    "Forward outriggers": [
+      "40 forward outriggers",
+      "41 outrigger lavender toes",
+      "42 outrigger inner sockets"
+    ],
+    "Auxiliary vanes": [
+      "51 midship auxiliary vanes",
+      "52 auxiliary vane feet",
+      "53 auxiliary vane roots"
+    ],
+    "Flight surfaces": [
+      "Lower wings",
+      "Upper wings"
+    ],
+    "Upper wings": [
+      "Shoulder pivots",
+      "Trailing spars",
+      "Wing panels"
+    ],
+    "Wing panels": [
+      "10 upper swept wings",
+      "11 upper wing gray planes",
+      "12 upper wing lavender tips"
+    ],
+    "Trailing spars": [
+      "12 upper wing lavender tips underside",
+      "13 charcoal trailing spars"
+    ],
+    "Shoulder pivots": [
+      "70 shoulder pivot housing",
+      "71 shoulder lavender cap"
+    ],
+    "Lower wings": [
+      "20 lower swept blades",
+      "21 lower blade lavender tips",
+      "21 lower blade lavender tips underside",
+      "22 lower blade dark inner facets"
+    ],
+    "Aft prongs": [
+      "50 aft split prongs"
+    ]
+  },
+  "restored_parts": [
+    "13 charcoal trailing spars",
+    "12 upper wing lavender tips underside"
+  ],
+  "max_transform_error": 1.1920928955078125e-07,
+  "geometry_uv_and_profile_keys_unchanged": true,
+  "live_mirror_modifiers_preserved": true
+}
