@@ -42,8 +42,8 @@ namespace Tests.PlayMode
             Assert.IsNotNull(ship, "ship created");
             yield return null; // let Awake/Initialize/Start settle
 
-            var racer = TestAssets.LoadEngineModule(RacerEnginePath);
-            var hauler = TestAssets.LoadEngineModule(HaulerEnginePath);
+            var racer = TestAssets.Load<EngineModule>(RacerEnginePath);
+            var hauler = TestAssets.Load<EngineModule>(HaulerEnginePath);
             Assert.IsNotNull(racer, "racer engine asset loaded");
             Assert.IsNotNull(hauler, "hauler engine asset loaded");
             Assert.AreNotEqual(racer.maxSpeed, hauler.maxSpeed, "the two sidegrades differ in top speed");
@@ -75,7 +75,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
-            var bulwark = TestAssets.LoadShieldModule(BulwarkShieldPath);
+            var bulwark = TestAssets.Load<ShieldModule>(BulwarkShieldPath);
             Assert.IsNotNull(bulwark, "bulwark shield asset loaded");
             Assert.AreNotEqual(ship.Stats.maxShield, bulwark.maxShield, "bulwark differs from the baseline shield cap");
 

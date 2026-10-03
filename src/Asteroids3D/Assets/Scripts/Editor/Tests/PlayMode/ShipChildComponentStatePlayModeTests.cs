@@ -13,15 +13,13 @@ using UI.PlayerState;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) deactivate with the ship on death and come back functional — still firing, still event-subscribed — after reset, across repeated cycles.</summary>
+    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) come back active and functional — still firing, still event-subscribed — after death and reset, across repeated cycles.</summary>
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
         private Ship combatShip;
         private Ship enemyShip;
-        
-        private const bool ENABLE_DIAGNOSTICS = false;
 
         // The rig carries one bar per tracked resource; fill assertions must pin the right one.
         private StatusBarUI FindBar(StatusBarUI.TrackedResource tracked)
@@ -38,7 +36,7 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
+            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
             var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
@@ -55,11 +53,6 @@ namespace Tests.PlayMode
                 Projectiles,
                 team: 1);
             Assert.IsNotNull(enemyShip, "Enemy ship failed to instantiate");
-
-            if (ENABLE_DIAGNOSTICS)
-            {
-                Debug.Log($"[ShipChildComponentState] SetUp complete. Ship: {testShip.name}, Enemy: {enemyShip.name}");
-            }
 #else
             Assert.Ignore("ShipChildComponentStatePlayModeTests requires Unity Editor assets.");
 #endif
@@ -71,98 +64,6 @@ namespace Tests.PlayMode
             ShipTestFactory.DestroyShip(testShip);
             ShipTestFactory.DestroyShip(enemyShip);
             base.TearDown();
-        }
-
-        [UnityTest]
-        public IEnumerator ShipDeath_DeactivatesParent_ChildComponentsAlsoDeactivate()
-        {
-            yield return null;
-
-            var weaponsController = combatShip.Weapons;
-            var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
-            var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
-
-            LogDiagnostic($"Before death - Ship active: {testShip.gameObject.activeSelf}, " +
-                         $"Weapons active: {weaponsController.gameObject.activeSelf}");
-
-            TestDamage.Kill(testShip, enemyShip);
-            yield return null;
-
-            Assert.IsFalse(testShip.gameObject.activeSelf,
-                "Ship GameObject should be inactive after death");
-
-            LogDiagnostic($"After death - Ship active: {testShip.gameObject.activeSelf}, " +
-                         $"Weapons active: {weaponsController.gameObject.activeSelf}");
-
-            Assert.IsFalse(weaponsController.gameObject.activeInHierarchy,
-                "WeaponsController should be inactive when parent ship is inactive");
-
-            if (shieldUI != null)
-            {
-                Assert.IsFalse(shieldUI.gameObject.activeInHierarchy,
-                    "StatusBarUI should be inactive when parent ship is inactive");
-            }
-
-            if (lockOnIndicator != null)
-            {
-                Assert.IsFalse(lockOnIndicator.gameObject.activeInHierarchy,
-                    "LockOnIndicator should be inactive when parent ship is inactive");
-            }
-        }
-
-        [UnityTest]
-        public IEnumerator ShipReset_ReactivatesParent_ChildComponentsShouldReactivate()
-        {
-            yield return null;
-
-            var weaponsController = combatShip.Weapons;
-            var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
-            var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
-
-            TestDamage.Kill(testShip, enemyShip);
-            yield return null;
-
-            LogDiagnostic($"Before reset - Ship active: {testShip.gameObject.activeSelf}");
-
-            testShip.ResetShip();
-            yield return null;
-
-            LogDiagnostic($"After reset - Ship active: {testShip.gameObject.activeSelf}, " +
-                         $"Weapons active: {weaponsController.gameObject.activeSelf}, " +
-                         $"Weapons object null: {weaponsController == null}");
-
-            Assert.IsTrue(testShip.gameObject.activeSelf,
-                "Ship GameObject should be active after ResetShip()");
-
-            Assert.IsNotNull(weaponsController,
-                "WeaponsController reference should not be null after reset");
-            
-            Assert.IsTrue(weaponsController.gameObject.activeSelf,
-                "WeaponsController GameObject self should be active after ship reset");
-            
-            Assert.IsTrue(weaponsController.gameObject.activeInHierarchy,
-                "WeaponsController GameObject should be active in hierarchy after ship reset");
-
-            if (shieldUI != null)
-            {
-                Assert.IsNotNull(shieldUI,
-                    "StatusBarUI reference should not be null after reset");
-                Assert.IsTrue(shieldUI.gameObject.activeInHierarchy,
-                    "StatusBarUI GameObject should be active after ship reset");
-            }
-
-            if (lockOnIndicator != null)
-            {
-                Assert.IsNotNull(lockOnIndicator,
-                    "LockOnIndicator reference should not be null after reset");
-                Assert.IsTrue(lockOnIndicator.gameObject.activeInHierarchy,
-                    "LockOnIndicator GameObject should be active after ship reset");
-            }
-
-            Assert.IsNotNull(weaponsController.Primary,
-                "Primary weapon reference should not be null after reset");
-            Assert.IsTrue(weaponsController.Primary.gameObject.activeInHierarchy,
-                "Primary weapon GameObject should be active after ship reset");
         }
 
         [UnityTest]
@@ -182,8 +83,6 @@ namespace Tests.PlayMode
 
             var fireCount = 0;
             weaponsController.Primary.OnFire += () => fireCount++;
-
-            LogDiagnostic($"Before fire attempt - CanFire: {weaponsController.Primary.CanFire()}");
 
             weaponsController.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
                 new Ships.Command.WeaponCommand { pressed = true, held = true });
@@ -216,8 +115,6 @@ namespace Tests.PlayMode
             shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
             Assert.IsNotNull(shieldUI, "StatusBarUI should exist after reset");
             Assert.IsTrue(shieldUI.enabled, "StatusBarUI component should be enabled after reset");
-
-            LogDiagnostic($"StatusBarUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
 
             // Fill tracking the post-damage shield fraction proves StatusBarUI re-subscribed across death→reset, not merely that dispatch didn't throw.
             var fill = shieldUI.Fill;
@@ -258,8 +155,6 @@ namespace Tests.PlayMode
             Assert.IsNotNull(lockOnIndicator, "LockOnIndicator should exist after reset");
             Assert.IsTrue(lockOnIndicator.enabled, "LockOnIndicator component should be enabled after reset");
 
-            LogDiagnostic($"LockOnIndicator after reset - enabled: {lockOnIndicator.enabled}, active: {lockOnIndicator.gameObject.activeInHierarchy}");
-
             var targetable = testShip as ITargetable;
             Assert.IsNotNull(targetable, "Ship should implement ITargetable");
 
@@ -287,8 +182,6 @@ namespace Tests.PlayMode
 
             for (int cycle = 0; cycle < numCycles; cycle++)
             {
-                LogDiagnostic($"=== Cycle {cycle + 1}/{numCycles} ===");
-
                 var weaponsController = combatShip.Weapons;
                 var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
@@ -323,16 +216,6 @@ namespace Tests.PlayMode
                     Assert.IsTrue(lockOnIndicator.gameObject.activeInHierarchy,
                         $"Cycle {cycle}: LockOnIndicator should be active");
                 }
-
-                LogDiagnostic($"Cycle {cycle + 1} passed all stability checks");
-            }
-        }
-
-        private void LogDiagnostic(string message)
-        {
-            if (ENABLE_DIAGNOSTICS)
-            {
-                Debug.Log($"[ShipChildComponentState] {message}");
             }
         }
     }

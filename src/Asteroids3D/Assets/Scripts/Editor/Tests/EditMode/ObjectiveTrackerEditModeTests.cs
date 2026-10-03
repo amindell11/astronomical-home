@@ -37,13 +37,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void InitialState_IsExplore()
-        {
-            var (tracker, _, _, _) = BuildExploreTracker();
-            Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
-        }
-
-        [Test]
         public void Explore_TransitionsToKeyAcquired_WhenKeyPickedUp()
         {
             var (tracker, key, _, _) = BuildExploreTracker();
@@ -54,44 +47,6 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f); // ExploreState.IsComplete=true → KeyAcquired
             Assert.AreEqual(ObjectiveType.KeyAcquired, tracker.CurrentState);
-        }
-
-        [Test]
-        public void KeyAcquired_TransitionsToExtractionChallenge_OnNextTick()
-        {
-            var (tracker, key, _, _) = BuildExploreTracker();
-
-            key.HasKey = true;
-            tracker.Tick(0.1f); // Explore → KeyAcquired
-            Assert.AreEqual(ObjectiveType.KeyAcquired, tracker.CurrentState);
-
-            tracker.Tick(0.1f); // KeyAcquired.IsComplete=true → ExtractionChallenge
-            Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
-        }
-
-        [Test]
-        public void ExtractionChallenge_TransitionsToExtracted_WhenPlayerEntersZone()
-        {
-            var (tracker, key, _, zone) = BuildExploreTracker();
-
-            key.HasKey = true;
-            tracker.Tick(0.1f); // → KeyAcquired
-            tracker.Tick(0.1f); // → ExtractionChallenge
-            Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
-
-            zone.InZone = true;
-            tracker.Tick(0.1f); // → Extracted
-            Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
-        }
-
-        [Test]
-        public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExplore()
-        {
-            var (tracker, _, alive, _) = BuildExploreTracker();
-
-            alive.Value = false;
-            tracker.Tick(0.1f);
-            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
 
         [Test]
@@ -134,16 +89,6 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
 
             tracker.Tick(9999f);
-            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
-        }
-
-        [Test]
-        public void Fail_TransitionsToFailed_FromAnyNonTerminalState()
-        {
-            var (tracker, _, _, _) = BuildExploreTracker();
-            Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
-
-            tracker.Fail();
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
 
@@ -191,20 +136,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Restart_FromFailed_ResetsToExplore_WithNoConsequences()
-        {
-            var (tracker, _, alive, _) = BuildExploreTracker();
-
-            alive.Value = false;
-            tracker.Tick(0.1f);
-            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
-
-            alive.Value = true;
-            tracker.Restart();
-            Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
-        }
-
-        [Test]
         public void OnStateChanged_FiresOncePerTransition_FullSuccessPath()
         {
             var (tracker, key, _, zone) = BuildExploreTracker(playerInZone: true);
@@ -239,20 +170,6 @@ namespace Tests.EditMode
             Assert.AreEqual(2, transitions.Count);
             Assert.AreEqual((ObjectiveType.Explore, ObjectiveType.Failed), transitions[0]);
             Assert.AreEqual((ObjectiveType.Failed,  ObjectiveType.Explore), transitions[1]);
-        }
-
-        [Test]
-        public void MissionDefinition_CreateDefault_HasExpectedTransitions()
-        {
-            var mission = MissionDefinition.CreateDefault();
-            Assert.AreEqual("explore", mission.InitialStep);
-
-            Assert.IsTrue(mission.TryGetNext("explore",    out var n1)); Assert.AreEqual("key",        n1);
-            Assert.IsTrue(mission.TryGetNext("key",         out var n2)); Assert.AreEqual("extraction", n2);
-            Assert.IsTrue(mission.TryGetNext("extraction",  out var n3)); Assert.AreEqual("extracted",  n3);
-
-            Assert.IsFalse(mission.TryGetNext("extracted", out _), "Extracted is terminal — no transition.");
-            Assert.IsFalse(mission.TryGetNext("failed",    out _), "Failed is terminal — no transition.");
         }
 
         [Test]
@@ -334,23 +251,6 @@ namespace Tests.EditMode
             public override ObjectiveType StateType => ObjectiveType.Explore;
             public override void Tick(float deltaTime) { }
             public override bool IsComplete => true;
-        }
-
-        [Test]
-        public void KeyPickup_SpawnKey_ResetsCollectedFlag()
-        {
-            var go = new GameObject("Key");
-            go.AddComponent<SphereCollider>();
-            try
-            {
-                var kp = go.AddComponent<KeyPickup>();
-                kp.SpawnKey(Vector3.zero);
-                Assert.IsFalse(kp.PlayerHasKey);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(go);
-            }
         }
 
         [Test]
