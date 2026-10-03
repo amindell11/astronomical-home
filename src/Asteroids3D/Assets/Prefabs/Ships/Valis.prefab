@@ -21527,6 +21527,7 @@ GameObject:
   - component: {fileID: 26992000559413095}
   - component: {fileID: 3507603775805860302}
   - component: {fileID: 3652984621127007958}
+  - component: {fileID: 7833337768893192654}
   m_Layer: 7
   m_Name: Valis VisualRig
   m_TagString: Ship
@@ -21572,8 +21573,7 @@ MonoBehaviour:
   sparksPrefab: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashTime: 0.15
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
+  explosionPrefab: {fileID: 0}
   collisionExplosionPrefab: {fileID: 0}
 --- !u!82 &26992000559413095
 AudioSource:
@@ -21705,6 +21705,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7cb166732e4c2845b6132ea3a42234f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7833337768893192654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8251161148197266919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b12e20613196a440ba2a066e73cbd38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hull: {fileID: 5150503599082870637}
+  debrisPrefab: {fileID: 7302996287579448780, guid: b3a78d5eb4933374193c5dd5d7316306,
+    type: 3}
+  poseSources:
+  - {fileID: 8274897195795635495}
+  - {fileID: 1487819225375183717}
+  - {fileID: 5351850966559771919}
+  - {fileID: 3744335446112757371}
 --- !u!1 &8259392099608895733
 GameObject:
   m_ObjectHideFlags: 0
