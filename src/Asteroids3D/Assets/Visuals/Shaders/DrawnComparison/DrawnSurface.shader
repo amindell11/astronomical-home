@@ -3,6 +3,15 @@ Shader "Astronomical/Comparison/Drawn Surface"
     Properties
     {
         _BaseMap ("Original Painted Surface", 2D) = "white" {}
+        [Toggle(_PAINT_LAYERS)] _PaintLayers ("Separate Paint Layers", Float) = 0
+        _PaintShadowMap ("Painted Shadow Mask", 2D) = "black" {}
+        _PaintLightMap ("Painted Light Mask", 2D) = "black" {}
+        _PaintInkMap ("Panel Ink Mask", 2D) = "black" {}
+        _PaintShadowStrength ("Shadow Depth", Range(0,2)) = 1
+        _PaintLightStrength ("Painted Light", Range(0,2)) = 1
+        _PaintInkStrength ("Panel Ink", Range(0,2)) = 1
+        _PaintLightColor ("Painted Light Color", Color) = (0.82,0.93,0.88,1)
+        _PaintInkColor ("Panel Ink Color", Color) = (0.006,0.012,0.018,1)
         _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
         _SootStrength ("Destruction Soot", Range(0,1)) = 0
         [Toggle(_NORMALMAP)] _UseRelief ("Sculpted Relief", Float) = 0
@@ -40,7 +49,8 @@ Shader "Astronomical/Comparison/Drawn Surface"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST, _DetailAlbedoMap_ST;
             half4 _BaseColor, _PaperColor, _ShadowColor, _EmissionColor;
-            half4 _OrangeGain;
+            half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
+            half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
             half _TextureStrength, _PigmentPreservation, _LineStrength, _LineThreshold, _LineSoftness, _WearStrength;
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
@@ -68,10 +78,14 @@ Shader "Astronomical/Comparison/Drawn Surface"
             #pragma vertex SurfaceVertex
             #pragma fragment SurfaceFragment
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PAINT_LAYERS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            TEXTURE2D(_PaintShadowMap); SAMPLER(sampler_PaintShadowMap);
+            TEXTURE2D(_PaintLightMap); SAMPLER(sampler_PaintLightMap);
+            TEXTURE2D(_PaintInkMap); SAMPLER(sampler_PaintInkMap);
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
             TEXTURE2D(_WearMap); SAMPLER(sampler_WearMap);
             TEXTURE2D(_DetailAlbedoMap); SAMPLER(sampler_DetailAlbedoMap);
@@ -122,6 +136,14 @@ Shader "Astronomical/Comparison/Drawn Surface"
                 half saturation = (brightest - darkest) / max(brightest, 0.001);
                 half pigment = smoothstep(0.25, 0.60, saturation) * _PigmentPreservation;
                 half3 albedo = lerp(_PaperColor.rgb, painted, max(_TextureStrength, pigment));
+                #if defined(_PAINT_LAYERS)
+                    half shadow = SAMPLE_TEXTURE2D(_PaintShadowMap, sampler_PaintShadowMap, input.uv).r * _PaintShadowStrength;
+                    half paintedLight = SAMPLE_TEXTURE2D(_PaintLightMap, sampler_PaintLightMap, input.uv).r * _PaintLightStrength;
+                    half ink = SAMPLE_TEXTURE2D(_PaintInkMap, sampler_PaintInkMap, input.uv).r * _PaintInkStrength;
+                    albedo = _PaperColor.rgb * (1 - shadow);
+                    albedo = lerp(albedo, _PaintLightColor.rgb, saturate(paintedLight));
+                    albedo = lerp(albedo, _PaintInkColor.rgb, saturate(ink));
+                #endif
                 albedo *= 1 - marks * _LineStrength;
                 albedo *= 1 - SAMPLE_TEXTURE2D(_WearMap, sampler_WearMap, input.uv).r * _WearStrength;
                 float2 detailUV = input.uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;

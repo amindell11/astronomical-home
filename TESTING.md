@@ -368,8 +368,7 @@ Assets/Scripts/Editor/Tests/
     │   ├── AsyncAssert.cs             # Async polling assertions with timeout
     │   ├── AIIntegrationFixture.cs    # Multi-ship AI loop base fixture
     │   ├── StubShipRegistry.cs        # Minimal IShipRegistry stub
-    │   └── TestUtilities.cs           # General helpers (distance, angle, audio)
-    ├── TestSceneBuilder.cs            # Scene-building utilities (not a test class)
+    │   └── TestUtilities.cs           # General helpers (facing angle)
     ├── CameraFollowPlayModeTests.cs   # [Camera]   ObserverCam follow behaviour
     ├── GamePlanePlayModeTests.cs      # [Core]     GamePlane coordinate transforms
     ├── MpcNavigatorPlayModeTests.cs   # [MPC]      MPC closed-loop navigation
@@ -385,7 +384,7 @@ automatically - it is review law, checked by the reader:
 **Rules:**
 1. **Test files** must end with `Tests.cs` (e.g., `MyFeatureTests.cs`)
 2. **Test classes** must match their file name exactly (e.g., `public class MyFeatureTests`)
-3. **Utility classes** (like `TestSceneBuilder`) are exempt from the `*Tests` requirement
+3. **Utility classes** (like `ShipTestFactory`) are exempt from the `*Tests` requirement
 
 If you rename a test class, rename the file to match.
 
@@ -445,13 +444,6 @@ yield return AsyncAssert.WaitAndAssertRemainsFalse(
     () => camera.hasMoved,
     waitSec: 3f,
     failureMessage: "Camera moved unexpectedly");
-
-// Specialized helpers for common patterns
-yield return AsyncAssert.WaitForVector2NearTarget(
-    () => GamePlane.WorldPointToPlane(ship.transform.position),
-    targetPos,
-    threshold: 0.5f,
-    timeoutSec: 20f);
 ```
 
 ### TestUtilities
@@ -459,16 +451,9 @@ General-purpose helpers for common test operations:
 ```csharp
 using Tests.PlayMode.Common;
 
-// Distance calculations
-float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
-
 // Angle calculations
 float facingAngle = TestUtilities.GetPlaneFacingAngle(ship.transform);
 float angleDelta = TestUtilities.AngleDeltaToTarget(ship.transform, targetAngle: 90f);
-
-// Audio management (SetUp / TearDown)
-TestUtilities.PauseAudio();   // In SetUp
-TestUtilities.ResumeAudio();  // In TearDown
 ```
 
 ---

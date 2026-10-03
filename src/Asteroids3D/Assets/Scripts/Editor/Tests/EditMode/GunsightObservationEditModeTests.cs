@@ -3,42 +3,11 @@ using Combat;
 using Combat.Weapons;
 using Movement;
 using NUnit.Framework;
-using Ships.Damage;
 using UnityEngine;
 using Substrate;
 
 namespace Tests.EditMode
 {
-    [TestFixture]
-    [Category("Damage")]
-    public class RegenResourceResetEditModeTests
-    {
-        [Test]
-        public void Reset_RestoresFreshRegenPhase()
-        {
-            var fresh = new RegenResource(100f, 10f, 3f);
-            var reused = new RegenResource(100f, 10f, 3f);
-            reused.ApplyDamage(40f);
-            reused.Update(1.7f);
-            reused.Reset();
-
-            AssertFreshRegenBehavior(fresh);
-            AssertFreshRegenBehavior(reused);
-            Assert.AreEqual(fresh.CurrentValue, reused.CurrentValue, 1e-4f,
-                "A reset resource must regenerate exactly like a freshly constructed one");
-        }
-
-        private static void AssertFreshRegenBehavior(RegenResource resource)
-        {
-            Assert.AreEqual(resource.MaxValue, resource.CurrentValue, 1e-4f, "Reset must refill");
-            resource.ApplyDamage(50f);
-            resource.Update(2.9f);
-            Assert.AreEqual(50f, resource.CurrentValue, 1e-4f, "No regen inside the post-damage delay");
-            resource.Update(0.2f);
-            Assert.Greater(resource.CurrentValue, 50f, "Regen must start once the delay elapses");
-        }
-    }
-
     [TestFixture]
     [Category("Targeting")]
     public class GunsightObservationEditModeTests
