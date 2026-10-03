@@ -18,7 +18,7 @@ namespace Tests.PlayMode.Presentation.Wings
         private WingVisuals wings;
         private PilotCommand command;
         private Transform main;
-        private Transform fin;
+        private Transform lower;
 
         public override void SetUp()
         {
@@ -26,8 +26,8 @@ namespace Tests.PlayMode.Presentation.Wings
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Ships/Valis.prefab");
             rig = Object.Instantiate(prefab.GetComponentInChildren<ShipVisualRig>(true).gameObject);
             wings = rig.GetComponentInChildren<WingVisuals>(true);
-            main = rig.GetComponentsInChildren<Transform>(true).Single(t => t.name == "10 upper swept wings right");
-            fin = rig.GetComponentsInChildren<Transform>(true).Single(t => t.name == "30 forward lower fins right");
+            main = rig.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Upper wing right");
+            lower = rig.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Lower wing right");
             command = default;
         }
 
@@ -42,12 +42,12 @@ namespace Tests.PlayMode.Presentation.Wings
         {
             yield return new WaitForSeconds(.6f);
             Assert.That(wings.enabled, Is.False);
-            AssertAngle(main, 1.547583f);
-            AssertAngle(fin, 61.86656f);
+            AssertAngle(main, 20f);
+            AssertAngle(lower, 20f);
         }
 
         [UnityTest]
-        public IEnumerator ThrustCommands_ReachApprovedPoses_AndReverseSmoothly()
+        public IEnumerator ThrustCommands_SweepCompleteWings_AndBrakeAtIdlePose()
         {
             wings.Bind(new ShipView(rig.transform, null, () => command, null, false));
             var renderer = rig.GetComponentInChildren<SkinnedMeshRenderer>(true);
@@ -60,12 +60,14 @@ namespace Tests.PlayMode.Presentation.Wings
                 yield return new WaitForSeconds(.2f);
                 Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(2f, 18f));
                 yield return new WaitForSeconds(.4f);
-                AssertAngle(main, 19.34479f);
-                AssertAngle(fin, 123.73312f);
+                AssertAngle(main, 0f);
+                AssertAngle(lower, 0f);
                 renderer.BakeMesh(baked);
                 var forward = baked.vertices;
-                Assert.That(Vector3.Distance(idle[4034], forward[4034]), Is.GreaterThan(.01f));
                 var weights = renderer.sharedMesh.boneWeights;
+                var moving = Enumerable.Range(0, weights.Length).First(i => weights[i].boneIndex0 != 0);
+                Assert.That(Vector3.Distance(idle[moving], forward[moving]), Is.GreaterThan(.01f));
+                Assert.That(renderer.bones, Has.Length.EqualTo(5));
                 var rest = renderer.sharedMesh.vertices;
                 for (var i = 0; i < rest.Length; i++)
                     if (weights[i].boneIndex0 == 0)
@@ -75,17 +77,17 @@ namespace Tests.PlayMode.Presentation.Wings
                 yield return new WaitForSeconds(.2f);
                 Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(1f, 18f));
                 yield return new WaitForSeconds(.4f);
-                AssertAngle(main, 0f);
-                AssertAngle(fin, 0f);
+                AssertAngle(main, 20f);
+                AssertAngle(lower, 20f);
                 renderer.BakeMesh(baked);
                 var reverse = baked.vertices;
                 for (var i = 0; i < rest.Length; i++)
-                    Assert.That(Vector3.Distance(rest[i], reverse[i]), Is.LessThan(.00001f));
+                    Assert.That(Vector3.Distance(idle[i], reverse[i]), Is.LessThan(.00001f));
 
                 command = new PilotCommand { strafe = 1f, yawTorque = 1f };
                 yield return new WaitForSeconds(.6f);
-                AssertAngle(main, 1.547583f);
-                AssertAngle(fin, 61.86656f);
+                AssertAngle(main, 20f);
+                AssertAngle(lower, 20f);
                 Assert.That(renderer.sharedMaterials, Has.Length.EqualTo(8));
             }
             finally { Object.DestroyImmediate(baked); }

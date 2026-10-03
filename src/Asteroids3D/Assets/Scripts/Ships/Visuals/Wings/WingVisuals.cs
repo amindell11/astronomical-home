@@ -11,10 +11,7 @@ namespace Ships.Visuals.Wings
         private struct Joint
         {
             public Transform bone;
-            public Vector3 pivot;
-            public Vector3 translation;
-            public Quaternion forwardRotation;
-            [Range(0f, 1f)] public float idleFraction;
+            public Quaternion restRotation;
         }
 
         [SerializeField] private Joint[] joints;
@@ -53,7 +50,7 @@ namespace Ships.Visuals.Wings
         private void Update()
         {
             var thrust = command().thrust;
-            var next = Mathf.Abs(thrust) > .05f ? Mathf.Sign(thrust) : 0f;
+            var next = thrust > .05f ? 1f : 0f;
             if (next != target)
             {
                 from = current;
@@ -69,12 +66,7 @@ namespace Ships.Visuals.Wings
         private void Apply(float demand)
         {
             foreach (var joint in joints)
-            {
-                var fraction = joint.idleFraction + demand *
-                    (demand >= 0f ? 1f - joint.idleFraction : joint.idleFraction);
-                joint.bone.localPosition = joint.pivot + joint.translation * fraction;
-                joint.bone.localRotation = Quaternion.Slerp(Quaternion.identity, joint.forwardRotation, fraction);
-            }
+                joint.bone.localRotation = Quaternion.Slerp(joint.restRotation, Quaternion.identity, demand);
         }
     }
 }
