@@ -5,6 +5,7 @@ set -euo pipefail
 # run-script-tests takes <slot> like every sibling verb, and a slot whose suite cannot run
 # (no scripts/tests, or none with test files) fails instead of reporting success. The .ps1
 # lane runs beside the .sh lane, and a red file fails the suite only after every file ran.
+# Each file gets stdin at end of input, whatever stdin the runner inherited.
 # Given the gate's landing range, script-suite selection runs only the files whose covers line
 # the diff touches, and falls back to every file on the run-everything triggers.
 
@@ -64,6 +65,22 @@ PROBE
 out="$(pool run-script-tests agent-1 2>&1)" || fail "a real slot with a green suite should exit 0 (got: $out)"
 [[ "$(grep -c probe "$PROBE_MARKER")" -eq 1 ]] || fail "the slot's suite must run exactly once"
 [[ "$out" == *"SCRIPT_TEST_FILE=test_probe.sh"* ]] || fail "the per-file trailer should name the probe (got: $out)"
+
+# A file that reads stdin meets end of input though the runner's stdin is a pipe nobody closes;
+# the bound turns a regression into a failure instead of a hang.
+cat > "$TMP/agent-1/scripts/tests/test_stdin.sh" <<'STDIN'
+#!/usr/bin/env bash
+cat > /dev/null
+STDIN
+exec {held}< <(exec sleep 600 2>/dev/null)
+held_pid=$!
+rc=0
+timeout 60 bash "$POOL" run-script-tests agent-1 <&"$held" > "$TMP/stdin.out" 2>&1 || rc=$?
+kill "$held_pid"
+exec {held}<&-
+out="$(cat "$TMP/stdin.out")"
+[[ "$rc" -eq 0 ]] || fail "a file reading stdin must not wait on the runner's open stdin (exit $rc; got: $out)"
+rm "$TMP/agent-1/scripts/tests/test_stdin.sh"
 
 # Lanes: the .sh file waits for the .ps1 file's marker, so a green run proves the lanes overlap.
 LANE_DIR="$(cygpath -m "$TMP/lanes")"
@@ -219,4 +236,4 @@ sel_run
 [[ "$out" == *"test_alpha.sh covers 'scripts/gone.sh'"* ]] || fail "the refusal names the file and the entry (got: $out)"
 [[ ! -s "$SEL_MARKER" ]] || fail "a stale entry refuses before any file runs (ran: $(sel_ran))"
 
-echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, runs the .ps1 lane beside the .sh lane in a stable print order, fails only after every file ran, selects files by covers line from a landing range, and journals each file's exit code"
+echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, gives each file stdin at end of input, runs the .ps1 lane beside the .sh lane in a stable print order, fails only after every file ran, selects files by covers line from a landing range, and journals each file's exit code"

@@ -140,12 +140,10 @@ namespace Game
             yield return null;
         }
 
-        /// <summary>
-        /// Drop the player reference, unwire its death callback and destroy the overlay. The
-        /// service-owned player instance is destroyed by the session's teardown.
-        /// </summary>
         public void Teardown()
         {
+            // The service-owned ship outlives this call; parking stops its commander reading the cleared observer.
+            Park();
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
             Tally.Bind(null, null);
