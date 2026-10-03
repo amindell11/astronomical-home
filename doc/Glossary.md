@@ -770,6 +770,11 @@ Format: **term** — definition. *(authority)*
   ledger and the run tally, never sim state. It exists because damage kind cannot
   say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
   projectile. A ship placed during the sector load reads as spawned at second 0.
+  A revived ship (reset in place by its producer's `RespawnPolicy`, not spawned
+  anew) keeps one entry across its lives, so in sectors where that policy is
+  enabled (today `ArenaSector`, `CombatSector`, `TestBenchSector`) its fate,
+  seconds alive and killed-by-player flag are unreliable. Survival-trial records
+  are unaffected: the wave director spawns every ship fresh.
   *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
