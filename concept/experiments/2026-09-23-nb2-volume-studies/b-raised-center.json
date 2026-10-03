@@ -1,0 +1,92 @@
+{
+  "output": "b-raised-center.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_Chc1SnF6YXBHM09fS2Q2ZGtQd05PU3lBOBIXNUpxemFwRzNPX0tkNmRrUHdOT1N5QTg",
+  "created_utc": "2026-09-23T09:24:39+00:00",
+  "prompt": "Create a standalone spacecraft design exploration from the single supplied 2D sprite. The supplied image is the ONLY geometry/design authority. Study its actual silhouette and component placement carefully, do not replace it with a generic space fighter. Reconstruct a plausible three-dimensional object that closely projects to this exact top-down sprite: proportions, short broad forward end around the dark black forward canopy/face, narrow white central body, distinctive paired swept blade-like wing structures, small round joints and forked rear silhouette. CRITICAL: do NOT extend the black forward section into a new long pointed nose or long needle beak. The broad blunt front seen at the bottom of the source must remain broad and relatively short. No extra wings or invented large modules. Use original ivory, light gray and blue-lavender accent placement, black canopy. Show a single ship in a clearly readable three-quarter view from above, front oriented lower-left, rear upper-right, all extremities inside frame, isolated on plain desaturated dark slate background. No hangar, scenery, floor, cast shadow plane, UI, labels or other ships. No landing gear. Style: simplified hand-drawn lineart 2.5D game asset concept, confident selective ink contours, broad flat colors and two or three cel-shaded dimensional planes, subtle selective highlight, no photorealistic materials, no dense panel lines, no greebles, no gritty texture or watercolor. Preserve coherent 3D volume that could rotate and roll. This is an initial geometry hypothesis for user feedback; silhouette fidelity is more important than ornament. Geometry hypothesis B: raised compact central volume. Give the white central fuselage and broad black forward canopy/face a more sculptural gently raised shape, while preserving the short blunt front and source top-down outline. The blade-like wings remain thin and relatively level. Modest thickness and strong readable major volumes, not a bulbous cockpit or pointed airplane fuselage.\n",
+  "parent": null,
+  "references": [
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Ship3/ship3EnginesOff.png",
+      "sha256": "ae76b4e89b5e911fa292eb640c352c9192dce8861e139f6c3d41ccd8854b6974"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "3:2",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 391
+      },
+      {
+        "modality": "image",
+        "tokens": 258
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 649,
+    "total_output_tokens": 1553,
+    "total_thought_tokens": 0,
+    "total_tokens": 2202,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 1964,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 844
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 435
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 844
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 435
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}
