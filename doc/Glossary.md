@@ -734,10 +734,11 @@ Format: **term** — definition. *(authority)*
   event-side the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life accumulation of the player's received DamageInfo
-  rows, aggregated per source — consumer-side recorder owned by the player rig,
-  never sim state. Source names are captured at event time because the attacker
-  may despawn before the recap reads the row. *(DamageLedger)*
+- **damage ledger** — per-life record of the player's received DamageInfo: every
+  hit stamped with game time, and the hits aggregated per source —
+  consumer-side recorder owned by the player rig, never sim state. Source names
+  are captured at event time because the attacker may despawn before the recap
+  reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
