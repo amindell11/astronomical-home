@@ -1,0 +1,90 @@
+{
+  "output": "minimal-hud-refined.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdOb096YW9xbEVzZWpxdHNQdEpfWHdBMBIXTm9PemFvcWxFc2VqcXRzUHRKX1h3QTA",
+  "created_utc": "2026-09-23T07:43:32+00:00",
+  "prompt": "Precisely edit this image's HUD only. Preserve every ship, asteroid, nebula, star, shield bubble, impact flash, lighting, world outline, and all gameplay positions unchanged. Do not regenerate or restyle the world.\n\nMake these four small HUD refinements:\n1. Erase the digits 30 and 100 to the right of the lower-left ship's health bars. Reconstruct only the background there. There must be zero text or numbers anywhere. Keep lower shield bar 30 percent filled, lower hull bar full, and both upper-right ship bars full.\n2. Distinguish shield and hull icons: shield uses the familiar pointed shield outline; hull uses a simple flat-topped hexagonal armor-plate outline with a short horizontal internal line. Change the lower icon in each ship's pair into this hexagonal armor icon. Keep icons small, crisp, off-white, consistent thin line weight, no bloom on icons.\n3. Reduce the upper-left weapon cluster to about 60 percent of its present width and height while retaining a comfortable screen margin. Remove the large charcoal rectangular background entirely; just use two neat floating rows on space, one tiny thin divider. Upper row is a readable laser/emitter symbol followed by ONE slim full muted-cyan meter. Lower row is a small clear missile silhouette followed by exactly two filled circular ammo pips. No additional labels, numbers, duplicate lines or oversized symbols.\n4. Fill all four segments of the short bottom-center status indicator with subdued pearl-white, because it represents a full state. Keep the compact overall width, thin frame, bottom margin and position.\n\nPreserve the circular minimap's position and size but remove its broad triangular sweep fill, leaving a quiet transparent interior, existing contact markers and asteroid shapes. Overall minimal flat futuristic precision, ample breathing room, world artwork unchanged. No new controls, labels, decorative text or panels. One full-screen image.\n",
+  "parent": {
+    "path": "art/gameplay/experiments/2026-09-23-minimal-symbol-hud/minimal-hud.jpg",
+    "sha256": "bb42737e5f547e1c8724ea176a878c33b3a39b01051296d1b8b218c3b2567f8a"
+  },
+  "references": [],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 405
+      },
+      {
+        "modality": "image",
+        "tokens": 258
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 663,
+    "total_output_tokens": 1555,
+    "total_thought_tokens": 0,
+    "total_tokens": 2218,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 1978,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 858
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 437
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 858
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 437
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

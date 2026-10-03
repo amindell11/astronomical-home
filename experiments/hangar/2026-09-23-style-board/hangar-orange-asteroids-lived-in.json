@@ -1,0 +1,90 @@
+{
+  "output": "hangar-orange-asteroids-lived-in.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChY3cDJ6YXU3MU5kNmlxdHNQcEtmdUNBEhY3cDJ6YXU3MU5kNmlxdHNQcEtmdUNB",
+  "created_utc": "2026-09-23T09:37:35+00:00",
+  "prompt": "Precise VERY SUBTLE surface edit to the supplied CLEAN ship concept. User wants a well-maintained spacecraft that has been used, NOT battered, damaged or distressed. Start with this clean input and add only a tiny amount of understated lived-in character: 2 or 3 faint short low-contrast surface scuffs across the entire hero ship, very slight tonal wear at a few existing access-panel seams, and a barely visible soft gray exhaust stain localized immediately near existing engine outlets. 98 percent of painted surfaces remain pristine and broad flat colored. All edges and paint stripes remain INTACT. NO chipped paint, NO missing paint patches, NO exposed metal, NO prominent scratch clusters, NO gouges, NO crosshatching, NO battle damage, rust, grime wash, dirty cockpit or broken surfaces. Weathering should be a detail you notice on a second look, almost invisible at thumbnail size, not a design motif. Same simplified hand-drawn lineart 2.5D rendering: sparse soft tonal marks, not photorealistic texture or dense surface noise. Preserve exact ship geometry, silhouette, pose, proportions, colors and cel-shaded planes; every part of UI and scenery stays unchanged. Keep black canopy clean, accents bright and all outlines intact. Only tiny localized signs of regular use, clean and cared for. Full landscape screen. Orange and ivory ship parked with landing gear; preserve deck, teal/plum space and asteroids, all UI exactly. Landing gear remains clean with at most faint contact wear.\n",
+  "parent": {
+    "path": "art/hangar/experiments/2026-09-23-style-board/hangar-orange-asteroids-v3.jpg",
+    "sha256": "55d5f60cabcce5c94a8a000f0b4e58034248e544b418afca61f4ea502d0a9b5b"
+  },
+  "references": [],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 307
+      },
+      {
+        "modality": "image",
+        "tokens": 258
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 565,
+    "total_output_tokens": 1543,
+    "total_thought_tokens": 0,
+    "total_tokens": 2108,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 1880,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 760
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 425
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 760
+          },
+          {
+            "modality": "image",
+            "tokens": 1120
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 425
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

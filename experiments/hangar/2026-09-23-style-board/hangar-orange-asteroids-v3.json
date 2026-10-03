@@ -1,0 +1,95 @@
+{
+  "output": "hangar-orange-asteroids-v3.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdwcHV6YXBUZUpLMmw2ZGtQbThMby1RSRIXcHB1emFwVGVKSzJsNmRrUG04TG8tUUk",
+  "created_utc": "2026-09-23T09:27:46+00:00",
+  "prompt": "Precise UI-only correction. Image 1 is the orange-ship hangar edit target. Image 2 is the EXACT UI color/material reference. Image 1 incorrectly introduced an opaque cream/white panel and black UI ink. REMOVE THE CREAM PANEL COMPLETELY. Restore deep navy translucent dark UI backing with OFF-WHITE text, off-white abstract glyphs, off-white selected corner marks and subtle slate dividers, exactly matching image 2. The environment should feel continuous behind the softly darkened left-side UI as in image 2, no hard white or light sidebar. Keep the current left UI layout/positions, wording and four rows; merely restore the proper dark theme. Change bottom-right LAUNCH from cream solid rectangle to image 2's dark translucent thin off-white outlined button, with off-white text. Preserve the orange fighter, landing gear, ship pose and shapes, all deck and architecture, teal/plum nebula and simplified asteroids EXACTLY; no world repaint or extra detail. No white or cream UI fills anywhere. One complete landscape frame.\n",
+  "parent": {
+    "path": "art/hangar/experiments/2026-09-23-style-board/hangar-orange-asteroids-v2.jpg",
+    "sha256": "37bb297722bb1158f7a359e0e6086a88ff591610df36e57f9d52385fcd5dfe6e"
+  },
+  "references": [
+    {
+      "path": "art/hangar/experiments/2026-09-23-approved-style/a-loadout-console-loose.png",
+      "sha256": "d4dabe9e193217a0ea5b29d483000b8d33082d5a9efa4c419001735aa44a9ea5"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 220
+      },
+      {
+        "modality": "image",
+        "tokens": 516
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 736,
+    "total_output_tokens": 1658,
+    "total_thought_tokens": 0,
+    "total_tokens": 2394,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 2924,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 684
+          },
+          {
+            "modality": "image",
+            "tokens": 2240
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 540
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 684
+          },
+          {
+            "modality": "image",
+            "tokens": 2240
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 540
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

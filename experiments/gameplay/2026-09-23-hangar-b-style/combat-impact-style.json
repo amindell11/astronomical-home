@@ -1,0 +1,99 @@
+{
+  "output": "combat-impact-style.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_Chc5bjJ6YXFISU50UDdxdHNQc2ZtZTZBOBIXOW4yemFxSElOdFA3cXRzUHNmbWU2QTg",
+  "created_utc": "2026-09-23T07:21:09+00:00",
+  "prompt": "Create one stylized gameplay art-direction paintover of IMAGE 1, the user-selected actual gameplay screenshot. IMAGE 2 is the approved HANGAR B art-style reference ONLY. IMAGE 3 is the red fighter object reference to clarify the ship geometry visible in the screenshot.\n\nPreserve image 1's full overhead gameplay composition, camera angle, zoom and relative scale. There are two fighters: one upper-right facing left, and one lower-left pointing diagonally upward, inside a shield bubble and being struck by a bright orange-yellow impact on its right side. Keep both ships in their existing positions and orientations, with the same approximate on-screen sizes. Preserve the asteroid above-left of the upper-right fighter, the blue-violet nebula, sparse starfield, and the bright distant star on the right. Preserve the visible gameplay event: damaged shield bubble, local impact flash, a few sparks, active thrusters. No additional ships, asteroids, weapons, trails or combat events. Do not turn this into a cinematic close-up or hangar scene.\n\nTransfer image 2's clean stylized industrial sci-fi visual language to the combat: broad matte painted surfaces, crisp silhouettes, simple deliberate geometry, readable armor panel divisions, dark mechanical areas, restrained detail. A lightly cel-shaded 3D game rendering with broad light and shadow shapes, subtle dimensional shading and purposeful edge definition. Match the hangar reference's clear graphic material treatment without reproducing any of its composition or content. Use image 3 to retain the fighters' actual design identity and red livery rather than inventing ships. Ensure both ships remain visible against space at gameplay scale.\n\nRestyle the asteroid into a sculpted irregular form with broad angular facets and a few clear cracks; remove dense noisy rock texture. Simplify the blue-violet nebula into soft layered cloud shapes with darker calm spaces, retain its general composition, reduce distracting rainbow star speckle and chromatic aberration. Lighting should have clear coherent highlights and cool shadow planes. This must look like an achievable stylized game renderer, not a photoreal cinematic render or a hand-painted poster.\n\nShield bubble: thin transparent rim, restrained cool pearl glow, mostly clear interior so the fighter reads, locally brighter on the struck side. Impact flash: compact warm yellow-white core, a few stylized orange flame/spark shapes. Restrained bloom only on thrusters, impact, shield rim and bright distant star; do not cover the ship with bloom, haze or a huge explosion. Preserve the size and placement of the event in image 1.\n\nHUD: keep all existing information and rough placement from image 1. Upper-left Lasers with vertical meter, Missiles and 2 / 2. Upper-right translucent minimap with the same broad marker layout. Upper-right fighter bars read 50 and 100, lower-left fighter bars read 15 and 100. Keep the lower-center horizontal cyan status meter. Refine the very thick placeholder bars into clear slim bars with neutral dark tracks, restrained muted cyan for shields and desaturated green for hull health, preserving those values and displayed fill proportions. Use clean slightly condensed industrial sans-serif type, off-white lettering, precise thin dividers. Neutral interface independent of ship livery; no orange UI accents. No new HUD systems, labels, currency or invented statistics. No Hangar title, loadout sidebar, launch button, landing gear, floor or service cradles from the style reference.\n\nDeliver a single full-screen 16:9 gameplay mockup. Use the source screenshot as the layout authority and hangar B only as the rendering/material/typography style authority. Preserve the source aspect and composition as closely as the output allows, no cropping away existing objects or HUD. No external border, caption, watermark or comparison layout.\n",
+  "parent": {
+    "path": "art/gameplay/experiments/2026-09-23-hangar-b-style/source-combat-impact.png",
+    "sha256": "54c4a9ede7b0581d41930e734cad9a1cc2c7d1a459f9516953eaef5c10281331"
+  },
+  "references": [
+    {
+      "path": "art/hangar/experiments/2026-09-22-nano-banana-ships-only/b-single-berth.jpg",
+      "sha256": "4bc2ab51f1d94ffb0a38f0fe1760d517570ceeaea8a915389957adba2802a9c9"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Ship2/shipUpdateEnginesOff.png",
+      "sha256": "01d3b739da2623606c2be181d7ad7fd0f3f456efd72fdf4107db867fe3095077"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 781
+      },
+      {
+        "modality": "image",
+        "tokens": 774
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 1555,
+    "total_output_tokens": 1640,
+    "total_thought_tokens": 0,
+    "total_tokens": 3195,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 4616,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1256
+          },
+          {
+            "modality": "image",
+            "tokens": 3360
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 522
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1256
+          },
+          {
+            "modality": "image",
+            "tokens": 3360
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 522
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}

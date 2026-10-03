@@ -1,0 +1,16 @@
+Create one gameplay art-direction paintover, 16:9 landscape, based on the supplied images.
+
+IMAGE ROLES:
+Image 1 is the actual existing gameplay screenshot and EDIT TARGET. It controls the camera, zoom, layout, scale, positions, ship orientations, asteroid silhouettes and missile paths.
+Image 2 is the approved HANGAR B art-direction reference ONLY. Transfer its stylized rendering and material language, never its hangar, composition, typography, buttons or sidebar.
+Image 3 is the orange fighter object reference. Image 4 is the red fighter object reference. These supply recognizable ship shapes and colors where small screenshot details are unclear; do not paste large ship portraits into the scene.
+
+TASK:
+Reinterpret the actual space-combat frame in the clean stylized industrial science-fiction style of image 2. Preserve the overhead gameplay view, wide framing and small gameplay-scale ships. Keep the main ship near the screenshot center, the other visible ship in its lower-right position, the surrounding asteroid field and the visible missile paths. Keep asteroid locations, approximate sizes and silhouettes close to the screenshot. Retain open space for navigation. This is a full-screen gameplay art study, not a hangar screen, cinematic close-up, splash illustration or new scene layout.
+
+ART DIRECTION:
+Use broad clean surfaces, crisp silhouettes, simple readable geometry, restrained panel detail, matte painted materials and deliberate light/shadow separation. Match image 2's lightly cel-shaded 3D feel with nuanced shading, not photorealistic surface noise. Ships have distinct livery accents on pale armor and dark mechanical sections; make them identifiable at their actual small on-screen size. Asteroids should become sculpted, irregular low-to-medium-poly masses with broad angular facets and a few purposeful cracks. Preserve their organic shapes and scale variation, avoid uniform rocks or dense speckled textures. Strong coherent directional lighting, cool dark shadow planes and restrained warm highlights. Asteroids must separate clearly from the backdrop.
+
+Keep the screenshot's blue-violet nebula color family, but simplify the background into soft layered cloud shapes and restrained sparse stars so ships, rocks and projectiles read first. Remove chromatic aberration and noisy rainbow star speckle. Missile trails should be narrow, readable, lightly smoky strokes in the same positions, with tiny luminous tips. Subtle bloom only on thrusters and projectile tips; retain sharp ships and rocks, no overall haze, giant flares or large explosions. Do not introduce laser beams or additional combat events absent from the screenshot.
+
+There is no visible HUD in the source frame: keep this art study free of UI. No hangar furniture, deck, landing gear, supporting cradles, text, borders, decorative labels, buttons or ship-selection panels. Preserve the screenshot's gameplay framing rather than magnifying ships to show off the art. The result should look like an achievable stylized game renderer at this exact gameplay moment, using the approved hangar image's visual language.

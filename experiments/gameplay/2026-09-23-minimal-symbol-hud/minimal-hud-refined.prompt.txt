@@ -1,0 +1,9 @@
+Precisely edit this image's HUD only. Preserve every ship, asteroid, nebula, star, shield bubble, impact flash, lighting, world outline, and all gameplay positions unchanged. Do not regenerate or restyle the world.
+
+Make these four small HUD refinements:
+1. Erase the digits 30 and 100 to the right of the lower-left ship's health bars. Reconstruct only the background there. There must be zero text or numbers anywhere. Keep lower shield bar 30 percent filled, lower hull bar full, and both upper-right ship bars full.
+2. Distinguish shield and hull icons: shield uses the familiar pointed shield outline; hull uses a simple flat-topped hexagonal armor-plate outline with a short horizontal internal line. Change the lower icon in each ship's pair into this hexagonal armor icon. Keep icons small, crisp, off-white, consistent thin line weight, no bloom on icons.
+3. Reduce the upper-left weapon cluster to about 60 percent of its present width and height while retaining a comfortable screen margin. Remove the large charcoal rectangular background entirely; just use two neat floating rows on space, one tiny thin divider. Upper row is a readable laser/emitter symbol followed by ONE slim full muted-cyan meter. Lower row is a small clear missile silhouette followed by exactly two filled circular ammo pips. No additional labels, numbers, duplicate lines or oversized symbols.
+4. Fill all four segments of the short bottom-center status indicator with subdued pearl-white, because it represents a full state. Keep the compact overall width, thin frame, bottom margin and position.
+
+Preserve the circular minimap's position and size but remove its broad triangular sweep fill, leaving a quiet transparent interior, existing contact markers and asteroid shapes. Overall minimal flat futuristic precision, ample breathing room, world artwork unchanged. No new controls, labels, decorative text or panels. One full-screen image.

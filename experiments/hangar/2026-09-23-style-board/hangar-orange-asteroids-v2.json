@@ -1,0 +1,99 @@
+{
+  "output": "hangar-orange-asteroids-v2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdZNXV6YXZxZ09PdnFxdHNQbHF2VDBRVRIXWTV1emF2cWdPT3ZxcXRzUGxxdlQwUVU",
+  "created_utc": "2026-09-23T09:26:43+00:00",
+  "prompt": "Create one polished landscape concept/style-board screen in the established hand-drawn lineart 2.5D art style of the screen references. Broad flat local colors, clean selective ink contours, simplified sculptural cel-shaded volumes, confident graphic shadows, restrained highlights. No photorealistic materials, glossy render, greebles, gritty texture or watercolor dabs. All scenery and ships share this style. Adventurous futuristic space fantasy mood, curious and intrepid, no horror. Preserve exactly four equipment rows with the short names Engine, Shield, Railgun, Missiles; HANGAR title and LAUNCH action. No new stats, labels or UI elements. Thin off-white flat UI, generous spacing, abstract instrument glyphs, delicate dividers and selection chevrons. Image 1 is the target for the orange/ivory ship, landing gear and simplified physical berth. Keep that EXACT orange ship identity, silhouette, scale and parked three-quarter pose, and the loose simple illustrated deck/wall architecture. Image 2 is ONLY the outdoor scenery reference: use its teal-plum layered nebula and scattered simply faceted hand-drawn asteroids outside the opening, NOT its blue ship or UI. Image 3 is the EXACT preferred UI reference. Update image 1's left UI and bottom-right button to match image 3's typography, letterspacing, glyph designs and proportions, thumbnail arrangement and frames, title position, equipment-row spacing, dividers, slim chevrons and LAUNCH button treatment. Use image 3's left-side layout consistently while maintaining the physical berth to the right. First orange thumbnail selected, then red, then blue-lavender. Keep ship firmly parked on simple landing gear with one broad graphic shadow. No blue hero ship. Outside the opening show illustrated asteroids with a few broad angular planes, muted umber/slate surfaces and selective ink cracks matching image 2's simplified rocks, NO granular surface textures. Nebula broad subtly quantized flowing teal wisps and deep plum negative space, stars, gentle atmospheric transitions. Don't add a planet here. All architecture stays very simple: few broad planes, minimal seams and lamps, no realistic surface detail. The final pairing is orange fighter landed in the hangar at departure, with the other concept showing blue fighter in flight between sectors.\n",
+  "parent": {
+    "path": "art/hangar/experiments/2026-09-23-approved-style/b-single-berth-loose.png",
+    "sha256": "17adcdbe3ed3c0f8e98582fdf94b7963337f88eb529599f8e58456c4697c0fa5"
+  },
+  "references": [
+    {
+      "path": "art/hangar/experiments/2026-09-23-style-board/hangar-blue-asteroids.png",
+      "sha256": "9ebfd822bce80779578829d70820ad4b9938090b7708a85e35092fe685d2891b"
+    },
+    {
+      "path": "art/hangar/experiments/2026-09-23-approved-style/a-loadout-console-loose.png",
+      "sha256": "d4dabe9e193217a0ea5b29d483000b8d33082d5a9efa4c419001735aa44a9ea5"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 469
+      },
+      {
+        "modality": "image",
+        "tokens": 774
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 1243,
+    "total_output_tokens": 1644,
+    "total_thought_tokens": 0,
+    "total_tokens": 2887,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 4304,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 944
+          },
+          {
+            "modality": "image",
+            "tokens": 3360
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 526
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 944
+          },
+          {
+            "modality": "image",
+            "tokens": 3360
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 526
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}
