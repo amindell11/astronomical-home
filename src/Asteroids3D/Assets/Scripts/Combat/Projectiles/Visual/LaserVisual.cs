@@ -10,6 +10,8 @@ namespace Combat.Projectiles.Visual
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
 
+        private static readonly int PhaseId = Shader.PropertyToID("_Phase");
+
         [Header("Fade Settings")]
         [SerializeField] private AnimationCurve fadeCurve = new(
             new Keyframe(0f, 0f),
@@ -21,6 +23,7 @@ namespace Combat.Projectiles.Visual
         private Renderer[] renderers;
         private Color[] originalColors;
         private MaterialPropertyBlock block;
+        private float cracklePhase;
 
         private void Awake()
         {
@@ -40,6 +43,7 @@ namespace Combat.Projectiles.Visual
 
         private void OnEnable()
         {
+            cracklePhase = Random.value;
             if (laser) laser.ReturnedToPool += ResetColors;
             ResetColors();
         }
@@ -65,6 +69,7 @@ namespace Combat.Projectiles.Visual
 
         private void ApplyFade(float alphaFactor)
         {
+            block.SetFloat(PhaseId, cracklePhase);
             for (var i = 0; i < renderers.Length; i++)
             {
                 var renderer = renderers[i];
