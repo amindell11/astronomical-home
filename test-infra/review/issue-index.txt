@@ -1,0 +1,304 @@
+#764 [OPEN] SessionSeam graphics test NREs on main: PlayerRig.Teardown nulls observer while the live player's aim projector still reads it {bug,Testing,needs-triage}
+#763 [OPEN] Sector spawners go inert on bad authored wiring (LogError + return) instead of failing setup {Encounters,needs-triage}
+#762 [OPEN] test_pool_merge_gate.sh: 30 s wall-clock refusal bound flakes under load (PowerShell probe start is the long pole) {bug,Testing,needs-triage}
+#761 [OPEN] Weapon projectile wiring: fail at authoring time instead of a hangar NRE or a silent no-fire {Weapons,needs-triage}
+#757 [OPEN] Player presence outside a sector: fold RunHangar's HUD/input toggles into PlayerRig's park/unpark {Architecture,Player,needs-triage}
+#756 [OPEN] Merge gate: wait_for_remote_verdict refuses its own just-pushed hosted run as 'no verdict is coming' {bug,Testing,needs-triage}
+#752 [CLOSED] AsyncAssert.WaitUntil ends the test on success — code after the wait never runs {bug,Testing,needs-triage}
+#742 [OPEN] Player HUD bars and ship silhouette show through the hangar screen {UI,needs-triage}
+#739 [OPEN] LivePilotAgent NREs on teardown before its first boundary (merge-gate PlayMode failure) {bug,RL}
+#737 [OPEN] Unresolved asset references: hangar music clip is untracked; Wreck_1 material; URP probe-volume shaders {needs-triage}
+#734 [OPEN] RL-Training build profiles list nonexistent Arena scenes {bug,RL,pri:next,ready-for-agent,unity:none}
+#733 [CLOSED] Sector-authoring scene (benched) {pri:later}
+#732 [OPEN] Finish the Input System migration: cameras + UI EventSystem, then drop the legacy handler {Architecture,pri:later}
+#729 [OPEN] Restore HullVisuals feedback for the illustrated multi-piece ships {Art,pri:now}
+#727 [CLOSED] Illustrated background overwrites ship and asteroid outlines {bug,needs-triage}
+#722 [OPEN] Automate palette-coordinated locale lighting (deferred from PR-4 MVP) {Art,pri:later}
+#721 [OPEN] Move hangar stat text out of the weapons into the hangar UI {pri:next,ready-for-agent,unity:headless,drain:approved}
+#719 [CLOSED] Hosted headless suite fails on main since #707: no Blender on the runner, so EditScene's .blend station prefabs go missing {bug,Testing,pri:now,ready-for-agent,unity:editor}
+#713 [CLOSED] Kill refill: a player kill restores a fraction of max hull {Gameplay-loop,Player,pri:now}
+#712 [CLOSED] Missile/grenade rounds regenerate on a timer from the moment each is fired {Weapons,needs-triage}
+#709 [CLOSED] Drain orchestrator: dispatch approved unity:headless items (deferred from #617 Slice-3b) {pri:now,ready-for-agent,unity:none}
+#708 [OPEN] Rename leftover 'Environment' locale names (scenes, Visuals folder, namespace) {pri:later,ready-for-agent,unity:editor}
+#704 [CLOSED] Loop Step 2 / drain claim never prepares a freshly acquired slot — a released-not-finalized slot carries old HEAD into the new build {needs-triage}
+#702 [OPEN] Intermittent RequiresGraphics Sectors EditMode failure in a warm editor (1 of 9 routed runs, unnamed) {bug,Testing,pri:later}
+#700 [OPEN] Arc: survival trial — continuous archetype waves, kills and time survived, persisted scoreboard {Encounters,Gameplay-loop,UI,pri:now,arc}
+#699 [CLOSED] Move the existing starfield and nebulae into the locale environment {Art,pri:now,ready-for-agent}
+#697 [CLOSED] Routed EditMode drops pre-domain-reload results (com.unity.pipeline collector bug) {bug,Testing}
+#696 [OPEN] PR body "does not close #N" closes N on merge — GitHub's keyword parser ignores negation {Testing,pri:next,ready-for-agent,unity:none}
+#693 [OPEN] Preserve UTC lease timestamps when running Unity coordinator in PowerShell 7 {bug,pri:next,ready-for-agent,unity:none}
+#692 [OPEN] Bound motion blur during rapid orthographic camera travel {bug,pri:later,ready-for-human}
+#688 [OPEN] Scope reviewed production batches for the visual migration {Art,pri:now,ready-for-human,wayfinder:grilling}
+#687 [CLOSED] Validate repeatable production recipes across a second ship and environment {Art,pri:now,wayfinder:prototype}
+#686 [CLOSED] Approve one coherent illustrated combat slice {Art,pri:now,wayfinder:prototype}
+#685 [CLOSED] Choose a drawn rendering treatment that survives 2.5D motion {Art,pri:now,ready-for-human,wayfinder:prototype}
+#684 [OPEN] Migrate the game to the illustrated space-fantasy visual language {Art,pri:now,arc,ready-for-human,wayfinder:map}
+#683 [CLOSED] Retire obsolete skybox and background paths {Art,pri:now,ready-for-agent,unity:editor}
+#682 [CLOSED] Migrate the shipped environments and complete scene transitions {Art,pri:now,ready-for-agent,unity:editor}
+#681 [CLOSED] Preview and apply palette-coordinated native lighting {Art,pri:now,ready-for-agent,unity:editor}
+#680 [CLOSED] Fly through the complete layered environment {Art,pri:now,ready-for-agent,unity:editor}
+#679 [CLOSED] Author and fly through one native flat environment {Art,pri:now,ready-for-agent,unity:editor}
+#678 [CLOSED] Unified environments: flat backgrounds and palette-coordinated Unity lighting {Art,pri:now,arc}
+#676 [OPEN] Triage the vault's Engineering/ notes: keep the underivable why, cut the rest {documentation,pri:later,ready-for-human}
+#674 [CLOSED] pool submit/create-pr: gh pr create fails with 'Argument list too long' on a large --body-file {bug,ready-for-agent,unity:none}
+#669 [OPEN] perf(triage): one python pass per on-event triage run instead of ~8 python3 spawns {Testing,pri:next,ready-for-agent,unity:none}
+#668 [CLOSED] Diff-based script-suite selection: test files declare the scripts they cover (#664 PR-4) {Testing,pri:now,ready-for-agent}
+#667 [CLOSED] Coordinator in-process: split unity_access.ps1 into a library + entry point, test calls it directly (#664 PR-3) {Testing,pri:now,ready-for-agent}
+#666 [CLOSED] Consolidate the pool test files: decision logic as direct calls, one end-to-end gate per branch (#664 PR-2) {Testing,pri:now,ready-for-agent}
+#665 [CLOSED] Script suite lanes: .ps1 files run beside .sh files (#664 PR-1) {Testing,pri:now,ready-for-agent}
+#664 [OPEN] Script suite in 5 minutes or less: consolidate, lanes, in-process coordinator, diff-based selection {Testing,pri:now,arc}
+#661 [CLOSED] Closing or benching an issue leaves action-phrased references to it in docs, skills and issue bodies {Testing,needs-triage}
+#660 [CLOSED] Adopted ship authored inactive (m_IsActive: 0) NREs in Ship.Initialize on null Movement — wants a loud boundary check {bug,Ship,pri:next,ready-for-agent,unity:headless,drain:approved}
+#656 [CLOSED] Drop Unity-pipeline workarounds fixed by com.unity.pipeline 0.7.0 (autotick re-arm, test_status dual parse) {Testing,needs-triage}
+#655 [CLOSED] Art pipeline: add GPT Image 2.5 provider slot to imagegen for precise edits {Art,needs-triage}
+#654 [CLOSED] Art pipeline: Nano Banana image tool (art/tools/imagegen) with provenance sidecars {Art,pri:now}
+#652 [CLOSED] Purge leftover Unity MCP registrations from machine-local agent configs {}
+#651 [OPEN] InferencePilot PlayMode test times out under concurrent batch boots (wall-clock budget covers Academy cold init) {bug,Testing,pri:next,ready-for-agent,unity:headless,drain:approved}
+#647 [OPEN] Edit-mode bootstrap for a dark live GameHost (CLI live-editor lane) {Capture,pri:later}
+#646 [CLOSED] GameHost builds on the PlayerRig prefab asset instead of an instance {Architecture,Player,pri:next,ready-for-agent,unity:headless,drain:approved}
+#643 [CLOSED] Starfield motion breaks the illusion during rapid subject switches with zoom {bug,pri:next,ready-for-agent,unity:editor}
+#641 [CLOSED] Skybox authoring: Blender controls, reproducible presets and Unity handoff {pri:now}
+#639 [OPEN] Merge gate: hosted merges lose rounds to same-slot races and serial script tests {Testing,pri:now}
+#638 [OPEN] CLI screenshots clip HDR stars before bloom {bug,Capture,pri:later}
+#636 [CLOSED] unity_access: classify hung Hub-launched editors as zombie_unity and add a Reap verb {bug,Testing}
+#635 [CLOSED] unity_test_agent.ps1 reports Unity exit 0 when the exit code is unknown — PowerShell 5.1 Start-Process -PassThru returns a null ExitCode {bug,Testing,pri:next,ready-for-agent}
+#632 [OPEN] Capture rig films the game plane X-mirrored relative to the observer camera {bug,Capture,pri:next,ready-for-agent,unity:editor}
+#623 [OPEN] Player input abstraction: multiple control schemes via Unity's Input System {Architecture,Player,pri:later}
+#622 [CLOSED] Try a starless nebula skybox and compare ambient lighting {pri:now}
+#621 [CLOSED] Pool unpushed-work guard misses side branches: slot_is_clobber_safe reads only HEAD {bug,Testing,pri:next}
+#620 [OPEN] Cargo_Engine ships a no-op boost (boostImpulse 0, boostCooldown 0) {Ship,pri:later,needs-triage}
+#619 [OPEN] Diagnose magenta asteroid patches in live combat capture {bug,Asteroids,pri:next}
+#617 [OPEN] Arc: standing issue triage and a ready-queue orchestrator — recurring agents over the tracker {pri:now,arc}
+#613 [CLOSED] Background atmosphere: nebula wisps and shooting stars {Art,pri:now}
+#612 [CLOSED] run-script-tests <slot-name> exits 0 having run nothing — the argument is a directory, and a missing tests dir is treated as success {bug,pri:next,ready-for-agent}
+#611 [CLOSED] Script-suite merge-gate phase is back over budget: 543–701 s against 360 s on three merges in a row, test_pool_merge_gate.sh is over half of it {Testing,pri:now}
+#609 [OPEN] Always-on solution sync hook: let local test boots feed the local ReSharper ratchet {Testing,pri:later}
+#605 [CLOSED] Capture cadence above maximumDeltaTime / fixedDeltaTime is accepted but may be unschedulable {Capture,pri:later,ready-for-agent}
+#600 [CLOSED] Spike: run the ReSharper ratchet in CI as a second status (merge-proof/resharper) {Testing,pri:now}
+#599 [CLOSED] The low-memory override never reaches the ReSharper ratchet's solution-sync boot {Testing,needs-triage}
+#598 [CLOSED] Soften star silhouettes and make twinkle irregular {Art,pri:now}
+#595 [CLOSED] Split BurstSolver.cs: one primary type per file (GenerateCandidatesJob / EvaluateCandidatesJob / SolverBuffers) {needs-triage}
+#592 [CLOSED] Starfield presets and smooth transitions {pri:later}
+#589 [OPEN] Merge gate: reduced-suite tier for asset-only diffs (parked, re-judge after #569 / #578) {Testing,pri:later}
+#588 [CLOSED] remote_gate.sh: concurrent sessions force-checkout over each other on the Alastor lane (and the launcher died pre-Unity for both) {bug,Testing,needs-triage}
+#587 [OPEN] Native-gizmo capture cannot start on a cold Library/AnnotationManager (ValidateTypes throws; sibling of #401/#544) {bug,Capture,pri:next,ready-for-agent,unity:editor}
+#582 [CLOSED] Coordinator refusals reach the pool as wrapper crashes instead of infra_error verdicts (unity_test_agent direct path) {Testing,pri:later,ready-for-agent}
+#580 [CLOSED] Asteroid mesh setup: explicit render/collision mesh roles, checked at authoring time {Asteroids,pri:next,arc,ready-for-agent}
+#578 [CLOSED] Arc: measured memory admission for Unity boots — commit-headroom verdict in the access coordinator replaces the 10 GB RAM floor {Testing,pri:now,arc}
+#577 [CLOSED] Prevent animated halo clipping at cell boundaries with larger star tuning {bug,needs-triage}
+#576 [CLOSED] Bug: missiles misbehave when fired from a moving ship {bug,Weapons,pri:next}
+#575 [CLOSED] Bug: asteroid fragments sometimes all fly off together in one direction {bug,Asteroids,Physics,pri:next}
+#573 [CLOSED] Fix negative-luminance film-grain flashes in the camera postprocessing stack {bug,needs-triage}
+#572 [CLOSED] Play-mode hierarchy: parent every runtime object under named session roots (debuggability) {Architecture,pri:next}
+#569 [OPEN] Arc: remote merge-grade proof — merge gate accepts a hosted-CI run when local RAM is short {Testing,pri:now,arc}
+#567 [CLOSED] Sector authored inputs: honest adopt manifest, hero-neutral start point {pri:now,arc}
+#565 [CLOSED] Session benchmark is not episode-repeatable — paired contact-count acceptance is invalid until the divergence is isolated {bug,Testing,pri:next}
+#564 [OPEN] MPC selection: the emitted elite mean is never scored — averaging turns clear elites into collisions {bug,AI,pri:next,ready-for-agent,unity:headless}
+#561 [CLOSED] Retire CameraRig prefab + component: give EditScene the host's viewport shape (#519 residue) {pri:next}
+#559 [CLOSED] Pool: hold / resume verbs — free a slot whose work waits on approval, resume in one command {Testing,pri:next}
+#558 [CLOSED] Capture CLI eval snippets reach private fields by reflection — give the host and hangar a launch seam {Capture,pri:later}
+#553 [CLOSED] Substrate root — dissolve the container and invert the tree (arc: closes #539 #535 #506 #523) {Architecture,pri:next,arc}
+#551 [OPEN] Combat choices: establish commit-versus-recovery evidence and evaluate reactive pilots {RL,pri:now,arc,ready-for-human}
+#547 [CLOSED] Script-suite gate phase over its 420 s budget on every run since 09-04, and growing (217 s → 576 s in ten days) {Testing,pri:next}
+#544 [CLOSED] GizmoViewCollidersEditModeTests fails on a cold Library/AnnotationManager (sibling of #401) {pri:next}
+#542 [OPEN] Script-suite flakes under load: stale-lock reclaim race (test_pool_locking) and 2 s StartEditor wall bound (test_unity_access) {bug,Testing,pri:next}
+#541 [CLOSED] Follower: rework the backdrop/field WorldFollow pair — what follows what, and where the target is set (after #519 PR-4) {Architecture,needs-triage}
+#540 [OPEN] Spectator: a clearer path and interface for the spectator rig (after #519 PR-4) {Architecture,pri:later}
+#539 [CLOSED] Services: shrink or dissolve the IGameServices container once the view services leave (after #519 PR-4) {Architecture,pri:later}
+#536 [CLOSED] Flaky: MpcSolverRigTests.Bingo_MinefieldTransit nondeterministic across identical runs {bug,AI,Testing,pri:next}
+#535 [CLOSED] Taxonomy: promote Session to the substrate root, the interactive game to a neighbour (Game/Play placeholder) {Architecture,pri:later}
+#534 [CLOSED] Lobe plumbing hygiene: align BurstSolver/ObservationExtractor gates, single-lobe rocks emit one lobe {AI,Asteroids,pri:later,ready-for-agent}
+#532 [CLOSED] scripts: entry .sh files are mode 100644, so the documented ./scripts/... form fails on Unix checkouts {Testing,pri:next,ready-for-agent}
+#528 [CLOSED] Report unity CLI beta issues upstream (run_tests test-name list, discovery, set_selection, editor_stop window) {Testing,pri:later}
+#526 [OPEN] Deterministic RNG as a repo-wide utility: rehome SeedScope + DeterministicRandom, seed the sim-path UnityEngine.Random draws {pri:next}
+#525 [CLOSED] agent_worktree_pool.sh: merge soft-refusal doesn't stop a chained finalize → unmerged PR/branch torn down {bug,Architecture,pri:next}
+#524 [CLOSED] Follow-up: comment residue from the memory/doc migration {Architecture,Testing,pri:later}
+#523 [CLOSED] Presentation policy: sweep the last two static reads (PooledAudioSource, RailBeamVisual) {Architecture}
+#522 [CLOSED] Design record: Playtest 2026-08-04 — boost press-drop and UI scaffolding {Gameplay-loop,Player,design-record}
+#521 [CLOSED] Design record: Teacher fire-gate boundary bug and the voided eval baselines {RL,Weapons,design-record}
+#520 [CLOSED] Design record: Agent workflow, config consolidation and doc surfaces {design-record}
+#519 [CLOSED] Game package split — Session vs World (arc brief) {Architecture,arc}
+#518 [CLOSED] Design record: Merge gate, test scoping and the tested-tree proof {Testing,design-record}
+#517 [CLOSED] Design record: RL infra paydown and RLHarness taxonomy {Architecture,RL,design-record}
+#516 [CLOSED] Design record: Vanguard ship art (Blender) arc {Art,design-record}
+#515 [CLOSED] Design record: Session, sector and ship composition arcs {Architecture,Ship,design-record}
+#514 [CLOSED] Design record: Tactical-AI learned-policy pivot and the anchored K=1 arc {AI,RL,design-record}
+#513 [CLOSED] Design record: MPC goal-mode ripout and the deleted nav-field lineage {AI,design-record}
+#512 [CLOSED] Design record: Asteroid field, geometry and collision-feel arcs {Asteroids,Physics,design-record}
+#511 [CLOSED] Design record: Native gizmo restoration (painter removal) {Capture,design-record}
+#510 [CLOSED] Design record: Vocabulary and glossary arc {Architecture,design-record}
+#509 [OPEN] Code-bloat batch G: comment hygiene sweep (dedicated hygiene PR) {Architecture,pri:later}
+#508 [CLOSED] Code-bloat batch D: over-abstraction collapse {Architecture,pri:later,ready-for-agent}
+#507 [CLOSED] Design record: C# code-bloat audit (2026-07-18) {Architecture,design-record}
+#506 [CLOSED] Folder taxonomy: finish the Utils/Physics leaf and rehome the Game/ root strays {Architecture}
+#505 [CLOSED] Heat curriculum lane for a future retrain (tightness ramp only, evidence-gated) {RL,pri:later}
+#504 [OPEN] Settle the prefab vs runtime-composition boundary for ships {Architecture,pri:next}
+#503 [OPEN] Spectating a headless RL session (leads into per-arena mixed presentation) {RL,pri:next}
+#502 [CLOSED] Delete VfxEnabled? Vestigial setting with no writer {Architecture}
+#501 [CLOSED] Design record: GitHub Issues tracker adoption {Architecture,design-record}
+#500 [CLOSED] Design record: Script seam hardening (scripts/ interface law) {Architecture,design-record}
+#497 [CLOSED] Postmortem: Unity tooling pathology (2026-07) {Testing,design-record}
+#496 [CLOSED] Design record: RL training throughput — measurement record {Performance,RL,design-record}
+#495 [CLOSED] Design record: RL trainer wire contract — dispositions and amendments {RL,design-record}
+#494 [CLOSED] Design record: RL trainer-runtime takeover — ladder, gates, stage-2 rulings {RL,design-record}
+#493 [CLOSED] Design record: RL stage-2 shaping and self-play findings {RL,design-record}
+#492 [CLOSED] Design record: RL ML-Agents agent — decisions 1–8 and eval protocol {RL,design-record}
+#491 [CLOSED] Design record: Gizmo Control Window rulings {Capture,design-record}
+#490 [CLOSED] Design record: Objectives / encounters / sector rethink (incl. PR-5 signal-port brief) {Architecture,Encounters,design-record}
+#489 [CLOSED] Design record: Multi-arena substrate {Architecture,RL,design-record}
+#488 [CLOSED] Design record: Weapon strategy and balance principles {RL,Weapons,design-record}
+#487 [CLOSED] Design record: Fire lane rework — Gunner as sole AI trigger authority {AI,Weapons,design-record}
+#486 [CLOSED] Design record: MPC retune pass — churn diagnosis and solver rulings {AI,design-record}
+#485 [CLOSED] Design record: Intent grammar (Stages A–C) {AI,RL,design-record}
+#482 [OPEN] SentenceProbe resolves IPolicyReadout via GetComponentInChildren outside Awake {RL,pri:later}
+#481 [CLOSED] Re-integrate sentence-native IntentGizmos onto the Gizmo View registry {RL,pri:later}
+#478 [CLOSED] Gizmo Control Window — PR-D: capture profile must drive GizmoView state {bug,pri:now}
+#471 [CLOSED] Gizmo Control Window — deferred enhancements {Capture,pri:later}
+#467 [CLOSED] Gizmo Control Window — PR-C: colliders toggle + chevron ship marker {pri:now}
+#466 [CLOSED] Gizmo Control Window — PR-B: convert remaining 15 drawers {pri:now}
+#465 [CLOSED] Gizmo Control Window — PR-A: core (registry + window + scope + 3 proof drawers) {pri:now}
+#464 [CLOSED] Gizmo Control Window (arc) {pri:now,arc}
+#463 [CLOSED] Remote editor lane: restore Alastor peer connectivity, e2e-test remote_editor.sh, submit PR {pri:now}
+#462 [CLOSED] Widen-gate ruling: fix vocabulary-widening starvation before the attempt-5 full run {RL,pri:later}
+#461 [CLOSED] Terminal-field revival: Dijkstra obstacle field as MPC terminal cost, incl. incumbent re-bench under the field {AI,pri:later}
+#460 [CLOSED] Bench: AIM offset (phi) clamped to zero on ShipCombat-3500017 — is the offset channel load-bearing or noise? {RL}
+#456 [CLOSED] Script seams P4: scripts/lib primitives + dedup {needs-triage}
+#455 [CLOSED] Script seams P3: verdict ownership — coverage stamp, pool porcelain, structured selection {needs-triage}
+#454 [CLOSED] Script seams P2: unity_access interface law + script-contracts doc {needs-triage}
+#453 [CLOSED] Script seams P1: locking safety — reclaim race, mutex record, CIM reap, PID recycling {bug,needs-triage}
+#452 [CLOSED] Script seams P0: merge gate runs scripts/tests + pool locking suite {Testing,needs-triage}
+#451 [CLOSED] Script seam hardening arc — scripts/ interaction-pattern cleanup {Architecture,arc,needs-triage}
+#448 [CLOSED] capture.record: full editor-side capture orchestrator CliCommand {Capture,pri:later}
+#446 [CLOSED] capture.gizmo_still: atomic editor-side gizmo still for sub-second subjects {Capture,pri:later}
+#445 [CLOSED] Prune six dependency-proven unused Unity packages {Performance,Testing,wontfix}
+#441 [CLOSED] Choose the production texture-streaming policy {Performance,Testing,wayfinder:grilling,wontfix}
+#440 [CLOSED] Freeze editor-memory PR staging and verification {Performance,Testing,wayfinder:grilling,wontfix}
+#439 [CLOSED] Freeze the unused Unity package removal boundary {Performance,Testing,pri:now,wayfinder:grilling}
+#438 [CLOSED] Choose the editor and ML workload concurrency policy {Performance,Testing,pri:now,wayfinder:grilling}
+#437 [CLOSED] Choose the low-memory editor profile interface {Performance,Testing,pri:now,wayfinder:grilling}
+#436 [CLOSED] Inventory vendor-asset dependency closure and future-use candidates {Performance,Testing,wayfinder:research,wontfix}
+#435 [CLOSED] Classify vendor and authoring assets for keep, archive, or delete {Performance,Testing,wayfinder:grilling,wontfix}
+#434 [CLOSED] Define the Unity Editor capacity benchmark {Performance,Testing,pri:now,wayfinder:research}
+#433 [CLOSED] Reduce Unity Editor memory for 4+1 concurrent capacity {Performance,Testing,wayfinder:map}
+#431 [CLOSED] Scan-line 'filled' gizmo bars read as line bundles up close {bug,Ship,needs-triage}
+#430 [CLOSED] Ship readouts and Navigator control panel mix world-space layout with screen-space text {bug,Ship,needs-triage}
+#429 [CLOSED] Unity CLI adoption: pipeline seam replaces CoplayDev MCP; feeds warm-capture; test-runner decision {arc,design-record}
+#428 [CLOSED] Navigator turn-away bite rings wash into mush at combat speed {AI,needs-triage}
+#426 [CLOSED] Rock-slot roster candidate universe is the nearest-self-truncated scan — enemy-side tail can be dropped at density ≥2.5 {RL,pri:later}
+#423 [CLOSED] AsteroidId registry — consolidate the interim asteroid referent identity {RL,pri:later}
+#422 [CLOSED] Stage C4: retrain, gate, promotion + yardstick re-baseline (closes the #408 era) {RL,pri:next}
+#421 [CLOSED] Stage C3: schema break — obs 28→76, sentence action head, masks, sentence probe (branch-only) {RL,pri:next}
+#420 [CLOSED] Stage C2: referent wiring — NavObjective bindings, per-tick resolution, sticky rock slots, Gunner AIM swap {RL,pri:now}
+#419 [CLOSED] Stage C1: LANE term + error-relative POS width + speedRef (solver-side, schema-neutral) {RL,pri:now}
+#418 [CLOSED] Intent grammar Stage C — the schema-break window (arc) {RL,pri:now,arc}
+#417 [CLOSED] Reject the retired RL_HARNESS_PAINTERS selector at the SessionSpec boundary {Capture,RL,needs-triage}
+#416 [CLOSED] Recording harness runs leave a windowed Editor alive if session bootstrap throws {Capture,RL,pri:later}
+#414 [CLOSED] Warm-capture lane: attach capture runs to a running Editor (probes -> scope) {Capture,design-record}
+#413 [CLOSED] Merge gate PR-2: split boot vs exec wall-clock in unity_test_agent.ps1, calibrate the phase budgets {Testing,pri:next}
+#409 [OPEN] Marksmanship arc: per-weapon trigger discipline in the Gunner (semi-auto launch policy, lock gating, heat pacing) {Weapons,pri:later,ready-for-human}
+#408 [CLOSED] Three merged env shifts are unmeasured against the 63.00 roster yardstick {RL,needs-triage}
+#406 [CLOSED] Native-gizmo capture: the gizmos-off toggle window films zero frames at PR-3 {Capture,Testing,pri:later}
+#401 [CLOSED] NativeGizmoRecoveryEditModeTests fail 4/4 in cold-Library worktrees (AnnotationManager never populated in batch) {Capture,Testing,pri:next,ready-for-agent}
+#400 [CLOSED] Re-measure native capture cost per gizmo profile and ratify the revised budget {Capture,pri:next,needs-triage}
+#396 [CLOSED] Move the capture naming contract off CaptureRecorder onto CaptureArtifacts {Capture,pri:later}
+#395 [CLOSED] Stage A bingo run — execute the 13-row card, land the verdict table {AI,pri:now}
+#394 [CLOSED] Stage A3 — sentence-playing session brain + lane {AI,pri:now,ready-for-agent}
+#393 [CLOSED] Stage A2 — solver-rig generalization for tactic bingo (scenarios, referent laws, obstacles, breakdown traces, plots) {AI,pri:now,ready-for-agent}
+#392 [CLOSED] Stage A1 — sentence carrier + starter terms (AIM/POS/VEL/FIELD) at the MPC cost layer {AI,pri:now,ready-for-agent}
+#391 [CLOSED] Intent grammar — Stage A: tactic bingo on the solver rig (umbrella) {AI,pri:now,arc}
+#388 [CLOSED] MPC Probe 2: incumbent settling in elite selection, on the solver rig {AI,needs-triage}
+#386 [CLOSED] VelRebaseProbe: Dummy episodes degrade to silent TotalDecisions = 0 after the archetype collapse {needs-triage}
+#380 [CLOSED] Consider disabling isReadable on asteroid FBXs (player-side CPU mesh copy) {Asteroids,Performance,pri:later}
+#379 [CLOSED] Compute AgentObservations.SpawnSettingsMaxAsteroidRadius instead of hand-deriving it {Architecture,Asteroids,RL,pri:next,ready-for-agent}
+#377 [CLOSED] Wire baked asteroid lobes into RL observations (schema break) {AI,Asteroids,RL,pri:later}
+#376 [CLOSED] Remove the painter system completely {Architecture,Capture,Testing,pri:now,ready-for-agent}
+#375 [CLOSED] Restore all diagnostics as native gizmos {AI,Architecture,Capture,Ship,pri:now,ready-for-agent}
+#374 [CLOSED] Capture selected native gizmos through the real harness {Capture,Testing,pri:now,ready-for-agent}
+#371 [CLOSED] Verify Navigator obstacle-scan stability at gizmo draw time {AI,Testing,pri:now,wayfinder:research}
+#370 [CLOSED] Choose the native owner for pair-shaped ship diagnostics {Architecture,Capture,pri:now,wayfinder:grilling}
+#369 [CLOSED] MPC: run a bounded learned-value behavioral A/B {AI,RL,Testing}
+#368 [CLOSED] RL: evaluate candidate sensitivity and MPC authority readiness {AI,RL,Testing}
+#367 [CLOSED] MPC: run the learned value model synchronously in shadow mode {AI,Performance,RL,Testing}
+#366 [CLOSED] MPC: encode terminal candidates on the value-state wire {AI,Architecture,RL,Testing}
+#365 [CLOSED] RL: train and export an executed-return value baseline {AI,RL,Testing}
+#364 [CLOSED] RL: record executed decision-boundary transitions {AI,RL,Testing}
+#363 [CLOSED] Freeze the native gizmo restoration build arc {Architecture,pri:now,wayfinder:grilling}
+#362 [CLOSED] Approve the native-gizmo parity set {Capture,pri:now,wayfinder:grilling}
+#361 [CLOSED] Choose the native capture module seam and lifecycle {Architecture,pri:now,wayfinder:grilling}
+#360 [CLOSED] Prototype selected-only gizmos in a real harness capture {Capture,pri:now,wayfinder:prototype}
+#359 [CLOSED] Audit native-gizmo parity across the painter migration {Architecture,pri:now,wayfinder:research}
+#358 [CLOSED] Establish the Unity 6 native gizmo control contract {Capture,pri:now,wayfinder:research}
+#357 [CLOSED] Chart native gizmo restoration and painter removal {Architecture,Capture,pri:now,arc,wayfinder:map}
+#352 [CLOSED] AsteroidController painter — needs a PainterContext seam for non-ship subjects {needs-triage}
+#344 [CLOSED] Split the intent union: hoist the actuator-passthrough lane out of the intent struct {AI,Architecture}
+#342 [CLOSED] B-series editor-split gizmo surfaces never eyeballed in a live editor {Architecture,Testing}
+#338 [CLOSED] trainer-runtime: rider — bench_throughput stock reference arm (lands before 1b build) {}
+#337 [CLOSED] trainer-runtime: C# micro-PR — TrainingHost reads --harness-worker-index (V9 consumer half) {Architecture,RL,pri:later}
+#336 [OPEN] Death legibility tiers 2-3 {Gameplay-loop,UI,pri:later,arc}
+#335 [OPEN] Weapons & balance {Gameplay-loop,Weapons,pri:later,arc}
+#334 [CLOSED] Encounters & sectors {Encounters,Gameplay-loop,pri:later,arc}
+#333 [CLOSED] RL eval & infra debt {RL,Testing,pri:later,arc}
+#332 [CLOSED] Multi-arena substrate residuals {Architecture,RL,arc}
+#331 [CLOSED] RL harness lane unification — remaining lanes {Architecture,RL,pri:later,arc}
+#330 [CLOSED] unity-access coordinator hardening {Architecture,RL,Testing,pri:later,arc}
+#328 [CLOSED] Encounters {duplicate}
+#326 [CLOSED] MPC: Config.invDt is write-only — assigned, never read {AI,Architecture,pri:later}
+#325 [CLOSED] MPC docs: Anchored_Intent_Architecture.md smoothness-weight claim stale since #250 {documentation,AI,pri:later}
+#324 [CLOSED] Multi-arena RL substrate {AI,Architecture,RL,pri:next}
+#323 [CLOSED] AI spawning + wingman foundation {AI,Ship,pri:later}
+#322 [CLOSED] Damage typing (DamageInfo) + asteroid damage multiplier {Damage,Weapons,pri:later}
+#321 [CLOSED] Weapons + UI cleanup {AI,UI,Weapons,pri:later}
+#320 [CLOSED] Arena-size dependency pass {Architecture,RL,pri:later}
+#319 [CLOSED] Collider-keyed ship registry (fully-injected hit identity) {AI,Architecture,Ship,pri:later}
+#318 [CLOSED] Asteroid-field episodes + obstacle obs tokens (one package) {AI,RL,pri:later}
+#317 [CLOSED] NavigationIntent rename + fold manualFire/primaryHeld into an embedded WeaponCommand {AI,Architecture,pri:later}
+#316 [CLOSED] Gunner origin-sentinel HasTarget {AI,Weapons}
+#315 [CLOSED] Arena-wiring: registry-ctor-injection (break ArenaContext/UnitService ownership cycle) {AI,Architecture,RL,pri:later}
+#314 [CLOSED] Weapons × RL integration (per-weapon Φ, lock-as-threat, per-slot fire economy) {AI,RL,Weapons,pri:later}
+#313 [CLOSED] Move ChaseBenchmark → RLHarness editor asm {Architecture,RL,Testing,pri:later}
+#312 [CLOSED] Add Cargo Ship AI {pri:later}
+#311 [CLOSED] Build Ship Scouting Encounter {pri:later}
+#310 [CLOSED] TestScene stale SectorEntry (managerPrefab key) {Architecture,Testing,pri:later}
+#309 [CLOSED] Editor-assembly dev viz un-attachable (arena overlay, diagnostics, utility logger) {AI,Architecture,pri:later}
+#308 [CLOSED] Starfield shader performance pass {Art,Performance,pri:later}
+#307 [CLOSED] Locals HUD contract {Encounters,UI,pri:later}
+#306 [CLOSED] Data-driven CombatEncounter (needs 2nd encounter type) {Architecture,Encounters,pri:later}
+#305 [CLOSED] Sector signal-graph viewer window {Architecture,Encounters,UI,pri:later}
+#304 [CLOSED] Seam-governed presentation parts read the process-wide static instead of the injected flag {Architecture,Capture,RL,pri:later}
+#303 [OPEN] results/ artifacts should clean up after themselves (frames outlive their mp4; run dirs never age out) {Architecture,Capture,RL,pri:later}
+#302 [CLOSED] RL settings interface {Architecture,RL,pri:later}
+#301 [CLOSED] Consolidate `default_unity_exe`: 4 local copies across `training/rl/` drivers (run_smoke, run_smoke_selfplay, run_training, eval_gate); eval_gate's derives the … {Architecture,RL,pri:later}
+#300 [CLOSED] Offline checkpoint tournament (round-robin + ELO/Bradley-Terry fit) over eval slot 2 — deferred from paydown §PR-4; gated on its first real consumer (post-rules-change candidate selection) {Architecture,RL,Testing,pri:later}
+#299 [CLOSED] unity-access ticket cleanup races on an empty path: contending slots fail the merge gate instead of queueing {Architecture,RL,Testing,pri:later}
+#298 [CLOSED] unity-access `RunBatch` acquires its owner lease BEFORE the child process exists, so the owner is pid-less and TTL-expires (`OwnerTtlSeconds` 300) partway … {Architecture,RL,Testing,pri:later}
+#297 [OPEN] Profiler lane: ProfilerRecorder counter probe + raw-capture flag on the harness lane; first customer = shelved frame-drops investigation {Performance,RL,Testing,pri:later}
+#296 [CLOSED] Harness playtest lane: human pilot axis in the arena harness — input wiring + real-time pacing; inherits probes/recording for measured playtests (rules-change telemetry instrument) {Architecture,Gameplay-loop,RL,pri:later}
+#295 [CLOSED] Session-tier rethink: game / training / harness hosts — what is actually shared {Architecture,RL,pri:later}
+#294 [CLOSED] Gizmo migration + "observation environments": migrate ~15 legacy gizmo files onto the painter/canvas contract; named preset sets, nothing-on-by-default … {AI,Architecture,Capture,pri:later}
+#293 [CLOSED] unity-access `RunBatch` holds the machine-wide boot lane for the child's ENTIRE run (opaque-child contract), so a multi-minute eval blocks every other … {Architecture,RL,Testing,pri:later}
+#292 [CLOSED] rl-status dashboard: max_steps lost past the 4 MB log tail → wrong ETA (#218 P2; findings-doc STATUS header half FIXED in #219) {RL,Testing,pri:later}
+#291 [CLOSED] Combat balance pace-dial: both counsel packages HELD pending telemetry — run escape probe under both parameterizations {Gameplay-loop,RL,Weapons,pri:later}
+#290 [CLOSED] Script the checkpoint staging path into Assets/Settings/AI/Models (producer-owned) {Architecture,RL,pri:later}
+#289 [CLOSED] velrebase probe retirement — after K1-4 resolves, delete the open-loop apparatus (lane/composition/enemy/probe/--open-loop); ArchetypeDrive goes with it unless a roster-flip decision landed {Architecture,RL,Testing,pri:later}
+#288 [OPEN] More Weapons {Weapons,pri:later}
+#287 [CLOSED] Death camera / killer highlight (death-legibility Tier 3) {Gameplay-loop,UI,pri:later}
+#286 [CLOSED] Directional hit indicator: HUD pips toward damage source (death-legibility Tier 2) {Damage,Gameplay-loop,UI,pri:later}
+#285 [CLOSED] Baked asteroid geometry proxy {AI,Architecture,Asteroids,pri:later}
+#284 [CLOSED] Custom RL trainer runtime {Architecture,Performance,RL,pri:later}
+#283 [CLOSED] K1-4 evaluation decision {RL,Testing}
+#282 [OPEN] Eval rollout not run-to-run reproducible — "deterministic scripted eval" is false, noise floor mechanical; threading ruled out {bug,Physics,RL,Testing,pri:later}
+#281 [CLOSED] Live-scene presentation disable: DontDestroyOnLoad assert in GameDriver.Awake {bug,Architecture,pri:later}
+#280 [OPEN] Player team hardcoded to 0 behind a dead `team` parameter; player settings have no single home {Architecture,Player,pri:later}
+#279 [OPEN] ChargeLasers: transient envelope exit wastes the charge {bug,AI,Weapons,pri:later}
+#278 [CLOSED] ShieldUI ring may render opaque from frame 0 (Awake `SetAlpha(1f)` vs hidden-until-first-shield-event) {bug,UI}
+#277 [CLOSED] Offscreen capture renders asteroid detail material as magenta (URP error shader) {bug,Asteroids,Capture}
+#276 [CLOSED] Spectator fields: null anchor not honored through follower (collider LOD) {bug,Asteroids,Physics}
+#275 [CLOSED] Field noise heatmap gizmo breaks on live chunkSize edit (scales around origin; spawning unaffected) {bug,Asteroids,Testing,pri:later}
+#274 [CLOSED] Player-state feedback: health + boost cooldown UI and audio {Gameplay-loop,Player,UI,pri:now}
+#273 [CLOSED] refine hangar UI {Art,UI,pri:next,ready-for-human,wayfinder:prototype}
+#272 [CLOSED] generate more skyboxes {Art,pri:next}
+#271 [CLOSED] Per-sector environment scenes {Architecture,Art,pri:now}
+#269 [CLOSED] Build Cargo Escort Encounter {pri:now}
+#268 [CLOSED] Signal wiring rethink (shelved #156) {Architecture,Encounters,pri:later}
+#267 [OPEN] Profile Unity player performance and editor responsiveness {Performance,Testing,pri:now}
+#266 [CLOSED] ArchetypeGate boost-telemetry patch → small PR (archived in results/rl-archive/patches) {RL,Testing,pri:now}
