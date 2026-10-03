@@ -1,0 +1,97 @@
+mutated m_aimneg: Combat/Projectiles/Missile.cs
+mutated ship250: Ships/Ship.cs
+mutated ship68: Ships/Ship.cs
+mutated tv60: Substrate/Sectors/Activation/TriggerVolume.cs
+mutated ar108: Substrate/Sectors/Activation/ActivationRule.cs
+mutated regen29: Ships/Damage/RegenResource.cs
+mutated ot_fail: Objectives/ObjectiveTracker.cs
+mutated ot_failcall: Objectives/ObjectiveTracker.cs
+mutated ot_restart: Objectives/ObjectiveTracker.cs
+mutated wc146: Ships/Weapons/WeaponsController.cs
+mutated rt88: Game/Player/RunTally.cs
+mutated seed_w0: RL/Hosts/TrainingHost.cs
+mutated seed_a0: RL/Hosts/TrainingHost.cs
+mutated mpc_seat3: AI/Navigation/MPC/Cost/Cost.cs
+=== batch b1: m_aimneg ship250 ship68 tv60 ar108 regen29 ot_fail ot_failcall ot_restart wc146 rt88 seed_w0 seed_a0 mpc_seat3 ===
+run-tests exit=1
+STATUS=failed total=117 passed=84 failed=33 skipped=0
+run 20261002-021011
+20261002-021011-EditMode.xml cases 93 non-passing 22
+   Failed Tests.EditMode.DamageControllerEditModeTests.Health_RestoreFraction_AddsFractionOfMax_AndReportsPrevious
+       Expected: 65.0d +/- 0.0010000000474974513d
+       But was:  100.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.HullOnlyDamage_DoesNotPostponeShieldRegen
+       Hull takes the full hit
+       Expected: 90.0d +/- 0.0010000000474974513d
+       But was:  100.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.MultipleResetCycles_NoHealthOrShieldDrift
+       cycle 0: current shield
+       Expected: 50.0d +/- 0.0010000000474974513d
+       But was:  0.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.NewController_StartsWithFullHealthAndShield
+       Expected: 60.0d +/- 0.0010000000474974513d
+       But was:  100.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.OnDeath_CarriesTheKillingBlow_AttackerAndKind
+       The killing blow's amount is the applied damage, capped at shield + hull
+       Expected: 150.0d +/- 0.0010000000474974513d
+       But was:  200.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.SetInvulnerability_BlocksDamage_ResetClearsIt
+       An invulnerable controller takes no damage
+       Expected: 50.0d +/- 0.0010000000474974513d
+       But was:  100.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.Shield_RegenNeverExceedsMax_AndReachesMax
+       Expected: 20.0d +/- 0.0010000000474974513d
+       But was:  70.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.Shield_RegenRespectsDelay
+       Shield should regen after the delay
+       Expected: greater than 80.0f
+       But was:  80.0f
+   Failed Tests.EditMode.DamageControllerEditModeTests.TakeDamage_BleedThrough_RemainderOverShieldHitsHealth
+       Shield fully depleted
+       Expected: 0.0d +/- 0.0010000000474974513d
+       But was:  20.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.TakeDamage_BleedThrough_SingleHitCanKillThroughShield
+       OnDamaged reports total absorbed, capped at shield + hull
+       Expected: 150.0d +/- 0.0010000000474974513d
+       But was:  200.0d
+   Failed Tests.EditMode.DamageControllerEditModeTests.TakeDamage_ShieldAbsorbsFirst_ThenHealth
+       Expected: 30.0d +/- 0.0010000000474974513d
+       But was:  80.0d
+   Failed Tests.EditMode.MpcIntentSentenceEditModeTests.SyntheticReferent_ExtrapolatesLinearly_PerStep(3)
+       Expected: 1.0f +/- 9.99999975E-06f
+       But was:  0.0f
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.AnyState_TransitionsToFailed_WhenPlayerDies_DuringExtraction
+       Expected: Failed
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Fail_IsNoOp_WhenAlreadyFailed
+       Expected: Failed
+       But was:  Explore
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Failed_IsTerminal_IgnoresSubsequentTicks
+       Expected: Failed
+       But was:  Explore
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOnRestart
+       Expected: 2
+       But was:  0
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Restart_FromExtracted_ResetsToExplore_WithNoConsequences
+       Expected: Explore
+       But was:  Extracted
+   Failed Tests.EditMode.RLArenaSeedEditModeTests.WorkerZero_IsIdentity
+       index 0 must equal the incoming seed so the single-env, M=1 run and every pin stay byte-identical
+       Expected: 1
+       But was:  956332081
+   Failed Tests.EditMode.RLArenaSeedEditModeTests.ArenaZero_IsIdentity
+       index 0 must equal the incoming seed so the single-env, M=1 run and every pin stay byte-identical
+       Expected: 1
+       But was:  1063452437
+   Failed Tests.EditMode.RunTallyEditModeTests.PlayerKillingBlow_CountsAndRaisesKilled
+       Expected: 1
+       But was:  0
+   Failed Tests.EditMode.SectorActivationEditModeTests.CausalOrder_EffectThenEvent_BeforeDownstreamRule
+       Traceback (most recent call last):
+  File "D:\amind\git\astronomical-home\reports\test-cuts\reds.py", line 21, in <module>
+    print("      ", line.strip()[:220])
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amind\Miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 27: character maps to <undefined>

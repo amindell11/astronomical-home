@@ -1,0 +1,110 @@
+mutated m_across: Combat/Projectiles/Missile.cs
+mutated m_nomax: Combat/Projectiles/Missile.cs
+mutated ship259: Ships/Ship.cs
+mutated wc48: Ships/Weapons/WeaponsController.cs
+mutated bus33: Substrate/Sectors/Activation/SectorEventBus.cs
+mutated dc82: Ships/Damage/DamageController.cs
+mutated kas: Objectives/States/KeyAcquiredState.cs
+mutated rt89: Game/Player/RunTally.cs
+mutated mpc_seat2: AI/Navigation/MPC/Cost/Cost.cs
+mutated wc145: Ships/Weapons/WeaponsController.cs
+=== batch b2: m_across m_nomax ship259 wc48 bus33 dc82 kas rt89 mpc_seat2 wc145 ===
+run-tests exit=1
+STATUS=failed total=117 passed=92 failed=25 skipped=0
+run 20261002-021710
+20261002-021710-EditMode.xml cases 93 non-passing 16
+   Failed Tests.EditMode.DamageControllerEditModeTests.MultipleResetCycles_NoHealthOrShieldDrift
+       cycle 0: current health
+       Expected: 100.0d +/- 0.0010000000474974513d
+       But was:  0.0d
+   Failed Tests.EditMode.MpcIntentSentenceEditModeTests.SyntheticReferent_ExtrapolatesLinearly_PerStep(2)
+       Expected: 1.0f +/- 9.99999975E-06f
+       But was:  0.0f
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.AnyState_TransitionsToFailed_WhenPlayerDies_DuringExtraction
+       Expected: ExtractionChallenge
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.CurrentStep_ReflectsStringStepId
+       Expected string length 10 but was 3. Strings differ at index 0.
+       Expected: "extraction"
+       But was:  "key"
+       -----------^
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Extracted_IsTerminal_IgnoresSubsequentTicks
+       Expected: Extracted
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.ExtractionChallenge_DoesNotComplete_WhileBlocked
+       Expected: ExtractionChallenge
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Fail_IsNoOp_WhenExtracted
+       Expected: Extracted
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOncePerTransition_FullSuccessPath
+       Expected exactly 3 transitions on the success path.
+       Expected: 3
+       But was:  1
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStepChanged_FiresOncePerTransition_WithStepIds
+       Expected is <System.String[3]>, actual is <System.Collections.Generic.List`1[System.String]> with 1 elements
+       Values differ at index [1]
+       Missing:  < "extraction", "extracted" >
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Restart_FromExtracted_ResetsToExplore_WithNoConsequences
+       Expected: Extracted
+       But was:  KeyAcquired
+   Failed Tests.EditMode.RunTallyEditModeTests.PlayerKillingBlow_CountsAndRaisesKilled
+       Expected: 1
+       But was:  0
+   Failed Tests.EditMode.SectorActivationEditModeTests.BusChanged_RaisedOnlyOnActualValueChanges
+       Expected is <System.String[3]>, actual is <System.Collections.Generic.List`1[System.String]> with 2 elements
+       Values differ at index [2]
+       Missing:  < "x" >
+   Failed Tests.EditMode.SectorActivationEditModeTests.CausalOrder_EffectThenEvent_BeforeDownstreamRule
+       Fire order must be OnFired → Fired → publish, so A's effect completes before B runs.
+       Expected is <System.String[4]>, actual is <System.Collections.Generic.List`1[System.String]> with 2 elements
+       Values differ at index [2]
+       Missing:  < "B:effect", "B:event" >
+   Failed Tests.EditMode.SectorActivationEditModeTests.Chaining_RuleAPublishOnFired_SatisfiesRuleB_AndRulesFireOnce
+       Rule A's published token must chain into rule B's signal term.
+       Expected: 1
+       But was:  0
+   Failed Tests.EditMode.SectorActivationEditModeTests.EventTerm_LatchedToken_SatisfiesPermanently
+       Expected: True
+       But was:  False
+   Failed Tests.EditMode.SectorActivationEditModeTests.ParkedThenQualified_LevelAlreadyTrue_Fires
+       A level held BEFORE the other term satisfies must count — standing predicate, not enter-edge.
+       Expected: True
+       But was:  False
+20261002-021710-PlayMode.xml cases 24 non-passing 9
+   Failed Tests.PlayMode.LockOnRegistryWiringPlayModeTests.Ship1_WithoutRegistryInjection_LockOnSensorIsDisabled
+       Ship must have a lock-on sensor (armed)
+       Expected: not null
+       But was:  null
+   Failed Tests.PlayMode.LockOnRegistryWiringPlayModeTests.Ship1_WithRegistryInjection_LockOnSensorHasRegistryAndIsEnabled
+       Ship must have a lock-on sensor (armed)
+       Expected: not null
+       But was:  null
+   Failed Tests.PlayMode.MissileLaunchPlayModeTests.Strafing_LaunchesAlongTheAim
+       across-aim launch speed
+       Expected: 0.0f +/- 0.0500000007f
+       But was:  25.0f
+   Failed Tests.PlayMode.MissileLaunchPlayModeTests.DriftingBackward_LaunchesForwardAtInitialSpeed
+       along-aim launch speed
+       Expected: 7.0f +/- 0.0500000007f
+       But was:  -18.0f
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.AfterShipReset_LockOnIndicatorRespondsToLockEvents
+       LockOnIndicator should show (alpha 1) on lock progress after reset
+       Expected: 1.0d +/- 9.9999997473787516E-05d
+       But was:  0.0d
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.AfterShipReset_PrimaryWeaponCanFire
+       Primary weapon should fire successfully after ship reset. CanFire: True, GameObject active: False
+       Expected: greater than 0
+       But was:  0
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.AfterShipReset_StatusBarUIRespondsToShieldDamage
+       StatusBarUI fill should track the current shield fraction after reset (event re-subscribed)
+       Expected: 0.80000000000000004d +/- 0.0099999997764825821d
+       But was:  0.0d
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.MultipleDeathResetCycles_ChildComponentsRemainStable
+       Cycle 0: Ship should be active after reset
+       Expected: True
+       But was:  False
+   Failed Tests.PlayMode.WeaponCommandDispatchPlayModeTests.FireCommands_DispatchToBothWeapons_OnFireIsRaised
+       Primary OnFire must be raised while the commander holds primaryFire.
+       Expected: greater than 0
+       But was:  0

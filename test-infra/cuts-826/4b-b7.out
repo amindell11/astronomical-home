@@ -1,0 +1,34 @@
+mutated md_row2: Objectives/MissionDefinition.cs
+=== batch b7: md_row2 ===
+run-tests exit=1
+STATUS=failed total=93 passed=85 failed=8 skipped=0
+run 20261002-022701
+20261002-022701-EditMode.xml cases 93 non-passing 8
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.AnyState_TransitionsToFailed_WhenPlayerDies_DuringExtraction
+       Expected: ExtractionChallenge
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.CurrentStep_ReflectsStringStepId
+       Expected string length 10 but was 3. Strings differ at index 0.
+       Expected: "extraction"
+       But was:  "key"
+       -----------^
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Extracted_IsTerminal_IgnoresSubsequentTicks
+       Expected: Extracted
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.ExtractionChallenge_DoesNotComplete_WhileBlocked
+       Expected: ExtractionChallenge
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Fail_IsNoOp_WhenExtracted
+       Expected: Extracted
+       But was:  KeyAcquired
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOncePerTransition_FullSuccessPath
+       Expected exactly 3 transitions on the success path.
+       Expected: 3
+       But was:  1
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStepChanged_FiresOncePerTransition_WithStepIds
+       Expected is <System.String[3]>, actual is <System.Collections.Generic.List`1[System.String]> with 1 elements
+       Values differ at index [1]
+       Missing:  < "extraction", "extracted" >
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Restart_FromExtracted_ResetsToExplore_WithNoConsequences
+       Expected: Extracted
+       But was:  KeyAcquired

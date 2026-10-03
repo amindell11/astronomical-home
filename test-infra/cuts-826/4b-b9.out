@@ -1,0 +1,18 @@
+mutated ship259: Ships/Ship.cs
+=== batch b9: ship259 ===
+run-tests exit=1
+STATUS=failed total=24 passed=21 failed=3 skipped=0
+run 20261002-022834
+20261002-022834-PlayMode.xml cases 24 non-passing 3
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.AfterShipReset_LockOnIndicatorRespondsToLockEvents
+       LockOnIndicator should show (alpha 1) on lock progress after reset
+       Expected: 1.0d +/- 9.9999997473787516E-05d
+       But was:  0.0d
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.AfterShipReset_StatusBarUIRespondsToShieldDamage
+       StatusBarUI fill should track the current shield fraction after reset (event re-subscribed)
+       Expected: 0.80000000000000004d +/- 0.0099999997764825821d
+       But was:  0.0d
+   Failed Tests.PlayMode.ShipChildComponentStatePlayModeTests.MultipleDeathResetCycles_ChildComponentsRemainStable
+       Cycle 0: Ship should be active after reset
+       Expected: True
+       But was:  False

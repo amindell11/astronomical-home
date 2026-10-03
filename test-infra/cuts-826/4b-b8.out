@@ -1,0 +1,26 @@
+mutated ecs: Objectives/States/ExtractionChallengeState.cs
+=== batch b8: ecs ===
+run-tests exit=1
+STATUS=failed total=93 passed=87 failed=6 skipped=0
+run 20261002-022802
+20261002-022802-EditMode.xml cases 93 non-passing 6
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Extracted_IsTerminal_IgnoresSubsequentTicks
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.ExtractionChallenge_DoesNotComplete_WhileBlocked
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Fail_IsNoOp_WhenExtracted
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOncePerTransition_FullSuccessPath
+       Expected exactly 3 transitions on the success path.
+       Expected: 3
+       But was:  2
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStepChanged_FiresOncePerTransition_WithStepIds
+       Expected is <System.String[3]>, actual is <System.Collections.Generic.List`1[System.String]> with 2 elements
+       Values differ at index [2]
+       Missing:  < "extracted" >
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Restart_FromExtracted_ResetsToExplore_WithNoConsequences
+       Expected: Extracted
+       But was:  ExtractionChallenge

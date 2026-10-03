@@ -1,0 +1,22 @@
+mutated ar47: Substrate/Sectors/Activation/ActivationRule.cs
+mutated dc83: Ships/Damage/DamageController.cs
+mutated md_terminal_row: Objectives/MissionDefinition.cs
+=== batch b3: ar47 dc83 md_terminal_row ===
+run-tests exit=1
+STATUS=failed total=93 passed=90 failed=3 skipped=0
+run 20261002-022204
+20261002-022204-EditMode.xml cases 93 non-passing 3
+   Failed Tests.EditMode.DamageControllerEditModeTests.MultipleResetCycles_NoHealthOrShieldDrift
+       cycle 0: current shield
+       Expected: 50.0d +/- 0.0010000000474974513d
+       But was:  0.0d
+   Failed Tests.EditMode.SectorActivationEditModeTests.CausalOrder_EffectThenEvent_BeforeDownstreamRule
+       Fire order must be OnFired → Fired → publish, so A's effect completes before B runs.
+       Expected is <System.String[4]>, actual is <System.Collections.Generic.List`1[System.String]> with 0 elements
+       Values differ at index [0]
+       Missing:  < "A:effect", "A:event", "B:effect"... >
+   Failed Tests.EditMode.SectorActivationEditModeTests.Chaining_RuleAPublishOnFired_SatisfiesRuleB_AndRulesFireOnce
+       Rule A must fire when its term holds.
+       Expected: 1
+       But was:  0
+02:24:58

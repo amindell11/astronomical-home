@@ -1,0 +1,5 @@
+exit=0
+STATUS=passed total=712 passed=712 failed=0 skipped=0
+run 20261002-022908
+20261002-022908-EditMode.xml cases 564 non-passing 0
+20261002-022908-PlayMode.xml cases 148 non-passing 0

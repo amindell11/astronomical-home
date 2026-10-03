@@ -1,0 +1,39 @@
+mutated md_initial: Objectives/MissionDefinition.cs
+mutated ecs: Objectives/States/ExtractionChallengeState.cs
+=== batch b5: md_initial ecs ===
+run-tests exit=1
+STATUS=failed total=93 passed=84 failed=9 skipped=0
+run 20261002-022600
+20261002-022600-EditMode.xml cases 93 non-passing 9
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.CurrentStep_ReflectsStringStepId
+       Expected string length 7 but was 3. Strings differ at index 0.
+       Expected: "explore"
+       But was:  "key"
+       -----------^
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Explore_TransitionsToKeyAcquired_WhenKeyPickedUp
+       Expected: Explore
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Extracted_IsTerminal_IgnoresSubsequentTicks
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.ExtractionChallenge_DoesNotComplete_WhileBlocked
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Fail_IsNoOp_WhenExtracted
+       Expected: Extracted
+       But was:  ExtractionChallenge
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOncePerTransition_FullSuccessPath
+       Expected exactly 3 transitions on the success path.
+       Expected: 3
+       But was:  1
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStateChanged_FiresOnRestart
+       Expected: (Explore, Failed)
+       But was:  (KeyAcquired, Failed)
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.OnStepChanged_FiresOncePerTransition_WithStepIds
+       Expected is <System.String[3]>, actual is <System.Collections.Generic.List`1[System.String]> with 1 elements
+       Values differ at index [0]
+       Expected string length 3 but was 10. Strings differ at index 0.
+       Expected: "key"
+   Failed Tests.EditMode.ObjectiveTrackerEditModeTests.Restart_FromExtracted_ResetsToExplore_WithNoConsequences
+       Expected: Extracted
+       But was:  ExtractionChallenge

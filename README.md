@@ -48,3 +48,17 @@ A static review of the test infrastructure, 2026-09-29/30: two independent grade
 | [review/issue-index.txt](test-infra/review/issue-index.txt) | The issue index handed to the reviewers |
 
 All of it was `reports/`; `review/` was `reports/test-infra-review/`.
+
+### test-infra/cuts-826/
+
+Build scratch from carrying out the #826 cut list: PR-4a [#839](https://github.com/amindell11/astronomical-home/pull/839), PR-4c [#848](https://github.com/amindell11/astronomical-home/pull/848), PR-4b [#849](https://github.com/amindell11/astronomical-home/pull/849). The per-cut record (mutation applied, retained test that went red) lives in those PR descriptions. This folder holds the raw material behind it. The scripts hard-code the pool slots of the day and are not reusable as-is.
+
+| File | What it is |
+| --- | --- |
+| [handoff-4b.md](test-infra/cuts-826/handoff-4b.md), [handoff-4c.md](test-infra/cuts-826/handoff-4c.md) | Handoff notes from the PR-4a session to the 4b and 4c builds |
+| [mutate.py](test-infra/cuts-826/mutate.py), [mutate_4b.py](test-infra/cuts-826/mutate_4b.py) | Named single-line production mutations applied in a slot |
+| [batch_4b.sh](test-infra/cuts-826/batch_4b.sh) | One mutation batch: mutate, run the filtered tests, list reds, revert |
+| [reds.py](test-infra/cuts-826/reds.py) | Prints the non-passing cases from a run's XML |
+| `4b-b1.out` … `4b-b9.out`, `4b-cat.out` | Output of each 4b mutation batch |
+
+All of it was `reports/test-cuts/`.
