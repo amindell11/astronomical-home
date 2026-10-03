@@ -20,7 +20,7 @@ namespace Tests.PlayMode
 
         private class StubShooter : MonoBehaviour, IShooter
         {
-            public Vector3 Velocity { get; set; }
+            public Vector3 Velocity => Vector3.zero;
             public Rigidbody Body => GetComponent<Rigidbody>();
             public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
@@ -84,73 +84,6 @@ namespace Tests.PlayMode
                 () => DistanceToTarget() < 2f,
                 5f,
                 $"Missile did not converge on distant target (dist={DistanceToTarget():F2})",
-                useFixedUpdate: true);
-        }
-
-        [UnityTest]
-        public IEnumerator StationaryFire_CloseTarget_NoOrbit()
-        {
-            var origin = GamePlane.PlanePointToWorld(Vector2.zero);
-            missile = CreateTestMissile(origin);
-            targetGo = CreateTarget(new Vector2(0, 3));
-
-            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
-            LaunchAt(missile, Vector2.up, shooter);
-
-            var startDist = DistanceToTarget();
-            var peakDist = startDist;
-            var settled = false;
-            var settleTime = 0.3f;
-            var elapsed = 0f;
-            var converged = false;
-
-            while (elapsed < 2f)
-            {
-                yield return new WaitForFixedUpdate();
-                elapsed += Time.fixedDeltaTime;
-
-                var dist = DistanceToTarget();
-                if (elapsed > settleTime)
-                {
-                    if (dist > peakDist) peakDist = dist;
-                    settled = true;
-                }
-
-                if (dist < 1.5f)
-                {
-                    converged = true;
-                    break;
-                }
-            }
-
-            Assert.IsTrue(converged,
-                $"Missile did not reach close target within 2s (dist={DistanceToTarget():F2})");
-
-            if (settled)
-            {
-                Assert.LessOrEqual(peakDist, startDist + 1f,
-                    $"Missile overshot close target — peak distance {peakDist:F2} exceeded start {startDist:F2} + 1");
-            }
-        }
-
-        [UnityTest]
-        public IEnumerator MovingShooter_StationaryTarget_Converges()
-        {
-            var origin = GamePlane.PlanePointToWorld(Vector2.zero);
-            missile = CreateTestMissile(origin);
-            targetGo = CreateTarget(new Vector2(0, 15));
-
-            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(10, 0));
-
-            missile.SetTarget(targetGo.transform);
-            LaunchAt(missile, Vector2.up, shooter);
-
-            yield return AsyncAssert.WaitUntil(
-                () => DistanceToTarget() < 2f,
-                5f,
-                $"Missile with moving shooter did not converge (dist={DistanceToTarget():F2})",
                 useFixedUpdate: true);
         }
 

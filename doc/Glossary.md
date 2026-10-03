@@ -309,6 +309,21 @@ Format: **term** — definition. *(authority)*
   body: the tests the hosted suite cannot run, written by the builder and
   ticked by a local session. `None.` means nothing was ever owed, as against
   owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
+- **pipeline PR** — an open PR against `main` whose body has a `### Owed local`
+  heading. The heading is the whole membership test: draft state, the closing
+  issue and its labels play no part, so a PR built by hand joins by writing
+  the section. *(scripts/drain_pick.sh)*
+- **verify queue** — the *pipeline PRs* with an owed `unity` or `script` item
+  no run has tried on the head commit. An item that failed there leaves the
+  queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+- **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
+  ticked, with their facts and landing order; it never says who may merge.
+  Always qualified ("the pipeline's merge queue", or the verb `merge-queue`):
+  it is neither GitHub's merge-queue feature nor the line for the *merge
+  turn*. *(scripts/drain_pick.sh `merge-queue`)*
+- **pipeline digest** — the Markdown report of what waits on the user and on a
+  session the user starts, relayed as printed. Bare "digest" reads this way
+  only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*
 - **drain orchestrator** — the pinned `/loop` chat that surfaces what waits on
   the user and restocks the *ready queue* via the *triage sweep*; it starts no
   build. Titled `orchestrator | drain — …`; distinct from an `Arc`

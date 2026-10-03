@@ -72,10 +72,12 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator PrimaryFireCommand_DispatchesToWeapon_OnFireIsRaised()
+        public IEnumerator FireCommands_DispatchToBothWeapons_OnFireIsRaised()
         {
-            var fireCount = 0;
-            combatShip.Weapons.Primary.OnFire += () => fireCount++;
+            var primaryFires = 0;
+            var secondaryFires = 0;
+            combatShip.Weapons.Primary.OnFire += () => primaryFires++;
+            combatShip.Weapons.Secondary.OnFire += () => secondaryFires++;
 
             yield return new WaitForFixedUpdate();
             Assert.IsTrue((ship.Commander as AlwaysFireCommander)?.Fired ?? false,
@@ -83,35 +85,15 @@ namespace Tests.PlayMode
 
             var elapsed = 0f;
             const float timeoutSec = 1.0f;
-            while (fireCount == 0 && elapsed < timeoutSec)
+            while ((primaryFires == 0 || secondaryFires == 0) && elapsed < timeoutSec)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
             }
 
-            Assert.Greater(fireCount, 0,
+            Assert.Greater(primaryFires, 0,
                 "Primary OnFire must be raised while the commander holds primaryFire.");
-        }
-
-        [UnityTest]
-        public IEnumerator SecondaryFireCommand_DispatchesToWeapon_OnFireIsRaised()
-        {
-            var fireCount = 0;
-            combatShip.Weapons.Secondary.OnFire += () => fireCount++;
-
-            yield return new WaitForFixedUpdate();
-            Assert.IsTrue((ship.Commander as AlwaysFireCommander)?.Fired ?? false,
-                "Setup sanity: commander should be pushing fire commands.");
-
-            var elapsed = 0f;
-            const float timeoutSec = 1.0f;
-            while (fireCount == 0 && elapsed < timeoutSec)
-            {
-                yield return new WaitForFixedUpdate();
-                elapsed += Time.fixedDeltaTime;
-            }
-
-            Assert.Greater(fireCount, 0,
+            Assert.Greater(secondaryFires, 0,
                 "Secondary OnFire must be raised while the commander holds secondaryFire.");
         }
     }

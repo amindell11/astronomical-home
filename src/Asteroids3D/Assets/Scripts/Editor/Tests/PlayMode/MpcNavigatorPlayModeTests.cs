@@ -116,7 +116,12 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     {
         mpc.enableObstacleAvoidance = true;
 
-        var obstacle   = TestSceneBuilder.CreateObstacle(new Vector3(10, 10, 0), new Vector3(2, 2, 2));
+        var obstaclePos2D = new Vector2(10, 10);
+        var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obstacle.name = "TestObstacle";
+        obstacle.layer = LayerMask.NameToLayer("Asteroid");
+        obstacle.transform.position = GamePlane.PlanePointToWorld(obstaclePos2D);
+        obstacle.transform.localScale = new Vector3(2, 2, 2);
         var stubField  = new StubObstacleField
         {
             position = new Vector3(10, 10, 0),
@@ -127,7 +132,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
         // Commanded velocity leads straight through the obstacle; the solver must divert around it while keeping progress.
         var direction = new Vector2(1f, 1f).normalized;
-        var obstaclePos2D = new Vector2(10, 10);
         mpc.SetVelocityReference(direction * 8f);
 
         var elapsed             = 0f;
