@@ -12,6 +12,7 @@ namespace Ships.Visuals.Breakup
     {
         [SerializeField] private Transform hull;
         [SerializeField] private ShipBreakupDebris debrisPrefab;
+        [SerializeField] private Transform[] poseSources = Array.Empty<Transform>();
         private Rigidbody body;
         private IDamageEvents source;
         private bool subscribed;
@@ -21,6 +22,11 @@ namespace Ships.Visuals.Breakup
             body = GetComponentInParent<Rigidbody>();
             if (!hull || !debrisPrefab)
                 throw new InvalidOperationException("Ship breakup requires an intact hull and debris prefab.");
+            if (poseSources.Length != debrisPrefab.PoseCount)
+                throw new InvalidOperationException("Ship breakup pose sources must match the debris pose roots.");
+            foreach (var pose in poseSources)
+                if (!pose)
+                    throw new InvalidOperationException("Ship breakup requires every authored pose source.");
         }
 
         public void Bind(in ShipView view)
@@ -59,7 +65,7 @@ namespace Ships.Visuals.Breakup
             var debris = Instantiate(debrisPrefab, hull.position, hull.rotation);
             SceneManager.MoveGameObjectToScene(debris.gameObject, gameObject.scene);
             debris.transform.localScale = hull.lossyScale;
-            debris.Initialize(body.linearVelocity);
+            debris.Initialize(body.linearVelocity, poseSources);
             hull.gameObject.SetActive(false);
         }
     }

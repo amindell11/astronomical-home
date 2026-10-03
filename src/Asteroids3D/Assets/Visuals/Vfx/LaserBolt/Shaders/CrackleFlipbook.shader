@@ -9,6 +9,7 @@ Shader "Astronomical/Vfx/Crackle Flipbook"
         _Fps ("Frames per second", Float) = 14
         [ToggleUI] _Crossfade ("Crossfade between frames", Float) = 1
         [ToggleUI] _Ease ("Ease the crossfade", Float) = 1
+        [HideInInspector] _Phase ("Phase (fraction of a cycle, set per bolt)", Float) = 0
     }
     SubShader
     {
@@ -32,6 +33,7 @@ Shader "Astronomical/Vfx/Crackle Flipbook"
                 float _Fps;
                 float _Crossfade;
                 float _Ease;
+                float _Phase;
             CBUFFER_END
             struct Input { float4 vertex:POSITION; float2 uv:TEXCOORD0; };
             struct Varying { float4 position:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -44,7 +46,7 @@ Shader "Astronomical/Vfx/Crackle Flipbook"
             }
             half4 Frag(Varying i):SV_Target
             {
-                float t=_Time.y*_Fps;
+                float t=_Time.y*_Fps+_Phase*_Frames;
                 float k=floor(t);
                 float f=t-k;
                 f=lerp(f,smoothstep(0,1,f),_Ease)*_Crossfade;
