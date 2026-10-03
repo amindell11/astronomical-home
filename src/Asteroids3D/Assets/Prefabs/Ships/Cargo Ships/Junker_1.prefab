@@ -20931,7 +20931,7 @@ MonoBehaviour:
   startingLives: 1
   maxHealth: 400
   maxBankAngle: 10
-  engine: {fileID: 11400000, guid: 8b9b8c7c6d664169897fdbfd232593d7, type: 2}
+  engine: {fileID: 11400000, guid: b63b46134abb483586d8c315401f3d4a, type: 2}
   shield: {fileID: 11400000, guid: 1df67c0d876d4885bb8b12c532765350, type: 2}
   teamNumber: 0
 --- !u!114 &-3878361978911940446

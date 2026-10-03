@@ -6,11 +6,12 @@ these concrete bindings on top of the generic phases.
 ## Where things live
 
 - **Plans** — the arc's GitHub issue (label `arc`) is the global skill's "plan
-  doc": its body is the brief and sequences the arc's slices (sub-issues, or a
-  list in the body). "Pull a PR off the plan" means one of those slices. Slices
-  carry both a descriptive name (`vocab-docfix`) and a positional label
-  (`Slice-C`, `PR-4`) — see `doc/Glossary.md` → *arc & PR naming*; add the
-  missing label when you prep a slice that lacks one. The issue and its
+  doc": its body is the brief and sequences the arc's slices. "Pull a PR off
+  the plan" means one of those slices. Slices carry both a descriptive name
+  (`vocab-docfix`) and a positional label (`Slice-C`, `PR-4`) — see
+  `doc/Glossary.md` → *arc & PR naming*; add the missing label when you prep
+  a slice that lacks one, and the arc's `## Exit criterion` when the body
+  lacks one. The issue and its
   comments are the authority for status; open arcs are
   `gh issue list --label arc --state open`. Read the issue by section, and ask the `design-lookup`
   agent for design history (`doc/agents/design-docs.md` → Reading design).
@@ -25,6 +26,41 @@ these concrete bindings on top of the generic phases.
     **fork (③)**, not a no-brainer — surface it.
   - *Fix ladder* — when a plan's PR patches a symptom, one of your
     forks is often "narrow fix vs structural fix that kills the class." Raise it.
+
+## Arc planning
+
+Arc states and body shapes are law in `doc/agents/issue-tracker.md` → Body
+law; these are the checks a prep runs on them.
+
+**Arcs and PRs in play.** Check every open arc and open PR, and present what
+you find with the Phase 4 design map. `updatedAt` on the arc, its sub-issues
+and the PR is the proxy for both clocks; read the thread before you propose.
+
+- **Active count** —
+  `gh issue list --state open --search 'label:pri:now label:arc,wayfinder:map'`.
+  State it. When it is over three, or this prep would take it over, recommend
+  which arc becomes a *waiting arc*; the user's answer stands.
+- **Arc clock** — an open arc with no frozen slice brief, merged slice PR or
+  `Waiting` date in 21 days: propose ending it CLOSED (Body law → Arc issue).
+- **PR clock** — an open PR with no push, review reply or merge call in 7
+  days: propose merging it, or closing it with its findings posted on its
+  issue. The branch stays, so the PR reopens.
+
+**Cutting slices.**
+
+- **One slice ahead** — prep only the next unbuilt slice, and give only it a
+  sub-issue.
+- **Slice type** opens the brief: `Slice type: build` (forks frozen,
+  acceptance mechanical and stated on the slice) or `Slice type: prototype`
+  (a first version for the user to judge; discarding it is an acceptable
+  result).
+- **A prerequisite the slice uncovers**, in prep or mid-build, is decided in
+  that sitting: it becomes the arc's next slice, or the arc becomes a waiting
+  arc and the prerequisite's arc takes its place.
+- **Defaults to lead with**, the user's to depart from: one approved
+  end-to-end example before a run of similar slices is cut; every slice lands
+  on main and ships value alone, a migration carrying a legacy list that
+  shrinks by one name per PR.
 
 ## Vocabulary — a first-class brief section
 

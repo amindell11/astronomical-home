@@ -47,8 +47,7 @@ namespace Combat.Projectiles
         protected override void Awake()
         {
             base.Awake();
-            if (wavePrefab)
-                SimplePool<ConcussionWave>.Warm(wavePrefab);
+            SimplePool<ConcussionWave>.Warm(wavePrefab);
         }
 
         public override void Launch(Vector3 direction)
@@ -88,12 +87,9 @@ namespace Combat.Projectiles
             if (detonated) return;
             detonated = true;
 
-            if (wavePrefab)
-            {
-                var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-                wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
-                Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
-            }
+            var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
+            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
+            Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
 
             OnDetonated?.Invoke(transform.position);
             Dispose();

@@ -139,6 +139,9 @@ when a session starting work finds every slot full and that slot meets all of:
   shows no `projectOwner`, so no editor or test run is live there.
 
 A session may hold its own work when it stops at a design fork for the user.
+A rejected *prototype slice* is closed instead: close its PR, post its
+findings on its issue and `release` the slot. Its branch stays on origin, so
+the PR reopens.
 
 After a hold, post the `HELD=… RESUME=…` line as a comment on the work's issue
 (and its PR, if open); `pool status` lists held leases.
@@ -218,7 +221,9 @@ scope and proceeds; past the anti-churn bar it asks on the issue
 ## Step 2 — Build
 
 Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
-leases, branches, merge progress, held leases; `gh pr list` for open PRs). Acquire
+leases, branches, merge progress, held leases; `gh pr list` for open PRs). An
+arc whose slices are `unity:editor` or move asset paths keeps one PR open:
+build its next slice once the previous PR has merged. Acquire
 a slot (every slot full → "Holding a slot"; a reclaimed stale slot is not prepared, so `prepare` it); build and test there — directly, or via a sub-agent scoped to the
 slot's worktree path when the task is large enough to benefit from an isolated
 context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
@@ -255,7 +260,9 @@ closes its arc issue with a link back. Cite an issue the PR leaves open as
 "Relates to #N" / "Refs #N": GitHub ignores negation, so "does not close #N"
 closes it, and `create-pr`/`submit` refuse such a body. The body also carries
 one bookkeeping line, `Vocab: <new/changed terms | none>`; anything but `none`
-means `doc/Glossary.md` moves in this same PR.
+means `doc/Glossary.md` moves in this same PR. An arc slice's body adds
+`Deferred: <what its brief asked for and this PR leaves unshipped, each with
+its issue | none>`.
 
 **Owed-local checklist.** A cloud build's body carries `## Test status`: a
 prose `Hosted:` line, then `### Owed local` listing every test the hosted suite
