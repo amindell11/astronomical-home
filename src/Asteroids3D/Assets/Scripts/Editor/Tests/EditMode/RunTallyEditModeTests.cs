@@ -13,7 +13,6 @@ namespace Tests.EditMode
     public class RunTallyEditModeTests
     {
         private static readonly ShipId Player = new(1);
-        private static readonly ShipId Other = new(2);
 
         private GameObject _go;
         private RunTally _tally;
@@ -46,41 +45,28 @@ namespace Tests.EditMode
         private void Kill(ShipId attacker, DamageKind kind = DamageKind.Laser) =>
             _victim.TakeDamage(new DamageInfo(100f, kind, attacker, 0f, Vector3.zero, Vector3.zero));
 
-        [Test]
-        public void PlayerKillingBlow_Counts()
+        // Id 0 is ShipId.Invalid: an asteroid's attacker id, and this Ship-less victim's own id.
+        [TestCase(1, 1, DamageKind.Laser, 1, TestName = "PlayerKillingBlow_CountsAndRaisesKilled")]
+        [TestCase(1, 0, DamageKind.Collision, 0, TestName = "AsteroidKill_DoesNotCountOrRaiseKilled")]
+        [TestCase(1, 2, DamageKind.Laser, 0, TestName = "OtherAttackerKill_DoesNotCountOrRaiseKilled")]
+        [TestCase(0, 0, DamageKind.Laser, 0, TestName = "PlayerSelfDeath_DoesNotCountOrRaiseKilled")]
+        public void KillingBlow_CountsAndRaisesKilled_OnlyWhenThePlayerKillsAnotherShip(
+            int playerId, int attackerId, DamageKind kind, int expectedKills)
         {
-            Kill(Player);
-            Assert.AreEqual(1, _tally.Kills);
+            _playerId = new ShipId(playerId);
+            Kill(new ShipId(attackerId), kind);
+            Assert.AreEqual(expectedKills, _tally.Kills);
+            Assert.AreEqual(expectedKills, _killedRaised);
         }
 
         [Test]
-        public void AsteroidKill_DoesNotCount()
-        {
-            Kill(ShipId.Invalid, DamageKind.Collision);
-            Assert.AreEqual(0, _tally.Kills);
-        }
-
-        [Test]
-        public void OtherAttackerKill_DoesNotCount()
-        {
-            Kill(Other);
-            Assert.AreEqual(0, _tally.Kills);
-        }
-
-        [Test]
-        public void KillAfterEnd_DoesNotCount_AndTimeFreezes()
+        public void KillAfterEnd_DoesNotCountOrRaiseKilled_AndTimeFreezes()
         {
             _tally.End(42f);
             Kill(Player);
             Assert.AreEqual(0, _tally.Kills, "The run is over once the host stamps its end.");
+            Assert.AreEqual(0, _killedRaised);
             Assert.AreEqual(42f, _tally.SecondsSurvived, 1e-4f);
-        }
-
-        [Test]
-        public void CountedKill_RaisesKilled()
-        {
-            Kill(Player);
-            Assert.AreEqual(1, _killedRaised);
         }
 
         [Test]
@@ -88,30 +74,6 @@ namespace Tests.EditMode
         {
             _tally.Reset();
             Kill(Player);
-            Assert.AreEqual(0, _killedRaised);
-        }
-
-        [Test]
-        public void KillAfterEnd_DoesNotRaiseKilled()
-        {
-            _tally.End(1f);
-            Kill(Player);
-            Assert.AreEqual(0, _killedRaised);
-        }
-
-        [Test]
-        public void OtherAttackerKill_DoesNotRaiseKilled()
-        {
-            Kill(Other);
-            Assert.AreEqual(0, _killedRaised);
-        }
-
-        [Test]
-        public void PlayerSelfDeath_DoesNotRaiseKilled()
-        {
-            // The victim has no Ship, so its death reports ShipId.Invalid; make that the player.
-            _playerId = ShipId.Invalid;
-            Kill(ShipId.Invalid);
             Assert.AreEqual(0, _killedRaised);
         }
 
