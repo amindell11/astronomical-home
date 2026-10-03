@@ -1,0 +1,3 @@
+yaw=0: changed pixels=0; outline pixels=8976
+yaw=90: changed pixels=0; outline pixels=8931
+yaw=135: changed pixels=0; outline pixels=8940

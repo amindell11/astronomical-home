@@ -1,0 +1,1 @@
+Consolidated 39 painted pieces and 39 shells into one mesh, one renderer, two material slots. Paint vertices=13389; contour vertices=13389; triangles=15236. Transformed positions, UVs and normals match the source geometry.
