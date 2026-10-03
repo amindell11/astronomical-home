@@ -2054,7 +2054,7 @@ merge_turn_holder() { cut -d' ' -f1 "$MERGE_TURN_HOLDER" 2>/dev/null || true; }
 MERGE_TURN_LINE_PL='
   use strict;
   use warnings;
-  use Fcntl qw(LOCK_EX LOCK_NB F_SETFD);
+  use Fcntl qw(LOCK_EX LOCK_SH LOCK_NB F_SETFD);
   use Time::HiRes qw(time);
   sub ticket_path { "$_[0]/$_[1].turn-ticket" }
   sub arrival {
@@ -2062,9 +2062,10 @@ MERGE_TURN_LINE_PL='
     my $line = <$fh>;
     return defined $line && $line =~ /^(\d+\.\d+)$/ ? $1 : undef;
   }
+  # Shared, so concurrent probes of a dead ticket never read each other as its gate.
   sub live {
     open my $fh, ">>", $_[0] or return 0;
-    return !flock($fh, LOCK_EX | LOCK_NB);
+    return !flock($fh, LOCK_SH | LOCK_NB);
   }
   # Live tickets ahead of the one <slot> holds; undef when it holds none.
   sub ahead {
