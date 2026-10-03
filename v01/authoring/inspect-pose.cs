@@ -1,0 +1,3 @@
+var ship = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>("Assets/Prefabs/Ships/Valis.prefab");
+var mesh = ship.GetComponentInChildren<UnityEngine.SkinnedMeshRenderer>(true);
+return Newtonsoft.Json.JsonConvert.SerializeObject(new { scale = mesh.transform.lossyScale.ToString("F7"), localScale = mesh.transform.localScale.ToString("F7"), bones = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(mesh.bones, b => new { b.name, position = b.localPosition.ToString("F7"), rotation = b.localRotation.ToString("F7"), parent = b.parent.name })), bind = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(mesh.sharedMesh.bindposes, m => m.ToString("F7"))) });
