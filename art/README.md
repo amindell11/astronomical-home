@@ -7,10 +7,6 @@ risk of wiring a half-finished model into a prefab).
 - `ships/`, `stations/` — WIP models by subject.
 - `archives/` — original downloaded asset packs kept for provenance.
 
-The Vanguard modelling source is `ships/vanguard/vanguard.blend`. Its textures,
-references and guides live beside it; see `ships/vanguard/README.md` for the
-entry points.
-
 Graduation path: when a model is ready, export it to FBX into
 `src/Asteroids3D/Assets/Visuals/...`; the `.blend` stays here as history.
 Finished FBX sources for already-shipped assets remain in the per-asset
