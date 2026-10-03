@@ -144,8 +144,18 @@ Format: **term** — definition. *(authority)*
   second opinion, results routed back through fix-ladder triage.
 - **evidence bar / rule-of-three** — machinery earns its place by observed need;
   generalize on the third instance.
-- **arc** — a multi-PR narrative with a declared end.
-- **slice** — a sub-unit of an arc, each getting its own short pr-prep.
+- **arc** — a multi-PR narrative with a declared end: its issue's
+  `## Exit criterion`. *(doc/agents/issue-tracker.md → Body law)*
+- **active arc / waiting arc** — an open arc or wayfinder map at `pri:now` /
+  any other open one. Three active is the suggested ceiling: arcs wait on the
+  user's attention, not on build capacity. "Waiting", never "parked": parked
+  work is closed. *(doc/agents/issue-tracker.md → Body law)*
+- **slice** — a sub-unit of an arc, each getting its own short pr-prep,
+  planned one ahead: each slice's pr-prep has rewritten the plan behind it.
+- **build slice / prototype slice** — the two slice types a brief opens with.
+  Discarding a prototype slice is an acceptable result, and unlike a
+  `wayfinder:prototype` ticket's artifact its PR merges when accepted.
+  *(.claude/pr-prep.md → Arc planning)*
 - **pass** — a bounded one-shot sweep with no successor (hygiene pass, texture
   pass). Retired for this sense: "program", "package", "series".
 - **arc & PR naming** — arcs and slices carry BOTH a descriptive, branch-style
@@ -875,6 +885,7 @@ Format: **term** — definition. *(authority)*
 | PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
 | shelve, shelved, shelf, unshelf (work set aside) | **benched** (waits on a dependency or knowledge) or **held** (slot work waiting on the user) |
 | parked, for slot work waiting on the user | **held** |
+| parked arc | **waiting arc** |
 | ledger row, work ledger | *(retired 2026-09-22)* — in-flight state is the pool (`status`, dashboard) plus open PRs |
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
