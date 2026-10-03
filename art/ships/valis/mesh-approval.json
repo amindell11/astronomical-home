@@ -1,6 +1,7 @@
 {
   "status": "approved-geometry-locked",
-  "geometry_sha256": "c713fb3e410c5c6b66c74ad0e5d5b4885984cfe709b026866cdc6e6ae8d73981",
-  "mesh_parts": 36,
-  "scope": "Geometry frozen; materials, UVs and painted finish may evolve without changing the approved shape."
+  "geometry_sha256": "fcfd8505be73df1c8585ce4eef6c11952f80811370cb8c24c806a96c73ed8b74",
+  "mesh_parts": 30,
+  "scope": "Approved reangled, tapered geometry with restored charcoal spars. Nested parent groups preserve separate meshes, live mirrors, paint UVs and profile keys.",
+  "fingerprint": "SHA256 of ordered evaluated world-space triangle corners converted to Unity coordinates, grouped by object name."
 }
