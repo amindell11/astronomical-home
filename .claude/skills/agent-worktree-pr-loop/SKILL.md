@@ -279,13 +279,16 @@ Hosted: green on `76b9204` — 896/901, 5 skipped as on main; <what the new test
 - Nothing owed → the section's only content is the line `None.`, never a
   checkbox.
 - Prose goes above the heading. Indented lines under an item are the
-  verifier's result lines.
+  verifier's result lines; each names the commit its run was on, in backticks
+  (``Run at `eb3ddb9` ``). An unticked item whose result names the PR's head
+  failed there: no queue serves it until the head moves.
 - The grammar's authority is `./scripts/drain_pick.sh owed <pr>`.
 
 **Merge order.** A `## Merge order` section exists only when the PR must land
 after another: one line per constraint, declared by the PR that lands second —
 `- after #747 — both edit the same test file; keep both sides`. Order notes
-stay out of the owed list.
+stay out of the owed list. The grammar's authority is
+`./scripts/drain_pick.sh merge-queue`.
 
 **Visual evidence.** Every image, GIF or clip the work produced as evidence
 (captures, previews, before/after stills) is embedded in the body under
@@ -460,8 +463,11 @@ build*, runs in a subagent. Start prompt:
    branch; swap `ready-for-agent` for `ready-for-human`;
    `./scripts/drain_pick.sh release <issue>`; go on to the next item.
 8. **Parent, once every PR is open:** check the batch's branches pairwise for
-   conflicts and write the `## Merge order` lines (Step 4), then report the
-   PRs opened and the items blocked.
+   conflicts and write the `## Merge order` lines (Step 4); run
+   `./scripts/drain_pick.sh merge-queue`, fixing the bodies until no `SKIP=`
+   line says `merge-order-malformed` or `order-cycle`; then report the PRs
+   opened and the items blocked, ending on `./scripts/drain_pick.sh digest`,
+   relayed as printed.
 9. **A cloud batch ends at draft PRs.** It never merges, never marks a PR
    ready for review and never boots Unity.
 
