@@ -469,12 +469,12 @@ namespace RL.Hosts
                 start = i + 1;
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
-            // The sentence brain exposes no policy readout (facing).
-            if (lane == HarnessLane.Sentence)
+            // The sentence and duel lanes install scripted brains, which expose no policy readout.
+            if (lane is HarnessLane.Sentence or HarnessLane.Duel)
                 foreach (var entry in entries)
-                    if (entry.name == FacingProbe.ProbeName)
+                    if (entry.name is FacingProbe.ProbeName or SentenceProbe.ProbeName)
                         throw ProbeError(entry.name,
-                            "the sentence lane's brain carries no policy readout");
+                            $"the {lane.ToString().ToLowerInvariant()} lane's brain carries no policy readout");
             // The combat probe normalizes by the primary FireRange; Missiles and Grenades report 0.
             if (lane == HarnessLane.Duel)
                 foreach (var entry in entries)

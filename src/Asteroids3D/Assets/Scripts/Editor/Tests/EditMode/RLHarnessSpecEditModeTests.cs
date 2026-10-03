@@ -250,8 +250,13 @@ namespace Tests.EditMode
         [Test]
         public void SentenceLane_RefusesTheProbesItsBrainCannotFeed()
         {
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", FacingProbe.ProbeName));
+            foreach (var probe in new[] { FacingProbe.ProbeName, SentenceProbe.ProbeName })
+            {
+                var thrown = Assert.Throws<ArgumentException>(() =>
+                    Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", probe));
+                StringAssert.Contains($"'{probe}'", thrown.Message);
+                StringAssert.Contains("sentence lane", thrown.Message);
+            }
             Assert.AreEqual(new[] { ControllerProbe.ProbeName, ContactProbe.ProbeName },
                 Names(Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", "controller,contact").probes),
                 "probes that read ships rather than the policy stay selectable");
@@ -322,14 +327,18 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void DuelLane_RefusesTheCombatProbe()
+        public void DuelLane_RefusesTheProbesItsWeaponsAndBrainCannotFeed()
         {
-            var thrown = Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,combat"));
-            StringAssert.Contains(CombatTelemetryProbe.ProbeName, thrown.Message);
+            foreach (var probe in new[] { CombatTelemetryProbe.ProbeName, FacingProbe.ProbeName, SentenceProbe.ProbeName })
+            {
+                var thrown = Assert.Throws<ArgumentException>(() =>
+                    Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship," + probe));
+                StringAssert.Contains($"'{probe}'", thrown.Message);
+                StringAssert.Contains("duel lane", thrown.Message);
+            }
             Assert.AreEqual(new[] { MarksmanshipProbe.ProbeName, ContactProbe.ProbeName },
                 Names(Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,contact").probes),
-                "probes that need no fire range stay selectable");
+                "probes that need neither a fire range nor a policy readout stay selectable");
         }
 
         [Test]
