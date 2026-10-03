@@ -1,0 +1,2 @@
+from pathlib import Path
+p=Path('scratch/capture/look-texture-isolation.cs');s=p.read_text().replace('results/drawn-look-probe','results/drawn-texture-isolation');needle='var camera=stage.GetComponentInChildren<UnityEngine.Camera>();';s=s.replace(needle,'foreach(var r in stage.GetComponentsInChildren<UnityEngine.MeshRenderer>()) {var m=r.sharedMaterial;if(m.shader.name=="Astronomical/Comparison/Drawn Surface"){m.SetFloat("_TextureStrength",0);m.SetFloat("_PigmentPreservation",0);m.SetFloat("_LineStrength",0);m.SetFloat("_SpecularStrength",0);}}\n'+needle);p.write_text(s)

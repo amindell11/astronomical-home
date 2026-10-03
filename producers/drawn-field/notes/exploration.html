@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drawn rendering · exploration</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#080e1c;color:#e8edf7}body{margin:0;padding:28px;max-width:1920px;margin:auto}h1{font-size:28px;font-weight:560;margin:8px 0}p{color:#adb9d0;line-height:1.6}a{color:#abd1ff}.tag{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#99d7cc}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:20px 0}button,select{font:inherit;background:#19253d;color:inherit;border:1px solid #354560;border-radius:6px;padding:8px 12px;cursor:pointer}button:hover{background:#263859}input[type=range]{width:min(500px,100%);accent-color:#b9d6ff}#time{font-variant-numeric:tabular-nums}#views,#pictures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}h2{font-size:18px;font-weight:550;margin:10px 0}video,img{width:100%;display:block;background:#000;border-radius:5px}article p{font-size:14px;margin:8px 0}#views.focus,#pictures.focus{grid-template-columns:1fr;max-width:1400px;margin:auto}[hidden]{display:none!important}.stills{margin-top:32px}.note{border-top:1px solid #26344c;margin-top:32px;padding-top:15px;font-size:14px}label{display:flex;align-items:center;gap:8px}@media(max-width:850px){body{padding:16px}#views,#pictures{grid-template-columns:1fr}h1{font-size:24px}}
+</style>
+<div class="tag">Exploration · camera corrected</div>
+<h1>Heavier ink. Cleaner color.</h1>
+<p>The ship is now filmed from above. Compare the existing materials, B’s earlier palette, and the latest exploration during the same bank, hit and turntable motion.</p>
+<div class="controls">
+<button id="play" type="button">Play</button><button id="pause" type="button">Pause</button>
+<label>Speed <select id="speed"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label>
+<label>View <select id="focus"><option value="exploration-top">Latest exploration</option><option value="all">Compare all</option><option value="current-top">Existing materials</option><option value="b-top">B · Earlier palette</option></select></label>
+</div>
+<div class="controls"><input id="seek" type="range" min="0" max="17.94" step="0.02" value="12" aria-label="Matched playback time"><output id="time">12.00 s</output>
+<button data-time="1.8" type="button">Bank left</button><button data-time="3.3" type="button">Bank right</button><button data-time="6.1" type="button">Hit flash</button><button data-time="12" type="button">Inspection</button></div>
+<div id="views">
+<article data-view="current-top"><h2>Existing materials</h2><video src="current-top.mp4" poster="current-top-inspection.png" muted playsinline preload="auto" controls></video><p>The current ship and asteroid, filmed with the corrected camera.</p></article>
+<article data-view="b-top"><h2>B · Earlier palette</h2><video src="b-top.mp4" poster="b-top-inspection.png" muted playsinline preload="auto" controls></video><p>Broad shading with 3.2 px contours. The stray interior contour fragments are removed.</p></article>
+<article data-view="exploration-top"><h2>Latest exploration</h2><video src="exploration-top.mp4" poster="exploration-top-inspection.png" muted playsinline preload="auto" controls></video><p>Darker 4.5 px contours, cream and orange paint, quieter highlights and violet shadows. A simpler, faceted asteroid.</p></article>
+</div>
+<div class="stills"><label>Original stills <select id="still"><option value="inspection">Inspection · 12 seconds</option><option value="flight">Banking · 2 seconds</option></select></label><p>Open a still for its original 1920 × 1080 pixels.</p>
+<div id="pictures"><a data-view="current-top" href="current-top-inspection.png" target="_blank"><img src="current-top-inspection.png" alt="Existing materials, corrected camera"></a><a data-view="b-top" href="b-top-inspection.png" target="_blank"><img src="b-top-inspection.png" alt="B with earlier palette"></a><a data-view="exploration-top" href="exploration-top-inspection.png" target="_blank"><img src="exploration-top-inspection.png" alt="Latest exploration"></a></div></div>
+<p class="note">All three clips use the corrected camera, the same lighting, and identical motion traces. Captured at the simulation’s 50 Hz cadence; this is not a performance benchmark. The hangar renders at 768 × 768. The reference’s clean panel shapes still need mesh and surface work. The magenta patches in the existing asteroid remain tracked in <a href="https://github.com/amindell11/astronomical-home/issues/619">#619</a>. <a href="review-notes.md">Evidence and limitations</a></p>
+<script>
+const videos=[...document.querySelectorAll('video')],seek=document.getElementById('seek'),time=document.getElementById('time');
+function jump(t){videos.forEach(v=>{if(v.readyState)v.currentTime=t});seek.value=t;time.value=t.toFixed(2)+' s'}
+videos.forEach(v=>v.addEventListener('loadedmetadata',()=>{v.currentTime=Number(seek.value)},{once:true}));
+document.getElementById('play').onclick=()=>{const t=Number(seek.value);videos.forEach(v=>{v.currentTime=t;v.play().catch(()=>{})})};
+document.getElementById('pause').onclick=()=>videos.forEach(v=>v.pause());
+seek.oninput=()=>{videos.forEach(v=>v.pause());jump(Number(seek.value))};
+document.querySelectorAll('[data-time]').forEach(b=>b.onclick=()=>{videos.forEach(v=>v.pause());jump(Number(b.dataset.time))});
+document.getElementById('speed').onchange=e=>videos.forEach(v=>v.playbackRate=Number(e.target.value));
+function focus(){const choice=document.getElementById('focus').value;['views','pictures'].forEach(id=>document.getElementById(id).classList.toggle('focus',choice!=='all'));document.querySelectorAll('[data-view]').forEach(a=>a.hidden=choice!=='all'&&a.dataset.view!==choice)}
+document.getElementById('focus').onchange=focus;focus();
+document.getElementById('still').onchange=e=>document.querySelectorAll('#pictures a').forEach(a=>{const path=a.dataset.view+'-'+e.target.value+'.png';a.href=path;a.firstElementChild.src=path});
+function tick(){if(!videos[0].paused){const t=videos[0].currentTime;seek.value=t;time.value=t.toFixed(2)+' s';videos.slice(1).forEach(v=>{if(Math.abs(v.currentTime-t)>.06)v.currentTime=t})}requestAnimationFrame(tick)}tick();
+</script>
+</html>

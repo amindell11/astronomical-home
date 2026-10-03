@@ -1,0 +1,12 @@
+var folder="Assets/Visuals/Environment/Asteroids/DrawnStudy/";
+UnityEditor.AssetDatabase.Refresh();
+var modelImporter=(UnityEditor.ModelImporter)UnityEditor.AssetImporter.GetAtPath(folder+"AsteroidPaintStudy.fbx");
+modelImporter.materialImportMode=UnityEditor.ModelImporterMaterialImportMode.None;
+modelImporter.SaveAndReimport();
+var textureImporter=(UnityEditor.TextureImporter)UnityEditor.AssetImporter.GetAtPath(folder+"AsteroidPaint.png");
+textureImporter.maxTextureSize=2048;textureImporter.mipmapEnabled=true;textureImporter.wrapMode=UnityEngine.TextureWrapMode.Repeat;textureImporter.anisoLevel=4;textureImporter.SaveAndReimport();
+var material=new UnityEngine.Material(UnityEngine.Shader.Find("Astronomical/Comparison/Drawn Surface"));
+material.SetTexture("_BaseMap",UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(folder+"AsteroidPaint.png"));
+material.SetFloat("_TextureStrength",1);material.SetFloat("_LineStrength",.9f);material.SetFloat("_LineThreshold",.035f);material.SetFloat("_LineSoftness",.02f);material.SetFloat("_SpecularStrength",0);material.SetFloat("_EmissionStrength",0);material.SetFloat("_PaletteLighting",1);material.SetFloat("_AmbientStrength",.35f);material.SetColor("_ShadowColor",new UnityEngine.Color(.48f,.46f,.62f));material.SetFloat("_ShadowThreshold",-.1f);material.SetFloat("_ShadowSoftness",.3f);material.SetColor("_BaseColor",new UnityEngine.Color(1.3f,1.3f,1.3f));
+UnityEditor.AssetDatabase.CreateAsset(material,folder+"AsteroidPaint.mat");UnityEditor.AssetDatabase.SaveAssets();
+return folder;

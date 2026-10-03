@@ -1,0 +1,5 @@
+The user selected B (drawn surface plus selective geometry contours) after reviewing the matched comparison, and asked what carrying it forward involves. A and the current-rendering control are not the selected direction; no further aesthetic rationale was supplied.
+
+This selects the visual direction, not a production rollout or merge. The prototype currently assigns temporary surface materials and an extra contour renderer only inside the comparison scenarios. Carrying it into normal play requires permanent visual-asset setup shared with the hangar, resolving the observed contour fragmentation, and checking damage/flash, native environment lighting and representative GPU cost/quality coverage. Existing source meshes and collision roles need not be redesigned merely to apply B; suitability of every roster silhouette remains unestablished.
+
+PR #691 remains the reviewable prototype. No merge or new implementation is authorized by this selection; production questions remain open while the implementation implications are discussed.

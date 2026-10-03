@@ -1,0 +1,3 @@
+## What does the relief experiment add?
+
+The user approved trying a small sculpted surface-relief layer baked to a normal map. Fit shallow beveled gouges, edge chips and short directional scrapes around the authored creases/crater rims. Keep broad planes quiet, current silhouette/drawing and moving shadows. The map must change lighting rather than paint fixed dark patches. Add opt-in normal mapping to the existing study surface material, including its depth-normal output, and verify relief-on/off under opposed lights and a light sweep. Bake from an editable Blender source; no new post effect or production-spawn change.

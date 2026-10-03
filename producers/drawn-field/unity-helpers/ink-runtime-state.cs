@@ -1,0 +1,1 @@
+return new {quality=UnityEngine.QualitySettings.renderPipeline.name,current=UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline.name,features=System.Array.ConvertAll(UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.Universal.ScriptableRendererData>("Assets/Settings/Rendering/URP-HighFidelity-Renderer.asset").rendererFeatures.ToArray(),f=>f.name)};

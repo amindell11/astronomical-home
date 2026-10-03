@@ -1,0 +1,3 @@
+## Asteroid mesh and paint exploration
+
+The user narrowed the next round to the asteroid only and authorized mesh/texture work toward the selected art reference. Keep the ship as-is. Explore broad chipped rock forms, a muted mauve/slate painted albedo and sparse intentional fissures, with a restrained silhouette contour and simple lighting. The automatic internal screen-edge pass is excluded from the new candidate. Test the asset through a full rotation and at gameplay scale, rather than accepting a single view. Existing production asteroid assets remain available for comparison; promote the candidate only within the exploratory scenario.

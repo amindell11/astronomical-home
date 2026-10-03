@@ -1,0 +1,7 @@
+## What did the drawing pass establish?
+
+The current study has directional brush paint plus a separate authored mesh layer: tapered crease lines, broken crater rims and paired chisel nicks fitted to explicit surface locations. Six shallow bowls and selected flattened ridge shoulders add physical form. The first thin lines broke into dots at game size; increasing weight and surface offset made the marks continuous. Drawing covers about 3% of the visible rock, leaving the broad dark masses to real lighting.
+
+Final native graphics run: 3 passed, zero failed. The fully lit base still contains zero black pixels. Opposed lights change 15,671/29,626 surface pixels between dark and lit; drawing covers 898 pixels. Both the fixed-rock light sweep and fixed-light turntable have 72 native frames with decoded encoder verification. The browser comparison plays correctly. The reference still has stronger planes and more deliberate line-weight variation.
+
+Quality review found no required changes. ReSharper changed-line ratchet: zero blockers, 63 report-only/touched-file findings. Source is art/asteroid-study/AsteroidDrawnStudy.blend, with a packed brush albedo and separate drawing mesh. Exact ImageGen prompt is in the adjacent README. The scenario includes the layer in both gameplay and inspection; the latest footage is an isolated render study, not new full gameplay evidence. No production collision/spawning change and no merge.

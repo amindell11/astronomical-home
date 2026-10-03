@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asteroid · mesh and paint study</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#0b1020;color:#e9e7ef}body{max-width:1300px;margin:auto;padding:26px}h1{font-size:32px;letter-spacing:-.04em;font-weight:550;margin:8px 0 14px}h2{font-size:20px;font-weight:550;margin-top:32px}p{line-height:1.55;color:#bbc0d0;max-width:850px}.eyebrow{color:#bfabae;text-transform:uppercase;font-size:12px;letter-spacing:.12em}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pair article{min-width:0}h3{font-size:15px;font-weight:550}video{width:100%;display:block;border-radius:8px;background:#1b2334}.frame{aspect-ratio:1;overflow:hidden;border-radius:8px;background:#1b2334}.frame video{width:145%;max-width:none;margin:-22.5%}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}button,select{font:inherit;background:#263045;border:1px solid #51596c;border-radius:5px;padding:8px 12px;color:inherit;cursor:pointer}input{flex:1;min-width:170px}output{width:55px;font-variant-numeric:tabular-nums}.reference{width:min(400px,100%);aspect-ratio:1;background-image:url('asteroid-reference.png');background-size:185% auto;background-position:63% 25%;border-radius:8px}a{color:#c0ccff}.notes{border-top:1px solid #30374a;margin-top:28px;padding-top:12px;font-size:14px}details{margin-top:24px}summary{cursor:pointer;color:#c0ccff}#scene{max-width:1000px;margin-top:12px}.small{font-size:14px}@media(max-width:700px){body{padding:18px}.pair{grid-template-columns:1fr}h1{font-size:28px}}
+</style>
+<div class="eyebrow">Asteroid only · sculpted mesh + painted texture</div>
+<h1>Broken shapes. Deeper fractures.</h1>
+<p>A tapered, irregular mesh with carved recesses and slate/olive paint follows the new asteroid reference. Black fractures rotate with the rock; light-facing planes turn amber. The thicker outer contour remains, with automatic internal edge detection off.</p>
+<div class="controls"><button id="play">Spin both</button><button id="pause">Pause</button><label>Speed <select id="speed"><option value="1">1×</option><option value=".5">½×</option></select></label></div>
+<div class="controls"><label for="angle">Angle</label><input id="angle" type="range" min="0" max="357.5" step="2.5" value="0"><output id="degrees">0°</output></div>
+<div class="pair"><article><h3>New · fractured mesh + slate/olive paint</h3><div class="frame"><video id="after" src="asteroid-after.mp4" poster="asteroid-after.png" muted loop playsinline preload="auto"></video></div></article><article><h3>Previous · original mesh + drawn surface</h3><div class="frame"><video id="before" src="asteroid-before.mp4" poster="asteroid-before.png" muted loop playsinline preload="auto"></video></div></article></div>
+<p class="small">Direct Unity renders, identical camera, light and rotation. The preview enlarges the framing; <a href="asteroid-after.png">open the full-resolution still</a>.</p>
+<h2>Reference direction</h2><a href="asteroid-reference.png" target="_blank" aria-label="Open the full art reference"><div class="reference"></div></a>
+<p>Your latest reference sets the target: a jagged silhouette, deep black clefts, cool stone and an amber-lit edge. This study is closer in shape and contrast. The reference still has more deliberate individual brush marks; the spherical UVs compress some marks near the tip.</p>
+<details><summary>See it in the actual scene and hangar</summary><video id="scene" src="asteroid-gameplay.mp4" poster="asteroid-gameplay.png" controls muted playsinline preload="metadata"></video><p class="small">18-second direct gameplay capture, followed by native hangar inspection. The corrected camera excludes minimap proxies, removing the magenta asteroid overlay and revealing the real ship's darker appearance. Ship assets and materials are unchanged. This is a visual prototype; collision still uses the original asteroid shape.</p></details>
+<p class="notes">The paint was generated with ImageGen from the new reference and mapped onto an editable Blender mesh. Runtime shading uses the existing surface and silhouette shaders. No new post effect. <a href="asteroid-study-notes.md">Evidence, sources and limitations</a> · <a href="quiet-study.html">Earlier quiet stone</a> · <a href="contour-study.html">Previous contour experiment</a></p>
+<script>
+const clips=[document.getElementById('before'),document.getElementById('after')],angle=document.getElementById('angle'),degrees=document.getElementById('degrees');
+function seek(a){clips.forEach(v=>{if(v.readyState)v.currentTime=a/60});angle.value=a;degrees.value=Math.round(a)+'°'}
+clips.forEach(v=>v.addEventListener('loadedmetadata',()=>{v.currentTime=Number(angle.value)/60},{once:true}));
+document.getElementById('play').onclick=()=>{const t=Number(angle.value)/60;clips.forEach(v=>{v.currentTime=t;v.play()})};document.getElementById('pause').onclick=()=>clips.forEach(v=>v.pause());
+angle.oninput=()=>{clips.forEach(v=>v.pause());seek(Number(angle.value))};document.getElementById('speed').onchange=e=>clips.forEach(v=>v.playbackRate=Number(e.target.value));
+function tick(){if(!clips[0].paused){const t=clips[0].currentTime;angle.value=Math.min(357.5,t*60);degrees.value=Math.round(Math.min(360,t*60))+'°';if(Math.abs(clips[1].currentTime-t)>.08)clips[1].currentTime=t}requestAnimationFrame(tick)}tick();
+</script></html>
+
+

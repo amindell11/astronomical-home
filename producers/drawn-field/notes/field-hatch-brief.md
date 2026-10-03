@@ -1,0 +1,3 @@
+## What will the finishing detail layer add?
+
+The user wants one more layer of little cross-hatching and detail across the accepted ten-shape field style. Add sparse, tapered hatch bundles and small chisel ticks fitted to quiet surface patches beside actual ridges. Keep their weight below the primary contours, retain the accepted palette, and preserve moving light-dependent shadows. Author in the existing Blender sources and drawing FBXs; no shader, base mesh, relief map, production wiring or ship changes. Compare against e9b86bf3 so this detail layer can be judged alone, then capture the native field and all-ten views.

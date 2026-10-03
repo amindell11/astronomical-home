@@ -1,0 +1,1 @@
+return new {methods=System.Array.ConvertAll(System.Array.FindAll(typeof(UnityEditor.MeshUtility).GetMethods(),m=>m.Name.Contains("ReadOnlyMeshData")),m=>m.ToString()),arrayAssembly=typeof(Unity.Collections.NativeArray<UnityEngine.Vector3>).Assembly.GetName().Name};

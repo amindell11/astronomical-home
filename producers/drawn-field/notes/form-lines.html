@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contour study · identical meshes</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#0a101c;color:#e5eaf4}body{max-width:1500px;margin:auto;padding:24px}h1{font-size:28px;font-weight:550;margin:8px 0}h2{font-size:20px;font-weight:550;margin:30px 0 10px}p{color:#afbbce;line-height:1.55}.tag{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#accbde}label{display:inline-flex;gap:8px;align-items:center}button,select{font:inherit;color:inherit;background:#1b2940;border:1px solid #3d4e67;border-radius:5px;padding:8px 12px;cursor:pointer}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:18px 0}img,video{width:100%;display:block;border-radius:5px}#still{max-width:850px;margin:auto}#still p{text-align:center;font-size:14px}#clips{display:grid;grid-template-columns:1fr 1fr;gap:20px}article h3{font-size:17px;font-weight:550}.note{border-top:1px solid #2c3c50;margin-top:24px;padding-top:14px;font-size:14px}a{color:#acd4ff}input[type=range]{width:min(500px,100%)}#time{font-variant-numeric:tabular-nums}@media(max-width:850px){body{padding:16px}#clips{grid-template-columns:1fr}h1{font-size:24px}}
+</style>
+<div class="tag">Revised experiment · original asteroid mesh restored</div>
+<h1>Contours, isolated</h1>
+<p>The previous method only outlined the outside. This study adds lines where visible surfaces overlap or change direction. Switch the lines off and on: mesh, color and lighting stay identical.</p>
+<div class="controls"><label>Object <select id="object"><option value="ship">Ship</option><option value="rock">Asteroid</option></select></label><label>Linework <select id="linework"><option value="after">Outer + internal lines</option><option value="before">Outer outline only</option></select></label><button id="toggle">Toggle linework</button></div>
+<div id="still"><a id="original" href="form-ship-after.png" target="_blank"><img id="picture" src="form-ship-after.png" alt="Ship with outer and internal ink lines"></a><p id="caption">Ship · outer + internal lines</p></div>
+<p>The canopy and overlapping hull sections gain visible boundaries. The asteroid still exposes small, scratchy details, and narrow ship features fill with ink at gameplay size. This is a rendering experiment, not a finished match to the reference.</p>
+<h2>The same bank and spin, with and without internal lines</h2>
+<p>The magenta asteroid patches are an existing capture defect (#619), visible again with the original mesh. They occur in both versions and are not part of the proposed palette.</p>
+<div class="controls"><button id="play">Play both</button><button id="pause">Pause</button><label>Speed <select id="speed"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label></div>
+<div class="controls"><input id="seek" aria-label="Matched playback time" type="range" min="0" max="17.94" step="0.02" value="12"><output id="time">12.00 s</output><button data-time="1.8">Bank left</button><button data-time="3.3">Bank right</button><button data-time="12">Inspection</button></div>
+<div id="clips"><article><h3>Outer outline only</h3><video src="form-before.mp4" poster="form-before-inspection.png" controls muted playsinline preload="auto"></video></article><article><h3>Outer + internal lines</h3><video src="form-after.mp4" poster="form-after-inspection.png" controls muted playsinline preload="auto"></video></article></div>
+<p class="note">Stills are direct 768 × 768 Unity renders on a neutral background. Videos are direct 1920 × 1080 gameplay and hangar captures at the 50 Hz simulation cadence. Both videos use the original full-detail asteroid mesh and identical motion traces. Performance has not been benchmarked. <a href="form-study-notes.md">Evidence and limitations</a> · <a href="previous-exploration.html">Previous, rejected exploration</a></p>
+<script>
+const object=document.getElementById('object'),linework=document.getElementById('linework');
+function updateStill(){const source='form-'+object.value+'-'+linework.value+'.png';document.getElementById('picture').src=source;document.getElementById('original').href=source;document.getElementById('caption').textContent=(object.value==='ship'?'Ship':'Asteroid')+' · '+(linework.value==='after'?'outer + internal lines':'outer outline only');document.getElementById('picture').alt=document.getElementById('caption').textContent}
+object.onchange=updateStill;linework.onchange=updateStill;document.getElementById('toggle').onclick=()=>{linework.value=linework.value==='after'?'before':'after';updateStill()};
+const videos=[...document.querySelectorAll('video')],seek=document.getElementById('seek'),time=document.getElementById('time');
+function jump(t){videos.forEach(v=>{if(v.readyState)v.currentTime=t});seek.value=t;time.value=t.toFixed(2)+' s'}
+videos.forEach(v=>v.addEventListener('loadedmetadata',()=>{v.currentTime=Number(seek.value)},{once:true}));
+document.getElementById('play').onclick=()=>{const t=Number(seek.value);videos.forEach(v=>{v.currentTime=t;v.play().catch(()=>{})})};
+document.getElementById('pause').onclick=()=>videos.forEach(v=>v.pause());
+seek.oninput=()=>{videos.forEach(v=>v.pause());jump(Number(seek.value))};
+document.querySelectorAll('[data-time]').forEach(b=>b.onclick=()=>{videos.forEach(v=>v.pause());jump(Number(b.dataset.time))});
+document.getElementById('speed').onchange=e=>videos.forEach(v=>v.playbackRate=Number(e.target.value));
+function tick(){if(!videos[0].paused){const t=videos[0].currentTime;seek.value=t;time.value=t.toFixed(2)+' s';if(Math.abs(videos[1].currentTime-t)>.06)videos[1].currentTime=t}requestAnimationFrame(tick)}tick();
+</script>
+</html>

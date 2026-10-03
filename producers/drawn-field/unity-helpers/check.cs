@@ -1,0 +1,1 @@
+return new { compiling = UnityEditor.EditorApplication.isCompiling, failed = UnityEditor.EditorUtility.scriptCompilationFailed, shader = UnityEditor.ShaderUtil.GetShaderMessages(UnityEngine.Shader.Find("Astronomical/Comparison/Drawn Surface")), scenario = System.Type.GetType("Tests.PlayMode.Scenarios.Drawn.DrawnControlScenario, Tests.PlayMode") != null };

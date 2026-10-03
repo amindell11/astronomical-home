@@ -1,0 +1,2 @@
+from pathlib import Path
+p=Path('src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Scenarios/Drawn/DrawnComparisonScenario.cs');s=p.read_text().replace('new Color(.60f, .54f, .46f)','new Color(.82f, .79f, .73f)').replace('new Color(.22f, .20f, .36f)','new Color(.34f, .33f, .48f)').replace('material.SetFloat("_ShadowSoftness", .05f);','material.SetFloat("_ShadowThreshold", asteroid ? .05f : -.15f);\n                material.SetFloat("_ShadowSoftness", .10f);');p.write_text(s)
