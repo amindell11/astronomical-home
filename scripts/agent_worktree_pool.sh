@@ -1288,9 +1288,10 @@ run_script_test_lane() {
     base="$(basename "$file")"
     rc=0
     started=$SECONDS
+    # A file must not read the runner's stdin: a pipe nobody closes would hang it.
     case "$file" in
-      *.sh) bash "$file" > "$buf/$base" 2>&1 || rc=$? ;;
-      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" > "$buf/$base" 2>&1 || rc=$? ;;
+      *.sh) bash "$file" < /dev/null > "$buf/$base" 2>&1 || rc=$? ;;
+      *.ps1) powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$file" < /dev/null > "$buf/$base" 2>&1 || rc=$? ;;
     esac
     sec=$((SECONDS - started))
     journal_event script-test script-tests "file=$base" "sec=$sec" "exit=$rc"
