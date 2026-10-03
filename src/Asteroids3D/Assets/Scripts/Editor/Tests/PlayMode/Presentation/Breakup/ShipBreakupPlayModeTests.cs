@@ -114,7 +114,7 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(effects, Has.Length.EqualTo(1));
             Assert.That(effects[0].name, Does.StartWith("LayeredAsteroidExplosion"));
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
-            Assert.That(pieces, Has.Length.EqualTo(16));
+            Assert.That(pieces, Has.Length.EqualTo(14));
             var after = pieces.SelectMany(p => p.sharedMesh.vertices.Select(p.transform.TransformPoint)).ToArray();
             AssertGeometry(before, after);
             foreach (var piece in pieces)
