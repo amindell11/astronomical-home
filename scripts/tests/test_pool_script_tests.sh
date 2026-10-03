@@ -203,6 +203,14 @@ sel_commit
 sel_run "$SEL_BASE" HEAD
 expect_sel "a rename counts its old path" "test_beta.sh " "no covers line lists: scripts/zed.sh"
 
+sel_case red
+printf '#!/usr/bin/env bash\n# covers: scripts/alpha.sh\nexit 7\n' > "$SEL/scripts/tests/test_red.sh"
+sel_commit
+sel_run "$SEL_BASE" HEAD
+[[ "$rc" -ne 0 ]] || fail "a red selected file must fail the run (got: $out)"
+grep -qE '"event":"script-test","phase":"script-tests","file":"test_red.sh","sec":[0-9]+,"exit":7' "$SEL_JOURNAL" \
+  || fail "each file journals a script-test event with its seconds and exit code (got: $(cat "$SEL_JOURNAL"))"
+
 sel_case stale
 sel_test test_alpha.sh "# covers: scripts/alpha.sh scripts/gone.sh"
 sel_commit
@@ -211,4 +219,4 @@ sel_run
 [[ "$out" == *"test_alpha.sh covers 'scripts/gone.sh'"* ]] || fail "the refusal names the file and the entry (got: $out)"
 [[ ! -s "$SEL_MARKER" ]] || fail "a stale entry refuses before any file runs (ran: $(sel_ran))"
 
-echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, runs the .ps1 lane beside the .sh lane in a stable print order, fails only after every file ran, and selects files by covers line from a landing range"
+echo "PASS: run-script-tests resolves <slot>, refuses unknown slots and paths, fails on a missing or empty suite, runs the .ps1 lane beside the .sh lane in a stable print order, fails only after every file ran, selects files by covers line from a landing range, and journals each file's exit code"

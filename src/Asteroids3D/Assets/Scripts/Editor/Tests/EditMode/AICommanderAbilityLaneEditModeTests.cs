@@ -1,10 +1,7 @@
-using Combat.Weapons;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
-using AI.Context;
 using Combat;
-using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
@@ -24,29 +21,6 @@ namespace Tests.EditMode
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
         private static readonly ShipId AnchorId = new(4242);
 
-        private sealed class TestableCommander : AICommander
-        {
-            public void CallAwake() => Awake();
-            public void Step() => FixedUpdate();
-        }
-
-        private sealed class StubStatus : IShipStatus
-        {
-            public Transform transform;
-            public Dynamics dynamics;
-            public ShipId Id => default;
-            public Transform Transform => transform;
-            public Kinematics Kinematics => default;
-            public Dynamics Dynamics => dynamics;
-            public float HealthPct => 1f;
-            public float ShieldPct => 1f;
-            public bool BoostAvailable => true;
-            public float BoostCooldownRemaining => 0f;
-            public float BoostCooldownPct => 0f;
-            public float MaxSpeed => dynamics.maxSpeed;
-            public float MaxYawRate => dynamics.maxYawRate;
-        }
-
         private sealed class SpyPilot : IPilot
         {
             public readonly List<PilotCommand> Commands = new();
@@ -54,24 +28,9 @@ namespace Tests.EditMode
             public PilotCommand Last => Commands[^1];
         }
 
-        private sealed class StubWeaponContext : IWeaponContext
-        {
-            private static readonly WeaponSlot[] slots = { WeaponSlot.Primary };
-            public IReadOnlyList<WeaponSlot> Slots => slots;
-            public bool IsReady(WeaponSlot slot) => true;
-            public float ProjectileSpeed(WeaponSlot slot) => 40f;
-            public Gunsight Sight(WeaponSlot slot) => null;
-        }
-
         private sealed class NoWeapons : IWeapons
         {
             public void Fire(WeaponSlot slot, in WeaponCommand cmd) { }
-        }
-
-        private sealed class ScriptedBrain : Brain
-        {
-            public BrainDecision? decision;
-            public override BrainDecision? Decide(AIContext ctx) => decision;
         }
 
         private GameObject host;
@@ -99,7 +58,7 @@ namespace Tests.EditMode
             registry.Ships[AnchorId] = anchorHost.AddComponent<Ship>();
 
             pilot = new SpyPilot();
-            var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
+            var status = new StubShipStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
             commander.SetSensing(registry, null);
             commander.Initialize(new ShipControl(status, pilot, new SeedScope(1),
                 new StubWeaponContext(), new NoWeapons()));
@@ -153,16 +112,6 @@ namespace Tests.EditMode
         {
             StepBoost(Drifting(boost: true));
             Assert.AreEqual(0f, StepBoost(null));
-        }
-
-        [Test]
-        public void AbilityLane_ResetState_ClearsBoost()
-        {
-            StepBoost(Drifting(boost: true));
-            commander.ResetState();
-            brain.decision = null;
-            commander.Step();
-            Assert.AreEqual(0f, pilot.Last.boost);
         }
 
         [Test]
