@@ -1,0 +1,1 @@
+Grouping correction review: no findings, no edits. Verified 14 pieces totaling 45,384 vertices. Removed armor renderers/animation targets have no remaining references. All surviving animation curves remain unchanged except merged fuselage position curves for its recentered pivot. Runtime code, wing pose parents, single explosion wiring and other fragments unchanged.

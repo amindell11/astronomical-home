@@ -55,6 +55,21 @@
     "bytes": 2094
   },
   {
+    "path": "v02/proofs/20261003-001002-EditMode.xml",
+    "sha256": "39883a54cf46a9da006fef47e9ad56064d6b4dc2680daa1ad65d44def2b10d16",
+    "bytes": 580712
+  },
+  {
+    "path": "v02/proofs/20261003-001002-PlayMode.xml",
+    "sha256": "22f6a1b09ec1c8e8c06c035a2e023f0dd16fc882a92f4dbae7f7611addd6651c",
+    "bytes": 1926615
+  },
+  {
+    "path": "v02/proofs/20261003-001002-summary.json",
+    "sha256": "799bbf503bba0fefaa8aa190ea4fdd0658ff0556b941b30fd1ec199c32a9a0d9",
+    "bytes": 6509
+  },
+  {
     "path": "v02/proofs/manifest.json",
     "sha256": "96ab64e673ea5bd4fccf59e4422f6f323a54d14281f37ec0f76592d6b18a1697",
     "bytes": 244
@@ -63,5 +78,10 @@
     "path": "v02/proofs/quality-correction.txt",
     "sha256": "15e6bf613d63487d1085b066e617c717d1b7931226904cf8e50fe005659cc055",
     "bytes": 271
+  },
+  {
+    "path": "v02/proofs/resharper-summary.json",
+    "sha256": "e31cac5d893141c2d4e605a2c08d86a76de7e68b65ab8eaa1b9856b089f4a914",
+    "bytes": 1697
   }
 ]

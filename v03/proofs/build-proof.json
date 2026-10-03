@@ -1,0 +1,91 @@
+{
+  "fragments": [
+    {
+      "name": "Fuselage and canopy",
+      "bone": 0,
+      "vertices": 4032,
+      "lifetime": 1.4
+    },
+    {
+      "name": "Upper wing right",
+      "bone": 1,
+      "vertices": 8088,
+      "lifetime": 1.4
+    },
+    {
+      "name": "Upper wing left",
+      "bone": 2,
+      "vertices": 8088,
+      "lifetime": 1.4
+    },
+    {
+      "name": "Upper spar right",
+      "bone": 1,
+      "vertices": 1512,
+      "lifetime": 1.15
+    },
+    {
+      "name": "Upper spar left",
+      "bone": 2,
+      "vertices": 1512,
+      "lifetime": 1.15
+    },
+    {
+      "name": "Lower blade right",
+      "bone": 3,
+      "vertices": 4104,
+      "lifetime": 1.25
+    },
+    {
+      "name": "Lower blade left",
+      "bone": 4,
+      "vertices": 4104,
+      "lifetime": 1.25
+    },
+    {
+      "name": "Lower inner spar right",
+      "bone": 3,
+      "vertices": 1296,
+      "lifetime": 0.98
+    },
+    {
+      "name": "Lower inner spar left",
+      "bone": 4,
+      "vertices": 1296,
+      "lifetime": 0.98
+    },
+    {
+      "name": "Forward outrigger right",
+      "bone": 0,
+      "vertices": 432,
+      "lifetime": 0.94
+    },
+    {
+      "name": "Forward outrigger left",
+      "bone": 0,
+      "vertices": 432,
+      "lifetime": 0.94
+    },
+    {
+      "name": "Aft prong right",
+      "bone": 0,
+      "vertices": 4200,
+      "lifetime": 1.35
+    },
+    {
+      "name": "Aft prong left",
+      "bone": 0,
+      "vertices": 4200,
+      "lifetime": 1.35
+    },
+    {
+      "name": "Engine spine",
+      "bone": 0,
+      "vertices": 2088,
+      "lifetime": 1.1
+    }
+  ],
+  "totalVertices": 45384,
+  "sourceVertices": 45384,
+  "poseParents": 4
+}

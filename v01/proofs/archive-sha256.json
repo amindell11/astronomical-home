@@ -1,0 +1,347 @@
+[
+  {
+    "path": "v01/authoring/approved-export.json",
+    "sha256": "7739c51a1fecb541427e413d599107508a42a796a6b4c5607fccf860514d5895",
+    "bytes": 4396362
+  },
+  {
+    "path": "v01/authoring/BuildValisBreakup.cs",
+    "sha256": "785ed8ff4722352ceca1566ef4af921174168033797acd89cf83d49bb8c979a1",
+    "bytes": 13653
+  },
+  {
+    "path": "v01/authoring/clip-settings.cs",
+    "sha256": "fe7cfa66631ca802e0115a02550a1d7db00210d89b6766d89ee08986dd40a430",
+    "bytes": 680
+  },
+  {
+    "path": "v01/authoring/import-capture.cs",
+    "sha256": "d41921579090c974afaa77d4bc3bf2f97b0576f52f84a3423b1d617b1ada80eb",
+    "bytes": 165
+  },
+  {
+    "path": "v01/authoring/import-tests.cs",
+    "sha256": "24590b69f89442dbbebe55ab18da10cf07b12405c56ce65422c9edf92e6174cc",
+    "bytes": 163
+  },
+  {
+    "path": "v01/authoring/import.cs",
+    "sha256": "864bdc1ee40e441669f3e3a83944a85af9d7feebcd3433f47f4a87cb90ff2014",
+    "bytes": 245
+  },
+  {
+    "path": "v01/authoring/inspect-motion.cs",
+    "sha256": "7c75cef0c7bd31d398241a3f7f8e33977d77f86fb7657c4d9ce79a0a831719c0",
+    "bytes": 379
+  },
+  {
+    "path": "v01/authoring/inspect-pose.cs",
+    "sha256": "2c12c0eb38006a776815a98313a25b3fe623c6097168073f6728fa1149b95851",
+    "bytes": 694
+  },
+  {
+    "path": "v01/authoring/pose-probe.json",
+    "sha256": "e4b31f2a14f5b22c955f0eda4cef55f2065a9564682d9875593b335d11e0728b",
+    "bytes": 496
+  },
+  {
+    "path": "v01/authoring/ProbeValisPose.cs",
+    "sha256": "6ec95919ee7134b2fd7fb7c8f79c7d39db2e998b02498cbc10cf4f951bb25f06",
+    "bytes": 2529
+  },
+  {
+    "path": "v01/authoring/reimport-motion.cs",
+    "sha256": "bd25364f3fa86c239ddd5515678451300b40ddbb19c53d28d7710ee3355c26fa",
+    "bytes": 353
+  },
+  {
+    "path": "v01/authoring/sample-motion.cs",
+    "sha256": "3bcff3917f1d0c50a7d6ae77bceb468093157e2538d5268a9ddb396e8a1705f1",
+    "bytes": 629
+  },
+  {
+    "path": "v01/authoring/unity-build.json",
+    "sha256": "dda0c4947b7fec65cb499b06f95102888684fa57474b0b04a6f8b4ddc52083eb",
+    "bytes": 157
+  },
+  {
+    "path": "v01/authoring/valis-clip.json",
+    "sha256": "94eeb40b93a011ee768fde534decea2057ffaa0d59e01779b68c2abae7e6a7b2",
+    "bytes": 236908
+  },
+  {
+    "path": "v01/authoring/ValisBreakupCapture.cs",
+    "sha256": "2b08a082a1b2d1414b36760b0b21da0e2da8766211f5365cd4996e619cdabba6",
+    "bytes": 2601
+  },
+  {
+    "path": "v01/authoring/vanguard-clip.json",
+    "sha256": "91ec4d8cfbbcdd08929babd9a389d536e7cb5d8229cbdc67e370ea2121c568e6",
+    "bytes": 207254
+  },
+  {
+    "path": "v01/editable-assets/Valis.prefab",
+    "sha256": "39d159907c024c9dbb333323223c745d45859f2a9cd7a6456fd4ca97f3f46714",
+    "bytes": 540053
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces.meta",
+    "sha256": "8cbe28eee26996000ef43ab5b1e4ed88ae2292bc95537c681f40c3f800d6cc55",
+    "bytes": 172
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Valis burst.anim",
+    "sha256": "c7f8e25f48c1673d608adfed9b5d6f2c24f5b7d30951626f6bd12342a63af122",
+    "bytes": 65510
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Valis burst.anim.meta",
+    "sha256": "41b2c17e64d86bd43689c1c43d36874ad898761c24d998bbf436ccb7f1a001a6",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/ValisBreakup.prefab",
+    "sha256": "24a9383ef5d6321c1d746eb2ef23ef19afdcfda8b8cb90a8e4cb6ea542a00ad4",
+    "bytes": 56366
+  },
+  {
+    "path": "v01/editable-assets/Breakup/ValisBreakup.prefab.meta",
+    "sha256": "728b7b086ebb87ec1bdc5cb4190333efcb04204eba08a1a79874e2cb8e11ce8e",
+    "bytes": 154
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Aft prong left.asset",
+    "sha256": "121f8d157007ab138da86590952cbb2564804217603bcd148217d97a8e2252da",
+    "bytes": 424974
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Aft prong left.asset.meta",
+    "sha256": "f32ac5967684e7e1907e9d0c8a9653f94b66db253008a7e1036c3a6a19ac5646",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Aft prong right.asset",
+    "sha256": "a8168e5e6dab47df0aae8a938f58182f06a05b007b47fed4a866c922269a8ede",
+    "bytes": 424965
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Aft prong right.asset.meta",
+    "sha256": "ab21bacb96894765c81021831b792dc5993c5b6b48b6b179b8388f8b91eaec80",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Dorsal armor.asset",
+    "sha256": "aa3c466818cb7703809ff083b93e44577c803d1d2e550133a9b81bf1f7e869f2",
+    "bytes": 96170
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Dorsal armor.asset.meta",
+    "sha256": "43c6120337db48e0dcd4935cb45cf8483b4b039d481f1d6279442b4548534165",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Engine spine.asset",
+    "sha256": "2dddf6f7c5ee860a0508d71091bd2030d172ae89fd4acda05251f8a498da12eb",
+    "bytes": 213833
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Engine spine.asset.meta",
+    "sha256": "dd1adce637e56d5eb4156b32f9c87a3749bb208853bbdfe677f1531e3be5a0c1",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Forward outrigger left.asset",
+    "sha256": "fe58722aa54befc7ff7158f6bc282e2c1e59cac5adec189aa8aae424a282397c",
+    "bytes": 48162
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Forward outrigger left.asset.meta",
+    "sha256": "882f9940e1d5b1e15183bad71199c1848a4db392b5acd40bb432f701fa07396f",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Forward outrigger right.asset",
+    "sha256": "c500c4fd43ae2e65f56f3810d29bc81ebbc0335a9fbced3f5205f072a8a57f6d",
+    "bytes": 48167
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Forward outrigger right.asset.meta",
+    "sha256": "b5326ca097f8ea6d8ccc7ecbf7ff1d8f19a791a26f29fe361dc06cd08398833a",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Fuselage and canopy.asset",
+    "sha256": "d9635a3d149ca92569b94d779354f3b3325b42532b675d91f9f5d5fe9ffd3e12",
+    "bytes": 254580
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Fuselage and canopy.asset.meta",
+    "sha256": "9b4d4b35726f8a762731d483e88abf12a3b9acc31d551626daf7caccf0f8ac36",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower blade left.asset",
+    "sha256": "cbf09975e54ae6ff34051b48fbd5cbfb320f9248c258d240416cf93fb835ac68",
+    "bytes": 415297
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower blade left.asset.meta",
+    "sha256": "30d77514607abb7e4f4ca218fbc010f34277b28367ece6a0ef5d7e417571080e",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower blade right.asset",
+    "sha256": "d8f08596b165924328e7b412ac7229a195089887e9b5f15d182daab8ff23b83f",
+    "bytes": 415293
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower blade right.asset.meta",
+    "sha256": "fa23420cef140fd8fedb8f5041ef5f97b19fc3aa1ff5342e805401c951828cf4",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower inner spar left.asset",
+    "sha256": "90827d6d883e757922d0ec8a4f2302587015d3916d683d69edb73e6e8e7fce91",
+    "bytes": 134438
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower inner spar left.asset.meta",
+    "sha256": "281e59390107eb231818ab00f4434974f5b7f8c2f9bfbe09ca566a110eabfe71",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower inner spar right.asset",
+    "sha256": "abafa6958790551c41052b5c67f7c7b005221388bc222ce33bbde00d4af750de",
+    "bytes": 134433
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Lower inner spar right.asset.meta",
+    "sha256": "a3fedb21daf671557e95022c89bff2a5901856155a5d0da93b5b84e1016a622c",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper spar left.asset",
+    "sha256": "2b81ade31f13c855aa142e112f1966596438108147d0ae74e1d824fd36267890",
+    "bytes": 156038
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper spar left.asset.meta",
+    "sha256": "2202b395c8f7e0a6adb43bd6e279a115e8104d7be07987370cfed43d5a02fed7",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper spar right.asset",
+    "sha256": "1caabe06cbc826d183a71f521710f5d3a8785f4a64160196a6d800b1b665417b",
+    "bytes": 156042
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper spar right.asset.meta",
+    "sha256": "10d4fbfd40d928c0fead97fcba68d781e51bad6c4b5a3396d0e07be1b53fabbc",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper wing left.asset",
+    "sha256": "2ea64974152f38234c4599d3978463f91ac5724fc14fdbe40dcfe5bb71846837",
+    "bytes": 813833
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper wing left.asset.meta",
+    "sha256": "8c8d16e790d70ee646b300da323ec7d245188fe0295e6e6b92e79f8828e8861a",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper wing right.asset",
+    "sha256": "9d27b8f6202988886ec1047327593c781d7d9b47cf28b4d9645c09f48417b85e",
+    "bytes": 813844
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Upper wing right.asset.meta",
+    "sha256": "57912d1e7078e5e6e5255e6c2fad8de0290446c663e985b4c89a2eea5c6850bc",
+    "bytes": 188
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Ventral armor.asset",
+    "sha256": "4125e68a7a7b6577e2718c29b74ec897507ed5393f56f92d734bddd56e78f7ec",
+    "bytes": 67201
+  },
+  {
+    "path": "v01/editable-assets/Breakup/Pieces/Ventral armor.asset.meta",
+    "sha256": "d873a9ee3516a45e682a65c1144199d4904a6e7271273f0e792256474241e2f4",
+    "bytes": 188
+  },
+  {
+    "path": "v01/previews/explosion.png",
+    "sha256": "191a803fd446e74495d22f5d9debc733250b135642692c583fbc0046734ee9be",
+    "bytes": 838612
+  },
+  {
+    "path": "v01/previews/fragments.png",
+    "sha256": "48ca9cf53dada98362ae48956882e4827d36f0f4796e3148e8cde37e335aa0df",
+    "bytes": 793123
+  },
+  {
+    "path": "v01/previews/rest.png",
+    "sha256": "bb7af35309a88c1efe0f7088e052f8a4879bef2c2ae7658d59bc4f50507a4d59",
+    "bytes": 161457
+  },
+  {
+    "path": "v01/previews/swept.png",
+    "sha256": "13be814f44220cf9d5e7e5a386621928633d1ab95f8e243661df6407a09cf844",
+    "bytes": 159371
+  },
+  {
+    "path": "v01/previews/valis-breakup.gif",
+    "sha256": "1dc61eb941d8fd6c8aae9a220b88833ea5973ee58e0661da8988f154b2109adf",
+    "bytes": 10498938
+  },
+  {
+    "path": "v01/previews/valis-breakup.mp4",
+    "sha256": "bd2a360d42c78bb85612adf1ad33770d4b60ba5e84b0f04d1e4f6baa3246dc3a",
+    "bytes": 1022135
+  },
+  {
+    "path": "v01/proofs/20261002-234741-summary.json",
+    "sha256": "00eb3a8cacfb8f9723cfb094d1f32845ee3c33ceb2d5b59d79ba394e3d3fba98",
+    "bytes": 2152
+  },
+  {
+    "path": "v01/proofs/20261002-234949-summary.json",
+    "sha256": "9dfd347e26cbe09ecd80177a4721ddb7ccdc056ecf31b549c7ce42cc58d55586",
+    "bytes": 2094
+  },
+  {
+    "path": "v01/proofs/20261002-235652-EditMode.xml",
+    "sha256": "31668f772b5f6474431e11684afaeb259b013c8f774e357202b79bab3b9266b7",
+    "bytes": 577273
+  },
+  {
+    "path": "v01/proofs/20261002-235652-PlayMode.xml",
+    "sha256": "00f579ed1abc4a44d60c3a1b802beee3e4fd752ee241fd165d857618a7b7c8b2",
+    "bytes": 1926637
+  },
+  {
+    "path": "v01/proofs/20261002-235652-summary.json",
+    "sha256": "21b7e0919f38cb3157b914019a414cc59530239066e3d7ef3b9af378e274b811",
+    "bytes": 6507
+  },
+  {
+    "path": "v01/proofs/build-proof.json",
+    "sha256": "10f9da7bc56f35f197bf6a2dd3b5eca01a3f727b0ad74c09877e7dc2062df1ae",
+    "bytes": 1978
+  },
+  {
+    "path": "v01/proofs/manifest.json",
+    "sha256": "da1eceb66c95fa71b497660e3042dcb562dc230d226d4296985c559818c51ac9",
+    "bytes": 243
+  },
+  {
+    "path": "v01/proofs/quality-review.txt",
+    "sha256": "4b18d0b68641b814a6b405af15b5af6029f3812f61c04f65df6f689acd308e4a",
+    "bytes": 465
+  },
+  {
+    "path": "v01/proofs/resharper-summary.json",
+    "sha256": "e31cac5d893141c2d4e605a2c08d86a76de7e68b65ab8eaa1b9856b089f4a914",
+    "bytes": 1697
+  }
+]
