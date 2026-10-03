@@ -16,3 +16,9 @@ The clips demonstrate controlled death presentation, not combat balance or whole
 ## v01 visual correction
 
 The user rejected v01's orange explosion. Investigation found an additional legacy ExplosionVFX from Valis HullVisuals overlaying the authored breakup's LayeredAsteroidExplosion. v01 is preserved as an intermediate revision; the corrected v02 clears that legacy explosion reference while retaining damage flash and smoke.
+
+## v02 corrected native preview
+
+The v02 GIF/MP4 and stills show one LayeredAsteroidExplosion per production death. The updated BuildValisBreakup.cs clears the legacy HullVisuals explosion reference reproducibly. The playable prefab snapshot carries that correction. Fragment meshes and animation are unchanged from v01, so their editable files and approved input remain in v01. Focused regressions pass 6/6, including single-effect checks at all three wing poses. Final production head: 512a5509b33154d4af15588c348e07b0e1502111.
+
+Final v02 full Unity validation: 950 passed, 2 skipped, 0 failures (952 total, RequiresGraphics excluded), on 512a5509b33154d4af15588c348e07b0e1502111. Native capture separately ran with graphics enabled.

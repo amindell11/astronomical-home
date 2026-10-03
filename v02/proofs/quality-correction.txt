@@ -1,0 +1,1 @@
+Correction review: no findings and no edits. Clearing Valis HullVisuals.explosionPrefab removes the duplicate death effect while preserving damage flash and smoke. collisionExplosionPrefab is empty. Three pose tests now assert exactly one active LayeredAsteroidExplosion.

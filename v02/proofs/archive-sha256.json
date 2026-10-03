@@ -1,0 +1,67 @@
+[
+  {
+    "path": "v02/authoring/BuildValisBreakup.cs",
+    "sha256": "f29e9027e5156e4f31b02401d695a2e1d4fe6506322a9cc7cc42ae4b88311d86",
+    "bytes": 13899
+  },
+  {
+    "path": "v02/authoring/ValisBreakupCapture.cs",
+    "sha256": "99dbd21b95fc80d0ed6bd393e3d4250773200080ecf31bfc5b0e0c2b058918fe",
+    "bytes": 2601
+  },
+  {
+    "path": "v02/editable-assets/Valis.prefab",
+    "sha256": "524ed4f1531a62e2d7f28948acced0e6bc19ea4f34fd8b8163ef1fa54361760c",
+    "bytes": 539982
+  },
+  {
+    "path": "v02/previews/explosion.png",
+    "sha256": "0f51dbbf0abf690b74759c2fed63e4d89589752d0f92f353189774cd3a244f21",
+    "bytes": 654860
+  },
+  {
+    "path": "v02/previews/fragments.png",
+    "sha256": "a0de86297a2765958cb78e2f1f1507d6853c59f5a74d50306e698085096d4424",
+    "bytes": 268624
+  },
+  {
+    "path": "v02/previews/rest.png",
+    "sha256": "77eb81669555fd05a70e9614a6b190180e29438f212a63c27ce6b4f5ee2fd0ca",
+    "bytes": 160435
+  },
+  {
+    "path": "v02/previews/swept.png",
+    "sha256": "6f5decf10f4c2bbe6d9402e41702970317395b21b53868c911be357bb160eeb7",
+    "bytes": 157901
+  },
+  {
+    "path": "v02/previews/valis-breakup.gif",
+    "sha256": "34df17b1f9c8b1069cc452d9362de84cd15d638e50900bc4d57119185f17e8d0",
+    "bytes": 6244289
+  },
+  {
+    "path": "v02/previews/valis-breakup.mp4",
+    "sha256": "4d8b826ef593b654770661c0bfcc3bee7f8de5932cccfa89756fdab93be332d4",
+    "bytes": 545350
+  },
+  {
+    "path": "v02/proofs/20261003-000605-summary.json",
+    "sha256": "0fb54b8b5f18501272a735a4addbc2c19903ef62aefd5ec3a3a3b46f8e490002",
+    "bytes": 2151
+  },
+  {
+    "path": "v02/proofs/20261003-000824-summary.json",
+    "sha256": "44e05a262eb9798d6c27c815ed66001f695bf9142aaa5340ecbcf0a85f742115",
+    "bytes": 2094
+  },
+  {
+    "path": "v02/proofs/manifest.json",
+    "sha256": "96ab64e673ea5bd4fccf59e4422f6f323a54d14281f37ec0f76592d6b18a1697",
+    "bytes": 244
+  },
+  {
+    "path": "v02/proofs/quality-correction.txt",
+    "sha256": "15e6bf613d63487d1085b066e617c717d1b7931226904cf8e50fe005659cc055",
+    "bytes": 271
+  }
+]
