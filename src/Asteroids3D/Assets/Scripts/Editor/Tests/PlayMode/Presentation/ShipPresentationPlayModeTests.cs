@@ -26,7 +26,7 @@ namespace Tests.PlayMode.Presentation
             base.SetUp();
 
 #if UNITY_EDITOR
-            var prefab = TestAssets.LoadShipPrefab(Ship1Path);
+            var prefab = TestAssets.Load<Ship>(Ship1Path);
             Assert.IsNotNull(prefab, "Ship_1 prefab failed to load");
             ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
             Assert.IsNotNull(ship, "Ship_1 failed to instantiate");
@@ -62,7 +62,7 @@ namespace Tests.PlayMode.Presentation
         {
 #if UNITY_EDITOR
             ShipTestFactory.DestroyShip(ship);
-            var prefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_3.prefab");
+            var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_3.prefab");
             Assert.IsNotNull(prefab, "Ship_3 prefab failed to load");
             ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
             Assert.IsTrue(ship.GetComponentInChildren<HullVisuals>(true).enabled);
