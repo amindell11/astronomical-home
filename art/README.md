@@ -21,5 +21,6 @@ Everything binary here is LFS-tracked via this directory's `.gitattributes`.
 
 - `tools/` — art-pipeline generators (`tools/flat_background/` renders the
   procedural starless flat background with Blender; `tools/imagegen/` generates
-  and edits images with Google's Nano Banana models); scripts, not sources, so
+  and edits images with Google's Nano Banana models; `tools/ship/` scaffolds,
+  checks, locks, renders and exports ship sources); scripts, not sources, so
   not LFS.
