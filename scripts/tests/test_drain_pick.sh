@@ -5,10 +5,11 @@ set -euo pipefail
 # Hermetic regression for scripts/drain_pick.sh: the pick filter (unity label, assignee, open
 # blocker, scope block, proposal author), priority-then-age order, a claimed issue's three
 # readings by its closing PRs (unfinished, building, pr-closed), claim's assignee re-read and
-# two writes, release, every owed verdict and the tried rule, the verify queue, the merge
-# queue's facts, landing order and skip reasons, the digest's lists, instruct's checks and
-# record, and land-facts' readings of the record, Codex's review, threads and merge order. gh is
-# a stub serving REST lists 100 rows a page; every call it does not model fails closed.
+# two writes, release, every owed verdict and the tried rule, result's line, tick and refusals,
+# the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists,
+# instruct's checks and record, and land-facts' readings of the record, Codex's review, threads
+# and merge order. gh is a stub serving REST lists 100 rows a page; every call it does not model
+# fails closed.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRAIN="$SCRIPT_DIR/../drain_pick.sh"
@@ -28,6 +29,7 @@ cat > "$TMP/bin/gh" <<'EOF'
 args="$*"
 page() { local n="${args##*&page=}"; n="${n%% *}"; sed -n "$((n * 100 - 99)),$((n * 100))p" "$1"; }
 case "$args" in
+  "api -X PATCH "*) echo "$args" >> "$GH_WRITE_LOG"; f="${args#*--input }"; cp "${f%% *}" "$FIX/patched.json" ;;
   "api -X "*) echo "$args" >> "$GH_WRITE_LOG" ;;
   "api user --jq .login") echo me ;;
   "api repos/owner/repo/issues?"*) page "$FIX/issues.txt" ;;
@@ -84,7 +86,8 @@ proposal() { printf '[{"user":{"login":"%s"},"html_url":"https://x/c/%s","body":
 SHA=76b92040123456789abcdef0123456789abcdef0
 OLD=0f12fee0123456789abcdef0123456789abcdef0
 PRS=()
-pr() { local a=("$@" "" "" "" "" "" "" "" ""); PRS+=("${a[@]:0:10}"); }
+# Assigned apart from `local`: Git Bash drops CR inside `local a=(…)`, so CRLF bodies would arrive as LF.
+pr() { local a; a=("$@" "" "" "" "" "" "" "" ""); PRS+=("${a[@]:0:10}"); }
 # One python spawn per write: prs.json is the open-PR read, pr.json the first PR alone over REST,
 # pr-graphql.json the first PR beside every PR's number (land-facts).
 write_prs() {
@@ -131,7 +134,9 @@ skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
 reset
 for bad in "" "frob" "pick --force" "claim" "claim abc" "claim 12 lease" "release" "release abc" "owed" "owed abc" \
     "verify-queue 12" "merge-queue 12" "digest 12" "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123" \
-    "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13"; do
+    "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed" \
+    "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x" \
+    "result 12@abc1234 1 passed x y"; do
   rc=0; bash "$DRAIN" $bad > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 2 ]] || fail "'$bad' should exit 2 (got $rc)"
 done
@@ -301,8 +306,11 @@ pr 104 "${OWED//$'\n'/$'\r\n'}"$'- [ ] unity: crlf boot\r\n  FAIL at `0f12fee`\r
 pr 103 "${OWED}"$'- [ ] unity: boot → graphics\n- [ ] unity: failed boot\n  FAIL at `76b9204`\n- [x] unity: done\n- [ ] script: `run-script-tests <slot>`\n- [ ] eyes: look\n'
 write_prs
 view verify-queue
-[[ "$out" == "VERIFY=103 $SHA unity:1,script:1"$'\nITEM=103 unity boot → graphics\nITEM=103 script `run-script-tests <slot>`\n'"VERIFY=104 $SHA unity:1,script:0"$'\nITEM=104 unity crlf boot' ]] \
-  || fail "one block per PR with an untried item, lowest PR first, its untried items in body order (got: $out)"
+pr 105 "${OWED}"$'- [ ] eyes: look first\n- [ ] script: after the eyes item\n'
+write_prs
+view verify-queue
+[[ "$out" == "VERIFY=103 $SHA unity:1,script:1"$'\nITEM=103 1 unity boot → graphics\nITEM=103 4 script `run-script-tests <slot>`\n'"VERIFY=104 $SHA unity:1,script:0"$'\nITEM=104 1 unity crlf boot\n'"VERIFY=105 $SHA unity:0,script:1"$'\nITEM=105 2 script after the eyes item' ]] \
+  || fail "one block per PR with an untried item, lowest PR first, its untried items in body order; positions count every item, eyes included, and skip tried and ticked ones (got: $out)"
 
 # --- merge-queue: facts, landing order, skip reasons --------------------------------------------------
 NONE="${OWED}None."$'\n'
@@ -382,7 +390,7 @@ pr 305 "$NONE$(after 301)"
 write_queue; write_prs
 view digest
 [[ "$(under '`eyes` items to look at')" == "- [#301]($U/pull/301) feat: a → b — 1 unticked" ]] || fail "eyes list, with the PR title in UTF-8 (got: $out)"
-[[ "$(under 'Owed items that failed at head')" == "- [#302]($U/pull/302) title 302 — unity:0,script:1" ]] || fail "tried list (got: $out)"
+[[ "$(under 'Owed items tried at head (failed or not run) — see each result line')" == "- [#302]($U/pull/302) title 302 — unity:0,script:1" ]] || fail "tried list (got: $out)"
 [[ "$(under 'Malformed owed-local checklists')" == "- [#303]($U/pull/303) title 303" ]] || fail "malformed list (got: $out)"
 [[ "$(under 'Merge candidates, in landing order')" == "- [#304]($U/pull/304) title 304 — owed:none, draft" ]] || fail "merge candidates with their facts (got: $out)"
 [[ "$(under 'Skipped from the merge queue')" == "- [#305]($U/pull/305) title 305 — after [#301]($U/pull/301)" ]] || fail "merge-queue skips with linked reasons (got: $out)"
@@ -414,6 +422,62 @@ instruct 12@AAAA1110 15@bbbb0000
 today="$(date -u +%F)"
 [[ "$(cat "$GH_WRITE_LOG")" == "api -X POST repos/owner/repo/issues/12/comments -f body=Merge instruction $today: \`$C1\` --silent"$'\n'"api -X POST repos/owner/repo/issues/15/comments -f body=Merge instruction $today: \`$C3\` --silent" ]] \
   || fail "one comment per PR, its first line the record (got: $(cat "$GH_WRITE_LOG"))"
+
+# --- result: the only writer of result lines and ticks ----------------------------------------------------
+# result <body> <args…>: PR 77 (OLD then SHA) carries <body>; runs result into $out and $rc
+result() {
+  PRS=(); pr 77 "$1"; write_prs
+  : > "$GH_WRITE_LOG"; rm -f "$FIX/patched.json"
+  rc=0; out="$(bash "$DRAIN" result "${@:2}" 2>"$TMP/err")" || rc=$?
+}
+# body_is <body> <why>: the PATCHed body is exactly <body>, byte for byte
+body_is() {
+  printf '%s' "$1" > "$TMP/want-body"
+  python3 -c 'import json, sys; open(sys.argv[2], "w", encoding="utf-8", newline="").write(json.load(open(sys.argv[1], encoding="utf-8"))["body"])' \
+    "$FIX/patched.json" "$TMP/got-body"
+  cmp -s "$TMP/want-body" "$TMP/got-body" || fail "$2 (got: $(cat -A "$TMP/got-body"))"
+}
+refused() {
+  [[ "$rc" -eq 3 && "$out" == "REFUSED=$1" && ! -s "$GH_WRITE_LOG" && ! -e "$FIX/patched.json" ]] \
+    || fail "$2: REFUSED=$1, exit 3, nothing written (rc=$rc: $out; $(cat "$GH_WRITE_LOG"))"
+}
+reset
+pull_of 77 open main "$OLD" "$SHA"
+CHECKS=$'- [ ] unity: boot A\n  Run at `0f12fee`: failed — 1/3 failed\n\n  prose under it\n- [ ] eyes: look\n- [ ] script: suite\n- [x] unity: done\n'
+result "${OWED}${CHECKS}" 77@76B9204 1 passed '3/3 passed (`A`, `B`, `C`) — a → b'
+[[ "$rc" -eq 0 && "$out" == "RESULT=77 1 passed $SHA" ]] || fail "result prints its trailer with the full commit (rc=$rc: $out; $(cat "$TMP/err"))"
+[[ "$(cat "$GH_WRITE_LOG")" == "api -X PATCH repos/owner/repo/pulls/77 --input "*" --silent" ]] || fail "one PATCH of the PR (got: $(cat "$GH_WRITE_LOG"))"
+body_is "${OWED}"$'- [x] unity: boot A\n  Run at `0f12fee`: failed — 1/3 failed\n\n  prose under it\n  Run at `76b9204`: passed — 3/3 passed (`A`, `B`, `C`) — a → b\n- [ ] eyes: look\n- [ ] script: suite\n- [x] unity: done\n' \
+  "passed ticks the item and appends under its last result line, past a blank line"
+result "${OWED}${CHECKS}" 77@76b9204 3 failed 'exit 1: test_x.sh'
+[[ "$rc" -eq 0 ]] || fail "failed is written (rc=$rc: $out)"
+body_is "${OWED}"$'- [ ] unity: boot A\n  Run at `0f12fee`: failed — 1/3 failed\n\n  prose under it\n- [ ] eyes: look\n- [ ] script: suite\n  Run at `76b9204`: failed — exit 1: test_x.sh\n- [x] unity: done\n' \
+  "failed leaves the item unticked, its line under the item line"
+PRS=(); pr 77 "$(cat "$TMP/got-body")"; write_prs
+[[ "$(bash "$DRAIN" owed 77 2>/dev/null | trailer TRIED_SCRIPT)" == 1 ]] || fail "owed counts a failed result at the head as tried"
+result "${OWED}${CHECKS}" 77@0f12fee 1 not-run 'needs a second display'
+[[ "$rc" -eq 0 && "$out" == "RESULT=77 1 not-run $OLD" ]] || fail "a commit behind the head is accepted (rc=$rc: $out)"
+body_is "${OWED}"$'- [ ] unity: boot A\n  Run at `0f12fee`: failed — 1/3 failed\n\n  prose under it\n  Run at `0f12fee`: not run — needs a second display\n- [ ] eyes: look\n- [ ] script: suite\n- [x] unity: done\n' \
+  "not-run renders 'not run' and leaves the item unticked"
+CRLF="${OWED//$'\n'/$'\r\n'}"$'- [ ] unity: boot\r\n  Run at `0f12fee`: failed — x\r\n\r\n## Merge order\r\n\r\n- after #5 — same file\r\n'
+result "$CRLF" 77@76b9204 1 passed ok
+body_is "${OWED//$'\n'/$'\r\n'}"$'- [x] unity: boot\r\n  Run at `0f12fee`: failed — x\r\n  Run at `76b9204`: passed — ok\r\n\r\n## Merge order\r\n\r\n- after #5 — same file\r\n' \
+  "a CRLF body keeps every other byte, and the new line ends in CRLF"
+result "${OWED//$'\n'/$'\r\n'}"$'- [ ] script: last' 77@76b9204 1 failed ok
+body_is "${OWED//$'\n'/$'\r\n'}"$'- [ ] script: last\r\n  Run at `76b9204`: failed — ok' "an item on the body's unterminated last line gets the body's line ending first"
+pull_of 78 closed main "$SHA"
+pull_of 79 open release "$SHA"
+result "${OWED}${CHECKS}" 78@76b9204 1 passed ok; refused "78 not-open" "a closed PR"
+result "${OWED}${CHECKS}" 79@76b9204 1 passed ok; refused "79 base:release" "a PR against another base"
+result "${OWED}${CHECKS}" 77@1234567 1 passed ok; refused "77 not-a-commit" "a SHA naming none of its commits"
+result "${OWED}None."$'\n' 77@76b9204 1 passed ok; refused "77 checklist:none" "a checklist with nothing owed"
+result "${OWED}"$'- [ ] manual: x\n' 77@76b9204 1 passed ok; refused "77 checklist:malformed" "a malformed checklist"
+result "${OWED}${CHECKS}" 77@76b9204 5 passed ok; refused "77 no-item" "an item past the last"
+result "${OWED}${CHECKS}" 77@76b9204 4 failed ok; refused "77 ticked" "a ticked item"
+result "${OWED}${CHECKS}" 77@76b9204 2 passed ok; refused "77 eyes" "an eyes item"
+result "${OWED}${CHECKS}" 77@76b9204 1 failed ' '; refused "77 evidence" "blank evidence"
+result "${OWED}${CHECKS}" 77@76b9204 1 failed $'two\nlines'; refused "77 evidence" "evidence over two lines"
+result "${OWED}${CHECKS}" 77@76b9204 1 failed $'trailing newline\n'; refused "77 evidence" "evidence ending in a newline"
 
 # --- land-facts: the record, Codex's review, threads and merge order -------------------------------------
 codex() { printf '{"author":{"login":"chatgpt-codex-connector"},"body":"<!-- codex-pull-request-review-summary -->\\n\\n## Codex Review Summary\\n\\n| Review | Status | Commit | Review trigger |\\n| --- | --- | --- | --- |\\n| 📝 **Code Review** | %s | %s | PR opened |\\n"}' "$1" "$2"; }

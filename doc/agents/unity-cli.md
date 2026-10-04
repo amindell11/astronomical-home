@@ -114,6 +114,9 @@ diff:
 - PowerShell mangles embedded double-quotes in inline snippets (the string splits into
   the next flag: `--timeout expects Int32 but got there;`): write the snippet to a file
   and use `eval_file` for anything nontrivial.
+- A relative `eval_file --file` resolves against the Unity project root
+  (`<worktree>/src/Asteroids3D`), not the repo root: pass an absolute path or
+  `../../<repo path>`.
 - A failed eval (compile or runtime) fails the envelope: `success:false`, exit 6,
   message in `errors[]`. With `--format json`/`--result-only` that JSON is on stdout;
   in human format a failure prints only to stderr, so `2>$null` there reads as silence.

@@ -82,7 +82,7 @@ namespace Combat.Weapons.Conditions
         private void TickMagazine(float dt)
         {
             reloadElapsed += dt;
-            if (reloadElapsed < reloadTime) return;
+            if (reloadElapsed < reloadTime - HalfStep) return;
 
             IsReloading = false;
             AmmoCount = maxAmmo;
@@ -94,7 +94,7 @@ namespace Combat.Weapons.Conditions
         {
             regenClock += dt;
             var restored = 0;
-            while (roundDueTimes.Count > 0 && roundDueTimes.Peek() <= regenClock)
+            while (roundDueTimes.Count > 0 && roundDueTimes.Peek() <= regenClock + HalfStep)
             {
                 roundDueTimes.Dequeue();
                 restored++;

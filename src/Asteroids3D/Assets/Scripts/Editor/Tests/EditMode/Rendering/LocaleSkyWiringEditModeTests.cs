@@ -36,7 +36,7 @@ namespace Tests.EditMode.Rendering
             }
         }
 
-        [TestCase("Assets/Scenes/Locales/Locale_1.unity", "nebula-glow-warm-flat-final")]
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity", "copper-turquoise-final")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity", "nebula-glow-flat-final")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity", "illustrated-blue-final")]
         [TestCase("Assets/Scenes/InitScene.unity", "nebula-glow-flat-final")]
@@ -53,13 +53,17 @@ namespace Tests.EditMode.Rendering
                 Assert.IsTrue(root.GetComponent<LocaleSky>());
                 Assert.IsTrue(root.activeSelf, "The palette-driven sky is the live root.");
                 var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-                var illustrated = scene.name == "Locale_3";
+                var illustrated = scene.name == "Locale_1" || scene.name == "Locale_3";
                 var names = illustrated
                     ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
                     : CandidateLayers;
                 var queues = illustrated ? new[] { 2900, 2930, 2940, 2950, 2990 } : CandidateQueues;
-                Assert.That(layers.Select(l => l.name), Is.EqualTo(names));
 
+                if (scene.name == "Locale_1")
+                {
+                    names = new[] { "Background", "DistantStars", "FarNebula", "TurquoiseNebula", "StarField", "CloseNebula" };
+                    queues = new[] { 2900, 2930, 2940, 2945, 2950, 2990 };
+                }
                 var sidecar = $"{FlatBackgroundImport.Folder}/{background}.json";
                 var expectedParents = new[]
                 {
@@ -71,6 +75,10 @@ namespace Tests.EditMode.Rendering
                 if (illustrated)
                     expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
                         expectedParents[2], expectedParents[3] };
+                if (scene.name == "Locale_1")
+                    expectedParents = new[] { expectedParents[0], expectedParents[1], expectedParents[2],
+                        expectedParents[2], expectedParents[3], expectedParents[4] };
+                Assert.That(layers.Select(l => l.name), Is.EqualTo(names));
                 for (var i = 0; i < layers.Length; i++)
                 {
                     var material = layers[i].GetComponent<MeshRenderer>().sharedMaterial;

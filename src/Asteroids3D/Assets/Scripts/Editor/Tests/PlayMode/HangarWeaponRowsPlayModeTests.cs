@@ -22,7 +22,7 @@ namespace Tests.PlayMode
     public class HangarWeaponRowsPlayModeTests : PlayModeWorldFixture
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string RealCatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private static readonly string[] WeaponPaths =
@@ -51,12 +51,12 @@ namespace Tests.PlayMode
             return asset;
         }
 
-        private ShipLoadout ShowScreen(out Ship ship1)
+        private ShipLoadout ShowScreen(out Ship vanguard)
         {
-            ship1 = Load<Ship>(Ship1Path);
+            vanguard = Load<Ship>(VanguardPath);
 
             catalog = ScriptableObject.CreateInstance<ItemSubset>();
-            catalog.ships = new[] { ship1 };
+            catalog.ships = new[] { vanguard };
             catalog.engines = new EngineModule[0];
             catalog.shields = new ShieldModule[0];
             var weapons = new WeaponComponent[WeaponPaths.Length];
@@ -67,7 +67,7 @@ namespace Tests.PlayMode
             screen = Object.Instantiate(Load<HangarScreen>(ScreenPrefabPath));
             Object.DestroyImmediate(screen.GetComponentInChildren<RawImage>());
 
-            var loadout = new ShipLoadout(ship1, ship1.Engine, ship1.Shield, null, null);
+            var loadout = new ShipLoadout(vanguard, vanguard.Engine, vanguard.Shield, null, null);
             screen.Show(catalog, loadout, onLaunch: null);
             return loadout;
         }
@@ -113,9 +113,9 @@ namespace Tests.PlayMode
         [Test]
         public void ShipPick_ReseedsWeaponsToAuthoredKit()
         {
-            var loadout = ShowScreen(out var ship1);
-            var authored = ship1.GetComponent<WeaponsController>();
-            Assert.IsNotNull(authored.PrimaryMountPrefab, "test premise: Ship_1 has an authored primary");
+            var loadout = ShowScreen(out var vanguard);
+            var authored = vanguard.GetComponent<WeaponsController>();
+            Assert.IsNotNull(authored.PrimaryMountPrefab, "test premise: Vanguard has an authored primary");
 
             var offKit = System.Array.Find(catalog.weapons, w => w != authored.PrimaryMountPrefab);
             loadout.PrimaryWeapon = offKit;

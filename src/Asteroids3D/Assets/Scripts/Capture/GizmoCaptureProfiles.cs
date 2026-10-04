@@ -2,7 +2,7 @@ using System;
 using AI;
 using Combat.Projectiles;
 using Combat.Targeting;
-using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using AI.Navigation.MPC;
 using Ships;
 using Ships.Damage;

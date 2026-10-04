@@ -62,11 +62,11 @@ namespace Combat.Weapons.Conditions
             }
 
             var delay = Overheated ? overheatPenaltyTime : coolDownDelay;
-            if (clock <= lastShotTime + delay) return;
+            if (clock < lastShotTime + delay + HalfStep) return;
 
             var previousHeat = CurrentHeat;
             CurrentHeat -= coolingRate * dt;
-            CurrentHeat = Mathf.Max(0, CurrentHeat);
+            if (CurrentHeat <= coolingRate * HalfStep) CurrentHeat = 0f;
             PublishHeatChangedIfNeeded(previousHeat);
 
             // Full lockout by design: partial cooling never re-enables fire.

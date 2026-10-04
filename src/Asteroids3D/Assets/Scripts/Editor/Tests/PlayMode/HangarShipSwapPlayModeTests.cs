@@ -28,7 +28,7 @@ namespace Tests.PlayMode
     public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         private GameObject servicesGo;
         private PlayerRig rig;
@@ -69,17 +69,17 @@ namespace Tests.PlayMode
             var oldShip = rig.Player;
             var oldId = oldShip.Id;
 
-            var ship1 = AssetDatabase.LoadAssetAtPath<Ship>(Ship1Path);
-            Assert.IsNotNull(ship1, "Ship_1 prefab loads");
-            Assert.AreNotEqual("Ship_1(Clone)", oldShip.name, "test premise: rig does not start on Ship_1");
+            var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
+            Assert.IsNotNull(vanguard, "Vanguard prefab loads");
+            Assert.AreNotEqual("Vanguard(Clone)", oldShip.name, "test premise: rig does not start on Vanguard");
 
-            rig.Loadout.Ship = ship1;
-            rig.Loadout.Engine = ship1.Engine;
-            rig.Loadout.Shield = ship1.Shield;
+            rig.Loadout.Ship = vanguard;
+            rig.Loadout.Engine = vanguard.Engine;
+            rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 
             Assert.AreNotSame(oldShip, rig.Player, "a new player instance was built");
-            Assert.AreEqual("Ship_1(Clone)", rig.Player.name, "new player comes from the chosen template");
+            Assert.AreEqual("Vanguard(Clone)", rig.Player.name, "new player comes from the chosen template");
             Assert.AreEqual("Player", rig.Player.tag, "player wiring re-ran on the new instance");
             Assert.IsFalse(unitService.Registry.TryGetShip(oldId, out _),
                 "old ship left the registry");
@@ -107,10 +107,10 @@ namespace Tests.PlayMode
             var died = false;
             yield return BuildRig((_, _) => died = true);
 
-            var ship1 = AssetDatabase.LoadAssetAtPath<Ship>(Ship1Path);
-            rig.Loadout.Ship = ship1;
-            rig.Loadout.Engine = ship1.Engine;
-            rig.Loadout.Shield = ship1.Shield;
+            var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
+            rig.Loadout.Ship = vanguard;
+            rig.Loadout.Engine = vanguard.Engine;
+            rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;

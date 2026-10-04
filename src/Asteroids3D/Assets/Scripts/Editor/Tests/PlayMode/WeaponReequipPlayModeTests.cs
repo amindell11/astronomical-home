@@ -1,5 +1,6 @@
 using System.Collections;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
