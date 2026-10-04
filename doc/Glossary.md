@@ -212,7 +212,10 @@ Format: **term** — definition. *(authority)*
 - **warm** (slot) — its Unity Library is already built; a reason to name a slot
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
-  slots; canonical home for pool state, built exes, and staged checkpoints.
+  slots; the owner's checkout and the home of pool state. Agents write nothing
+  else there (AGENTS.md → Default workflow). **Clean primary**: no untracked
+  files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
+  tracked edits are the owner's and don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>`; the only
   sanctioned merge path.
@@ -734,10 +737,11 @@ Format: **term** — definition. *(authority)*
   event-side the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life accumulation of the player's received DamageInfo
-  rows, aggregated per source — consumer-side recorder owned by the player rig,
-  never sim state. Source names are captured at event time because the attacker
-  may despawn before the recap reads the row. *(DamageLedger)*
+- **damage ledger** — per-life record of the player's received DamageInfo: every
+  hit stamped with game time, and the hits aggregated per source —
+  consumer-side recorder owned by the player rig, never sim state. Source names
+  are captured at event time because the attacker may despawn before the recap
+  reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
@@ -860,8 +864,10 @@ Format: **term** — definition. *(authority)*
   editor hung; empty means healthy.
 - **scratch → promote → park** — gitignored investigation code → committed →
   archived. Standing rule: **probes that live only as patches do not exist.**
-- **staging** — copying checkpoints and exes into the primary tree so they
-  survive slot recycling. Never leave eval artifacts only in a slot.
+- **staging** — *retired 2026-10-03*: copying checkpoints and exes into the
+  primary tree so they survive slot recycling. The primary tree takes no agent
+  writes now; the RL tools' staging comments predate that, and where durable RL
+  artifacts live is open on #883 (an orphan branch is favoured).
 - **define churn** — Sentis re-adding its analytics define on interactive loads.
   Fixed at two registry values; never fix it by committing the define.
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding

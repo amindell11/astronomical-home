@@ -105,6 +105,22 @@ worktree writes the SHARED repo config. The `dev/null/` junk-dir mechanism and t
 ban on `-c core.hooksPath=/dev/null` are in AGENTS.md § Session hygiene; the
 recreator was never pinned.
 
+## Codex CLI skills pointer
+
+Codex CLI discovers skills at `.agents/skills`; on this machine that path is a
+symlink to `.claude/skills` (gitignored, machine-local). Recreate on a fresh
+clone/machine from Git Bash: `mkdir -p .agents && ln -s "$(pwd)/.claude/skills" .agents/skills`
+— symlinks need Developer Mode or an elevated shell on Windows; otherwise use a
+directory junction: `cmd /c mklink /J .agents\skills .claude\skills`.
+
+## Autostash is off in the primary tree
+
+The owner's global `~/.gitconfig` sets `pull.rebase=true` and `rebase.autostash=true`,
+so a plain `git pull` in the primary tree stashed their uncommitted edits when main
+conflicted with them (2026-10-03). The primary's repo-local config overrides it, so the
+pull refuses with "would be overwritten" instead. Recreate on a fresh clone:
+`git -C D:/amind/git/astronomical-home config rebase.autoStash false`.
+
 ## Never hand-edit `~/.claude.json` while Claude Code runs
 
 The app holds the file in memory, rewrites it wholesale, and rotates the current

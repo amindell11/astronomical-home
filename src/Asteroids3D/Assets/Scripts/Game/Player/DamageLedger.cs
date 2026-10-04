@@ -3,13 +3,14 @@ using Damage;
 using Ships;
 using Ships.Damage;
 using Ships.Registry;
+using UnityEngine;
 
 namespace Game.Player
 {
     /// <summary>
-    /// Per-life accumulation of the player's received hits, aggregated per damage source —
-    /// consumer-side recorder, never sim state. Source names are captured at event time
-    /// because the attacker may despawn before the death recap reads the row.
+    /// Per-life record of the player's received hits — each hit stamped with game time, and their
+    /// aggregate per damage source — consumer-side recorder, never sim state. Source names are
+    /// captured at event time because the attacker may despawn before the death recap reads the row.
     /// </summary>
     public sealed class DamageLedger
     {
@@ -31,22 +32,46 @@ namespace Game.Player
             }
         }
 
+        public readonly struct Hit
+        {
+            public readonly float Time;
+            public readonly float Amount;
+            public readonly DamageKind Kind;
+            public readonly ShipId AttackerId;
+
+            public Hit(float time, float amount, DamageKind kind, ShipId attackerId)
+            {
+                Time = time;
+                Amount = amount;
+                Kind = kind;
+                AttackerId = attackerId;
+            }
+        }
+
         private readonly List<Row> rows = new();
+        private readonly List<Hit> hits = new();
         private IDamageEvents source;
         private IShipRegistry registry;
 
         public IReadOnlyList<Row> Rows => rows;
 
+        /// <summary>In arrival order; the last is the life's killing blow once the player has died.</summary>
+        public IReadOnlyList<Hit> Hits => hits;
+
         /// <summary>Re-bindable across player rebuilds.</summary>
         public void Bind(IDamageEvents damage, IShipRegistry shipRegistry)
         {
-            if (source != null) source.OnDamaged -= Record;
+            if (source != null) source.OnDamaged -= OnDamaged;
             source = damage;
             registry = shipRegistry;
-            if (source != null) source.OnDamaged += Record;
+            if (source != null) source.OnDamaged += OnDamaged;
         }
 
-        public void Clear() => rows.Clear();
+        public void Clear()
+        {
+            rows.Clear();
+            hits.Clear();
+        }
 
         public static string DescribeKind(DamageKind kind) => kind switch
         {
@@ -58,8 +83,12 @@ namespace Game.Player
             _ => kind.ToString(),
         };
 
-        private void Record(DamageInfo hit)
+        private void OnDamaged(DamageInfo hit) => Record(hit, Time.time);
+
+        internal void Record(in DamageInfo hit, float now)
         {
+            hits.Add(new Hit(now, hit.Amount, hit.Kind, hit.AttackerId));
+
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];

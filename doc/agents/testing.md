@@ -30,7 +30,7 @@
 - **Performance/benchmark sweeps run SOLO** — a parallel Unity on the machine
   contaminates timing metrics (solve-ms in particular).
 - **Never leave eval or benchmark artifacts only in a pool slot** — slot
-  recycling destroys them; copy anything you will cite out of the worktree.
+  recycling destroys them; push anything you will cite to an `evidence/*` branch.
 - **A test whose subject is an artifact asserts CONTENT, not existence.** "The
   file appeared" is nearly uncorrelated with the producer working — #374's
   capture lane passed while writing 1,195 uniformly blank PNGs. Assert something

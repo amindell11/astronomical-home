@@ -9,7 +9,8 @@ case "$TMP" in */pool-serialization.*) ;; *) exit 90 ;; esac
 export SYNC="$TMP/sync"
 mkdir -p "$TMP/bin" "$SYNC"
 launcher=""
-trap ': > "$SYNC/resume"; : > "$SYNC/a-go"; if [[ -n "$launcher" ]]; then wait "$launcher" 2>/dev/null || true; fi; rm -rf -- "$TMP"' EXIT
+turn_jobs=()
+trap ': > "$SYNC/resume"; : > "$SYNC/a-go"; : > "$SYNC/turn-go"; : > "$SYNC/probe-go"; if [[ -n "$launcher" ]]; then wait "$launcher" 2>/dev/null || true; fi; for job in "${turn_jobs[@]}"; do wait "$job" 2>/dev/null || true; done; rm -rf -- "$TMP"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 # Bounds only the waits no live process can answer: a hang guard, never a speed claim.
 hang_guard=600
@@ -165,3 +166,39 @@ wait "$second" || fail 'second lock holder failed'
 rc=0; pool lock named -- bash -c 'exit 7' || rc=$?
 [[ "$rc" == 7 ]] || fail "lock swallowed the command's exit code (got $rc)"
 echo 'PASS: lock serializes holders of one name, times out with 75, and passes the exit code through'
+
+# Merge-turn line: a dead ticket another prober holds mid-probe reads dead; waiters keep arrival order.
+pool_fn() { (source "$POOL"; "$@"); }
+pool lock merge-turn -- bash -c ': > "$SYNC/turn-in"; until [[ -e "$SYNC/turn-go" ]]; do sleep .02; done' &
+turn_holder=$!
+turn_jobs+=("$turn_holder")
+until [[ -e "$SYNC/turn-in" ]]; do kill -0 "$turn_holder" 2>/dev/null || fail 'merge-turn holder exited before starting'; sleep .02; done
+for slot in agent-9 agent-5; do
+  rc=0; WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool_fn with_merge_turn "$slot" true || rc=$?
+  [[ "$rc" == 75 ]] || fail "fixture: $slot should give up on the held turn, leaving a dead ticket (got $rc)"
+done
+pool_fn with_merge_turn agent-4 bash -c 'echo agent-4 >> "$SYNC/turn-order"' &
+first_waiter=$!
+turn_jobs+=("$first_waiter")
+until [[ "$(pool_fn merge_turn_place agent-4)" == 1 ]]; do kill -0 "$first_waiter" 2>/dev/null || fail 'agent-4 stopped waiting before it stood first in line'; sleep .02; done
+# A stand-in probe caught mid-read on both dead tickets; agent-5 re-arrives under it.
+perl -e 'use Fcntl qw(LOCK_SH); my @held = map { open my $l, ">>", $_ or die "$!"; flock($l, LOCK_SH) or die "$!"; $l } @ARGV[0, 1];
+  open my $r, ">", $ARGV[2] or die "$!"; close $r; select(undef, undef, undef, 0.02) until -e $ARGV[3];' \
+  "$WORKTREE_POOL_LOCK_ROOT/agent-9.turn-ticket" "$WORKTREE_POOL_LOCK_ROOT/agent-5.turn-ticket" "$SYNC/probe-in" "$SYNC/probe-go" &
+prober=$!
+turn_jobs+=("$prober")
+until [[ -e "$SYNC/probe-in" ]]; do kill -0 "$prober" 2>/dev/null || fail 'the stand-in prober exited before taking its flocks'; sleep .02; done
+pool_fn with_merge_turn agent-5 bash -c 'echo agent-5 >> "$SYNC/turn-order"' &
+second_waiter=$!
+turn_jobs+=("$second_waiter")
+for _ in $(seq 1 10); do
+  place="$(pool_fn merge_turn_place agent-4)"
+  [[ "$place" == 1 ]] || fail "a dead ticket another prober holds must not count (agent-4 read place '$place', not 1)"
+done
+: > "$SYNC/probe-go"
+until [[ "$(pool_fn merge_turn_place agent-5)" == 2 ]]; do kill -0 "$second_waiter" 2>/dev/null || fail 'agent-5 stopped waiting before it stood second, behind live agent-4'; sleep .02; done
+: > "$SYNC/turn-go"
+wait "$first_waiter" || fail 'agent-4 should take the turn once it is free'
+wait "$second_waiter" || fail 'agent-5 should take the turn after agent-4'
+[[ "$(tr '\n' ' ' < "$SYNC/turn-order")" == 'agent-4 agent-5 ' ]] || fail "waiters took the turn out of arrival order ($(tr '\n' ' ' < "$SYNC/turn-order"))"
+echo 'PASS: merge-turn line reads a dead ticket dead while another prober holds it, a live waiter live, and keeps arrival order'

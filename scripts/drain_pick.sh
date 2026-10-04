@@ -18,17 +18,18 @@ set -euo pipefail
 #           dependency, and a scope block: a comment by amindell11 whose first line starts
 #           `Ready proposal` (the latest wins), else a body with a `What to build` heading and an
 #           `Acceptance` heading.
-#           Order: pri:now > pri:next > pri:later > none, then oldest createdAt.
-#           An issue labelled `drain:building` is claimed and never picked. PRs closing it are
-#           read in every state: with none, and nothing else against it, it is a dead build's
+#           Order: pri:now > pri:next > pri:later > none, then oldest created_at.
+#           An issue labelled `drain:building` is claimed and never picked. The PRs closing it
+#           are the PRs, in every state, whose body names it after a closing keyword
+#           (`Closes #<n>`): with none, and nothing else against it, it is a dead build's
 #           and prints UNFINISHED; with only closed-unmerged ones its SKIP names each as
 #           `pr-closed:<pr>`, and it stays claimed until someone runs `release`.
 #           --dry-run changes nothing (pick never writes); it only stamps DRY_RUN=1.
-#   claim   re-reads the assignee (any → taken, nothing written), else adds assignee @me and the
-#           label `drain:building` in one `gh issue edit`. Every session is the same GitHub
+#   claim   re-reads the assignee (any → taken, nothing written), else adds assignee @me, then
+#           the label `drain:building`: two writes. Every session is the same GitHub
 #           account, so the assignee alone cannot tell a cloud build from the user: the label
 #           marks the machine claim. No lock: one cloud batch at a time is the only picker.
-#   release removes assignee @me and `drain:building` in one `gh issue edit`.
+#   release removes assignee @me, then `drain:building` when the issue carries it.
 #   owed    read-only. Grades the owed-local checklist in the PR body against the PR's head
 #           commit. Grammar:
 #             section  from the line `### Owed local` to the next heading or the end of the
@@ -68,7 +69,9 @@ set -euo pipefail
 #           PRs all closed unmerged, ready-labelled issues no cloud batch can build) and what
 #           waits on a session the user starts (build, verify). No machine contract: relay it as
 #           printed.
-# Env:  GITHUB_REPOSITORY (owner/repo; default `gh repo view`).
+#   pick, claim, release and owed call only REST, paged by hand: cloud sessions refuse GraphQL,
+#   and the Link URLs `gh api --paginate` follows.
+# Env:  GITHUB_REPOSITORY (owner/repo; default: the repository of the git remote, as gh reads it).
 # Exit: pick, owed, verify-queue, merge-queue, digest — 0 a verdict (or the digest) was printed ·
 #       1 infra (gh failed) · 2 usage.
 #       claim — 0 claimed · 1 infra (gh failed; the issue may be half-written) · 2 usage · 4 taken.
@@ -119,7 +122,7 @@ say() { echo "drain_pick: $1" >&2; }
 
 repo() {
   if [[ -n "${GITHUB_REPOSITORY:-}" ]]; then echo "$GITHUB_REPOSITORY"
-  else gh repo view --json nameWithOwner --jq .nameWithOwner; fi
+  else gh api 'repos/{owner}/{repo}' --jq .full_name; fi
 }
 
 scratch() {
@@ -127,39 +130,58 @@ scratch() {
   trap 'rm -rf "$TMP" 2>/dev/null || true' EXIT
 }
 
+# rest_list <path> [<jq>]: every item of a REST list endpoint, one line each as <jq> renders it
+# (default: compact JSON).
+rest_list() {
+  local sep='?' page=0 rows
+  [[ "$1" != *'?'* ]] || sep='&'
+  while :; do
+    page=$((page + 1))
+    rows="$(gh api "$1${sep}per_page=100&page=$page" --jq ".[] | ${2:-tojson}")" || return 1
+    [[ -z "$rows" ]] || printf '%s\n' "$rows"
+    [[ "$(wc -l <<<"$rows")" -eq 100 ]] || return 0
+  done
+}
+
 # Pick's one reading of the ready queue; digest mode adds ADMITTED, which no verb prints.
 ready_queue() {
-  gh api graphql -F owner="${1%%/*}" -F name="${1##*/}" -f query='query($owner: String!, $name: String!) {
-    repository(owner: $owner, name: $name) {
-      issues(states: OPEN, labels: ["ready-for-agent"], first: 100, orderBy: {field: CREATED_AT, direction: ASC}) {
-        nodes { number createdAt body
-          labels(first: 50) { nodes { name } }
-          assignees(first: 10) { nodes { login } }
-          issueDependenciesSummary { blockedBy }
-          closedByPullRequestsReferences(first: 20, includeClosedPrs: true) { nodes { number state } }
-          comments(last: 100) { nodes { author { login } url body } } } } } }' \
-    > "$TMP/queue.json" || infra "gh api graphql (ready queue) failed"
-  python3 - "$TMP/queue.json" "$PROPOSAL_AUTHOR" "$2" <<'PY'
+  local n
+  rest_list "repos/$1/issues?state=open&labels=ready-for-agent&sort=created&direction=asc" \
+    '"\(.number) \(tojson)"' > "$TMP/issues.txt" || infra "gh api (ready queue) failed"
+  while read -r n _; do
+    rest_list "repos/$1/issues/$n/comments" > "$TMP/comments-$n.jsonl" || infra "gh api (#$n comments) failed"
+  done < "$TMP/issues.txt"
+  rest_list "repos/$1/pulls?state=all&sort=created&direction=asc" '{number, state, merged_at, body} | tojson' \
+    > "$TMP/pulls.jsonl" || infra "gh api (pull requests) failed"
+  python3 - "$TMP" "$PROPOSAL_AUTHOR" "$2" <<'PY'
 import json, re, sys
 sys.stdout.reconfigure(newline="\n")  # Windows python would end each trailer in CR
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-author = sys.argv[2]
-nodes = data["data"]["repository"]["issues"]["nodes"]
+tmp, author = sys.argv[1], sys.argv[2]
+def rows(name):
+    return [json.loads(line) for line in open(f"{tmp}/{name}", encoding="utf-8")]
+listed = [json.loads(line.split(" ", 1)[1]) for line in open(f"{tmp}/issues.txt", encoding="utf-8")]
+nodes = [n for n in listed if "pull_request" not in n]  # REST lists PRs among issues
 RANK = {"pri:now": 0, "pri:next": 1, "pri:later": 2}
 ADMITTED = {"unity:none", "unity:headless", "unity:local-proof"}
 WHAT = re.compile(r"^#{1,6}\s*What to build\b", re.I | re.M)
 ACCEPT = re.compile(r"^#{1,6}\s*Acceptance\b", re.I | re.M)
+# GitHub's closing keywords, as scripts/lib/negated_close.py reads them.
+CLOSES = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+#(\d+)\b", re.I)
+closing = {}
+for p in rows("pulls.jsonl"):
+    for number in set(CLOSES.findall(p["body"] or "")):
+        closing.setdefault(int(number), []).append(p)
 def scope(n):
-    props = [c for c in n["comments"]["nodes"]
-             if (c.get("author") or {}).get("login") == author
+    props = [c for c in rows(f"comments-{n['number']}.jsonl")
+             if (c.get("user") or {}).get("login") == author
              and (c.get("body") or "").lstrip().startswith("Ready proposal")]
     if props:
-        return f"proposal:{props[-1]['url']}"
+        return f"proposal:{props[-1]['html_url']}"
     body = n.get("body") or ""
     return "body" if WHAT.search(body) and ACCEPT.search(body) else None
 picked = []
 for n in nodes:
-    labels = [l["name"] for l in n["labels"]["nodes"]]
+    labels = [l["name"] for l in n["labels"]]
     reasons = []
     unity = sorted(l for l in labels if l.startswith("unity:"))
     if not unity:
@@ -169,15 +191,15 @@ for n in nodes:
     elif unity[0] not in ADMITTED:
         reasons.append(unity[0])
     building = "drain:building" in labels
-    prs = n["closedByPullRequestsReferences"]["nodes"]
+    prs = closing.get(n["number"], [])
     if building:
         # The claim wrote the assignee, so the label stands for both.
         reasons.append("drain:building")
-        if prs and all(p["state"] == "CLOSED" for p in prs):
+        if prs and all(p["state"] == "closed" and not p["merged_at"] for p in prs):
             reasons += [f"pr-closed:{p['number']}" for p in prs]
     else:
-        reasons += [f"assigned:{a['login']}" for a in n["assignees"]["nodes"]]
-    blocked = (n.get("issueDependenciesSummary") or {}).get("blockedBy") or 0
+        reasons += [f"assigned:{a['login']}" for a in n["assignees"]]
+    blocked = (n.get("issue_dependencies_summary") or {}).get("blocked_by") or 0
     if blocked:
         reasons.append(f"blocked:{blocked}")
     s = scope(n)
@@ -189,7 +211,7 @@ for n in nodes:
         print(f"SKIP={n['number']} {','.join(reasons)}")
     else:
         rank = min([RANK[l] for l in labels if l in RANK], default=3)
-        picked.append((rank, n["createdAt"], n["number"], s))
+        picked.append((rank, n["created_at"], n["number"], s))
 if picked:
     _, _, number, s = min(picked)
     print(f"ISSUE={number}")
@@ -210,7 +232,7 @@ cmd_pick() {
     esac
   done
   local r
-  r="$(repo)" || infra "gh repo view failed"
+  r="$(repo)" || infra "gh api (repository) failed"
   scratch
   ready_queue "$r" pick
   echo "DRY_RUN=$dry_run"
@@ -218,24 +240,30 @@ cmd_pick() {
 
 cmd_claim() {
   [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || usage
-  local issue="$1" r assignees
-  r="$(repo)" || infra "gh repo view failed"
-  assignees="$(gh issue view "$issue" --repo "$r" --json assignees --jq '[.assignees[].login] | join(",")')" \
-    || infra "gh issue view $issue failed"
+  local issue="$1" r assignees me
+  r="$(repo)" || infra "gh api (repository) failed"
+  assignees="$(gh api "repos/$r/issues/$issue" --jq '[.assignees[].login] | join(",")')" \
+    || infra "gh api (#$issue) failed"
   if [[ -n "$assignees" ]]; then
     say "#$issue is already assigned ($assignees)"
     echo "CLAIM=taken"; exit 4
   fi
-  gh issue edit "$issue" --repo "$r" --add-assignee @me --add-label drain:building >/dev/null \
+  me="$(gh api user --jq .login)" || infra "gh api user failed"
+  gh api -X POST "repos/$r/issues/$issue/assignees" -f "assignees[]=$me" --silent \
+    && gh api -X POST "repos/$r/issues/$issue/labels" -f "labels[]=drain:building" --silent \
     || infra "claiming #$issue failed — check its assignee and its drain:building label"
   echo "CLAIM=claimed"
 }
 
 cmd_release() {
   [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || usage
-  local issue="$1" r
-  r="$(repo)" || infra "gh repo view failed"
-  gh issue edit "$issue" --repo "$r" --remove-assignee @me --remove-label drain:building >/dev/null \
+  local issue="$1" r me labelled
+  r="$(repo)" || infra "gh api (repository) failed"
+  me="$(gh api user --jq .login)" || infra "gh api user failed"
+  labelled="$(gh api "repos/$r/issues/$issue" --jq 'any(.labels[]; .name == "drain:building")')" \
+    || infra "gh api (#$issue) failed"
+  gh api -X DELETE "repos/$r/issues/$issue/assignees" -f "assignees[]=$me" --silent \
+    && { [[ "$labelled" == false ]] || gh api -X DELETE "repos/$r/issues/$issue/labels/drain:building" --silent; } \
     || infra "releasing #$issue failed — check its assignee and its drain:building label"
   echo "RELEASE=released"
 }
@@ -435,16 +463,17 @@ PY
 cmd_owed() {
   [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || usage
   local pr="$1" r
-  r="$(repo)" || infra "gh repo view failed"
+  r="$(repo)" || infra "gh api (repository) failed"
   scratch
-  gh pr view "$pr" --repo "$r" --json number,body,headRefOid > "$TMP/pr.json" || infra "gh pr view $pr failed"
+  gh api "repos/$r/pulls/$pr" --jq '{number, body: (.body // ""), headRefOid: .head.sha}' > "$TMP/pr.json" \
+    || infra "gh api (PR #$pr) failed"
   pr_views owed "$TMP/pr.json"
 }
 
 cmd_views() {
   [[ $# -eq 1 ]] || usage
   local r
-  r="$(repo)" || infra "gh repo view failed"
+  r="$(repo)" || infra "gh api (repository) failed"
   scratch
   gh api graphql -F owner="${r%%/*}" -F name="${r##*/}" -f query='query($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {

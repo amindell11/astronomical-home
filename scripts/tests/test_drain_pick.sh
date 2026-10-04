@@ -5,9 +5,9 @@ set -euo pipefail
 # Hermetic regression for scripts/drain_pick.sh: the pick filter (unity label, assignee, open
 # blocker, scope block, proposal author), priority-then-age order, a claimed issue's three
 # readings by its closing PRs (unfinished, building, pr-closed), claim's assignee re-read and
-# single write, release, every owed verdict and the tried rule, the verify queue, the merge
-# queue's facts, landing order and skip reasons, and the digest's lists. gh is a stub; every call
-# it does not model fails closed.
+# two writes, release, every owed verdict and the tried rule, the verify queue, the merge
+# queue's facts, landing order and skip reasons, and the digest's lists. gh is a stub serving
+# REST lists 100 rows a page; every call it does not model fails closed.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRAIN="$SCRIPT_DIR/../drain_pick.sh"
@@ -25,41 +25,54 @@ mkdir -p "$FIX" "$TMP/bin"
 cat > "$TMP/bin/gh" <<'EOF'
 #!/usr/bin/env bash
 args="$*"
+page() { local n="${args##*&page=}"; n="${n%% *}"; sed -n "$((n * 100 - 99)),$((n * 100))p" "$1"; }
 case "$args" in
-  "api graphql "*"issues("*) cat "$FIX/queue.json" ;;
+  "api -X "*) echo "$args" >> "$GH_WRITE_LOG" ;;
+  "api user --jq .login") echo me ;;
+  "api repos/owner/repo/issues?"*) page "$FIX/issues.txt" ;;
+  "api repos/owner/repo/issues/"*"/comments?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/comments-${n%%/*}.jsonl" ;;
+  "api repos/owner/repo/issues/"*"assignees"*) cat "$FIX/assignees.txt" ;;
+  "api repos/owner/repo/issues/"*"labels"*) cat "$FIX/labelled.txt" ;;
+  "api repos/owner/repo/pulls?"*) page "$FIX/pulls.jsonl" ;;
+  "api repos/owner/repo/pulls/"*) cat "$FIX/pr.json" ;;
   "api graphql "*"pullRequests("*) cat "$FIX/prs.json" ;;
-  "issue view "*"--json assignees"*) cat "$FIX/assignees.txt" ;;
-  "issue edit "*) echo "$args" >> "$GH_WRITE_LOG" ;;
-  "pr view "*"--json number,body,headRefOid"*) cat "$FIX/pr.json" ;;
   *) echo "gh stub: unmodelled call: $args" >&2; exit 97 ;;
 esac
 EOF
 chmod +x "$TMP/bin/gh"
 export PATH="$TMP/bin:$PATH"
 
-# issue <number> <createdAt> <labels csv> [assignee] [blockedBy] [body] [comments-json] [closing PRs: <n>:<STATE>,…]
+# issue <number> <created_at> <labels csv> [assignee] [blocked_by] [body] [comments-json]
 ISSUES=()
-issue() {
-  ISSUES+=("$(python3 - "$@" <<'PY'
-import json, sys
-a = sys.argv[1:] + [""] * 8
-number, created, labels, assignee, blocked, body, comments, prs = a[:8]
-print(json.dumps({"number": int(number), "createdAt": created, "body": body,
-  "labels": {"nodes": [{"name": l} for l in labels.split(",") if l]},
-  "assignees": {"nodes": [{"login": assignee}] if assignee else []},
-  "issueDependenciesSummary": {"blockedBy": int(blocked or 0)},
-  "closedByPullRequestsReferences": {"nodes": [
-    {"number": int(p.split(":")[0]), "state": p.split(":")[1]} for p in prs.split(",") if p]},
-  "comments": {"nodes": json.loads(comments or "[]")}}))
-PY
-)")
-}
+issue() { local a=("$@" "" "" "" ""); ISSUES+=("${a[@]:0:7}"); }
+# pull <number> <open|closed|merged> <body>: a PR the closing-keyword scan reads
+PULLS=()
+pull() { PULLS+=("$1" "$2" "$3"); }
+# One python spawn per write: each file is what drain_pick's gh call prints, in REST order.
 write_queue() {
-  local IFS=,
-  printf '{"data":{"repository":{"issues":{"nodes":[%s]}}}}' "${ISSUES[*]:-}" > "$FIX/queue.json"
+  python3 - "$FIX" "${ISSUES[@]:-}" -- "${PULLS[@]:-}" <<'PY'
+import json, sys
+fix, args = sys.argv[1], sys.argv[2:]
+issues, pulls = args[:args.index("--")], args[args.index("--") + 1:]
+with open(f"{fix}/issues.txt", "w") as out:
+    for number, created, labels, assignee, blocked, body, comments in zip(*[iter(issues)] * 7):
+        out.write(f"{number} " + json.dumps({"number": int(number), "created_at": created, "body": body,
+          "labels": [{"name": l} for l in labels.split(",") if l],
+          "assignees": [{"login": assignee}] if assignee else [],
+          "issue_dependencies_summary": {"blocked_by": int(blocked or 0)}}) + "\n")
+        with open(f"{fix}/comments-{number}.jsonl", "w") as c:
+            c.writelines(json.dumps(row) + "\n" for row in json.loads(comments or "[]"))
+# 100 PRs closing nothing come first, so every closing PR is read from the second page.
+rows = [{"number": n, "state": "closed", "merged_at": None, "body": None} for n in range(1, 101)]
+rows += [{"number": int(number), "state": "open" if state == "open" else "closed",
+          "merged_at": "2026-09-01T00:00:00Z" if state == "merged" else None, "body": body}
+         for number, state, body in zip(*[iter(pulls)] * 3)]
+with open(f"{fix}/pulls.jsonl", "w") as out:
+    out.writelines(json.dumps(row) + "\n" for row in rows)
+PY
 }
 SLICE_BODY=$'## What to build\nThe thing.\n\n## Acceptance criteria\n- it works'
-proposal() { printf '[{"author":{"login":"%s"},"url":"https://x/c/%s","body":"Ready proposal 2026-09-26\\nScope: s"}]' "$1" "$2"; }
+proposal() { printf '[{"user":{"login":"%s"},"html_url":"https://x/c/%s","body":"Ready proposal 2026-09-26\\nScope: s"}]' "$1" "$2"; }
 
 # pr <number> <body> [draft] [paths csv] [statuses: <context>=<STATE>,…] [changedFiles] [title]
 SHA=76b92040123456789abcdef0123456789abcdef0
@@ -90,9 +103,11 @@ view() {
 
 reset() {
   ISSUES=()
+  PULLS=()
   PRS=()
   : > "$GH_WRITE_LOG"
   : > "$FIX/assignees.txt"
+  echo false > "$FIX/labelled.txt"
 }
 trailer() { grep -o "^$1=.*" | head -n 1 | cut -d= -f2-; }
 skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
@@ -115,7 +130,9 @@ issue 14 2026-09-05T00:00:00Z ready-for-agent,unity:none "" 0 $'## What to build
 issue 15 2026-09-06T00:00:00Z ready-for-agent,unity:none "" 0 "no scope" "$(proposal stranger 15)"
 issue 16 2026-09-07T00:00:00Z ready-for-agent,unity:none "" 0 "no scope" "$(proposal amindell11 16)"
 write_queue
+echo '17 {"number": 17, "pull_request": {}}' >> "$FIX/issues.txt"; : > "$FIX/comments-17.jsonl"
 out="$(bash "$DRAIN" pick 2>/dev/null)"
+! grep -q '=17 ' <<<"$out" || fail "a PR the REST issue list returns is no queue issue (got: $out)"
 [[ "$(skip_of 10 <<<"$out")" == no-unity-label ]] || fail "no unity label is skipped (got: $out)"
 [[ "$(skip_of 11 <<<"$out")" == unity:editor ]] || fail "unity:editor is skipped by label (got: $out)"
 [[ "$(skip_of 12 <<<"$out")" == assigned:someone ]] || fail "assigned is skipped (got: $out)"
@@ -166,7 +183,7 @@ out="$(bash "$DRAIN" pick 2>/dev/null)"
 [[ "$(trailer ISSUE <<<"$out")" == 34 ]] || fail "pri:now beats an older pri:next (got: $out)"
 
 reset
-issue 40 2026-09-01T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY" '[{"author":{"login":"amindell11"},"url":"https://x/c/a","body":"Ready proposal 2026-09-20"},{"author":{"login":"amindell11"},"url":"https://x/c/b","body":"Ready proposal 2026-09-25"}]'
+issue 40 2026-09-01T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY" '[{"user":{"login":"amindell11"},"html_url":"https://x/c/a","body":"Ready proposal 2026-09-20"},{"user":{"login":"amindell11"},"html_url":"https://x/c/b","body":"Ready proposal 2026-09-25"}]'
 write_queue
 out="$(bash "$DRAIN" pick 2>/dev/null)"
 [[ "$(trailer SCOPE <<<"$out")" == proposal:https://x/c/b ]] || fail "the latest proposal wins over an older one and the body (got: $out)"
@@ -179,27 +196,37 @@ out="$(bash "$DRAIN" pick --dry-run 2>/dev/null)"
 # --- pick: a claimed issue reads by the PRs closing it -----------------------------------------
 reset
 issue 60 2026-09-01T00:00:00Z ready-for-agent,unity:headless,drain:building me 0 "$SLICE_BODY"
-issue 61 2026-09-02T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "no scope" "$(proposal amindell11 61)" 161:OPEN
-issue 62 2026-09-03T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY" "" 162:CLOSED,163:CLOSED
-issue 63 2026-09-04T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY" "" 164:CLOSED,165:OPEN
+issue 61 2026-09-02T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "no scope" "$(proposal amindell11 61)"
+issue 62 2026-09-03T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY"
+issue 63 2026-09-04T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY"
 issue 64 2026-09-05T00:00:00Z ready-for-agent,unity:none,drain:building me 1 "$SLICE_BODY"
 issue 65 2026-09-06T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "no scope" "$(proposal amindell11 65)"
-issue 66 2026-09-07T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY" "" 166:CLOSED
+issue 66 2026-09-07T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY"
+issue 67 2026-09-08T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY"
+pull 160 open "Refs #60, not a closing keyword"
+pull 161 open "Closes #61"
+pull 162 closed "Fixes: #62"
+pull 163 closed $'## What changed\n\nresolves #62'
+pull 164 closed "closed #63"
+pull 165 open "Closes #63"
+pull 166 closed "Closes #66"
+pull 167 merged "Fixes #67"
 write_queue
 out="$(bash "$DRAIN" pick 2>/dev/null)"
-[[ "$(grep '^UNFINISHED=' <<<"$out")" == $'UNFINISHED=60 body\nUNFINISHED=65 proposal:https://x/c/65' ]] || fail "a claimed issue with no PR of any state is unfinished, with its scope (got: $out)"
+[[ "$(grep '^UNFINISHED=' <<<"$out")" == $'UNFINISHED=60 body\nUNFINISHED=65 proposal:https://x/c/65' ]] || fail "a claimed issue no PR of any state closes is unfinished, with its scope; a mention without a closing keyword closes nothing (got: $out)"
 [[ -z "$(skip_of 60 <<<"$out")" ]] || fail "an unfinished issue has no SKIP line (got: $out)"
 [[ "$(skip_of 61 <<<"$out")" == drain:building ]] || fail "a claimed issue with an open PR is building; the assignee is the claim's (got: $out)"
 [[ "$(skip_of 62 <<<"$out")" == drain:building,pr-closed:162,pr-closed:163 ]] || fail "only closed-unmerged PRs names each one (got: $out)"
 [[ "$(skip_of 63 <<<"$out")" == drain:building ]] || fail "an open PR beside a closed one is building, not pr-closed (got: $out)"
 [[ "$(skip_of 64 <<<"$out")" == drain:building,blocked:1 ]] || fail "a claimed issue blocked since its claim is skipped, not unfinished (got: $out)"
+[[ "$(skip_of 67 <<<"$out")" == drain:building ]] || fail "a merged PR is not closed-unmerged (got: $out)"
 [[ "$(trailer ISSUE <<<"$out")" == 66 ]] || fail "a released issue is picked again whatever its closed PRs (got: $out)"
 
-# --- claim: one write, assignee and label together ------------------------------------------------
+# --- claim: two writes, the assignee, then the label ----------------------------------------------
 reset
 out="$(bash "$DRAIN" claim 40 2>/dev/null)"
 [[ "$out" == CLAIM=claimed ]] || fail "claim prints one trailer and no slot (got: $out)"
-[[ "$(cat "$GH_WRITE_LOG")" == "issue edit 40 --repo owner/repo --add-assignee @me --add-label drain:building" ]] || fail "one claim write (got: $(cat "$GH_WRITE_LOG"))"
+[[ "$(cat "$GH_WRITE_LOG")" == $'api -X POST repos/owner/repo/issues/40/assignees -f assignees[]=me --silent\napi -X POST repos/owner/repo/issues/40/labels -f labels[]=drain:building --silent' ]] || fail "the assignee, then the label (got: $(cat "$GH_WRITE_LOG"))"
 
 # --- claim: assignee changed since pick → taken, nothing written ---------------------------------
 reset; echo "someone" > "$FIX/assignees.txt"
@@ -207,11 +234,15 @@ rc=0; out="$(bash "$DRAIN" claim 40 2>/dev/null)" || rc=$?
 [[ "$rc" -eq 4 && "$out" == CLAIM=taken ]] || fail "an assignee at re-read is taken, exit 4 (rc=$rc: $out)"
 [[ ! -s "$GH_WRITE_LOG" ]] || fail "taken writes nothing"
 
-# --- release: one write, both removed -------------------------------------------------------------
-reset
+# --- release: the assignee, then the label when the issue carries it ------------------------------
+reset; echo true > "$FIX/labelled.txt"
 out="$(bash "$DRAIN" release 40 2>/dev/null)"
 [[ "$out" == RELEASE=released ]] || fail "release prints its trailer (got: $out)"
-[[ "$(cat "$GH_WRITE_LOG")" == "issue edit 40 --repo owner/repo --remove-assignee @me --remove-label drain:building" ]] || fail "one release write (got: $(cat "$GH_WRITE_LOG"))"
+[[ "$(cat "$GH_WRITE_LOG")" == $'api -X DELETE repos/owner/repo/issues/40/assignees -f assignees[]=me --silent\napi -X DELETE repos/owner/repo/issues/40/labels/drain:building --silent' ]] || fail "the assignee, then the label (got: $(cat "$GH_WRITE_LOG"))"
+reset
+out="$(bash "$DRAIN" release 40 2>/dev/null)"
+[[ "$out" == RELEASE=released && "$(cat "$GH_WRITE_LOG")" == "api -X DELETE repos/owner/repo/issues/40/assignees -f assignees[]=me --silent" ]] \
+  || fail "an issue without the label loses only the assignee (got: $out; $(cat "$GH_WRITE_LOG"))"
 
 # --- owed: every verdict ----------------------------------------------------------------------------
 # owed_is <verdict> <open unity> <open script> <open eyes> <why> <body> [<tried unity> <tried script> <behind>]
@@ -324,7 +355,9 @@ issue 16 2026-09-03T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY"
 issue 17 2026-09-04T00:00:00Z ready-for-agent,unity:none "" 0 "$SLICE_BODY"
 issue 54 2026-09-05T00:00:00Z ready-for-agent,unity:headless,unity:editor "" 0 "$SLICE_BODY"
 issue 60 2026-09-06T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY"
-issue 62 2026-09-07T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY" "" 162:CLOSED,163:CLOSED
+issue 62 2026-09-07T00:00:00Z ready-for-agent,unity:none,drain:building me 0 "$SLICE_BODY"
+pull 162 closed "Closes #62"
+pull 163 closed "Closes #62"
 pr 301 "${OWED}"$'- [ ] unity: boot\n- [ ] eyes: look\n' "" "" "" "" "feat: a → b"
 pr 302 "${OWED}"$'- [ ] script: suite\n  FAIL at `76b9204`\n'
 pr 303 "${OWED}"$'- [ ] manual: something\n'
