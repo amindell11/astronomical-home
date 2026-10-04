@@ -109,7 +109,7 @@ def build(ship_json, out):
     part("Canopy", box((-0.12, 0.3, 0.15), (0.12, 0.7, 0.3)), body, ["role.canopy"], (glass,))
     part("Core", box((-0.1, -1.05, -0.08), (0.1, -0.95, 0.08)), body, ["role.cores"], (glow,))
     part("Hitbox", box((-1, -1, -0.2), (1, 1, 0.5)), origin, ["role.collider"], uv=False)
-    part("Scratch", box((5, 0, 0), (5.2, 0.2, 0.2)), origin, [contract.IGNORE], uv=False)
+    part("Scratch", box((5, 0, 0), (5.2, 0.2, 0.2)), origin, ["role.hull", contract.IGNORE], uv=False)
     for name, x in (("engine.L", -0.2), ("engine.R", 0.2)):
         socket = bpy.data.objects.new(name, None)
         socket.parent = body

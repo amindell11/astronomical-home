@@ -86,6 +86,8 @@ class Roles:
                 self.reserved.append(collection.name)
             key = kind if ident is None else f"{kind}.{ident}"
             self.members.setdefault(key, set()).update(o.name for o in collection.all_objects)
+        for names in self.members.values():
+            names -= self.ignored
 
     def of(self, name):
         return {key for key, names in self.members.items() if name in names}
