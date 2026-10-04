@@ -1,0 +1,36 @@
+T		True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform,Rigidbody,Ship,MovementController,DamageController,WeaponsController,KinematicsPoller
+T	Mesh	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform,MeshCollider
+T	Hardpoints	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform
+T	Hardpoints/Primary	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0.480000019,0.72,0,1	Transform
+T	Hardpoints/Secondary	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,-0.480000019,0.72,0,1	Transform
+T	ShipBody	True	15	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform,SphereCollider
+T	ShipBaseRig	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform,HullVisuals,AudioSource,ShipDamageAudio,ShipVisualRig,ShipBreakupVisual
+T	ShipBaseRig/Thruster	True	0	1.80000007,0,0,0,0,1.79999983,0,0,0,0,1.2,0,0,0,0,1	Transform,ThrusterVisuals,EngineAudio
+T	ShipBaseRig/Thruster/EngineExhaust	True	0	1.80000007,0,0,0,0,1.79999983,0,0,0,0,1.2,0,0,-1.20000052,-0.04933655,1	Transform
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustMain	True	0	-2.78949727E-07,-2.34,0,0,0.774000168,-9.226798E-08,0,0,0,0,1.2,0,0,-1.20000052,-0.04933655,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)	True	0	-2.78949727E-07,-2.34,0,0,0.774000168,-9.226798E-08,0,0,0,0,1.2,0,0,-1.20000052,-0.04933655,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustSmall	True	0	-1.2016298E-07,-1.008,0,0,1.5120002,-1.80244413E-07,0,0,0,0,1.2,0,0,-1.20000052,-0.04933655,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)	True	0	-1.2016298E-07,-1.008,0,0,1.5120002,-1.80244413E-07,0,0,0,0,1.2,0,0,-1.20000052,-0.04933655,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustLight	False	0	0.243344352,0,-0.7833783,0,1.76260138,-2.145767E-07,0.2433445,0,0,-1.19999993,-9.536743E-08,0,0,-1.20000052,-0.04933655,1	Transform,Light,UniversalAdditionalLightData
+T	ShipBaseRig/Thruster/Reactor	True	0	1.80000007,0,0,0,0,1.79999983,0,0,0,0,1.2,0,0,0.312000036,0,1	Transform
+T	ShipBaseRig/Thruster/Reactor/ReactorGlow	True	0	-2.1457673E-07,-1.8,0,0,1.80000031,-2.145767E-07,0,0,0,0,1.2,0,0,0.312000036,0,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/ThrustAudio	True	0	1.80000007,0,0,0,0,1.79999983,0,0,0,0,1.2,0,0,0,0,1	Transform,AudioSource
+T	ShipBaseRig/Thruster/StrafeAudio	True	0	1.80000007,0,0,0,0,1.79999983,0,0,0,0,1.2,0,0,0,0,1	Transform,AudioSource
+T	ShipBaseRig/SmokeTrail	False	0	1.2,0,0,0,0,-1.43051153E-07,1.20000017,0,0,-1.20000017,-1.43051153E-07,0,0.54,-0.372,0.1092,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Hull	True	7	1.2,0,0,0,0,1.2,0,0,0,0,1.2,0,0,0,0,1	Transform
+T	ShipBaseRig/Hull/Crimson	True	7	-1.2021836,0,0,0,0,-1.43311411E-07,-1.20218349,0,0,-1.20218349,-1.43311411E-07,0,0,-0.0251391139,0.05976287,1	Transform
+T	ShipBaseRig/Hull/Crimson/Hull	True	7	-1.2021836,0,0,0,0,1.2021836,2.86622878E-07,0,0,0,-1.2021836,0,0,-0.0251391139,0.05976287,1	Transform,MeshFilter,MeshRenderer
+T	ShipBaseRig/MinimapMarker	True	12	2.4,0,0,0,0,2.4,0,0,0,0,2.4,0,0,0,0,1	Transform,MeshFilter,MeshRenderer,SortingGroup,MinimapShipMarker
+T	ShipBaseRig/Shield	True	10	1.2,0,0,0,0,-1.43051153E-07,1.20000017,0,0,-1.20000017,-1.43051153E-07,0,0,0,0,1	RectTransform,Canvas,CanvasScaler,GraphicRaycaster
+T	ShipBaseRig/Shield/ShieldBar	True	10	1.2,0,0,0,0,-1.20000029,-2.86102335E-07,0,0,2.86102335E-07,-1.20000029,0,0,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Image,StatusBarUI
+T	ShipBaseRig/Shield/ShieldBar/Fill	True	10	1.2,0,0,0,0,-1.20000029,-2.86102335E-07,0,0,2.86102335E-07,-1.20000029,0,0,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Image
+T	ShipBaseRig/Shield/ShieldBar/Value	True	10	0.012,0,0,0,0,-0.0120000029,-2.8610232E-09,0,0,2.8610232E-09,-0.0120000029,0,1.98,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Text
+T	ShipBaseRig/Shield/HealthBar	True	10	1.2,0,0,0,0,-1.20000029,-2.86102335E-07,0,0,2.86102335E-07,-1.20000029,0,0,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Image,StatusBarUI
+T	ShipBaseRig/Shield/HealthBar/Fill	True	10	1.2,0,0,0,0,-1.20000029,-2.86102335E-07,0,0,2.86102335E-07,-1.20000029,0,0,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Image
+T	ShipBaseRig/Shield/HealthBar/Value	True	10	0.012,0,0,0,0,-0.0120000029,-2.8610232E-09,0,0,2.8610232E-09,-0.0120000029,0,1.98,-0.0600000136,-7.15255766E-09,1	RectTransform,CanvasRenderer,Text
+T	ShipBaseRig/UILockOnIndicator	True	10	0.407293528,0.4072935,0,0,-0.4072935,0.407293528,0,0,0,0,0.576000035,0,0,0,0,1	RectTransform,Canvas,CanvasRenderer,Image,Animator,CanvasGroup,LockOnIndicator,Billboard,GlowingUIController
+RB	215	(235.56543, 212.813, 331.0046)	(0.04168308, 0.0009249189, 0.007938498, 0.9990989)	False
+COL	Assets/Visuals/Ships/Crimson/Ship_2 collider.asset	Ship_2 collider
+BREAKUP	hull=Crimson	debris=Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab
+MF	Hull	Assets/Visuals/Ships/Crimson/Crimson.fbx::Hull
+MF	MinimapMarker	Assets/Visuals/Ships/Crimson/Ship_2 collider.asset::Ship_2 collider

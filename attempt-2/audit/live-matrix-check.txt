@@ -1,0 +1,37 @@
+live editor dump of Crimson.prefab (root re-posed, scale kept) vs export-hull-in-legacy-rig dump; world matrices, tol 1e-5
+0.00e+00 active True/True layer 7/7 <root> [Transform,Rigidbody,Ship,MovementController,DamageController,WeaponsController,KinematicsPoller]
+0.00e+00 active True/True layer 7/7 Mesh [Transform,MeshCollider]
+0.00e+00 active True/True layer 7/7 Hardpoints [Transform]
+0.00e+00 active True/True layer 7/7 Hardpoints/Primary [Transform]
+0.00e+00 active True/True layer 7/7 Hardpoints/Secondary [Transform]
+0.00e+00 active True/True layer 15/15 ShipBody [Transform,SphereCollider]
+0.00e+00 active True/True layer 7/7 ShipBaseRig [Transform,HullVisuals,AudioSource,ShipDamageAudio,ShipVisualRig,ShipBreakupVisual]
+1.32e-01 active True/True layer 0/0 ShipBaseRig/Thruster [Transform,ThrusterVisuals,EngineAudio]  <-- DIFF
+3.60e-08 active True/True layer 0/0 ShipBaseRig/Thruster/Reactor/ReactorGlow [Transform,ParticleSystem,ParticleSystemRenderer]
+3.50e-07 active True/True layer 0/0 ShipBaseRig/Thruster/EngineExhaust/ThrustSmall [Transform,ParticleSystem,ParticleSystemRenderer]
+3.50e-07 active True/True layer 0/0 ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1) [Transform,ParticleSystem,ParticleSystemRenderer]
+3.50e-07 active True/True layer 0/0 ShipBaseRig/Thruster/EngineExhaust/ThrustMain [Transform,ParticleSystem,ParticleSystemRenderer]
+3.50e-07 active True/True layer 0/0 ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1) [Transform,ParticleSystem,ParticleSystemRenderer]
+8.52e-01 active False/False layer 0/0 ShipBaseRig/Thruster/EngineExhaust/ThrustLight [Transform,Light,UniversalAdditionalLightData]  <-- DIFF
+1.32e-01 active True/True layer 0/0 ShipBaseRig/Thruster/ThrustAudio [Transform,AudioSource]  <-- DIFF
+1.32e-01 active True/True layer 0/0 ShipBaseRig/Thruster/StrafeAudio [Transform,AudioSource]  <-- DIFF
+0.00e+00 active False/False layer 0/0 ShipBaseRig/SmokeTrail [Transform,ParticleSystem,ParticleSystemRenderer]
+0.00e+00 active True/True layer 7/7 ShipBaseRig/Hull [Transform]
+0.00e+00 active True/True layer 7/7 ShipBaseRig/Hull/Crimson [Transform]
+0.00e+00 active True/True layer 7/7 ShipBaseRig/Hull/Crimson/Hull [Transform,MeshFilter,MeshRenderer]
+0.00e+00 active True/True layer 12/12 ShipBaseRig/MinimapMarker [Transform,MeshFilter,MeshRenderer,SortingGroup,MinimapShipMarker]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield [RectTransform,Canvas,CanvasScaler,GraphicRaycaster]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/ShieldBar [RectTransform,CanvasRenderer,Image,StatusBarUI]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/ShieldBar/Fill [RectTransform,CanvasRenderer,Image]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/ShieldBar/Value [RectTransform,CanvasRenderer,Text]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/HealthBar [RectTransform,CanvasRenderer,Image,StatusBarUI]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/HealthBar/Fill [RectTransform,CanvasRenderer,Image]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/Shield/HealthBar/Value [RectTransform,CanvasRenderer,Text]
+0.00e+00 active True/True layer 10/10 ShipBaseRig/UILockOnIndicator [RectTransform,Canvas,CanvasRenderer,Image,Animator,CanvasGroup,LockOnIndicator,Billboard,GlowingUIController]
+NEW ShipBaseRig/Thruster/EngineExhaust Transform
+NEW ShipBaseRig/Thruster/Reactor Transform
+RB	215	(235.56543, 212.813, 331.0046)	(0.04168308, 0.0009249189, 0.007938498, 0.9990989)	False
+COL	Assets/Visuals/Ships/Crimson/Ship_2 collider.asset	Ship_2 collider
+BREAKUP	hull=Crimson	debris=Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab
+MF	Hull	Assets/Visuals/Ships/Crimson/Crimson.fbx::Hull
+MF	MinimapMarker	Assets/Visuals/Ships/Crimson/Ship_2 collider.asset::Ship_2 collider

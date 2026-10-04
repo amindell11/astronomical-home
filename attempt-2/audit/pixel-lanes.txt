@@ -1,0 +1,5 @@
+legacy held vs legacy cold [(38401, 388), (37371, 371), (32752, 286)]
+export-beauty held vs export cold [(37323, 388), (36339, 371), (32585, 379)]
+legacy held vs export-beauty held (ruling's delta) [(13736, 536), (14022, 553), (14799, 568)]
+legacy cold vs export cold [(15108, 539), (15430, 540), (14670, 551)]
+golden baseline vs last Crimson render [(0, 0), (0, 0), (0, 0)]

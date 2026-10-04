@@ -1,0 +1,14 @@
+before: 29 transforms, 62 components, 97 overrides
+after:  31 transforms, 62 components, 57 overrides
+note: H path: Assets/Prefabs/Ships/Ship_2.prefab -> Assets/Prefabs/Ships/Crimson.prefab
+note: H name: Ship_2 -> Crimson
+note: H statHash: 0da587770c036adf -> 3b5ce1e019e140d8
+new after (paths with no before counterpart):
+    ShipBaseRig/Thruster/EngineExhaust
+    ShipBaseRig/Thruster/Reactor
+PROBLEMS (5):
+    stat lines differ: ['Crimson/Ship.engine=Default_Engine', 'Crimson/Ship.mass=800', 'Crimson/Ship.maxBankAngle=35', 'Crimson/Ship.maxHealth=100', 'Crimson/Ship.shield=Default_Shield', 'Crimson/Ship.startingLives=1', 'Crimson/Ship.weapons=Crimson', 'Crimson/WeaponsController.primaryMount=Lasers', 'Crimson/WeaponsController.secondaryMount=Missiles', 'Ship_2/Ship.engine=Default_Engine']
+    T matrix Ship_2_IllustratedRig/Thruster -> ShipBaseRig/Thruster: max diff 0.132
+    T matrix Ship_2_IllustratedRig/Thruster/ThrustLight -> ShipBaseRig/Thruster/EngineExhaust/ThrustLight: max diff 0.852
+    T matrix Ship_2_IllustratedRig/Thruster/ThrustAudio -> ShipBaseRig/Thruster/ThrustAudio: max diff 0.132
+    T matrix Ship_2_IllustratedRig/Thruster/StrafeAudio -> ShipBaseRig/Thruster/StrafeAudio: max diff 0.132

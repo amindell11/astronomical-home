@@ -1,0 +1,543 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "79fac9233231c6f274ed3907c7416253dff7059c9c27a7daf75f5f3fe4079a90",
+  "name": "Crimson",
+  "fbx": "Crimson.fbx",
+  "fbx_sha256": "2e5276a5f28339512d633615fd5f75b948a9630fdce729fb06e62d0d695120dd",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Canopy",
+        "Canopy perimeter rim",
+        "Canopy transverse frame",
+        "Central hull",
+        "Cockpit surround",
+        "Cube",
+        "Dorsal service spine",
+        "Engine forward cowling",
+        "Engine housing",
+        "Engine neck",
+        "Engine nozzle",
+        "Engine support frame",
+        "Engine throat",
+        "Lower Aft swept fin",
+        "Lower Forward fin",
+        "Lower Outer swept fin",
+        "Lower aft shoulder armor",
+        "Lower inner shoulder armor",
+        "Lower outer armor rail",
+        "Lower prow armor",
+        "Lower prow tip",
+        "Lower wing foundation",
+        "Outer rail mounting block",
+        "Rear cockpit yoke",
+        "Service channel floor",
+        "Service pod cap",
+        "Shoulder service pod",
+        "Shoulder underside link",
+        "Structural center web",
+        "Upper Aft swept fin",
+        "Upper Forward fin",
+        "Upper Outer swept fin",
+        "Upper aft shoulder armor",
+        "Upper inner shoulder armor",
+        "Upper outer armor rail",
+        "Upper prow armor",
+        "Upper prow tip",
+        "Upper wing foundation",
+        "Wing root beam"
+      ],
+      "material_slots": [
+        "Crimson - hand-painted base color",
+        "Contour"
+      ],
+      "uv_layers": [
+        "CrimsonPaintUV"
+      ],
+      "surface": {
+        "Canopy": [
+          0,
+          120,
+          0,
+          236
+        ],
+        "Canopy perimeter rim": [
+          120,
+          376,
+          236,
+          752
+        ],
+        "Canopy transverse frame": [
+          496,
+          236,
+          988,
+          468
+        ],
+        "Central hull": [
+          732,
+          104,
+          1456,
+          204
+        ],
+        "Cockpit surround": [
+          836,
+          216,
+          1660,
+          428
+        ],
+        "Cube": [
+          1052,
+          30,
+          2088,
+          60
+        ],
+        "Dorsal service spine": [
+          1082,
+          40,
+          2148,
+          76
+        ],
+        "Engine forward cowling": [
+          1122,
+          40,
+          2224,
+          72
+        ],
+        "Engine housing": [
+          1162,
+          240,
+          2296,
+          472
+        ],
+        "Engine neck": [
+          1402,
+          192,
+          2768,
+          376
+        ],
+        "Engine nozzle": [
+          1594,
+          432,
+          3144,
+          856
+        ],
+        "Engine support frame": [
+          2026,
+          72,
+          4000,
+          136
+        ],
+        "Engine throat": [
+          2098,
+          96,
+          4136,
+          184
+        ],
+        "Lower Aft swept fin": [
+          2194,
+          24,
+          4320,
+          40
+        ],
+        "Lower Forward fin": [
+          2218,
+          32,
+          4360,
+          56
+        ],
+        "Lower Outer swept fin": [
+          2250,
+          24,
+          4416,
+          40
+        ],
+        "Lower aft shoulder armor": [
+          2274,
+          48,
+          4456,
+          88
+        ],
+        "Lower inner shoulder armor": [
+          2322,
+          48,
+          4544,
+          88
+        ],
+        "Lower outer armor rail": [
+          2370,
+          112,
+          4632,
+          216
+        ],
+        "Lower prow armor": [
+          2482,
+          96,
+          4848,
+          184
+        ],
+        "Lower prow tip": [
+          2578,
+          48,
+          5032,
+          88
+        ],
+        "Lower wing foundation": [
+          2626,
+          160,
+          5120,
+          312
+        ],
+        "Outer rail mounting block": [
+          2786,
+          32,
+          5432,
+          56
+        ],
+        "Rear cockpit yoke": [
+          2818,
+          96,
+          5488,
+          188
+        ],
+        "Service channel floor": [
+          2914,
+          48,
+          5676,
+          92
+        ],
+        "Service pod cap": [
+          2962,
+          32,
+          5768,
+          56
+        ],
+        "Shoulder service pod": [
+          2994,
+          48,
+          5824,
+          88
+        ],
+        "Shoulder underside link": [
+          3042,
+          48,
+          5912,
+          88
+        ],
+        "Structural center web": [
+          3090,
+          216,
+          6000,
+          434
+        ],
+        "Upper Aft swept fin": [
+          3306,
+          24,
+          6434,
+          40
+        ],
+        "Upper Forward fin": [
+          3330,
+          32,
+          6474,
+          56
+        ],
+        "Upper Outer swept fin": [
+          3362,
+          24,
+          6530,
+          40
+        ],
+        "Upper aft shoulder armor": [
+          3386,
+          48,
+          6570,
+          88
+        ],
+        "Upper inner shoulder armor": [
+          3434,
+          48,
+          6658,
+          88
+        ],
+        "Upper outer armor rail": [
+          3482,
+          112,
+          6746,
+          216
+        ],
+        "Upper prow armor": [
+          3594,
+          96,
+          6962,
+          184
+        ],
+        "Upper prow tip": [
+          3690,
+          48,
+          7146,
+          88
+        ],
+        "Upper wing foundation": [
+          3738,
+          160,
+          7234,
+          312
+        ],
+        "Wing root beam": [
+          3898,
+          40,
+          7546,
+          72
+        ]
+      },
+      "contour": {
+        "Canopy": [
+          3938,
+          120,
+          7618,
+          236
+        ],
+        "Canopy perimeter rim": [
+          4058,
+          376,
+          7854,
+          752
+        ],
+        "Canopy transverse frame": [
+          4434,
+          236,
+          8606,
+          468
+        ],
+        "Central hull": [
+          4670,
+          104,
+          9074,
+          204
+        ],
+        "Cockpit surround": [
+          4774,
+          216,
+          9278,
+          428
+        ],
+        "Cube": [
+          4990,
+          30,
+          9706,
+          60
+        ],
+        "Dorsal service spine": [
+          5020,
+          40,
+          9766,
+          76
+        ],
+        "Engine forward cowling": [
+          5060,
+          40,
+          9842,
+          72
+        ],
+        "Engine housing": [
+          5100,
+          240,
+          9914,
+          472
+        ],
+        "Engine neck": [
+          5340,
+          192,
+          10386,
+          376
+        ],
+        "Engine nozzle": [
+          5532,
+          432,
+          10762,
+          856
+        ],
+        "Engine support frame": [
+          5964,
+          72,
+          11618,
+          136
+        ],
+        "Engine throat": [
+          6036,
+          96,
+          11754,
+          184
+        ],
+        "Lower Aft swept fin": [
+          6132,
+          24,
+          11938,
+          40
+        ],
+        "Lower Forward fin": [
+          6156,
+          32,
+          11978,
+          56
+        ],
+        "Lower Outer swept fin": [
+          6188,
+          24,
+          12034,
+          40
+        ],
+        "Lower aft shoulder armor": [
+          6212,
+          48,
+          12074,
+          88
+        ],
+        "Lower inner shoulder armor": [
+          6260,
+          48,
+          12162,
+          88
+        ],
+        "Lower outer armor rail": [
+          6308,
+          112,
+          12250,
+          216
+        ],
+        "Lower prow armor": [
+          6420,
+          96,
+          12466,
+          184
+        ],
+        "Lower prow tip": [
+          6516,
+          48,
+          12650,
+          88
+        ],
+        "Lower wing foundation": [
+          6564,
+          160,
+          12738,
+          312
+        ],
+        "Outer rail mounting block": [
+          6724,
+          32,
+          13050,
+          56
+        ],
+        "Rear cockpit yoke": [
+          6756,
+          96,
+          13106,
+          188
+        ],
+        "Service channel floor": [
+          6852,
+          48,
+          13294,
+          92
+        ],
+        "Service pod cap": [
+          6900,
+          32,
+          13386,
+          56
+        ],
+        "Shoulder service pod": [
+          6932,
+          48,
+          13442,
+          88
+        ],
+        "Shoulder underside link": [
+          6980,
+          48,
+          13530,
+          88
+        ],
+        "Structural center web": [
+          7028,
+          216,
+          13618,
+          434
+        ],
+        "Upper Aft swept fin": [
+          7244,
+          24,
+          14052,
+          40
+        ],
+        "Upper Forward fin": [
+          7268,
+          32,
+          14092,
+          56
+        ],
+        "Upper Outer swept fin": [
+          7300,
+          24,
+          14148,
+          40
+        ],
+        "Upper aft shoulder armor": [
+          7324,
+          48,
+          14188,
+          88
+        ],
+        "Upper inner shoulder armor": [
+          7372,
+          48,
+          14276,
+          88
+        ],
+        "Upper outer armor rail": [
+          7420,
+          112,
+          14364,
+          216
+        ],
+        "Upper prow armor": [
+          7532,
+          96,
+          14580,
+          184
+        ],
+        "Upper prow tip": [
+          7628,
+          48,
+          14764,
+          88
+        ],
+        "Upper wing foundation": [
+          7676,
+          160,
+          14852,
+          312
+        ],
+        "Wing root beam": [
+          7836,
+          40,
+          15164,
+          72
+        ]
+      }
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+    "uv": "a816e089e6a1bd3c9365d76b3c32a94c185ac30b73585311f70863b8c2f9ecf8",
+    "materials": "66a4aa40bde88028b1bcf316d5b93b9ed1e5c6feb79698b8296d568bd0a296fb"
+  }
+}
