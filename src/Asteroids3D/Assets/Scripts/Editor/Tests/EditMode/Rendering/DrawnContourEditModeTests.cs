@@ -29,7 +29,7 @@ namespace Tests.EditMode.Rendering
                 subject.transform.rotation = new Quaternion(x, y, z, w);
                 subject.layer = 31;
                 subject.GetComponent<MeshFilter>().sharedMesh = settings.meshInfos[0].mesh;
-                var surface = new Material(Shader.Find("Astronomical/Comparison/Drawn Surface"));
+                var surface = new Material(Shader.Find("Astronomical/Drawn/Surface"));
                 resources.Add(surface);
                 surface.SetColor("_BaseColor", Color.white);
                 surface.SetTexture("_EmissionMap", Texture2D.whiteTexture);
@@ -41,7 +41,7 @@ namespace Tests.EditMode.Rendering
                 outline.transform.SetParent(subject.transform, false);
                 outline.layer = 31;
                 outline.GetComponent<MeshFilter>().sharedMesh = settings.meshInfos[0].mesh;
-                var ink = new Material(Shader.Find("Astronomical/Comparison/Drawn Contour"));
+                var ink = new Material(Shader.Find("Astronomical/Drawn/Contour"));
                 resources.Add(ink);
                 ink.SetColor("_ContourColor", Color.black);
                 ink.SetFloat("_ContourMinimum", 1);
