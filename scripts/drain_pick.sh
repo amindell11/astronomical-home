@@ -80,8 +80,9 @@ set -euo pipefail
 #           <sha> naming none of its commits, refuses the whole call. Every session is the same
 #           GitHub account, so nothing here can tell who gave the instruction: run it only on the
 #           user's own word.
-#   land-facts  read-only, GraphQL (local sessions only). The only reader of a recorded
-#           instruction, of Codex's review state and of one PR's merge-order constraints.
+#   land-facts  read-only, GraphQL (local sessions only). `land`'s one source for a PR's recorded
+#           instruction, Codex's review state and merge-order constraints; merge-queue's
+#           instructed and class facts come from the same parsers.
 #           Instruction: the latest comment by amindell11 whose first line is a record; it names
 #           nothing when its commit is not among the PR's latest 100. There is no withdraw format:
 #           closing the PR or making it a draft withdraws it, since `land` refuses both.

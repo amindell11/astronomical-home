@@ -270,10 +270,10 @@ Format: **term** — definition. *(authority)*
   instruction, except that a *recorded instruction* survives an inert diff
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
-  commit, kept as a PR comment only `drain_pick.sh instruct` writes and only
-  `land-facts` reads. It *covers* the landing tree when merging its commit
-  with base gives that tree, or one an inert diff away; `land` needs a
-  covering one. Every session is the same GitHub account, so policy alone
+  commit, kept as a PR comment that only `drain_pick.sh` writes (`instruct`)
+  and parses (`land-facts`, `merge-queue`). It *covers* the landing tree when
+  merging its commit with base gives that tree, or one an inert diff away;
+  `land` needs a covering one. Every session is the same GitHub account, so policy alone
   keeps it the user's. *(scripts/drain_pick.sh `instruct`; #830)*
 - **spend** — compute expenditure needing its own explicit approval; a run is a
   run, not a PR.
