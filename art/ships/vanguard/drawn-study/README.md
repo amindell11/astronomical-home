@@ -16,8 +16,8 @@ armor and aft spar. Torn entry chips lead into directional gouges and scrape
 trails. This is one battle-worn finish; damage-level variants remain a future art
 pass. Paired hangar captures isolate the wear layer.
 
-The study's Blender-to-Unity producers, `export_study.py` and `build_structure.py`,
-are retired to branch `evidence/vanguard` under `producers/drawn-study/`. They read the
+`export_study.py` and `build_structure.py` are retired to branch `evidence/vanguard`
+(`producers/drawn-study/`). These Blender-to-Unity producers read the
 `Vanguard - Texture MVP` scene and froze Blender's evaluated triangles and corner
 normals into the export: the source contains nonplanar panels whose alternative
 triangulations intersect the blue disks. The original editable polygons remain in the
