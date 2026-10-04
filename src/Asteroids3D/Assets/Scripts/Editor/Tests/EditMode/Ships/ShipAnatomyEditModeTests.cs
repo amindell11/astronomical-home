@@ -164,10 +164,11 @@ namespace Tests.EditMode
         public void Chassis_HullKeepsTheContourAsASeparateVertexRange(string path)
         {
             var root = Load(path);
-            foreach (var filter in root.transform.Find(HullSlot).GetComponentsInChildren<MeshFilter>(true))
+            var contoured = root.transform.Find(HullSlot).GetComponentsInChildren<MeshFilter>(true)
+                .Select(f => f.sharedMesh).Where(m => m.subMeshCount >= 2).ToArray();
+            Assert.That(contoured, Is.Not.Empty, "The hull carries its contour as a second submesh.");
+            foreach (var mesh in contoured)
             {
-                var mesh = filter.sharedMesh;
-                if (mesh.subMeshCount < 2) continue;
                 Assert.That(mesh.GetIndexCount(1), Is.EqualTo(mesh.GetIndexCount(0)), $"{mesh.name}: the contour copies every surface triangle.");
                 Assert.That(mesh.GetIndices(0).Intersect(mesh.GetIndices(1)), Is.Empty,
                     $"{mesh.name}: contour normals need their own vertex range; vertex welding on import merges them away.");
