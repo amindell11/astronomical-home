@@ -62,8 +62,8 @@ namespace Tests.PlayMode.Presentation
         {
 #if UNITY_EDITOR
             ShipTestFactory.DestroyShip(ship);
-            var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_3.prefab");
-            Assert.IsNotNull(prefab, "Ship_3 prefab failed to load");
+            var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Nightshade.prefab");
+            Assert.IsNotNull(prefab, "Nightshade prefab failed to load");
             ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
             Assert.IsTrue(ship.GetComponentInChildren<HullVisuals>(true).enabled);
 #endif
