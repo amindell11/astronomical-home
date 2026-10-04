@@ -25,16 +25,14 @@ using UnityEngine.TestTools;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Balance
 {
     /// <summary>
-    /// The balance dump. <see cref="DumpCatalog"/> measures the shipped catalog and writes a dump
-    /// under the results root, then has scripts/balance/balance_table.py render it beside itself,
-    /// with the delta against the dump before it by filename. It is explicit, so only a run naming it
-    /// measures: the Astronomical/Balance menu item, or
-    /// <c>unity_test_agent.ps1 -Mode PlayMode -TestFilter BalanceDumpPlayModeTests.DumpCatalog -ExcludeCategory ''</c>.
+    /// <see cref="DumpCatalog"/> is explicit, so only a run naming it measures: the Astronomical/Balance
+    /// menu item, or <c>unity_test_agent.ps1 -Mode PlayMode -TestFilter BalanceDumpPlayModeTests.DumpCatalog -ExcludeCategory ''</c>.
     /// The empty exclusion matters: NUnit never counts a run that excludes a category as naming an
-    /// explicit test. Why a test and not an editor command: https://github.com/amindell11/astronomical-home/issues/916#issuecomment-5978022472
+    /// explicit test. Its prebuild setup is not explicit: any PlayMode run whose filter passes the test runs it.
+    /// Why a test and not an editor command: https://github.com/amindell11/astronomical-home/issues/916#issuecomment-5978022472
     /// </summary>
     [Category("Weapons")]
     public class BalanceDumpPlayModeTests : PlayModeWorldFixture
@@ -245,7 +243,7 @@ namespace Tests.PlayMode
             Assert.AreEqual("0123abcd", dump.buildIdentity.commit);
             Assert.AreEqual("f0e1d2c3b4a59687", dump.statFingerprint);
             CollectionAssert.AreEqual(new[] { 150f, 200f, 250f }, dump.pools,
-                "one pool per distinct hull plus shield: 100 + 100 and 150 + 50 are one");
+                "one ship resource pool per distinct hull plus shield: 100 + 100 and 150 + 50 are one");
 
             CollectionAssert.AreEqual(new[] { "MadeUpLasers/hold", "MadeUpLasers/AI", "MadeUpRippers/hold" },
                 dump.derived.Select(row => $"{row.weapon}/{row.mode}").ToArray(),
@@ -254,8 +252,8 @@ namespace Tests.PlayMode
             Assert.AreEqual(16f, magazine.openingDamage, 0.001f);
             Assert.AreEqual(10f, magazine.sustainedDps, 0.2f, "16 every 0.6 s dump plus 1 s reload");
             Assert.That(magazine.stakes, Is.EqualTo(new[] { 16f / 150f, 16f / 200f, 16f / 250f }).Within(0.001f),
-                "the opening burst over each pool, in pool order");
-            Assert.IsTrue(dump.derived.All(row => row.stakes.Count == 3), "every row has a stake per pool");
+                "the opening burst over each ship resource pool, in pool order");
+            Assert.IsTrue(dump.derived.All(row => row.stakes.Count == 3), "every row has a stake per ship resource pool");
 
             CollectionAssert.IsOrdered(dump.inputs, StringComparer.Ordinal);
             CollectionAssert.AllItemsAreUnique(dump.inputs);

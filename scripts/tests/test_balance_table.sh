@@ -2,7 +2,7 @@
 set -euo pipefail
 # covers: scripts/balance/balance_table.py scripts/balance/run_summary.py
 
-# Fixture balance dumps through the table script: the derived table of one dump, the delta
+# Hand-written balance dumps through the table script: the derived table of one dump, the delta
 # between two (a changed input, a changed row, an added and a removed row), and the
 # unknown-schema refusal.
 

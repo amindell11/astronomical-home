@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Balance
 {
-    /// <summary>One measured cycle mode of one weapon; <see cref="stakes"/> follows the dump's pool order.</summary>
+    /// <summary>One measured cycle mode of one weapon; <see cref="stakes"/> follows <see cref="BalanceDump.pools"/> order.</summary>
     [Serializable]
     public struct DerivedRow
     {
@@ -49,7 +49,6 @@ namespace Balance
 
         public string ToJson() => JsonUtility.ToJson(this, true);
 
-        /// <summary>Measures every catalog weapon in play mode, then hands <paramref name="done"/> the dump.</summary>
         public static IEnumerator Measure(ItemCatalog catalog, IProjectileService projectiles, DateTime takenUtc,
             BuildIdentity buildIdentity, string statFingerprint, IEnumerable<string> settingLines,
             Action<BalanceDump> done)

@@ -15,8 +15,8 @@ Output, on stdout, is markdown for reading and carries no machine contract:
     asset/Type.field key, rows by weapon and mode label; a key or row found in
     one dump only shows as added or removed. Values are compared as printed, so
     a change below the printed precision shows no delta.
-Damage prints to two decimals, seconds to three, stakes as a percent of the pool
-to one; a recovery that never comes prints "never".
+Damage prints to two decimals, seconds to three, stakes as a percent of the ship
+resource pool to one; a recovery that never comes prints "never".
 
 Exit codes:
   0  the tables were printed.
