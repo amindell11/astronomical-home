@@ -78,12 +78,21 @@ printf "Won't fix: #12\n" > "$TMP/negated-body.md"
 rc=0; out="$(pool submit agent-1 --title t --body-file "$TMP/negated-body.md" -- -Mode EditMode 2>&1)" || rc=$?
 [[ "$rc" -eq 2 && "$out" == *"line 1: Won't fix: #12"* ]] || fail "submit should refuse a negated close in a body file (rc=$rc, got: $out)"
 
+# --- a quoted or mid-line closing keyword closes too: only a line-leading "Closes #N" passes --
+rc=0; out="$(pool create-pr agent-1 --title t --body $'Triage.\nThe body says \'Closes #286\' for its issue.' 2>&1)" || rc=$?
+[[ "$rc" -eq 2 && "$out" == *"line 2: The body says 'Closes #286' for its issue."* && "$out" == *'"Refs #286"'* ]] \
+  || fail "create-pr should refuse a quoted closing keyword (rc=$rc, got: $out)"
+for body in "lists 'closes #621'" "This also fixes #5." 'Mentions `Resolves #7`.' 'Closes #1, fixes #2'; do
+  rc=0; printf '%s\n' "$body" | python3 "$SCRIPT_DIR/../lib/negated_close.py" 2>/dev/null || rc=$?
+  [[ "$rc" -eq 2 ]] || fail "negated_close.py should refuse '$body' (rc=$rc)"
+done
+
 # The check passes these bodies, so the run goes on to the (empty) slot's no-commits skip; the gh
 # stub only satisfies require_gh and fails any real call.
 mkdir -p "$TMP/bin"
 printf '#!/usr/bin/env bash\necho "unexpected gh call: $*" >&2\nexit 99\n' > "$TMP/bin/gh"
 chmod +x "$TMP/bin/gh"
-for body in "Closes #617." "Not closing #617: GitHub has no 'closing' keyword." "No issue refs at all."; do
+for body in "Closes #617." $'Summary.\n  Closes #617\nCloses #618\nRefs #619' "Not closing #617: GitHub has no 'closing' keyword." "No issue refs at all."; do
   rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 --title t --body "$body" 2>&1)" || rc=$?
   [[ "$rc" -eq 0 && "$out" == *"no commits ahead"* ]] || fail "create-pr should accept '$body' (rc=$rc, got: $out)"
 done

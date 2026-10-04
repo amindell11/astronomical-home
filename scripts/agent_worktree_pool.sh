@@ -172,8 +172,9 @@ Commands:
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
       PR already exists for that head/base, prints URL. Exits 2 before
-      anything runs when the body negates a closing keyword ("does not
-      close #N"): GitHub still closes #N (scripts/lib/negated_close.py).
+      anything runs when the body names #N with a closing keyword anywhere
+      but a line-leading "Closes #N" (a negated or quoted keyword): GitHub
+      still closes #N (scripts/lib/negated_close.py).
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
@@ -1519,7 +1520,7 @@ parse_pr_flags() {
   require_no_negated_close "$cmd"
 }
 
-# GitHub's keyword parser ignores negation: "does not close #N" still closes #N on merge.
+# GitHub's keyword parser ignores negation and quotation: only a line-leading "Closes #N" passes.
 require_no_negated_close() {
   local cmd="$1" rc=0
   if [[ -n "$PR_BODY_FILE" ]]; then
