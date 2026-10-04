@@ -1,0 +1,115 @@
+{
+    "generatedAt":  "2026-10-03T21:45:51.5411552-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-8\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "",
+                      "testCategory":  "Ships",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "Ships;!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  46,
+                   "passed":  41,
+                   "failed":  5,
+                   "skipped":  0,
+                   "durationSec":  5.85
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  46,
+                     "passed":  41,
+                     "failed":  5,
+                     "skipped":  0,
+                     "durationSec":  5.85,
+                     "failures":  [
+                                      {
+                                          "name":  "Ship3_PreservesItsLegacyRigAndDamageFeedback",
+                                          "fullName":  "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.Ship3_PreservesItsLegacyRigAndDamageFeedback",
+                                          "durationSec":  0.0112725,
+                                          "message":  "Assets/Prefabs/Ships/Ship_3.prefab Expected: not null But was: null",
+                                          "topStack":  "at Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.LoadShip (System.String path) [0x0000b] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\IllustratedShipPrefabEditM..."
+                                      },
+                                      {
+                                          "name":  "Chassis_FillsOnlyDeclaredSlots(Nightshade)",
+                                          "fullName":  "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Nightshade)",
+                                          "durationSec":  0.0017414,
+                                          "message":  "A variant may not remove base components. Expected: \u003cempty\u003e But was: \u003c \u003cUnityEditor.SceneManagement.RemovedComponent\u003e \u003e",
+                                          "topStack":  "at Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots (System.String path) [0x00007] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ships\\ShipAnatomyEditModeTests.cs:94"
+                                      },
+                                      {
+                                          "name":  "Chassis_HullSlotHoldsItsOwnRoleMeshes(Nightshade)",
+                                          "fullName":  "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Nightshade)",
+                                          "durationSec":  0.0025173,
+                                          "message":  "Nightshade: hull meshes come from the ship\u0027s own role export. Expected string length 46 but was 89. Strings differ at index 32. Expected: \"...ade/Nightshade.fbx\" But was: \"...ade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx\" --...",
+                                          "topStack":  "at Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes (System.String path) [0x0011b] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ships\\ShipAnatomyEditModeTests.cs:149"
+                                      },
+                                      {
+                                          "name":  "Chassis_PlacesEverySocket(Nightshade)",
+                                          "fullName":  "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Nightshade)",
+                                          "durationSec":  0.0024069,
+                                          "message":  "The engine exhaust sits aft of the hull; the prow faces +Y. Expected: less than -0.554116607f But was: -0.385000497f",
+                                          "topStack":  "at Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket (System.String path) [0x000f5] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ships\\ShipAnatomyEditModeTests.cs:130"
+                                      },
+                                      {
+                                          "name":  "LegacyList_NamesOnlyCatalogChassis",
+                                          "fullName":  "Tests.EditMode.ShipAnatomyEditModeTests.LegacyList_NamesOnlyCatalogChassis",
+                                          "durationSec":  0.0033873,
+                                          "message":  "Ship_3 left the catalog; remove it from the legacy list. Expected: collection containing \"Ship_3\" But was: \u003c \"Ship_1\", \"Crimson\", \"Nightshade\", \"Ship_1_Vanguard\", \"Junker_1\", \"Valis\" \u003e",
+                                          "topStack":  "at Tests.EditMode.ShipAnatomyEditModeTests.LegacyList_NamesOnlyCatalogChassis () [0x00047] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ships\\ShipAnatomyEditModeTests.cs:62"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "",
+                                       "testCategory":  "Ships",
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "categoryFilter":  "Ships;!RequiresGraphics",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  22.851,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  48816
+}

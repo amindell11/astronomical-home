@@ -1,0 +1,36 @@
+only in A: 0 keys in 0 components
+only in B: 34 keys in 4 components
+  B-only RIG/Hull#GameObject (3)
+  B-only RIG/Hull#Transform (14)
+  B-only RIG/Thruster/EngineExhaust#GameObject (3)
+  B-only RIG/Thruster/EngineExhaust#Transform (14)
+differing values: 29
+  Mesh#MeshCollider.m_Mesh: A=Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp | B=Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp
+  RIG#HullVisuals.hull.m_FileID: A=49922 | B=52244
+  RIG#HullVisuals.smoke.m_FileID: A=49924 | B=51906
+  RIG/MinimapMarker#MeshFilter.m_Mesh: A=Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp | B=Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp
+  RIG/MinimapMarker#Transform.m_LocalEulerAnglesHint.z: A=180 | B=0
+  RIG/Model#MeshFilter.m_Mesh: A=Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp | B=Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp
+  RIG/Model#Transform.m_LocalEulerAnglesHint.y: A=180 | B=0
+  RIG/Model#Transform.m_LocalEulerAnglesHint.z: A=180 | B=0
+  RIG/Shield/HealthBar#StatusBarUI.fill.m_FileID: A=50150 | B=51976
+  RIG/Shield/HealthBar#StatusBarUI.label.m_FileID: A=50152 | B=51980
+  RIG/Shield/ShieldBar#StatusBarUI.fill.m_FileID: A=50184 | B=51968
+  RIG/Shield/ShieldBar#StatusBarUI.label.m_FileID: A=50178 | B=51972
+  RIG/Thruster#EngineAudio.strafeSource.m_FileID: A=50028 | B=51954
+  RIG/Thruster#EngineAudio.thrustSource.m_FileID: A=50026 | B=51940
+  RIG/Thruster#ThrusterVisuals.thrustParticles.Array.data[0].m_FileID: A=50060 | B=51926
+  RIG/Thruster#Transform.m_LocalPosition.y: A=-0.10000072419643402 | B=0
+  RIG/Thruster/Reactor#ParticleSystem.LightsModule.light.m_FileID: A=50032 | B=51992
+  RIG/Thruster/Reactor#Transform.m_LocalPosition.y: A=0.10000000149011612 | B=0
+  RIG/Thruster/ThrustLight#Light.m_BoundingSphereOverride.w: A=0 | B=0.0088895605877041817
+  RIG/Thruster/ThrustLight#Light.m_BoundingSphereOverride.x: A=0 | B=-0.0069208191707730293
+  RIG/Thruster/ThrustLight#Light.m_BoundingSphereOverride.y: A=-1.300999125442304E-38 | B=0.015233163721859455
+  RIG/Thruster/ThrustLight#Light.m_BoundingSphereOverride.z: A=5.5491419187262756E-43 | B=0.00028311740607023239
+  RIG/Thruster/ThrustLight#Transform.m_LocalPosition.y: A=-0.26666679978370667 | B=0
+  RIG/Thruster/ThrustMain#ParticleSystem.LightsModule.light.m_FileID: A=50032 | B=51992
+  RIG/Thruster/ThrustMain#Transform.m_LocalPosition.y: A=-0.18999999761581421 | B=0
+  RIG/Thruster/ThrustMain#Transform.m_LocalPosition.z: A=-0.029999999329447746 | B=0
+  RIG/Thruster/ThrustSmall#ParticleSystem.LightsModule.light.m_FileID: A=50032 | B=51992
+  RIG/Thruster/ThrustSmall#Transform.m_LocalPosition.y: A=-0.18999999761581421 | B=0
+  RIG/Thruster/ThrustSmall#Transform.m_LocalPosition.z: A=-0.029999999329447746 | B=0

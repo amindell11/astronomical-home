@@ -1,0 +1,70 @@
+HASH A=adc931a2eb27852a B=54dc7abfea661637
+T: 25 compared, worst 0.155 at ('T', 'RIG/Thruster/ThrustLight')
+R: 6 compared, worst 1.12e-08 at ('R', 'ThrustMain', 'ParticleSystemRenderer')
+PS: 4 compared, worst 1.12e-08 at ('PS', 'ThrustMain')
+C: 2 compared, worst 0 at ('C', 'Mesh', 'MeshCollider')
+L: 1 compared, worst 0.155 at ('L', 'ThrustLight')
+A: 3 compared, worst 0.135 at ('A', 'StrafeAudio')
+26 differences beyond tolerance:
+  ('A', 'StrafeAudio'): maxdiff=0.135
+    A=['A', 'StrafeAudio', 'True', 'clip=Assets/Audio/Sfx/Fx/engineRumbleLow.wav::engineRumbleLow', 'blend=0.76']
+    B=['A', 'StrafeAudio', 'True', 'clip=Assets/Audio/Sfx/Fx/engineRumbleLow.wav::engineRumbleLow', 'blend=0.76']
+  ('A', 'ThrustAudio'): maxdiff=0.135
+    A=['A', 'ThrustAudio', 'True', 'clip=Assets/Audio/Sfx/Fx/engineRumbleHigh.wav::engineRumbleHigh', 'blend=0.76']
+    B=['A', 'ThrustAudio', 'True', 'clip=Assets/Audio/Sfx/Fx/engineRumbleHigh.wav::engineRumbleHigh', 'blend=0.76']
+  ('C', 'Mesh', 'MeshCollider'): maxdiff=0
+    A=['C', 'MeshCollider', 'Mesh', 'True', 'False', '7', 'Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp convex=True', 'mat=Assets/Visuals/Ships/_Shared/BouncyShip.physicMaterial::BouncyShip']
+    B=['C', 'MeshCollider', 'Mesh', 'True', 'False', '7', 'Assets/Visuals/Ships/Model/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp convex=True', 'mat=Assets/Visuals/Ships/_Shared/BouncyShip.physicMaterial::BouncyShip']
+  ('L', 'ThrustLight'): maxdiff=0.155
+    A=['L', 'ThrustLight', 'True', 'Spot/RGBA(1.000, 1.000, 1.000, 1.000)/10/10']
+    B=['L', 'ThrustLight', 'True', 'Spot/RGBA(1.000, 1.000, 1.000, 1.000)/10/10']
+  ('PS', 'Reactor'): maxdiff=2.2e-14
+    A=['PS', 'Reactor', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(0.000, 0.000, 0.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.6', 'life=30', 'speed=0']
+    B=['PS', 'Reactor', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 2687358000.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.6', 'life=30', 'speed=0']
+  ('PS', 'SmokeTrail'): maxdiff=0
+    A=['PS', 'SmokeTrail', 'color=Color/RGBA(1.000, 1.000, 1.000, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 39.174, 0.000)/RGBA(1.000, 1.000, 1.000, 1.000)', 'size=1.5', 'life=0.5', 'speed=0']
+    B=['PS', 'SmokeTrail', 'color=Color/RGBA(1.000, 1.000, 1.000, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 2352.524, 0.000)/RGBA(1.000, 1.000, 1.000, 1.000)', 'size=1.5', 'life=0.5', 'speed=0']
+  ('PS', 'ThrustMain'): maxdiff=1.12e-08
+    A=['PS', 'ThrustMain', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 11111060000.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.3', 'life=10', 'speed=0']
+    B=['PS', 'ThrustMain', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(0.000, 0.000, 0.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.3', 'life=10', 'speed=0']
+  ('PS', 'ThrustSmall'): maxdiff=1.12e-08
+    A=['PS', 'ThrustSmall', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 39.177, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.6', 'life=5', 'speed=0']
+    B=['PS', 'ThrustSmall', 'color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 3182749.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)', 'size=0.6', 'life=5', 'speed=0']
+  ('R', 'MinimapMarker', 'MeshRenderer'): maxdiff=0
+    A=['R', 'MeshRenderer', 'MinimapMarker', 'True', '12', 'mesh=Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp', 'mats=Assets/Visuals/Ships/_Shared/ShipMaterial Variant.mat::ShipMaterial Variant', 'shadow=Off/False', 'sort=0/0']
+    B=['R', 'MeshRenderer', 'MinimapMarker', 'True', '12', 'mesh=Assets/Visuals/Ships/Model/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp', 'mats=Assets/Visuals/Ships/_Shared/ShipMaterial Variant.mat::ShipMaterial Variant', 'shadow=Off/False', 'sort=0/0']
+  ('R', 'Model', 'MeshRenderer'): maxdiff=0
+    A=['R', 'MeshRenderer', 'Model', 'True', '7', 'mesh=Assets/Visuals/Ships/Ship3/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp', 'mats=Assets/Visuals/Ships/_Shared/Ship3Material.mat::Ship3Material', 'shadow=Off/False', 'sort=0/0']
+    B=['R', 'MeshRenderer', 'Model', 'True', '7', 'mesh=Assets/Visuals/Ships/Model/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp', 'mats=Assets/Visuals/Ships/_Shared/Ship3Material.mat::Ship3Material', 'shadow=Off/False', 'sort=0/0']
+  ('STAT', 'Ship.engine=Default_Engine'):
+    A=['Ship_3/Ship.engine=Default_Engine']
+    B=['Nightshade/Ship.engine=Default_Engine']
+  ('STAT', 'Ship.mass=800'):
+    A=['Ship_3/Ship.mass=800']
+    B=['Nightshade/Ship.mass=800']
+  ('STAT', 'Ship.maxBankAngle=35'):
+    A=['Ship_3/Ship.maxBankAngle=35']
+    B=['Nightshade/Ship.maxBankAngle=35']
+  ('STAT', 'Ship.maxHealth=100'):
+    A=['Ship_3/Ship.maxHealth=100']
+    B=['Nightshade/Ship.maxHealth=100']
+  ('STAT', 'Ship.shield=Default_Shield'):
+    A=['Ship_3/Ship.shield=Default_Shield']
+    B=['Nightshade/Ship.shield=Default_Shield']
+  ('STAT', 'Ship.startingLives=1'):
+    A=['Ship_3/Ship.startingLives=1']
+    B=['Nightshade/Ship.startingLives=1']
+  B-only ('STAT', 'Ship.weapons=Nightshade')
+  A-only ('STAT', 'Ship.weapons=Ship_3')
+  ('STAT', 'WeaponsController.primaryMount=TurboLasers'):
+    A=['Ship_3/WeaponsController.primaryMount=TurboLasers']
+    B=['Nightshade/WeaponsController.primaryMount=TurboLasers']
+  ('STAT', 'WeaponsController.secondaryMount=Missiles'):
+    A=['Ship_3/WeaponsController.secondaryMount=Missiles']
+    B=['Nightshade/WeaponsController.secondaryMount=Missiles']
+  B-only ('T', 'RIG/Hull')
+  ('T', 'RIG/Thruster'): maxdiff=0.135 active True/True layer 0/0
+  B-only ('T', 'RIG/Thruster/EngineExhaust')
+  ('T', 'RIG/Thruster/StrafeAudio'): maxdiff=0.135 active True/True layer 0/0
+  ('T', 'RIG/Thruster/ThrustAudio'): maxdiff=0.135 active True/True layer 0/0
+  ('T', 'RIG/Thruster/ThrustLight'): maxdiff=0.155 active False/False layer 0/0

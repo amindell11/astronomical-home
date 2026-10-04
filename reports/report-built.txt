@@ -1,0 +1,65 @@
+type=Variant source=Assets/Prefabs/Ships/ShipBase.prefab
+MOD ParticleSystemRenderer@ThrustMain m_Materials.Array.data[0]= ->ThrusFlame_Purple
+MOD Transform@Mesh m_LocalScale.x=127
+MOD Transform@Mesh m_LocalScale.y=110
+MOD Transform@Mesh m_LocalScale.z=180
+MOD Transform@Mesh m_LocalRotation.w=0
+MOD Transform@Mesh m_LocalRotation.x=1
+MOD Transform@Mesh m_LocalRotation.y=0
+MOD Transform@Mesh m_LocalRotation.z=0
+MOD Transform@Mesh m_LocalEulerAnglesHint.y=180
+MOD Transform@Mesh m_LocalEulerAnglesHint.z=180
+MOD Transform@Mesh m_ConstrainProportionsScale=0
+MOD Transform@ThrustMain m_LocalScale.x=1.3
+MOD GameObject@ShipBase m_Name=Ship_3
+MOD Transform@Reactor m_LocalPosition.y=0.033332933
+MOD ParticleSystemRenderer@ReactorGlow m_Materials.Array.data[0]= ->ThrusFlame_Purple
+MOD Transform@Primary m_LocalPosition.x=0.4
+MOD Transform@Primary m_LocalPosition.y=0.6
+MOD Transform@Secondary m_LocalPosition.x=-0.4
+MOD Transform@Secondary m_LocalPosition.y=0.6
+MOD MeshCollider@Mesh m_Mesh= ->temp
+MOD ParticleSystemRenderer@ThrustSmall m_Materials.Array.data[0]= ->ThrusFlame_Purple
+MOD ParticleSystem@ThrustSmall InitialModule.startColor.maxColor.b=0.9870992
+MOD ParticleSystem@ThrustSmall InitialModule.startColor.maxColor.g=0
+MOD ParticleSystem@ThrustSmall InitialModule.startColor.maxColor.r=1
+MOD HullVisuals@ShipBaseRig hull= ->Nightshade
+MOD HullVisuals@ShipBaseRig m_Enabled=1
+MOD Transform@MinimapMarker m_LocalScale.x=254
+MOD Transform@MinimapMarker m_LocalScale.y=220
+MOD Transform@MinimapMarker m_LocalScale.z=360
+MOD Transform@MinimapMarker m_LocalRotation.w=0
+MOD Transform@MinimapMarker m_LocalRotation.x=1
+MOD GameObject@Mesh m_Layer=7
+MOD WeaponsController@ShipBase primaryMount= ->TurboLasers
+MOD WeaponsController@ShipBase secondaryMount= ->Missiles
+MOD ParticleSystem@ThrustMain InitialModule.startColor.maxColor.a=1
+MOD ParticleSystem@ThrustMain InitialModule.startColor.maxColor.b=0.9870992
+MOD ParticleSystem@ThrustMain InitialModule.startColor.maxColor.g=0
+MOD ParticleSystem@ThrustMain InitialModule.startColor.maxColor.r=1
+MOD MeshFilter@MinimapMarker m_Mesh= ->temp
+MOD ThrusterVisuals@Thruster thrustParticles.Array.size=1
+MOD Transform@ShipBase m_LocalScale.x=1.35
+MOD Transform@ShipBase m_LocalScale.y=1.35
+MOD Transform@ShipBase m_LocalScale.z=1.35
+MOD Transform@ShipBase m_LocalPosition.x=10
+MOD Transform@ShipBase m_LocalPosition.y=0
+MOD Transform@ShipBase m_LocalPosition.z=20
+MOD Transform@ShipBase m_LocalRotation.w=0.7071068
+MOD Transform@ShipBase m_LocalRotation.x=0.7071068
+MOD Transform@ShipBase m_LocalRotation.y=0
+MOD Transform@ShipBase m_LocalRotation.z=0
+MOD Transform@ShipBase m_LocalEulerAnglesHint.x=90
+MOD Transform@ShipBase m_LocalEulerAnglesHint.y=0
+MOD Transform@ShipBase m_LocalEulerAnglesHint.z=0
+MOD Transform@ShipBase m_ConstrainProportionsScale=0
+MOD Transform@EngineExhaust m_LocalPosition.y=-0.25666705
+MOD Transform@EngineExhaust m_LocalPosition.z=-0.02999999
+MOD ParticleSystem@ReactorGlow InitialModule.startColor.maxColor.b=0.9870992
+MOD ParticleSystem@ReactorGlow InitialModule.startColor.maxColor.g=0
+MOD ParticleSystem@ReactorGlow InitialModule.startColor.maxColor.r=1
+REMOVED-COMPONENT ShipBreakupVisual@ShipBaseRig
+REMOVED-GO ThrustMain (1)
+REMOVED-GO ThrustSmall (1)
+ADDED-GO Nightshade under Hull
+

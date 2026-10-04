@@ -1,0 +1,135 @@
+T		True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,Rigidbody,Ship,MovementController,DamageController,WeaponsController,KinematicsPoller
+T	Mesh	True	7	171.45,0,0,0,0,1.770258E-05,-148.500015,0,0,243.000031,2.89678574E-05,0,10,0,20,1	Transform,MeshCollider
+T	Hardpoints	True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform
+T	Hardpoints/Primary	True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10.54,-9.655953E-08,20.81,1	Transform
+T	Hardpoints/Secondary	True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,9.46,-9.655953E-08,20.81,1	Transform
+T	ShipBody	True	15	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,SphereCollider
+T	ShipBaseRig	True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,HullVisuals,AudioSource,ShipDamageAudio,ShipVisualRig
+T	ShipBaseRig/Thruster	True	0	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,ThrusterVisuals,EngineAudio
+T	ShipBaseRig/Thruster/EngineExhaust	True	0	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	Transform
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustMain	True	0	-3.13818447E-07,3.13818418E-07,-2.6325,0,0.8707501,1.23741E-14,-1.0380149E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustSmall	True	0	-1.35183342E-07,1.35183328E-07,-1.13400006,0,1.70100021,2.417266E-14,-2.02774984E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/EngineExhaust/ThrustLight	False	0	0.2737624,0.8813006,1.05059215E-07,0,1.98292649,-0.273762584,-2.74033823E-07,0,0,2.682209E-07,-1.35,0,10,0.040500056,19.48025,1	Transform,Light,UniversalAdditionalLightData
+T	ShipBaseRig/Thruster/Reactor	True	0	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,-8.046529E-09,20.0675,1	Transform
+T	ShipBaseRig/Thruster/Reactor/ReactorGlow	True	0	-2.41398823E-07,2.413988E-07,-2.025,0,2.02500033,2.87769754E-14,-2.413988E-07,0,0,-1.35000014,-1.60932544E-07,0,10,-8.046529E-09,20.0675,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Thruster/ThrustAudio	True	0	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,AudioSource
+T	ShipBaseRig/Thruster/StrafeAudio	True	0	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform,AudioSource
+T	ShipBaseRig/SmokeTrail	False	0	1.35,0,0,0,0,-1.35000026,-3.21865116E-07,0,0,3.21865116E-07,-1.35000026,0,10.6075,-0.122849956,19.5815,1	Transform,ParticleSystem,ParticleSystemRenderer
+T	ShipBaseRig/Hull	True	7	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	Transform
+T	ShipBaseRig/Hull/Nightshade	True	7	171.45,0,0,0,0,1.770258E-05,-148.500015,0,0,243.000031,2.89678574E-05,0,10,0,20,1	Transform,MeshFilter,MeshRenderer,SortingGroup
+T	ShipBaseRig/MinimapMarker	True	12	342.9,0,0,0,0,3.540516E-05,-297.000031,0,0,486.000061,5.79357147E-05,0,10,0,20,1	Transform,MeshFilter,MeshRenderer,SortingGroup,MinimapShipMarker
+T	ShipBaseRig/Shield	True	10	1.35,0,0,0,0,-1.35000026,-3.21865116E-07,0,0,3.21865116E-07,-1.35000026,0,10,0,20,1	RectTransform,Canvas,CanvasScaler,GraphicRaycaster
+T	ShipBaseRig/Shield/ShieldBar	True	10	1.35,0,0,0,0,4.82797759E-07,-1.3500005,0,0,1.3500005,4.82797759E-07,0,10,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Image,StatusBarUI
+T	ShipBaseRig/Shield/ShieldBar/Fill	True	10	1.35,0,0,0,0,4.82797759E-07,-1.3500005,0,0,1.3500005,4.82797759E-07,0,10,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Image
+T	ShipBaseRig/Shield/ShieldBar/Value	True	10	0.0135,0,0,0,0,4.827977E-09,-0.0135000041,0,0,0.0135000041,4.827977E-09,0,12.2275,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Text
+T	ShipBaseRig/Shield/HealthBar	True	10	1.35,0,0,0,0,4.82797759E-07,-1.3500005,0,0,1.3500005,4.82797759E-07,0,10,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Image,StatusBarUI
+T	ShipBaseRig/Shield/HealthBar/Fill	True	10	1.35,0,0,0,0,4.82797759E-07,-1.3500005,0,0,1.3500005,4.82797759E-07,0,10,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Image
+T	ShipBaseRig/Shield/HealthBar/Value	True	10	0.0135,0,0,0,0,4.827977E-09,-0.0135000041,0,0,0.0135000041,4.827977E-09,0,12.2275,1.60932565E-08,19.9325,1	RectTransform,CanvasRenderer,Text
+T	ShipBaseRig/UILockOnIndicator	True	10	0.4582052,-5.4622312E-08,0.4582052,0,-0.458205163,-5.46223156E-08,0.458205253,0,0,-0.648000062,-7.724762E-08,0,10,0,20,1	RectTransform,Canvas,CanvasRenderer,Image,Animator,CanvasGroup,LockOnIndicator,Billboard,GlowingUIController
+R	ParticleSystemRenderer	ThrustMain	True	0	-3.13818447E-07,3.13818418E-07,-2.6325,0,0.8707501,1.23741E-14,-1.0380149E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	mesh=null	mats=Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat::ThrusFlame_Purple	shadow=Off/False	sort=0/0
+R	ParticleSystemRenderer	ThrustSmall	True	0	-1.35183342E-07,1.35183328E-07,-1.13400006,0,1.70100021,2.417266E-14,-2.02774984E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	mesh=null	mats=Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat::ThrusFlame_Purple	shadow=Off/False	sort=0/0
+R	ParticleSystemRenderer	ReactorGlow	True	0	-2.41398823E-07,2.413988E-07,-2.025,0,2.02500033,2.87769754E-14,-2.413988E-07,0,0,-1.35000014,-1.60932544E-07,0,10,-8.046529E-09,20.0675,1	mesh=null	mats=Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat::ThrusFlame_Purple	shadow=Off/False	sort=0/0
+R	ParticleSystemRenderer	SmokeTrail	True	0	1.35,0,0,0,0,-1.35000026,-3.21865116E-07,0,0,3.21865116E-07,-1.35000026,0,10.6075,-0.122849956,19.5815,1	mesh=null	mats=Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/SmokeDark.mat::SmokeDark	shadow=Off/False	sort=0/-1
+R	MeshRenderer	Nightshade	True	7	171.45,0,0,0,0,1.770258E-05,-148.500015,0,0,243.000031,2.89678574E-05,0,10,0,20,1	mesh=Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp	mats=Assets/Visuals/Ships/_Shared/Ship3Material.mat::Ship3Material	shadow=Off/False	sort=0/0
+R	MeshRenderer	MinimapMarker	True	12	342.9,0,0,0,0,3.540516E-05,-297.000031,0,0,486.000061,5.79357147E-05,0,10,0,20,1	mesh=Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp	mats=Assets/Visuals/Ships/_Shared/ShipMaterial Variant.mat::ShipMaterial Variant	shadow=Off/False	sort=0/0
+PS	ThrustMain	-3.13818447E-07,3.13818418E-07,-2.6325,0,0.8707501,1.23741E-14,-1.0380149E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(0.000, 0.000, 0.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)	size=0.3	life=10	speed=0
+PS	ThrustSmall	-1.35183342E-07,1.35183328E-07,-1.13400006,0,1.70100021,2.417266E-14,-2.02774984E-07,0,0,-1.35000014,-1.60932544E-07,0,10,0.040500056,19.48025,1	color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 3182749.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)	size=0.6	life=5	speed=0
+PS	ReactorGlow	-2.41398823E-07,2.413988E-07,-2.025,0,2.02500033,2.87769754E-14,-2.413988E-07,0,0,-1.35000014,-1.60932544E-07,0,10,-8.046529E-09,20.0675,1	color=Color/RGBA(1.000, 0.000, 0.987, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 2687358000.000, 0.000)/RGBA(1.000, 0.000, 0.987, 1.000)	size=0.6	life=30	speed=0
+PS	SmokeTrail	1.35,0,0,0,0,-1.35000026,-3.21865116E-07,0,0,3.21865116E-07,-1.35000026,0,10.6075,-0.122849956,19.5815,1	color=Color/RGBA(1.000, 1.000, 1.000, 1.000)/RGBA(16420320000000000000000000000000000.000, 0.000, 2352.524, 0.000)/RGBA(1.000, 1.000, 1.000, 1.000)	size=1.5	life=0.5	speed=0
+C	MeshCollider	Mesh	True	False	7	171.45,0,0,0,0,1.770258E-05,-148.500015,0,0,243.000031,2.89678574E-05,0,10,0,20,1	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx::temp convex=True	mat=Assets/Visuals/Ships/_Shared/BouncyShip.physicMaterial::BouncyShip
+C	SphereCollider	ShipBody	True	False	15	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1		mat=Assets/Visuals/Ships/_Shared/ShipBodyBumper.physicMaterial::ShipBodyBumper
+L	ThrustLight	True	0.2737624,0.8813006,1.05059215E-07,0,1.98292649,-0.273762584,-2.74033823E-07,0,0,2.682209E-07,-1.35,0,10,0.040500056,19.48025,1	Spot/RGBA(1.000, 1.000, 1.000, 1.000)/10/10
+A	ShipBaseRig	True	1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	clip=null	blend=1
+A	ThrustAudio	True	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	clip=Assets/Audio/Sfx/Fx/engineRumbleHigh.wav::engineRumbleHigh	blend=0.76
+A	StrafeAudio	True	2.025,0,0,0,0,-2.41398766E-07,2.02499986,0,0,-1.35000014,-1.60932544E-07,0,10,0,20,1	clip=Assets/Audio/Sfx/Fx/engineRumbleLow.wav::engineRumbleLow	blend=0.76
+RB	215	auto=True	tensor=(1, 1, 1)	rot=(0, 0, 0, 1)	com=(0, 0, 0)	autoCom=True	drag=0.015/0.01
+MB	Ship		True	m_Script->Assets/Scripts/Ships/Ship.cs::Ship ; engine->Assets/Settings/Ships/Engines/Default_Engine.asset::Default_Engine ; shield->Assets/Settings/Ships/Shields/Default_Shield.asset::Default_Shield ; weapons->local::WeaponsController
+MB	MovementController		True	m_Script->Assets/Scripts/Ships/Movement/MovementController.cs::MovementController
+MB	DamageController		True	m_Script->Assets/Scripts/Ships/Damage/DamageController.cs::DamageController
+MB	WeaponsController		True	m_Script->Assets/Scripts/Ships/Weapons/WeaponsController.cs::WeaponsController ; primaryMount->Assets/Prefabs/Weapons/TurboLasers.prefab::TurboLasers ; secondaryMount->Assets/Prefabs/Weapons/Missiles.prefab::Missiles ; hardpoints.Array.data[0].mount->local:Hardpoints/Primary:Transform ; hardpoints.Array.data[1].mount->local:Hardpoints/Secondary:Transform
+MB	KinematicsPoller		True	m_Script->Assets/Scripts/Movement/KinematicsPoller.cs::KinematicsPoller
+MB	HullVisuals	ShipBaseRig	True	m_Script->Assets/Scripts/Ships/Visuals/HullVisuals.cs::HullVisuals ; hull->local:ShipBaseRig/Hull/Nightshade:MeshRenderer ; smoke->local:ShipBaseRig/SmokeTrail:ParticleSystem ; explosionPrefab->Assets/Prefabs/Particles/ExplosionVFX.prefab::ExplosionVFX
+MB	ShipDamageAudio	ShipBaseRig	True	m_Script->Assets/Scripts/Ships/Audio/ShipDamageAudio.cs::ShipDamageAudio ; shieldHitClip->Assets/Audio/Sfx/Fx/shieldHit.wav::shieldHit ; shieldDepletedClip->Assets/Audio/Sfx/Fx/shieldDepleted.wav::shieldDepleted ; hullHitClip->Assets/Audio/Sfx/Fx/hullHit.wav::hullHit ; deathClip->Assets/Audio/Sfx/Fx/shipExplosion1.wav::shipExplosion1 ; collisionDeathClip->Assets/Audio/Sfx/Fx/rockExplosion1.wav::rockExplosion1
+MB	ShipVisualRig	ShipBaseRig	True	m_Script->Assets/Scripts/Ships/Presentation/ShipVisualRig.cs::ShipVisualRig
+MB	ThrusterVisuals	ShipBaseRig/Thruster	True	m_Script->Assets/Scripts/Ships/Visuals/ThrusterVisuals.cs::ThrusterVisuals ; thrustParticles.Array.data[0]->local:ShipBaseRig/Thruster/EngineExhaust/ThrustMain:ParticleSystem
+MB	EngineAudio	ShipBaseRig/Thruster	True	m_Script->Assets/Scripts/Ships/Audio/EngineAudio.cs::EngineAudio ; thrustSource->local:ShipBaseRig/Thruster/ThrustAudio:AudioSource ; strafeSource->local:ShipBaseRig/Thruster/StrafeAudio:AudioSource
+MB	UniversalAdditionalLightData	ShipBaseRig/Thruster/EngineExhaust/ThrustLight	True	m_Script->Packages/com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs::UniversalAdditionalLightData
+MB	MinimapShipMarker	ShipBaseRig/MinimapMarker	True	m_Script->Assets/Scripts/Ships/Visuals/MinimapShipMarker.cs::MinimapShipMarker
+MB	CanvasScaler	ShipBaseRig/Shield	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs::CanvasScaler
+MB	GraphicRaycaster	ShipBaseRig/Shield	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/GraphicRaycaster.cs::GraphicRaycaster
+MB	Image	ShipBaseRig/Shield/ShieldBar	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs::Image
+MB	StatusBarUI	ShipBaseRig/Shield/ShieldBar	True	m_Script->Assets/Scripts/UI/PlayerState/StatusBarUI.cs::StatusBarUI ; fill->local:ShipBaseRig/Shield/ShieldBar/Fill:Image ; label->local:ShipBaseRig/Shield/ShieldBar/Value:Text
+MB	Image	ShipBaseRig/Shield/ShieldBar/Fill	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs::Image ; m_Sprite->Assets/Visuals/Ui/Hud/square.png::square
+MB	Text	ShipBaseRig/Shield/ShieldBar/Value	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Text.cs::Text ; m_FontData.m_Font->Library/unity default resources::LegacyRuntime
+MB	Image	ShipBaseRig/Shield/HealthBar	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs::Image
+MB	StatusBarUI	ShipBaseRig/Shield/HealthBar	True	m_Script->Assets/Scripts/UI/PlayerState/StatusBarUI.cs::StatusBarUI ; fill->local:ShipBaseRig/Shield/HealthBar/Fill:Image ; label->local:ShipBaseRig/Shield/HealthBar/Value:Text
+MB	Image	ShipBaseRig/Shield/HealthBar/Fill	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs::Image ; m_Sprite->Assets/Visuals/Ui/Hud/square.png::square
+MB	Text	ShipBaseRig/Shield/HealthBar/Value	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Text.cs::Text ; m_FontData.m_Font->Library/unity default resources::LegacyRuntime
+MB	Image	ShipBaseRig/UILockOnIndicator	True	m_Script->Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs::Image ; m_Material->Assets/Visuals/Ui/Hud/UI_MissileAmmo.mat::UI_MissileAmmo ; m_Sprite->Assets/Visuals/Ui/LockOnReticle/lockOnReticle.png::lockOnReticle
+MB	LockOnIndicator	ShipBaseRig/UILockOnIndicator	True	m_Script->Assets/Scripts/UI/LockOnIndicator.cs::LockOnIndicator
+MB	Billboard	ShipBaseRig/UILockOnIndicator	False	m_Script->Assets/Scripts/UI/Billboard.cs::Billboard
+MB	GlowingUIController	ShipBaseRig/UILockOnIndicator	True	m_Script->Assets/Scripts/UI/GlowingUIController.cs::GlowingUIController
+STAT	Default_Engine/EngineModule.angularDrag=3
+STAT	Default_Engine/EngineModule.bankDamping=2000
+STAT	Default_Engine/EngineModule.bankTorque=20000
+STAT	Default_Engine/EngineModule.boostCooldown=5
+STAT	Default_Engine/EngineModule.boostImpulse=9000
+STAT	Default_Engine/EngineModule.forwardForce=5600
+STAT	Default_Engine/EngineModule.linearDrag=0.3
+STAT	Default_Engine/EngineModule.maxSpeed=25
+STAT	Default_Engine/EngineModule.maxStrafeForce=4000
+STAT	Default_Engine/EngineModule.maxYawRate=180
+STAT	Default_Engine/EngineModule.minStrafeForce=3200
+STAT	Default_Engine/EngineModule.reverseForce=2800
+STAT	Default_Engine/EngineModule.yawTorque=15000
+STAT	Default_Shield/ShieldModule.maxShield=50
+STAT	Default_Shield/ShieldModule.shieldRegenDelay=4
+STAT	Default_Shield/ShieldModule.shieldRegenRate=10
+STAT	MissileProjectile/Missile.acceleration=20
+STAT	MissileProjectile/Missile.damage=35
+STAT	MissileProjectile/Missile.explosionRadius=3
+STAT	MissileProjectile/Missile.homingSpeed=30
+STAT	MissileProjectile/Missile.homingTurnRate=80
+STAT	MissileProjectile/Missile.initialSpeed=7
+STAT	MissileProjectile/Missile.maxDistance=1000
+STAT	MissileProjectile/Missile.maxLifetime=4
+STAT	MissileProjectile/Missile.splashDamage=15
+STAT	Missiles/Cooldown.fireRate=1
+STAT	Missiles/LockOnSensor.lockExpiry=3
+STAT	Missiles/LockOnSensor.lockOnConeAngle=30
+STAT	Missiles/LockOnSensor.lockOnTime=0.6
+STAT	Missiles/LockOnSensor.maxLockDistance=100
+STAT	Missiles/Missiles.cooldown=Missiles
+STAT	Missiles/Missiles.fallbackAngleTolerance=15
+STAT	Missiles/Missiles.fallbackRange=7
+STAT	Missiles/Missiles.projectilePrefab=MissileProjectile
+STAT	Missiles/Missiles.rounds=Missiles
+STAT	Missiles/Missiles.targetingComputer=Missiles
+STAT	Missiles/Rounds.maxAmmo=2
+STAT	Missiles/Rounds.refill=PerRound
+STAT	Missiles/Rounds.reloadTime=15
+STAT	Nightshade/Ship.engine=Default_Engine
+STAT	Nightshade/Ship.mass=800
+STAT	Nightshade/Ship.maxBankAngle=35
+STAT	Nightshade/Ship.maxHealth=100
+STAT	Nightshade/Ship.shield=Default_Shield
+STAT	Nightshade/Ship.startingLives=1
+STAT	Nightshade/Ship.weapons=Nightshade
+STAT	Nightshade/WeaponsController.primaryMount=TurboLasers
+STAT	Nightshade/WeaponsController.secondaryMount=Missiles
+STAT	TurboLaser/Laser.damage=5
+STAT	TurboLaser/Laser.laserSpeed=65
+STAT	TurboLaser/Laser.maxDistance=35
+STAT	TurboLasers/Cooldown.fireRate=0.075
+STAT	TurboLasers/Heat.coolDownDelay=0.5
+STAT	TurboLasers/Heat.coolingRate=30
+STAT	TurboLasers/Heat.heatPerShot=5
+STAT	TurboLasers/Heat.maxHeat=100
+STAT	TurboLasers/Heat.overheatPenaltyTime=1.5
+STAT	TurboLasers/Lasers.cooldown=TurboLasers
+STAT	TurboLasers/Lasers.fireAngleTolerance=5
+STAT	TurboLasers/Lasers.fireDistance=20
+STAT	TurboLasers/Lasers.heat=TurboLasers
+STAT	TurboLasers/Lasers.projectilePrefab=TurboLaser
+HASH	54dc7abfea661637
+RBLIVE	215	tensor=(68.7751541, 62.431366, 86.41303)	rot=(0.05722423, 0.0143939331, -0.0510167032, 0.9969531)	com=(-0.00555838458, -0.0181612074, 0.0045440984)

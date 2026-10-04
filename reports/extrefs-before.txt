@@ -1,0 +1,9 @@
+Recorded on the parent tree before any edit (Ship_3.prefab, guid f916ff84b95a82049bb516b94fb6d637):
+14 references to guid f916ff84b95a82049bb516b94fb6d637 across 4 distinct file ids
+  100100000	prefab-asset	Assets/Scenes/EditScene.unity x1
+  1576724491614118492	Assets/Scenes/EditScene.unity x10
+  3274392229469629848	Assets/Settings/Ships/ItemCatalog.asset x1, Assets/Settings/Ships/PlayerLoadout.asset x1
+  5100611748941008240	Assets/Scenes/EditScene.unity x1
+  1576724491614118492 before: Transform Ship_3 | after: Transform Nightshade
+  3274392229469629848 before: Ship Ship_3 | after: Ship Nightshade
+  5100611748941008240 before: GameObject Ship_3 | after: GameObject Nightshade
