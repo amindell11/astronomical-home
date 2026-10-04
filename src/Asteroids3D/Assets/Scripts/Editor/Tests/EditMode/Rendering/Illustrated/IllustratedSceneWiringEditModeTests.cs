@@ -34,7 +34,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 foreach (var path in new[]
                 {
                     "Assets/Prefabs/Ships/Ship_1.prefab",
-                    "Assets/Prefabs/Ships/Ship_2.prefab",
+                    "Assets/Prefabs/Ships/Crimson.prefab",
                     "Assets/Visuals/Vfx/LayeredExplosion/Prefabs/FragmentingDrawnAsteroid.prefab"
                 })
                 {

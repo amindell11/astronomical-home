@@ -27,9 +27,9 @@ namespace Tests.PlayMode.Presentation
         private static readonly string OutputDirectory =
             Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/ship-render"));
 
-        [TestCase("Assets/Prefabs/Ships/Ship_2.prefab", 0)]
-        [TestCase("Assets/Prefabs/Ships/Ship_2.prefab", 90)]
-        [TestCase("Assets/Prefabs/Ships/Ship_2.prefab", 135)]
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 0)]
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 90)]
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 135)]
         public void Chassis_RendersPixelIdenticalToBaseline(string chassisPath, int yaw)
         {
             var stem = $"{Path.GetFileNameWithoutExtension(chassisPath)}-{yaw}";
@@ -46,7 +46,7 @@ namespace Tests.PlayMode.Presentation
                 root.SetActive(false);
                 var subject = Object.Instantiate(prefab, root.transform);
                 foreach (var behaviour in subject.GetComponentsInChildren<MonoBehaviour>(true))
-                    if (!behaviour.GetType().Namespace?.StartsWith("UnityEngine", StringComparison.Ordinal) ?? true)
+                    if (!(behaviour.GetType().Namespace ?? "").StartsWith("UnityEngine", StringComparison.Ordinal))
                         Object.DestroyImmediate(behaviour);
                 foreach (var particles in subject.GetComponentsInChildren<ParticleSystemRenderer>(true))
                     particles.enabled = false;

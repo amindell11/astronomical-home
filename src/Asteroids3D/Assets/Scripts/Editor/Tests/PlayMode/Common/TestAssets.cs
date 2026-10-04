@@ -17,11 +17,11 @@ namespace Tests.PlayMode.Common
 public static class TestAssets
 {
     // Standard asset paths
-    private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
+    private const string CrimsonPrefabPath = "Assets/Prefabs/Ships/Crimson.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
-    public static Ship LoadShip2Prefab() => Load<Ship>(Ship2PrefabPath);
+    public static Ship LoadCrimsonPrefab() => Load<Ship>(CrimsonPrefabPath);
 
     public static AICommander LoadTestPilotMpc() => Load<AICommander>(TestPilotMpcPath);
 
