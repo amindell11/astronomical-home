@@ -2405,7 +2405,6 @@ merge_gate() {
   echo ""
   echo "PR #$pr squash-merged. Next: finalize the slot and sync local main:"
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
-  echo "  git -C $ROOT pull --ff-only --no-autostash"
 }
 
 # ---- Finalize / review / revise --------------------------------------------

@@ -107,9 +107,9 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | merge exits 75: `<slot> has held the merge turn for 3600s` | This gate watched that one slot's gate hold the turn for the whole 60-minute cap: a stuck holder, not a long line | `merge-progress <slot>` shows its phase; report it to the user and re-run `merge` once that gate ends. The lock frees when its holder exits. |
 | `create-pr` push `! [rejected] … non-fast-forward` | Stale remote slot branch | `finalize`/`release` the slot (or `submit`, which re-preps) and retry. |
 | Child PR silently `CLOSED`, can't reopen/retarget | It was stacked on a task branch that got squash-merged + deleted | Retarget the child to `main` **before** merging its base, or `create-pr` a fresh one. |
-| `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync the primary tree: `git -C D:/amind/git/astronomical-home pull --ff-only --no-autostash`. |
+| `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync from the primary tree: `cd D:/amind/git/astronomical-home && git checkout main && git pull`. |
 | post-merge `pull --ff-only` aborts on an untracked file | A merged PR made a primary-tree untracked file tracked | Diff it vs `origin/main:<path>` and tell the owner; removing the copy is their call. |
-| post-merge pull: `Your local changes … would be overwritten` | An owner edit in the primary tree conflicts with main | Stop and tell the owner which files; their edit stays where it is — never stash, discard, or pull without `--no-autostash`. |
+| post-merge pull: `Your local changes … would be overwritten` | An owner edit in the primary tree conflicts with main (autostash is off there, so the pull refuses) | Stop and tell the owner which files; their edit stays where it is. |
 | parsing `results/.../*-summary.json` → `UnicodeDecodeError` | UTF-8 file with non-ASCII test messages | Open with `encoding='utf-8'`. |
 
 ## Shared Unity access
@@ -427,8 +427,7 @@ the merging session posts neither.
 ## Step 7 — Finalize
 
 `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`, then pull
-`origin/main` in the primary worktree
-(`git -C D:/amind/git/astronomical-home pull --ff-only --no-autostash`).
+`origin/main` in the primary worktree (`git checkout main && git pull`).
 
 ## Cloud batch
 

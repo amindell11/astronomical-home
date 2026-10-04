@@ -60,9 +60,6 @@ deny "$P" 'git -C "" clean -fd'
 deny "$S" 'git -C "$UNSET_DIR" clean -fdx'
 deny "$S" 'git --work-tree=/x clean -fdx'
 deny "$P" "git clean -fd 'unterminated"
-deny "$P" 'git pull --ff-only'
-deny "$P" 'git pull'
-deny "$P" 'git rebase origin/main'
 deny "$P" 'git stash'
 deny "$P" 'git stash push -m x'
 deny "$P" 'git stash pop'
@@ -95,7 +92,7 @@ allow "$N" 'git clean -fdx'
 allow "$P" "git -C \"$S\" clean -fdx"
 allow "$P" "cd \"$S\" && git reset --hard"
 allow "$P" "cd \"$S\"; git clean -fd"
-allow "$P" 'git checkout main && git pull --ff-only --no-autostash'
+allow "$P" 'git checkout main && git pull'
 allow "$P" 'git clean -n'
 allow "$P" 'git restore --staged x'
 allow "$P" 'rm stray.txt'
@@ -105,10 +102,8 @@ allow "$P" 'echo "git clean -fdx"'
 allow "$P" 'git commit -m "docs: never git clean the primary"'
 allow "$P" $'git commit -F - <<\'EOF\'\nrm -rf src\ngit clean -fdx\nEOF'
 allow "$P" 'git status'
-allow "$P" 'git pull --ff-only --no-autostash'
 allow "$P" 'git stash list'
 allow "$P" 'git stash show --stat stash@{0}'
-allow "$S" 'git pull --rebase origin main'
 allow "$S" 'git stash'
 allow "$P" "cd \"$S\" && git reset --hard HEAD 2>&1 | tail -1 && git checkout HEAD -- f"
 allow "$P" "rm -rf \"$S/Library/BurstCache/\" 2>/dev/null"

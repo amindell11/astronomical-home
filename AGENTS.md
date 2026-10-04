@@ -77,13 +77,13 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop — the default for any coding task, whether or not the request mentions worktrees, slots, or PRs. Invariants:
 - Scope is confirmed with the user before building.
-- Build and test in a pooled worktree. The primary tree is the owner's: an agent's only write there is fast-forwarding main (`git pull --ff-only --no-autostash`; the owner's global `rebase.autostash` would otherwise stash their edits away). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool; Claude Code's `isolation: "worktree"` / EnterWorktree nests them inside the primary tree. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there.
+- Build and test in a pooled worktree. The primary tree is the owner's: an agent's only write there is fast-forwarding main (`git pull --ff-only`). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool; Claude Code's `isolation: "worktree"` / EnterWorktree nests them inside the primary tree. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there.
 - The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
 - Follow-up rounds on an open PR go on that PR's existing slot/branch; acquire a fresh slot only for genuinely independent work.
-- After any pool-script merge, fast-forward main in every live session before its next pool command — a session executing an old script copy is the live hazard.
+- After any pool-script merge, `git pull` main in every live session before its next pool command — a session executing an old script copy is the live hazard.
 - Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every lifecycle transition (claim, PR-open, block, merge); a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
