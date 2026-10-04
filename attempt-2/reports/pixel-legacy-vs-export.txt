@@ -1,0 +1,7 @@
+Ship_2-0.png vs Ship_2-0.png: changed pixels=15108; max difference=539; frame=589824
+Ship_2-90.png vs Ship_2-90.png: changed pixels=15430; max difference=540; frame=589824
+Ship_2-135.png vs Ship_2-135.png: changed pixels=14670; max difference=551; frame=589824
+lane note: legacy-editor vs legacy-cold
+Ship_2-0.png vs Ship_2-0.png: changed pixels=38401; max difference=388; frame=589824
+Ship_2-90.png vs Ship_2-90.png: changed pixels=37371; max difference=371; frame=589824
+Ship_2-135.png vs Ship_2-135.png: changed pixels=32752; max difference=286; frame=589824

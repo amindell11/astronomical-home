@@ -1,0 +1,7 @@
+before: 28 transforms, 62 components, 97 overrides
+after:  29 transforms, 62 components, 97 overrides
+missing after (before paths with no counterpart):
+    Ship_2_IllustratedRig/Model/Crimson (components)
+new after (paths with no before counterpart):
+    Ship_2_IllustratedRig/Model/Crimson/Hull
+OK: every mapped transform matrix equal within 1e-05 and every mapped component detail equal

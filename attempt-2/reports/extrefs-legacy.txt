@@ -1,0 +1,7 @@
+89 references to guid cffc6e37abd758f4191aef193abb1274 across 6 distinct file ids
+  100100000		Prefabs/Sectors/CombatSector.prefab x2, Prefabs/Sectors/RLSector.prefab x1, Prefabs/Sectors/TestBenchSector.prefab x1, Scenes/EditScene.unity x1
+  1382080602743962200		Prefabs/Sectors/CombatSector.prefab x8
+  1576724491614118492		Prefabs/Sectors/CombatSector.prefab x24, Prefabs/Sectors/RLSector.prefab x11, Prefabs/Sectors/TestBenchSector.prefab x12, Scenes/EditScene.unity x10
+  3274392229469629848		Prefabs/MiscObjects/PlayerRig.prefab x1, Prefabs/Sectors/ArenaSector.prefab x1, Prefabs/Sectors/CombatSector.prefab x2, Prefabs/Sectors/RLSector.prefab x1, Prefabs/Sectors/TestBenchSector.prefab x1, Prefabs/Sectors/TrialSector.prefab x1, Settings/RL/HarnessAssets.asset x1, Settings/Ships/ItemCatalog.asset x1, Settings/Ships/PlayerLoadout.asset x1
+  5100611748941008240		Prefabs/Sectors/CombatSector.prefab x4, Prefabs/Sectors/RLSector.prefab x1, Prefabs/Sectors/TestBenchSector.prefab x2, Scenes/EditScene.unity x1
+  8408977033192996584		Scenes/EditScene.unity x1

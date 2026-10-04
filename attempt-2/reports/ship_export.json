@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_export",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "79fac9233231c6f274ed3907c7416253dff7059c9c27a7daf75f5f3fe4079a90",
+  "fbx": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home\\1b5e5a21-125b-43fd-bac6-b2aac7828512\\scratchpad\\export\\Crimson.fbx",
+  "sidecar": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home\\1b5e5a21-125b-43fd-bac6-b2aac7828512\\scratchpad\\export\\Crimson.export.json",
+  "verdict": "pass"
+}

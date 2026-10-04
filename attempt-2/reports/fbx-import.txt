@@ -1,0 +1,11 @@
+node 	local 0,0,0 -0.7071068,0,0,0.7071067 100,100,100	
+node Hull	local 0,0,0 0,0,0,1 1,1,1	mesh Hull v=20379 sub=2 idx=[22854,22854] bounds=0,0.0209112167,0.0309197232/2.009091,1.99636793,0.42543155 readable=False
+  materials=[Lit;Lit]
+subasset GameObject Crimson id=919132149155446097
+subasset MeshFilter Hull id=-9136412128840600068
+subasset Transform Crimson id=-8679921383154817045
+subasset Mesh Hull id=-6989282167128152099
+subasset MeshRenderer Hull id=-6952520449624810893
+subasset Transform Hull id=-1641418580741316055
+subasset GameObject Hull id=7552933894688688095
+saved Crimson v=26778 sub=2 bounds=0,0.03091988,-0.0209112465/2.00909162,0.425431877,1.99636817
