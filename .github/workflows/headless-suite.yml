@@ -94,6 +94,8 @@ jobs:
           unityVersion: 6000.1.8f1
           testMode: editmode
           customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
+          # Empty token: the default github.token would post a second, edit-mode-only "Test Results" check.
+          githubToken: ''
           artifactsPath: headless-artifacts
 
       # The check reads every results XML in artifactsPath, so posting it here covers both modes.
