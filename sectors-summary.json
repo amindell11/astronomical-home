@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-10-03T20:45:42.4134031-07:00",
+  "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "Both",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "",
+    "testCategory": "Sectors",
+    "excludeCategory": "",
+    "categoryFilter": "Sectors",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 161,
+    "passed": 160,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 66.86
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 114,
+      "passed": 113,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 37.55,
+      "failures": [
+        {
+          "name": "SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(\"Assets/Scenes/Locales/Locale_1.unity\",\"copper-turquoise-final\")",
+          "fullName": "Tests.EditMode.Rendering.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(\"Assets/Scenes/Locales/Locale_1.unity\",\"copper-turquoise-final\")",
+          "durationSec": 0.022647,
+          "message": "Expected is <System.String[5]>, actual is <System.Linq.Enumerable+SelectArrayIterator`2[UnityEngine.Transform,System.String]> Values differ at index [3] Expected string length 9 but was 15. Strings differ at index 0. Expected: \"StarField\" B...",
+          "topStack": "at Tests.EditMode.Rendering.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder (System.String scenePath, System.String background, System.String localeFolder) [0x00112] in D:\\amind\\git\\agent-2\\src\\Aster..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "",
+        "testCategory": "Sectors",
+        "excludeCategory": "",
+        "categoryFilter": "Sectors",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    },
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 47,
+      "passed": 47,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 29.31,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "",
+        "testCategory": "Sectors",
+        "excludeCategory": "",
+        "categoryFilter": "Sectors",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 110.093,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 9124
+}
