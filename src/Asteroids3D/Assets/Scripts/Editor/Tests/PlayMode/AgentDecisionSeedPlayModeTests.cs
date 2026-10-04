@@ -38,8 +38,8 @@ namespace Tests.PlayMode
         {
             var host = new GameObject("TestUnitService");
             var units = host.AddComponent<UnitService>();
-            var template = TestAssets.LoadShip2Prefab();
-            Assert.IsNotNull(template, "Ship_2 prefab failed to load");
+            var template = TestAssets.LoadCrimsonPrefab();
+            Assert.IsNotNull(template, "Crimson prefab failed to load");
 
             var spawned = new List<Ship>();
             try

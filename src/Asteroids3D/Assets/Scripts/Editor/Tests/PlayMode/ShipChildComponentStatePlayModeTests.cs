@@ -36,10 +36,10 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
+            var shipPrefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"); // Vanguard has UI components
             var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
-            Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
+            Assert.IsNotNull(shipPrefab, "Vanguard prefab failed to load");
             Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, Projectiles, team: 0);
@@ -102,7 +102,7 @@ namespace Tests.PlayMode
             var shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
             if (shieldUI == null)
             {
-                Assert.Ignore("StatusBarUI not present on Ship_1 prefab variant");
+                Assert.Ignore("StatusBarUI not present on Vanguard prefab variant");
                 yield break;
             }
 
@@ -141,7 +141,7 @@ namespace Tests.PlayMode
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
             if (lockOnIndicator == null)
             {
-                Assert.Ignore("LockOnIndicator not present on Ship_1 prefab variant");
+                Assert.Ignore("LockOnIndicator not present on Vanguard prefab variant");
                 yield break;
             }
 

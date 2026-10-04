@@ -146,7 +146,9 @@ This lane also runs against a graphical editor on the remote lane machine —
 `scripts/remote_editor.sh` (unity-access skill § Remote lane) launches and drives it
 over SSH; captures land on the remote disk, `scp` them back.
 Proven end-to-end by the 2026-08-26 gizmo-eyeball pass (arc #357). Ready-made eval
-snippets live in this skill's `cli-eval/` — run them with `eval_file`.
+snippets live in this skill's `cli-eval/` — run them with
+`eval_file`, path relative to the project root `src/Asteroids3D` (e.g.
+`--file ../../.claude/skills/game-capture/cli-eval/dump_hierarchy.cs`).
 
 - **Gizmos composite only in the play-mode Game view.** Reflect the internal
   `GameView.drawGizmos = true` (`cli-eval/gameview_gizmos_on.cs`; the same contract

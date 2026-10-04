@@ -54,11 +54,12 @@ namespace Combat.Weapons.Conditions
 
             if (held)
             {
-                SetCharge(Mathf.Min(1f, ChargePct + dt / chargeTime));
+                var charge = ChargePct + dt / chargeTime;
+                SetCharge(charge >= 1f - HalfStep / chargeTime ? 1f : charge);
                 return ChargePct >= 1f;
             }
 
-            if (releaseEdge && ChargePct >= minChargeToFire)
+            if (releaseEdge && AtMinimum)
                 return true;
 
             // Unfired charge drains on release.
@@ -69,8 +70,10 @@ namespace Combat.Weapons.Conditions
 
         public override bool CanFire()
         {
-            return ChargePct >= minChargeToFire;
+            return AtMinimum;
         }
+
+        private bool AtMinimum => ChargePct >= minChargeToFire - HalfStep / chargeTime;
 
         public override void ProcessFire()
         {
