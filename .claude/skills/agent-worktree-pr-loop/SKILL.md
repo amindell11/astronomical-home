@@ -382,18 +382,7 @@ approval.
 
 Merge a PR your slot holds via `./scripts/agent_worktree_pool.sh merge <slot>`,
 and a PR no slot holds (a pipeline PR) via `land <pr>` — never raw
-`gh pr merge`, never force-push, never skip the gate's test run.
-
-`land` needs the instruction recorded. On the user's word in your chat, run
-`./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
-saw (usually the one on its `MERGE=` line). Every session acts as the same
-GitHub account, so `land` checks that a record exists and covers the landing
-tree, not who wrote it: record only an instruction the user gave you. A
-recorded instruction survives a docs-only or C#-comment-only delta (`land`
-decides, with the merge gate's inert classifier); any other delta needs a new
-one. `land` refuses a PR with an unresolved review thread, so it takes no
-pre-merge comment check; its `--help` entry lists every refusal. Then run
-`land <pr>` yourself, or leave it to the merge task (§ Merge task). The gate
+`gh pr merge`, never force-push, never skip the gate's test run. The gate
 re-tests against current main when main moved after the branch's last test
 run; it skips only on full-suite proof for the exact landing tree; it extends
 proof over docs-only deltas with no run; it downgrades C#-comment-only deltas
@@ -436,6 +425,17 @@ while another gate runs waits in `turn-wait`, takes the turn in arrival order,
 then fetches and proves on top of the landings ahead of it; `merge-progress
 <slot>` shows its place in the line and the slot holding the turn. Leave it
 waiting: a re-run `merge` arrives at the back of the line.
+
+`land` needs the instruction recorded. On the user's word in your chat, run
+`./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
+saw (usually the one on its `MERGE=` line). Every session acts as the same
+GitHub account, so `land` checks that a record exists and covers the landing
+tree, not who wrote it: record only an instruction the user gave you. A
+recorded instruction survives a docs-only or C#-comment-only delta (`land`
+decides, with the merge gate's inert classifier); any other delta needs a new
+one. `land` refuses a PR with an unresolved review thread, so it takes no
+pre-merge comment check; its `--help` entry lists every refusal. Then run
+`land <pr>` yourself, or leave it to the merge task (§ Merge task).
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note and board Done on the PR-closed issues, so

@@ -29,8 +29,5 @@
       "Bash(gh issue *)",
       "Bash(./scripts/agent_worktree_pool.sh land *)"
     ]
-  },
-  "enabledMcpjsonServers": [
-    "unity-mcp"
-  ]
+  }
 }
