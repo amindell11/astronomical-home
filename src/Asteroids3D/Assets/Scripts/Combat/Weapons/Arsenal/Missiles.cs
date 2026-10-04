@@ -6,7 +6,7 @@ using Missile = Combat.Projectiles.Missile;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
-namespace Combat.Weapons
+namespace Combat.Weapons.Arsenal
 {
     public class Missiles : WeaponBase<Missile>
     {

@@ -3,7 +3,7 @@ using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
 
-namespace Combat.Weapons
+namespace Combat.Weapons.Arsenal
 {
     /// <summary>Concussion charge dropper: semi-auto, releases backward (see <see cref="Grenade.Launch"/>) at a close pursuer.</summary>
     public class Grenades : WeaponBase<Grenade>

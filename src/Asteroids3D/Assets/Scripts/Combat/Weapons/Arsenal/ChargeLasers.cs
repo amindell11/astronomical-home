@@ -4,7 +4,7 @@ using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
-namespace Combat.Weapons
+namespace Combat.Weapons.Arsenal
 {
     /// <summary>Hold-to-charge laser: damage scales with the <see cref="ChargeTime"/> charge spent on release.</summary>
     public class ChargeLasers : WeaponBase<Laser>
