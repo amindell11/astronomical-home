@@ -54,7 +54,8 @@ namespace Combat.Weapons.Conditions
 
             if (held)
             {
-                SetCharge(Mathf.Min(1f, ChargePct + dt / chargeTime));
+                var charge = ChargePct + dt / chargeTime;
+                SetCharge(charge >= 1f - HalfStep / chargeTime ? 1f : charge);
                 return ChargePct >= 1f;
             }
 
