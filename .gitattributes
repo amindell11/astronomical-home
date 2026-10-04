@@ -5,3 +5,4 @@
 
 # Design-vault images stay in LFS (doc/design is the Obsidian vault; see doc/agents/design-docs.md)
 doc/design/**/*.png filter=lfs diff=lfs merge=lfs -text
+doc/design/**/*.gif filter=lfs diff=lfs merge=lfs -text
