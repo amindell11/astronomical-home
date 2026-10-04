@@ -13,8 +13,7 @@ namespace Tests.PlayMode
     /// <summary>
     /// Verifies ship visuals live on the ship prefab (prefab-centric model): the <c>Vanguard</c> prefab
     /// embeds its visual rig — particles, audio, canvases, renderers — as a child, alongside its
-    /// collider and logic. The rig also still exists as a reusable <c>ShipBaseRig</c> prefab asset.
-    /// Successor to the decoupling-era footprint test that asserted the sim prefab was presentation-free.
+    /// collider and logic. That rig is a nested instance of the reusable <c>ShipBaseRig</c> prefab asset.
     ///
     /// Asserted against the prefab asset, not a spawned instance: a live ship also carries runtime-spawned
     /// <i>weapon</i> models/audio (a separate subsystem), unrelated to the ship's own visual rig.
@@ -66,7 +65,7 @@ namespace Tests.PlayMode
             Assert.Greater(rig.GetComponentsInChildren<Canvas>(true).Length, 0,
                 "Rig should carry the shield/lock UI canvases");
             Assert.Greater(rig.GetComponentsInChildren<MeshRenderer>(true).Length, 0,
-                "Rig should carry the hull/minimap renderers");
+                "Rig should carry the minimap renderer");
 #endif
         }
     }
