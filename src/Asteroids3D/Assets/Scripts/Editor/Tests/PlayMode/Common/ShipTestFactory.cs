@@ -48,7 +48,7 @@ public static class ShipTestFactory
     /// <param name="projectiles">Registry the ship arms its weapons with (a fixture's <c>Projectiles</c>).</param>
     public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, IProjectileService projectiles, int team = 0, int decisionSeed = 0)
     {
-        var shipPrefab = TestAssets.LoadShip2Prefab();
+        var shipPrefab = TestAssets.LoadCrimsonPrefab();
         var cmdrPrefab = TestAssets.LoadTestPilotMpc();
 
         if (shipPrefab == null || cmdrPrefab == null)

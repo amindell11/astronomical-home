@@ -401,7 +401,7 @@ using Tests.PlayMode.Common;
 
 // Load common test assets
 var settings = TestAssets.LoadDefaultShipSettings();
-var shipPrefab = TestAssets.LoadShip2Prefab();
+var shipPrefab = TestAssets.LoadCrimsonPrefab();
 var mpcPilotPrefab = TestAssets.LoadTestPilotMpc();  // MPC pilot (the only pilot)
 ```
 
