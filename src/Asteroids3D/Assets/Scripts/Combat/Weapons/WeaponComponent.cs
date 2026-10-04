@@ -75,10 +75,7 @@ namespace Combat.Weapons
                 if (readouts != null) return readouts;
                 if (conditions == null) return Array.Empty<IWeaponReadout>();
 
-                readouts = new List<IWeaponReadout>();
-                foreach (var condition in conditions)
-                    if (condition is IWeaponReadout readout)
-                        readouts.Add(readout);
+                readouts = new List<IWeaponReadout>(conditions.OfType<IWeaponReadout>());
                 if (LockSource != null)
                     readouts.Add(LockSource);
                 return readouts;
