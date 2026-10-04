@@ -28,10 +28,6 @@ namespace Tests.PlayMode.Presentation.Breakup
         public override void SetUp()
         {
             base.SetUp();
-            foreach (var d in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
-                Debug.Log($"[DEBUG-b891] leftover debris {d.name} scene={d.gameObject.scene.name} pos={d.transform.position} age={typeof(ShipBreakupDebris).GetField("age", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(d)} frame={Time.frameCount} t={Time.time} ts={Time.timeScale} test={TestContext.CurrentContext.Test.Name}");
-            foreach (var v in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Debug.Log($"[DEBUG-b891] leftover vfx {v.name} active={v.gameObject.activeInHierarchy} test={TestContext.CurrentContext.Test.Name}");
             DestroyBreakupTransients();
             savedMaxDelta = Time.maximumDeltaTime;
             Time.maximumDeltaTime = .05f;
@@ -47,16 +43,6 @@ namespace Tests.PlayMode.Presentation.Breakup
             DestroyBreakupTransients();
             Time.maximumDeltaTime = savedMaxDelta;
             base.TearDown();
-        }
-
-        // Debris and bursts outlive whichever fixture's ship died; the counts below assume none exist.
-        private static void DestroyBreakupTransients()
-        {
-            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(debris.gameObject);
-            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(effect.gameObject);
-            SimplePool<PooledVFX>.Clear();
         }
 
         [UnityTest]
@@ -151,6 +137,16 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(Vector3.Distance(debris.transform.position, expected), Is.LessThan(.00001f));
             Assert.That(debris.PoseCount, Is.Zero);
             yield return VerifyMotionFadeAndCleanup(debris, Vector3.zero);
+        }
+
+        // Debris and bursts outlive whichever fixture's ship died; these tests count them globally.
+        private static void DestroyBreakupTransients()
+        {
+            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(debris.gameObject);
+            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(effect.gameObject);
+            SimplePool<PooledVFX>.Clear();
         }
 
         private static void Kill(Ship ship) => ship.Damage.TakeDamage(new DamageInfo(
