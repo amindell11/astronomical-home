@@ -289,7 +289,8 @@ Commands:
       holds <lease>; then prepares it at origin/main with --force (a PR
       head whose branch is deleted would make plain prepare refuse it for
       everyone) and releases it. Exit 0 returned, 1 refused or a usage
-      error, 75 a merge gate running on the slot (nothing touched).
+      error, 75 a merge gate running on the slot (nothing touched); any
+      other code is a failed prepare's, and the slot keeps <lease>.
 
   land <pr>
       Land an open PR that no slot holds, on the user's recorded
@@ -2607,7 +2608,9 @@ return_slot() {
     echo "return: $slot holds lease '${held:-none}', not '$lease'; nothing was reset." >&2
     return 1
   fi
-  cmd_prepare "$slot" origin/main --force && with_slot_mutation "$slot" release_slot "$slot" "$lease"
+  # A child process keeps prepare's errexit: a failed reset must not release the slot.
+  bash "$SCRIPT_DIR/agent_worktree_pool.sh" prepare "$slot" origin/main --force \
+    && with_slot_mutation "$slot" release_slot "$slot" "$lease"
 }
 
 # ---- Land ------------------------------------------------------------------
