@@ -44,6 +44,7 @@ namespace Substrate.Services.Units
         }
 
         public event Action<Ship> OnShipSpawned;
+        public event Action<Ship> OnShipRespawned;
 
         public Ship SpawnShip(
             Ship template,
@@ -175,6 +176,7 @@ namespace Substrate.Services.Units
             }
             ship.ResetShip();
             ship.Commander?.ResetState();
+            OnShipRespawned?.Invoke(ship);
         }
 
         public void CancelPendingRespawns()

@@ -11,12 +11,13 @@ using Object = UnityEngine.Object;
 namespace Game.Player
 {
     /// <summary>
-    /// What flew against the player this run: one entry per ship the unit service spawned or
-    /// adopted, with its parts by asset name, its loadout stat hash taken at spawn, and its fate.
-    /// Consumer-side recorder beside the damage ledger and the run tally, never sim state. It logs
-    /// every spawn, the player's included, because the player's id is not known until the spawn
-    /// returns; <see cref="Entries"/> leaves the current player out. A ship logged before
-    /// <see cref="Begin"/> (placed during the sector load) reads as spawned at second 0.
+    /// What flew against the player this run: one entry per life of each ship the unit service
+    /// spawned or adopted (a revive opens a new entry), with its parts by asset name, its loadout
+    /// stat hash taken at spawn, and its fate. Consumer-side recorder beside the damage ledger and
+    /// the run tally, never sim state. It logs every spawn, the player's included, because the
+    /// player's id is not known until the spawn returns; <see cref="Entries"/> leaves the current
+    /// player out. A ship logged before <see cref="Begin"/> (placed during the sector load) reads
+    /// as spawned at second 0.
     /// </summary>
     public sealed class SpawnLog
     {
@@ -80,10 +81,18 @@ namespace Game.Player
         /// <summary>Re-bindable; a null <paramref name="unitService"/> unbinds and stops logging.</summary>
         public void Bind(IUnitService unitService, Func<ShipId> currentPlayerId)
         {
-            if (units != null) units.OnShipSpawned -= OnShipSpawned;
+            if (units != null)
+            {
+                units.OnShipSpawned -= OnShipSpawned;
+                units.OnShipRespawned -= OnShipRespawned;
+            }
             units = unitService;
             playerId = currentPlayerId;
-            if (units != null) units.OnShipSpawned += OnShipSpawned;
+            if (units != null)
+            {
+                units.OnShipSpawned += OnShipSpawned;
+                units.OnShipRespawned += OnShipRespawned;
+            }
             else running = false;
         }
 
@@ -156,6 +165,8 @@ namespace Game.Player
             Log(ship.Id, ship, Time.time);
             ship.Damage.OnDeath += OnDeath;
         }
+
+        private void OnShipRespawned(Ship ship) => Log(ship.Id, ship, Time.time);
 
         private void OnDeath(ShipId victim, DamageInfo killingBlow) => MarkDead(victim, killingBlow, Time.time);
 
