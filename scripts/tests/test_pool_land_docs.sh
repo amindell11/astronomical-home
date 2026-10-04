@@ -60,14 +60,17 @@ land_docs
 [[ "$(git -C "$SLOT" rev-parse HEAD)" == "$(main_sha)" ]] || fail "main is the slot's rebased HEAD"
 git -C "$ORIGIN" merge-base --is-ancestor "$moved" main || fail "the landing keeps the commit main moved to"
 
-# A code path refuses, and stderr names it.
+# A code path refuses before the rebase, so a moved main leaves HEAD as it was; stderr names the path.
 reset_slot
 echo "more" >> "$SLOT/doc/a.md"
 mkdir -p "$SLOT/scripts" && echo "echo hi" > "$SLOT/scripts/x.sh"
 commit_in "$SLOT" "docs and code"
+slot_head="$(git -C "$SLOT" rev-parse HEAD)"
+move_main "moved again" doc/moved.md
 before="$(main_sha)"
 land_docs
 expect_refused paths "a delta touching scripts/" "$before"
+[[ "$(git -C "$SLOT" rev-parse HEAD)" == "$slot_head" ]] || fail "a paths refusal leaves HEAD unrebased"
 grep -qx '  scripts/x.sh' "$TMP/err" || fail "stderr lists the code path"
 ! grep -q 'doc/a.md' "$TMP/err" || fail "stderr lists only the paths outside doc/ and *.md"
 

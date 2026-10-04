@@ -347,16 +347,17 @@ Commands:
       worktree holding the commits: a slot, or a cloud session's checkout.
       Holding the merge turn as 'lock merge-turn' does (no ticket, waiting
       up to WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS), it fetches origin,
-      rebases HEAD onto origin/main, checks the paths origin/main..HEAD
-      changes (a rename counts as a delete and an add), and pushes HEAD to
-      main without force.
+      checks every path each commit in origin/main..HEAD changes (a rename
+      counts as a delete and an add), rebases HEAD onto origin/main, and
+      pushes HEAD to main without force.
       Stdout trailer: LAND_DOCS=landed <sha>, or LAND_DOCS=refused:<reason>,
       the reason one of
         fetch      the fetch from origin failed
+        paths      a commit changes a path outside doc/ and *.md (stderr
+                   lists them); checked before the rebase, so HEAD is untouched
         rebase     HEAD did not rebase onto origin/main: a conflict (the
                    rebase is aborted) or a dirty tree
         empty      HEAD changes nothing on origin/main
-        paths      a changed path is outside doc/ and *.md (stderr lists them)
         push       the push failed, e.g. main moved from another clone
         turn-held  the merge turn was still held after the wait
       Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
@@ -2905,6 +2906,15 @@ land_docs_push() {
     echo "LAND_DOCS=refused:fetch"
     return 1
   fi
+  # Each commit lands on main as it is, so each is checked, before the rebase rewrites any.
+  non_docs="$(git -C "$path" log --full-history --no-renames --format= --name-only origin/main..HEAD \
+    -- ':(top,exclude)doc/' ':(top,exclude)*.md' | sed '/^$/d' | sort -u)"
+  if [[ -n "$non_docs" ]]; then
+    echo "land-docs: these paths are outside doc/ and *.md, so the change takes a PR:" >&2
+    sed 's/^/  /' <<< "$non_docs" >&2
+    echo "LAND_DOCS=refused:paths"
+    return 1
+  fi
   if ! git -C "$path" rebase -q origin/main >&2; then
     if git -C "$path" rev-parse -q --verify REBASE_HEAD >/dev/null; then git -C "$path" rebase --abort >&2; fi
     echo "LAND_DOCS=refused:rebase"
@@ -2914,13 +2924,6 @@ land_docs_push() {
   if [[ "$head" == "$(git -C "$path" rev-parse origin/main)" ]]; then
     echo "land-docs: HEAD changes nothing on origin/main." >&2
     echo "LAND_DOCS=refused:empty"
-    return 1
-  fi
-  non_docs="$(git -C "$path" diff --no-renames --name-only origin/main HEAD -- ':(top,exclude)doc/' ':(top,exclude)*.md')"
-  if [[ -n "$non_docs" ]]; then
-    echo "land-docs: these paths are outside doc/ and *.md, so the change takes a PR:" >&2
-    sed 's/^/  /' <<< "$non_docs" >&2
-    echo "LAND_DOCS=refused:paths"
     return 1
   fi
   if ! git -C "$path" push -q origin HEAD:main >&2; then
