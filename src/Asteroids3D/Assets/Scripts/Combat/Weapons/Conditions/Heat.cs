@@ -66,7 +66,7 @@ namespace Combat.Weapons.Conditions
 
             var previousHeat = CurrentHeat;
             CurrentHeat -= coolingRate * dt;
-            CurrentHeat = Mathf.Max(0, CurrentHeat);
+            if (CurrentHeat <= coolingRate * HalfStep) CurrentHeat = 0f;
             PublishHeatChangedIfNeeded(previousHeat);
 
             // Full lockout by design: partial cooling never re-enables fire.
