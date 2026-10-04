@@ -37,7 +37,7 @@ namespace Combat.Weapons.Conditions
 
         public override bool CanFire()
         {
-            return clock >= nextFireTime;
+            return clock >= nextFireTime - HalfStep;
         }
 
         public override void ProcessFire()
