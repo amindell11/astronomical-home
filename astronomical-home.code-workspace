@@ -53,7 +53,8 @@
       "statusBarItem.remoteBackground": "#d14d92",
       "statusBarItem.remoteForeground": "#e7e7e7",
       "titleBar.inactiveBackground": "#1f4e7999",
-      "titleBar.inactiveForeground": "#e7e7e799"
+      "titleBar.inactiveForeground": "#e7e7e799",
+      "statusBar.inactiveBackground": "#1f4e79"
     }
   },
   "extensions": {
