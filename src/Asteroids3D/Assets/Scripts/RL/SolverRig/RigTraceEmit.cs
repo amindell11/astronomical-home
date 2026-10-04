@@ -15,12 +15,12 @@ namespace RL.SolverRig
     /// Editor entries that write full solver-rig traces as CSVs under results/mpc-rig, for offline
     /// plotting with training/rl/plot_rig_trace.py. No code calls them: run one from a held editor
     /// over the unity CLI (eval), or from a batch child with -executeMethod and -quit. They run the
-    /// production MpcSettings asset and Ship_1 dynamics, so a trace characterizes the shipped controller.
+    /// production MpcSettings asset and Vanguard dynamics, so a trace characterizes the shipped controller.
     /// </summary>
     public static class RigTraceEmit
     {
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset";
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string ResultsFolder = "mpc-rig";
 
         public static void BingoRows()
