@@ -7,6 +7,7 @@ using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
+using Substrate.Services.Projectiles;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -136,6 +137,41 @@ namespace Tests.PlayMode
             Assert.AreEqual(15f, modes[1].MagazineDamage, 0.5f, "released at half charge: halfway from 0.5 to 1 of 20");
             Assert.AreEqual(0.5f + Time.fixedDeltaTime, modes[1].CycleSeconds, HalfStep,
                 "half charge, then the release step");
+        }
+
+        // Semi-auto, always ready, launches nothing: records each AI-pattern step's press.
+        private sealed class PressRecorder : WeaponComponent
+        {
+            public static readonly List<bool> AiPresses = new();
+            private bool aiDriven;
+
+            public override bool AutoFire => false;
+            public override ProjectileBase Fire(IProjectileService projectiles) => null;
+            public override bool InEnvelope(in TargetingContext context) => context.hasLineOfSight;
+
+            public override bool ShouldFire(TargetingContext context)
+            {
+                aiDriven = true;
+                return InEnvelope(in context);
+            }
+
+            public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
+            {
+                if (aiDriven) AiPresses.Add(pressed);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator AiPattern_PressesOnRisingEdgeOnly()
+        {
+            PressRecorder.AiPresses.Clear();
+            var modes = new List<WeaponCycleMode>();
+            yield return WeaponCycleProbe.Measure(Template<PressRecorder>(), Projectiles, modes, maxSeconds: 0.5f);
+
+            var presses = PressRecorder.AiPresses;
+            Assert.That(presses.Count(p => p), Is.GreaterThan(1), "a ready semi-auto weapon is pressed again");
+            for (var i = 1; i < presses.Count; i++)
+                Assert.IsFalse(presses[i] && presses[i - 1], $"presses on consecutive steps {i - 1} and {i}");
         }
 
         [UnityTest]
