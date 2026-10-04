@@ -6,10 +6,10 @@ namespace Ships
     /// </summary>
     public static class ShipLegacyList
     {
-        public static readonly string[] Chassis = { "Ship_1", "Ship_1_Vanguard", "Nightshade", "Valis", "Junker_1" };
+        public static readonly string[] Chassis = { "Nightshade", "Valis", "Junker_1" };
 
         public static readonly string[] HullModels = { "Vanguard" };
 
-        public static readonly string[] SavedColliderMeshes = { "Crimson" };
+        public static readonly string[] SavedColliderMeshes = { "Crimson", "Vanguard" };
     }
 }

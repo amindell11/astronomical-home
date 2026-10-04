@@ -159,7 +159,7 @@ namespace Tests.EditMode
             "Assets/Prefabs/Weapons/GrenadeCharge.prefab",
             "Assets/Prefabs/Weapons/ConcussionWave.prefab",
             "Assets/Prefabs/Asteroid/Asteroid3D.prefab",
-            "Assets/Prefabs/Ships/Ship_1.prefab",
+            "Assets/Prefabs/Ships/Vanguard.prefab",
             "Assets/Prefabs/Weapons/Railgun.prefab",
             "Assets/Prefabs/Weapons/Missiles.prefab",
         };

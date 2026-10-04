@@ -16,7 +16,7 @@ namespace Tests.PlayMode.Presentation
     [Category("Ships")]
     public class ShipPresentationPlayModeTests : PlayModeWorldFixture
     {
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         private Ship ship;
 
@@ -26,10 +26,10 @@ namespace Tests.PlayMode.Presentation
             base.SetUp();
 
 #if UNITY_EDITOR
-            var prefab = TestAssets.Load<Ship>(Ship1Path);
-            Assert.IsNotNull(prefab, "Ship_1 prefab failed to load");
+            var prefab = TestAssets.Load<Ship>(VanguardPath);
+            Assert.IsNotNull(prefab, "Vanguard prefab failed to load");
             ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
-            Assert.IsNotNull(ship, "Ship_1 failed to instantiate");
+            Assert.IsNotNull(ship, "Vanguard failed to instantiate");
 #else
             Assert.Ignore("ShipPresentationPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -47,7 +47,7 @@ namespace Tests.PlayMode.Presentation
         public IEnumerator EmbeddedRig_ParentsUnderShip_AndWiresVisuals()
         {
             var rig = ship.GetComponentInChildren<ShipVisualRig>(true);
-            Assert.IsNotNull(rig, "Ship_1 should embed a ShipVisualRig child");
+            Assert.IsNotNull(rig, "Vanguard should embed a ShipVisualRig child");
             Assert.AreEqual(ship.transform, rig.transform.parent, "Rig should be parented under the ship");
 
             yield return null; // let the embedded rig self-bind in Start

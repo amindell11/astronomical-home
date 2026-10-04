@@ -14,7 +14,7 @@ namespace Tests.EditMode.Rendering.Illustrated
     {
         private const string SurfaceShader = "Astronomical/Comparison/Drawn Surface";
         private const string ContourShader = "Astronomical/Comparison/Drawn Contour";
-        private const string Ship1 = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string Vanguard = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string Crimson = "Assets/Prefabs/Ships/Crimson.prefab";
         private const string Nightshade = "Assets/Prefabs/Ships/Nightshade.prefab";
         private const string ShipBase = "Assets/Prefabs/Ships/ShipBase.prefab";
@@ -23,7 +23,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [Test]
         public void Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours()
         {
-            var ship = LoadShip(Ship1);
+            var ship = LoadShip(Vanguard);
             var rigs = ship.GetComponentsInChildren<ShipVisualRig>(true);
             Assert.That(rigs, Has.Length.EqualTo(1), "A variant must not inherit a second visual rig.");
             var hull = rigs[0].GetComponentsInChildren<Transform>(true).Single(t => t.name == "Vanguard");
@@ -67,7 +67,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 "Damage feedback drives the legacy hull.");
         }
 
-        [TestCase(Ship1)]
+        [TestCase(Vanguard)]
         [TestCase(Crimson)]
         public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
         {
