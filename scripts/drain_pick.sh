@@ -89,8 +89,8 @@ set -euo pipefail
 #           latest by chatgpt-codex-connector), its `Code Review` row, status Completed and a
 #           backticked short SHA naming one of the PR's commits. Codex's 👀 on the PR, any other
 #           status, no summary, or any other shape is no completed review.
-#   merge-queue, land-facts and digest call GraphQL. Every other verb calls only REST, paged by
-#   hand: cloud sessions refuse GraphQL, and the Link URLs `gh api --paginate` follows.
+#   verify-queue, merge-queue, digest and land-facts call GraphQL. Every other verb calls only
+#   REST, paged by hand: cloud sessions refuse GraphQL, and the Link URLs `gh api --paginate` follows.
 # Env:  GITHUB_REPOSITORY (owner/repo; default: the repository of the git remote, as gh reads it).
 # Exit: pick, owed, verify-queue, merge-queue, digest, land-facts — 0 a verdict (or the digest)
 #       was printed · 1 infra (gh failed) · 2 usage.

@@ -2225,7 +2225,7 @@ cmd_merge() {
   run_merge_gate "$slot" "$base_ref" "$remote" 0 "${test_args[@]}"
 }
 
-# <authorize> 1 adds land's authorize phase. Exits the calling shell's journal on return.
+# <authorize> 1 adds land's authorize phase. The journal closes when the calling shell exits.
 run_merge_gate() {
   local slot="$1" base_ref="$2" remote="$3" authorize="$4"
   shift 4
@@ -2520,19 +2520,9 @@ LAND_ATTEMPTS=3
 # The refusals a fresh merge gate attempt can clear.
 LAND_TRANSIENT=" base-moved no-verdict hosted-error gh "
 
-# First value of KEY= among the lines of <text>; empty when absent.
-trailer_value() {
-  local key="$1" line
-  while IFS= read -r line; do
-    if [[ "$line" == "$key="* ]]; then
-      printf '%s\n' "${line#"$key="}"
-      return 0
-    fi
-  done <<< "$2"
-  return 0
-}
+trailer_value() { record_field <(printf '%s\n' "$2") "$1"; }
 
-# <commit> covers <tree> when merging it with <base_ref> gives <tree>, or a tree an inert delta away from it.
+# <commit> covers <tree>: merged with <base_ref>, it gives <tree> or an inert delta from it.
 commit_covers() {
   local path="$1" commit="$2" base_ref="$3" tree="$4" merged
   merged="$(git -C "$path" merge-tree --write-tree "$commit" "$base_ref" 2>/dev/null)" || return 1
@@ -2613,17 +2603,16 @@ land_refuse() {
   echo "land: refused ($1) — $2" >&2
 }
 
-# One line per slot record: slot, state, lease, task branch, split by US.
+# One line per slot record: slot, lease, task branch, split by US.
 slot_table() {
   collect_slot_records | awk '
-    /^slot=/ { slot = substr($0, 6); state = lease = branch = "" }
-    /^state=/ { state = substr($0, 7) }
+    /^slot=/ { slot = substr($0, 6); lease = branch = "" }
     /^lease=/ { lease = substr($0, 7) }
     /^task_branch=/ { branch = substr($0, 13) }
-    /^$/ && slot != "" { print slot "\037" state "\037" lease "\037" branch; slot = "" }'
+    /^$/ && slot != "" { print slot "\037" lease "\037" branch; slot = "" }'
 }
 
-# Every check that needs no slot. Sets LAND_BRANCH, and LAND_SLOT to a land-<pr> slot a dead run left.
+# Checks needing no slot. Sets LAND_BRANCH, and LAND_SLOT to a dead run's land-<pr> slot.
 land_preflight() {
   local pr="$1" view state base head draft cross facts owed instruction unresolved after slot lease branch
   LAND_REASON="" LAND_BRANCH="" LAND_SLOT=""
@@ -2668,7 +2657,7 @@ land_preflight() {
     *[!0-9,]*|'') land_refuse facts "land-facts gave no merge order for PR #$pr"; return 1 ;;
     *) land_refuse "after:${after%%,*}" "PR #$pr lands after #${after//,/, #}, still open"; return 1 ;;
   esac
-  while IFS=$'\x1f' read -r slot _ lease branch; do
+  while IFS=$'\x1f' read -r slot lease branch; do
     if [[ "$lease" == "land-$pr" ]]; then
       LAND_SLOT="$slot"
     elif [[ "$branch" == "$head" ]]; then
@@ -2719,7 +2708,7 @@ land_reset_slot() {
   cmd_prepare "$1" origin/main --force && with_slot_mutation "$1" release_slot "$1" "$2"
 }
 
-# A re-dispatched run replaces the errored status only once it posts its own; a retry before that reads the old one.
+# Waits for the new run's own status: a retry before it would read the errored one.
 land_redispatch() {
   local branch="$1" sha before now deadline
   sha="$(git -C "$ROOT" ls-remote origin "refs/heads/$branch" | cut -f1)"
@@ -2754,8 +2743,8 @@ cmd_land() {
           land_gate "$slot" "$LAND_BRANCH" && rc=0 || rc=$?
         echo "$rc" > "$out.rc"; } | tee "$out" | grep --line-buffered -v -E '^(GATE|CLASS)=' || true
       rc="$(cat "$out.rc")"
-      reason="$(trailer_value GATE "$(cat "$out")")"
-      class="$(trailer_value CLASS "$(cat "$out")")"
+      reason="$(record_field "$out" GATE)"
+      class="$(record_field "$out" CLASS)"
       if [[ "$reason" == merged ]]; then
         with_flock "$LOCK_ROOT/$slot.merge" 0 "" cmd_finalize "$slot" origin/main >&2 \
           || echo "land: PR #$pr merged, but $slot was not finalized — run 'finalize $slot origin/main'." >&2
