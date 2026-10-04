@@ -1,0 +1,1033 @@
+{
+ "objects": [
+  {
+   "name": "Central hull",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.03272608295083046,
+    -0.0364861898124218
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 80,
+   "verts": 104,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower inner shoulder armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    0.7262052893638611
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower Aft swept fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 22,
+   "verts": 24,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper wing foundation",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.08266682922840118,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.9999998807907104
+   ],
+   "polys": 124,
+   "verts": 160,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Wing root beam",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.01036116760224104,
+    0.012280989438295364,
+    0.05409182235598564
+   ],
+   "rot": [
+    -0.09487072378396988,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.329735517501831,
+    1.119309902191162,
+    0.8399017453193665
+   ],
+   "polys": 34,
+   "verts": 40,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper prow armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.08266682922840118,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.9999998807907104
+   ],
+   "polys": 76,
+   "verts": 96,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper prow tip",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.08266682922840118,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.9999998807907104
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper inner shoulder armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.08266682922840118,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.7262052893638611
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper outer armor rail",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.05563731491565704,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 88,
+   "verts": 112,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Rear cockpit yoke",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    -0.04207564890384674,
+    0.022087903693318367
+   ],
+   "rot": [
+    -0.1161135733127594,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    0.5763311386108398
+   ],
+   "polys": 74,
+   "verts": 96,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine nozzle",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 388,
+   "verts": 432,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower wing foundation",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 192,
+   "verts": 160,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower Outer swept fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 22,
+   "verts": 24,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Service channel floor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 38,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper Forward fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 28,
+   "verts": 32,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Service pod cap",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.058863621205091476,
+    -1.776356799695581e-17,
+    -0.07047075778245926
+   ],
+   "rot": [
+    -0.11831143498420715,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0000001192092896,
+    1.0000001192092896
+   ],
+   "polys": 28,
+   "verts": 32,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Cube",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    0.12962204217910767,
+    0.12962204217910767,
+    0.12962204217910767
+   ],
+   "polys": 30,
+   "verts": 30,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Dorsal service spine",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.004017622210085392,
+    -0.03475172817707062
+   ],
+   "rot": [
+    -0.16382186114788055,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 32,
+   "verts": 40,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper aft shoulder armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.05563731491565704,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    0.7262052893638611
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine housing",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 196,
+   "verts": 240,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Canopy perimeter rim",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 376,
+   "verts": 376,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Canopy transverse frame",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 234,
+   "verts": 236,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine throat",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 52,
+   "verts": 96,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Shoulder underside link",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower Forward fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 28,
+   "verts": 32,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine neck",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 148,
+   "verts": 192,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine forward cowling",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    -0.007917883805930614,
+    0.04034712165594101,
+    0.0461965836584568
+   ],
+   "rot": [
+    7.639965815542382e-08,
+    -0.1458168923854828,
+    -6.206141822673317e-09
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 34,
+   "verts": 40,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Cockpit surround",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.02116112783551216,
+    -0.11660699546337128
+   ],
+   "rot": [
+    0.17952007055282593,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.8826625347137451
+   ],
+   "polys": 194,
+   "verts": 216,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Canopy",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 98,
+   "verts": 120,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower outer armor rail",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 88,
+   "verts": 112,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower prow tip",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Structural center web",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.03829057887196541,
+    -0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.9999998807907104
+   ],
+   "polys": 167,
+   "verts": 216,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower aft shoulder armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    0.7262052893638611
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Engine support frame",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    -0.04773326218128204,
+    0.0409122072160244,
+    0.03425179421901703
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    0.8907020092010498,
+    0.8907020092010498,
+    0.8907020092010498
+   ],
+   "polys": 58,
+   "verts": 72,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper Aft swept fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.02121524140238762,
+    0.019483376294374466,
+    -0.0024968748912215233
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 22,
+   "verts": 24,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Upper Outer swept fin",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 22,
+   "verts": 24,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Shoulder service pod",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.04574475437402725,
+    1.776356799695581e-17,
+    0.12755578756332397
+   ],
+   "rot": [
+    -0.15024788677692413,
+    -0.16985824704170227,
+    4.2545504896907005e-09
+   ],
+   "scale": [
+    1.0,
+    0.9999998807907104,
+    0.4212283790111542
+   ],
+   "polys": 40,
+   "verts": 48,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Lower prow armor",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "polys": 76,
+   "verts": 96,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  },
+  {
+   "name": "Outer rail mounting block",
+   "type": "MESH",
+   "parent": null,
+   "loc": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    -1.6292068494294654e-07,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    0.7262052893638611
+   ],
+   "polys": 28,
+   "verts": 32,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "CrimsonPaintUV"
+   ]
+  }
+ ],
+ "polygon_sizes": {
+  "4": 3212,
+  "26": 2,
+  "6": 32,
+  "3": 88,
+  "20": 4,
+  "5": 8,
+  "12": 10,
+  "14": 8,
+  "24": 22,
+  "10": 2,
+  "28": 4,
+  "8": 1,
+  "9": 4
+ }
+}

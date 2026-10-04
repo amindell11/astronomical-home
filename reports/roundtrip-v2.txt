@@ -1,0 +1,21 @@
+ROUNDTRIP_DIFFERENT failures=6
+applyNode=True node matrix=100.00000	0.00000	0.00000	0.00000
+0.00000	-0.00001	99.99999	0.00000
+0.00000	-99.99999	-0.00001	0.00000
+0.00000	0.00000	0.00000	1.00000
+
+hull node local matrix: 1.00000	0.00000	0.00000	0.00000
+0.00000	0.00000	1.00000	0.00000
+0.00000	-1.00000	0.00000	0.00000
+0.00000	0.00000	0.00000	1.00000
+
+ok   submesh count 2 -> 2
+FAIL vertex count 26778 -> 20517
+ok   [0] triangles 7618 -> 7618
+FAIL [0] 13389 saved verts vs 13412 fbx verts: fbx-without-saved=173 (worst 0.0991), saved-without-fbx=158 (worst 0.0446) at 1e-5 on pos/normal/uv0
+FAIL [0] triangle centroids+normal: fbx-without-saved=1030 (worst 1)
+ok   [1] triangles 7618 -> 7618
+FAIL [1] 13389 saved verts vs 7105 fbx verts: fbx-without-saved=509 (worst 0.442), saved-without-fbx=926 (worst 0.442) at 1e-5 on pos/normal/uv0
+FAIL [1] triangle centroids+normal: fbx-without-saved=1030 (worst 1)
+ok   contour and surface share no vertex index
+FAIL bounds size (2.00909, 0.42543, 1.99637) -> (2.00909, 1.99637, 0.42543); center (0.00000, 0.03092, -0.02091) -> (0.00000, 0.02091, 0.03092)
