@@ -27,6 +27,7 @@ mkdir -p "$LOCK_ROOT"
 #   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Borrow / return           borrow_slot (land's too), cmd_borrow, return_slot
 #   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
+#   Docs-only landing         cmd_land_docs, land_docs_push (runs under the merge turn)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -252,7 +253,7 @@ Commands:
       (default 3600) it exits 75; stderr names the lock file and the holder
       slot, or says the holder is not a merge gate. Each change of holder
       restarts that count, so a line that keeps moving times nobody out.
-      Any other push to base takes the same turn, e.g. a docs-only landing:
+      Any other push to base takes the same turn, e.g. land-docs, or:
         lock merge-turn --wait 3600 -- <sync and push cmd>
       Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
@@ -338,6 +339,27 @@ Commands:
       after:<pr>, slot:<slot>, no-free-slot, gate-running (another land of
       this PR holds its slot), checkout, or error (the gate printed no
       trailer). Exit: 0 merged; 1 refused, or a usage error.
+
+  land-docs
+      The docs-only landing (agent-worktree-pr-loop skill): push the HEAD
+      of the worktree it runs in straight to main, with no PR, when every
+      path it changes is under doc/ or ends in .md. Run it from the
+      worktree holding the commits: a slot, or a cloud session's checkout.
+      Holding the merge turn as 'lock merge-turn' does (no ticket, waiting
+      up to WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS), it fetches origin,
+      rebases HEAD onto origin/main, checks the paths origin/main..HEAD
+      changes (a rename counts as a delete and an add), and pushes HEAD to
+      main without force.
+      Stdout trailer: LAND_DOCS=landed <sha>, or LAND_DOCS=refused:<reason>,
+      the reason one of
+        rebase     HEAD did not rebase onto origin/main: a conflict (the
+                   rebase is aborted) or a dirty tree
+        empty      HEAD changes nothing on origin/main
+        paths      a changed path is outside doc/ and *.md (stderr lists them)
+        push       the push failed, e.g. main moved from another clone
+        turn-held  the merge turn was still held after the wait
+      A failed fetch prints no trailer. Exit: 0 landed; 75 turn-held;
+      1 any other refusal, or a usage error.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -2863,6 +2885,48 @@ cmd_land() {
   return 1
 }
 
+# ---- Docs-only landing -----------------------------------------------------
+cmd_land_docs() {
+  [[ $# -eq 0 ]] || { echo "land-docs takes no arguments: run it from the worktree whose HEAD lands." >&2; return 1; }
+  local path rc=0
+  path="$(git rev-parse --show-toplevel)"
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" \
+    "land-docs: the merge turn is still held after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not landing." \
+    land_docs_push "$path" || rc=$?
+  [[ "$rc" -ne "$LOCK_BUSY_EXIT" ]] || echo "LAND_DOCS=refused:turn-held"
+  return "$rc"
+}
+
+# Runs under the merge turn, so the push waits for a gate in flight instead of moving base under it.
+land_docs_push() {
+  local path="$1" head non_docs
+  # Git writes progress and conflict reports to stdout; stdout carries only the trailer.
+  git -C "$path" fetch -q origin main >&2
+  if ! git -C "$path" rebase -q origin/main >&2; then
+    if git -C "$path" rev-parse -q --verify REBASE_HEAD >/dev/null; then git -C "$path" rebase --abort >&2; fi
+    echo "LAND_DOCS=refused:rebase"
+    return 1
+  fi
+  head="$(git -C "$path" rev-parse HEAD)"
+  if [[ "$head" == "$(git -C "$path" rev-parse origin/main)" ]]; then
+    echo "land-docs: HEAD changes nothing on origin/main." >&2
+    echo "LAND_DOCS=refused:empty"
+    return 1
+  fi
+  non_docs="$(git -C "$path" diff --no-renames --name-only origin/main HEAD -- ':(top,exclude)doc/' ':(top,exclude)*.md')"
+  if [[ -n "$non_docs" ]]; then
+    echo "land-docs: these paths are outside doc/ and *.md, so the change takes a PR:" >&2
+    sed 's/^/  /' <<< "$non_docs" >&2
+    echo "LAND_DOCS=refused:paths"
+    return 1
+  fi
+  if ! git -C "$path" push -q origin HEAD:main >&2; then
+    echo "LAND_DOCS=refused:push"
+    return 1
+  fi
+  echo "LAND_DOCS=landed $head"
+}
+
 # ---- Finalize / review / revise --------------------------------------------
 cmd_finalize() {
   local slot="$1"
@@ -3057,6 +3121,7 @@ main() {
       with_flock "$LOCK_ROOT/$1.merge" 0 "return: a merge gate is running on $1 — follow it with 'merge-progress $1'." \
         return_slot "$@"
       ;;
+    land-docs) cmd_land_docs "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
