@@ -39,14 +39,14 @@ public abstract class CaptureScenario
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();
 
-    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
+    /// <summary>Spawns a Crimson running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
         var pilot = TestAssets.Load<AICommander>(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
         var ship = Session.Units.SpawnShip(
-            TestAssets.LoadShip2Prefab(), pilot, team,
+            TestAssets.LoadCrimsonPrefab(), pilot, team,
             Session.Frame.Place(planePos),
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward),
             field: Session.ActiveSector ? Session.ActiveSector.ObstacleField : null);

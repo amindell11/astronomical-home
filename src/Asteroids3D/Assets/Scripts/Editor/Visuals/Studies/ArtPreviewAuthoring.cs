@@ -13,7 +13,8 @@ namespace Visuals.Studies
     public static class ArtPreviewAuthoring
     {
         public const string Folder = "Assets/Visuals/Studies/DrawnArt/";
-        private const string ShipFolder = "Assets/Visuals/Ships/Vanguard/DrawnStudy/";
+        private const string ShipFolder = "Assets/Visuals/Ships/Vanguard/";
+        private const string StudyFolder = "Assets/Visuals/Ships/Vanguard/DrawnStudy/";
         private const string RockFolder = "Assets/Visuals/Environment/Asteroids/DrawnField/";
 
         [MenuItem("Astronomical/Art previews/Rebuild approved study scenes")]
@@ -21,7 +22,7 @@ namespace Visuals.Studies
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             foreach (var directory in new[] { "Scenes", "Prefabs", "Materials/Ship/Panels", "Materials/Ship/Surface",
-                "Materials/Ship/Outline", "Materials/Stage", "Meshes/Hull", "Meshes/Engines", "Meshes/Wings", "Lighting", "Textures" })
+                "Materials/Ship/Outline", "Materials/Stage", "Meshes/Hull", "Meshes/Engines", "Meshes/Wings", "Lighting" })
                 Directory.CreateDirectory(Folder + directory);
             AssetDatabase.Refresh();
             var ship = BuildShip();
@@ -59,7 +60,7 @@ namespace Visuals.Studies
             ink.SetColor("_BaseColor", new Color(.003f, .004f, .009f));
             var wear = new Material(ink);
             wear.SetColor("_BaseColor", new Color(.62f, .60f, .57f).linear);
-            ink = Save(ink, "Materials/Ship/Surface/Structural ink.mat");
+            ink = Save(ink, "Materials/Structural ink.mat", ShipFolder);
             wear = Save(wear, "Materials/Ship/Surface/Battle wear.mat");
             foreach (var renderer in all)
             {
@@ -83,15 +84,15 @@ namespace Visuals.Studies
             canopy.SetFloat("_DrawnReflectionStrength", .85f);
             canopy.SetColor("_ReflectionColor", new Color(.42f, .54f, .64f));
             canopy.SetColor("_ReflectionEdgeColor", new Color(.56f, .64f, .67f));
-            canopy = Save(canopy, "Materials/Ship/Surface/Canopy.mat");
+            canopy = Save(canopy, "Materials/Canopy.mat", ShipFolder);
             var pod = Paint(Color.black);
             var emissionMask = new Texture2D(1, 1, TextureFormat.RGBA32, false);
             emissionMask.SetPixel(0, 0, Color.white);
             emissionMask.Apply();
-            pod.SetTexture("_EmissionMap", Save(emissionMask, "Textures/EngineEmissionMask.asset"));
+            pod.SetTexture("_EmissionMap", Save(emissionMask, "Materials/EngineEmissionMask.asset", ShipFolder));
             pod.SetColor("_EmissionColor", new Color(.15f, 1.8f, 6));
             pod.SetFloat("_EmissionStrength", 1);
-            pod = Save(pod, "Materials/Ship/Surface/Engine glow.mat");
+            pod = Save(pod, "Materials/Engine glow.mat", ShipFolder);
             var contour = Contour(7.5f, .8f, Color.black);
             contour.SetFloat("_UniformWidth", 1);
             contour = Save(contour, "Materials/Ship/Outline/Hero outline.mat");
@@ -234,7 +235,7 @@ namespace Visuals.Studies
             backdrop.transform.position = new Vector3(0, 0, hangar ? 3 : 8);
             backdrop.transform.localScale = new Vector3(2 * camera.orthographicSize * 16 / 9, 2 * camera.orthographicSize, 1);
             var material = new Material(Shader.Find(hangar ? "Astronomical/Comparison/Shadowed Plate" : "Universal Render Pipeline/Unlit"));
-            material.SetTexture("_BaseMap", Load<Texture2D>(ShipFolder + background));
+            material.SetTexture("_BaseMap", Load<Texture2D>(StudyFolder + background));
             if (hangar) material.SetColor("_ShadowColor", new Color(.3f, .35f, .55f));
             var rendererPlate = backdrop.GetComponent<MeshRenderer>();
             rendererPlate.sharedMaterial = Save(material, "Materials/Stage/" + name + " backdrop.mat");
@@ -281,9 +282,9 @@ namespace Visuals.Studies
             return item;
         }
 
-        private static T Save<T>(T asset, string relative) where T : Object
+        private static T Save<T>(T asset, string relative, string folder = Folder) where T : Object
         {
-            var path = Folder + relative;
+            var path = folder + relative;
             asset.name = Path.GetFileNameWithoutExtension(relative);
             var existing = AssetDatabase.LoadAssetAtPath<T>(path);
             if (!existing)
