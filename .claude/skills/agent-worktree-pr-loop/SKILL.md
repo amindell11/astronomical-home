@@ -495,10 +495,10 @@ build*, runs in a subagent. Start prompt:
    `./scripts/drain_pick.sh release <issue>`; go on to the next item.
 8. **Parent, once every PR is open:** check the batch's branches pairwise for
    conflicts and write the `## Merge order` lines (Step 4); run
-   `./scripts/drain_pick.sh merge-queue`, fixing the bodies until no `SKIP=`
-   line says `merge-order-malformed` or `order-cycle`; then report the PRs
-   opened and the items blocked, ending on `./scripts/drain_pick.sh digest`,
-   relayed as printed.
+   `./scripts/drain_pick.sh merge-queue --no-class`, fixing the bodies until no
+   `SKIP=` line says `merge-order-malformed` or `order-cycle`; then report the
+   PRs opened and the items blocked, ending on
+   `./scripts/drain_pick.sh digest --no-class`, relayed as printed.
 9. **A cloud batch ends at open PRs.** It never merges and never boots Unity.
 
 ## Verify task

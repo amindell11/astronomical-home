@@ -7,9 +7,10 @@ set -euo pipefail
 # readings by its closing PRs (unfinished, building, pr-closed), claim's assignee re-read and
 # two writes, release, every owed verdict and the tried rule, result's line, tick and refusals,
 # the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists,
-# instruct's checks and record, and land-facts' readings of the record, Codex's review, threads
-# and merge order. gh is a stub serving REST lists 100 rows a page; every call it does not model
-# fails closed.
+# merge-queue and digest without GraphQL (--no-class, and the exit 1 without it), instruct's
+# checks and record, and land-facts' readings of the record, Codex's review, threads and merge
+# order. gh is a stub serving REST lists 100 rows a page; every call it does not model fails
+# closed, and every GraphQL call fails while $FIX/no-graphql exists.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRAIN="$SCRIPT_DIR/../drain_pick.sh"
@@ -28,20 +29,25 @@ cat > "$TMP/bin/gh" <<'EOF'
 #!/usr/bin/env bash
 args="$*"
 page() { local n="${args##*&page=}"; n="${n%% *}"; sed -n "$((n * 100 - 99)),$((n * 100))p" "$1"; }
+[[ "$args" != "api graphql "* || ! -e "$FIX/no-graphql" ]] || { echo "gh stub: GraphQL refused" >&2; exit 1; }
 case "$args" in
   "api -X PATCH "*) echo "$args" >> "$GH_WRITE_LOG"; f="${args#*--input }"; cp "${f%% *}" "$FIX/patched.json" ;;
   "api -X "*) echo "$args" >> "$GH_WRITE_LOG" ;;
   "api user --jq .login") echo me ;;
   "api repos/owner/repo/issues?"*) page "$FIX/issues.txt" ;;
   "api repos/owner/repo/issues/"*"/comments?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/comments-${n%%/*}.jsonl" ;;
+  "api repos/owner/repo/issues/"*"/reactions?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/reactions-${n%%/*}.jsonl" ;;
   "api repos/owner/repo/issues/"*"assignees"*) cat "$FIX/assignees.txt" ;;
   "api repos/owner/repo/issues/"*"labels"*) cat "$FIX/labelled.txt" ;;
+  "api repos/owner/repo/pulls?state=open&"*) page "$FIX/open.txt" ;;
   "api repos/owner/repo/pulls?"*) page "$FIX/pulls.jsonl" ;;
+  "api repos/owner/repo/pulls/"*"/files?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/files-${n%%/*}.txt" ;;
   "api repos/owner/repo/pulls/"*"/commits?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/commits-${n%%/*}.txt" ;;
   "api repos/owner/repo/pulls/"*"[.state, .base.ref]"*) n="${args#api repos/owner/repo/pulls/}"; cat "$FIX/pull-${n%% *}.tsv" ;;
   "api repos/owner/repo/pulls/"*) cat "$FIX/pr.json" ;;
   "api graphql "*"pullRequest(number"*) cat "$FIX/pr-graphql.json" ;;
-  "api graphql "*"pullRequests("*) cat "$FIX/prs.json" ;;
+  "api repos/owner/repo/commits/"*"/statuses?"*) c="${args#api repos/owner/repo/commits/}"; page "$FIX/statuses-${c%%/*}.jsonl" ;;
+  "api graphql "*"pullRequests("*) cat "$FIX/threads.json" ;;
   *) echo "gh stub: unmodelled call: $args" >&2; exit 97 ;;
 esac
 EOF
@@ -82,41 +88,67 @@ proposal() { printf '[{"user":{"login":"%s"},"html_url":"https://x/c/%s","body":
 
 # pr <number> <body> [draft] [paths csv] [statuses: <context>=<STATE>,…] [changedFiles] [title]
 #    [comments: JSON list] [unresolved threads] [flags: eyes (Codex's 👀), unseen (a 101st thread)]
-# Every PR's history is OLD, then its head SHA.
+# Every PR's history is OLD, then its head: SHA for owed and land-facts; for the views, head_of
+# its number, which shares SHA's short form, so statuses read by commit differ per PR.
 SHA=76b92040123456789abcdef0123456789abcdef0
 OLD=0f12fee0123456789abcdef0123456789abcdef0
+head_of() { printf '%s%033d' "${SHA:0:7}" "$1"; }
+# heads <text>: <text> with each `MERGE=<pr> @` naming that PR's head
+heads() {
+  local line
+  while IFS= read -r line; do
+    [[ ! "$line" =~ ^MERGE=([0-9]+)\ @ ]] || line="${line/@/$(head_of "${BASH_REMATCH[1]}")}"
+    printf '%s\n' "$line"
+  done <<<"$1"
+}
 PRS=()
 # Assigned apart from `local`: Git Bash drops CR inside `local a=(…)`, so CRLF bodies would arrive as LF.
 pr() { local a; a=("$@" "" "" "" "" "" "" "" ""); PRS+=("${a[@]:0:10}"); }
-# One python spawn per write: prs.json is the open-PR read, pr.json the first PR alone over REST,
-# pr-graphql.json the first PR beside every PR's number (land-facts).
+# One python spawn per write: open.txt and the per-PR files are the views' REST reads (each status
+# newest first, over an older one it outranks), threads.json their GraphQL read, pr.json the first
+# PR alone over REST, pr-graphql.json the first PR beside every PR's number (land-facts).
 write_prs() {
   python3 - "$FIX" "$SHA" "$OLD" "${PRS[@]:-}" <<'PY'
 import json, sys
 fix, head, old, fields = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
 nodes = []
+open_rows = []
+def rows(name, lines):
+    with open(f"{fix}/{name}", "w", encoding="utf-8") as out:
+        out.writelines(f"{line}\n" for line in lines)
 for number, body, draft, paths, statuses, changed, title, comments, unresolved, flags in zip(*[iter(fields)] * 10):
     paths = [p for p in paths.split(",") if p]
-    status = {"contexts": [dict(zip(("context", "state"), s.split("="))) for s in statuses.split(",")]}
+    paths += [f"src/f{i}.cs" for i in range(int(changed or 0) - len(paths))]
     threads = [{"isResolved": False}] * int(unresolved or 0) + [{"isResolved": True}]
-    nodes.append({"number": int(number), "title": title or f"title {number}", "isDraft": bool(draft),
-      "headRefOid": head, "body": body, "changedFiles": int(changed or len(paths)),
-      "files": {"nodes": [{"path": p} for p in paths]},
-      "commits": {"nodes": [{"commit": {"status": status if statuses else None}}]},
+    comments = json.loads(comments or "[]")
+    eyes = [{"user": {"login": "chatgpt-codex-connector[bot]"}}] if "eyes" in flags else []
+    nodes.append({"number": int(number), "headRefOid": head, "body": body,
       "history": {"nodes": [{"commit": {"oid": old}}, {"commit": {"oid": head}}]},
-      "comments": {"nodes": json.loads(comments or "[]")},
+      "comments": {"nodes": comments},
       "reviewThreads": {"totalCount": len(threads) + ("unseen" in flags), "nodes": threads},
-      "reactions": {"nodes": [{"user": {"login": "chatgpt-codex-connector[bot]"}}] if "eyes" in flags else []}})
-json.dump({"data": {"repository": {"pullRequests": {"nodes": nodes}}}}, open(f"{fix}/prs.json", "w"))
+      "reactions": {"nodes": eyes}})
+    view_head = f"{head[:7]}{int(number):033d}"
+    open_rows.append(f"{number} {view_head} " + json.dumps({"number": int(number), "title": title or f"title {number}",
+      "isDraft": bool(draft), "headRefOid": view_head, "body": body}, ensure_ascii=False))
+    rows(f"files-{number}.txt", paths)
+    rows(f"commits-{number}.txt", [old, view_head])
+    newest = [dict(zip(("context", "state"), s.lower().split("="))) for s in statuses.split(",") if s]
+    older = [{**s, "state": "success" if s["state"] == "failure" else "failure"} for s in newest]
+    rows(f"statuses-{view_head}.jsonl", map(json.dumps, newest + older))
+    rows(f"comments-{number}.jsonl", map(json.dumps, comments))
+    rows(f"reactions-{number}.jsonl", map(json.dumps, eyes))
+rows("open.txt", open_rows)
+json.dump({"data": {"repository": {"pullRequests": {"nodes": [
+  {"number": n["number"], "reviewThreads": n["reviewThreads"]} for n in nodes]}}}}, open(f"{fix}/threads.json", "w"))
 json.dump((nodes or [None])[0], open(f"{fix}/pr.json", "w"))
 json.dump({"data": {"repository": {"pullRequest": (nodes or [None])[0],
   "pullRequests": {"nodes": [{"number": n["number"]} for n in nodes]}}}}, open(f"{fix}/pr-graphql.json", "w"))
 PY
 }
-# view <verb>: runs it into $out
+# view <verb> [--no-class]: runs it into $out
 view() {
-  out="$(bash "$DRAIN" "$1" 2>/dev/null)" || fail "$1 exits 0 (got: $out)"
-  [[ ! -s "$GH_WRITE_LOG" ]] || fail "$1 must write nothing"
+  out="$(bash "$DRAIN" "$@" 2>/dev/null)" || fail "$* exits 0 (got: $out)"
+  [[ ! -s "$GH_WRITE_LOG" ]] || fail "$* must write nothing"
 }
 
 reset() {
@@ -124,6 +156,7 @@ reset() {
   PULLS=()
   PRS=()
   : > "$GH_WRITE_LOG"
+  rm -f "$FIX/no-graphql"
   : > "$FIX/assignees.txt"
   echo false > "$FIX/labelled.txt"
 }
@@ -133,10 +166,7 @@ skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
 # --- usage -----------------------------------------------------------------------------------
 reset
 for bad in "" "frob" "pick --force" "claim" "claim abc" "claim 12 lease" "release" "release abc" "owed" "owed abc" \
-    "verify-queue 12" "merge-queue 12" "digest 12" "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123" \
-    "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed" \
-    "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x" \
-    "result 12@abc1234 1 passed x y"; do
+    "verify-queue 12" "verify-queue --no-class" "merge-queue 12" "merge-queue --no-class 12" "digest 12" "digest --class"     "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123"     "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed"     "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x"     "result 12@abc1234 1 passed x y"; do
   rc=0; bash "$DRAIN" $bad > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 2 ]] || fail "'$bad' should exit 2 (got $rc)"
 done
@@ -294,9 +324,9 @@ owed_is open 2 1 1 "an item is tried when a result line names the head, by a sho
   "${HEAD}"$'- [ ] unity: boot A\n  FAIL at `76b9204`, 3 failed\n- [ ] unity: boot B\n  FAIL at `0f12fee`, before the fix (`76b920` is too short)\n- [ ] script: suite\n  FAIL at `'"$SHA"$'`\n- [x] unity: boot C\n  passed on `0f12fee`\n- [x] script: lint\n  passed on `76B9204`\n- [ ] eyes: look\n  seen at `76b9204`\n' 1 1 1
 [[ ! -s "$GH_WRITE_LOG" ]] || fail "owed must write nothing"
 
-# --- verify-queue: the untried items of every pipeline PR ---------------------------------------------
+# --- verify-queue: the untried items of every pipeline PR, with no GraphQL call ----------------------
 OWED=$'## Test status\n\n### Owed local\n\n'
-reset
+reset; touch "$FIX/no-graphql"
 pr 102 "${OWED}"$'- [ ] unity: boot\n  FAIL at `76b9204`\n- [ ] eyes: look\n'
 pr 101 $'no section\n- [ ] unity: not an item\n'
 write_prs
@@ -306,11 +336,18 @@ pr 104 "${OWED//$'\n'/$'\r\n'}"$'- [ ] unity: crlf boot\r\n  FAIL at `0f12fee`\r
 pr 103 "${OWED}"$'- [ ] unity: boot → graphics\n- [ ] unity: failed boot\n  FAIL at `76b9204`\n- [x] unity: done\n- [ ] script: `run-script-tests <slot>`\n- [ ] eyes: look\n'
 write_prs
 view verify-queue
-pr 105 "${OWED}"$'- [ ] eyes: look first\n- [ ] script: after the eyes item\n'
+pr 105 "${OWED}"$'- [ ] eyes: look first
+- [ ] script: after the eyes item
+'
 write_prs
 view verify-queue
-[[ "$out" == "VERIFY=103 $SHA unity:1,script:1"$'\nITEM=103 1 unity boot → graphics\nITEM=103 4 script `run-script-tests <slot>`\n'"VERIFY=104 $SHA unity:1,script:0"$'\nITEM=104 1 unity crlf boot\n'"VERIFY=105 $SHA unity:0,script:1"$'\nITEM=105 2 script after the eyes item' ]] \
-  || fail "one block per PR with an untried item, lowest PR first, its untried items in body order; positions count every item, eyes included, and skip tried and ticked ones (got: $out)"
+[[ "$out" == "VERIFY=103 $(head_of 103) unity:1,script:1"$'
+ITEM=103 1 unity boot → graphics
+ITEM=103 4 script `run-script-tests <slot>`
+'"VERIFY=104 $(head_of 104) unity:1,script:0"$'
+ITEM=104 1 unity crlf boot
+'"VERIFY=105 $(head_of 105) unity:0,script:1"$'
+ITEM=105 2 script after the eyes item' ]]   || fail "one block per PR with an untried item, lowest PR first, its untried items in body order; positions count every item, eyes included, and skip tried and ticked ones (got: $out)"
 
 # --- merge-queue: facts, landing order, skip reasons --------------------------------------------------
 NONE="${OWED}None."$'\n'
@@ -359,7 +396,7 @@ SKIP=217 merge-order-malformed
 SKIP=218 merge-order-malformed
 SKIP=219 order-cycle
 SKIP=220 order-cycle,after:219"
-[[ "$out" == "${want//@/$SHA}" ]] || fail "a constraint wins, then scripts and .github last, then PR number; a constraint on a PR no longer open is dead; every skip reason; a PR with open items shows only a merge-order fault (got: $out)"
+[[ "$out" == "$(heads "$want")" ]] || fail "a constraint wins, then scripts and .github last, then PR number; a constraint on a PR no longer open is dead; every skip reason; a PR with open items shows only a merge-order fault (got: $out)"
 
 # --- digest: every list ---------------------------------------------------------------------------------
 U=https://github.com/owner/repo
@@ -424,9 +461,11 @@ today="$(date -u +%F)"
   || fail "one comment per PR, its first line the record (got: $(cat "$GH_WRITE_LOG"))"
 
 # --- result: the only writer of result lines and ticks ----------------------------------------------------
-# result <body> <args…>: PR 77 (OLD then SHA) carries <body>; runs result into $out and $rc
+# result <body> <args…>: PR 77 (OLD then SHA) carries <body>; runs result into $out and $rc.
+# pull_of's commit list survives write_prs, whose views' list would name head_of 77.
 result() {
-  PRS=(); pr 77 "$1"; write_prs
+  PRS=(); pr 77 "$1"
+  cp "$FIX/commits-77.txt" "$TMP/commits-77"; write_prs; cp "$TMP/commits-77" "$FIX/commits-77.txt"
   : > "$GH_WRITE_LOG"; rm -f "$FIX/patched.json"
   rc=0; out="$(bash "$DRAIN" result "${@:2}" 2>"$TMP/err")" || rc=$?
 }
@@ -527,6 +566,22 @@ MERGE=504 @ owed:none
 MERGE=506 @ owed:discharged
 MERGE=507 @ owed:none
 MERGE=505 @ owed:none,scripts"
-[[ "$out" == "${want//@/$SHA}" ]] || fail "instructed names a record on any commit; class needs nothing owed, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
+[[ "$out" == "$(heads "$want")" ]] || fail "instructed names a record on any commit; class needs nothing owed, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
+
+# --- merge-queue and digest without GraphQL: --no-class, else exit 1 ------------------------------------
+touch "$FIX/no-graphql"
+view merge-queue --no-class
+[[ "$out" == "$(heads "${want/,class/}")" ]] || fail "--no-class prints every fact but class, with no GraphQL call (got: $out)"
+for verb in merge-queue digest; do
+  rc=0; bash "$DRAIN" "$verb" > /dev/null 2>"$TMP/err" || rc=$?
+  [[ "$rc" -eq 1 ]] && grep -q -- --no-class "$TMP/err" || fail "$verb without --no-class exits 1 when GraphQL is refused (rc=$rc: $(cat "$TMP/err"))"
+done
+rm "$FIX/no-graphql"; write_queue
+view digest
+classed="$out"
+grep -q "owed:none, instructed, class$" <<<"$classed" || fail "digest lists the class fact (got: $classed)"
+touch "$FIX/no-graphql"
+view digest --no-class
+[[ "$out" == "${classed/, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
 
 echo "PASS test_drain_pick.sh"
