@@ -119,7 +119,8 @@ set -euo pipefail
 #                       `Question <YYYY-MM-DD>:` (the one-short question format), unless a later
 #                       comment by amindell11 is a ruling: its first line starts
 #                       `Ruled <YYYY-MM-DD>` or `Ruled:` ("Ruled out …" is none). The part is the
-#                       question's text, then ` — rec: ` and its `Recommendation:` line's text.
+#                       question's text, then ` — rec: ` and its `Recommendation:` line's text, if
+#                       it has one.
 #             tried     a pipeline PR with tried items: tried at `<head7>`: unity <n>, script <n>
 #             eyes      a pipeline PR with unticked eyes items: eyes: <n> to look at
 #             merge     a pipeline PR whose verdict is none or discharged, not a draft, with no
@@ -445,8 +446,7 @@ def instruction(pr):
                for m in [RECORD.fullmatch(first_line(c))] if m]
     return on_pr(pr, records[-1]) if records else None
 
-# The one parser of an open question: the author's latest Question with no later ruling, as its
-# row part, else None.
+# The one parser of an open question: the latest unruled Question's row part, else None.
 def question(item):
     own = [c for c in item["comments"]["nodes"] if login(c["author"]) == author]
     asked = [i for i, c in enumerate(own) if QUESTION.match(first_line(c))]

@@ -134,7 +134,7 @@ for number, body, draft, paths, statuses, changed, title, comments, unresolved, 
     view_head = f"{head[:7]}{int(number):033d}"
     open_rows.append(f"{number} {view_head} " + json.dumps({"number": int(number), "title": title or f"title {number}",
       "isDraft": bool(draft), "headRefOid": view_head, "base": "main", "body": body}, ensure_ascii=False))
-    rows(f"item-{number}.tsv", ["open	true"])
+    rows(f"item-{number}.tsv", ["open\ttrue"])
     rows(f"files-{number}.txt", paths)
     rows(f"commits-{number}.txt", [old, view_head])
     newest = [dict(zip(("context", "state"), s.lower().split("="))) for s in statuses.split(",") if s]
@@ -663,13 +663,13 @@ decided 718 "Cache or recompute?" "a PR with no owed-local section gives only it
 decided 719 "merge at \`$H7\`?" "a discharged PR asks for a merge, with a ticked item behind head"
 
 # --- decision: the cap -----------------------------------------------------------------------------
-# cut <n>: decision <n>'s line as "<characters> <UTF-8 bytes> <ends in …>"
-cut() {
+# capped <n>: decision <n>'s line as "<characters> <UTF-8 bytes> <ends in …>"
+capped() {
   bash "$DRAIN" decision "$1" 2>/dev/null | python3 -c 'import sys; l = sys.stdin.buffer.read().decode().rstrip("\n").split(" ", 1)[1]; print(len(l), len(l.encode()), l.endswith("…"))'
 }
 asked 720 open "$(note amindell11 "Question 2026-10-04: $(printf 'a%.0s' {1..400})")"
-[[ "$(cut 720)" == "300 302 True" ]] || fail "a long line is cut to 300 characters, the last one … (got: $(cut 720))"
+[[ "$(capped 720)" == "300 302 True" ]] || fail "a long line is cut to 300 characters, the last one … (got: $(capped 720))"
 asked 721 open "$(note amindell11 "Question 2026-10-04: $(printf '🛰%.0s' {1..300})")"
-[[ "$(cut 721)" == "256 1023 True" ]] || fail "four-byte characters cut the line to the field's 1024 bytes (got: $(cut 721))"
+[[ "$(capped 721)" == "256 1023 True" ]] || fail "four-byte characters cut the line to the field's 1024 bytes (got: $(capped 721))"
 
 echo "PASS test_drain_pick.sh"
