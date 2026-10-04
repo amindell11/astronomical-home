@@ -358,9 +358,7 @@ After each round, post ONE PR comment containing a disposition table —
 round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
 hash, thread reply, or issue number). No comment may lack a row. Use `revise`
 to re-push fixes. Resolve each review thread once its disposition reply is
-posted: `land` refuses a PR with an unresolved thread. After pushing a code
-fix for a finding, post one `@codex review` comment so Codex reviews the fix:
-its review of an earlier commit no longer covers the tree.
+posted: `land` refuses a PR with an unresolved thread.
 
 ## Step 6 — Merge
 
