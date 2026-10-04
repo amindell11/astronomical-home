@@ -20,12 +20,12 @@ be committed/pushed to main directly when ALL of: (1) the diff touches only
 documentation paths (`doc/**`, `*.md`, `.claude/**.md` — no code, no assets,
 nothing that executes); (2) the content was explicitly user-approved in the
 session landing it — that approval IS the review; (3) the commit message
-carries the story a PR body would have. Verify (1) mechanically
-(`git diff --cached --stat`) before pushing. These landings are cited by
+carries the story a PR body would have. These landings are cited by
 commit SHA, not PR number. Anything touching code takes the full loop.
-Commit it in a slot like any change, then sync and push as one command under
-the merge turn, so the push waits for the gate in flight instead of voiding it:
-`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c 'git -C <slot-path> pull -q --rebase origin main && git -C <slot-path> push origin HEAD:main'`.
+Commit it in a slot like any change (a cloud session: its checkout), then run
+`./scripts/agent_worktree_pool.sh land-docs` from that worktree: it checks (1)
+mechanically and syncs and pushes under the merge turn, so the push waits for
+the gate in flight instead of voiding it.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
@@ -44,6 +44,7 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh merge <slot> --remote` / `merge <slot> -- <test args>` — same merge gate with the test-run producer named (hosted headless suite / local run) instead of chosen from memory admission; see Step 6.
 - `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands only on a recorded instruction that covers the landing tree; see Step 6.
 - `./scripts/agent_worktree_pool.sh borrow <lease>` / `return <slot> <lease>` — lease a slot for an unattended pass without moving its tree, and give it back reset to `origin/main`; see § Verify task.
+- `./scripts/agent_worktree_pool.sh land-docs` — the docs-only landing, run from the worktree holding the commits; see Applicability.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 - `./scripts/agent_worktree_pool.sh hold <slot> [--local]` / `resume <lease> [slot]` — take waiting work off a slot and put it back; see "Holding a slot".
@@ -360,9 +361,7 @@ After each round, post ONE PR comment containing a disposition table —
 round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
 hash, thread reply, or issue number). No comment may lack a row. Use `revise`
 to re-push fixes. Resolve each review thread once its disposition reply is
-posted: `land` refuses a PR with an unresolved thread. After pushing a code
-fix for a finding, post one `@codex review` comment so Codex reviews the fix:
-its review of an earlier commit no longer covers the tree.
+posted: `land` refuses a PR with an unresolved thread.
 
 ## Step 6 — Merge
 
