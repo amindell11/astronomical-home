@@ -20,20 +20,6 @@ namespace Asteroids.Fragnetics
         }
     }
         
-    public readonly struct FragJitter
-    {
-        public readonly Vector3 Direction;
-        public readonly float SpeedScale;
-        public readonly Vector3 Spin;
-
-        public FragJitter(Vector3 direction, float speedScale, Vector3 spin)
-        {
-            Direction = direction;
-            SpeedScale = speedScale;
-            Spin = spin;
-        }
-    }
-
     public struct FragSum
     {
         public float totalMass;

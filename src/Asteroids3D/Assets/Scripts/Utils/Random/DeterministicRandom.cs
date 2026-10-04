@@ -4,7 +4,7 @@ namespace Utils
 {
     /// <summary>
     /// Small self-contained PCG-style random stream for simulation draws that
-    /// must replay. Sim code never draws from UnityEngine.Random (global,
+    /// must replay. Such draws never come from UnityEngine.Random (global,
     /// order-sensitive): each consumer owns a stream keyed by a stable seed —
     /// a field asteroid's ID, a rock's break seed — so results are independent
     /// of call order, load order and platform.

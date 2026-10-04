@@ -8,8 +8,8 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Tests for the fragment-path attribute roller and the narrowed
-    /// <see cref="AsteroidSpawner"/> surface. The baseline field no longer
-    /// rolls random attributes at all — it draws from seeded streams
+    /// <see cref="AsteroidSpawner"/> surface. The baseline field never
+    /// rolls random attributes — it draws from seeded streams
     /// (see AsteroidFieldCoreEditModeTests); the mass-constrained fragment
     /// roll draws its mesh from the parent's break stream.
     /// </summary>
