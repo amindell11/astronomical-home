@@ -60,6 +60,10 @@ deny "$P" 'git -C "" clean -fd'
 deny "$S" 'git -C "$UNSET_DIR" clean -fdx'
 deny "$S" 'git --work-tree=/x clean -fdx'
 deny "$P" "git clean -fd 'unterminated"
+deny "$P" 'git stash'
+deny "$P" 'git stash push -m x'
+deny "$P" 'git stash pop'
+deny "$P" 'git stash drop stash@{0}'
 
 # --- the wipe: a ;-joined cd that may fail (missing, or deleted earlier) leaves the shell in the primary ---
 deny "$P" "W=\"$S/wt\"; git worktree add -q --detach \"\$W\" origin/main; cd \"\$W\"; git checkout -q --orphan e; git rm -rfq . ; git clean -fdxq"
@@ -98,6 +102,9 @@ allow "$P" 'echo "git clean -fdx"'
 allow "$P" 'git commit -m "docs: never git clean the primary"'
 allow "$P" $'git commit -F - <<\'EOF\'\nrm -rf src\ngit clean -fdx\nEOF'
 allow "$P" 'git status'
+allow "$P" 'git stash list'
+allow "$P" 'git stash show --stat stash@{0}'
+allow "$S" 'git stash'
 allow "$P" "cd \"$S\" && git reset --hard HEAD 2>&1 | tail -1 && git checkout HEAD -- f"
 allow "$P" "rm -rf \"$S/Library/BurstCache/\" 2>/dev/null"
 expect allow PowerShell "$P" "Remove-Item -Recurse \"$S\\Temp\""
