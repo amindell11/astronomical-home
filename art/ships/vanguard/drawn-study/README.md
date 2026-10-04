@@ -28,7 +28,7 @@ Native Unity captures came from the saved study scenes. The scenes, their materi
 and meshes, and the two capture tools are on branch `evidence/vanguard` under
 `studies/drawn-art/`, with `.meta` files and a revive recipe. No current tool
 reproduces the paired comparison captures this README mentions (layer on/off,
-bloom on/off, contour proofs). The backdrop plates the scenes used
+bloom on/off, contour proofs). The backdrop plates that the scenes used
 (`NebulaBackground-v2.png`, `HangarBackground-v2-ui.png`, `PlanetBackground-v1.png`,
 `PlanetBackground-v2-ui.png`) and the `ShadowedPlate.shader` that drew the hangar
 plate sit in this folder.
