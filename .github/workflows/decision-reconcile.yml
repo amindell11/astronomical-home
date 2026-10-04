@@ -1,0 +1,67 @@
+name: decision-reconcile
+
+# Projects each issue's and PR's open decision onto the board's Decision field
+# (scripts/decision_reconcile.sh). The repo is public and pull_request_target runs main's copy of
+# this workflow with secrets, a fork's PR included, so: the job checks out main only, takes only
+# the item number from the payload, reads every PR through the API, never runs a PR's code, and
+# treats all item text as data. GITHUB_TOKEN only reads; the board writes go out under
+# PROJECTS_TOKEN and trigger no workflow.
+on:
+  issue_comment:
+    types: [created, edited, deleted]
+  issues:
+    types: [closed, reopened]
+  pull_request_target:
+    types: [edited, synchronize, closed, reopened, ready_for_review, converted_to_draft]
+  # The backstop for missed or cancelled runs, off the top of the hour, when GitHub delays cron.
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      item:
+        description: Issue or PR number, or "all"
+        required: true
+        type: string
+      dry_run:
+        description: Print every write instead of running it
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  statuses: read
+
+# Latest state wins: a newer event for the same item cancels the run in flight.
+concurrency:
+  group: decision-reconcile-${{ github.event.issue.number || github.event.pull_request.number || inputs.item || 'all' }}
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          lfs: false
+          persist-credentials: false
+
+      # scripts/decision_reconcile.sh owns the run; its trailers and the job summary are the report.
+      - name: Reconcile
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          ITEM: ${{ github.event.issue.number || github.event.pull_request.number || inputs.item || 'all' }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          flag=""
+          [ "$DRY_RUN" != true ] || flag=--dry-run
+          if [ "$ITEM" = all ]; then
+            bash scripts/decision_reconcile.sh --all $flag
+          else
+            bash scripts/decision_reconcile.sh "$ITEM" $flag
+          fi
