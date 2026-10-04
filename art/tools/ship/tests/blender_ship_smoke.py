@@ -158,6 +158,9 @@ assert tool("lock", moved, "--mode", "verify", expect=3)[1]["changed"] == ["Fin"
 reopened = tool("lock", moved, "--mode", "reopen")[1]
 assert reopened["changed"] == ["Fin"] and reopened["invalidated"] == list(contract.INVALIDATED_BY_GEOMETRY)
 tool("lock", moved, "--mode", "verify")
+repainted = ship("repainted_weight", "repainted_weight")
+shutil.copy(lock, repainted.parent / "lock.json")
+assert tool("lock", repainted, "--mode", "verify", expect=3)[1]["changed"] == ["Wing"]
 
 assert contract.sha256_file(source) == source_sha, "a tool changed the fixture source"
 assert not list(out.rglob("*.blend1")), list(out.rglob("*.blend1"))

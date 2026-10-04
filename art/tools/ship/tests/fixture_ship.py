@@ -17,7 +17,7 @@ sys.path.insert(0, str(TOOLS))
 import ship_contract as contract
 
 UV_SCALE = 0.25
-VARIANTS = ("solidify_first", "cube_name", "scaled_uv", "moved_hidden_vertex")
+VARIANTS = ("solidify_first", "cube_name", "scaled_uv", "moved_hidden_vertex", "repainted_weight")
 
 
 def box(low, high, skip=()):
@@ -94,7 +94,9 @@ def build(ship_json, out):
     wing = part("Wing", ([(0.3, -0.2, 0), (1.0, -0.6, 0), (1.0, -0.8, 0), (0.3, -0.7, 0)], [(0, 3, 2, 1)]),
                 wings, ["role.hull", "editing"], (zinc,))
     wing.modifiers.new("Mirror", "MIRROR").mirror_object = origin
-    wing.modifiers.new("Solidify", "SOLIDIFY").thickness = 0.04
+    wing.vertex_groups.new(name="Taper").add(range(4), 1.0, "REPLACE")
+    solidify = wing.modifiers.new("Solidify", "SOLIDIFY")
+    solidify.thickness, solidify.vertex_group = 0.04, "Taper"
 
     fin = part("Fin", box((-0.02, -0.8, 0.15), (0.02, -0.3, 0.5)), body, ["role.hull", "editing"], (amber,))
     fin.hide_viewport = True
@@ -130,6 +132,8 @@ def apply_variant(variant):
             loop_uv.vector *= 0.2
     elif variant == "moved_hidden_vertex":
         objects["Fin"].data.vertices[0].co.z += 0.01
+    elif variant == "repainted_weight":
+        objects["Wing"].vertex_groups["Taper"].add([1], 0.5, "REPLACE")
 
 
 def main():
