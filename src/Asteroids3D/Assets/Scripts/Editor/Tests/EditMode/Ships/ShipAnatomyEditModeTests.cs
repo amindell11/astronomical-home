@@ -143,7 +143,8 @@ namespace Tests.EditMode
             {
                 Assert.That(renderer.enabled && IsActiveInPrefab(renderer.transform), Is.True, renderer.name);
                 Assert.That(renderer.gameObject.layer, Is.EqualTo(LayerIds.Ship), renderer.name);
-                var mesh = renderer is SkinnedMeshRenderer skinned ? skinned.sharedMesh : renderer.GetComponent<MeshFilter>().sharedMesh;
+                var skinned = renderer as SkinnedMeshRenderer;
+                var mesh = skinned ? skinned.sharedMesh : renderer.GetComponent<MeshFilter>().sharedMesh;
                 Assert.That(mesh, Is.Not.Null, renderer.name);
                 Assert.That(AssetDatabase.GetAssetPath(mesh), Is.EqualTo(fbx), $"{renderer.name}: hull meshes come from the ship's own role export.");
                 Assert.That(renderer.sharedMaterials.All(AssetDatabase.Contains), Is.True, renderer.name);
@@ -205,7 +206,8 @@ namespace Tests.EditMode
 
         private static string PathOf(Object instance, Transform root)
         {
-            var transform = instance is Component c ? c.transform : ((GameObject)instance).transform;
+            var component = instance as Component;
+            var transform = component ? component.transform : ((GameObject)instance).transform;
             var names = new List<string>();
             for (var current = transform; current != root; current = current.parent) names.Add(current.name);
             names.Reverse();
@@ -214,11 +216,12 @@ namespace Tests.EditMode
 
         private static bool IsFlameTuning(Object instance, string propertyPath)
         {
-            var transform = instance is Component c ? c.transform : null;
+            var component = instance as Component;
+            var transform = component ? component.transform : null;
             if (!transform || !transform.parent || !Sockets.Contains(PathOf(transform.parent, transform.root))) return false;
-            return instance is ParticleSystemRenderer && propertyPath.StartsWith("m_Materials")
-                || instance is ParticleSystem && propertyPath.StartsWith("InitialModule.startColor")
-                || instance is Transform && propertyPath.StartsWith("m_LocalScale");
+            return instance as ParticleSystemRenderer != null && propertyPath.StartsWith("m_Materials")
+                || instance as ParticleSystem != null && propertyPath.StartsWith("InitialModule.startColor")
+                || instance as Transform != null && propertyPath.StartsWith("m_LocalScale");
         }
 
         private static bool IsActiveInPrefab(Transform transform)
