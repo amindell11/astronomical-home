@@ -525,18 +525,19 @@ runs only the allowed actions below, whatever an item names.
    - write each result with
      `./scripts/drain_pick.sh result <pr>@<sha> <n> passed|failed|not-run "<evidence>"`,
      `<n>` from the item's `ITEM=` line; the verdict is `run-tests`'
-     `STATUS=` line, or `run-script-tests`' exit code.
-5. A failed item gets one *main arm*: the same run on that slot at
-   `origin/main`. When it fails the same way there, search open issues for the
-   failing test's name and cite a match, else `gh issue create` with
-   `needs-triage` and `bug`, naming the test, its failure message, the main
-   commit and the PR that surfaced it. The item still records `failed`, its
-   evidence naming the arm and the issue (``fails the same way on main (main
-   arm at `<main7>`); #N``), and the user rules on it. A failure whose main arm
-   passes is recorded once, never re-run. Failures and `not run` results also
-   get one PR comment per PR per pass: each item, its failing tests and their
-   first error lines, and the runner's verdict (`STATUS=`, or a script item's
-   failing `SCRIPT_TEST_FILE=` lines).
+     `STATUS=` line, or `run-script-tests`' exit code. A failed item's result
+     waits for step 5.
+5. A failed item gets one *main arm* before its result is written: the same
+   run on that slot at `origin/main`. When it fails the same way there, search
+   open issues for the failing test's name and cite a match, else
+   `gh issue create` with `needs-triage` and `bug`, naming the test, its
+   failure message, the main commit and the PR that surfaced it. The item then
+   records `failed`, its evidence naming the arm and the issue (``fails the
+   same way on main (main arm at `<main7>`); #N``), and the user rules on it.
+   A failure whose main arm passes is recorded once, never re-run. Failures
+   and `not run` results also get one PR comment per PR per pass: each item,
+   its failing tests and their first error lines, and the runner's verdict
+   (`STATUS=`, or a script item's failing `SCRIPT_TEST_FILE=` lines).
 6. `./scripts/agent_worktree_pool.sh return <slot> verify`.
 7. End on `./scripts/drain_pick.sh digest`, relayed as printed, then one line
    per PR: items passed, failed and not run, and issues filed or cited.
