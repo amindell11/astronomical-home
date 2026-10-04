@@ -37,9 +37,9 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var shipPrefab = TestAssets.LoadShip2Prefab();
+            var shipPrefab = TestAssets.LoadCrimsonPrefab();
 
-            Assert.IsNotNull(shipPrefab, "Ship_2 prefab failed to load");
+            Assert.IsNotNull(shipPrefab, "Crimson prefab failed to load");
 
             commanderPrefab = new GameObject("ContinuousFireCommanderPrefab").AddComponent<ContinuousFireCommander>();
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, projectiles: Projectiles,

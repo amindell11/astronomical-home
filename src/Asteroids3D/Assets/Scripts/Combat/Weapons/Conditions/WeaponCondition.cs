@@ -7,6 +7,9 @@ namespace Combat.Weapons.Conditions
     {
         protected WeaponComponent weapon;
 
+        // Float clocks land just short of step-multiple thresholds; half a step short counts as reached.
+        protected static float HalfStep => Time.fixedDeltaTime * 0.5f;
+
         public void Initialize(WeaponComponent weapon)
         {
             this.weapon = weapon;

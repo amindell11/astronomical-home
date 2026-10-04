@@ -17,7 +17,7 @@ namespace Tests.EditMode
     [Category("AI")]
     public class AICommanderFireLaneEditModeTests
     {
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         private sealed class StubPilot : IPilot
         {

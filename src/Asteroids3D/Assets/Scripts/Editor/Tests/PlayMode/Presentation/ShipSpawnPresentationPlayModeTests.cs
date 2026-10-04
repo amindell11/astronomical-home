@@ -26,7 +26,7 @@ namespace Tests.PlayMode
     [Category("Presentation")]
     public class ShipSpawnPresentationPlayModeTests : PlayModeWorldFixture
     {
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string RailgunPath = "Assets/Prefabs/Weapons/Railgun.prefab";
         private const string MissilesPath = "Assets/Prefabs/Weapons/Missiles.prefab";
 
@@ -54,7 +54,7 @@ namespace Tests.PlayMode
             yield return null;
 
             var rig = ship.GetComponentInChildren<ShipVisualRig>(true);
-            Assert.IsNotNull(rig, "test premise: Ship_1 embeds a visual rig");
+            Assert.IsNotNull(rig, "test premise: Vanguard embeds a visual rig");
             Assert.IsFalse(rig.gameObject.activeInHierarchy, "the rig subtree stays deactivated");
 
             foreach (var renderer in ship.GetComponentsInChildren<Renderer>(true))
@@ -106,7 +106,7 @@ namespace Tests.PlayMode
             yield return null;
 
             var damageAudio = ship.GetComponentInChildren<ShipDamageAudio>(true);
-            Assert.IsNotNull(damageAudio, "test premise: Ship_1 embeds damage audio");
+            Assert.IsNotNull(damageAudio, "test premise: Vanguard embeds damage audio");
             // The checkout may lack the authored clip; one second outlives the pool's clip.length release.
             const int sampleRate = 44100;
             syntheticDeathClip = AudioClip.Create("SyntheticDeath", sampleRate, 1, sampleRate, false);
@@ -144,8 +144,8 @@ namespace Tests.PlayMode
             units = servicesHost.AddComponent<UnitService>();
             ShipServices.Compose(units, servicesHost.transform, presentationEnabled);
 
-            var prefab = AssetDatabase.LoadAssetAtPath<Ship>(Ship1Path);
-            Assert.IsNotNull(prefab, $"Ship_1 prefab loads from {Ship1Path}");
+            var prefab = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
+            Assert.IsNotNull(prefab, $"Vanguard prefab loads from {VanguardPath}");
             var ship = units.SpawnShip(prefab, null, team: 0, Vector3.zero, Quaternion.identity, Field);
             Assert.IsNotNull(ship, "the unit service spawned the ship");
             return ship;

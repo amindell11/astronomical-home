@@ -19,7 +19,7 @@ command -v "$PY" >/dev/null 2>&1 || fail "no python on PATH"
 
 # Three runs. The first two share a stat fingerprint; the second spawns the Lasers loadout
 # under a second loadout stat hash (3333…), which makes it mixed.
-PLAYER='{"chassis":"Ship_1","engine":"Default_Engine","shield":"Default_Shield","primary":"Lasers","secondary":"","statHash":"a1b2c3d4e5f60718"}'
+PLAYER='{"chassis":"Vanguard","engine":"Default_Engine","shield":"Default_Shield","primary":"Lasers","secondary":"","statHash":"a1b2c3d4e5f60718"}'
 lasers() { echo '{"chassis":"Ship_2","engine":"Racer_Engine","shield":"Light_Shield","primary":"Lasers","secondary":"","statHash":"'"$1"'"}'; }
 RIPPERS='{"chassis":"Ship_2","engine":"Racer_Engine","shield":"Light_Shield","primary":"Rippers","secondary":"Missiles","statHash":"2222222222222222"}'
 cat > "$TMP/run-records.jsonl" <<EOF
@@ -35,7 +35,7 @@ out="$("$PY" "$SUMMARY" "$TMP/run-records.jsonl" 2>"$TMP/stderr" | tr -s ' ')" |
 
 has() { [[ "$out" == *"$1"* ]] || fail "$2 — missing: $1"$'\n'"$out"; }
 
-PLAYER_CELL="Ship_1 / Default_Engine / Default_Shield / Lasers / - [a1b2c3d4e5f60718]"
+PLAYER_CELL="Vanguard / Default_Engine / Default_Shield / Lasers / - [a1b2c3d4e5f60718]"
 LASERS_CELL="Ship_2 / Racer_Engine / Light_Shield / Lasers / -"
 RIPPERS_CELL="Ship_2 / Racer_Engine / Light_Shield / Rippers / Missiles"
 

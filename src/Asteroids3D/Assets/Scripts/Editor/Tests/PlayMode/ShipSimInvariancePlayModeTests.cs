@@ -8,11 +8,11 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Pins the ship sim contract (movement/kinematics) so refactors are provably behavior-preserving. Commander-less ships: PilotCommand goes straight into MovementController.Drive each physics step, so input is fully deterministic; Ship_1 carries the full presentation footprint.</summary>
+    /// <summary>Pins the ship sim contract (movement/kinematics) so refactors are provably behavior-preserving. Commander-less ships: PilotCommand goes straight into MovementController.Drive each physics step, so input is fully deterministic; Vanguard carries the full presentation footprint.</summary>
     [Category("Movement")]
     public class ShipSimInvariancePlayModeTests : PlayModeWorldFixture
     {
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         // Settle margin before recording a start state: KinematicsPoller (order -100) fills the snapshot and MovementController (order 50) snaps the orientation onto the game plane.
         private const int SettleSteps = 3;
@@ -28,7 +28,7 @@ namespace Tests.PlayMode
 
 #if UNITY_EDITOR
             ship = CreateUnpilotedShip(Vector3.zero, Quaternion.identity);
-            Assert.IsNotNull(ship, "Ship_1 test ship failed to instantiate");
+            Assert.IsNotNull(ship, "Vanguard test ship failed to instantiate");
 #else
             Assert.Ignore("ShipSimInvariancePlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -189,7 +189,7 @@ namespace Tests.PlayMode
         private static Ship CreateUnpilotedShip(Vector3 position, Quaternion rotation)
         {
 #if UNITY_EDITOR
-            var prefab = TestAssets.Load<Ship>(Ship1Path);
+            var prefab = TestAssets.Load<Ship>(VanguardPath);
             if (prefab == null) return null;
 
             // Null commander → deterministic manual piloting via MovementController.Drive; never arms, so no registry.

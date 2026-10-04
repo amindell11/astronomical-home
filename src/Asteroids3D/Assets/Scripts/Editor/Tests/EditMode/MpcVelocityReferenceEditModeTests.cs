@@ -42,7 +42,7 @@ namespace Tests.EditMode
         }
 
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset";
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         private MpcSettings settings;
         private Dynamics dynamics;
