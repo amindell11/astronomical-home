@@ -128,6 +128,13 @@ namespace Game.Player
             return entries;
         }
 
+        /// <summary>The index in <paramref name="entries"/> of the life <paramref name="id"/> was living at game time <paramref name="time"/>; -1 when never logged.</summary>
+        public int LifeAt(List<Entry> entries, ShipId id, float time)
+        {
+            var runSeconds = Mathf.Max(time - startTime, 0f);
+            return entries.FindLastIndex(entry => entry.Id == id && entry.SpawnSeconds <= runSeconds);
+        }
+
         // The id rides beside the ship because an EditMode instance never ran Awake and has none.
         internal void Log(ShipId id, Ship ship, float now)
         {
