@@ -6,7 +6,7 @@ namespace Ships
     /// </summary>
     public static class ShipLegacyList
     {
-        public static readonly string[] Chassis = { "Ship_1", "Ship_1_Vanguard", "Ship_3", "Valis", "Junker_1" };
+        public static readonly string[] Chassis = { "Ship_1", "Ship_1_Vanguard", "Nightshade", "Valis", "Junker_1" };
 
         public static readonly string[] HullModels = { "Vanguard" };
 

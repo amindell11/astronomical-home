@@ -29,6 +29,9 @@ namespace Tests.PlayMode.Presentation
         [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 0)]
         [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 90)]
         [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 135)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 0)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 90)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 135)]
         public void Chassis_RendersPixelIdenticalToBaseline(string chassisPath, int yaw)
         {
             var stem = $"{Path.GetFileNameWithoutExtension(chassisPath)}-{yaw}";
