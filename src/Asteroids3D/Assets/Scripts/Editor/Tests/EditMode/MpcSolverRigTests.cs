@@ -12,12 +12,12 @@ using RL.SolverRig;
 
 namespace Tests.EditMode
 {
-    /// <summary>Runs the production MpcSettings asset and Ship_1 dynamics so churn pins characterize the shipped controller.</summary>
+    /// <summary>Runs the production MpcSettings asset and Vanguard dynamics so churn pins characterize the shipped controller.</summary>
     [Category("MPC")]
     public class MpcSolverRigTests
     {
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset";
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
 
         private MpcSettings settings;
         private Dynamics dynamics;

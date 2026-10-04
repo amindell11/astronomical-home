@@ -141,7 +141,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Adopt_AllShipEntries_RegisteredAtPoses()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -166,7 +166,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Adopt_AppliesTeamAnnotation()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -185,7 +185,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Adopt_StartActiveFalse_StaysInactive()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -202,7 +202,7 @@ namespace Tests.PlayMode
         [Test]
         public void Adopt_AuthoredInactiveShip_ThrowsNamingStartActive()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) Assert.Ignore("Required test assets not found.");
 
@@ -218,7 +218,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Adopt_NestedPilotOverride_Survives()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -241,7 +241,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Spawn_RingSpawner_PopulatesSpawned()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -287,7 +287,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Teardown_DespawnsSpawnerProducts_WithoutForceClear()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -311,7 +311,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Teardown_DespawnsAdoptedShips_WithoutForceClear()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -374,7 +374,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Respawn_FixedPoint_RevivesAtPointAfterDeath()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
@@ -400,7 +400,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Respawn_OriginNone_DoesNotRevive()
         {
-            var ship = TestAssets.LoadShip2Prefab();
+            var ship = TestAssets.LoadCrimsonPrefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
             if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 

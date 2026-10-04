@@ -56,5 +56,5 @@ Keep custom studies in duplicates so a rebuild does not overwrite their edits.
 The recipe is `Visuals.Studies.ArtPreviewAuthoring`; the batch entry point
 `Visuals.Studies.ArtPreviewCapture.BuildAndCapture` builds, reopens, validates and renders the scenes,
 then exits Unity. Run batch authoring through the repository's Unity access coordinator.
-The source ship and background inputs remain in `Assets/Visuals/Ships/Vanguard/DrawnStudy/`;
+The source ship inputs and the ship materials the game shares live in `Assets/Visuals/Ships/Vanguard/`, the background inputs in `Assets/Visuals/Ships/Vanguard/DrawnStudy/`;
 asteroid inputs remain in `Assets/Visuals/Environment/Asteroids/DrawnField/`.

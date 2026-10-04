@@ -17,7 +17,7 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// The probe fires real weapons: made-up weapons check what it reports, and every shipped
-    /// weapon prefab must yield modes. Timings allow one fixed step per timed event until #803.
+    /// weapon prefab must yield modes.
     /// </summary>
     [Category("Weapons")]
     public class WeaponCycleProbePlayModeTests : PlayModeWorldFixture
@@ -35,7 +35,8 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        private static float Steps(int count) => count * Time.fixedDeltaTime + 0.001f;
+        // Tighter than one step, so a timed event landing a step off fails.
+        private static float HalfStep => Time.fixedDeltaTime * 0.5f;
 
         private static void SetFloat(Object target, string field, float value)
         {
@@ -92,8 +93,8 @@ namespace Tests.PlayMode
             Assert.AreEqual("hold", hold.Label);
             Assert.AreEqual(16f, hold.OpeningDamage, 0.001f);
             Assert.AreEqual(16f, hold.MagazineDamage, 0.001f);
-            Assert.AreEqual(0.6f, hold.DumpSeconds, Steps(3));
-            Assert.AreEqual(1f, hold.RecoverySeconds, Steps(2));
+            Assert.AreEqual(0.6f, hold.DumpSeconds, HalfStep);
+            Assert.AreEqual(1f, hold.RecoverySeconds, HalfStep);
         }
 
         [UnityTest]
@@ -111,6 +112,8 @@ namespace Tests.PlayMode
             CollectionAssert.AreEqual(new[] { "hold", "AI" }, modes.Select(m => m.Label).ToArray());
             Assert.AreEqual(20f, modes[0].OpeningDamage, 0.001f, "held: 30, 60, 90, then the overheating fourth shot");
             Assert.AreEqual(20f, modes[0].MagazineDamage, 0.001f);
+            Assert.AreEqual(0.3f, modes[0].DumpSeconds, HalfStep);
+            Assert.AreEqual(1.5f, modes[0].RecoverySeconds, HalfStep, "0.5 s overheat penalty, then 100 heat at 100/s");
             Assert.AreEqual(15f, modes[1].OpeningDamage, 0.001f, "the AI stops at 90 heat, short of overheating");
             Assert.AreEqual(5f, modes[1].MagazineDamage, 0.001f, "then fires one shot each time heat drops under 70");
         }
@@ -130,9 +133,10 @@ namespace Tests.PlayMode
 
             CollectionAssert.AreEqual(new[] { "hold", "tap" }, modes.Select(m => m.Label).ToArray());
             Assert.AreEqual(20f, modes[0].MagazineDamage, 0.001f, "held to full charge");
-            Assert.AreEqual(1f, modes[0].CycleSeconds, Steps(2));
+            Assert.AreEqual(1f, modes[0].CycleSeconds, HalfStep);
             Assert.AreEqual(15f, modes[1].MagazineDamage, 0.5f, "released at half charge: halfway from 0.5 to 1 of 20");
-            Assert.AreEqual(0.5f, modes[1].CycleSeconds, Steps(2));
+            Assert.AreEqual(0.5f + Time.fixedDeltaTime, modes[1].CycleSeconds, HalfStep,
+                "half charge, then the release step");
         }
 
         // Semi-auto, always ready, launches nothing: records each AI-pattern step's press.
