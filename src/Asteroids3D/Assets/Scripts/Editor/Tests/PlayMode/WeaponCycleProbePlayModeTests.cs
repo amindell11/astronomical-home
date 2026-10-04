@@ -5,6 +5,7 @@ using System.Linq;
 using Balance;
 using Combat.Projectiles;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Tests.PlayMode.Common;

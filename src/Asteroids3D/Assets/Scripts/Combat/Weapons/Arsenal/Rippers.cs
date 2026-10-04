@@ -3,33 +3,32 @@ using Combat.Projectiles;
 using UnityEngine;
 using Combat.Weapons.Conditions;
 
-namespace Combat.Weapons
+namespace Combat.Weapons.Arsenal
 {
-    public class Lasers : WeaponBase<Laser>
+    /// <summary>Ballistic autocannon: magazine-fed (<see cref="Rounds"/>), no heat, laser-class straight-line slugs.</summary>
+    public class Rippers : WeaponBase<Laser>
     {
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner will open fire.")]
-        [Stat, SerializeField, Min(0f)] private float fireDistance = 20f;
+        [Stat, SerializeField, Min(0f)] private float fireDistance = 18f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will open fire.")]
-        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 6f;
 
         [Header("Conditions")]
-        [Stat, SerializeField] private Heat heat;
+        [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
-        public Heat Heat => heat;
+        public Rounds Rounds => rounds;
         public float Damage => projectilePrefab.Damage;
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
-        public int? ShotsToOverheat =>
-            heat && heat.HeatPerShot > 0f ? Mathf.FloorToInt(heat.MaxHeat / heat.HeatPerShot) : (int?)null;
 
         protected override void Awake()
         {
             base.Awake();
-            if (!heat) heat = GetComponent<Heat>();
+            if (!rounds) rounds = GetComponent<Rounds>();
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
@@ -39,6 +38,6 @@ namespace Combat.Weapons
             && context.angleToTarget <= fireAngleTolerance;
 
         public override bool ShouldFire(TargetingContext context) =>
-            Heat && !Heat.WouldOverheatOnNextShot() && InEnvelope(in context);
+            Rounds && Rounds.CanFire() && InEnvelope(in context);
     }
 }

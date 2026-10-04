@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AI;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Movement;
 using NUnit.Framework;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Combat.Projectiles;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Ships.Loadout;
 using UnityEditor;

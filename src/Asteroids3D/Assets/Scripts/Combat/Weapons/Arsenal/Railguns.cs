@@ -7,7 +7,7 @@ using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 using Substrate;
 
-namespace Combat.Weapons
+namespace Combat.Weapons.Arsenal
 {
     /// <summary>Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).</summary>
     public class Railguns : WeaponComponent
