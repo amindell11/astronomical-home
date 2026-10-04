@@ -333,14 +333,14 @@ Commands:
       main without force.
       Stdout trailer: LAND_DOCS=landed <sha>, or LAND_DOCS=refused:<reason>,
       the reason one of
+        fetch      the fetch from origin failed
         rebase     HEAD did not rebase onto origin/main: a conflict (the
                    rebase is aborted) or a dirty tree
         empty      HEAD changes nothing on origin/main
         paths      a changed path is outside doc/ and *.md (stderr lists them)
         push       the push failed, e.g. main moved from another clone
         turn-held  the merge turn was still held after the wait
-      A failed fetch prints no trailer. Exit: 0 landed; 75 turn-held;
-      1 any other refusal, or a usage error.
+      Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -2819,7 +2819,10 @@ cmd_land_docs() {
 land_docs_push() {
   local path="$1" head non_docs
   # Git writes progress and conflict reports to stdout; stdout carries only the trailer.
-  git -C "$path" fetch -q origin main >&2
+  if ! git -C "$path" fetch -q origin main >&2; then
+    echo "LAND_DOCS=refused:fetch"
+    return 1
+  fi
   if ! git -C "$path" rebase -q origin/main >&2; then
     if git -C "$path" rev-parse -q --verify REBASE_HEAD >/dev/null; then git -C "$path" rebase --abort >&2; fi
     echo "LAND_DOCS=refused:rebase"
