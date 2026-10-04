@@ -38,6 +38,10 @@ UV_PARAMETERS = {
     "BEVEL": ("mark_seam",),
     "SUBSURF": ("uv_smooth",),
 }
+WEIGHTED_GROUPS = {
+    "BEVEL": ("vertex_group",),
+    "SOLIDIFY": ("vertex_group", "shell_vertex_group", "rim_vertex_group"),
+}
 
 
 def blender_version():
@@ -86,6 +90,8 @@ class Roles:
                 self.reserved.append(collection.name)
             key = kind if ident is None else f"{kind}.{ident}"
             self.members.setdefault(key, set()).update(o.name for o in collection.all_objects)
+        for names in self.members.values():
+            names -= self.ignored
 
     def of(self, name):
         return {key for key, names in self.members.items() if name in names}
@@ -148,6 +154,16 @@ def part_fingerprint(obj):
                                             block.slider_min, block.slider_max, block.interpolation,
                                             block.vertex_group]).encode())
                 geometry.update(read_array(block.data, "co", np.float32, 3).tobytes())
+        named = {getattr(m, attribute) for m in obj.modifiers for attribute in WEIGHTED_GROUPS.get(m.type, ())}
+        for group in sorted(named & set(obj.vertex_groups.keys())):
+            index = obj.vertex_groups[group].index
+            weights = np.zeros(len(mesh.vertices), np.float32)
+            for vertex in mesh.vertices:
+                for element in vertex.groups:
+                    if element.group == index:
+                        weights[vertex.index] = element.weight
+            geometry.update(group.encode())
+            geometry.update(weights.tobytes())
         for layer in mesh.uv_layers:
             uv.update(layer.name.encode())
             uv.update(read_array(layer.uv, "vector", np.float32, 2).tobytes())
