@@ -46,13 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activationToken: 
   roster:
-  - template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+  - template: {fileID: 1627378045775059580, guid: c3c15225cb3a8fd42a87c756c1d2d884,
       type: 3}
     pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
   - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
       type: 3}
     pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  - template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+  - template: {fileID: 1627378045775059580, guid: c3c15225cb3a8fd42a87c756c1d2d884,
       type: 3}
     pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
   loadouts: {fileID: 11400000, guid: c967b2c2f24e4ab280ca200ca84ba69a, type: 2}

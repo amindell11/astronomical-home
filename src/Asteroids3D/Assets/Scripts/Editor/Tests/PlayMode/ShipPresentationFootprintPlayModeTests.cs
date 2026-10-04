@@ -11,9 +11,9 @@ using UnityEditor;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Verifies ship visuals live on the ship prefab (prefab-centric model): the <c>Ship_1</c> prefab
+    /// Verifies ship visuals live on the ship prefab (prefab-centric model): the <c>Vanguard</c> prefab
     /// embeds its visual rig — particles, audio, canvases, renderers — as a child, alongside its
-    /// collider and logic. The rig also still exists as a reusable <c>Ship_1_VisualRig</c> prefab asset.
+    /// collider and logic. The rig also still exists as a reusable <c>ShipBaseRig</c> prefab asset.
     /// Successor to the decoupling-era footprint test that asserted the sim prefab was presentation-free.
     ///
     /// Asserted against the prefab asset, not a spawned instance: a live ship also carries runtime-spawned
@@ -22,8 +22,8 @@ namespace Tests.PlayMode
     [Category("Ships")]
     public class ShipPresentationFootprintPlayModeTests : PlayModeWorldFixture
     {
-        private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
-        private const string Ship1RigPath = "Assets/Prefabs/Ships/Ship_1_VisualRig.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
+        private const string BaseRigPath = "Assets/Visuals/Ships/_Shared/ShipBaseRig.prefab";
 
         /// <summary>The ship prefab embeds its visual rig (presentation) as a child, keeping its collider.</summary>
         [UnityTest]
@@ -31,8 +31,8 @@ namespace Tests.PlayMode
         {
             yield return null;
 #if UNITY_EDITOR
-            var sim = AssetDatabase.LoadAssetAtPath<GameObject>(Ship1Path);
-            Assert.IsNotNull(sim, "Ship_1 prefab failed to load");
+            var sim = AssetDatabase.LoadAssetAtPath<GameObject>(VanguardPath);
+            Assert.IsNotNull(sim, "Vanguard prefab failed to load");
 
             Assert.IsNotNull(sim.GetComponentInChildren<ShipVisualRig>(true),
                 "Ship prefab should embed a ShipVisualRig child");
@@ -56,8 +56,8 @@ namespace Tests.PlayMode
         {
             yield return null;
 #if UNITY_EDITOR
-            var rig = AssetDatabase.LoadAssetAtPath<GameObject>(Ship1RigPath);
-            Assert.IsNotNull(rig, "Ship_1_VisualRig prefab failed to load");
+            var rig = AssetDatabase.LoadAssetAtPath<GameObject>(BaseRigPath);
+            Assert.IsNotNull(rig, "ShipBaseRig prefab failed to load");
 
             Assert.Greater(rig.GetComponentsInChildren<ParticleSystem>(true).Length, 0,
                 "Rig should carry the thruster/reactor particles");

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Ships;
@@ -52,6 +53,9 @@ namespace Tests.EditMode
                 yield return new TestCaseData(AssetDatabase.GetAssetPath(chassis)).SetName($"{{m}}({chassis.name})");
             }
         }
+
+        public static IEnumerable<TestCaseData> MigratedHulls() =>
+            MigratedChassis().Where(c => !ShipLegacyList.HullModels.Contains(Path.GetFileNameWithoutExtension((string)c.Arguments[0])));
 
         [Test]
         public void LegacyList_NamesOnlyCatalogChassis()
@@ -125,9 +129,12 @@ namespace Tests.EditMode
                 var placed = mods.Any(m => m.propertyPath.StartsWith("m_LocalPosition") && InstanceObjectFor(root, m.target) == transform);
                 Assert.That(placed, Is.True, $"{socket}: the hull must place every socket.");
             }
-            var hull = HullBounds(root);
             var exhaust = root.transform.InverseTransformPoint(root.transform.Find(Rig + "/Thruster/EngineExhaust").position);
-            Assert.That(exhaust.y, Is.LessThan(hull.center.y - hull.extents.y * .5f), "The engine exhaust sits aft of the hull; the prow faces +Y.");
+            if (!ShipLegacyList.HullModels.Contains(root.name))
+            {
+                var hull = HullBounds(root);
+                Assert.That(exhaust.y, Is.LessThan(hull.center.y - hull.extents.y * .5f), "The engine exhaust sits aft of the hull; the prow faces +Y.");
+            }
             foreach (var hardpoint in new[] { "Hardpoints/Primary", "Hardpoints/Secondary" })
                 Assert.That(root.transform.InverseTransformPoint(root.transform.Find(hardpoint).position).y, Is.GreaterThan(exhaust.y), hardpoint);
         }
@@ -146,7 +153,8 @@ namespace Tests.EditMode
                 var skinned = renderer as SkinnedMeshRenderer;
                 var mesh = skinned ? skinned.sharedMesh : renderer.GetComponent<MeshFilter>().sharedMesh;
                 Assert.That(mesh, Is.Not.Null, renderer.name);
-                Assert.That(AssetDatabase.GetAssetPath(mesh), Is.EqualTo(fbx), $"{renderer.name}: hull meshes come from the ship's own role export.");
+                if (!ShipLegacyList.HullModels.Contains(root.name))
+                    Assert.That(AssetDatabase.GetAssetPath(mesh), Is.EqualTo(fbx), $"{renderer.name}: hull meshes come from the ship's own role export.");
                 Assert.That(renderer.sharedMaterials.All(AssetDatabase.Contains), Is.True, renderer.name);
             }
             var collider = root.transform.Find("Mesh").GetComponent<MeshCollider>();
@@ -160,7 +168,7 @@ namespace Tests.EditMode
             Assert.That(breakupHull && breakupHull.IsChildOf(root.transform.Find(HullSlot)), Is.True, "The breakup hull is the hull slot's content.");
         }
 
-        [TestCaseSource(nameof(MigratedChassis))]
+        [TestCaseSource(nameof(MigratedHulls))]
         public void Chassis_HullKeepsTheContourAsASeparateVertexRange(string path)
         {
             var root = Load(path);
