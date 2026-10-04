@@ -37,11 +37,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void RightMouse_HoldsHeading()
+        public void LeftShift_HoldsHeading()
         {
             Assert.IsTrue(reader.WantsToRotate, "ship faces the cursor by default");
 
-            Press(mouse.rightButton);
+            Press(keyboard.leftShiftKey);
 
             Assert.IsFalse(reader.WantsToRotate);
         }
@@ -65,7 +65,7 @@ namespace Tests.EditMode
         {
             reader.Disable();
             Press(mouse.leftButton);
-            Press(keyboard.fKey);
+            Press(mouse.rightButton);
             reader.Enable();
             InputSystem.Update();
 
