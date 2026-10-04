@@ -20,7 +20,7 @@ namespace Combat.Weapons
 
     public abstract class WeaponComponent : MonoBehaviour
     {
-        [SerializeField] public Transform firePoint;
+        public Transform firePoint;
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;
