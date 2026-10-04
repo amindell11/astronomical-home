@@ -1,0 +1,284 @@
+{
+ "ParticlePack": {
+  "files": 397,
+  "kept": [
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/DebrisParticle.mat",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Embers.mat",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Explosion.mat",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/ExplosionDistortion.mat",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/SmokeDark.mat",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Debris.png",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Explosion.tif",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ExplosionEmission.tif",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Ramp03.png",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SmokePuff01.tif",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ramp01.png",
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/shockwave.tif"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/DebrisParticle.mat": [
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Embers.mat": [
+    "Assets/Prefabs/Particles/Embers (1).prefab",
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab",
+    "Assets/Prefabs/Particles/SmallExplosion.prefab",
+    "Assets/Prefabs/Particles/SparksVFX.prefab",
+    "Assets/Visuals/Vfx/LayeredExplosion/Prefabs/LayeredAsteroidExplosion.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Explosion.mat": [
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab",
+    "Assets/Prefabs/Particles/SmallExplosion.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/ExplosionDistortion.mat": [
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab",
+    "Assets/Prefabs/Particles/SmallExplosion.prefab",
+    "Assets/Visuals/Vfx/LayeredExplosion/Prefabs/LayeredAsteroidExplosion.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/SmokeDark.mat": [
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab",
+    "Assets/Prefabs/Particles/SmallExplosion.prefab",
+    "Assets/Prefabs/Particles/SmokeTrail.prefab",
+    "Assets/Prefabs/Ships/Valis.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab": [
+    "Assets/Prefabs/Particles/ExplosionVFX.prefab"
+   ],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Debris.png": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Explosion.tif": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ExplosionEmission.tif": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Ramp03.png": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SmokePuff01.tif": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ramp01.png": [],
+   "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/shockwave.tif": []
+  }
+ },
+ "HD_Asteroids": {
+  "files": 82,
+  "kept": [
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkA.mat",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkB.mat",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/LightA.mat",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid1.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid10.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid2.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid3.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid4.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid5.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid6.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid7.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid8.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid9.fbx",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_AO.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Albedo.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_MetallicSmoothness.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Normal.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AO.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AlbedoTransparency.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_MetallicSmoothness.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_Normal.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_AO.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Albedo.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Emission.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Normal.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_AlbedoTransparency.png",
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_Normal.png"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkA.mat": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkB.mat": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/LightA.mat": [
+    "Assets/Prefabs/Asteroid/Asteroid3D.prefab"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid1.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid10.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid2.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid3.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid4.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid5.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid6.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid7.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid8.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid9.fbx": [
+    "Assets/Settings/Asteroids/SpawnSettings.asset"
+   ],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_AO.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Albedo.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_MetallicSmoothness.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Normal.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AO.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AlbedoTransparency.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_MetallicSmoothness.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_Normal.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_AO.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Albedo.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Emission.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Normal.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_AlbedoTransparency.png": [],
+   "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_Normal.png": []
+  }
+ },
+ "Station_Hug": {
+  "files": 10,
+  "kept": [
+   "Assets/Visuals/Environment/Station_Hug/Textures/ao.png",
+   "Assets/Visuals/Environment/Station_Hug/Textures/color.png",
+   "Assets/Visuals/Environment/Station_Hug/Textures/emission.png",
+   "Assets/Visuals/Environment/Station_Hug/Textures/metallicRoughnessChannelsG.png",
+   "Assets/Visuals/Environment/Station_Hug/Textures/normal.png",
+   "Assets/Visuals/Environment/Station_Hug/p162Spaceship004.obj",
+   "Assets/Visuals/Environment/Station_Hug/test.mat"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/Environment/Station_Hug/Textures/ao.png": [],
+   "Assets/Visuals/Environment/Station_Hug/Textures/color.png": [],
+   "Assets/Visuals/Environment/Station_Hug/Textures/emission.png": [],
+   "Assets/Visuals/Environment/Station_Hug/Textures/metallicRoughnessChannelsG.png": [],
+   "Assets/Visuals/Environment/Station_Hug/Textures/normal.png": [],
+   "Assets/Visuals/Environment/Station_Hug/p162Spaceship004.obj": [
+    "Assets/Prefabs/Objectives/Station Extraction Zone.prefab",
+    "Assets/Prefabs/Structures/Station.prefab",
+    "Assets/Scenes/EditScene.unity"
+   ],
+   "Assets/Visuals/Environment/Station_Hug/test.mat": [
+    "Assets/Prefabs/Objectives/Station Extraction Zone.prefab",
+    "Assets/Prefabs/Structures/Station.prefab"
+   ]
+  }
+ },
+ "Station_Fork": {
+  "files": 14,
+  "kept": [
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/Station1.mat",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/p_79_spaceStation_sf.fbx",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_AO.jpg",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_albedo.jpg",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_emissive.jpg",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_metallic.jpg",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_normal.png",
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_roughness.jpg"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/Station1.mat": [
+    "Assets/Prefabs/Structures/Station 3.prefab"
+   ],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/p_79_spaceStation_sf.fbx": [
+    "Assets/Prefabs/Structures/Station 3.prefab"
+   ],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_AO.jpg": [],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_albedo.jpg": [],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_emissive.jpg": [],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_metallic.jpg": [],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_normal.png": [],
+   "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_roughness.jpg": []
+  }
+ },
+ "Radio": {
+  "files": 12,
+  "kept": [
+   "Assets/Visuals/Environment/Radio/Materials/RL_station_mat_N1.mat",
+   "Assets/Visuals/Environment/Radio/Meshes/obst_RL_station_L2_low_01.fbx",
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_AmbientOcclusion.png",
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Emission.png",
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_MetallicSmoothness.png",
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Normal.png"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/Environment/Radio/Materials/RL_station_mat_N1.mat": [
+    "Assets/Prefabs/Objectives/Key Radio.prefab",
+    "Assets/Prefabs/Structures/Radio.prefab"
+   ],
+   "Assets/Visuals/Environment/Radio/Meshes/obst_RL_station_L2_low_01.fbx": [
+    "Assets/Prefabs/Objectives/Key Radio.prefab",
+    "Assets/Prefabs/Structures/Radio.prefab"
+   ],
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_AmbientOcclusion.png": [],
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Emission.png": [],
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_MetallicSmoothness.png": [],
+   "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Normal.png": []
+  }
+ },
+ "Junk_Ships": {
+  "files": 8,
+  "kept": [
+   "Assets/Visuals/Environment/Junk_Ships/source/JunkYard2_SetTwo.fbx",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Junkyard.mat",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Base_Color.jpg",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Emissive.jpg",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Metallic.jpg",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Mixed_AO.jpg",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Normal_DirectX.jpg",
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Roughness.jpg"
+  ],
+  "kept_referrers": {
+   "Assets/Visuals/Environment/Junk_Ships/source/JunkYard2_SetTwo.fbx": [
+    "Assets/Prefabs/Ships/Cargo Ships/Junker_1.prefab",
+    "Assets/Prefabs/Ships/Cargo Ships/Junker_2.prefab",
+    "Assets/Prefabs/Ships/Cargo Ships/Wreck_1.prefab",
+    "Assets/Scenes/EditScene.unity"
+   ],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Junkyard.mat": [
+    "Assets/Prefabs/Ships/Cargo Ships/Junker_1.prefab",
+    "Assets/Prefabs/Ships/Cargo Ships/Junker_2.prefab",
+    "Assets/Scenes/EditScene.unity"
+   ],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Base_Color.jpg": [],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Emissive.jpg": [],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Metallic.jpg": [],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Mixed_AO.jpg": [],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Normal_DirectX.jpg": [],
+   "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Roughness.jpg": []
+  }
+ },
+ "Platform": {
+  "files": 7,
+  "kept": [],
+  "kept_referrers": {}
+ },
+ "Station_Wheel": {
+  "files": 22,
+  "kept": [],
+  "kept_referrers": {}
+ },
+ "Station_Spindle": {
+  "files": 7,
+  "kept": [],
+  "kept_referrers": {}
+ },
+ "Station_Dildo": {
+  "files": 9,
+  "kept": [],
+  "kept_referrers": {}
+ },
+ "_EditScene_pack_refs": [
+  "Assets/Visuals/Environment/Junk_Ships/source/JunkYard2_SetTwo.fbx",
+  "Assets/Visuals/Environment/Junk_Ships/textures/Junkyard.mat",
+  "Assets/Visuals/Environment/Station_Dildo/source/p_154_CylinderAnimation_003.fbx",
+  "Assets/Visuals/Environment/Station_Hug/p162Spaceship004.obj",
+  "Assets/Visuals/Environment/Station_Spindle/source/p_887_spaceStation.fbx",
+  "Assets/Visuals/Environment/Station_Spindle/textures/Station Material.mat",
+  "Assets/Visuals/Environment/Station_Wheel/source/p_96_spacestation_v3.fbx",
+  "Assets/Visuals/Environment/Station_Wheel/textures/Station_Lights.mat",
+  "Assets/Visuals/Environment/Station_Wheel/textures/Station_Main.mat",
+  "Assets/Visuals/Environment/Station_Wheel/textures/Station_Main2.mat"
+ ]
+}

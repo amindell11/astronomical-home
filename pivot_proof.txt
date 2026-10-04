@@ -1,0 +1,38 @@
+# Forced reimport of the 10 Shapes/Models FBX (ImportAssetOptions.ForceUpdate)
+
+## [AsteroidPivot] log lines (postprocessor fired at the new path)
+
+[AsteroidPivot] Asteroid1: recentered by (0.01675, -0.02156, 0.10190) (primary 'Asteroid1_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid10: recentered by (0.10276, -0.02457, -0.05549) (primary 'Asteroid10_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid2: recentered by (-0.13952, -0.04337, -0.09531) (primary 'Asteroid2_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid3: recentered by (-0.19052, -0.25607, 0.18284) (primary 'Asteroid3_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid4: recentered by (-0.52511, -0.01154, -0.02429) (primary 'Asteroid4_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid5: recentered by (-0.19586, -0.15525, 0.04155) (primary 'Asteroid5_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid6: recentered by (0.07646, 0.03125, 0.14277) (primary 'Asteroid6_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid7: recentered by (0.04908, 0.04544, -0.02397) (primary 'Asteroid7_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid8: recentered by (-0.01559, -0.00467, -0.03751) (primary 'Asteroid8_LOD0', 5 mesh(es))
+[AsteroidPivot] Asteroid9: recentered by (-0.19126, 0.20158, -0.02614) (primary 'Asteroid9_LOD0', 5 mesh(es))
+
+## Post-import volume centroid of each primary mesh (AsteroidMeshVolume.TryCompute)
+
+Asteroid1.fbx primary='Asteroid1_LOD0' verts=2455 |centroid|=3.278E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid2.fbx primary='Asteroid2_LOD0' verts=2169 |centroid|=5.647E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid3.fbx primary='Asteroid3_LOD0' verts=2220 |centroid|=3.854E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid4.fbx primary='Asteroid4_LOD0' verts=2063 |centroid|=5.835E-009 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid5.fbx primary='Asteroid5_LOD0' verts=3250 |centroid|=1.390E-007 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid6.fbx primary='Asteroid6_LOD0' verts=2256 |centroid|=9.815E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid7.fbx primary='Asteroid7_LOD0' verts=2092 |centroid|=3.083E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid8.fbx primary='Asteroid8_LOD0' verts=1427 |centroid|=4.236E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid9.fbx primary='Asteroid9_LOD0' verts=1917 |centroid|=1.704E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+Asteroid10.fbx primary='Asteroid10_LOD0' verts=2023 |centroid|=5.390E-008 centroid=(0.000000, 0.000000, 0.000000)
+
+

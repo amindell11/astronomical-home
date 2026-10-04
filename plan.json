@@ -1,0 +1,2928 @@
+{
+ "moves": [
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/DebrisParticle.mat",
+   "to": "Assets/Visuals/Vfx/Particles/Materials/DebrisParticle.mat",
+   "guid": "72815344e9e9c7446895e130936932d7"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Embers.mat",
+   "to": "Assets/Visuals/Vfx/Particles/Materials/Embers.mat",
+   "guid": "776677ab3818fb249adaca05f4e04545"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Explosion.mat",
+   "to": "Assets/Visuals/Vfx/Particles/Materials/Explosion.mat",
+   "guid": "6421a5a06ae9f7a47a57b67f35c73b5a"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/ExplosionDistortion.mat",
+   "to": "Assets/Visuals/Vfx/Particles/Materials/ExplosionDistortion.mat",
+   "guid": "fafa06e8ef8c7fb4eac7a74c65cf3a06"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/SmokeDark.mat",
+   "to": "Assets/Visuals/Vfx/Particles/Materials/SmokeDark.mat",
+   "guid": "698a8134f4ebbbd4e848648685f68067"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab",
+   "to": "Assets/Visuals/Vfx/Particles/ParticlesLight.prefab",
+   "guid": "fa35d75604d172d48b7a6b62a07c7dbf"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Debris.png",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/Debris.png",
+   "guid": "af1f1b45fa6b5e64894c04ceb8a592f7"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Explosion.tif",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/Explosion.tif",
+   "guid": "409ef26b64696f340b2f62b41d2fc11f"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ExplosionEmission.tif",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/ExplosionEmission.tif",
+   "guid": "05db667749fd79541b026bff39d94a66"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Ramp03.png",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/Ramp03.png",
+   "guid": "595a5c1164fec844f8e6b477620221f6"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SmokePuff01.tif",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/SmokePuff01.tif",
+   "guid": "26e206bd730800f4f82b828eb9f1c067"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/ramp01.png",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/ramp01.png",
+   "guid": "99e09a9bd0f10384fa2a3bcbd5c65c9d"
+  },
+  {
+   "pack": "ParticlePack",
+   "from": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/shockwave.tif",
+   "to": "Assets/Visuals/Vfx/Particles/Textures/shockwave.tif",
+   "guid": "492f3349f92767645a752364a5d18422"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkA.mat",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Materials/AsteroidDarkA.mat",
+   "guid": "14372d3cd750b67488ba5358e940f06b"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/DarkB.mat",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Materials/AsteroidDarkB.mat",
+   "guid": "c614a291eb7721547889ae83831c11bc"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/LightA.mat",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Materials/AsteroidLightA.mat",
+   "guid": "f9e6f833c16459549a9a18a7963df5af"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid1.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid1.fbx",
+   "guid": "b9abf17990865d84d957cad76e0ef253"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid10.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid10.fbx",
+   "guid": "fa76ef86a0c8e6e4f817ec7f96dcb131"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid2.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid2.fbx",
+   "guid": "d4c53db4e0fa7574780103191e68af14"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid3.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid3.fbx",
+   "guid": "127d9b96ff58d1b4b9065c4c5dd61bf7"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid4.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid4.fbx",
+   "guid": "ef9b76a518ed31849a8df7d663a884d7"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid5.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid5.fbx",
+   "guid": "51285045b24057840b42c198e5646608"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid6.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid6.fbx",
+   "guid": "75b67b4cd87807048a98c76e5f38195f"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid7.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid7.fbx",
+   "guid": "ebf1104f43b4e3648b610d6b2401b58b"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid8.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid8.fbx",
+   "guid": "836cfe485691a78478ee794eb9674e97"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/Asteroid9.fbx",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid9.fbx",
+   "guid": "ebc43c11b646d06489156d9f564899e8"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_AO.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_AO.png",
+   "guid": "e026122664e7dad4d8c95a7325f3c181"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Albedo.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_Albedo.png",
+   "guid": "145a2fbbf335e564ca9a8765b7baf005"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_MetallicSmoothness.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_MetallicSmoothness.png",
+   "guid": "ba3e568289b11024c9785c0cc15721c6"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidA_Dark_Normal.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_Normal.png",
+   "guid": "b12da0d73c386f34b81845f5655669c6"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AO.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_AO.png",
+   "guid": "f82b6745802ec574bbdc41f1bfc829d3"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_AlbedoTransparency.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_AlbedoTransparency.png",
+   "guid": "a9867f10060ad4b4a916040a2f932597"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_MetallicSmoothness.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_MetallicSmoothness.png",
+   "guid": "0fd63de72ce93be4286f59cc90a02285"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Dark/AsteroidB_Dark_Normal.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_Normal.png",
+   "guid": "f5fbcd1a8d742804ab9e16b9c14e0f52"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_AO.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Light_AO.png",
+   "guid": "2253fdd5cf13bbd4197a485ce4712fb8"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Albedo.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Light_Albedo.png",
+   "guid": "9303e97a2b737ae488dcffb378e13a37"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Emission.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Light_Emission.png",
+   "guid": "ce14aaea4cb0098429bc88eff2a64e02"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidA_Light_Normal.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Light_Normal.png",
+   "guid": "4b7bb56b83d5e4848bf13f437ea648a6"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_AlbedoTransparency.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/Asteroid_Tiled_AlbedoTransparency.png",
+   "guid": "38de53c79cb928a4e9233351e616509d"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "from": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Tiled_Tiled_Normal.png",
+   "to": "Assets/Visuals/Environment/Asteroids/Shapes/Textures/Asteroid_Tiled_Normal.png",
+   "guid": "ceb55fc39cb55a245bf368101f175682"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/Textures/ao.png",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station_AO.png",
+   "guid": "1dfd8c655070ec34fb71b6fe1823c7d8"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/Textures/color.png",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station_Color.png",
+   "guid": "a9802c1acc0375a4eb4223c7db0e96bf"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/Textures/emission.png",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station_Emission.png",
+   "guid": "6c77b91f8f7e5a04c802667376979087"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/Textures/metallicRoughnessChannelsG.png",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station_MetallicRoughnessG.png",
+   "guid": "906f849d118f3fb45954d09be01e3cdf"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/Textures/normal.png",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station_Normal.png",
+   "guid": "a80c9a7d9483ba24eb8b2f4eb9ebf7d4"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/p162Spaceship004.obj",
+   "to": "Assets/Visuals/Environment/Stations/Station/p162Spaceship004.obj",
+   "guid": "ae8e72d271e2de346adf76006b41806c"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/test.mat",
+   "to": "Assets/Visuals/Environment/Stations/Station/Station.mat",
+   "guid": "1fbc4848b0fdefa46837cd058debb312"
+  },
+  {
+   "pack": "Station_Hug",
+   "from": "Assets/Visuals/Environment/Station_Hug/p162Spaceship004.mtl",
+   "to": "Assets/Visuals/Environment/Stations/Station/p162Spaceship004.mtl",
+   "guid": "c10e47ada647297469da4f865a294850"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/Station1.mat",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3.mat",
+   "guid": "25027d18e64407b4f87c2cdb3e24bb5e"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/p_79_spaceStation_sf.fbx",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/p_79_spaceStation_sf.fbx",
+   "guid": "529f5b1e811b3334cbdacf53984db1e7"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_AO.jpg",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_AO.jpg",
+   "guid": "96e7d91082e159642a7a2416e833ad3e"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_albedo.jpg",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_albedo.jpg",
+   "guid": "da6e0f78eae3c3644bf087590af124dd"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_emissive.jpg",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_emissive.jpg",
+   "guid": "39c8539dc6b37494684bb64a04307041"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_metallic.jpg",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_metallic.jpg",
+   "guid": "4e37d297d47f88948b4678a0aa215960"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_normal.png",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_normal.png",
+   "guid": "690c4354fafd268438519aa6d4dde04e"
+  },
+  {
+   "pack": "Station_Fork",
+   "from": "Assets/Visuals/Environment/Station_Fork/source/p_79_spaceStation_sf/station_1_roughness.jpg",
+   "to": "Assets/Visuals/Environment/Stations/Station 3/Station 3_roughness.jpg",
+   "guid": "b06eb09ee1e30404e81ea68aff2f5531"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Materials/RL_station_mat_N1.mat",
+   "to": "Assets/Visuals/Environment/Stations/Radio/Radio.mat",
+   "guid": "6dcec9b0576f1da45acc19ab0f3cc2c1"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Meshes/obst_RL_station_L2_low_01.fbx",
+   "to": "Assets/Visuals/Environment/Stations/Radio/obst_RL_station_L2_low_01.fbx",
+   "guid": "391d02c1ffbde664cba6d8df2ce51dfc"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_AmbientOcclusion.png",
+   "to": "Assets/Visuals/Environment/Stations/Radio/Radio_AmbientOcclusion.png",
+   "guid": "7f56e4d89c2de57488e1a647ce689ea9"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Emission.png",
+   "to": "Assets/Visuals/Environment/Stations/Radio/Radio_Emission.png",
+   "guid": "4f8284471faa63747a50eb1d05d10b9b"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_MetallicSmoothness.png",
+   "to": "Assets/Visuals/Environment/Stations/Radio/Radio_MetallicSmoothness.png",
+   "guid": "fb931a6b218b5e4478ecb444b542ba86"
+  },
+  {
+   "pack": "Radio",
+   "from": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_Normal.png",
+   "to": "Assets/Visuals/Environment/Stations/Radio/Radio_Normal.png",
+   "guid": "8c681d7f3828ba649b5f8448cffae436"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/source/JunkYard2_SetTwo.fbx",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/JunkYard2_SetTwo.fbx",
+   "guid": "bec1b98f77c380145bd7dd071c13f235"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Junkyard.mat",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker.mat",
+   "guid": "e5745daeba30c1f4a8339c72e159fe02"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Base_Color.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Base_Color.jpg",
+   "guid": "6c91921e88be11849b316b6dd2c6eff0"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Emissive.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Emissive.jpg",
+   "guid": "f3b749cf5b2167748ade96a3e7fd54f3"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Metallic.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Metallic.jpg",
+   "guid": "54b10499c3d6ea94abe3e0d650131db9"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Mixed_AO.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Mixed_AO.jpg",
+   "guid": "7aef9a2e4e4da6a42a17032b135b9b45"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Normal_DirectX.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Normal_DirectX.jpg",
+   "guid": "758dd7083aa0c5342a177c6a1cdd1fc4"
+  },
+  {
+   "pack": "Junk_Ships",
+   "from": "Assets/Visuals/Environment/Junk_Ships/textures/Material__0_Roughness.jpg",
+   "to": "Assets/Visuals/Ships/Cargo Ships/Junker/Junker_Roughness.jpg",
+   "guid": "871cfbdc03a6f7443b22e94f607e1195"
+  }
+ ],
+ "deletes": [
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Readme.asset",
+   "guid": "83c2ed844a8c74b779a4c823d16594b1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Dust.mat",
+   "guid": "53a63d52a4c231f4c8ef0f2bfc170425"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/EnergyExplosion.mat",
+   "guid": "bf88af72084132746823869f28b070f8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/EnergyShockwave.mat",
+   "guid": "65586f2fde3974c4e9469dfe6cf89338"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/fireball.mat",
+   "guid": "3349fc02d104e2b458470ec533f51c16"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/FireExplosion.mat",
+   "guid": "7a306caa8f9f7ed40a5361ce411cdf1b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Flame02.mat",
+   "guid": "bd8c234372a08af408b82538314378fe"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Flame03.mat",
+   "guid": "d7f098ed9997e714193be5e86df013f4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Flame04.mat",
+   "guid": "7a812f56d512d964ea8de8fe839e1811"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/LargeFlame01.mat",
+   "guid": "af29e4d6b5ada10438f9e9b5bb6d19d3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/LargeFlame02.mat",
+   "guid": "b25dd701bdc692249907c8b4e4b784b2"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/Lightning.mat",
+   "guid": "0b1b6a2d22d96564f9037ae143ea84cf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/LightningTrail.mat",
+   "guid": "123ac6dc79004e54b8b352a7e64acdca"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/MediumFlame01.mat",
+   "guid": "5584a46a2a298d348a252b58b4847ae0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/MediumFlame02.mat",
+   "guid": "aa233f4c021449540865a6be1af7b157"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/MediumFlame03.mat",
+   "guid": "6b187db0c2e012840b1199ccf0893b54"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/PlasmaExplosion.mat",
+   "guid": "7ff1ab0b724442843965e2dd0f02e969"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/PlasmaFire.mat",
+   "guid": "b5387d3c2ba98fc44a0f5744f94ce48c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/SandParticle.mat",
+   "guid": "4ea8613283885aa45a5c6eb29a50bdb0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Materials/TinyFlame.mat",
+   "guid": "2a24b896dbe48144ab8d4a90468ad00e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/BigExplosion.prefab",
+   "guid": "e1b08032bec16ba4eb1ae23cbd572664"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/DustExplosion.prefab",
+   "guid": "d8f0099df63275647a8bcf646df1ca00"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/EnergyExplosion.prefab",
+   "guid": "9bba9cf244c53c5439505dfc96fdd11c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/FireBall.prefab",
+   "guid": "a990e3ac1318b834488c784d851f42a9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/FlameStream.prefab",
+   "guid": "bccc7a794e75b2a44a4b0dac69160b7b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/FlameThrower.prefab",
+   "guid": "007c57e2df8e9b144b99f471b84f3d56"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/LargeFlames.prefab",
+   "guid": "bb98861c48ad2024ca93498c7dd93a6c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/MediumFlames.prefab",
+   "guid": "be6847dd39ab95f4daa2ed98e4f90564"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/PlasmaExplosionEffect.prefab",
+   "guid": "96730f8640590934eacb6f860058e7f9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/SmallExplosion.prefab",
+   "guid": "64891a0eb28db934898420d80ca07cb3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/TinyExplosion.prefab",
+   "guid": "25c7aa9ad705fe143a4d71c1c8deb7d4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/TinyFlames.prefab",
+   "guid": "ea4fb55d0227e604386f44f905cfe7c0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/WildFire.prefab",
+   "guid": "f293a2dcc753a4a489fefe7f8f312d69"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/EnergyEffect.tif",
+   "guid": "5dd198d85c911d44f8a3f9f9d6b00be4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Fireball.tif",
+   "guid": "8de8e22f7a7bd4442994c4abcb489b97"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/FireBallEmission.tif",
+   "guid": "d9d8e2fe51aaf4a40b6a5581589afa98"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/FireExplosion.tif",
+   "guid": "59459fa5f4874d34c8a955afad00260b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Flame02.tif",
+   "guid": "838696ee09635f647b630a61fac71a72"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Flame03.tif",
+   "guid": "408718fd5f763de42b12f849570ddf58"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Flame04.tif",
+   "guid": "8e06c9c1eb329314682fc3690cda8b9f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/LargeFlame01.tif",
+   "guid": "a0a243891db69d743aa08a4066effb00"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/LargeFlame02.tif",
+   "guid": "01dc1c1c99bf4984ca35c1591d3eeb54"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Lightning.tif",
+   "guid": "92781d74b982d084ca9223b02d2cae11"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/LightningTrail.tif",
+   "guid": "06e4a78c75e10c145a9156e32089ec9c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/MediumFlame01.tif",
+   "guid": "1b9340725602e9d40a4e86d4b9dfcb78"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/MediumFlame01Emission.tif",
+   "guid": "c6ea76e08bf04fa4b959f8b193bd459c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/MediumFlame03.tif",
+   "guid": "8ac487e221970a74fbf27f24086ea441"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/MedumFlame02.tif",
+   "guid": "abae5aff661c865459feb3f058a09ae9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/Ramp02.png",
+   "guid": "dea2509f9a4d25646855f7b8fedfe191"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/rocket_flame_flipbook.png",
+   "guid": "0b646ffc26db63b48b0b7c9cb5068808"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/RoundSoftParticle.tif",
+   "guid": "82c211cd7b28abb4a9e4ee77e8bd1b03"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SmokePuff02.png",
+   "guid": "d3c9883e2f0eef44f9241b6f8428f9fc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SmokePuffNormal.tif",
+   "guid": "3bc01580ce4f1834eb3562397607f51d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/SphereNormal.tif",
+   "guid": "b7de68a779f91264e8da00162a6b7168"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/TinyFlame.tif",
+   "guid": "4aa9e9c9f98c7a449ac023f74184d0b0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Fire & Explosion Effects/Textures/TinyStones.png",
+   "guid": "ce97ed62c0a56e84ab25e22c8dfd5bca"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Materials/GoopPoolParticle.mat",
+   "guid": "95be4df36eca6eb4b821dcab4acd4a1e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Materials/GoopSplashParticle.mat",
+   "guid": "6f3ee23817d2bd74681209e519f72618"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Materials/GoopSplatParticle.mat",
+   "guid": "3ea2e59d181ffce4e97d5d1d07a22c05"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Materials/GoopStreamParticle.mat",
+   "guid": "fb0a006be807eac48a87ffa79b3330a5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Prefabs/GoopSpray.prefab",
+   "guid": "5656e7ea1f1a75d4c895547ec2b824b3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Prefabs/GoopSprayEffect.prefab",
+   "guid": "abb9f519b142e304d9c45b56afa768bc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Prefabs/GoopStreamEffect.prefab",
+   "guid": "a3768c8a9d1b90d4bb0eb0e4bdbe730c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopDropAlbedo.tif",
+   "guid": "fd9fde9ce6505d546952963a514b1909"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopDropNormals.tif",
+   "guid": "e2e48048625d63c41a7219b81562326d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopPoolAlbedo.tif",
+   "guid": "b4e688a60e266c340b1f84c510a4c102"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopPoolNormals.tif",
+   "guid": "969a5ea5264ae2e4cb261f0dfbdb7877"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopSprayAlbedo.tif",
+   "guid": "12595500d23505f44876c2e13f2e0352"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopSprayNormals.tif",
+   "guid": "d3d3954ad53568b49b1fda6366f2b5ee"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/GoopStreamAlbedo.tif",
+   "guid": "1a55072e908ebe74e962a97efbc17416"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Goop Effects/Textures/SplatAlbedo.tif",
+   "guid": "ae135187004ec2c48b1f854b75e11a0f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/EarthCrack.mat",
+   "guid": "1f6abb4fa65207247b856825feae3e68"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/Embers.mat",
+   "guid": "c5de4a4e91ddb59479cdec033c43cc3b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/Fireball.mat",
+   "guid": "a74b8e4e831053c46943378279c70e96"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/Ice.mat",
+   "guid": "e8a7db8bb30ba7846922a11cebbe1a2f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/IceMist.mat",
+   "guid": "c32a9cac58b398741add6365fbc2e883"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/IceTrail.mat",
+   "guid": "d4c406b5d941319458ddccf4b6f76be3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/RockDust.mat",
+   "guid": "7f74562c360a75d468cce8ccff3d595f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Materials/RockSpike.mat",
+   "guid": "2c420724f5bf46241bc8d1d616c65653"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Models/IceLance.FBX",
+   "guid": "735d1d1e5a1d1934589aa44da6a7ea75"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Models/IceShard.FBX",
+   "guid": "a7ca52bcb825d7044a8afdfd569507c9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Models/RockDebris.FBX",
+   "guid": "88b9906b4442aa2448a9379fa0d1b987"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Models/RockSpike.FBX",
+   "guid": "b8ba9cfb9857cfb47a50aeba9dbce801"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Prefabs/EarthShatter.prefab",
+   "guid": "32c9fd11a72259d45aa26ae41c34c5aa"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Prefabs/IceLance.prefab",
+   "guid": "1a1c02facd51d87458dcaa3a761e2c03"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Shaders/Ice.shader",
+   "guid": "f6a1776d52b856744ba06793c78b26fa"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Shaders/Ice_URP.shadergraph",
+   "guid": "b33a908442da88d46939a0af23e87141"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/DustPuffSmall.png",
+   "guid": "a547fca3b7d596c4d9bcb07a747ec5ee"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/EarthCrackAlbedo.tif",
+   "guid": "8127d72dd65a1454082d10767b2fcad4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/EarthCrackEmissive.tif",
+   "guid": "77c621fe6d401b943993b4d3131e17a1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/EarthCrackNormal.tif",
+   "guid": "8af32bd080d13b44d8045a88019902ed"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/Fireball.tif",
+   "guid": "c4fffbf9a10f3d64f978d4912150f3f1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/FireBallEmission.tif",
+   "guid": "c9ebd39724ed1d64b834086a80602180"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/IceCurvature.tif",
+   "guid": "8bd3845bbbeebd04b8a19ee995137147"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/IceNormals.tif",
+   "guid": "78e71b9e097c52e4cba00d81ed4dbe74"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/Ramp01.png",
+   "guid": "71187563f01d2654d96d736a7c082f68"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/Ramp02.png",
+   "guid": "26534f2d5894add499249fc1b8373a24"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/Ramp03.png",
+   "guid": "02893ea4ea3a2be419d65586df89bcf3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/RockNormal.tga",
+   "guid": "ceb93779c4493e346946ea2579d51f74"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/RocksAlbedo.tga",
+   "guid": "99f701799de29b144b56bd497c187078"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/RocksAlbedoEmissive.tif",
+   "guid": "5ecc6bda157267e498a3ff1d4fff6af8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/RocksSpecGloss.tga",
+   "guid": "02deeccf62fee5e4e9a92d72eb2fd421"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Magic Effects/Textures/SmokePuff02.png",
+   "guid": "577c1423813e21143b40ba6f80bbde2a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Animations/@EllenIdle.fbx",
+   "guid": "73e3d6d0fdcfc1d4483701317ca34665"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Animations/Ellen.controller",
+   "guid": "6fadb9ef00d1105488a411a8d9b46091"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/candle.mat",
+   "guid": "475822f8482d0fd4d861c763d1f3934c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/CandleFlame.mat",
+   "guid": "d960d897cdc819041a73dceb80befb85"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/Dissolve.mat",
+   "guid": "8385f0e712bb65b428cf18e6ab1c29c6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/DissolveChunks.mat",
+   "guid": "3544992394a7b954789108f2fa57027e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/DustMote.mat",
+   "guid": "e27a3e2f84809914fa5bf3a7ac14ce9f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/ElectricalSparks.mat",
+   "guid": "a6492a173e6c03f48899880b96cca600"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/Embers.mat",
+   "guid": "93c97da0a9a11174ab89575db81f7917"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/FireFly.mat",
+   "guid": "5471faebdbcc34e47baecfecda463063"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/FireFlyTrail.mat",
+   "guid": "1d11412570f90ba4caf1b0b6dea27152"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/Respawn.mat",
+   "guid": "a683b955b3d06e6429565831caff80f8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/SandSwirls.mat",
+   "guid": "795ab1f41a8fd4142859110cee203fd7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/SmokePuff.mat",
+   "guid": "5545993361f7ef8479dce19256c84f06"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/Sparks.mat",
+   "guid": "19a1e36bbcb5b4c429a5dfdc8fb914de"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Materials/SpawnTrail.mat",
+   "guid": "412010f8efbc1f740980ed8276a16ddb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Models/Candle.fbx",
+   "guid": "47422950376b0d8458d22d6185bcdcb3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Models/Ellen.fbx",
+   "guid": "b1d76b05add46f44292ade654065b4c7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Models/FireFly.fbx",
+   "guid": "dc6b02b1d8deafa448e0985c40c217ae"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Models/Flakes.fbx",
+   "guid": "dc789956fe23a1941adff98b407addf0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/Candles.prefab",
+   "guid": "86f883933a872f542994368197c83b5b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/Dissolve.prefab",
+   "guid": "df3177fc67fceda4cb1e5acda4964f5c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/DustMotesEffect.prefab",
+   "guid": "5ca4c580b3888314581688fa46fb142d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/ElectricalSparks.prefab",
+   "guid": "96b2ec0239d11fa4b9792311efceb8ed"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/FireFlies.prefab",
+   "guid": "379785de5e39005469c875710d3cc5a7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/ParticlesLight.prefab",
+   "guid": "61a6b3a108030e54ba372fe7097916d0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/Readme_Dissolve_Respawn_.txt",
+   "guid": "347cb84766db00442a42d707d0eba133"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/Respawn.prefab",
+   "guid": "c5febdd93ab44d640b3eb37b768360bb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/SandSwirlsEffect.prefab",
+   "guid": "14d81e2c407975245973a11cdfbeb902"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Prefabs/SparksEffect.prefab",
+   "guid": "78b71003e8b357d4bbf89c8b5e5e4f0e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Scripts/SpawnEffect.cs",
+   "guid": "585901dad4c09564db67dc1e08787f0e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Shaders/Dissolve.shader",
+   "guid": "8f448cd4d5dac5047b5f9a86cb739085"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Shaders/Dissolve_URP.shadergraph",
+   "guid": "1484fa80c4da8734e95f8f027156cc1f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Shaders/FireFly.shader",
+   "guid": "dc9ad51526a07884ab0982f5273e9b5d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Shaders/Respawn.shader",
+   "guid": "77711a0a1ef662843a281ba4ecd2c54c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Shaders/Respawn_URP.shadergraph",
+   "guid": "ab11a069516c3be46a4c8185f52a63a7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/CandleFlame.tif",
+   "guid": "e966fe96fc4c60f4fa9eff9e6d32ba67"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/Clouds.tif",
+   "guid": "c701d8bbcea7c2c4abbf9c22ee81138a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/DissolveChunks.tif",
+   "guid": "fde6fc28f8943fd4aa8bf43327cd0fc0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/DustMote.png",
+   "guid": "394e93ce356b57344903a08ff72fcab2"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/DustPuffSmall.png",
+   "guid": "271edbc011d9e03489f73cef81b2d56a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/FireFlyAlbedo.tif",
+   "guid": "22f3fc6e1558b7a45ad656281e20285a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/FireFlyEmission.tif",
+   "guid": "f16b4e9769a932a4ba18f3ae2964e3e9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/FireFlyWings.png",
+   "guid": "b4106b3c439d6634ba6878ffd5fb1761"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/noise.tif",
+   "guid": "c15eacd99a1861b4a8084a53a657bbb0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/Ramp01.png",
+   "guid": "c07de05b9bda8f6409252857c36d7ed0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/SmokePuff.png",
+   "guid": "c3d99af7c1318074daeb72b174531db1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/SmokeySteam.tif",
+   "guid": "e983aba8ca13b244893617f34e99d00b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Misc Effects/Textures/SparkParticle.tif",
+   "guid": "2c9ba3deede9b844c84fabc9d8b70c33"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/Dust.mat",
+   "guid": "0227585ad08c3da4ab3286a2f78d42f5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/Embers.mat",
+   "guid": "cb54088e4fe82ce44aafb5f3dc12b530"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/Flame01.mat",
+   "guid": "e43d70c08c6bf7e4aa274e46393928b3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/GroundFog.mat",
+   "guid": "f96090edaea7c564c80586f4385918fd"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/HeatDistortion.mat",
+   "guid": "3c90f41c7ad75cd4db41faa565660d18"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/RockDebris.mat",
+   "guid": "fbdb05c770da2c44fa1993ee693bd6cf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/SandParticle.mat",
+   "guid": "e689f2433ec031e41ae61c69dfb6db02"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/Smoke02.mat",
+   "guid": "43d3e21dd15c3b847957abee25d004d9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/SmokeLight.mat",
+   "guid": "f06455b167e1b0b428c9af62d7aa6832"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/SmokeySteam01.mat",
+   "guid": "df0a9d4a1d2f26c4eb697a71ac5b82d6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/SmokeySteam02.mat",
+   "guid": "011bc24ee3a874d4cab24456f007e08e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/SmokeySteam03.mat",
+   "guid": "fd80cdb028e1d864392334da34ca021d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/Twinkle.mat",
+   "guid": "8765829b4c1b820409385ae53384fb25"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Materials/wispySmoke.mat",
+   "guid": "4cd7f6cf6430b2347803bd0c957fbbce"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Models/RockDebris.FBX",
+   "guid": "ec280bbfbd0550743b1e477c9d48abdf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/DustStorm.prefab",
+   "guid": "9e03786a9517b604d8e930182607a128"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/GroundFog.prefab",
+   "guid": "1a365141225c22e49a7bb976869b22a8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/Heat Distortion.prefab",
+   "guid": "ea309e8646148c24ab067d84d5d22697"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/PoisonGas.prefab",
+   "guid": "6f672a31584a6a748912a49c1dce2f0c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/PressurisedSteam.prefab",
+   "guid": "61bb62591466c3649bdf4905822d72f6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/RisingSteam.prefab",
+   "guid": "efe021d4c307b5449b8121d46791cf95"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/RocketTrail.prefab",
+   "guid": "ef134ce1a2a98d94fb68c860d9c736c6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/SmokeEffect.prefab",
+   "guid": "73767e07adddc394d82b994801f89bbb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Prefabs/Steam.prefab",
+   "guid": "378b2c30ef426554495292cb902cb8f4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/Flame01.tif",
+   "guid": "e2580e97efd2aa34580ef00fbec9a2d4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/SmokeLoop.tif",
+   "guid": "d1b932090277f37428c753cf27824d4a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/SmokeLoop02.tif",
+   "guid": "b5116609fbb1572419c0bb5259f645a6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/SmokePuff04.png",
+   "guid": "c904f5c1f19e8fc42865cf6d70b4fcb6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/SmokePuff04Normal.tif",
+   "guid": "ec0fffbfc1b9f9f4d82b1328a0fa87ab"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/smokeysteam.tif",
+   "guid": "76e25da1cefc7f446bcc43a70fb13a0f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/TinyStones.png",
+   "guid": "65446234b901d074f9f44e6adfe03e3e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/Twinkle.png",
+   "guid": "e9479d826e8ef15429fa21cb5a46ab56"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/wispySmoke.tif",
+   "guid": "b96c69e599825d84e985962673d1679c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Smoke & Steam Effects/Textures/WispySmokeNormal.tif",
+   "guid": "b7e9b138ba248a44f957941f56c3b0d4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/Splash.mat",
+   "guid": "0491051b82b09be4eaa3b2224971acc7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/Splash02.mat",
+   "guid": "e9f88b6d5b7b7f24c8b3dc6b70f06653"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/Water.mat",
+   "guid": "967578261f8e13142b10ed604e91b64b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/WaterDropBig.mat",
+   "guid": "88129a2e1a1e0f741a42376e2475028d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/WaterDropSmall.mat",
+   "guid": "c4d4365c3eeb8a54183f5af15699021d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/WaterFog.mat",
+   "guid": "ccf7149889a0eb64faa9cba40c767ff0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Materials/WaterRipple.mat",
+   "guid": "0f53c9d8ad82e7e42acd9cd32b6a1da1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Models/DropSplash.fbx",
+   "guid": "e6c27adf3e47c024da4e786f5898c785"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Prefabs/BigSplash.prefab",
+   "guid": "c1c88308ebb5d2541a282905b854ee4c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Prefabs/Shower.prefab",
+   "guid": "3d19250bdd4e0df4c8da855e85a8d70b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Prefabs/WaterLeak.prefab",
+   "guid": "a82a87e68ab906d4bbf876f687e2a155"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/RippleAlbedo.png",
+   "guid": "8ed4f18f263651d4b865df353c6c8fa8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/RippleNormal.tif",
+   "guid": "b31676a3103837945920ebc3cff4e14e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/SphereAlbedo.tif",
+   "guid": "feebd9fe3a61f384286140f9201d038d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/Splash01.tif",
+   "guid": "50d576b32d1c88f4abcea02ff8e68dbe"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/Splash01Normal.tif",
+   "guid": "f166adb87ec51544e8173ca8a1b784c1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/Splash04Albedo.tif",
+   "guid": "0153ce75dcbf4624d93f11ff5b9882bd"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/Splash04Normal.tif",
+   "guid": "73e81e5a6e5b6874582e6c6d405d7491"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/SplatAlbedo.tif",
+   "guid": "c996b36d1e7f97a41836e819231fc9cf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/SplatNormal.tif",
+   "guid": "0660389cc5a6f4947997407fb6945fa1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Water Effects/Textures/WaterNormal.tif",
+   "guid": "5d5f4575f58c52f4dbf3d0581eba8a12"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/BulletDecalMetal.mat",
+   "guid": "094e76e620df5714eb3946120657e1f6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/BulletDecalSand.mat",
+   "guid": "0a35d64bb8fd24f47b8bf3802f71313b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/BulletDecalStone.mat",
+   "guid": "a29767879f97b364393df3a772628180"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/BulletDecalWood.mat",
+   "guid": "39babc0a61c17df41bca722640cfc289"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/BulletFleshDecal.mat",
+   "guid": "d771645f9ac10d241b18277409d02a55"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/DustPuffParticle.mat",
+   "guid": "1402721190994cd46b64bf7cba78f5d8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/FleshSurface.mat",
+   "guid": "72bc6ef93dd24b24a92daaf12577d9f1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/GoopMist.mat",
+   "guid": "22bd383795fb6f34b93b51a4caa75781"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/GoopSplat2.mat",
+   "guid": "fb0f4297b291a034bb4f9a9eada50640"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/GoopStreak.mat",
+   "guid": "2f03a6f5f76f67c45ae05e606f7ca2da"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/MetalSparks.mat",
+   "guid": "d8002e76dc5e4904f90dc137b3f085ba"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/MetalSurface.mat",
+   "guid": "4f477167fc0be5e4dab9a125b37c42ad"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/MuzzleFlash01.mat",
+   "guid": "a8cb413d77ceb054abf10c2c6ee66337"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/RockDebris.mat",
+   "guid": "586b03ea88dd46c42b5eb8af4d0c137a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/SandSurface.mat",
+   "guid": "26bc8648a85c6b041a5d5b00ca61062b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/StoneSurface.mat",
+   "guid": "3eb079016c4106b41bc3f19de570f770"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/TinyStonesParticle.mat",
+   "guid": "4ac7c4f70dacbc742a33d842cebc2157"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/WaterStreamParticle.mat",
+   "guid": "8ea6ed53aae46fe4e83d154e73aed27e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/WoodSplintersParticle.mat",
+   "guid": "fd8ebe3c7242d364bae68f1548ae70bf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Materials/WoodSurface.mat",
+   "guid": "ce4b77858ec6c0f469b07b034c21a85f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/FleshImpacts.prefab",
+   "guid": "24b82347924701148a13c746edfb6b22"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/MetalImpacts.prefab",
+   "guid": "44be68b4fc4366142a9cd1ae1f761ea4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/MuzzleFlash01.prefab",
+   "guid": "ad2ab49d0a2a17148bd51c93d977bdbc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/SandImpacts.prefab",
+   "guid": "bca9020d2c9c915448fb5263a425faf4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/StoneImpacts.prefab",
+   "guid": "8b7a1ffda5bb7474b8fae646c45ce7b4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Prefabs/WoodImpacts.prefab",
+   "guid": "3c0b5f221ea995442b9d11dc526de1c0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/BulletHoleMetalThroughAlbedo.tif",
+   "guid": "4dcc91061fcec7d40a6d7c381bf1eabc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/BulletHoleMetalThroughNormal.tif",
+   "guid": "b284a0bea151ce444957bb92f6b50ac4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/BulletHoleRockAlbedo.tif",
+   "guid": "15240786ea512f046bf64137f0abe4a1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/BulletHoleRockHeight.tif",
+   "guid": "c948ff4a46d9e134ab96d61acf2022ab"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/BulletHoleRockNormal.tif",
+   "guid": "b7b496609dfcf7d4089ca1e508b14f22"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/DustPuffSmallParticleSheet.png",
+   "guid": "32dde075fa5f86d458327a2ac0c4593b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/FleshBulletHoleAlbedo.tif",
+   "guid": "5ef8c65d978f7f74e8a6cb763425f6db"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/FleshBulletHoleHeight.tif",
+   "guid": "5382afe8f6b22e24d9568f8c0be503a7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/FleshBulletHoleNormal.tif",
+   "guid": "372fe723afe65ed41a5b38da5faf82a1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/FleshNormals.tif",
+   "guid": "82b123d008de09948adc8d1433889121"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/GoopSprayAlbedo.tif",
+   "guid": "3f4abfb4beaba874db09889251c0f146"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/GoopSprayNormal.tif",
+   "guid": "041de061027a6f7478b69332b265342b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/GoopStreakAlbedo.tif",
+   "guid": "07a10375da67ac9429e4694a4e70a774"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/GoopStreakNormal.tif",
+   "guid": "4b403858fefaded4bb58c22aa41b8769"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/MuzzleFlashFront.tif",
+   "guid": "f955971657b85c442a7c56083fd7b440"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/SandDecalAlbedo.tif",
+   "guid": "03752e2fadc88f145aa5c8fc4f3cd0c8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/SandDecalNormal.tif",
+   "guid": "c20545af53730ab459c576122c7e80ab"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/SparkParticle.tif",
+   "guid": "228652bda78afdd448d50950ba99ad5a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/StoneAlbedo.tif",
+   "guid": "d6971144598309840aa5627e0797e545"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/StoneNormal.tif",
+   "guid": "e6b70229308faa64880eac4945d59f5e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/StreamNormal.tif",
+   "guid": "dbf5fd5c04eedf2418e86c377cf5b95b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/TinyStones.png",
+   "guid": "f5f94e20533a400479359f21c26305a5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/TinyStonesNormals.tif",
+   "guid": "a00b2df6dc199854ba60af0c001a51b2"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodAlbedo.tif",
+   "guid": "b81b746ea3b5a4f4ab92a152e3b0b01d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodBulletHoleAlbedo.tif",
+   "guid": "4c5f9569d875837419e6fb548cd8ad42"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodBulletHoleDepth.tif",
+   "guid": "d911e33e4ef025e4ea1cc5a3503e4d42"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodBulletHoleNormal.tif",
+   "guid": "dc7c338db44c68b41aebbac57c5c28b8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodNormals.tif",
+   "guid": "43cfa3b308732c941a0fbb4334ecefcc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/WoodOcclusion.tif",
+   "guid": "3f61242b237377e4590f4e6d1c869079"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/woodSplintersAlbedo.tif",
+   "guid": "477c430b429f1a24282dab34a73b4cca"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/EffectExamples/Weapon Effects/Textures/woodSplintersNormal.tif",
+   "guid": "937ed87ab83404042bb43da3180148b7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main.unity",
+   "guid": "163adec682b5ccd4c8dbb7766c20f3fb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/MainSettings.lighting",
+   "guid": "004bcf81418d846368e2c64dc619d7d5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/LightingData.asset",
+   "guid": "5ad991571b598ea40b9f6ad91d4d9077"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/Lightmap-0_comp_dir.png",
+   "guid": "d23ce938ae7d9b24bb791e4a71d3388f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/Lightmap-0_comp_light.exr",
+   "guid": "38645482f82302843938b3d9b2b8e345"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/Lightmap-1_comp_dir.png",
+   "guid": "930c85f85f52ab0498118329c192ee2c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/Lightmap-1_comp_light.exr",
+   "guid": "5c2abfa81b784154abbfcfd22f2e73a1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-0.exr",
+   "guid": "14d99eba68deb5c419739be53229234f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-1.exr",
+   "guid": "1a72c321dc0ef67408cdc146ea283607"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-2.exr",
+   "guid": "5c1be5c0a92e945418a09e0b4b56cd15"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-3.exr",
+   "guid": "f319d2d4df093224684b4dae47534bb6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-4.exr",
+   "guid": "8bff01e3b001df7459b7334c615fc50d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-5.exr",
+   "guid": "f22b5645f939fc14eb097b1189fb2c8f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-6.exr",
+   "guid": "4c246300583a15b4690337afb12daf70"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-7.exr",
+   "guid": "5debba57b5b312647adf406fd49d2d1d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-8.exr",
+   "guid": "218bb83e223fd5946a08a96e879ca127"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Main/ReflectionProbe-9.exr",
+   "guid": "d076206b94113aa4cafb7a64d3bad847"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Scenes/Profiles/DefaultProfile.asset",
+   "guid": "30c76ed8c1bfdec468bc22dee567578c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/ConcreteFloor.mat",
+   "guid": "21c505286c5bbe045a472bee261889e8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/ConcreteWall.mat",
+   "guid": "f9c717e11fb192c4aa958181f2ebc67a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/GridBox 1.mat",
+   "guid": "c14d3ae24b194e544bbfb44b9a7fae11"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/GridBox.mat",
+   "guid": "9f28c106d481fcd4bb87886c522e5049"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/Light.mat",
+   "guid": "47fbc90daa91ab541984ebd9f72db2d4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/LinesWhite.mat",
+   "guid": "09d2711cb134c78409078c4645fae1cd"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/MetalRailing.mat",
+   "guid": "50d6c6916e743b64c8b4e4282f2c9603"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/MetalTrim.mat",
+   "guid": "e0f11b1a7337400468c12894fc7c4cec"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/ShadowCaster.mat",
+   "guid": "a7fc4133adf16c3409305f2ee9ed4ea8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/Skybox.mat",
+   "guid": "d1385980456cd2044b282d73625457db"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Materials/UnityLogo.mat",
+   "guid": "8673c144bddc0f748bf22b12b37a8308"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/AreaLine.fbx",
+   "guid": "534f375dff9795c4baa527015ef28ddb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/CornerWall.fbx",
+   "guid": "29175e748bfc77b4194c165e0258b930"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/EndWall.fbx",
+   "guid": "18f35b9d268a5e2418ed0f7628c2d86d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/FloorLong.fbx",
+   "guid": "446cd81926e0f8f41ba901232882f7eb"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/FloorMiddle.fbx",
+   "guid": "feea4d173b1eac64087516ae6fde538a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/FloorShort.fbx",
+   "guid": "10c6e964dc4450b43b3e447521e02e7d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/FloorTiny.fbx",
+   "guid": "9446cfbf8049f8840a94568ebfd2ea85"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/LongOverhangWall.fbx",
+   "guid": "8e725cb41275efd4b90ded8d12a97e28"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/Railing.fbx",
+   "guid": "109fce1e867015f4ab66f27e2e5e0c3b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/SideWall.fbx",
+   "guid": "b03a156a678c5aa42b3abd35f650bb53"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/SmallLight.fbx",
+   "guid": "7469d4eaf5d47b246b3501c892dd5292"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/Stairs.fbx",
+   "guid": "c11028ca051352e48879875d3abab77a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Models/Step.fbx",
+   "guid": "56419c3da9429f0488c038e5b86ebd7c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/CornerWall.prefab",
+   "guid": "21617474d5ac06548b6020406dbe6e6b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/EndWall.prefab",
+   "guid": "a53fe34087284794dbe0aad895670634"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/FloorLong.prefab",
+   "guid": "364e3c46cc3cab14190de95b5e46dcfc"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/FloorMiddle.prefab",
+   "guid": "4a71a58a3a7116c4a8aabbf8699066aa"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/FloorShort.prefab",
+   "guid": "020c53dc8ae609f4c9ddc4cbe9d3b4df"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/FloorTiny.prefab",
+   "guid": "8e1da52275f7dd14982d99253940530e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/LongOverhangWall.prefab",
+   "guid": "c5aa08609f3d9f547aca9af1d6c18070"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/Railing.prefab",
+   "guid": "e06ec3bfe7bdb824ba30d9b927c012f2"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/SideWall.prefab",
+   "guid": "2ed68cc4c6f4c5d42bb123a2bc92d4d9"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/SmallLight.prefab",
+   "guid": "7eb44e6d0f419324b83e33d3678c4f4f"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/Stairs.prefab",
+   "guid": "d40e6ae8e2813774882bcaf23d9a9cd6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Prefabs/Step.prefab",
+   "guid": "21f4ee7b875c5614bae545ccd6c7652e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteFloor_Albedo.tif",
+   "guid": "e24019282eaf5304c98b7b536af17317"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteFloor_AmbientOcclusion.tif",
+   "guid": "2e11d5f951d3c634da76947e39a8e670"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteFloor_MetallicSmooth.tif",
+   "guid": "20929db29720c824681faf2ef34d3cc4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteFloor_Normal.tif",
+   "guid": "40e100f406e502b45bff1eb6d3930958"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteWall_Albedo.tif",
+   "guid": "dd79a67bb902a074da2a53f94862061d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteWall_AmbientOcclusion.tif",
+   "guid": "45e11ca837ab9e64c8cb8a9ae58fc6f3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteWall_MetallicSmooth.tif",
+   "guid": "1ab99eedfaf93af4e85990b5a98ffb96"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/ConcreteWall_normal.tif",
+   "guid": "d98cf5219f5996d479964a1074ada90a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/MetalTrim_Albedo.tif",
+   "guid": "7c10f0a67c3c8364eb12dfc8a5e7b54b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/MetalTrim_MetallicSmooth.tif",
+   "guid": "d580c3c76245fea46b16f5adc019967a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/MetalTrim_Normal.tif",
+   "guid": "2927ac255e81f184b8459509e4b3dce4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/PaintLines_Albedo.tif",
+   "guid": "38143a5229e9669428ed806d033bed14"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Environment/Textures/PaintLines_normal.tif",
+   "guid": "782e7ac390503b248abaa7f49096c6aa"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Prefabs/Player.prefab",
+   "guid": "6fcc382533eeddd4cb59b9e20acca545"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Prefabs/WorldSpaceLabel.prefab",
+   "guid": "ee8ad5531e02f4f0eb2d4187ec62c699"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Ramps/RampBaker.asset",
+   "guid": "6964ca4c5ab465b42a92b518c40c537b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Ramps/Editor/RampAssetEditor.cs",
+   "guid": "0939ef1fe67b3477e8058638b5924ab5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Ramps/Runtime/RampAsset.cs",
+   "guid": "366060de70f6d41d688e416621057bb3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Scripts/AdjustTimeScale.cs",
+   "guid": "57a9bba4c7c6adc40805917ce487896a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Scripts/ProximityActivate.cs",
+   "guid": "9dda47b72d39443fcbaff0fcbb5f1bd4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Scripts/SimpleCameraController.cs",
+   "guid": "390f972b3a1e62341ad150cbe29782f3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Scripts/SimpleCharacterMotor.cs",
+   "guid": "b388589949f9448aca1903107a88cb42"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Sprites/Info.png",
+   "guid": "2969d90b86698124696637a6df64a112"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Sprites/TitleBorder.png",
+   "guid": "0a936ae5d70c6c14ab943882f62e0a7a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Sprites/Unity Logo New.png",
+   "guid": "5ee91928baced440fbef970b27848d2b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/Shared/Sprites/UnityLogo.png",
+   "guid": "e9980ad31e8dba04aa8110ba611c69d8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Documentation/TextMesh Pro User Guide 2016.pdf",
+   "guid": "1b8d251f9af63b746bf2f7ffe00ebb9b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Fonts/LiberationSans - OFL.txt",
+   "guid": "6e59c59b81ab47f9b6ec5781fa725d2c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Fonts/LiberationSans.ttf",
+   "guid": "e3265ab4bf004d28a9537516768c1c75"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/LineBreaking Following Characters.txt",
+   "guid": "fade42e8bc714b018fac513c043d323b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/LineBreaking Leading Characters.txt",
+   "guid": "d82c1b31c7e74239bff1220585707d2b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/TMP Settings.asset",
+   "guid": "3f5b5dff67a942289a9defa416b206f3"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Drop Shadow.mat",
+   "guid": "e73a58f6e2794ae7b1b7e50b7fb811b0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset",
+   "guid": "2e498d1c8094910479dc3e1b768306a4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Outline.mat",
+   "guid": "79459efec17a4d00a321bdcc27bbc385"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset",
+   "guid": "8f586378b4e144a9851e7b34d9b748ee"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Sprite Assets/EmojiOne.asset",
+   "guid": "c41005c129ba4d66911b75229fd70b45"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Resources/Style Sheets/Default Style Sheet.asset",
+   "guid": "f952c082cb03451daed3ee968ac6c63e"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/SDFFunctions.hlsl",
+   "guid": "96de908384869cd409c75efa351d5edf"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMPro.cginc",
+   "guid": "407bc68d299748449bbf7f48ee690f8d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMPro_Mobile.cginc",
+   "guid": "c334973cef89a9840b0b0c507e0377ab"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMPro_Properties.cginc",
+   "guid": "3997e2241185407d80309a82f9148466"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMPro_Surface.cginc",
+   "guid": "d930090c0cd643c7b55f19a38538c162"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader",
+   "guid": "48bb5f55d8670e349b6e614913f9d910"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader",
+   "guid": "1e3b057af24249748ff873be7fafee47"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_Bitmap.shader",
+   "guid": "128e987d567d4e2c824d754223b3f3b0"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF Overlay.shader",
+   "guid": "dd89cf5b9246416f84610a006f916af7"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF SSD.shader",
+   "guid": "14eb328de4b8eb245bb7cea29e4ac00b"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-HDRP LIT.shadergraph",
+   "guid": "ca2ed216f98028c4dae6c5224a952b3c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-HDRP UNLIT.shadergraph",
+   "guid": "f63d574838ccfb44f84acc05fed0af48"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Mobile Masking.shader",
+   "guid": "bc1ede39bf3643ee8e493720e4259791"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Mobile Overlay.shader",
+   "guid": "a02a7d8c237544f1962732b55a9aebf1"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Mobile SSD.shader",
+   "guid": "c8d12adcee749c344b8117cf7c7eb912"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Mobile-2-Pass.shader",
+   "guid": "0178fcb869bafef4690d177d31d17db8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+   "guid": "fe393ace9b354375a9cb14cdbbc28be4"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Surface-Mobile.shader",
+   "guid": "85187c2149c549c5b33f0cdb02836b17"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-Surface.shader",
+   "guid": "f7ada0af4f174f0694ca6a487b8f543d"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-URP Lit.shadergraph",
+   "guid": "a3d800b099a06e0478fb790c5e79057a"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF-URP Unlit.shadergraph",
+   "guid": "124c112a6e8f1a54e8b0870e881b56d8"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_SDF.shader",
+   "guid": "68e6db2ebdc24f95958faec2be5558d6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Shaders/TMP_Sprite.shader",
+   "guid": "cf81c85f95fe47e1a27f6ae460cf182c"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Sprites/EmojiOne Attribution.txt",
+   "guid": "381dcb09d5029d14897e55f98031fca5"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Sprites/EmojiOne.json",
+   "guid": "8f05276190cf498a8153f6cbe761d4e6"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TextMesh Pro/Sprites/EmojiOne.png",
+   "guid": "dffef66376be4fa480fb02b19edbe903"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TutorialInfo/Icons/Help_Icon.png",
+   "guid": "a186f8a87ca4f4d3aa864638ad5dfb65"
+  },
+  {
+   "pack": "ParticlePack",
+   "path": "Assets/Visuals/ParticlePack/TutorialInfo/Icons/ReadmeLogo.png",
+   "guid": "cfa6d60f1f958ba46a105ca98716c259"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/AsteroidsDemo.unity",
+   "guid": "042b6d087a777754f86c4c97431ee67c"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/AsteroidsDemoSettings.lighting",
+   "guid": "b11b510ccba4a3a478c41e6976ae3779"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Legacy/Shiny/Asteroids_Shiny_Albedo.png",
+   "guid": "90c6c0ef40a81354d921c14bfd42a224"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Legacy/Shiny/Asteroids_Shiny_MetallicSmoothness.png",
+   "guid": "74f971ace5b9b50408d3e5b9d1dfb489"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Legacy/Shiny/Asteroids_Shiny_Normal.png",
+   "guid": "9461f10f9d0d9a942a713ecce4d7d0d7"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/GlowA.mat",
+   "guid": "9c58110b57f973c4e8b9c321d6d62f72"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/GlowB.mat",
+   "guid": "f8e3597532a40244c9c9fb1aef11aca8"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/LightB.mat",
+   "guid": "bc84658d9ab27eb449ee898fc9a11188"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/ShinyA.mat",
+   "guid": "c8d7ad0928f742a4bad018b380195656"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/ShinyB.mat",
+   "guid": "ce477fe989f665f40923d182adb6bfce"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/StylizedA.mat",
+   "guid": "f53e36d5bb003ad4a8af9b0ca4993de9"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/StylizedB.mat",
+   "guid": "7adf5442db2177a448f13ae308245757"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Materials/Test.mat",
+   "guid": "f58892b10ff706543a020be7424ab0e1"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid1.prefab",
+   "guid": "c4107baa76dc67142b6727d618dea35d"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid10.prefab",
+   "guid": "cd0a302b6e3c5aa469f5ebdea39497dd"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid2.prefab",
+   "guid": "a525d27b406a2d649b67643a38eeddb7"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid3.prefab",
+   "guid": "c5fc205dc2e3c954eaf2e94e178bccdc"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid4.prefab",
+   "guid": "0b28468e8c5be8b4091b078888895d70"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid5.prefab",
+   "guid": "9457f90cda0657c44906d60b3d8c1a6b"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid6.prefab",
+   "guid": "f1767664e26620340a1f0bb3ed2fbacf"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid7.prefab",
+   "guid": "37d779c53b1493a428cc85557f0c9935"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid8.prefab",
+   "guid": "60ffc3dfead54184d95e194b6710a70e"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Asteroid9.prefab",
+   "guid": "e0429348098803f4dba2195cf14b42af"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/BulbLamp.prefab",
+   "guid": "0ddd641a7bf3ccc44bb054818ad02b52"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Prefabs/Spot Light (1).prefab",
+   "guid": "6fa834a7c54cad0429e1a3cc92df930f"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_back.png",
+   "guid": "2d415bb0bc7f36c43897443de4abfaa8"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_down.png",
+   "guid": "b1f3b2281eca7b245a95ad26cce91fa4"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_front.png",
+   "guid": "e1b816fca514e6645a9a92abc21cb83b"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_left.png",
+   "guid": "fffd6df7f7500d14ab6fccdd1e974dd7"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_right.png",
+   "guid": "ff271dcdc838f9b49abc891fae6fc8d6"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidPackSkybox_up.png",
+   "guid": "0a51cddceeaaa464581fd993eaab1e03"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/AsteroidSkybox.mat",
+   "guid": "3a55fd5677c9a5a4ca9f5fe054bf1712"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Skybox/New Lighting Settings.lighting",
+   "guid": "72e4144daf135414a865bef8283538ce"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidA_Glow_Albedo.png",
+   "guid": "514b52594d86a174ead2c46b39e42737"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidA_Glow_AO.png",
+   "guid": "e38d4d537cb1b074589139c1b99c07c6"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidA_Glow_Emission.png",
+   "guid": "2bb44269a8527084aae8430e14af8ca2"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidA_Glow_MetallicSmoothness.png",
+   "guid": "c2c1561e680807644a3d2f284edb28dc"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidA_Glow_Normal.png",
+   "guid": "819c85936aba8644ea43fe77a22229ff"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidB_Glow_AlbedoTransparency.png",
+   "guid": "3b109b6085d2b7e4885984934ae5602d"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidB_Glow_AO.png",
+   "guid": "27216e83d795e9246976f8ee99cc2c33"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidB_Glow_Emission.png",
+   "guid": "86862550d47068e4983ddb1cef587058"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidB_Glow_MetallicSmoothness.png",
+   "guid": "08dd81e31334e8d4db457d860fa3f899"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Glow/AsteroidB_Glow_Normal.png",
+   "guid": "eb44af926507461429d44e73c6c471e8"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidB_Light_AlbedoTransparency.png",
+   "guid": "3d6f93acfee57924aab5ff4617d3994a"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidB_Light_AO.png",
+   "guid": "8b94e7622cdd51747a922b111ec098b2"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidB_Light_MetallicSmoothness.png",
+   "guid": "52189740905ac0040819c1142440507d"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Light/AsteroidB_Light_Normal.png",
+   "guid": "d98ca3e87da7dea4e90c787773891545"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidA_Stylized_Albedo.png",
+   "guid": "18c2556b33a2af8418be4f018663c3a5"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidA_Stylized_AO.png",
+   "guid": "fef64a78240f8234688c2ffcd5a9de84"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidA_Stylized_MetallicSmoothness.png",
+   "guid": "73eaab8a7fa260b4f962eb78ed023e93"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidA_Stylized_Normal.png",
+   "guid": "31661b68780151144a13522b3e3ec4ed"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidB_Stylized_AlbedoTransparency.png",
+   "guid": "d41fe392342010d4eaedd31afe744a5b"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidB_Stylized_AO.png",
+   "guid": "400e51b43b6b8ed4ba0730d30c36cc76"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidB_Stylized_MetallicSmoothness.png",
+   "guid": "84ee1b3b78546ac458ee5a6a5c011098"
+  },
+  {
+   "pack": "HD_Asteroids",
+   "path": "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Textures/Stylized/AsteroidB_Stylized_Normal.png",
+   "guid": "5275222cd8929004096b9679d3667ea8"
+  },
+  {
+   "pack": "Station_Hug",
+   "path": "Assets/Visuals/Environment/Station_Hug/Textures/asset9701Normal.jpeg",
+   "guid": "7cf2541047e68984b823cb4a0e3426c4"
+  },
+  {
+   "pack": "Station_Hug",
+   "path": "Assets/Visuals/Environment/Station_Hug/Textures/metallicRoughnessChannelsB.png",
+   "guid": "ba26aae4028786740ae948b14ca3bd14"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_albedo.jpeg",
+   "guid": "bc45768f77a261e4b8916157a22f2867"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_AO.jpeg",
+   "guid": "0be9308550e055e4db1622eb03953fb5"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_emissive.jpeg",
+   "guid": "6348b8909d6c7bd4c88b5ad2e4cdd235"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_metallic.jpeg",
+   "guid": "2805a18827a4d9f449d927758bd0ae06"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_normal.png",
+   "guid": "1adddacc245bded44b7b03af6c82e23f"
+  },
+  {
+   "pack": "Station_Fork",
+   "path": "Assets/Visuals/Environment/Station_Fork/textures/station_1_roughness.jpeg",
+   "guid": "bbf045def67571d4bbc7fc53f52242c0"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/demo_scene/demo_scene_09.unity",
+   "guid": "8627cc4c4dbf0a4428e15e07d20bddb9"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/Prefabs/RL_station_L2_group_01.prefab",
+   "guid": "c9250c3e4617e3840a9d0bf4a1282aa8"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_01_AlbedoTransparency.png",
+   "guid": "8f86d533881920b41b6d312b9c2ed314"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_02_AlbedoTransparency.png",
+   "guid": "266efef18980cf4468cc44c8e90dd2f0"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_03_AlbedoTransparency.png",
+   "guid": "a22dd5baca6996b4186e01c551522c0b"
+  },
+  {
+   "pack": "Radio",
+   "path": "Assets/Visuals/Environment/Radio/Textures/RL_L2_station/RL_station_mat_N_04_AlbedoTransparency.png",
+   "guid": "72426b43f51df244a8e422b234678d7c"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/license.txt",
+   "guid": "e32a37dfde276284ab1eed2cf9672588"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/scene.bin",
+   "guid": "ac57b47ad4b8d2d4c923248941c93a2d"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/scene.gltf",
+   "guid": "8ba368c9e56a5cc4187341920f371241"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/textures/platform_defaultMat_baseColor.jpeg",
+   "guid": "01c1a282e7bdeb346947ceba69390945"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/textures/platform_defaultMat_emissive.jpeg",
+   "guid": "625a40076588eb94c9bd3e05187250d4"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/textures/platform_defaultMat_metallicRoughness.png",
+   "guid": "28c5eae06f3453445a924365d4a76992"
+  },
+  {
+   "pack": "Platform",
+   "path": "Assets/Visuals/Environment/Platform/textures/platform_defaultMat_normal.png",
+   "guid": "e70fba4176031de4eba7dc043d55c250"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/source/p_96_spacestation_v3.fbx",
+   "guid": "b93c9629b459f2e47817ad2e4ed60500"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_albedo.jpeg",
+   "guid": "3ac189db0bddd0043841fa23c784996d"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_AO.jpeg",
+   "guid": "46c88b91371ca0742b3ce59be6ac16d8"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_emissive.jpeg",
+   "guid": "caf709f45adfcdb4997f884176d3a499"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_metallic.jpeg",
+   "guid": "d0d4c17b7da57084c947982fbc0243be"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_normal.png",
+   "guid": "69854988bedf8134ab9ed17e8efc4296"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main2_roughness.jpeg",
+   "guid": "d145c7959b0fb654aa6948fc509e9e44"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_albedo.jpeg",
+   "guid": "4707c6d5d1e66ca43bbd16e5821e6a37"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_AO.jpeg",
+   "guid": "a934a7b83e67060409dbb5089e9e8858"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_emissive.jpeg",
+   "guid": "e0fb210dc8240e64ab3e2877f28d464c"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_metallic.jpeg",
+   "guid": "bc87fc3a192632748a16ff5bd30d4ffe"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_normal.png",
+   "guid": "b5ebed7e1c27fa34a824a7132c788d8d"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_main_roughness.jpeg",
+   "guid": "75bf298529179254f8132c461871d697"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_albedo.jpeg",
+   "guid": "fbaf0702a29ee2847a63ad05a5fb614d"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_AO.jpeg",
+   "guid": "0af277664ebef9e488a8413a1cf5266c"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_emissive.jpeg",
+   "guid": "0707ecbefe42e6546b45d15e461ff00e"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_metallic.jpeg",
+   "guid": "c5418c944d0c99f4fb1b1b301420a47a"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_normal.png",
+   "guid": "311e39b0ed0159243bbe68d76979e7e0"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/spacestation_smalllights_roughness.jpeg",
+   "guid": "dee398e88b572d54ea793dadfbd79502"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/Station_Lights.mat",
+   "guid": "c2ad4799b99d0784dbf467f825efc353"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/Station_Main.mat",
+   "guid": "43d822c4c797cf741a52ae665f387ecd"
+  },
+  {
+   "pack": "Station_Wheel",
+   "path": "Assets/Visuals/Environment/Station_Wheel/textures/Station_Main2.mat",
+   "guid": "28ce7c9ee4f932c44bb3828fa0ba3af7"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/source/p_887_spaceStation.fbx",
+   "guid": "f8538de24c9eab1419a34a81601ae88d"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/MergedBake_Bake1_PBR_Diffuse.png",
+   "guid": "4e6eec7b965293948a42b5c5eaac0b40"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/MergedBake_Bake1_PBR_Emission.png",
+   "guid": "129d336abfc1a21498d05af240f396ed"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/MergedBake_Bake1_PBR_Metalness.png",
+   "guid": "824b8d70f8eb8e44fb1f52c67fffbd9a"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/MergedBake_Bake1_PBR_Normal.png",
+   "guid": "ebac215a9a458414b86161d3cccbd0ab"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/MergedBake_Bake1_PBR_Roughness.png",
+   "guid": "ffcd37bb4b577e5459cb419aab065785"
+  },
+  {
+   "pack": "Station_Spindle",
+   "path": "Assets/Visuals/Environment/Station_Spindle/textures/Station Material.mat",
+   "guid": "bc84887d7a965234b91d45d135a0fc24"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/source/p_154_CylinderAnimation_003.fbx",
+   "guid": "628fbc1010fcbdc4ab75077560b76c4f"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/15323@channels=B.png",
+   "guid": "30508a0dcac88c840ad373a6e6637411"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/15323@channels=G.png",
+   "guid": "e65a38210053f0647b5467b51004aa93"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/Cube_012_rock_PBR_Diffuse.jpeg",
+   "guid": "1ba79e46443957c42b5002e269b55d62"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/Cube_012_rock_PBR_Normal.jpeg",
+   "guid": "5794c2c7e2837fe4295036fc74afb9aa"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/Cylinder_003_RPanel_001_station_top_PBR_Diffuse.jpeg",
+   "guid": "2673e653b2796e4449d994f7e2296c4c"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/Cylinder_003_RPanel_001_station_top_PBR_Normal.jpeg",
+   "guid": "b954902ea16dad04aa33861e5ba13566"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/emit.jpeg",
+   "guid": "6fd06159abdb9774aba93f9b5176e7ee"
+  },
+  {
+   "pack": "Station_Dildo",
+   "path": "Assets/Visuals/Environment/Station_Dildo/textures/Station_Cylinder_alpha.png",
+   "guid": "155fc24698edca24f889482aa7765195"
+  }
+ ],
+ "pack_roots": {
+  "ParticlePack": "Assets/Visuals/ParticlePack",
+  "HD_Asteroids": "Assets/Visuals/Environment/Asteroids/HD_Asteroids",
+  "Station_Hug": "Assets/Visuals/Environment/Station_Hug",
+  "Station_Fork": "Assets/Visuals/Environment/Station_Fork",
+  "Radio": "Assets/Visuals/Environment/Radio",
+  "Junk_Ships": "Assets/Visuals/Environment/Junk_Ships",
+  "Platform": "Assets/Visuals/Environment/Platform",
+  "Station_Wheel": "Assets/Visuals/Environment/Station_Wheel",
+  "Station_Spindle": "Assets/Visuals/Environment/Station_Spindle",
+  "Station_Dildo": "Assets/Visuals/Environment/Station_Dildo"
+ }
+}
