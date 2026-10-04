@@ -113,13 +113,17 @@ clone/machine from Git Bash: `mkdir -p .agents && ln -s "$(pwd)/.claude/skills" 
 — symlinks need Developer Mode or an elevated shell on Windows; otherwise use a
 directory junction: `cmd /c mklink /J .agents\skills .claude\skills`.
 
-## Autostash is off in the primary tree
+## The primary tree pulls by fast-forward, never rebase
 
-The owner's global `~/.gitconfig` sets `pull.rebase=true` and `rebase.autostash=true`,
-so a plain `git pull` in the primary tree stashed their uncommitted edits when main
-conflicted with them (2026-10-03). The primary's repo-local config overrides it, so the
-pull refuses with "would be overwritten" instead. Recreate on a fresh clone:
-`git -C D:/amind/git/astronomical-home config rebase.autoStash false`.
+The owner's global `~/.gitconfig` sets `pull.rebase=true`, `rebase.autostash=true` and
+`branch.autosetuprebase=always` (which stamps `branch.main.rebase=true`), so a plain
+`git pull` in the primary tree stashed their uncommitted edits when main conflicted with
+them (2026-10-03). Turning autostash off alone made every pull refuse over any tracked
+edit. The primary's repo-local config overrides all three, so `git pull --ff-only` goes
+through beside the owner's edits and refuses with "would be overwritten" only when they
+overlap. Recreate on a fresh clone:
+`git -C D:/amind/git/astronomical-home config rebase.autoStash false`,
+`… config pull.rebase false`, `… config branch.main.rebase false`.
 
 ## Never hand-edit `~/.claude.json` while Claude Code runs
 
