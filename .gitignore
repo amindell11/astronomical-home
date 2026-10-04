@@ -29,6 +29,9 @@
 # Claude session-local state
 .claude/scheduled_tasks.lock
 
+# Codex CLI skills pointer (symlink to .claude/skills, machine-local — see doc/agents/environment.md)
+/.agents/
+
 # ai-counsel MCP writes debate transcripts here
 /transcripts/
 
