@@ -25,6 +25,7 @@ mkdir -p "$LOCK_ROOT"
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
 #   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
+#   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -255,6 +256,69 @@ Commands:
       Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
       caught just before gh pr merge ("base moved during the merge gate").
+      gh pr merge names the landing commit (--match-head-commit), so a push
+      to the PR after the gate's own push is refused, not landed.
+      Stdout trailer, once per gate that started: GATE=merged, or
+      GATE=refused:<reason>, the reason one of
+        base-moved     base moved during the gate (re-run)
+        no-verdict     the hosted run gave no verdict in time
+        hosted-error   a merge-proof status is error, or pending with no
+                       live run (the run was cancelled or timed out)
+        gh             a GitHub read failed, or gh pr merge failed 5 times
+        failure        a merge-proof status is failure (red, or a dead runner)
+        conflict       base does not merge into the slot
+        turn-held      exit 75, above
+        unauthorized   land's authorize phase (see land)
+        github         the hosted path refused a .github/ landing diff
+      or else the name of the gate phase that refused. A gate refused at
+      the slot's .merge lock never started, and prints none.
+
+  land <pr>
+      Land an open PR that no slot holds, on the user's recorded
+      instruction (scripts/drain_pick.sh instruct); every fact about the
+      PR's instruction, review and merge order comes from
+      'drain_pick.sh land-facts'. Preflight, before any slot or the merge
+      turn is taken, refuses: a PR not open against main, a draft, a head
+      that is not a task/* branch of this repository (the hosted suite
+      runs only there), an owed-local checklist that is open or malformed,
+      no recorded instruction, an unresolved review thread, a live
+      '## Merge order' constraint naming an open PR, a slot other than a
+      land-<pr> slot holding the PR's head branch (that slot's session
+      merges it with 'merge <slot>'), and no free slot. land never
+      reclaims a stale slot and skips a free one holding unpushed work; it
+      reuses a land-<pr> slot a dead run left.
+      The slot is leased as land-<pr>, recorded with the PR's head branch
+      as its task branch, and checked out at the PR head from origin. The
+      merge gate then runs on the hosted path (as --remote: no Unity boot,
+      memory admission not asked) from no local proof, with one more
+      phase after base-merge, authorize: it refuses unless the recorded
+      instruction's commit covers the landing tree, i.e. merging that
+      commit with base (git merge-tree) gives the landing tree, or a tree
+      that differs from it only by an inert (doc or comment) delta. A
+      conflicting merge covers nothing. A landing diff touching .github/
+      is refused (GATE reason github); land it with 'merge <slot>'.
+      After the merge the slot is finalized; after a refusal it is reset
+      to origin/main and released.
+      At most 3 merge gate attempts per call, and only after base-moved,
+      no-verdict, hosted-error or gh; before a hosted-error retry land
+      re-dispatches the hosted headless suite on the PR's branch and waits
+      for its first status. Nothing counts attempts across calls.
+      The auto-merge class is computed in shadow and authorizes nothing
+      (WORKTREE_POOL_AUTO_MERGE_CLASS=1, for tests, lets class membership
+      stand in for a covering instruction). It holds when the owed verdict
+      is none, the landing diff touches neither scripts/ nor .github/,
+      both merge-proof statuses were accepted on the landing commit, and
+      Codex's completed review covers the landing tree with no unresolved
+      review thread.
+      Trailers, at most once each: CLASS=in | CLASS=out:<condition>, the
+      first failing of owed, paths, hosted, review (printed once the gate
+      passes every check before its push); then GATE= as for merge, its
+      reason also one of the preflight reasons not-open, base, draft,
+      head-branch, owed-open, owed-malformed, facts (land-facts printed
+      no verdict), no-instruction, unresolved, merge-order-malformed,
+      after:<pr>, slot:<slot>, no-free-slot, gate-running (another land of
+      this PR holds its slot), checkout, or error (the gate printed no
+      trailer). Exit: 0 merged; 1 refused, or a usage error.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -285,6 +349,7 @@ Examples:
   scripts/agent_worktree_pool.sh revise agent-1 --no-test
   scripts/agent_worktree_pool.sh submit agent-1 origin/main --title "fix(nav): clamp turn rate" --body-file pr_body.md -- -Mode Both -ScopeType Workspace
   scripts/agent_worktree_pool.sh merge agent-1
+  scripts/agent_worktree_pool.sh land 812
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
   scripts/agent_worktree_pool.sh hold agent-1 --local
@@ -1565,6 +1630,7 @@ merge_phase_budget() {
     preflight) echo 10 ;;
     fetch) echo 15 ;;
     base-merge) echo 15 ;;
+    authorize) echo 20 ;;
     proof-check) echo 5 ;;
     tests) echo 480 ;;
     remote-proof) echo 900 ;;
@@ -1935,6 +2001,7 @@ wait_for_remote_verdict() {
   local run run_status run_id context status state description url owed named run_ref=""
   while :; do
     if ! run="$(remote_run "$sha" "$run_ref")"; then
+      GATE_REASON=gh
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
@@ -1942,6 +2009,7 @@ wait_for_remote_verdict() {
     owed="" named=""
     for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT"; do
       if ! status="$(remote_status "$sha" "$context")"; then
+        GATE_REASON=gh
         echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
         return 1
       fi
@@ -1949,6 +2017,8 @@ wait_for_remote_verdict() {
       case "$state" in
         success) ;;
         failure|error)
+          GATE_REASON=failure
+          [[ "$state" == failure ]] || GATE_REASON=hosted-error
           [[ -n "$run_id" ]] || run_id="$(run_id_from_url "$url")"
           echo "merge: $context on $sha is '$state' ($description) — not merging." >&2
           echo "  Run: $url" >&2
@@ -1974,21 +2044,25 @@ wait_for_remote_verdict() {
     case "$run_status" in
       in_progress)
         if (( SECONDS - phase_since > REMOTE_RUN_SECONDS )); then
+          GATE_REASON=no-verdict
           echo "merge: headless-suite run $run_id has been in progress over ${REMOTE_RUN_SECONDS}s with no verdict — not merging. 'gh run cancel $run_id', then 'gh run rerun $run_id'." >&2
           return 1
         fi ;;
       queued|requested|waiting|pending)
         if (( SECONDS - phase_since > REMOTE_QUEUED_SECONDS )); then
+          GATE_REASON=no-verdict
           echo "merge: headless-suite run $run_id has sat queued over ${REMOTE_QUEUED_SECONDS}s — not merging. Re-run 'merge $slot --remote' to keep waiting, or pin the local run with 'merge $slot -- -Mode Both -ScopeType Workspace'." >&2
           return 1
         fi ;;
       *)
         if [[ "$state" == "pending" ]]; then
+          GATE_REASON=hosted-error
           echo "merge: a merge-proof status on $sha is pending but no headless-suite run is live — no verdict is coming; not merging." >&2
           echo "  'gh run rerun ${run_id:-<run-id>}' (or 'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch'), then re-run 'merge $slot --remote'." >&2
           return 1
         fi
         if (( SECONDS - started > REMOTE_NO_RUN_SECONDS )); then
+          GATE_REASON=no-verdict
           echo "merge: no headless-suite run exists for $sha ${REMOTE_NO_RUN_SECONDS}s after the gate asked for one — not merging." >&2
           echo "  'gh workflow run $REMOTE_PROOF_WORKFLOW --ref $task_branch', then re-run 'merge $slot --remote'." >&2
           return 1
@@ -2008,6 +2082,7 @@ run_remote_for_proof() {
     git -C "$path" push origin "$slot:refs/heads/$task_branch"
   else
     if ! run="$(remote_run "$sha")" || ! status="$(remote_status "$sha" "$REMOTE_PROOF_CONTEXT")"; then
+      GATE_REASON=gh
       echo "merge: could not ask GitHub about $sha — no remote proof; not merging." >&2
       return 1
     fi
@@ -2147,6 +2222,13 @@ cmd_merge() {
     echo "merge: --remote takes no test-runner args — the hosted headless suite has one fixed selection." >&2
     return 1
   fi
+  run_merge_gate "$slot" "$base_ref" "$remote" 0 "${test_args[@]}"
+}
+
+# <authorize> 1 adds land's authorize phase. The journal closes when the calling shell exits.
+run_merge_gate() {
+  local slot="$1" base_ref="$2" remote="$3" authorize="$4"
+  shift 4
 
   merge_journal_open "$slot" "$base_ref"
   trap 'merge_rc=$?; merge_journal_finish "$merge_rc"' EXIT
@@ -2155,7 +2237,7 @@ cmd_merge() {
 
   local turn_rc=0 holder
   with_merge_turn "$slot" \
-    merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "${test_args[@]}" || turn_rc=$?
+    merge_gate "$MERGE_JOURNAL" "$MERGE_RUN_START" "$MERGE_PHASE_START" "$slot" "$base_ref" "$remote" "$authorize" "$@" || turn_rc=$?
   if [[ "$turn_rc" -eq "$LOCK_BUSY_EXIT" ]]; then
     holder="$(merge_turn_holder)"
     if [[ -n "$holder" ]]; then
@@ -2166,6 +2248,7 @@ cmd_merge() {
       echo "  A 'lock merge-turn' caller (a docs-only landing) or a child of a killed gate holds it; re-run 'merge $slot' once it is gone." >&2
     fi
     merge_journal_note "turn held for ${MERGE_TURN_WAIT_SECONDS}s by ${holder:-a holder that is not a merge gate}"
+    echo "GATE=refused:turn-held"
     return "$turn_rc"
   fi
   # merge_gate's shell closes turn-wait and every later phase, so this shell must not.
@@ -2173,16 +2256,24 @@ cmd_merge() {
   return "$turn_rc"
 }
 
+# A refusal site names its reason here; any other refusal is named by the phase it died in.
+GATE_REASON=""
+
+gate_trailer() {
+  [[ "$BASHPID" == "$MERGE_JOURNAL_PID" ]] || return 0
+  if [[ "$1" -eq 0 ]]; then echo "GATE=merged"; else echo "GATE=refused:${GATE_REASON:-${MERGE_PHASE:-preflight}}"; fi
+}
+
 # Runs holding the merge turn, in the shell with_merge_turn starts for it.
 merge_gate() {
   merge_journal_adopt "$1" "$2" turn-wait "$3"
-  local slot="$4" base_ref="$5" remote="$6"
-  shift 6
+  local slot="$4" base_ref="$5" remote="$6" authorize="$7"
+  shift 7
   local test_args=("$@")
 
   # Fires on every exit path, including a set -e abort, so no failure leaves the
   # journal with a phase open forever.
-  trap 'merge_rc=$?; stop_script_suite; merge_turn_release "$merge_rc"' EXIT
+  trap 'merge_rc=$?; stop_script_suite; gate_trailer "$merge_rc"; merge_turn_release "$merge_rc"' EXIT
   merge_turn_publish "$slot"
   merge_phase_begin preflight
 
@@ -2219,6 +2310,7 @@ merge_gate() {
     merge_journal_note "$base_ref moved - integrating"
     if ! git -C "$path" merge --no-edit "$base_ref"; then
       git -C "$path" merge --abort || true
+      GATE_REASON=conflict
       echo "merge: conflict merging $base_ref into $slot — resolve in the worktree," >&2
       echo "  'revise' to test+push, then re-run merge." >&2
       merge_journal_note "conflict merging $base_ref"
@@ -2226,6 +2318,11 @@ merge_gate() {
     fi
   else
     merge_journal_note "already current with $base_ref"
+  fi
+
+  if [[ "$authorize" -eq 1 ]]; then
+    merge_phase_begin authorize
+    gate_authorize "$path" "$slot" "$pr" "$base_ref" || return 1
   fi
 
   # Skip the re-test only on provenance-corroborated FULL-suite proof for this exact tree: scoped runs never count, and ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
@@ -2312,6 +2409,7 @@ merge_gate() {
       esac
     fi
     if [[ "$remote" -eq 1 && "$github_diff_rc" -eq 0 ]]; then
+      GATE_REASON=github
       echo "merge: --remote refused — the landing diff touches .github/, so this merge needs the local run." >&2
       return 1
     elif [[ "$remote" -eq 1 ]]; then
@@ -2348,15 +2446,17 @@ merge_gate() {
     return 1
   fi
   merge_phase_begin resharper
-  local ratchet_reason="${remote_reason:-no remote proof: landing commit $landing_sha is not on GitHub yet}"
+  local ratchet_reason="${remote_reason:-no remote proof: landing commit $landing_sha is not on GitHub yet}" hosted_ratchet=0
   if resharper_proof_matches "$slot" "$path" "$base_ref"; then
     echo "Tree already passed the ReSharper ratchet against $base_ref — skipping re-run."
   elif [[ "$github_diff_rc" -ne 0 && "$(git -C "$path" ls-remote origin "refs/heads/$task_branch" | cut -f1)" == "$landing_sha" ]] \
     && ratchet_reason="$(accept_remote_resharper_proof "$slot" "$path" "$landing_sha" "$base_ref")"; then
     echo "Landing commit $landing_sha carries a green $REMOTE_RESHARPER_CONTEXT status for this tree and base — hosted ratchet accepted, no local ratchet run."
     merge_journal_note "hosted ratchet accepted on the landing commit"
+    hosted_ratchet=1
   elif [[ "$remote" -eq 1 && "$base_ref" == origin/main && "$ratchet_reason" == *" stamps baseTree "* ]]; then
     # The hosted ratchet stamps the main it fetched; another baseTree means main moved since.
+    GATE_REASON=base-moved
     echo "merge: $ratchet_reason; base moved during the merge gate — re-run 'merge $slot --remote'." >&2
     return 1
   elif [[ "$remote" -eq 1 ]]; then
@@ -2374,6 +2474,10 @@ merge_gate() {
     join_script_suite
   fi
 
+  if [[ "$authorize" -eq 1 ]]; then
+    gate_class "$slot" "$scripts_diff_rc" "$github_diff_rc" "$hosted_ratchet" || return 1
+  fi
+
   merge_phase_begin push
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
@@ -2382,6 +2486,7 @@ merge_gate() {
   merge_phase_begin base-recheck
   git -C "$path" fetch origin "$base_branch"
   if ! git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
+    GATE_REASON=base-moved
     echo "merge: base moved during the merge gate — re-run 'merge $slot'." >&2
     return 1
   fi
@@ -2390,7 +2495,7 @@ merge_gate() {
   merge_phase_begin gh-merge
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
-    if gh pr merge "$pr" --squash --delete-branch=false; then
+    if gh pr merge "$pr" --squash --delete-branch=false --match-head-commit "$landing_sha"; then
       merged=1
       break
     fi
@@ -2399,12 +2504,281 @@ merge_gate() {
     sleep 3
   done
   if [[ "$merged" -ne 1 ]]; then
+    GATE_REASON=gh
     echo "merge: gh pr merge failed for PR #$pr after 5 attempts." >&2
     return 1
   fi
   echo ""
   echo "PR #$pr squash-merged. Next: finalize the slot and sync local main:"
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
+}
+
+# ---- Land ------------------------------------------------------------------
+# Off until the switch: the class is reported, and every land needs a covering instruction.
+AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-0}"
+LAND_ATTEMPTS=3
+# The refusals a fresh merge gate attempt can clear.
+LAND_TRANSIENT=" base-moved no-verdict hosted-error gh "
+
+trailer_value() { record_field <(printf '%s\n' "$2") "$1"; }
+
+# <commit> covers <tree>: merged with <base_ref>, it gives <tree> or an inert delta from it.
+commit_covers() {
+  local path="$1" commit="$2" base_ref="$3" tree="$4" merged
+  merged="$(git -C "$path" merge-tree --write-tree "$commit" "$base_ref" 2>/dev/null)" || return 1
+  merged="${merged%%$'\n'*}"
+  [[ "$merged" != "$tree" ]] || return 0
+  case "$(classify_diff_since_proof "$path" "$merged" "$tree")" in
+    doc|comment) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# The authorize phase. Its land-facts read also keeps what gate_class needs.
+CLASS_OWED=""
+CLASS_REVIEW=0
+AUTHORIZED_BY=""
+
+gate_authorize() {
+  local path="$1" slot="$2" pr="$3" base_ref="$4" facts tree instruction review
+  if ! facts="$(GITHUB_REPOSITORY="$(repo_slug)" bash "$SCRIPT_DIR/drain_pick.sh" land-facts "$pr")"; then
+    GATE_REASON=gh
+    echo "merge: could not read PR #$pr's facts ('drain_pick.sh land-facts $pr') — not merging." >&2
+    return 1
+  fi
+  tree="$(git -C "$path" rev-parse "$slot^{tree}")"
+  instruction="$(trailer_value INSTRUCTION "$facts")"
+  review="$(trailer_value REVIEW "$facts")"
+  CLASS_OWED="$(trailer_value OWED "$facts")"
+  CLASS_REVIEW=0
+  if [[ "$review" == "completed "* && "$(trailer_value UNRESOLVED "$facts")" == 0 ]] \
+    && commit_covers "$path" "${review#completed }" "$base_ref" "$tree"; then
+    CLASS_REVIEW=1
+  fi
+  if [[ "$instruction" =~ ^[0-9a-f]{40}$ ]] && commit_covers "$path" "$instruction" "$base_ref" "$tree"; then
+    echo "The recorded instruction for ${instruction:0:7} covers landing tree $tree."
+    merge_journal_note "instruction ${instruction:0:7} covers the landing tree"
+    AUTHORIZED_BY=instruction
+    return 0
+  fi
+  if [[ "$AUTO_MERGE_CLASS" -eq 1 ]]; then
+    echo "No recorded instruction covers landing tree $tree — the auto-merge class decides once the proofs are in."
+    merge_journal_note "no covering instruction - the class decides"
+    AUTHORIZED_BY=class
+    return 0
+  fi
+  GATE_REASON=unauthorized
+  echo "merge: no recorded instruction covers landing tree $tree (instruction: ${instruction:-unread}) — not merging." >&2
+  echo "  Show the user the PR at its head; on their word, 'drain_pick.sh instruct $pr@<head>', then re-run 'land $pr'." >&2
+  return 1
+}
+
+# Conditions in a fixed order, so CLASS=out names the first that fails.
+gate_class() {
+  local slot="$1" scripts_rc="$2" github_rc="$3" hosted_ratchet="$4" class=in kind
+  kind="$(tested_scope_field "$slot" kind || true)"
+  if [[ "$CLASS_OWED" != none ]]; then
+    class=out:owed
+  elif [[ "$scripts_rc" -eq 0 || "$github_rc" -eq 0 ]]; then
+    class=out:paths
+  elif [[ "$kind" != remote-run || "$hosted_ratchet" -ne 1 ]]; then
+    class=out:hosted
+  elif [[ "$CLASS_REVIEW" -ne 1 ]]; then
+    class=out:review
+  fi
+  echo "CLASS=$class"
+  merge_journal_note "class $class"
+  [[ "$AUTHORIZED_BY" == class && "$class" != in ]] || return 0
+  GATE_REASON=unauthorized
+  echo "merge: no recorded instruction covers the landing tree, and it is outside the auto-merge class ($class) — not merging." >&2
+  return 1
+}
+
+LAND_REASON=""
+LAND_BRANCH=""
+LAND_SLOT=""
+
+land_refuse() {
+  LAND_REASON="$1"
+  echo "land: refused ($1) — $2" >&2
+}
+
+# One line per slot record: slot, lease, task branch, split by US.
+slot_table() {
+  collect_slot_records | awk '
+    /^slot=/ { slot = substr($0, 6); lease = branch = "" }
+    /^lease=/ { lease = substr($0, 7) }
+    /^task_branch=/ { branch = substr($0, 13) }
+    /^$/ && slot != "" { print slot "\037" lease "\037" branch; slot = "" }'
+}
+
+# Checks needing no slot. Sets LAND_BRANCH, and LAND_SLOT to a dead run's land-<pr> slot.
+land_preflight() {
+  local pr="$1" view state base head draft cross facts owed instruction unresolved after slot lease branch
+  LAND_REASON="" LAND_BRANCH="" LAND_SLOT=""
+  if ! view="$(gh pr view "$pr" --json state,baseRefName,headRefName,isDraft,isCrossRepository \
+    --jq '[.state, .baseRefName, .headRefName, .isDraft, .isCrossRepository] | @tsv')"; then
+    land_refuse gh "could not read PR #$pr from GitHub"
+    return 1
+  fi
+  IFS=$'\t' read -r state base head draft cross <<< "$view"
+  [[ "$state" == OPEN ]] || { land_refuse not-open "PR #$pr is $state"; return 1; }
+  [[ "$base" == main ]] || { land_refuse base "PR #$pr is against $base, not main"; return 1; }
+  [[ "$draft" == false ]] || { land_refuse draft "PR #$pr is a draft"; return 1; }
+  if [[ "$head" != task/* || "$cross" != false ]]; then
+    land_refuse head-branch "PR #$pr's head $head is not a task/* branch of this repository"
+    return 1
+  fi
+  if ! facts="$(GITHUB_REPOSITORY="$(repo_slug)" bash "$SCRIPT_DIR/drain_pick.sh" land-facts "$pr")"; then
+    land_refuse gh "'drain_pick.sh land-facts $pr' failed"
+    return 1
+  fi
+  owed="$(trailer_value OWED "$facts")"
+  instruction="$(trailer_value INSTRUCTION "$facts")"
+  unresolved="$(trailer_value UNRESOLVED "$facts")"
+  after="$(trailer_value AFTER "$facts")"
+  case "$owed" in
+    absent|none|discharged) ;;
+    open|malformed) land_refuse "owed-$owed" "PR #$pr's owed-local checklist is $owed"; return 1 ;;
+    *) land_refuse facts "land-facts gave no owed verdict for PR #$pr"; return 1 ;;
+  esac
+  if [[ "$instruction" == none && "$AUTO_MERGE_CLASS" -eq 0 ]]; then
+    land_refuse no-instruction "PR #$pr has no recorded instruction ('drain_pick.sh instruct $pr@<sha>' records the user's)"
+    return 1
+  elif [[ "$instruction" != none && ! "$instruction" =~ ^[0-9a-f]{40}$ ]]; then
+    land_refuse facts "land-facts gave no instruction verdict for PR #$pr"
+    return 1
+  fi
+  [[ "$unresolved" =~ ^[0-9]+$ ]] || { land_refuse facts "land-facts gave no thread count for PR #$pr"; return 1; }
+  [[ "$unresolved" -eq 0 ]] || { land_refuse unresolved "PR #$pr has $unresolved unresolved review thread(s)"; return 1; }
+  case "$after" in
+    none) ;;
+    malformed) land_refuse merge-order-malformed "PR #$pr's '## Merge order' section is malformed"; return 1 ;;
+    *[!0-9,]*|'') land_refuse facts "land-facts gave no merge order for PR #$pr"; return 1 ;;
+    *) land_refuse "after:${after%%,*}" "PR #$pr lands after #${after//,/, #}, still open"; return 1 ;;
+  esac
+  while IFS=$'\x1f' read -r slot lease branch; do
+    if [[ "$lease" == "land-$pr" ]]; then
+      LAND_SLOT="$slot"
+    elif [[ "$branch" == "$head" ]]; then
+      land_refuse "slot:$slot" "$slot holds $head (lease ${lease:-unknown}); its session merges it with 'merge $slot'"
+      return 1
+    fi
+  done < <(slot_table)
+  LAND_BRANCH="$head"
+}
+
+# Claims the first free slot that holds no unpushed work, unless preflight found this PR's own slot.
+land_borrow() {
+  local pr="$1" slot path ldir
+  if [[ -z "$LAND_SLOT" ]]; then
+    while IFS=$'\t' read -r slot path; do
+      try_lock_slot "$slot" "land-$pr" "$path" >/dev/null 2>&1 || continue
+      if slot_is_clobber_safe "$path"; then
+        LAND_SLOT="$slot"
+        break
+      fi
+      echo "land: skipping $slot — it is free but holds unpushed work." >&2
+      with_slot_mutation "$slot" release_slot "$slot" "land-$pr" >/dev/null || true
+    done < <(slots_tsv)
+    [[ -n "$LAND_SLOT" ]] || { land_refuse no-free-slot "no free slot (land never reclaims a stale one)"; return 1; }
+  fi
+  ldir="$(lock_dir_for "$LAND_SLOT")"
+  printf '%s\n' "$LAND_BRANCH" > "$ldir/task_branch"
+  mark_slot_used "$LAND_SLOT"
+  echo "land: PR #$pr on $LAND_SLOT ($LAND_BRANCH)." >&2
+}
+
+# Runs under the slot's .merge lock. Proof records are dropped so every attempt proves on the hosted path.
+land_gate() {
+  local slot="$1" branch="$2" path ldir
+  path="$(slot_path "$slot")"
+  ldir="$(lock_dir_for "$slot")"
+  rm -f "$ldir/tested_tree" "$ldir/tested_scope" "$ldir/resharper_proof"
+  if ! { git -C "$path" fetch -q origin "refs/heads/$branch" && git -C "$path" checkout -q "$slot" \
+    && git -C "$path" reset -q --hard FETCH_HEAD && git -C "$path" clean -fdq; }; then
+    echo "land: could not check out $branch in $slot." >&2
+    echo "GATE=refused:checkout"
+    return 1
+  fi
+  run_merge_gate "$slot" origin/main 1 1
+}
+
+land_reset_slot() {
+  cmd_prepare "$1" origin/main --force && with_slot_mutation "$1" release_slot "$1" "$2"
+}
+
+# Waits for the new run's own status: a retry before it would read the errored one.
+land_redispatch() {
+  local branch="$1" sha before now deadline
+  sha="$(git -C "$ROOT" ls-remote origin "refs/heads/$branch" | cut -f1)"
+  [[ -n "$sha" ]] && before="$(remote_status "$sha" "$REMOTE_PROOF_CONTEXT")" || return 1
+  echo "land: re-dispatching the hosted headless suite on $branch." >&2
+  gh workflow run "$REMOTE_PROOF_WORKFLOW" --ref "$branch" >&2 || return 1
+  deadline=$(( SECONDS + REMOTE_NO_RUN_SECONDS + REMOTE_QUEUED_SECONDS ))
+  while now="$(remote_status "$sha" "$REMOTE_PROOF_CONTEXT")"; do
+    [[ "$now" == "$before" ]] || return 0
+    if (( SECONDS >= deadline )); then
+      echo "land: the re-dispatched run posted no status on $sha in $(( REMOTE_NO_RUN_SECONDS + REMOTE_QUEUED_SECONDS ))s." >&2
+      return 1
+    fi
+    sleep "$REMOTE_POLL_SECONDS"
+  done
+  return 1
+}
+
+cmd_land() {
+  local pr="${1:-}"
+  [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land requires <pr>" >&2; return 1; }
+  require_gh || return 1
+  local attempt out rc reason="" class="" slot=""
+  out="$(mktemp)"
+  for (( attempt = 1; attempt <= LAND_ATTEMPTS; attempt++ )); do
+    class=""
+    if land_preflight "$pr" && land_borrow "$pr"; then
+      slot="$LAND_SLOT"
+      # The gate's trailers are land's to print, once, after the last attempt.
+      { with_flock "$LOCK_ROOT/$slot.merge" 0 \
+          "land: a merge gate is already running on $slot — follow it with 'merge-progress $slot'." \
+          land_gate "$slot" "$LAND_BRANCH" && rc=0 || rc=$?
+        echo "$rc" > "$out.rc"; } | tee "$out" | grep --line-buffered -v -E '^(GATE|CLASS)=' || true
+      rc="$(cat "$out.rc")"
+      reason="$(record_field "$out" GATE)"
+      class="$(record_field "$out" CLASS)"
+      if [[ "$reason" == merged ]]; then
+        with_flock "$LOCK_ROOT/$slot.merge" 0 "" cmd_finalize "$slot" origin/main >&2 \
+          || echo "land: PR #$pr merged, but $slot was not finalized — run 'finalize $slot origin/main'." >&2
+        rm -f "$out" "$out.rc"
+        [[ -z "$class" ]] || echo "CLASS=$class"
+        echo "GATE=merged"
+        return 0
+      fi
+      if [[ -n "$reason" ]]; then
+        reason="${reason#refused:}"
+      elif [[ "$rc" -eq "$LOCK_BUSY_EXIT" ]]; then
+        reason=gate-running
+      else
+        reason=error
+      fi
+    else
+      reason="$LAND_REASON"
+    fi
+    [[ "$LAND_TRANSIENT" == *" $reason "* && "$attempt" -lt "$LAND_ATTEMPTS" ]] || break
+    echo "land: attempt $attempt/$LAND_ATTEMPTS refused ($reason) — retrying." >&2
+    case "$reason" in
+      hosted-error) land_redispatch "$LAND_BRANCH" || break ;;
+      gh) sleep "$REMOTE_POLL_SECONDS" ;;
+    esac
+  done
+  rm -f "$out" "$out.rc"
+  # A gate-running slot is another land's; touching it would pull its tree out from under that gate.
+  if [[ -n "$slot" && "$reason" != gate-running ]]; then
+    with_flock "$LOCK_ROOT/$slot.merge" 0 "" land_reset_slot "$slot" "land-$pr" >&2 \
+      || echo "land: $slot was not reset and released; it keeps lease land-$pr." >&2
+  fi
+  [[ -z "$class" ]] || echo "CLASS=$class"
+  echo "GATE=refused:$reason"
+  return 1
 }
 
 # ---- Finalize / review / revise --------------------------------------------
@@ -2594,6 +2968,7 @@ main() {
         "merge: a merge gate is already running on $1 — follow it with 'merge-progress $1'. If none is, a child of a killed gate still holds $LOCK_ROOT/$1.merge." \
         cmd_merge "$@"
       ;;
+    land) cmd_land "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
