@@ -3,8 +3,8 @@ set -euo pipefail
 # covers: scripts/agent_worktree_pool.sh
 
 # Regression for 'land-docs': a delta of doc/** and *.md paths rebases onto a moved main and lands;
-# a code path (a rename out of code included), an empty delta, a conflicting rebase and a held merge
-# turn each refuse with main untouched.
+# a code path (a rename out of code included), a failed fetch, an empty delta, a conflicting rebase
+# and a held merge turn each refuse with main untouched.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -78,6 +78,12 @@ commit_in "$SLOT" "move code into doc"
 land_docs
 expect_refused paths "a rename from src/ into doc/" "$before"
 grep -qx '  src/Code.cs' "$TMP/err" || fail "stderr lists the renamed-away code path"
+
+# An unreachable origin refuses with a trailer.
+git -C "$SLOT" remote set-url origin "$TMP/missing.git"
+land_docs
+git -C "$SLOT" remote set-url origin "$ORIGIN"
+expect_refused fetch "a failed fetch" "$before"
 
 # Nothing to land.
 reset_slot
