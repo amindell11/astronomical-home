@@ -1,0 +1,3 @@
+runtime inertia of Ship_1 (mass 800): tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1)
+EngineExhaust local=(-6.134482E-08,-0.06766849,0.1131774); Reactor local=(0,0.03333285,0)
+saved Assets/Prefabs/Ships/Ship_1.prefab: guid c3c15225cb3a8fd42a87c756c1d2d884 -> c3c15225cb3a8fd42a87c756c1d2d884; type=Variant; source=Assets/Prefabs/Ships/ShipBase.prefab

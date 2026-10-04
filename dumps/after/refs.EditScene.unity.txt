@@ -1,0 +1,14 @@
+INSTANCE /Ship_1 world=[1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,-21.09,0.68362,-8.59292,1] activeSelf=True
+  MOD target=self:/#Transform path=m_LocalPosition.x value=-21.09 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.y value=0.68362 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.z value=-8.59292 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.w value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.x value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.x value=90 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.z value=0 ref=null default=True
+  MOD target=null path=m_IsActive value=0 ref=null default=False
+  MOD target=null path=m_IsActive value=0 ref=null default=False
+  MOD target=self:/#GameObject path=m_Name value=Ship_1 ref=null default=True

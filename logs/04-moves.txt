@@ -1,0 +1,13 @@
+moved Assets/Prefabs/Ships/Ship_1.prefab -> Assets/Prefabs/Ships/Vanguard.prefab guid c3c15225cb3a8fd42a87c756c1d2d884 -> c3c15225cb3a8fd42a87c756c1d2d884
+deleted Assets/Prefabs/Ships/Ship_1_IllustratedRig.prefab (cbf9e976965900241889b793eb12ef1d); referrers immediately before: 0
+deleted Assets/Prefabs/Ships/Ship_1_VisualRig.prefab (7ea4dac0955778f47b9d2b953f107848); referrers immediately before: 0
+moved Assets/Visuals/Ships/Vanguard/DrawnStudy/Meshes -> Assets/Visuals/Ships/Vanguard/Meshes guid 6e7828a41fa48444db2f4258b70d955e -> 6e7828a41fa48444db2f4258b70d955e
+moved Assets/Visuals/Ships/Vanguard/DrawnStudy/VanguardStructure.fbx -> Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx guid c5c5e817aad5cf041bc02d3bc5d9eaeb -> c5c5e817aad5cf041bc02d3bc5d9eaeb
+moved Assets/Visuals/Ships/Vanguard/DrawnStudy/Vanguard vivid paint.mat -> Assets/Visuals/Ships/Vanguard/Vanguard vivid paint.mat guid 23d9c1e27be4491ba75d341f9ddde58a -> 23d9c1e27be4491ba75d341f9ddde58a
+moved Assets/Visuals/Ships/Vanguard/DrawnStudy/VanguardBaseColor.png -> Assets/Visuals/Ships/Vanguard/VanguardBaseColor.png guid 465b3122484301b4aba558473b39719f -> 465b3122484301b4aba558473b39719f
+moved Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Canopy.mat -> Assets/Visuals/Ships/Vanguard/Materials/Canopy.mat guid 884a0d34f4c15384a8962a6f4763c4bd -> 884a0d34f4c15384a8962a6f4763c4bd
+moved Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Engine glow.mat -> Assets/Visuals/Ships/Vanguard/Materials/Engine glow.mat guid 659f2c0c587fdf343a90737035d9cc6f -> 659f2c0c587fdf343a90737035d9cc6f
+moved Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Structural ink.mat -> Assets/Visuals/Ships/Vanguard/Materials/Structural ink.mat guid e6765fdc9dc463043a1e905da7bff949 -> e6765fdc9dc463043a1e905da7bff949
+moved Assets/Visuals/Studies/DrawnArt/Textures/EngineEmissionMask.asset -> Assets/Visuals/Ships/Vanguard/Materials/EngineEmissionMask.asset guid 0e9cd7fa36b01df438be3995034c0a97 -> 0e9cd7fa36b01df438be3995034c0a97
+deleted Assets/Visuals/Studies/DrawnArt/Textures (11eef7e8c69d7b54c95746c9fbbd109e); referrers immediately before: 0
+  "result": "Assets/Prefabs/Ships/Vanguard.prefab: root Vanguard -> Vanguard"

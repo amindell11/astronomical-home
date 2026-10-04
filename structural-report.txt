@@ -1,0 +1,84 @@
+STRUCTURAL EQUIVALENCE: Ship_1.prefab on the parent (f43c8f33) vs Vanguard.prefab (this slice), both dumped from a live editor.
+Paths normalized: Ship_1_IllustratedRig->ShipBaseRig, Model->Hull, Thruster/<emitter>->Thruster/EngineExhaust/<emitter>, Thruster/Reactor->Thruster/Reactor/ReactorGlow.
+
+== World matrices (max abs element difference; nonzero rows listed)
+0.135 audio /ShipBaseRig/Thruster/StrafeAudio#AudioSource
+0.135 audio /ShipBaseRig/Thruster/ThrustAudio#AudioSource
+5.1e-08 emitter /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#ParticleSystem
+5.1e-08 emitter /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#ParticleSystem
+5.1e-08 emitter /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#ParticleSystem
+5.1e-08 emitter /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#ParticleSystem
+2e-08 emitter /ShipBaseRig/Thruster/Reactor/ReactorGlow#ParticleSystem
+0.538 light /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#Light
+5.1e-08 renderer /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#ParticleSystemRenderer
+5.1e-08 renderer /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#ParticleSystemRenderer
+5.1e-08 renderer /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#ParticleSystemRenderer
+5.1e-08 renderer /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#ParticleSystemRenderer
+2e-08 renderer /ShipBaseRig/Thruster/Reactor/ReactorGlow#ParticleSystemRenderer
+0.135 transform /ShipBaseRig/Thruster#Transform
+ONLY-AFTER transform /ShipBaseRig/Thruster/EngineExhaust#Transform
+0.538 transform /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#Transform
+5.1e-08 transform /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#Transform
+5.1e-08 transform /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#Transform
+5.1e-08 transform /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#Transform
+5.1e-08 transform /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#Transform
+ONLY-AFTER transform /ShipBaseRig/Thruster/Reactor#Transform
+2e-08 transform /ShipBaseRig/Thruster/Reactor/ReactorGlow#Transform
+0.135 transform /ShipBaseRig/Thruster/StrafeAudio#Transform
+0.135 transform /ShipBaseRig/Thruster/ThrustAudio#Transform
+MAX by kind: {'audio': '0.135', 'canvas': '0', 'collider': '0', 'emitter': '5.1e-08', 'hardpoint[0]': '0', 'hardpoint[1]': '0', 'light': '0.538', 'renderer': '5.1e-08', 'transform': '0.538'}
+
+== Every serialized property of every component (differences only)
+/#Rigidbody .m_ImplicitTensor: A=1 | B=0
+/#Rigidbody .m_InertiaTensor: A=(1,1,1) | B=(315.180145,210.7702,359.7505)
+/ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#MeshFilter .m_Mesh: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/VanguardStructure.fbx::Mesh:MVP Canopy:-7525673178083678496 | B=Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx::Mesh:MVP Canopy:-7525673178083678496
+/ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#MeshRenderer .m_Materials.Array.data[0]: A=Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Canopy.mat::Material:Canopy:2100000 | B=Assets/Visuals/Ships/Vanguard/Materials/Canopy.mat::Material:Canopy:2100000
+/ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#MeshFilter .m_Mesh: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/VanguardStructure.fbx::Mesh:MVP Power Nacelle Core:-6857802119071956017 | B=Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx::Mesh:MVP Power Nacelle Core:-6857802119071956017
+/ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#MeshRenderer .m_Materials.Array.data[0]: A=Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Engine glow.mat::Material:Engine glow:2100000 | B=Assets/Visuals/Ships/Vanguard/Materials/Engine glow.mat::Material:Engine glow:2100000
+/ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour#MeshFilter .m_Mesh: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/Meshes/Vanguard contour.asset::Mesh:Vanguard contour:4300000 | B=Assets/Visuals/Ships/Vanguard/Meshes/Vanguard contour.asset::Mesh:Vanguard contour:4300000
+/ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#MeshFilter .m_Mesh: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/Meshes/Vanguard painted hull.asset::Mesh:Vanguard painted hull:4300000 | B=Assets/Visuals/Ships/Vanguard/Meshes/Vanguard painted hull.asset::Mesh:Vanguard painted hull:4300000
+/ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#MeshRenderer .m_Materials.Array.data[0]: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/Vanguard vivid paint.mat::Material:Vanguard vivid paint:2100000 | B=Assets/Visuals/Ships/Vanguard/Vanguard vivid paint.mat::Material:Vanguard vivid paint:2100000
+/ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#MeshFilter .m_Mesh: A=Assets/Visuals/Ships/Vanguard/DrawnStudy/VanguardStructure.fbx::Mesh:Vanguard structural ink:-7787778162717544815 | B=Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx::Mesh:Vanguard structural ink:-7787778162717544815
+/ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#MeshRenderer .m_Materials.Array.data[0]: A=Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Structural ink.mat::Material:Structural ink:2100000 | B=Assets/Visuals/Ships/Vanguard/Materials/Structural ink.mat::Material:Structural ink:2100000
+/ShipBaseRig/Thruster#Transform .m_LocalPosition: A=(0,-0.100000724,0) | B=(0,0,0)
+ONLY-B /ShipBaseRig/Thruster/EngineExhaust#Transform
+/ShipBaseRig/Thruster/EngineExhaust/ThrustLight#Transform .m_LocalPosition: A=(0,-0.2666668,0) | B=(0,0,0)
+/ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#Transform .m_LocalPosition: A=(-6.13448137E-08,-0.00100130856,0.113177367) | B=(0,0,0)
+/ShipBaseRig/Thruster/EngineExhaust/ThrustMain#Transform .m_LocalPosition: A=(-6.13448137E-08,-0.00100130856,0.113177367) | B=(0,0,0)
+/ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#Transform .m_LocalPosition: A=(-6.13448137E-08,-0.00100130856,0.113177367) | B=(0,0,0)
+/ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#Transform .m_LocalPosition: A=(-6.13448137E-08,-0.00100130856,0.113177367) | B=(0,0,0)
+ONLY-B /ShipBaseRig/Thruster/Reactor#Transform
+/ShipBaseRig/Thruster/Reactor/ReactorGlow#Transform .m_LocalPosition: A=(0,0.1,0) | B=(0,0,0)
+
+== Rigidbody and PhysX-computed inertia on a live instance
+-- before (Ship_1)
+authored: mass=215 automaticTensor=True automaticCOM=True tensor=(84.7046661,56.64449,96.6829453) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+after rb.mass=Ship.mass: mass=800 automaticTensor=True automaticCOM=True tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+runtime (Initialize order: mass, then ResetInertiaTensor if automatic): mass=800 automaticTensor=True automaticCOM=True tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+-- after (Vanguard)
+authored: mass=215 automaticTensor=False automaticCOM=True tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+after rb.mass=Ship.mass: mass=800 automaticTensor=False automaticCOM=True tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+runtime (Initialize order: mass, then ResetInertiaTensor if automatic): mass=800 automaticTensor=False automaticCOM=True tensor=(315.180145,210.7702,359.7505) rotation=(0,0,0,1) com=(-6.167565E-09,-0.113603912,-1.7615724E-08) drag=0.015 angDrag=0.01
+
+== Stats
+before hash=4c88e2f641d865c1 ; after hash=eb688fb2a7eb694a
+54,62c54,62
+< Ship_1/Ship.engine=Default_Engine
+< Ship_1/Ship.mass=800
+< Ship_1/Ship.maxBankAngle=35
+< Ship_1/Ship.maxHealth=100
+< Ship_1/Ship.shield=Default_Shield
+< Ship_1/Ship.startingLives=1
+< Ship_1/Ship.weapons=Ship_1
+< Ship_1/WeaponsController.primaryMount=Lasers
+< Ship_1/WeaponsController.secondaryMount=Missiles
+---
+> Vanguard/Ship.engine=Default_Engine
+> Vanguard/Ship.mass=800
+> Vanguard/Ship.maxBankAngle=35
+> Vanguard/Ship.maxHealth=100
+> Vanguard/Ship.shield=Default_Shield
+> Vanguard/Ship.startingLives=1
+> Vanguard/Ship.weapons=Vanguard
+> Vanguard/WeaponsController.primaryMount=Lasers
+> Vanguard/WeaponsController.secondaryMount=Missiles

@@ -1,0 +1,10 @@
+ItemCatalog.chassis: removed [3] Assets/Prefabs/Ships/Ship_1_Vanguard.prefab; 6 -> 5
+deleted Assets/Prefabs/Ships/Ship_1_Vanguard.prefab (3a01ae368c5e8964cb0b7c2b9696ac32); referrers immediately before: 0
+deleted Assets/Prefabs/Ships/Ship_1_Vanguard_VisualRig.prefab (465c051699129904fa00f89636079ac9); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Vanguard.fbx (7a1f21bf92bfa984d8482d274173eaae); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Accent_Orange.mat (fa4d8acb3b24d0847928d34f9ef5eba8); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Canopy_Smoke.mat (6665fd055bf8ae3499854d443c0e075c); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Engine_Blue.mat (c0a5f10b42027cb4b90591cf06d6c4ea); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Hull_White.mat (969df4aa141d7574f8767e5323a6db5f); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Mechanical_Charcoal.mat (e0a908ed8b702a44ab5f2578af788931); referrers immediately before: 0
+deleted Assets/Visuals/Ships/Vanguard/Materials/VNG_Panel_Gray.mat (3132998b89086174a901784d5ff816a6); referrers immediately before: 0

@@ -1,0 +1,143 @@
+9019692503019240084 /#GameObject
+8439832807110228067 <Object:>
+3315994328009430456 /#Transform
+2065052533619057490 /#Rigidbody
+1627378045775059580 /#Ship
+889230832390488108 /#MovementController
+478406817268338590 /#DamageController
+4986091904424817130 /#WeaponsController
+3557081719019162112 /#KinematicsPoller
+8177332119551268866 /Mesh#Transform
+8574585812059544305 /Hardpoints#Transform
+1098788530975291489 /ShipBody#Transform
+3804089185943157422 /ShipBaseRig#Transform
+7391696995673454689 /Hardpoints/Primary#Transform
+7391696995673454695 /Hardpoints/Secondary#Transform
+1098788530975291490 /ShipBody#GameObject
+7485672228311963010 /ShipBaseRig#GameObject
+3591063936646833771 /ShipBaseRig/Thruster#Transform
+9026032370256950368 /ShipBaseRig/SmokeTrail#Transform
+7761295955160430356 /ShipBaseRig/Hull#Transform
+6033107083833879183 /ShipBaseRig/MinimapMarker#Transform
+6390074320415284118 /ShipBaseRig/Shield#RectTransform
+4043134388213477555 /ShipBaseRig/UILockOnIndicator#RectTransform
+7391696995673454690 /Hardpoints/Primary#GameObject
+7391696995673454688 /Hardpoints/Secondary#GameObject
+6725378562230911913 /Mesh#GameObject
+4662749245844192601 /Hardpoints#GameObject
+1098788530975291488 /ShipBody#SphereCollider
+6522507462139140417 /ShipBaseRig/Thruster#GameObject
+1999045433141603935 /ShipBaseRig/Thruster/EngineExhaust#Transform
+8989265280679556350 /ShipBaseRig/Thruster/Reactor#Transform
+4440591227411308227 /ShipBaseRig/Thruster/ThrustAudio#Transform
+4550392634160880500 /ShipBaseRig/Thruster/StrafeAudio#Transform
+893077429524735672 /ShipBaseRig/UILockOnIndicator#GameObject
+6168172719897077274 /ShipBaseRig/MinimapMarker#GameObject
+3603918603221532034 /ShipBaseRig/Shield#GameObject
+950499251624843984 /ShipBaseRig/Shield/ShieldBar#RectTransform
+2114857977339836883 /ShipBaseRig/Shield/HealthBar#RectTransform
+7810202900489691922 /Mesh#MeshCollider
+6003003962670052330 /ShipBaseRig#HullVisuals
+2983941524102840427 /ShipBaseRig#AudioSource
+3151393058246106894 /ShipBaseRig#ShipDamageAudio
+4745134117649361138 /ShipBaseRig#ShipVisualRig
+580355213921203742 /ShipBaseRig#ShipBreakupVisual
+5159798729862065343 /ShipBaseRig/Hull#GameObject
+4797990743652633294 /ShipBaseRig/Hull/Vanguard#Transform
+9027861866777654044 /ShipBaseRig/SmokeTrail#GameObject
+895321112886637218 /ShipBaseRig/UILockOnIndicator#Canvas
+9171299914219589410 /ShipBaseRig/UILockOnIndicator#CanvasRenderer
+2009453953353398458 /ShipBaseRig/UILockOnIndicator#Image
+5182881900081137759 /ShipBaseRig/UILockOnIndicator#Animator
+2167409313240186854 /ShipBaseRig/UILockOnIndicator#CanvasGroup
+133489904978189751 /ShipBaseRig/UILockOnIndicator#LockOnIndicator
+1929812178397193148 /ShipBaseRig/UILockOnIndicator#Billboard
+3048298658184728466 /ShipBaseRig/UILockOnIndicator#GlowingUIController
+2694066714663039191 /ShipBaseRig/Shield/ShieldBar#GameObject
+4471894339073447799 /ShipBaseRig/Shield/ShieldBar/Fill#RectTransform
+4471894339073447795 /ShipBaseRig/Shield/ShieldBar/Value#RectTransform
+7148953471898636904 /ShipBaseRig/Thruster/EngineExhaust#GameObject
+8180981700272860192 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#Transform
+4712182693731188152 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#Transform
+3262933375296588798 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#Transform
+166987792159149809 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#Transform
+7336083005678022356 /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#Transform
+2114857977339836880 /ShipBaseRig/Shield/HealthBar#GameObject
+4471894339073447801 /ShipBaseRig/Shield/HealthBar/Fill#RectTransform
+4471894339073447781 /ShipBaseRig/Shield/HealthBar/Value#RectTransform
+446764370243767088 /ShipBaseRig/Shield#Canvas
+7446430033075045108 /ShipBaseRig/Shield#CanvasScaler
+3816124219717366253 /ShipBaseRig/Shield#GraphicRaycaster
+3225898370208458972 /ShipBaseRig/Thruster/ThrustAudio#GameObject
+7846412662039172126 /ShipBaseRig/Thruster/StrafeAudio#GameObject
+7517008883515718687 /ShipBaseRig/Hull/Vanguard#GameObject
+7804422700829320089 /ShipBaseRig/Hull/Vanguard/Authored mesh#Transform
+9191788245618800808 /ShipBaseRig/SmokeTrail#ParticleSystem
+4135561326471896535 /ShipBaseRig/MinimapMarker#MeshFilter
+3642175496717125399 /ShipBaseRig/MinimapMarker#MeshRenderer
+3305631731789382418 /ShipBaseRig/MinimapMarker#SortingGroup
+5743460216174437109 /ShipBaseRig/MinimapMarker#MinimapShipMarker
+4284471974193235230 /ShipBaseRig/Thruster#ThrusterVisuals
+1126264686424759330 /ShipBaseRig/Thruster#EngineAudio
+2013521649776109067 /ShipBaseRig/Thruster/Reactor#GameObject
+8503598575270876550 /ShipBaseRig/Thruster/Reactor/ReactorGlow#Transform
+9190662018954994584 /ShipBaseRig/SmokeTrail#ParticleSystemRenderer
+6227900399139899535 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#GameObject
+1583488491918839595 /ShipBaseRig/Thruster/ThrustAudio#AudioSource
+9013583008022054333 /ShipBaseRig/Thruster/StrafeAudio#AudioSource
+2114857977339836882 /ShipBaseRig/Shield/HealthBar#CanvasRenderer
+2114857977339836893 /ShipBaseRig/Shield/HealthBar#Image
+2114857977339836892 /ShipBaseRig/Shield/HealthBar#StatusBarUI
+2112683799422041479 /ShipBaseRig/Shield/ShieldBar#CanvasRenderer
+9008407611550979550 /ShipBaseRig/Shield/ShieldBar#Image
+4617960015517265184 /ShipBaseRig/Shield/ShieldBar#StatusBarUI
+1036179944479905838 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#GameObject
+5513881520449289675 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#ParticleSystem
+164572130073014947 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#ParticleSystem
+4471894339073447802 /ShipBaseRig/Shield/HealthBar/Value#GameObject
+4471894339073447792 /ShipBaseRig/Shield/ShieldBar/Value#GameObject
+4471894339073447796 /ShipBaseRig/Shield/ShieldBar/Fill#GameObject
+4471894339073447806 /ShipBaseRig/Shield/HealthBar/Fill#GameObject
+5943827663034551599 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#GameObject
+324840127574835788 /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#GameObject
+4358948061446104834 /ShipBaseRig/Hull/Vanguard/Authored mesh#GameObject
+2544192490052530992 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#Transform
+2439330387832398239 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#Transform
+9141627358060705680 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#Transform
+9141867817058759773 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#Transform
+7986224748959264640 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour#Transform
+3762044061149352676 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#GameObject
+1626691076445373282 /ShipBaseRig/Thruster/Reactor/ReactorGlow#GameObject
+2704925486424084659 /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#Light
+4199692235823666767 /ShipBaseRig/Thruster/EngineExhaust/ThrustLight#UniversalAdditionalLightData
+5881554073368854971 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#ParticleSystem
+6110828089416104403 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#ParticleSystemRenderer
+425776414775865826 /ShipBaseRig/Thruster/Reactor/ReactorGlow#ParticleSystem
+8751175944504909856 /ShipBaseRig/Thruster/Reactor/ReactorGlow#ParticleSystemRenderer
+4471894339073447803 /ShipBaseRig/Shield/HealthBar/Fill#Image
+4471894339073447783 /ShipBaseRig/Shield/HealthBar/Value#Text
+7707700799178780881 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#GameObject
+5075121399033694209 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#GameObject
+8544152622633189662 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#ParticleSystemRenderer
+4471894339073447794 /ShipBaseRig/Shield/ShieldBar/Value#CanvasRenderer
+4471894339073447805 /ShipBaseRig/Shield/ShieldBar/Value#Text
+4471894339073447798 /ShipBaseRig/Shield/ShieldBar/Fill#CanvasRenderer
+4471894339073447793 /ShipBaseRig/Shield/ShieldBar/Fill#Image
+4471894339073447780 /ShipBaseRig/Shield/HealthBar/Value#CanvasRenderer
+4471894339073447800 /ShipBaseRig/Shield/HealthBar/Fill#CanvasRenderer
+4323761913957487874 /ShipBaseRig/Thruster/EngineExhaust/ThrustMain (1)#ParticleSystemRenderer
+3824823364062076610 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#ParticleSystem
+1364310762744354825 /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall (1)#ParticleSystemRenderer
+7895022674429484914 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour#GameObject
+2507758327192760053 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#GameObject
+7142925655947163409 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#GameObject
+6305548745212828179 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#MeshFilter
+3404845575493642289 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink#MeshRenderer
+8162519596949356998 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#MeshFilter
+32397290175142680 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy#MeshRenderer
+2576569893170706112 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#MeshFilter
+7297720937364438226 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull#MeshRenderer
+6183370363362665849 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#MeshFilter
+1964375421714476891 /ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core#MeshRenderer
+911918572924853961 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour#MeshFilter
+5620517345947471404 /ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour#MeshRenderer

@@ -1,0 +1,9 @@
+Crimson-0: changed pixels=0; max difference=0
+Crimson-90: changed pixels=0; max difference=0
+Crimson-135: changed pixels=0; max difference=0
+Nightshade-0: changed pixels=0; max difference=0
+Nightshade-90: changed pixels=0; max difference=0
+Nightshade-135: changed pixels=0; max difference=0
+Vanguard-0: changed pixels=0; max difference=0
+Vanguard-90: changed pixels=0; max difference=0
+Vanguard-135: changed pixels=0; max difference=0

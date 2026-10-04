@@ -1,0 +1,71 @@
+Assets/Prefabs/Sectors/ArenaSector.prefab	&6582090711314777745	template	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/CombatSector.prefab	&8244661234500110010	template	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/TrialSector.prefab	&1116166669378757183	- template	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/TrialSector.prefab	&1116166669378757183	- template	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	PrefabInstance.m_SourcePrefab	100100000	<prefab asset>
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_Name=Ship_1 ref={fileID: 0}	579888702181409527	/#GameObject
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD smoke= ref={fileID: 0}	4368679400082138271	UNRESOLVED
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalPosition.x=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalPosition.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalPosition.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalRotation.w=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalRotation.x=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalRotation.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalRotation.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalEulerAnglesHint.x=90 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	m_RemovedGameObjects	7172694582511940045	UNRESOLVED
+Assets/Prefabs/Sectors/RLSector.prefab	&405733312791809307	m_RemovedGameObjects	1344102394363913321	UNRESOLVED
+Assets/Prefabs/Sectors/RLSector.prefab	&6811127299643531456 stripped	stripped.m_CorrespondingSourceObject	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/RLSector.prefab	&7355680843478642436 stripped	stripped.m_CorrespondingSourceObject	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	PrefabInstance.m_SourcePrefab	100100000	<prefab asset>
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_Name=Ship_1 ref={fileID: 0}	579888702181409527	/#GameObject
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_IsActive=1 ref={fileID: 0}	579888702181409527	/#GameObject
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_BoundingSphereOverride.w=0 ref={fileID: 0}	4559827372551503781	UNRESOLVED
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_BoundingSphereOverride.x=0 ref={fileID: 0}	4559827372551503781	UNRESOLVED
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_BoundingSphereOverride.y=0 ref={fileID: 0}	4559827372551503781	UNRESOLVED
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_BoundingSphereOverride.z=0 ref={fileID: 0}	4559827372551503781	UNRESOLVED
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalPosition.x=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalPosition.y=30 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalPosition.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalRotation.w=1 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalRotation.x=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalRotation.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalRotation.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalEulerAnglesHint.x=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&8756169627262207133	MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&1887568373383456386 stripped	stripped.m_CorrespondingSourceObject	7184882482910536223	/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab	&2495171898695952710 stripped	stripped.m_CorrespondingSourceObject	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	PrefabInstance.m_SourcePrefab	100100000	<prefab asset>
+Assets/Scenes/EditScene.unity	&567399501	MOD m_Name=Ship_1 ref={fileID: 0}	579888702181409527	/#GameObject
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalPosition.x=-21.09 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalPosition.y=0.68362 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalPosition.z=-8.59292 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalRotation.w=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalRotation.x=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalRotation.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalRotation.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalEulerAnglesHint.x=90 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Scenes/EditScene.unity	&567399501	MOD m_IsActive=0 ref={fileID: 0}	6768327948927986423	UNRESOLVED
+Assets/Scenes/EditScene.unity	&567399501	MOD m_IsActive=0 ref={fileID: 0}	7172694582511940045	UNRESOLVED
+Assets/Settings/Ships/ItemCatalog.asset	&11400000	list-entry	7184882482910536223	/#Ship
+Assets/Settings/Ships/PlayerLoadout.asset	&11400000	list-entry	7184882482910536223	/#Ship
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	PrefabInstance.m_SourcePrefab	100100000	<prefab asset>
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_Name=Ship_1_Vanguard ref={fileID: 0}	579888702181409527	/#GameObject
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalPosition.x=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalPosition.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalPosition.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalRotation.w=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalRotation.x=0.7071068 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalRotation.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalRotation.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalEulerAnglesHint.x=90 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	m_RemovedGameObjects	9019692503019240084	UNRESOLVED
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&4551007443338263249	added-target	6567524228965887451	/#Transform
+Assets/Prefabs/Ships/Ship_1_Vanguard.prefab	&7209389257807206154 stripped	stripped.m_CorrespondingSourceObject	6567524228965887451	/#Transform

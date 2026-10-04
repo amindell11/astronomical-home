@@ -1,0 +1,1 @@
+REF <ItemSubset:PlayerLoadout> .ships.Array.data[0] -> asset:/#Ship

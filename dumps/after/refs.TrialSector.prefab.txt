@@ -1,0 +1,2 @@
+REF /WaveDirector#WaveDirector .roster.Array.data[0].template -> asset:/#Ship
+REF /WaveDirector#WaveDirector .roster.Array.data[2].template -> asset:/#Ship

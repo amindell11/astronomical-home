@@ -1,0 +1,19 @@
+INSTANCE /Ship_1 world=[1.35,0,0,0,0,1.35,0,0,0,0,1.35,0,0,30,0,1] activeSelf=True
+  MOD target=self:/#GameObject path=m_Name value=Ship_1 ref=null default=True
+  MOD target=self:/#GameObject path=m_IsActive value=1 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.w value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.x value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.y value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.z value=0 ref=null default=False
+  MOD target=self:/#Transform path=m_LocalPosition.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.y value=30 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.w value=1 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.z value=0 ref=null default=True
+REF /#Transform .m_Children.Array.data[0] -> instance:Ship_1:/#Transform
+REF /#Sector .adopted.Array.data[0].target -> instance:Ship_1:/#Ship

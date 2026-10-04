@@ -1,0 +1,244 @@
+REFERENCE REPORT: every serialized pointer to GUID c3c15225cb3a8fd42a87c756c1d2d884 (Ship_1.prefab -> Vanguard.prefab, GUID kept)
+Scope: the 8 files the brief names; a whole-Assets scan finds no other file pointing into the prefab (Ship_1_Vanguard.prefab, which also did, is deleted).
+Logical object = path in the prefab + component type, from an editor fileID map (AssetDatabase.TryGetGUIDAndLocalFileIdentifier over LoadAllAssetsAtPath).
+
+Before: 56 occurrences, 47 resolving, 9 already dead on the parent.
+After : 56 occurrences, 47 resolving, 9 dead (the same 9 entries, same fileIDs, untouched).
+
+file                                          field                                                       before fileID ->         after fileID  logical before | after  RESULT
+ArenaSector.prefab                            template                                              7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+CombatSector.prefab                           template                                              7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+TrialSector.prefab                            - template                                            7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+TrialSector.prefab                            - template                                            7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+RLSector.prefab                               PrefabInstance.m_SourcePrefab                                   100100000 ->            100100000  <prefab asset> | <prefab asset>  SAME
+RLSector.prefab                               MOD m_Name=Ship_1 ref={fileID: 0}                      579888702181409527 ->  9019692503019240084  /#GameObject | /#GameObject  SAME
+RLSector.prefab                               MOD smoke= ref={fileID: 0}                            4368679400082138271 ->  4368679400082138271  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+RLSector.prefab                               MOD m_LocalPosition.x=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalPosition.y=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalPosition.z=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalRotation.w=0.7071068 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalRotation.x=0.7071068 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalRotation.y=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalRotation.z=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalEulerAnglesHint.x=90 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+RLSector.prefab                               m_RemovedGameObjects                                  7172694582511940045 ->  7172694582511940045  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+RLSector.prefab                               m_RemovedGameObjects                                  1344102394363913321 ->  1344102394363913321  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+RLSector.prefab                               stripped.m_CorrespondingSourceObject                  7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+RLSector.prefab                               stripped.m_CorrespondingSourceObject                  6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        PrefabInstance.m_SourcePrefab                                   100100000 ->            100100000  <prefab asset> | <prefab asset>  SAME
+TestBenchSector.prefab                        MOD m_Name=Ship_1 ref={fileID: 0}                      579888702181409527 ->  9019692503019240084  /#GameObject | /#GameObject  SAME
+TestBenchSector.prefab                        MOD m_IsActive=1 ref={fileID: 0}                       579888702181409527 ->  9019692503019240084  /#GameObject | /#GameObject  SAME
+TestBenchSector.prefab                        MOD m_BoundingSphereOverride.w=0 ref={fileID: 0}      4559827372551503781 ->  4559827372551503781  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+TestBenchSector.prefab                        MOD m_BoundingSphereOverride.x=0 ref={fileID: 0}      4559827372551503781 ->  4559827372551503781  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+TestBenchSector.prefab                        MOD m_BoundingSphereOverride.y=0 ref={fileID: 0}      4559827372551503781 ->  4559827372551503781  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+TestBenchSector.prefab                        MOD m_BoundingSphereOverride.z=0 ref={fileID: 0}      4559827372551503781 ->  4559827372551503781  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+TestBenchSector.prefab                        MOD m_LocalPosition.x=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalPosition.y=30 ref={fileID: 0}              6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalPosition.z=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalRotation.w=1 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalRotation.x=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalRotation.y=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalRotation.z=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalEulerAnglesHint.x=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+TestBenchSector.prefab                        stripped.m_CorrespondingSourceObject                  7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+TestBenchSector.prefab                        stripped.m_CorrespondingSourceObject                  6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               PrefabInstance.m_SourcePrefab                                   100100000 ->            100100000  <prefab asset> | <prefab asset>  SAME
+EditScene.unity                               MOD m_Name=Ship_1 ref={fileID: 0}                      579888702181409527 ->  9019692503019240084  /#GameObject | /#GameObject  SAME
+EditScene.unity                               MOD m_LocalPosition.x=-21.09 ref={fileID: 0}          6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalPosition.y=0.68362 ref={fileID: 0}         6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalPosition.z=-8.59292 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalRotation.w=0.7071068 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalRotation.x=0.7071068 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalRotation.y=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalRotation.z=0 ref={fileID: 0}               6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalEulerAnglesHint.x=90 ref={fileID: 0}       6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalEulerAnglesHint.y=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_LocalEulerAnglesHint.z=0 ref={fileID: 0}        6567524228965887451 ->  3315994328009430456  /#Transform | /#Transform  SAME
+EditScene.unity                               MOD m_IsActive=0 ref={fileID: 0}                      6768327948927986423 ->  6768327948927986423  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+EditScene.unity                               MOD m_IsActive=0 ref={fileID: 0}                      7172694582511940045 ->  7172694582511940045  UNRESOLVED | UNRESOLVED  DEAD-BEFORE, KEPT
+ItemCatalog.asset                             list-entry                                            7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+PlayerLoadout.asset                           list-entry                                            7184882482910536223 ->  1627378045775059580  /#Ship | /#Ship  SAME
+
+TOTAL rows checked: 56; pass: 56; fail: 0
+
+EDITOR-SIDE CHECK (live editor): per file, the instance world matrix, every override GetPropertyModifications reports (target as logical object, property path, value), removed/added objects, and every object reference into the prefab or into a nested instance; before vs after, compared as multisets (Unity re-sorts modifications by target id on save).
+  ArenaSector.prefab: 1 lines, identical
+  CombatSector.prefab: 1 lines, identical
+  TrialSector.prefab: 2 lines, identical
+  RLSector.prefab: 15 lines, identical
+  TestBenchSector.prefab: 19 lines, identical
+  EditScene.unity: 14 lines, identical
+  ItemCatalog.asset: 1 lines, identical
+  PlayerLoadout.asset: 1 lines, identical
+
+Before dumps (editor view):
+--- before/refs.ArenaSector.prefab.txt
+REF /TeamASpawner#RingSpawner .template -> asset:/#Ship
+--- before/refs.CombatSector.prefab.txt
+REF /Ambush/Ambush Wave#RingSpawner .template -> asset:/#Ship
+--- before/refs.EditScene.unity.txt
+INSTANCE /Ship_1 world=[1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,-21.09,0.68362,-8.59292,1] activeSelf=True
+  MOD target=self:/#GameObject path=m_Name value=Ship_1 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.x value=-21.09 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.y value=0.68362 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.z value=-8.59292 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.w value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.x value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.x value=90 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.z value=0 ref=null default=True
+  MOD target=null path=m_IsActive value=0 ref=null default=False
+  MOD target=null path=m_IsActive value=0 ref=null default=False
+--- before/refs.ItemCatalog.asset.txt
+REF <ItemCatalog:ItemCatalog> .chassis.Array.data[0] -> asset:/#Ship
+--- before/refs.PlayerLoadout.asset.txt
+REF <ItemSubset:PlayerLoadout> .ships.Array.data[0] -> asset:/#Ship
+--- before/refs.RLSector.prefab.txt
+INSTANCE /Ship_1 world=[1.35,0,0,0,0,-1.60932544E-07,1.35000014,0,0,-1.35000014,-1.60932544E-07,0,25.18928,26.45607,0,1] activeSelf=True
+  MOD target=self:/#GameObject path=m_Name value=Ship_1 ref=null default=True
+  MOD target=null path=smoke value= ref=null default=False
+  MOD target=self:/#Transform path=m_LocalPosition.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.w value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.x value=0.7071068 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.x value=90 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.z value=0 ref=null default=True
+REF /#Transform .m_Children.Array.data[0] -> instance:Ship_1:/#Transform
+REF /#Sector .adopted.Array.data[0].target -> instance:Ship_1:/#Ship
+--- before/refs.TestBenchSector.prefab.txt
+INSTANCE /Ship_1 world=[1.35,0,0,0,0,1.35,0,0,0,0,1.35,0,0,30,0,1] activeSelf=True
+  MOD target=self:/#GameObject path=m_Name value=Ship_1 ref=null default=True
+  MOD target=self:/#GameObject path=m_IsActive value=1 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.w value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.x value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.y value=0 ref=null default=False
+  MOD target=null path=m_BoundingSphereOverride.z value=0 ref=null default=False
+  MOD target=self:/#Transform path=m_LocalPosition.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.y value=30 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalPosition.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.w value=1 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalRotation.z value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.x value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.y value=0 ref=null default=True
+  MOD target=self:/#Transform path=m_LocalEulerAnglesHint.z value=0 ref=null default=True
+REF /#Transform .m_Children.Array.data[0] -> instance:Ship_1:/#Transform
+REF /#Sector .adopted.Array.data[0].target -> instance:Ship_1:/#Ship
+--- before/refs.TrialSector.prefab.txt
+REF /WaveDirector#WaveDirector .roster.Array.data[0].template -> asset:/#Ship
+REF /WaveDirector#WaveDirector .roster.Array.data[2].template -> asset:/#Ship
+
+FILEID OVERLAP: Unity reused PrefabInstance id 8439832807110228067 and kept the hull subtree's ids when it overwrote the asset; 25 fileIDs occur in both the old and new maps and every one names the same logical object, so no stale pointer can resolve to a different object. The 8 files' live pointers (root GameObject 579888702181409527 -> 9019692503019240084, root Transform 6567524228965887451 -> 3315994328009430456, Ship 7184882482910536223 -> 1627378045775059580) are not among them.
+
+REMAP LOG (editor script, SerializedObject retarget of each pointer by persistent fileID; nested-instance overrides edited in place on the PrefabInstance, then MergePrefabInstance):
+Assets/Prefabs/Sectors/ArenaSector.prefab: remapped=1 in-file=0 dead-kept=0
+REMAP /TeamASpawner#RingSpawner .template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/CombatSector.prefab: remapped=1 in-file=0 dead-kept=0
+REMAP /Ambush/Ambush Wave#RingSpawner .template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/TrialSector.prefab: remapped=2 in-file=0 dead-kept=0
+REMAP /WaveDirector#WaveDirector .roster.Array.data[0].template: 7184882482910536223 -> 1627378045775059580 /#Ship
+REMAP /WaveDirector#WaveDirector .roster.Array.data[2].template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Settings/Ships/ItemCatalog.asset: remapped=1 in-file=0 dead-kept=0
+REMAP <ItemCatalog:ItemCatalog> .chassis.Array.data[0]: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Settings/Ships/PlayerLoadout.asset: remapped=1 in-file=0 dead-kept=0
+REMAP <ItemSubset:PlayerLoadout> .ships.Array.data[0]: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/RLSector.prefab: remapped=11 in-file=1 dead-kept=3
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[1].target -> 4368679400082138271
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[0] -> 7172694582511940045
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[1] -> 1344102394363913321
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab: remapped=12 in-file=1 dead-kept=4
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[2].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[3].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[4].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[5].target -> 4559827372551503781
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[12].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[13].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[14].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[15].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Scenes/EditScene.unity: remapped=11 in-file=0 dead-kept=2
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[11].target -> 6768327948927986423
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[12].target -> 7172694582511940045
+  "result": "Assets/Prefabs/Sectors/RLSector.prefab: Ship_1 sibling 1 -> 0"
+  "result": "Assets/Prefabs/Sectors/TestBenchSector.prefab: Ship_1 sibling 2 -> 0"
+=== redo RLSector/TestBench with merge (after restoring both from git)
+Assets/Prefabs/Sectors/RLSector.prefab: remapped=11 in-file=1 dead-kept=3
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[1].target -> 4368679400082138271
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[0] -> 7172694582511940045
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[1] -> 1344102394363913321
+MERGED instance Ship_1
+SIBLING Ship_1: 1 -> 0
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab: remapped=12 in-file=1 dead-kept=4
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[2].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[3].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[4].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[5].target -> 4559827372551503781
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[12].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[13].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[14].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[15].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+MERGED instance Ship_1
+SIBLING Ship_1: 2 -> 0
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship

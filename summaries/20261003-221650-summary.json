@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-03T22:17:33.7784746-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "ShipChassisRenderPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  9,
+                   "passed":  9,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  5.239
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261003-221650-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261003-221650-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  9,
+                     "passed":  9,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  5.2390765,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "ShipChassisRenderPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-04 05:17:23Z",
+                     "finishedAt":  "2026-10-04 05:17:28Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  43.369,
+                       "startupToFirstTestSec":  27.062,
+                       "executionSec":  5,
+                       "remainingSec":  11.308,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  39692,
+                                         "rootPeakPrivateGB":  2.775,
+                                         "rootPeakWorkingSetGB":  2.323,
+                                         "treePeakSampledPrivateGB":  2.91,
+                                         "treePeakSampledWorkingSetGB":  2.563,
+                                         "treeSumOfPeaksPrivateGB":  2.937,
+                                         "commitHeadroomAtLaunchGB":  24.03,
+                                         "commitHeadroomMinGB":  22.23,
+                                         "availablePhysicalAtLaunchGB":  7.32,
+                                         "availablePhysicalMinGB":  5.94,
+                                         "bootLaneReleasedAtSec":  11.028,
+                                         "treePeakAtSec":  32.228,
+                                         "samples":  5,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

@@ -1,0 +1,1 @@
+REF /Ambush/Ambush Wave#RingSpawner .template -> asset:/#Ship

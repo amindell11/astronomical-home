@@ -1,0 +1,1 @@
+REF <ItemCatalog:ItemCatalog> .chassis.Array.data[0] -> asset:/#Ship

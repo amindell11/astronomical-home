@@ -1,0 +1,100 @@
+Assets/Prefabs/Sectors/ArenaSector.prefab: remapped=1 in-file=0 dead-kept=0
+REMAP /TeamASpawner#RingSpawner .template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/CombatSector.prefab: remapped=1 in-file=0 dead-kept=0
+REMAP /Ambush/Ambush Wave#RingSpawner .template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/TrialSector.prefab: remapped=2 in-file=0 dead-kept=0
+REMAP /WaveDirector#WaveDirector .roster.Array.data[0].template: 7184882482910536223 -> 1627378045775059580 /#Ship
+REMAP /WaveDirector#WaveDirector .roster.Array.data[2].template: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Settings/Ships/ItemCatalog.asset: remapped=1 in-file=0 dead-kept=0
+REMAP <ItemCatalog:ItemCatalog> .chassis.Array.data[0]: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Settings/Ships/PlayerLoadout.asset: remapped=1 in-file=0 dead-kept=0
+REMAP <ItemSubset:PlayerLoadout> .ships.Array.data[0]: 7184882482910536223 -> 1627378045775059580 /#Ship
+Assets/Prefabs/Sectors/RLSector.prefab: remapped=11 in-file=1 dead-kept=3
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[1].target -> 4368679400082138271
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[0] -> 7172694582511940045
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[1] -> 1344102394363913321
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab: remapped=12 in-file=1 dead-kept=4
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[2].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[3].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[4].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[5].target -> 4559827372551503781
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[12].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[13].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[14].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[15].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Scenes/EditScene.unity: remapped=11 in-file=0 dead-kept=2
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[11].target -> 6768327948927986423
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[12].target -> 7172694582511940045
+  "result": "Assets/Prefabs/Sectors/RLSector.prefab: Ship_1 sibling 1 -> 0"
+  "result": "Assets/Prefabs/Sectors/TestBenchSector.prefab: Ship_1 sibling 2 -> 0"
+=== redo RLSector/TestBench with merge (after restoring both from git)
+Assets/Prefabs/Sectors/RLSector.prefab: remapped=11 in-file=1 dead-kept=3
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[1].target -> 4368679400082138271
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[2].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[3].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[4].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[5].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[0] -> 7172694582511940045
+DEAD-KEPT <Object:> .m_Modification.m_RemovedGameObjects.Array.data[1] -> 1344102394363913321
+MERGED instance Ship_1
+SIBLING Ship_1: 1 -> 0
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
+Assets/Prefabs/Sectors/TestBenchSector.prefab: remapped=12 in-file=1 dead-kept=4
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[0].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[1].target: 579888702181409527 -> 9019692503019240084 /#GameObject
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[2].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[3].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[4].target -> 4559827372551503781
+DEAD-KEPT <Object:> .m_Modification.m_Modifications.Array.data[5].target -> 4559827372551503781
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[6].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[7].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[8].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[9].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[10].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[11].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[12].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[13].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[14].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+REMAP <Object:> .m_Modification.m_Modifications.Array.data[15].target: 6567524228965887451 -> 3315994328009430456 /#Transform
+MERGED instance Ship_1
+SIBLING Ship_1: 2 -> 0
+INFILE /#Sector .adopted.Array.data[0].target: null -> instance/#Ship
