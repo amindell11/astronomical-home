@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Game.Player;
 using Ships;
 using Ships.Command;
+using Utils;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;

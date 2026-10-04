@@ -4,6 +4,7 @@ using AI;
 using AI.Scanning;
 using Ships;
 using Ships.Command;
+using Utils;
 using Ships.Loadout;
 using UnityEngine;
 using ShipFactory = Ships.Factory;

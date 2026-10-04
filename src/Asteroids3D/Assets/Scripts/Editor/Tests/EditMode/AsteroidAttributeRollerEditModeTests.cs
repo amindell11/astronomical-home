@@ -2,6 +2,7 @@ using System.Reflection;
 using Asteroids.Spawning;
 using NUnit.Framework;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -9,8 +10,8 @@ namespace Tests.EditMode
     /// Tests for the fragment-path attribute roller and the narrowed
     /// <see cref="AsteroidSpawner"/> surface. The baseline field no longer
     /// rolls random attributes at all — it draws from seeded streams
-    /// (see AsteroidFieldCoreEditModeTests); only the mass-constrained
-    /// fragment roll keeps UnityEngine.Random, and its outcome is persisted.
+    /// (see AsteroidFieldCoreEditModeTests); the mass-constrained fragment
+    /// roll draws its mesh from the parent's break stream.
     /// </summary>
     [Category("Asteroids")]
     public class AsteroidAttributeRollerEditModeTests
@@ -47,8 +48,9 @@ namespace Tests.EditMode
             var roller = new RandomAsteroidAttributeRoller(settings);
             var velocity = new Vector3(1f, 2f, 3f);
             var spin = new Vector3(-4f, 5f, -6f);
+            var rng = new DeterministicRandom(1);
 
-            var attrs = roller.RollForMass(7.5f, velocity, spin);
+            var attrs = roller.RollForMass(7.5f, velocity, spin, ref rng);
 
             Assert.AreEqual(7.5f, attrs.Mass);
             Assert.AreEqual(velocity, attrs.Velocity);
@@ -59,9 +61,10 @@ namespace Tests.EditMode
         public void RollForMass_ScaleIsCubeRootOfMassOverBaseMass()
         {
             var roller = new RandomAsteroidAttributeRoller(settings);
+            var rng = new DeterministicRandom(1);
             for (var i = 0; i < 50; i++)
             {
-                var attrs = roller.RollForMass(7.5f, Vector3.zero, Vector3.zero);
+                var attrs = roller.RollForMass(7.5f, Vector3.zero, Vector3.zero, ref rng);
                 var baseMass = attrs.MeshInfo.cachedVolume * settings.density;
                 var expectedScale = Mathf.Pow(attrs.Mass / baseMass, 1f / 3f);
                 Assert.AreEqual(expectedScale, attrs.Scale, expectedScale * 1e-5f);
@@ -73,7 +76,8 @@ namespace Tests.EditMode
         {
             settings.meshInfos = new AsteroidSpawnSettings.MeshInfo[0];
             var roller = new RandomAsteroidAttributeRoller(settings);
-            var attrs = roller.RollForMass(5f, Vector3.zero, Vector3.zero);
+            var rng = new DeterministicRandom(1);
+            var attrs = roller.RollForMass(5f, Vector3.zero, Vector3.zero, ref rng);
             Assert.IsNull(attrs.MeshInfo.mesh);
             Assert.AreEqual(0f, attrs.MeshInfo.cachedVolume);
         }
@@ -84,7 +88,7 @@ namespace Tests.EditMode
         public void AsteroidSpawner_SpawnRandomIsGone_AttributeDecisionMovedOut()
         {
             Assert.IsNull(typeof(AsteroidSpawner).GetMethod("SpawnRandom"),
-                "SpawnRandom must not come back: the deterministic field builds attributes and calls Spawn(pose, attrs)");
+                "SpawnRandom must not come back: the deterministic field builds attributes and calls Spawn(pose, attrs, breakSeed)");
         }
 
         [Test]
@@ -98,7 +102,7 @@ namespace Tests.EditMode
         public void AsteroidSpawner_ExposesMinimalSpawnAndQuerySurface()
         {
             var type = typeof(AsteroidSpawner);
-            Assert.IsNotNull(type.GetMethod("Spawn"), "Missing Spawn(pose, attrs)");
+            Assert.IsNotNull(type.GetMethod("Spawn"), "Missing Spawn(pose, attrs, breakSeed)");
             Assert.IsNotNull(type.GetMethod("SpawnFragment"), "Missing SpawnFragment (Fragger path stays)");
             Assert.IsNotNull(type.GetProperty("TotalVolume"), "Missing TotalVolume query");
             Assert.IsNotNull(type.GetProperty("ActiveCount"), "Missing ActiveCount query");

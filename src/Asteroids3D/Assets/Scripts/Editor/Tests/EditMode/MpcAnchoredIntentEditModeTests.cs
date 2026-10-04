@@ -6,6 +6,7 @@ using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Utils;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;

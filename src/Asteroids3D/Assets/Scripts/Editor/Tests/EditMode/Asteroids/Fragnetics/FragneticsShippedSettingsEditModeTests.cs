@@ -3,6 +3,7 @@ using Asteroids.Fragnetics;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -38,11 +39,10 @@ namespace Tests.EditMode
         [TestCase(3)]
         public void CoMovingHit_ClusterKeepsTheParentVelocity(int seed)
         {
-            Random.InitState(seed);
             var rock = Rock(velocity: new Vector3(10f, 0f, 0f));
             var hit = new HitData(LaserMass, rock.Velocity, rock.Position + new Vector3(0.5f, 0f, 0f));
 
-            var frags = Fragment(rock, hit);
+            var frags = Fragment(rock, hit, (uint)seed);
             var vCom = CentreOfMassVelocity(frags);
             var ratio = vCom.magnitude / rock.Velocity.magnitude;
 
@@ -56,11 +56,10 @@ namespace Tests.EditMode
         [TestCase(3)]
         public void LaserHitOnRestingRock_SeparatesFasterThanItDrifts(int seed)
         {
-            Random.InitState(seed);
             var rock = Rock(velocity: Vector3.zero);
             var hit = new HitData(LaserMass, new Vector3(LaserSpeed, 0f, 0f), rock.Position + new Vector3(-0.5f, 0f, 0f));
 
-            var frags = Fragment(rock, hit);
+            var frags = Fragment(rock, hit, (uint)seed);
             var vCom = CentreOfMassVelocity(frags);
             var drift = (vCom - rock.Velocity).magnitude;
             var spread = frags.Max(f => (f.Velocity - vCom).magnitude);
@@ -80,12 +79,13 @@ namespace Tests.EditMode
             position: Vector3.zero,
             inertiaTensor: Vector3.one * 2000f);
 
-        private Frag[] Fragment(AsteroidData rock, HitData hit)
+        private Frag[] Fragment(AsteroidData rock, HitData hit, uint breakSeed)
         {
-            var frags = calc.GenerateFragments(rock);
+            var rng = new DeterministicRandom(breakSeed);
+            var frags = calc.GenerateFragments(rock, ref rng);
             Assert.That(frags.Length, Is.GreaterThanOrEqualTo(2));
             var momentum = calc.CalculateInitialMomentum(rock, hit);
-            var co = calc.CoCalculateFragmentPhysics(rock, hit, frags, momentum, null);
+            var co = calc.CoCalculateFragmentPhysics(rock, hit, frags, momentum, null, ref rng);
             while (co.MoveNext()) { }
             return frags;
         }
