@@ -48,7 +48,7 @@ namespace Tests.PlayMode.Balance
         public override void TearDown()
         {
             foreach (var item in spawned)
-                if (item) Object.DestroyImmediate(item is Component component ? component.gameObject : item);
+                if (item) Object.DestroyImmediate(item);
             spawned.Clear();
             base.TearDown();
         }
@@ -158,9 +158,8 @@ namespace Tests.PlayMode.Balance
         {
             var go = new GameObject(name);
             go.SetActive(false);
-            var component = go.AddComponent<T>();
-            spawned.Add(component);
-            return component;
+            spawned.Add(go);
+            return go.AddComponent<T>();
         }
 
         private static void SetFloat(Object target, string field, float value)
