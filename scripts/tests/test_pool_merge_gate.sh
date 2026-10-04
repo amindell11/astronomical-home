@@ -8,7 +8,7 @@ set -euo pipefail
 # from a green merge-proof/headless status stamping the landing tree, and an owed run with no
 # named producer goes local or hosted on the memory admission verdict. The script suite runs
 # beside the rest of the gate, a slot runs one gate at a time, and so does the pool (the merge turn),
-# which waiting gates take in arrival order.
+# which waiting gates take in arrival order. Every gate that starts names its verdict in one GATE= trailer.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -185,6 +185,10 @@ export PATH="$STUB_BIN:$PATH"
 export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
 
 fail() { echo "FAIL: $1" >&2; exit 1; }
+# expect_gate <verdict> <why>: $TMP/merge.out carries exactly one GATE= trailer, GATE=<verdict>.
+expect_gate() {
+  [[ "$(grep '^GATE=' "$TMP/merge.out" || true)" == "GATE=$1" ]] || { cat "$TMP/merge.out" >&2; fail "$2: one trailer, GATE=$1"; }
+}
 # Bounds only a wedged wait: a hang guard, never a speed claim.
 hang_guard=600
 # Ends on the watched process's exit, not a clock: load slows the wait but cannot fail it.
@@ -269,7 +273,8 @@ git -C "$TMP/primary" push -q origin main
 echo 1 > "$RUNNER_EXIT_FILE"
 runs_before="$(runner_runs)"
 merges_before="$(gh_merges)"
-pool merge agent-1 >/dev/null 2>&1 && fail "merge must fail when the post-integration test run fails"
+pool merge agent-1 > "$TMP/merge.out" 2>&1 && fail "merge must fail when the post-integration test run fails"
+expect_gate refused:tests "a red local run is refused by its phase"
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "failed merge attempt should have run tests (got $(runner_runs))"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "failed test run must not reach gh pr merge"
 [[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "failed run must not record the merged tree as tested"
@@ -298,7 +303,8 @@ echo 0 > "$RUNNER_EXIT_FILE"
 runs_before="$(runner_runs)"
 resharper_before="$(resharper_runs)"
 merges_before="$(gh_merges)"
-pool merge agent-1 >/dev/null
+pool merge agent-1 > "$TMP/merge.out" 2>&1
+expect_gate merged "a landed gate prints its trailer"
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "retry after failed run must re-run tests, not trust the base-merge commit (got $(runner_runs))"
 if last_run_line | grep -q -- '-ScopeType'; then fail "the gate run should be the unfiltered full suite"; fi
 if last_run_line | grep -q -- '-Routed'; then fail "the gate run must be cold (no -Routed)"; fi
@@ -635,10 +641,12 @@ ratchets $'absent\037\037'
 expect_ratchet_fail_closed "merge-proof/resharper on $(slot_sha) is 'absent', not success" "absent ratchet status" \
   "the hosted path runs no local ReSharper ratchet"
 expect_output "gh workflow run headless-suite.yml --ref $TASK_BRANCH" "absent ratchet status: the --remote refusal must name the rerun"
+expect_gate refused:resharper "no hosted ratchet on the hosted path is refused by its phase"
 # Another baseTree means base moved, which a workflow re-dispatch cannot fix.
 ratchets "$(ratchet_status success "tree=$(slot_tree) baseTree=$ZERO" 42)"
 expect_ratchet_fail_closed "stamps baseTree $ZERO" "ratchet baseTree mismatch" \
   "base moved during the merge gate — re-run 'merge agent-1 --remote'"
+expect_gate refused:base-moved "a hosted ratchet stamping another base is a moved base"
 if grep -q "gh workflow run" "$TMP/merge.out"; then fail "a moved base must not be answered with a workflow re-dispatch"; fi
 ratchet_no_proof() { expect_no_proof "$1" "$2" "$(slot_sha)" merge-proof/resharper "tree=$(slot_tree)" "baseTree=$(base_tree)"; }
 ratchet_no_proof "stamps baseTree $ZERO" "ratchet baseTree mismatch"
@@ -759,6 +767,7 @@ ratchets "$(rgreen 46)"
 merges_before="$(gh_merges)"
 if remote_merge; then fail "--remote must refuse a green status for another tree"; fi
 expect_output "stamps tree 0000000000000000000000000000000000000000" "the post-wait tree check must say why"
+expect_gate refused:remote-proof "a verdict for another tree is refused by its phase"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a wrong-tree verdict must not reach gh pr merge"
 
 # After a rerun: pending with a live run is waited on, not re-dispatched.
@@ -796,6 +805,7 @@ expect_output "merge agent-1 -- <runner args>" "the query-error refusal must nam
 admission boot_perhaps
 if gate_merge; then fail "an unknown admission status must refuse the merge"; fi
 expect_output "memory admission status 'boot_perhaps' is not one the gate knows" "the unknown-status refusal must quote the status"
+expect_gate refused:proof-check "an admission refusal is refused by its phase"
 grep -q '"phase":"proof-check".*"status":"failed"' "$(journal_for)" || fail "admission refusals must die in proof-check"
 [[ "$(runner_runs)" == "$runs_before" && "$(resharper_runs)" == "$resharper_before" && "$(gh_merges)" == "$merges_before" ]] \
   || fail "an admission refusal must not run tests, the ratchet, or gh pr merge"
@@ -906,6 +916,7 @@ PS1_PROBE_PID="$ps1_pid_file" GH_STATUS_AWAITS="$ps1_pid_file" \
 # Only a suite the refusal waited out lets the sleep finish and write this marker.
 [[ ! -e "$TMP/sleep.done" ]] || fail "the refusal must not wait for the script suite (the hook's sleep ran to completion)"
 expect_output "merge-proof/headless on .* is 'failure' (headless suite failed - see run)" "a red verdict must be quoted"
+expect_gate refused:failure "a red verdict names failure"
 expect_output "gh run rerun 53" "a red verdict must name the rerun recovery"
 [[ "$(dispatches)" == "$dispatches_before" ]] || fail "a red verdict must not dispatch a new run"
 [[ "$(runner_runs)" == "$runs_before" ]] || fail "--remote must never run the local suite"
@@ -927,6 +938,7 @@ merges_before="$(gh_merges)"
 PROBE_HOOK="echo mid-gate > '$TMP/primary/mid_gate.txt' && git -C '$TMP/primary' add mid_gate.txt && git -C '$TMP/primary' commit -qm 'base moves mid-gate' && git -C '$TMP/primary' push -q origin main" \
   pool merge agent-1 > "$TMP/merge.out" 2>&1 && fail "merge must refuse when base moved during the gate"
 expect_output "base moved during the merge gate — re-run 'merge agent-1'" "the base re-check must say what to do"
+expect_gate refused:base-moved "a base move caught at the re-check"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "a moved base must not reach gh pr merge"
 grep -q '"phase":"base-recheck".*"status":"failed"' "$(journal_for)" || fail "the journal should name base-recheck as the phase that died"
 
@@ -964,6 +976,7 @@ turn_rc=0
 WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool merge agent-2 > "$TMP/merge.out" 2>&1 || turn_rc=$?
 [[ "$turn_rc" == 75 ]] || { touch "$TMP/gate1.go"; cat "$TMP/merge.out" >&2; fail "a gate that watched one holder keep the turn for the cap must exit 75 (got $turn_rc)"; }
 expect_output "agent-1 has held the merge turn for 1s ($WORKTREE_POOL_LOCK_ROOT/merge-turn.lock)" "the cap refusal must name the holder slot and the lock file"
+expect_gate refused:turn-held "the cap refusal"
 [[ "$(phase_order agent-2)" == "turn-wait " ]] || fail "a gate refused the turn must not start its ladder (got '$(phase_order agent-2)')"
 grep -q '"phase":"turn-wait".*"status":"failed"' "$(journal_for agent-2)" || fail "the journal should name turn-wait as the phase that died"
 [[ "$(run_status agent-2)" == "failed" ]] || fail "a gate refused the turn should close its journal as failed (got $(run_status agent-2))"
@@ -1033,6 +1046,7 @@ ratchets "$(rgreen 48)"
 merges_before="$(gh_merges)"
 if remote_merge; then fail "--remote must refuse a landing diff touching .github/"; fi
 expect_output "--remote refused — the landing diff touches .github/" "the .github refusal must say why"
+expect_gate refused:github "the hosted path's .github/ refusal"
 [[ "$(gh_merges)" == "$merges_before" ]] || fail "the .github refusal must not reach gh pr merge"
 # Not admitted AND remote proof barred: no producer is left, and the refusal names both reasons and the way out.
 admission boot_not_admitted
@@ -1052,4 +1066,4 @@ expect_output "the landing diff touches .github/, so this merge needs the local 
 # With the landing tree already proven no run is needed, so --remote has nothing to refuse.
 remote_merge || { cat "$TMP/merge.out" >&2; fail "--remote on an already-proven .github landing tree should merge"; }
 
-echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot + merge turn (wait in arrival order, dead turn ticket, stuck-holder cap, no lock outliving the gate's suite)"
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path + routed-summary refusal + phase journal + scripts/ suite trigger + remote proof (accept, fail-closed, --remote liveness, base re-check, .github refusal) + hosted ratchet (accept, fail-closed, both-verdict wait) + memory-admission producer choice + script suite overlapped with the gate + one gate per slot + merge turn (wait in arrival order, dead turn ticket, stuck-holder cap, no lock outliving the gate's suite) + GATE= trailer"

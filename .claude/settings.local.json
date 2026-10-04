@@ -26,7 +26,8 @@
       "Bash(git rm:*)",
       "Bash(git commit:*)",
       "Bash(git -C D:/amind/git/agent-4 diff --name-only origin/main...HEAD)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(./scripts/agent_worktree_pool.sh land *)"
     ]
   },
   "enabledMcpjsonServers": [
