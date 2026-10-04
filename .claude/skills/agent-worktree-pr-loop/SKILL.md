@@ -40,8 +40,9 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push.
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
-- `./scripts/agent_worktree_pool.sh merge <slot>` — the ONLY merge path; see Step 6.
+- `./scripts/agent_worktree_pool.sh merge <slot>` — the merge path for a PR your slot holds; see Step 6.
 - `./scripts/agent_worktree_pool.sh merge <slot> --remote` / `merge <slot> -- <test args>` — same merge gate with the test-run producer named (hosted headless suite / local run) instead of chosen from memory admission; see Step 6.
+- `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands only on a recorded instruction that covers the landing tree; see Step 6.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 - `./scripts/agent_worktree_pool.sh hold <slot> [--local]` / `resume <lease> [slot]` — take waiting work off a slot and put it back; see "Holding a slot".
@@ -356,27 +357,32 @@ After each round, post ONE PR comment containing a disposition table —
 `| # | Comment | Disposition | Where |` — with a row for every comment in the
 round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
 hash, thread reply, or issue number). No comment may lack a row. Use `revise`
-to re-push fixes.
+to re-push fixes. Resolve each review thread once its disposition reply is
+posted: `land` refuses a PR with an unresolved thread. After pushing a code
+fix for a finding, post one `@codex review` comment so Codex reviews the fix:
+its review of an earlier commit no longer covers the tree.
 
 ## Step 6 — Merge
 
 Only on an explicit user merge instruction; when the PR's work is held,
 `resume <lease>` once it is given. Consent = an explicit instruction
 to merge ("merge it", "ship it", "land it"); praise of the code ("looks
-good", "LGTM") is NOT consent. Approval binds the tree: record the branch
-HEAD at the moment of consent; if ANYTHING lands on the branch after that
-(including hygiene), present the delta and re-confirm before merging.
+good", "LGTM") is NOT consent. Consent binds the commit the user saw: record
+the branch HEAD at the moment of consent; if ANYTHING lands on the branch
+after that (including hygiene), present the delta and re-confirm before
+`merge <slot>`.
 
-Immediately before merging, re-check for unresolved comments (they can land
-between approval and merge). One check, not a wait: an empty result is clear
-to merge — never poll or delay waiting for comments to appear. Triage
+Immediately before `merge <slot>`, re-check for unresolved comments (they can
+land between approval and merge). One check, not a wait: an empty result is
+clear to merge — never poll or delay waiting for comments to appear. Triage
 newcomers as in
 Step 5: rebut/defer outcomes proceed (reply + table row — the tree is
 unchanged, approval stands); a fix outcome changes the tree and reopens
 approval.
 
-Merge exclusively via `./scripts/agent_worktree_pool.sh merge <slot>` — never
-raw `gh pr merge`, never force-push, never skip the gate's test run. The gate
+Merge a PR your slot holds via `./scripts/agent_worktree_pool.sh merge <slot>`,
+and a PR no slot holds (a pipeline PR) via `land <pr>` — never raw
+`gh pr merge`, never force-push, never skip the gate's test run. The gate
 re-tests against current main when main moved after the branch's last test
 run; it skips only on full-suite proof for the exact landing tree; it extends
 proof over docs-only deltas with no run; it downgrades C#-comment-only deltas
@@ -420,6 +426,17 @@ then fetches and proves on top of the landings ahead of it; `merge-progress
 <slot>` shows its place in the line and the slot holding the turn. Leave it
 waiting: a re-run `merge` arrives at the back of the line.
 
+`land` needs the instruction recorded. On the user's word in your chat, run
+`./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
+saw (usually the one on its `MERGE=` line). Every session acts as the same
+GitHub account, so `land` checks that a record exists and covers the landing
+tree, not who wrote it: record only an instruction the user gave you. A
+recorded instruction survives a docs-only or C#-comment-only delta (`land`
+decides, with the merge gate's inert classifier); any other delta needs a new
+one. `land` refuses a PR with an unresolved review thread, so it takes no
+pre-merge comment check; its `--help` entry lists every refusal. Then run
+`land <pr>` yourself, or leave it to the merge task (§ Merge task).
+
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note and board Done on the PR-closed issues, so
 the merging session posts neither.
@@ -432,7 +449,7 @@ the merging session posts neither.
 ## Cloud batch
 
 One hand-started cloud session that takes every item the ready queue admits
-through a draft PR, in parallel (`doc/Glossary.md` → *cloud batch*). The
+through a PR, in parallel (`doc/Glossary.md` → *cloud batch*). The
 session is the batch parent and the only picker; each item's build, a *cloud
 build*, runs in a subagent. Start prompt:
 
@@ -461,9 +478,11 @@ build*, runs in a subagent. Start prompt:
    Red → at most two fix rounds.
 6. **Open the PR**, per item: a body per Step 4 with `Closes #<issue>`,
    `## Test status` and `### Owed local`, passed through
-   `python3 scripts/lib/negated_close.py < <body-file>`; open it as a draft
-   over REST (cloud sessions refuse GraphQL, which `gh pr create` uses):
-   `gh api -X POST 'repos/{owner}/{repo}/pulls' -f title=<title> -f head=task/<lease> -f base=main -F body=@<body-file> -F draft=true --jq .number`;
+   `python3 scripts/lib/negated_close.py < <body-file>`; open it ready for
+   review, so Codex reviews it on open (it skips drafts, and a cloud session
+   cannot mark one ready), over REST (cloud sessions refuse GraphQL, which
+   `gh pr create` uses):
+   `gh api -X POST 'repos/{owner}/{repo}/pulls' -f title=<title> -f head=task/<lease> -f base=main -F body=@<body-file> -F draft=false --jq .number`;
    then `./scripts/drain_pick.sh owed <pr>`, fixing the body until it prints
    `OWED=open` or `OWED=none`. A `unity:local-proof` item writes its
    acceptance proof as an owed item.
@@ -478,8 +497,32 @@ build*, runs in a subagent. Start prompt:
    line says `merge-order-malformed` or `order-cycle`; then report the PRs
    opened and the items blocked, ending on `./scripts/drain_pick.sh digest`,
    relayed as printed.
-9. **A cloud batch ends at draft PRs.** It never merges, never marks a PR
-   ready for review and never boots Unity.
+9. **A cloud batch ends at open PRs.** It never merges and never boots Unity.
+
+## Merge task
+
+The desktop scheduled task `merge`, started with Run now: one merge pass over
+the pipeline's merge queue, landing what the user instructed. It has no
+schedule until the cost of a no-op run is measured. Its prompt:
+
+`In the repo at D:\amind\git\astronomical-home, run one merge pass: follow .claude/skills/agent-worktree-pr-loop/SKILL.md § Merge task.`
+
+1. `git pull --ff-only` on main in the primary tree.
+2. `./scripts/drain_pick.sh merge-queue`.
+3. For each `MERGE=` line carrying the fact `instructed`, in order, run
+   `./scripts/agent_worktree_pool.sh land <pr>` in the background: it can
+   wait on a hosted run for 20 minutes.
+4. After each merge, `git pull --ff-only` again, so the next `land` runs the
+   current pool script. A failed pull ends the pass with a report.
+5. End on `./scripts/drain_pick.sh digest`, relayed as printed, then one line
+   per landed PR (the PR and its `CLASS=` verdict) and one per refusal (the
+   PR and its `GATE=` reason).
+
+The pass merges only through `land` and touches only the slots `land`
+borrows. Recording instructions, pushing to, editing, fixing, replying on or
+marking ready a PR, booting Unity and editing permission settings all belong
+to other sessions. The tracked `.claude/settings.local.json` holds one allow
+rule, for `land`, so the pass runs without a permission prompt.
 
 ## Preconditions & known hazards
 

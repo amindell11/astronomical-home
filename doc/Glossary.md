@@ -217,8 +217,12 @@ Format: **term** — definition. *(authority)*
   files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
   tracked edits are the owner's and don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
-- **merge gate** — the full-suite test gate inside `merge <slot>`; the only
-  sanctioned merge path.
+- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
+  the only sanctioned merge path.
+- **`land`** — the pool command that lands a PR no slot holds: the merge gate
+  on the hosted path, in a borrowed slot, on a *recorded instruction*. Always
+  in code font: the plain word keeps its everyday sense ("land it" is
+  consent). *(agent_worktree_pool.sh `land`; #830)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it through
@@ -262,7 +266,15 @@ Format: **term** — definition. *(authority)*
 - **inert diff** — a behaviour-neutral delta (docs-only, comment-only) that
   extends existing proof without a fresh run.
 - **consent / merge instruction** — an explicit "merge it". Praise is not
-  consent, and approval binds the tree at consent-time HEAD.
+  consent. It binds the commit the user saw: a later delta needs a fresh
+  instruction, except that a *recorded instruction* survives an inert diff
+  (`land` decides).
+- **recorded instruction** — the user's merge instruction for one PR at one
+  commit, kept as a PR comment that only `drain_pick.sh` writes (`instruct`)
+  and parses (`land-facts`, `merge-queue`). It *covers* the landing tree when
+  merging its commit with base gives that tree, or one an inert diff away;
+  `land` needs a covering one. Every session is the same GitHub account, so policy alone
+  keeps it the user's. *(scripts/drain_pick.sh `instruct`; #830)*
 - **spend** — compute expenditure needing its own explicit approval; a run is a
   run, not a PR.
 - **disposition table** — the per-review-round table, one row per comment:
@@ -316,8 +328,9 @@ Format: **term** — definition. *(authority)*
   skill section; elsewhere it is the letter-bucket scheme above or Unity's
   batch mode.
   *(agent-worktree-pr-loop → Cloud batch)*
-- **cloud build** — one item's build inside a *cloud batch*, ending in a draft
-  PR that closes the issue. *(agent-worktree-pr-loop → Cloud batch)*
+- **cloud build** — one item's build inside a *cloud batch*, ending in a PR,
+  opened ready for review, that closes the issue.
+  *(agent-worktree-pr-loop → Cloud batch)*
 - **owed-local checklist** — the `### Owed local` list in a *cloud build*'s PR
   body: the tests the hosted suite cannot run, written by the builder and
   ticked by a local session. `None.` means nothing was ever owed, as against
@@ -330,10 +343,19 @@ Format: **term** — definition. *(authority)*
   no run has tried on the head commit. An item that failed there leaves the
   queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
 - **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
-  ticked, with their facts and landing order; it never says who may merge.
-  Always qualified ("the pipeline's merge queue", or the verb `merge-queue`):
-  it is neither GitHub's merge-queue feature nor the line for the *merge
-  turn*. *(scripts/drain_pick.sh `merge-queue`)*
+  ticked, with their facts (among them `instructed`, and `class`: the
+  *auto-merge class* as GitHub shows it) and landing order; it never says who
+  may merge. Always qualified ("the pipeline's merge queue", or the verb
+  `merge-queue`): it is neither GitHub's merge-queue feature nor the line for
+  the *merge turn*. *(scripts/drain_pick.sh `merge-queue`)*
+- **auto-merge class** — the PRs `land` could merge with no *recorded
+  instruction*; its conditions are in `land`'s `--help`. In shadow: `land`
+  reports it (`CLASS=`) and it authorizes nothing until `AUTO_MERGE_CLASS`
+  flips. It means "nothing owed", so discharged PRs stay out; it widens only
+  on evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
+- **merge task** — the desktop scheduled task `merge`, started by hand: one
+  pass over the pipeline's merge queue, landing each instructed PR through
+  `land`. *(agent-worktree-pr-loop → Merge task)*
 - **pipeline digest** — the Markdown report of what waits on the user and on a
   session the user starts, relayed as printed. Bare "digest" reads this way
   only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*
