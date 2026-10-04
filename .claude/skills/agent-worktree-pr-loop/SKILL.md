@@ -317,23 +317,12 @@ non-LFS image: `https://github.com/<owner>/<repo>/raw/<sha>/<path>`; MP4 link:
   link into it.
 
 ```bash
-lease=<lease>; files=(<evidence paths>)
-ev="$(mktemp -d)"
-if git fetch -q origin "evidence/$lease" 2>/dev/null; then
-  git worktree add -q -B "evidence/$lease" "$ev" FETCH_HEAD
-else
-  git worktree add -q --detach "$ev"
-  git -C "$ev" checkout -q --orphan "evidence/$lease" && git -C "$ev" rm -rfq .
-  printf '%s filter=lfs diff=lfs merge=lfs -text\n' '*.png' '*.gif' '*.mp4' '*.jpg' > "$ev/.gitattributes"
-fi
-cp "${files[@]}" "$ev/" && git -C "$ev" add -A && git -C "$ev" commit -qm "evidence: $lease"
-git -C "$ev" lfs push origin "evidence/$lease" && git -C "$ev" push -q -u origin "evidence/$lease"
-git -C "$ev" rev-parse HEAD   # the <sha> to pin
-git worktree remove "$ev" && git branch -D "evidence/$lease"
+./scripts/evidence_publish.sh <lease> <evidence paths>   # prints SHA=<sha> to pin
 ```
 
-The explicit `git lfs push` matters: the orphan worktree has no `.githooks/`, so
-the LFS pre-push hook cannot be relied on there.
+The script builds the commit without a worktree and uploads the LFS objects
+itself (`--into <subdir>` files them under a folder). Hand-typed orphan-branch
+git is not the path: a retyped recipe wiped the primary tree once.
 
 ## Step 5 — Review round-trip
 

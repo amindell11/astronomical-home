@@ -28,6 +28,7 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | Script | Purpose | Entry | Contract |
 |---|---|---|---|
 | `capture/assemble.py` | Assemble capture frame dumps into mp4/gif. | `python scripts/capture/assemble.py <frame-dir>` | module docstring / `--help` |
+| `evidence_publish.sh` | Append evidence files to the `evidence/<name>` side branch on origin (no worktree; LFS uploaded). | `./scripts/evidence_publish.sh <name> [--into <subdir>] <path>...` | header comment |
 
 ## Hygiene & ratchets
 

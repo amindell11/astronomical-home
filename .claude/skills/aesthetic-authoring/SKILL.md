@@ -56,6 +56,8 @@ Main carries what the generator runs on: `art/<category>/<asset>/` holds `README
 (role of each file, how to regenerate), the hand-cleaned source, any file the script
 reads, and the generator folder (script, tuner template; its `out/` is ignored).
 Everything before the source (references, sketches, imagegen rounds with prompts and
-sidecars) goes on the PR's `evidence/<lease>` branch under `history/`, linked from the
-README by a commit-pinned URL. Film stills and other third-party references stay out
-of git entirely (the repo is public); the history README describes them.
+sidecars) goes on the PR's `evidence/<lease>` branch under `history/`
+(`./scripts/evidence_publish.sh <lease> --into history <paths>`, never hand-typed
+orphan-branch git), linked from the README by a commit-pinned URL. Film stills and
+other third-party references stay out of git entirely (the repo is public); the
+history README describes them.
