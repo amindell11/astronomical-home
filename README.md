@@ -15,7 +15,8 @@ resolving at the old paths.
 | motion | `motion/breakup/` | `evidence/vanguard-breakup:results/vanguard-breakup/evidence` (PR #821 captures). |
 | motion (authoring) | tag `archive/codex/vanguard-breakup-authoring` (`7cbef8f9`) | Breakup generator, validation and capture helpers as PR #821 pinned them. |
 | paint (experiments) | `paint/experiments/` | Dated livery and texture experiments, 2026-07-26 to 2026-09-23. |
-| producers | `producers/drawn-study/` | `author-vanguard-wear.py` and the `inspect-vanguard*.py` probes, saved from pool slot 4's gitignored `results/`. |
+| producers | `producers/drawn-study/` | `author-vanguard-wear.py` and the `inspect-vanguard*.py` probes, saved from pool slot 4's gitignored `results/`. `export_study.py` and `build_structure.py`, the drawn study's Blender-to-Unity export, retired from `art/ships/vanguard/drawn-study/` by #921. |
+| studies | `studies/drawn-art/` | The Unity side of the drawn-art study, removed from main by #921: scenes, prefabs, materials, meshes, backdrop plates and capture tools, `.meta` included. Its README has the revive recipe. |
 
 `paint/experiments/` holds the dated experiment folders that sat untracked under
 `art/ships/vanguard/experiments/` in the primary tree (pre-livery checkpoint, AI livery
