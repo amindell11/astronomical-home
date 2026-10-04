@@ -28,6 +28,7 @@ namespace Tests.PlayMode.Presentation.Breakup
         public override void SetUp()
         {
             base.SetUp();
+            DestroyBreakupTransients();
             savedMaxDelta = Time.maximumDeltaTime;
             Time.maximumDeltaTime = .05f;
             host = new GameObject("[BreakupTestServices]");
@@ -39,11 +40,7 @@ namespace Tests.PlayMode.Presentation.Breakup
         {
             units.Clear();
             Object.DestroyImmediate(host);
-            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(debris.gameObject);
-            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(effect.gameObject);
-            SimplePool<PooledVFX>.Clear();
+            DestroyBreakupTransients();
             Time.maximumDeltaTime = savedMaxDelta;
             base.TearDown();
         }
@@ -140,6 +137,16 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(Vector3.Distance(debris.transform.position, expected), Is.LessThan(.00001f));
             Assert.That(debris.PoseCount, Is.Zero);
             yield return VerifyMotionFadeAndCleanup(debris, Vector3.zero);
+        }
+
+        // Debris and bursts outlive whichever fixture's ship died; these tests count them globally.
+        private static void DestroyBreakupTransients()
+        {
+            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(debris.gameObject);
+            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(effect.gameObject);
+            SimplePool<PooledVFX>.Clear();
         }
 
         private static void Kill(Ship ship) => ship.Damage.TakeDamage(new DamageInfo(

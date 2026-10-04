@@ -6,8 +6,9 @@ set -euo pipefail
 # blocker, scope block, proposal author), priority-then-age order, a claimed issue's three
 # readings by its closing PRs (unfinished, building, pr-closed), claim's assignee re-read and
 # two writes, release, every owed verdict and the tried rule, the verify queue, the merge
-# queue's facts, landing order and skip reasons, and the digest's lists. gh is a stub serving
-# REST lists 100 rows a page; every call it does not model fails closed.
+# queue's facts, landing order and skip reasons, the digest's lists, instruct's checks and
+# record, and land-facts' readings of the record, Codex's review, threads and merge order. gh is
+# a stub serving REST lists 100 rows a page; every call it does not model fails closed.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRAIN="$SCRIPT_DIR/../drain_pick.sh"
@@ -34,7 +35,10 @@ case "$args" in
   "api repos/owner/repo/issues/"*"assignees"*) cat "$FIX/assignees.txt" ;;
   "api repos/owner/repo/issues/"*"labels"*) cat "$FIX/labelled.txt" ;;
   "api repos/owner/repo/pulls?"*) page "$FIX/pulls.jsonl" ;;
+  "api repos/owner/repo/pulls/"*"/commits?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/commits-${n%%/*}.txt" ;;
+  "api repos/owner/repo/pulls/"*"[.state, .base.ref]"*) n="${args#api repos/owner/repo/pulls/}"; cat "$FIX/pull-${n%% *}.tsv" ;;
   "api repos/owner/repo/pulls/"*) cat "$FIX/pr.json" ;;
+  "api graphql "*"pullRequest(number"*) cat "$FIX/pr-graphql.json" ;;
   "api graphql "*"pullRequests("*) cat "$FIX/prs.json" ;;
   *) echo "gh stub: unmodelled call: $args" >&2; exit 97 ;;
 esac
@@ -75,24 +79,35 @@ SLICE_BODY=$'## What to build\nThe thing.\n\n## Acceptance criteria\n- it works'
 proposal() { printf '[{"user":{"login":"%s"},"html_url":"https://x/c/%s","body":"Ready proposal 2026-09-26\\nScope: s"}]' "$1" "$2"; }
 
 # pr <number> <body> [draft] [paths csv] [statuses: <context>=<STATE>,…] [changedFiles] [title]
+#    [comments: JSON list] [unresolved threads] [flags: eyes (Codex's 👀), unseen (a 101st thread)]
+# Every PR's history is OLD, then its head SHA.
 SHA=76b92040123456789abcdef0123456789abcdef0
+OLD=0f12fee0123456789abcdef0123456789abcdef0
 PRS=()
-pr() { local a=("$@" "" "" "" "" ""); PRS+=("${a[@]:0:7}"); }
-# One python spawn per write: prs.json is the open-PR read, pr.json the first PR alone.
+pr() { local a=("$@" "" "" "" "" "" "" "" ""); PRS+=("${a[@]:0:10}"); }
+# One python spawn per write: prs.json is the open-PR read, pr.json the first PR alone over REST,
+# pr-graphql.json the first PR beside every PR's number (land-facts).
 write_prs() {
-  python3 - "$FIX" "$SHA" "${PRS[@]:-}" <<'PY'
+  python3 - "$FIX" "$SHA" "$OLD" "${PRS[@]:-}" <<'PY'
 import json, sys
-fix, head, fields = sys.argv[1], sys.argv[2], sys.argv[3:]
+fix, head, old, fields = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
 nodes = []
-for number, body, draft, paths, statuses, changed, title in zip(*[iter(fields)] * 7):
+for number, body, draft, paths, statuses, changed, title, comments, unresolved, flags in zip(*[iter(fields)] * 10):
     paths = [p for p in paths.split(",") if p]
     status = {"contexts": [dict(zip(("context", "state"), s.split("="))) for s in statuses.split(",")]}
+    threads = [{"isResolved": False}] * int(unresolved or 0) + [{"isResolved": True}]
     nodes.append({"number": int(number), "title": title or f"title {number}", "isDraft": bool(draft),
       "headRefOid": head, "body": body, "changedFiles": int(changed or len(paths)),
       "files": {"nodes": [{"path": p} for p in paths]},
-      "commits": {"nodes": [{"commit": {"status": status if statuses else None}}]}})
+      "commits": {"nodes": [{"commit": {"status": status if statuses else None}}]},
+      "history": {"nodes": [{"commit": {"oid": old}}, {"commit": {"oid": head}}]},
+      "comments": {"nodes": json.loads(comments or "[]")},
+      "reviewThreads": {"totalCount": len(threads) + ("unseen" in flags), "nodes": threads},
+      "reactions": {"nodes": [{"user": {"login": "chatgpt-codex-connector[bot]"}}] if "eyes" in flags else []}})
 json.dump({"data": {"repository": {"pullRequests": {"nodes": nodes}}}}, open(f"{fix}/prs.json", "w"))
 json.dump((nodes or [None])[0], open(f"{fix}/pr.json", "w"))
+json.dump({"data": {"repository": {"pullRequest": (nodes or [None])[0],
+  "pullRequests": {"nodes": [{"number": n["number"]} for n in nodes]}}}}, open(f"{fix}/pr-graphql.json", "w"))
 PY
 }
 # view <verb>: runs it into $out
@@ -115,7 +130,8 @@ skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
 # --- usage -----------------------------------------------------------------------------------
 reset
 for bad in "" "frob" "pick --force" "claim" "claim abc" "claim 12 lease" "release" "release abc" "owed" "owed abc" \
-    "verify-queue 12" "merge-queue 12" "digest 12"; do
+    "verify-queue 12" "merge-queue 12" "digest 12" "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123" \
+    "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13"; do
   rc=0; bash "$DRAIN" $bad > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 2 ]] || fail "'$bad' should exit 2 (got $rc)"
 done
@@ -374,5 +390,79 @@ view digest
 [[ "$(under 'Ready-labelled issues no cloud batch can build')" == "- [#54]($U/issues/54) — unity:editor, unity:headless, unity-conflict" ]] || fail "a unity conflict cannot be built (got: $out)"
 [[ "$(under 'Build')" == "- \`pick\` admits 2 issues"$'\n'"- unfinished: [#60]($U/issues/60)" ]] || fail "build list (got: $out)"
 [[ "$(under 'Verify')" == "- [#301]($U/pull/301) feat: a → b — unity:1,script:0" ]] || fail "a PR with an untried item and an eyes item is in both lists (got: $out)"
+
+# --- instruct: every argument is checked before one record per PR is written -----------------------------
+C1=aaaa1110123456789abcdef0123456789abcdef0
+C2=aaaa1111123456789abcdef0123456789abcdef0
+C3=bbbb0000123456789abcdef0123456789abcdef0
+# pull_of <number> <state> <base> <commit>…: the REST PR read and its commit list
+pull_of() { printf '%s\t%s\n' "$2" "$3" > "$FIX/pull-$1.tsv"; printf '%s\n' "${@:4}" > "$FIX/commits-$1.txt"; }
+instruct() { rc=0; out="$(bash "$DRAIN" instruct "$@" 2>"$TMP/err")" || rc=$?; }
+reset
+pull_of 12 open main "$C1" "$C2"
+pull_of 13 closed main "$C3"
+pull_of 14 open release "$C3"
+pull_of 15 open main $(printf 'cccc%036d\n' $(seq 1 100)) "$C3"
+instruct 12@aaaa111 13@AAAA1110 14@bbbb000 15@AAAA1110 12@1110123 12@aaaa1110
+[[ "$rc" -eq 3 ]] || fail "a refused argument exits 3 (rc=$rc: $out)"
+[[ "$out" == $'REFUSED=12 not-a-commit\nREFUSED=13 not-open\nREFUSED=14 base:release\nREFUSED=15 not-a-commit\nREFUSED=12 not-a-commit' ]] \
+  || fail "a SHA naming two commits, none, or only the middle of one is no commit; a closed PR and another base refuse (got: $out)"
+grep -q "names more than one of its commits" "$TMP/err" || fail "an ambiguous SHA says so (got: $(cat "$TMP/err"))"
+[[ ! -s "$GH_WRITE_LOG" ]] || fail "one refused argument writes nothing, not even for a good one"
+instruct 12@AAAA1110 15@bbbb0000
+[[ "$rc" -eq 0 && "$out" == "INSTRUCTED=12 $C1"$'\n'"INSTRUCTED=15 $C3" ]] || fail "each PR is recorded at the full commit; a commit on the second page is found (rc=$rc: $out)"
+today="$(date -u +%F)"
+[[ "$(cat "$GH_WRITE_LOG")" == "api -X POST repos/owner/repo/issues/12/comments -f body=Merge instruction $today: \`$C1\` --silent"$'\n'"api -X POST repos/owner/repo/issues/15/comments -f body=Merge instruction $today: \`$C3\` --silent" ]] \
+  || fail "one comment per PR, its first line the record (got: $(cat "$GH_WRITE_LOG"))"
+
+# --- land-facts: the record, Codex's review, threads and merge order -------------------------------------
+codex() { printf '{"author":{"login":"chatgpt-codex-connector"},"body":"<!-- codex-pull-request-review-summary -->\\n\\n## Codex Review Summary\\n\\n| Review | Status | Commit | Review trigger |\\n| --- | --- | --- | --- |\\n| 📝 **Code Review** | %s | %s | PR opened |\\n"}' "$1" "$2"; }
+note() { printf '{"author":{"login":"%s"},"body":"%s"}' "$1" "$2"; }
+rec() { note amindell11 "Merge instruction 2026-10-0$1: \`$2\`"; }
+DONE='✅ **Completed** <relative-time datetime=\"2026-10-03T06:07:25Z\">2026-10-03</relative-time>'
+facts_are() {
+  PRS=(); pr 401 "$NONE$(after 402 999)" "" "" "" "" "" "$3" "${4:-0}" "${5:-}"; pr 402 "no section"; write_prs
+  out="$(bash "$DRAIN" land-facts 401 2>"$TMP/err")" || fail "land-facts exits 0: $1 (got: $out)"
+  [[ "$out" == "$2" ]] || fail "$1 (got: $out)"
+}
+facts() { printf 'OWED=none\nINSTRUCTION=%s\nREVIEW=%s\nUNRESOLVED=%s\nAFTER=402' "$@"; }
+reset
+facts_are "the latest record by the author wins; a stranger's, a short SHA and no date are no record; a Completed row names the commit reviewed; threads count unresolved; a constraint on a PR no longer open is dead" \
+  "$(facts "$SHA" "completed $SHA" 2)" \
+  "[$(rec 1 "$OLD"),$(rec 2 "$SHA"),$(note stranger "Merge instruction 2026-10-03: \`$OLD\`"),$(note amindell11 "Merge instruction 2026-10-04: \`76b9204\`"),$(note amindell11 "Merge instruction: \`$OLD\`"),$(codex "$DONE" '`76b9204`')]" 2
+facts_are "the latest record names nothing when its commit is not the PR's; a review of an older commit names that commit" \
+  "$(facts none "completed $OLD" 0)" "[$(rec 1 "$SHA"),$(rec 2 "$C3"),$(codex "$DONE" '`0f12fee`')]"
+facts_are "a status other than Completed is a running review; a thread past the first 100 counts as unresolved" \
+  "$(facts none running 1)" "[$(codex '⏳ **Running**' '`76b9204`')]" 0 unseen
+facts_are "Codex's 👀 on the PR is a running review, whatever the row says" "$(facts none running 0)" "[$(codex "$DONE" '`76b9204`')]" 0 eyes
+facts_are "a summary someone else posted is no review" "$(facts none absent 0)" \
+  "[$(note stranger '<!-- codex-pull-request-review-summary -->\n| **Code Review** | ✅ **Completed** | `76b9204` |')]"
+facts_are "a reviewed SHA naming no commit of the PR is unreadable" "$(facts none unreadable 0)" "[$(codex "$DONE" '`cccc000`')]"
+PRS=(); pr 401 "$NONE"$'\n## Merge order\n\nafter #402\n'; write_prs
+out="$(bash "$DRAIN" land-facts 401 2>/dev/null)"
+[[ "$(trailer AFTER <<<"$out")" == malformed && "$(trailer OWED <<<"$out")" == none ]] || fail "a malformed merge order says so (got: $out)"
+[[ ! -s "$GH_WRITE_LOG" ]] || fail "land-facts must write nothing"
+
+# --- merge-queue: the facts instructed and class ----------------------------------------------------------
+GREEN=merge-proof/headless=SUCCESS,merge-proof/resharper=SUCCESS
+REVIEWED="[$(codex "$DONE" '`76b9204`')]"
+reset
+pr 501 "$NONE" "" src/a.cs "$GREEN" "" "" "[$(rec 1 "$OLD"),$(codex "$DONE" '`76b9204`')]"
+pr 502 "$NONE" "" src/a.cs merge-proof/headless=SUCCESS,merge-proof/resharper=PENDING "" "" "$REVIEWED"
+pr 503 "$NONE" "" src/a.cs "$GREEN" "" "" "[$(codex "$DONE" '`0f12fee`')]"
+pr 504 "$NONE" "" src/a.cs "$GREEN" "" "" "$REVIEWED" 1
+pr 505 "$NONE" "" scripts/x.sh "$GREEN" "" "" "$REVIEWED"
+pr 506 "${OWED}"$'- [x] unity: boot\n  passed on `76b9204`\n' "" src/a.cs "$GREEN" "" "" "$REVIEWED"
+pr 507 "$NONE" "" src/a.cs "$GREEN" "" "" "$REVIEWED" 0 eyes
+write_prs
+view merge-queue
+want="MERGE=501 @ owed:none,instructed,class
+MERGE=502 @ owed:none
+MERGE=503 @ owed:none
+MERGE=504 @ owed:none
+MERGE=506 @ owed:discharged
+MERGE=507 @ owed:none
+MERGE=505 @ owed:none,scripts"
+[[ "$out" == "${want//@/$SHA}" ]] || fail "instructed names a record on any commit; class needs nothing owed, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
 
 echo "PASS test_drain_pick.sh"
