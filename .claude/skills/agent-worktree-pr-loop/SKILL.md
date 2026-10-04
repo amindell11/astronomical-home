@@ -23,9 +23,9 @@ session landing it — that approval IS the review; (3) the commit message
 carries the story a PR body would have. Verify (1) mechanically
 (`git diff --cached --stat`) before pushing. These landings are cited by
 commit SHA, not PR number. Anything touching code takes the full loop.
-Sync and push as one command under the merge turn, so the push waits for the
-gate in flight instead of voiding it:
-`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c '<sync with origin/main> && git push origin main'`.
+Commit it in a slot like any change, then sync and push as one command under
+the merge turn, so the push waits for the gate in flight instead of voiding it:
+`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c 'git -C <slot-path> pull -q --rebase origin main && git -C <slot-path> push origin HEAD:main'`.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
@@ -108,7 +108,8 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `create-pr` push `! [rejected] … non-fast-forward` | Stale remote slot branch | `finalize`/`release` the slot (or `submit`, which re-preps) and retry. |
 | Child PR silently `CLOSED`, can't reopen/retarget | It was stacked on a task branch that got squash-merged + deleted | Retarget the child to `main` **before** merging its base, or `create-pr` a fresh one. |
 | `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync from the primary tree: `cd D:/amind/git/astronomical-home && git checkout main && git pull`. |
-| post-merge `pull --ff-only` aborts on an untracked file | A merged PR made a primary-tree untracked file tracked | Diff it vs `origin/main:<path>`; if identical, remove the untracked copy and pull. |
+| post-merge `pull --ff-only` aborts on an untracked file | A merged PR made a primary-tree untracked file tracked | Diff it vs `origin/main:<path>` and tell the owner; removing the copy is their call. |
+| post-merge pull: `Your local changes … would be overwritten` | An owner edit in the primary tree conflicts with main (autostash is off there, so the pull refuses) | Stop and tell the owner which files; their edit stays where it is. |
 | parsing `results/.../*-summary.json` → `UnicodeDecodeError` | UTF-8 file with non-ASCII test messages | Open with `encoding='utf-8'`. |
 
 ## Shared Unity access
@@ -460,7 +461,9 @@ build*, runs in a subagent. Start prompt:
    Red → at most two fix rounds.
 6. **Open the PR**, per item: a body per Step 4 with `Closes #<issue>`,
    `## Test status` and `### Owed local`, passed through
-   `python3 scripts/lib/negated_close.py < <body-file>`; `gh pr create --draft`;
+   `python3 scripts/lib/negated_close.py < <body-file>`; open it as a draft
+   over REST (cloud sessions refuse GraphQL, which `gh pr create` uses):
+   `gh api -X POST 'repos/{owner}/{repo}/pulls' -f title=<title> -f head=task/<lease> -f base=main -F body=@<body-file> -F draft=true --jq .number`;
    then `./scripts/drain_pick.sh owed <pr>`, fixing the body until it prints
    `OWED=open` or `OWED=none`. A `unity:local-proof` item writes its
    acceptance proof as an owed item.

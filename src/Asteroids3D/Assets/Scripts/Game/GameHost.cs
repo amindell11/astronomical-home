@@ -281,7 +281,7 @@ namespace Game
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(lastKillingBlow, rigInstance.Ledger.Rows, rigInstance.Tally, () => dismissed = true);
+            screen.Show(lastKillingBlow, rigInstance.Ledger, rigInstance.Tally, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);

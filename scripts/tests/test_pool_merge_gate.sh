@@ -979,7 +979,6 @@ WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS=1 pool_fn with_merge_turn agent-9 true || 
 # place in the line. Its slow poll would lose an unordered race to the later arrival below.
 WORKTREE_POOL_MERGE_TURN_POLL_SECONDS=2 pool merge agent-2 > "$TMP/merge2.out" 2>&1 &
 second_gate=$!
-# Polled, never read once: another prober can make a dead ticket count for an instant.
 gate2_waiting() { gate2_progress="$(pool merge-progress agent-2 --oneline)"; [[ "$gate2_progress" == "turn-wait "*" OPEN behind agent-1, place 1 in line" ]]; }
 poll_while_alive "$second_gate" gate2_waiting || { touch "$TMP/gate1.go"; wait "$first_gate" "$second_gate" || true; cat "$TMP/merge2.out" >&2; fail "the second slot's gate should wait first in line behind agent-1, the dead ticket uncounted (last saw '$gate2_progress')"; }
 # The later arrival polls twenty times as often. It records how many merges had landed when it took the turn.
