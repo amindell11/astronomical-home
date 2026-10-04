@@ -24,3 +24,7 @@ hard-coded `D:/amind/git/agent-4` paths and are reference, not runnable tools.
 
 The commit history of the authored assets themselves is on `task/crimson-drawn`
 (kept as tag `archive/task/crimson-drawn`).
+
+## studies/drawn-study/
+
+The Unity side of the single-rock drawn study, removed from main by #921: the study FBX, textures and materials of `Assets/Visuals/Environment/Asteroids/DrawnStudy/`, `.meta` included. Its README has the revive recipe.
