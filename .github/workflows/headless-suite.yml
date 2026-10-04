@@ -90,7 +90,6 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           cliVersion: v0.1.72
-          coverageEnabled: false
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: editmode
@@ -107,7 +106,6 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           cliVersion: v0.1.72
-          coverageEnabled: false
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: playmode
