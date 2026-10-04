@@ -4,7 +4,7 @@ The primary tree is the repo's main worktree (the first `git worktree list` entr
 the owner's uncommitted work, so agents never clean, reset or bulk-delete there; slots and
 other linked worktrees are fair game.
 
-Interface (Claude Code hook contract), always exit 0:
+Interface (Claude Code hook contract), exit 0 on well-formed hook JSON:
   stdin   the hook JSON; reads `cwd` and `tool_input.command`.
   stdout  nothing when allowed; when refused, one JSON line with
           hookSpecificOutput.permissionDecision "deny" (binding even in bypass mode) and a
@@ -74,7 +74,7 @@ class Tree:
         self.others = others
 
     def in_primary(self, d):
-        if d in (UNKNOWN,):
+        if d == UNKNOWN:
             return True
         if d == TEMP:
             return False
@@ -178,8 +178,7 @@ class Scan:
         if re.match(r"^\$\(\s*mktemp\b", value):
             self.vars[name] = TEMP
         else:
-            v = self.expand(value)
-            self.vars[name] = v
+            self.vars[name] = self.expand(value)
 
     def run(self, cmd, cwds):
         try:
@@ -342,9 +341,9 @@ def judge(data, cmd):
     seg, where, why = scan.blocked
     place = "an unresolved directory" if where == UNKNOWN else where
     return deny(f"primary-tree guard: refused `{seg}` — {why}, and it would run in {place}, which is or may "
-          f"be the primary tree ({tree.primary}). Agents never clean, reset or bulk-delete there "
-          "(AGENTS.md, Default workflow). Target a slot with a literal path, `git -C <slot path> ...`, "
-          "and chain with `&&` so a failed step stops the command.")
+                f"be the primary tree ({tree.primary}). Agents never clean, reset or bulk-delete there "
+                "(AGENTS.md, Default workflow). Target a slot with a literal path, `git -C <slot path> ...`, "
+                "and chain with `&&` so a failed step stops the command.")
 
 
 if __name__ == "__main__":
