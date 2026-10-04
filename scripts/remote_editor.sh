@@ -12,13 +12,19 @@
 # remote console. The task runs elevated, so git needs the repo in
 # safe.directory (ensured idempotently here).
 #
-# Usage: remote_editor.sh start [lease]     launch + wait until CLI-ready; exit 8, nothing
-#                                           launched, while the remote lane is disabled (remote_lane.sh)
+# Usage: remote_editor.sh start [lease]     launch + wait until CLI-ready
 #        remote_editor.sh status [lease]    editor_status passthrough
 #        remote_editor.sh cmd <args...>     unity CLI passthrough (quoting handled)
 #        remote_editor.sh stop [lease]      release lease, close editor, clean up
 # Env:   REMOTE_EDITOR_HOST (alastor) · REMOTE_EDITOR_REPO (C:/dev/astronomical-home)
 #        REMOTE_EDITOR_UNITY (6000.1.8f1 exe) · REMOTE_EDITOR_TIMEOUT_SEC (600)
+# Exit:  0 done · 1 usage · 3 the host is unreachable over SSH
+#        start only — 3 and 4 come from `remote_lane.sh status`, and 3/4/8/9 launch nothing:
+#          2 editor not ready before the timeout · 4 no interactive console session
+#          5 unity CLI missing on the host and no local copy to ship · 6 launcher failed
+#          7 schtasks could not create/run the launch task · 8 the remote lane is disabled
+#          9 `remote_lane.sh status` gave no verdict (its stderr says why)
+#        any other nonzero: a remote or transfer step failed (ssh's or scp's own code)
 
 set -euo pipefail
 
@@ -32,7 +38,7 @@ RPROJ_WIN="${RPROJ//\//\\}"
 RCLI='$env:LOCALAPPDATA\Unity\bin\unity.exe'
 
 ACTION="${1:-}"
-[ -n "$ACTION" ] || { sed -n '3,21p' "$0"; exit 1; }
+[ -n "$ACTION" ] || { sed -n '3,27p' "$0"; exit 1; }
 shift
 
 rssh() { ssh -o BatchMode=yes -o ConnectTimeout=10 "$HOST" "$@" | tr -d '\r'; }
@@ -75,18 +81,24 @@ case "$ACTION" in
 start)
     LEASE="${1:-remote-editor}"
     lease_paths "$LEASE"
-    lane="$(REMOTE_LANE_HOST="$HOST" REMOTE_LANE_REPO="$RREPO" "$(dirname "${BASH_SOURCE[0]}")/remote_lane.sh" status)" || lane=""
-    if grep -qx 'REMOTE_LANE=disabled' <<<"$lane"; then
+    rc=0
+    lane="$(REMOTE_LANE_HOST="$HOST" REMOTE_LANE_REPO="$RREPO" "$(dirname "${BASH_SOURCE[0]}")/remote_lane.sh" status)" || rc=$?
+    [ "$rc" -eq 0 ] || {
+        echo "[remote_editor] refusing: remote_lane.sh status gave no verdict (exit $rc)." >&2
+        exit 9
+    }
+    case "$(sed -n 's/^REMOTE_LANE=//p' <<<"$lane")" in
+    disabled)
         echo "[remote_editor] refusing: the remote lane is disabled; remote_lane.sh enable turns it back on." >&2
-        exit 8
-    fi
-    require_host
-
-    # Preflight: an interactive desktop session must exist for the /IT task.
-    if ! rssh "(Get-Process explorer -ErrorAction SilentlyContinue) -ne \$null" | grep -qi true; then
+        exit 8 ;;
+    unreachable)
+        echo "[remote_editor] $HOST unreachable over SSH — the box is likely asleep (no WoL); wake it physically." >&2
+        exit 3 ;;
+    esac
+    grep -qx 'CONSOLE_SESSION=true' <<<"$lane" || {
         echo "[remote_editor] no interactive desktop session on $HOST — log in at its console first (GUI editors cannot boot in session 0)." >&2
         exit 4
-    fi
+    }
 
     # Preflight: unity CLI present remotely; install from the local copy if not.
     if ! rssh "Test-Path \"$RCLI\"" | grep -qi true; then

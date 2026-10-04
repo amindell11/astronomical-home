@@ -26,8 +26,8 @@
 #            DISABLED_BY=here|there · REASON=<text>             disabled only
 #            FREE_RAM_GB · CHECKOUT · DIRTY_FILES · CONSOLE_SESSION=true|false · UNITY_CLAIMS
 #                                                               busy and available only
-#            busy means UNITY_CLAIMS > 0: owners + queue + blockers + a held boot lane or
-#            legacy owner, from the box's own `unity_access.ps1 -Action Status -Json`.
+#            busy means UNITY_CLAIMS > 0: owners + queue + blockers + a held or wedged boot
+#            lane + a legacy owner, from the box's own `unity_access.ps1 -Action Status -Json`.
 #            unreachable means SSH gave no answer: asleep, off, or off the network.
 #            CONSOLE_SESSION=false means `remote_editor.sh start` cannot launch.
 #   disable: REMOTE_LANE_SWITCH=disabled
@@ -78,6 +78,7 @@ Set-Location '$RREPO'
 'CONSOLE_SESSION=' + ([bool](Get-Process explorer -ErrorAction SilentlyContinue)).ToString().ToLower()
 \$s = & .\scripts\unity_access.ps1 -Action Status -Json | ConvertFrom-Json
 'UNITY_CLAIMS=' + @(@(\$s.owners) + @(\$s.queue) + @(\$s.blockers) + @(\$s.boot) + @(\$s.legacyOwner) | Where-Object { \$null -ne \$_ }).Count
+'BOOT_WEDGED=' + ([bool]\$s.bootWedged).ToString().ToLower()
 'REPORT=complete'
 EOF
 )" || rc=$?
@@ -100,11 +101,13 @@ EOF
     fi
 
     claims="$(field UNITY_CLAIMS "$report")"
+    [ "$(field BOOT_WEDGED "$report")" != true ] || claims=$((claims + 1))
     verdict=available
     [ "$claims" -eq 0 ] || verdict=busy
     echo "[remote_lane] $HOST: $verdict — $(field FREE_RAM_GB "$report") GB free, $claims Unity claim(s), checkout $(field CHECKOUT "$report") with $(field DIRTY_FILES "$report") uncommitted file(s), console session $(field CONSOLE_SESSION "$report")" >&2
     echo "REMOTE_LANE=$verdict"
-    grep -E '^(FREE_RAM_GB|CHECKOUT|DIRTY_FILES|CONSOLE_SESSION|UNITY_CLAIMS)=' <<<"$report"
+    grep -E '^(FREE_RAM_GB|CHECKOUT|DIRTY_FILES|CONSOLE_SESSION)=' <<<"$report"
+    echo "UNITY_CLAIMS=$claims"
     ;;
 
 disable)
