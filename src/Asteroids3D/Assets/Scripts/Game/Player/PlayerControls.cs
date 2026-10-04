@@ -315,7 +315,7 @@ namespace Game.Player
                 {
                     ""name"": """",
                     ""id"": ""c83d1b8c-cacb-4c1c-811f-700cbc1b555f"",
-                    ""path"": ""<Keyboard>/f"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -326,7 +326,7 @@ namespace Game.Player
                 {
                     ""name"": """",
                     ""id"": ""c7b168d1-abe3-4d83-a712-81a379795924"",
-                    ""path"": ""<Mouse>/rightButton"",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
