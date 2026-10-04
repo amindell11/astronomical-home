@@ -1,7 +1,7 @@
 """PreToolUse hook (Bash, PowerShell): refuse destructive commands aimed at the primary tree.
 
 The primary tree is the repo's main worktree (the first `git worktree list` entry). It holds
-the owner's uncommitted work, so agents never clean, reset or bulk-delete there; slots and
+the owner's uncommitted work, so agents never clean, reset, stash or bulk-delete there; slots and
 other linked worktrees are fair game.
 
 Interface (Claude Code hook contract), exit 0 on well-formed hook JSON:
@@ -12,7 +12,8 @@ Interface (Claude Code hook contract), exit 0 on well-formed hook JSON:
 
 Refused when the segment's effective directory is, or may be, the primary tree:
   git clean (not -n/--dry-run), git rm -r, git checkout --orphan / -f / <pathspec>,
-  git restore (unless --staged alone), git reset --hard.
+  git restore (unless --staged alone), git reset --hard, git pull / git rebase without
+  --no-autostash, and git stash (except list / show).
 Refused when any target path is, may be, or contains the primary tree:
   recursive rm / Remove-Item (and its aliases), cmd rmdir /s.
 
@@ -42,7 +43,7 @@ WRAPPERS = {"sudo", "command", "time", "builtin", "exec", "env", "&"}
 REDIRECT = re.compile(r"\d*>&\d*-?|&>>?|<&\d*")
 REDIRECT_TOKEN = re.compile(r"^\d*(>>?|<)")
 PS_SWITCHES = {"-force", "-whatif", "-confirm", "-verbose", "-debug"}
-TRIGGER = re.compile(r"\b(clean|rm|checkout|restore|reset|remove-item|ri|del|erase|rmdir|rd)\b", re.I)
+TRIGGER = re.compile(r"\b(clean|rm|checkout|restore|reset|pull|rebase|stash|remove-item|ri|del|erase|rmdir|rd)\b", re.I)
 ASSIGN = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$", re.S)
 VAR = re.compile(r"\$\{?([A-Za-z_][A-Za-z0-9_:]*)\}?")
 
@@ -282,6 +283,11 @@ class Scan:
             why = "git restore discards working-tree changes"
         elif sub == "reset" and "--hard" in flags:
             why = "git reset --hard discards working-tree changes"
+        elif sub in ("pull", "rebase") and "--no-autostash" not in flags:
+            why = (f"git {sub} can autostash the owner's edits out of the tree (rebase.autostash); "
+                   "use `git pull --ff-only --no-autostash`")
+        elif sub == "stash" and not (rest and rest[0] in ("list", "show")):
+            why = "git stash moves or drops the owner's edits; only `stash list` / `stash show` read"
         if why and self.tree.in_primary(where):
             self.block(argv, where, why)
 
