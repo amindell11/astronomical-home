@@ -179,7 +179,7 @@ closed = sorted({int(r["number"]) for r in pr.get("closingIssuesReferences") or 
 body = pr.get("body") or ""
 prose = re.sub(r"^(`{3,}|~{3,}).*?^\1[^\n]*$", "", body, flags=re.S | re.M)
 refs = sorted({int(n) for n in re.findall(r"(?<![\w/])#(\d+)\b", prose)} - set(closed))
-mismatch = sorted({int(n) for n in NEGATED_CLOSE.findall(body)} & set(closed))
+mismatch = sorted({int(r[1:]) for r in NEGATED_CLOSE.findall(body) if r.startswith("#")} & set(closed))
 print(f"TITLE={shlex.quote(pr.get('title') or '')}")
 print(f"CLOSED={shlex.quote(' '.join(map(str, closed)))}")
 print(f"REFS={shlex.quote(' '.join(map(str, refs)))}")

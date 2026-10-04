@@ -13,10 +13,10 @@ import re
 import sys
 
 # GitHub's keyword set only: "closing"/"resolving" are not keywords, so a negated one closes nothing.
-KEYWORD = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+#(\d+)\b"
+KEYWORD = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+((?:[\w.-]+/[\w.-]+)?#\d+)\b"
 NEGATED_CLOSE = re.compile(r"(?:not|n['’]t|never)\s+" + KEYWORD, re.IGNORECASE)
 ANY_CLOSE = re.compile(r"\b" + KEYWORD, re.IGNORECASE)
-DECLARED_CLOSE = re.compile(r"^\s*Closes #\d+\b")
+DECLARED_CLOSE = re.compile(r"^\s*Closes (?:[\w.-]+/[\w.-]+)?#\d+\b")
 
 
 def main():
@@ -34,11 +34,11 @@ def main():
         hit = True
         print(f"line {lineno}: {line.strip()}", file=sys.stderr)
         for m in negated:
-            n = m.group(1)
-            print(f"  GitHub closes #{n} on merge despite the negation; write \"Relates to #{n}\" or \"Refs #{n}\" instead.", file=sys.stderr)
+            ref = m.group(1)
+            print(f"  GitHub closes {ref} on merge despite the negation; write \"Relates to {ref}\" or \"Refs {ref}\" instead.", file=sys.stderr)
         for m in stray:
-            n = m.group(1)
-            print(f"  GitHub closes #{n} on merge wherever a closing keyword names it, quoted or not; write \"Refs #{n}\", or start a line with \"Closes #{n}\" if this PR ends it.", file=sys.stderr)
+            ref = m.group(1)
+            print(f"  GitHub closes {ref} on merge wherever a closing keyword names it, quoted or not; write \"Refs {ref}\", or start a line with \"Closes {ref}\" if this PR ends it.", file=sys.stderr)
     return 2 if hit else 0
 
 
