@@ -762,6 +762,19 @@ Format: **term** — definition. *(authority)*
   Stakes reads the opening burst. Damage is counted at launch, so every shot is
   a hit: missiles count direct damage only, grenades the blast at its centre.
   *(WeaponCycleProbe · #772)*
+- **balance dump** — one measurement of the item catalog written as JSON: its
+  inputs (every stat line of the catalog's items and of the run setting), the
+  derived rows (each weapon's cycle modes, stakes once per distinct ship
+  resource pool), the stat fingerprint and the build identity. Only an explicit
+  PlayMode test writes one, so a run measures only when it names that test.
+  Dumps are named by UTC time under the results root, and the one before a new
+  dump by filename is its previous dump, whatever branch wrote it.
+  *(BalanceDump, BalanceDumpPlayModeTests · #772)*
+- **derived table** — a balance dump rendered as markdown; the **delta table**
+  is the diff of two dumps, inputs keyed by `asset/Type.field` and rows by
+  weapon plus mode. Values are compared as printed, so a change below the
+  printed precision shows no delta. One renderer, so Unity never formats a row.
+  *(scripts/balance/balance_table.py)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
