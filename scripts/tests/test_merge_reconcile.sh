@@ -209,6 +209,14 @@ reset; pr 9100 "9001" "This doesn't fix #9001 yet."
 out="$(run --event "$(event "$SIMPLE")" 2>/dev/null)"
 [[ "$(trailer MISMATCH <<<"$out")" == 9001 ]] || fail "any negated GitHub closing keyword is a mismatch (got: $out)"
 
+reset; pr 9100 "9001" "Does not close Owner/Repo#9001."
+out="$(run --event "$(event "$SIMPLE")" 2>/dev/null)"
+[[ "$(trailer MISMATCH <<<"$out")" == 9001 ]] || fail "a same-repo qualified negated close is a mismatch (got: $out)"
+
+reset; pr 9100 "9001" "Does not close other/repo#9001."
+out="$(run --event "$(event "$SIMPLE")" 2>/dev/null)"
+[[ "$(trailer MISMATCH <<<"$out")" == "" ]] || fail "a cross-repo negated close is no mismatch (got: $out)"
+
 # --- dry run: every write printed, none run -----------------------------------------------------
 reset
 out="$(run --event "$(event "$SIMPLE")" --dry-run 2>/dev/null)"

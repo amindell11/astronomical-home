@@ -169,7 +169,7 @@ reconcile() {
   local sha="$1" when="$2" pr="$3" short="${1:0:8}"
   say "commit $short → PR #$pr"
   gh pr view "$pr" --repo "$REPO" --json title,body,closingIssuesReferences > "$TMP/pr.json" || infra "gh pr view $pr failed"
-  eval "$(python3 - "$TMP/pr.json" "$(dirname "${BASH_SOURCE[0]}")/lib" <<'PY'
+  eval "$(python3 - "$TMP/pr.json" "$(dirname "${BASH_SOURCE[0]}")/lib" "$REPO" <<'PY'
 import json, re, shlex, sys
 sys.dont_write_bytecode = True  # no __pycache__ in the tree the script tests run in
 sys.path.insert(0, sys.argv[2])
@@ -179,7 +179,8 @@ closed = sorted({int(r["number"]) for r in pr.get("closingIssuesReferences") or 
 body = pr.get("body") or ""
 prose = re.sub(r"^(`{3,}|~{3,}).*?^\1[^\n]*$", "", body, flags=re.S | re.M)
 refs = sorted({int(n) for n in re.findall(r"(?<![\w/])#(\d+)\b", prose)} - set(closed))
-mismatch = sorted({int(r[1:]) for r in NEGATED_CLOSE.findall(body) if r.startswith("#")} & set(closed))
+local_refs = (r.partition("#") for r in NEGATED_CLOSE.findall(body))
+mismatch = sorted({int(n) for q, _, n in local_refs if q.lower() in ("", sys.argv[3].lower())} & set(closed))
 print(f"TITLE={shlex.quote(pr.get('title') or '')}")
 print(f"CLOSED={shlex.quote(' '.join(map(str, closed)))}")
 print(f"REFS={shlex.quote(' '.join(map(str, refs)))}")
