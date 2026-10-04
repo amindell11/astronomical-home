@@ -24,7 +24,7 @@ namespace Asteroids
     {
         // Only asteroid models under this folder are recentred.
         private const string ModelsFolder =
-            "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/";
+            "Assets/Visuals/Environment/Asteroids/Shapes/Models/";
 
         private void OnPostprocessModel(GameObject root)
         {
