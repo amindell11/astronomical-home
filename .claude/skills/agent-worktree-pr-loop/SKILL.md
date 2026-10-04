@@ -320,9 +320,8 @@ non-LFS image: `https://github.com/<owner>/<repo>/raw/<sha>/<path>`; MP4 link:
 ./scripts/evidence_publish.sh <lease> <evidence paths>   # prints SHA=<sha> to pin
 ```
 
-The script builds the commit without a worktree and uploads the LFS objects
-itself (`--into <subdir>` files them under a folder). Hand-typed orphan-branch
-git is not the path: a retyped recipe wiped the primary tree once.
+`--into <subdir>` files them under a folder. Never hand-type orphan-branch git:
+a retyped recipe wiped the primary tree once.
 
 ## Step 5 — Review round-trip
 
