@@ -1,0 +1,193 @@
+kind	from	to	guid
+moved	Assets/Visuals/Shaders/DrawnComparison/DrawnSurface.shader	Assets/Visuals/Shaders/DrawnSurface.shader	d6e7df444cf744afba34adb40bc36875
+moved	Assets/Visuals/Shaders/DrawnComparison/DrawnContour.shader	Assets/Visuals/Shaders/DrawnContour.shader	affa24b4d6e246de866922721692a87e
+moved	Assets/Visuals/Shaders/DrawnComparison/DrawnCanopy.shader	Assets/Visuals/Shaders/DrawnCanopy.shader	112c91cc725f0b84eb0b973c51144c0f
+moved	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidBrushAlbedo.png	Assets/Visuals/Environment/Asteroids/DrawnField/AsteroidBrushAlbedo.png	6ff7b50b5b2e401e8aa978fab244e768
+moved	Assets/Visuals/Vfx/ApprovedPlasma/DrawnExplosion.shader	Assets/Visuals/Vfx/LayeredExplosion/Materials/DrawnExplosion.shader	b41d7fb29e0c27c4b9a48d0a2d485532
+moved	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx	Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx	332cc04717645804db5720f8d781eeab
+moved	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png	Assets/Visuals/Ships/Nightshade/Nightshade_Albedo.png	950b0476dbb3fe7459315fa0c0de5cff
+moved	Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/shippEmission.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Emission.png	91db5a873711ccc4986c7d4f8a332faa
+moved	Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Metal.png	3f74d44860d075d4b93d4aefc4555472
+moved	Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Texture.png	c8c595322da6f8f4a8829d8e542e214c
+moved	Assets/Visuals/Ships/Ship1/ship2.png	Assets/Visuals/Ui/AppIcon/ship2.png	8a735c1d7ebd1134eb994de05a10599c
+deleted	Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs		c566801f45e58864abdc2be9a8000292
+deleted	Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs		27d32e431976341438fc504843a369d3
+deleted	Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef		0230ec2cdee870740a33d7526b4db755
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat		dc0c5191bd64f6c4b9d91556e34743f3
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png		d7765e624fc086a488519b72015090ce
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx		d9db7114030e1884c870c20028ab4c89
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat		b2e0085b7dbadd84e83a68c35ab36dda
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png		1222cd08780820944bd88962f7a21264
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx		bfbd374bb5746294298a15587639e99c
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png		8d7d45a3feb4445f920639a87deab428
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png		3c381573752aa804cbd4968c87d5a98c
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx		2f7c6b18fe147aa42a04d062ab01b103
+deleted	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat		b5c099f7e433d7d44a4c439591bd2c57
+deleted	Assets/Visuals/Environment/Asteroids/Jan 27, 2026, 12_23_20 AM.png		045ee76c46ed89c4ab4bac195e27272c
+deleted	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx		83db974bc6ee1174bb077fe7196c3169
+deleted	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png		66c7c41b9cab72e4c8bbf7bf8e11dfe9
+deleted	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/capShipMaterial.mat		6b11d2ff70788b543b59432c89d6a406
+deleted	Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121500Am.png		12380dd11d26c02498d5319fa7d9f9d2
+deleted	Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121643Am.png		2e2f20aa0a445d64c84b5449ac980057
+deleted	Assets/Visuals/Ships/Nightshade/jan272026122322Am.png		b359583538068b14fae009a0dd985e89
+deleted	Assets/Visuals/Ships/Nightshade/ship3EnginesOff.png		670f9f140fd98a14396a4b3aace506ae
+deleted	Assets/Visuals/Ships/Nightshade/ship3EnginesOn.png		b9fcb4af69fa5524a9b99b6c8003b8b2
+deleted	Assets/Visuals/Ships/Nightshade/ship3NoWings.png		ed352a397866306458040359876296fe
+deleted	Assets/Visuals/Ships/Nightshade/shipTemplate2.cfg		4ee7f6f64f2c1b748917271e6353101b
+deleted	Assets/Visuals/Ships/Ship1/ship.png		597687106c9e96948bb5f74cb6f8ac69
+deleted	Assets/Visuals/Ships/Ship1/ship2Small.png		4bba08db2b60b564984a23e69a3a681b
+deleted	Assets/Visuals/Ships/Ship1/shipEnginesOn.png		df7ada0db0dc03a429a56bdb57171cba
+deleted	Assets/Visuals/Ships/Ship1/shipTemplate.cfg		72c816b01a290454380561eaf329e44a
+deleted	Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png		716889151c44cf240afc46e352f21fd2
+deleted	Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png		c0b3ce32b1d08c3428a310b8ae03d22b
+deleted	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png		932617ead8a6dbc4dbf2635445f23ad1
+deleted	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png		b7616cc82f182c74298e7e48178200ac
+deleted	Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader		898d4444fd2b36343b5f50191a792f8f
+deleted	Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard.obj		f04a30281d8747644becb5008ab81a2c
+deleted	Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset		7bcfab6bc97b9854d9a949cb2ced72fe
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat		5639a471a3adbf44da94a300bbed5cb7
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat		6216033cb0c9ef843a570865fb43f164
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat		88047233d2964b0418a137284f886d1e
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat		5c7402ba81bf4ef488340ac3a51a3771
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat		61442fb918a3cba41a770c11ccbdad31
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat		9f28ede11411c4b489c83d11189926e8
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat		04a9a2f250ba8414b855e79c7cc710c2
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat		607c7bada82dcfb42a5be50e2184c769
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat		505ccd682b9cf784cadaf6616c1bb2e0
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat		d1bb1e9a866ba1b428e348344fd7782e
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat		d1390a6d9f950824fa87f636404c03c5
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat		e6dd9fbd9122fc842b50133fa4d18e0f
+deleted	Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat		3544fd09b6472224a89c78f205420b6f
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset		f9aa1df36281c594ea99932f7d1e244b
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset		f2d2374f4ede48f4aa4d0205b8a66701
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset		be71bef89dc5505419f714cd199cedbc
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset		8ee97295ed2e24f4490f6849c04e1ccb
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset		d515673976a9f2b45886e7331370ada8
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset		52131f35ee04efc45aa41b4ed9b5b4c5
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset		248336951f0aafc4282305044c4a417e
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset		463467c772bb3de4ead7dcb9d0c8c3b1
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset		e4f933c83eb288942920bdc185bd06dd
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset		0f67654da0e7db84095d058713b1f42f
+deleted	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset		0c16cbacbbc47f148950f1b8a706750e
+deleted	Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab		0f3427c919f1c05408313551b8be34f7
+deleted	Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab		5f7df6c6832daae4db2c63a8e489eae9
+deleted	Assets/Visuals/Studies/DrawnArt/README.md		01f24ee3c5bb77343adaae6b42a2b6c3
+deleted	Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity		2e4bc05f540efde4ea16232421304f58
+deleted	Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity		f2bc64f3dbad9d7479e67cc94267974a
+deleted	Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity		fc6608a8a2da00b44a34b173464906a2
+deleted	Assets/Visuals/Vfx/Explosion/exp1Zps03A1Bdde.gif		4db03e5d4d09cf94280e3848e4c54c4e
+deleted (folder)	Assets/Scripts/Editor/Visuals		04bddb2a69ccce442b229e6682e7d6ac
+deleted (folder)	Assets/Scripts/Editor/Visuals/Studies		4d1026d3260979f4b83050142f9fbd01
+deleted (folder)	Assets/Visuals/Environment/Asteroids/DrawnStudy		6a27f1274e0f005419305c5c9852bc70
+deleted (folder)	Assets/Visuals/Environment/Models		1150da304dd5d4e4ca152339c1664896
+deleted (folder)	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx		01491866983f76647a91980f2c240367
+deleted (folder)	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx		4702e3e072dfcdc479e87c228d3a1e0e
+deleted (folder)	Assets/Visuals/Shaders/DrawnComparison		b5bd0b100fb142c9a7540c72f92eec89
+deleted (folder)	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx		aaee03f47e362e044991543235bcf1a4
+deleted (folder)	Assets/Visuals/Ships/Ship1		6188e556ec37307418d8cf42576d2927
+deleted (folder)	Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj		0d13ff280b6a3d342b09e0dbbcf547f4
+deleted (folder)	Assets/Visuals/Ships/Vanguard/DrawnStudy		7dd0c6b05721c3e4d9dba923936b18c6
+deleted (folder)	Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj		638a68202abc3ae44a0994c3fe45a2a9
+deleted (folder)	Assets/Visuals/Studies		01bee3e0b04c7454dade67c5105bf051
+deleted (folder)	Assets/Visuals/Studies/DrawnArt		b8ebfdbda6a48bf47a6f42ffd4b731be
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Lighting		acc86615c01ed2846bc1a20691846fb2
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials		54cf4f1331a80e542b4fe1a62a0c1ede
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials/Ship		ce520d9d6850c5d48af99eb672895296
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline		7ed53115e927374479d7f6434d965e61
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels		8489379ce5f8df04eb3ebd14a7bba1e5
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface		7a2e94ee42aaa584593d8717d4bb827c
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Materials/Stage		a3519bbd1b3c74f499f0e44a3509b5f1
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Meshes		28aed744fdbbdb74babaad9d2fdc7797
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Meshes/Engines		20b9e3a4b6e9a9a4ba9caec5930e618c
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Meshes/Hull		c21114088b50ef446bfd6562c9fb50e0
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Meshes/Wings		4438a98baa750fa42b493b85d193f5b8
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Prefabs		262998c4b97ef144aacb13c9f48ab191
+deleted (folder)	Assets/Visuals/Studies/DrawnArt/Scenes		de15d920905f3af4cb4c7bdcd5018e94
+deleted (folder)	Assets/Visuals/Vfx/ApprovedPlasma		cedd9d5ea88a9c342984f34170115d66
+deleted (folder)	Assets/Visuals/Vfx/Explosion		c1208aaf83a5ba74aa6eb82a3a3faeec
+art	Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121500Am.png	art/ships/nightshade/concepts/chatGptImageJan272026121500Am.png	12380dd11d26c02498d5319fa7d9f9d2
+art	Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121643Am.png	art/ships/nightshade/concepts/chatGptImageJan272026121643Am.png	2e2f20aa0a445d64c84b5449ac980057
+art	Assets/Visuals/Ships/Nightshade/jan272026122322Am.png	art/ships/nightshade/concepts/jan272026122322Am.png	b359583538068b14fae009a0dd985e89
+art	Assets/Visuals/Ships/Nightshade/ship3EnginesOff.png	art/ships/nightshade/concepts/ship3EnginesOff.png	670f9f140fd98a14396a4b3aace506ae
+art	Assets/Visuals/Ships/Nightshade/ship3EnginesOn.png	art/ships/nightshade/concepts/ship3EnginesOn.png	b9fcb4af69fa5524a9b99b6c8003b8b2
+art	Assets/Visuals/Ships/Nightshade/ship3NoWings.png	art/ships/nightshade/concepts/ship3NoWings.png	ed352a397866306458040359876296fe
+art	Assets/Visuals/Ships/Nightshade/shipTemplate2.cfg	art/ships/nightshade/concepts/shipTemplate2.cfg	4ee7f6f64f2c1b748917271e6353101b
+art	Assets/Visuals/Ships/Ship1/ship.png	art/ships/vanguard/concepts/ship.png	597687106c9e96948bb5f74cb6f8ac69
+art	Assets/Visuals/Ships/Ship1/ship2Small.png	art/ships/vanguard/concepts/ship2Small.png	4bba08db2b60b564984a23e69a3a681b
+art	Assets/Visuals/Ships/Ship1/shipEnginesOn.png	art/ships/vanguard/concepts/shipEnginesOn.png	df7ada0db0dc03a429a56bdb57171cba
+art	Assets/Visuals/Ships/Ship1/shipTemplate.cfg	art/ships/vanguard/concepts/shipTemplate.cfg	72c816b01a290454380561eaf329e44a
+art	Assets/Visuals/Environment/Asteroids/Jan 27, 2026, 12_23_20 AM.png	art/concepts/Jan 27, 2026, 12_23_20 AM.png	045ee76c46ed89c4ab4bac195e27272c
+art	Assets/Visuals/Vfx/Explosion/exp1Zps03A1Bdde.gif	art/vfx/explosion/refs/exp1Zps03A1Bdde.gif	4db03e5d4d09cf94280e3848e4c54c4e
+art	Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png	art/ships/vanguard/drawn-study/HangarBackground-v2-ui.png	716889151c44cf240afc46e352f21fd2
+art	Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png	art/ships/vanguard/drawn-study/NebulaBackground-v2.png	c0b3ce32b1d08c3428a310b8ae03d22b
+art	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png	art/ships/vanguard/drawn-study/PlanetBackground-v1.png	932617ead8a6dbc4dbf2635445f23ad1
+art	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png	art/ships/vanguard/drawn-study/PlanetBackground-v2-ui.png	b7616cc82f182c74298e7e48178200ac
+art	Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader	art/ships/vanguard/drawn-study/ShadowedPlate.shader	898d4444fd2b36343b5f50191a792f8f
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx	art/asteroid-study/AsteroidFractureStudy.fbx	d9db7114030e1884c870c20028ab4c89
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx	art/asteroid-study/AsteroidPaintStudy.fbx	bfbd374bb5746294298a15587639e99c
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx	art/asteroid-study/AsteroidSurfaceDrawing.fbx	2f7c6b18fe147aa42a04d062ab01b103
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png	art/asteroid-study/AsteroidFracturePaint.png	d7765e624fc086a488519b72015090ce
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png	art/asteroid-study/AsteroidPaint.png	1222cd08780820944bd88962f7a21264
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png	art/asteroid-study/AsteroidScuffNormal.png	8d7d45a3feb4445f920639a87deab428
+art	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png	art/asteroid-study/AsteroidStoneAlbedo.png	3c381573752aa804cbd4968c87d5a98c
+art	Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard.obj	art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguard.obj	f04a30281d8747644becb5008ab81a2c
+art	Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png	art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png	c8c595322da6f8f4a8829d8e542e214c
+art	Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png	art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png	3f74d44860d075d4b93d4aefc4555472
+art	Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/shippEmission.png	art/meshy/StarshipVanguard0606163455TextureObj/shippEmission.png	91db5a873711ccc4986c7d4f8a332faa
+art	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx	art/meshy/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx	332cc04717645804db5720f8d781eeab
+art	Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png	art/meshy/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png	950b0476dbb3fe7459315fa0c0de5cff
+art	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx	art/meshy/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx	83db974bc6ee1174bb077fe7196c3169
+art	Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png	art/meshy/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png	66c7c41b9cab72e4c8bbf7bf8e11dfe9
+evidence	Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs	evidence/vanguard:studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs	c566801f45e58864abdc2be9a8000292
+evidence	Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs	evidence/vanguard:studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs	27d32e431976341438fc504843a369d3
+evidence	Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef	evidence/vanguard:studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef	0230ec2cdee870740a33d7526b4db755
+evidence	Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png	evidence/vanguard:studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png	716889151c44cf240afc46e352f21fd2
+evidence	Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png	evidence/vanguard:studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png	c0b3ce32b1d08c3428a310b8ae03d22b
+evidence	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png	evidence/vanguard:studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png	932617ead8a6dbc4dbf2635445f23ad1
+evidence	Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png	evidence/vanguard:studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png	b7616cc82f182c74298e7e48178200ac
+evidence	Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader	evidence/vanguard:studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader	898d4444fd2b36343b5f50191a792f8f
+evidence	Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset	7bcfab6bc97b9854d9a949cb2ced72fe
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat	5639a471a3adbf44da94a300bbed5cb7
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat	6216033cb0c9ef843a570865fb43f164
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat	88047233d2964b0418a137284f886d1e
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat	5c7402ba81bf4ef488340ac3a51a3771
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat	61442fb918a3cba41a770c11ccbdad31
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat	9f28ede11411c4b489c83d11189926e8
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat	04a9a2f250ba8414b855e79c7cc710c2
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat	607c7bada82dcfb42a5be50e2184c769
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat	505ccd682b9cf784cadaf6616c1bb2e0
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat	d1bb1e9a866ba1b428e348344fd7782e
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat	d1390a6d9f950824fa87f636404c03c5
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat	e6dd9fbd9122fc842b50133fa4d18e0f
+evidence	Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat	3544fd09b6472224a89c78f205420b6f
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset	f9aa1df36281c594ea99932f7d1e244b
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset	f2d2374f4ede48f4aa4d0205b8a66701
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset	be71bef89dc5505419f714cd199cedbc
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset	8ee97295ed2e24f4490f6849c04e1ccb
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset	d515673976a9f2b45886e7331370ada8
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset	52131f35ee04efc45aa41b4ed9b5b4c5
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset	248336951f0aafc4282305044c4a417e
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset	463467c772bb3de4ead7dcb9d0c8c3b1
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset	e4f933c83eb288942920bdc185bd06dd
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset	0f67654da0e7db84095d058713b1f42f
+evidence	Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset	0c16cbacbbc47f148950f1b8a706750e
+evidence	Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab	0f3427c919f1c05408313551b8be34f7
+evidence	Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab	5f7df6c6832daae4db2c63a8e489eae9
+evidence	Assets/Visuals/Studies/DrawnArt/README.md	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/README.md	01f24ee3c5bb77343adaae6b42a2b6c3
+evidence	Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity	2e4bc05f540efde4ea16232421304f58
+evidence	Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity	f2bc64f3dbad9d7479e67cc94267974a
+evidence	Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity	evidence/vanguard:studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity	fc6608a8a2da00b44a34b173464906a2
+evidence	.gitattributes	evidence/vanguard:studies/drawn-art/.gitattributes	
+evidence	art/ships/vanguard/drawn-study/build_structure.py	evidence/vanguard:producers/drawn-study/build_structure.py	
+evidence	art/ships/vanguard/drawn-study/export_study.py	evidence/vanguard:producers/drawn-study/export_study.py	
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat	dc0c5191bd64f6c4b9d91556e34743f3
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png	d7765e624fc086a488519b72015090ce
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx	d9db7114030e1884c870c20028ab4c89
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat	b2e0085b7dbadd84e83a68c35ab36dda
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png	1222cd08780820944bd88962f7a21264
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx	bfbd374bb5746294298a15587639e99c
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png	8d7d45a3feb4445f920639a87deab428
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png	3c381573752aa804cbd4968c87d5a98c
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx	2f7c6b18fe147aa42a04d062ab01b103
+evidence	Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat	evidence/asteroids:studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat	b5c099f7e433d7d44a4c439591bd2c57
+evidence	.gitattributes	evidence/asteroids:studies/drawn-study/.gitattributes	

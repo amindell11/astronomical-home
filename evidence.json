@@ -1,0 +1,752 @@
+{
+ "evidence/vanguard": {
+  "parent": "fbb3a46cf9c2d9a82c18a42c682563deed5bc6a0",
+  "commit": "375a63dd4f2aa77e851133243eb67379211d1ae8",
+  "entries": [
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals.meta",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals.meta",
+    "mode": "100644",
+    "oid": "f00504bc71ebe7b35634ea5428176dfad7f9c97d"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies.meta",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies.meta",
+    "mode": "100644",
+    "oid": "6d19d7bf097ec59d45127a18a1900ad141203045"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs",
+    "mode": "100644",
+    "oid": "fd03d03f4b399e89a41f5a89f67a7f7dbe300df1"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs.meta",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs.meta",
+    "mode": "100644",
+    "oid": "cb31d4d65c859889d1d543bdcb5acbfb70b793ca"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs",
+    "mode": "100644",
+    "oid": "45a684174120a0156a414acbb991d9d8daaa9898"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs.meta",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs.meta",
+    "mode": "100644",
+    "oid": "7e74e0a69e1c2f68e6a57b2265abdb4c064684d5"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef",
+    "mode": "100644",
+    "oid": "c160844dd689618be4a01c61713bd30464f4947e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef.meta",
+    "dst": "studies/drawn-art/Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef.meta",
+    "mode": "100644",
+    "oid": "ee0ea8d6338c0c2296411cac795051ea03d69069"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy.meta",
+    "mode": "100644",
+    "oid": "3b538b356ec6f3a0eff200bd61dc07df312ba194"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png",
+    "mode": "100644",
+    "oid": "9f70d09b8a1bbb7eb5c2932bc232d6ae204be806"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png.meta",
+    "mode": "100644",
+    "oid": "00240475cbb0470fb36c065ddea633ce52dc6288"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png",
+    "mode": "100644",
+    "oid": "7172abb312db4c44ce9d5c9a380701597bf22ccf"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png.meta",
+    "mode": "100644",
+    "oid": "dc2da8786a4e3c7b1103a828718db90dc0605bb9"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png",
+    "mode": "100644",
+    "oid": "fda002ece0c24cbbe882537014a7c4d68e6b49d1"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png.meta",
+    "mode": "100644",
+    "oid": "6aeaef012fc93b3abae50e00917c37677200cd4d"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png",
+    "mode": "100644",
+    "oid": "73c43c70e85966682d74201cd64e8a6f261d7b71"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png.meta",
+    "mode": "100644",
+    "oid": "bdee86d42f76a9be078dffb653d0efd67522db5f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader",
+    "mode": "100644",
+    "oid": "d82472074c834de7e664d91148ae70170098208a"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader.meta",
+    "mode": "100644",
+    "oid": "d485dda6de731644aab9ff04bd2f8f7c2f493fd7"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies.meta",
+    "mode": "100644",
+    "oid": "53856a3c94890eeb16f556151a59bcf50de80bfe"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt.meta",
+    "mode": "100644",
+    "oid": "72d328b338d4226f73d45e7b5504ff866b6a732f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Lighting.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Lighting.meta",
+    "mode": "100644",
+    "oid": "a36179a168f9c2ad075be1f8fd34b50e9dec5cfc"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset",
+    "mode": "100644",
+    "oid": "eb363ac60edda077a1e39d282d3f67cce14868db"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset.meta",
+    "mode": "100644",
+    "oid": "a0a38e75c83ebbf6df547d8b19ec1247c609be36"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials.meta",
+    "mode": "100644",
+    "oid": "0663f6d39ee113269c53d80e1665a9ae04464dca"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship.meta",
+    "mode": "100644",
+    "oid": "9f04a8ddca1e2e9e14c18c841c25a0c11bbb1915"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline.meta",
+    "mode": "100644",
+    "oid": "3bcade0dc03c049010fcb688616e1efecb2f5e03"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat",
+    "mode": "100644",
+    "oid": "adce34cfbfb391f945e32f7bf6e9a122ecfc59fb"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat.meta",
+    "mode": "100644",
+    "oid": "4374ce7d0b66446d9fe9ef556cc99ca659f21ef1"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat",
+    "mode": "100644",
+    "oid": "dc402ab0d313f1a89cff9b7b8453e7d141ebf795"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat.meta",
+    "mode": "100644",
+    "oid": "2ecb40d86290c48612c645363767060be5f527e7"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels.meta",
+    "mode": "100644",
+    "oid": "3fa2655f78895904ba3ba2df416e46f8e195ee42"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat",
+    "mode": "100644",
+    "oid": "694b68e5e820bd7a58b018d1335e2609ef529fb8"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat.meta",
+    "mode": "100644",
+    "oid": "960caf85a948e86436498488220df42073bf6b05"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat",
+    "mode": "100644",
+    "oid": "23a4a784c5f1a7694b06f498db5705e20a031fb1"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat.meta",
+    "mode": "100644",
+    "oid": "236ce62f98e46d008021341300347141c5c531a9"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat",
+    "mode": "100644",
+    "oid": "4b1cefde04d58a5c0a27cb2c0cc1cf13b8f53d5f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat.meta",
+    "mode": "100644",
+    "oid": "254404c866b0f5ee5a16b57082e5e66f7f428fc6"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat",
+    "mode": "100644",
+    "oid": "41b7c9a2cdf7bd4e64bcadbaed7b72c64d5ffe74"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat.meta",
+    "mode": "100644",
+    "oid": "01bc78daddaf695d0c6bfecfa8d60c40155b795f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat",
+    "mode": "100644",
+    "oid": "4bd53e6802f331816c8f4adf4219ea77522ac4b4"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat.meta",
+    "mode": "100644",
+    "oid": "452d144b4c9693ecc99912b2012e8aeca41b0f98"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface.meta",
+    "mode": "100644",
+    "oid": "2aa0dd2e4252b8543653fae675f9fcd71460de58"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat",
+    "mode": "100644",
+    "oid": "afff7f944b421098dbcfadff849ce1a04b8aa041"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat.meta",
+    "mode": "100644",
+    "oid": "f688ac3ce0f66647d3b385c8e20267d1a035a4d0"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat",
+    "mode": "100644",
+    "oid": "91d51eba4ac5e43b0b8ff6bfc755c87110e947ed"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat.meta",
+    "mode": "100644",
+    "oid": "c77f62bb187a37712aae95088473a2da517c0388"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage.meta",
+    "mode": "100644",
+    "oid": "e88ccca62c910a20b2ef8d2e42bee97012b93ded"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat",
+    "mode": "100644",
+    "oid": "ee240b88c55980d366b226a9a3cfcdcd686c2594"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat.meta",
+    "mode": "100644",
+    "oid": "b33b1c3c753a42518e135372120a0996d34a70b9"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat",
+    "mode": "100644",
+    "oid": "5cb15365df4ee1097c60122a667e14b9a2141c44"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat.meta",
+    "mode": "100644",
+    "oid": "7aab9e2a6e23899af51e41269f65ee421e6a6e01"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat",
+    "mode": "100644",
+    "oid": "b3e4300e8ed7497fff8d05b9c473e99a81a0541e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat.meta",
+    "mode": "100644",
+    "oid": "007ba13229d5a2c19b7cdbee82c2edb601c16ac8"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat",
+    "mode": "100644",
+    "oid": "7ff59b8600424cb4efcc79871719269b7a997e5a"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat.meta",
+    "mode": "100644",
+    "oid": "16f28162230cd8203f7a6f579fe6ed6516d50875"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes.meta",
+    "mode": "100644",
+    "oid": "2550b0ab480ea5f83e1dc10a27388b750ed810fb"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Engines.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines.meta",
+    "mode": "100644",
+    "oid": "bf0c9265dea343caab490f581a0caf252ad9415a"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset",
+    "mode": "100644",
+    "oid": "9095c510f5fd7580e4e8dcedb2c2285d4b97755f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset.meta",
+    "mode": "100644",
+    "oid": "8a0f0a73d23ee7aea5e8521a2358bd9e62d4abf9"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset",
+    "mode": "100644",
+    "oid": "0821cde471bdf1324ad16e7353dd9b2267b8bdb3"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset.meta",
+    "mode": "100644",
+    "oid": "1fb2d78284ecdd50a260bb2e4683757270c2e64c"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull.meta",
+    "mode": "100644",
+    "oid": "5d4a96fa21bcec48f668dc05574a5a6553aba213"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset",
+    "mode": "100644",
+    "oid": "99724d1ed068e9b722bb60073d512d9c3c26cf36"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset.meta",
+    "mode": "100644",
+    "oid": "f5e4b5f8a917ded03e97824b11604e13a80a0886"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset",
+    "mode": "100644",
+    "oid": "39f57c7854e03a5f47c0a7e6c14c0f658ca67330"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset.meta",
+    "mode": "100644",
+    "oid": "eb08521517c33001375415595ade92eda7dbb3bd"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset",
+    "mode": "100644",
+    "oid": "e2e40097baa321e9ed89db3f1e89c8e6ace132d4"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset.meta",
+    "mode": "100644",
+    "oid": "ad5950985348f4e20483035a5c5e2033e2a16c2c"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings.meta",
+    "mode": "100644",
+    "oid": "a0327925fa0cbdf3f20699186b32e8a78039b1e6"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset",
+    "mode": "100644",
+    "oid": "6e0ffc296bed1d221209dc06e41c67da1aa6fb51"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset.meta",
+    "mode": "100644",
+    "oid": "add2dc8f336527e89e71f76d792c3d6713ea9020"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset",
+    "mode": "100644",
+    "oid": "1b99bf90206c6a32c6435f0cf54a351103c0aa5b"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset.meta",
+    "mode": "100644",
+    "oid": "3b39c47980297bcde10b48e5b014ad9945e24f6d"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset",
+    "mode": "100644",
+    "oid": "f43b74e68ad853030fd9b850ecdf81c85d7ef41c"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset.meta",
+    "mode": "100644",
+    "oid": "463f5bcf4f3d48407f7f60af748a36ce9c29b3f6"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset",
+    "mode": "100644",
+    "oid": "ede93ed47f0c044dcec8ad9716ccb4f9b8ce7ae5"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset.meta",
+    "mode": "100644",
+    "oid": "8c7d291835010849cab4346278608edbe50b7691"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset",
+    "mode": "100644",
+    "oid": "f7216d708a7682f85691b2d587dd5a05bd61ab54"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset.meta",
+    "mode": "100644",
+    "oid": "d31c5ad1be89e021cd5c95239d87e5e61460deab"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset",
+    "mode": "100644",
+    "oid": "543a1ee0116a4c1a224962f9ffda033560167fe3"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset.meta",
+    "mode": "100644",
+    "oid": "b59efa85f18575810cfaba11f2d935a15e4e270b"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Prefabs.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs.meta",
+    "mode": "100644",
+    "oid": "c59dfbb262352655353442ad5a00375f840dd0cc"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab",
+    "mode": "100644",
+    "oid": "2f26b83c4ff21ef759f1e241f4a65ff66909cf53"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab.meta",
+    "mode": "100644",
+    "oid": "f8c54ae1f43545f95341cad6644f26bc4447e310"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab",
+    "mode": "100644",
+    "oid": "67335012cd1655fe4ee166ab0747f85aea009e2e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab.meta",
+    "mode": "100644",
+    "oid": "a60a5ef53779537d634b3d005b20ab655509a987"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/README.md",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/README.md",
+    "mode": "100644",
+    "oid": "87104ac0cd5d29f251d802637a713b675104615b"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/README.md.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/README.md.meta",
+    "mode": "100644",
+    "oid": "a92a4e9c33d3a6fb42fda6d3a8bd9a3281893367"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes.meta",
+    "mode": "100644",
+    "oid": "f2a82ccac81f286a0ba35e34e25eb8c0f00159de"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity",
+    "mode": "100644",
+    "oid": "4deea8d2fac5ef494c3da2f2b9df4999017837d6"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity.meta",
+    "mode": "100644",
+    "oid": "500580edb4c0280c12ba164c3181a9558380d7a2"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity",
+    "mode": "100644",
+    "oid": "ba267976b260f33ba3bae275c7ff812826f3e40d"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity.meta",
+    "mode": "100644",
+    "oid": "f0b9b13c97cc4320f217b81607a1f38dfe094636"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity",
+    "mode": "100644",
+    "oid": "c26ce9dd72a911e879b9d87b2fcb28627806d20f"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity.meta",
+    "dst": "studies/drawn-art/Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity.meta",
+    "mode": "100644",
+    "oid": "1a60a3c75e032af9f565899dd7c009a8e0a3afb5"
+   },
+   {
+    "src": "src/Asteroids3D/.gitattributes",
+    "dst": "studies/drawn-art/.gitattributes",
+    "mode": "100644",
+    "oid": "50531a79a4141aab4eb627182ea17bc4c35bee06"
+   },
+   {
+    "src": null,
+    "dst": "studies/drawn-art/README.md",
+    "mode": "100644",
+    "oid": "7a765f9125bef821f6b23f02255c1c15b1e18253"
+   },
+   {
+    "src": "art/ships/vanguard/drawn-study/build_structure.py",
+    "dst": "producers/drawn-study/build_structure.py",
+    "mode": "100644",
+    "oid": "cf9800b98846340092c81650a68dfa7a2f6f6d88"
+   },
+   {
+    "src": "art/ships/vanguard/drawn-study/export_study.py",
+    "dst": "producers/drawn-study/export_study.py",
+    "mode": "100644",
+    "oid": "c19eaacd22b45191a6c227a0de2492c82a149757"
+   }
+  ]
+ },
+ "evidence/asteroids": {
+  "parent": "44476c3b1bb438d9f592a3c035d6e594f5e0d69f",
+  "commit": "e774704695ae6c9e5db504f77c9e3388c675ccb0",
+  "entries": [
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy.meta",
+    "mode": "100644",
+    "oid": "c186c82306b46bb6cdf0b5948d5e0846a93642a6"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat",
+    "mode": "100644",
+    "oid": "cbe0b5a64d7bd89e0171fb354b815f7c0ae7ad22"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat.meta",
+    "mode": "100644",
+    "oid": "2bd5a8efcd6efe6171dcbf53b0f0bc9e1b9b04c7"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png",
+    "mode": "100644",
+    "oid": "8cd43f08b69359246d2558421c2e319e209047b2"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png.meta",
+    "mode": "100644",
+    "oid": "df1a13f12ca41802c9716982074de4369f7f6867"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx",
+    "mode": "100644",
+    "oid": "d2b1074cc7a530b33a339a851b7be77dcd0a5178"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx.meta",
+    "mode": "100644",
+    "oid": "5898c8ec9cc77c5edc43df4fbf32f4800b4e130d"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat",
+    "mode": "100644",
+    "oid": "f075c83b29949d67a0c9a16b5e032f8319a04359"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat.meta",
+    "mode": "100644",
+    "oid": "fbfda98d257fd08a70fd8adc990d75e150116411"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png",
+    "mode": "100644",
+    "oid": "050d136304f0706591134be438d57d05b19f5578"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png.meta",
+    "mode": "100644",
+    "oid": "14d3b05f89f594b5104423a15a1ccb0e5d571567"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx",
+    "mode": "100644",
+    "oid": "0e63e1824a427705ea58efbc5538bea6d678800e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx.meta",
+    "mode": "100644",
+    "oid": "03fca9d5599541aee04873405335ced727387b4e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png",
+    "mode": "100644",
+    "oid": "7fe0962afe5977aac682bd5704d63b976ad25115"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png.meta",
+    "mode": "100644",
+    "oid": "05a58c69e0d51b1963421a90457716c9df5ae14e"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png",
+    "mode": "100644",
+    "oid": "765aa3038594b14f65050dfa1633d3881a8745a2"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png.meta",
+    "mode": "100644",
+    "oid": "f6e120c270493115de46a9680a9e7775856a4f8b"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx",
+    "mode": "100644",
+    "oid": "155a0565afeec71fd4f7405a880ea01021485850"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx.meta",
+    "mode": "100644",
+    "oid": "42ea782ab5e55bd1549278aaba986a7896215729"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat",
+    "mode": "100644",
+    "oid": "2bdc33d327a844c0ea56ba39ad66bf294b255c87"
+   },
+   {
+    "src": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat.meta",
+    "dst": "studies/drawn-study/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat.meta",
+    "mode": "100644",
+    "oid": "48896d5fd1a8895be1e79374fbe7d37ea4baba84"
+   },
+   {
+    "src": "src/Asteroids3D/.gitattributes",
+    "dst": "studies/drawn-study/.gitattributes",
+    "mode": "100644",
+    "oid": "50531a79a4141aab4eb627182ea17bc4c35bee06"
+   },
+   {
+    "src": null,
+    "dst": "studies/drawn-study/README.md",
+    "mode": "100644",
+    "oid": "8b7c37d27a3792d9c39a400545a5de8207eefda1"
+   }
+  ]
+ }
+}

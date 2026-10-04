@@ -1,0 +1,5 @@
+d6e7df444cf744afba34adb40bc36875|Assets/Visuals/Shaders/DrawnSurface.shader|name=Astronomical/Drawn/Surface|find=True|hasError=False|errors=0|messages=0|supported=True|passes=[DrawnSurface,ShadowCaster,DepthNormals,DepthOnly]
+affa24b4d6e246de866922721692a87e|Assets/Visuals/Shaders/DrawnContour.shader|name=Astronomical/Drawn/Contour|find=True|hasError=False|errors=0|messages=0|supported=True|passes=[DrawnContour]
+112c91cc725f0b84eb0b973c51144c0f|Assets/Visuals/Shaders/DrawnCanopy.shader|name=Astronomical/Drawn/Canopy|find=True|hasError=False|errors=0|messages=0|supported=True|passes=[DrawnCanopy,ShadowCaster,DepthNormals,DepthOnly]
+b41d7fb29e0c27c4b9a48d0a2d485532|Assets/Visuals/Vfx/LayeredExplosion/Materials/DrawnExplosion.shader|name=Astronomical/Vfx/Jagged Explosion Flipbook|find=True|hasError=False|errors=0|messages=0|supported=True|passes=[<Unnamed Pass 0>]
+f0e961c0fa7c2384f974401249ad4462|Assets/Visuals/Vfx/LayeredExplosion/Materials/SparkBurn.shader|name=Astronomical/Vfx/Traveling Ember|find=True|hasError=False|errors=0|messages=0|supported=True|passes=[<Unnamed Pass 0>]

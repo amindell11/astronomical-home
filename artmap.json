@@ -1,0 +1,200 @@
+[
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121500Am.png",
+  "to": "art/ships/nightshade/concepts/chatGptImageJan272026121500Am.png",
+  "mode": "100644",
+  "oid": "7a13ef898cacc279a06640a31ae7da4f23cabd93"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121643Am.png",
+  "to": "art/ships/nightshade/concepts/chatGptImageJan272026121643Am.png",
+  "mode": "100644",
+  "oid": "9605921864db953bd552df60493c467e35b37fc1"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/jan272026122322Am.png",
+  "to": "art/ships/nightshade/concepts/jan272026122322Am.png",
+  "mode": "100644",
+  "oid": "e817aeee50e7c302a5a22399bd71ea1df5cea8b5"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/ship3EnginesOff.png",
+  "to": "art/ships/nightshade/concepts/ship3EnginesOff.png",
+  "mode": "100644",
+  "oid": "029fa0265f65bf51ea0eca740f8762da10edd08b"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/ship3EnginesOn.png",
+  "to": "art/ships/nightshade/concepts/ship3EnginesOn.png",
+  "mode": "100644",
+  "oid": "943f841a567b6166aa5bf3bf35e78095fc92078f"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/ship3NoWings.png",
+  "to": "art/ships/nightshade/concepts/ship3NoWings.png",
+  "mode": "100644",
+  "oid": "58a724d03372879944d77085ed68527ff5c49083"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/shipTemplate2.cfg",
+  "to": "art/ships/nightshade/concepts/shipTemplate2.cfg",
+  "mode": "100644",
+  "oid": "daff5971957501deb116cd77f445f9603c63249f"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/ship.png",
+  "to": "art/ships/vanguard/concepts/ship.png",
+  "mode": "100644",
+  "oid": "548e62252c7cb25d2de180d0c5cb23bd3bf43cd9"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/ship2Small.png",
+  "to": "art/ships/vanguard/concepts/ship2Small.png",
+  "mode": "100644",
+  "oid": "f3e6c6c2274b092ee3dcd68d581d1394cfa9143c"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/shipEnginesOn.png",
+  "to": "art/ships/vanguard/concepts/shipEnginesOn.png",
+  "mode": "100644",
+  "oid": "2ff5cc15ca3041ff50b3de1bb82b2cccb11d94df"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/shipTemplate.cfg",
+  "to": "art/ships/vanguard/concepts/shipTemplate.cfg",
+  "mode": "100644",
+  "oid": "5530cacfa98ab7c9b3b4a7e5fc4bb56889aa3577"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/Jan 27, 2026, 12_23_20 AM.png",
+  "to": "art/concepts/Jan 27, 2026, 12_23_20 AM.png",
+  "mode": "100644",
+  "oid": "6afc6e2a77c2f12a5f056e62228b377e337dd8e9"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Vfx/Explosion/exp1Zps03A1Bdde.gif",
+  "to": "art/vfx/explosion/refs/exp1Zps03A1Bdde.gif",
+  "mode": "100644",
+  "oid": "7b94070b8dab2bd6da5998088f6d21d6645bbf46"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png",
+  "to": "art/ships/vanguard/drawn-study/HangarBackground-v2-ui.png",
+  "mode": "100644",
+  "oid": "9f70d09b8a1bbb7eb5c2932bc232d6ae204be806"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png",
+  "to": "art/ships/vanguard/drawn-study/NebulaBackground-v2.png",
+  "mode": "100644",
+  "oid": "7172abb312db4c44ce9d5c9a380701597bf22ccf"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png",
+  "to": "art/ships/vanguard/drawn-study/PlanetBackground-v1.png",
+  "mode": "100644",
+  "oid": "fda002ece0c24cbbe882537014a7c4d68e6b49d1"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png",
+  "to": "art/ships/vanguard/drawn-study/PlanetBackground-v2-ui.png",
+  "mode": "100644",
+  "oid": "73c43c70e85966682d74201cd64e8a6f261d7b71"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader",
+  "to": "art/ships/vanguard/drawn-study/ShadowedPlate.shader",
+  "mode": "100644",
+  "oid": "d82472074c834de7e664d91148ae70170098208a"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx",
+  "to": "art/asteroid-study/AsteroidFractureStudy.fbx",
+  "mode": "100644",
+  "oid": "d2b1074cc7a530b33a339a851b7be77dcd0a5178"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx",
+  "to": "art/asteroid-study/AsteroidPaintStudy.fbx",
+  "mode": "100644",
+  "oid": "0e63e1824a427705ea58efbc5538bea6d678800e"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx",
+  "to": "art/asteroid-study/AsteroidSurfaceDrawing.fbx",
+  "mode": "100644",
+  "oid": "155a0565afeec71fd4f7405a880ea01021485850"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png",
+  "to": "art/asteroid-study/AsteroidFracturePaint.png",
+  "mode": "100644",
+  "oid": "8cd43f08b69359246d2558421c2e319e209047b2"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png",
+  "to": "art/asteroid-study/AsteroidPaint.png",
+  "mode": "100644",
+  "oid": "050d136304f0706591134be438d57d05b19f5578"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png",
+  "to": "art/asteroid-study/AsteroidScuffNormal.png",
+  "mode": "100644",
+  "oid": "7fe0962afe5977aac682bd5704d63b976ad25115"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png",
+  "to": "art/asteroid-study/AsteroidStoneAlbedo.png",
+  "mode": "100644",
+  "oid": "765aa3038594b14f65050dfa1633d3881a8745a2"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard.obj",
+  "to": "art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguard.obj",
+  "mode": "100644",
+  "oid": "a3860dc25e81494ea141b7a2be4ea454ca09a885"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png",
+  "to": "art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png",
+  "mode": "100644",
+  "oid": "c01d07c190af6444d7945b06e417457aafe810f4"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png",
+  "to": "art/meshy/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png",
+  "mode": "100644",
+  "oid": "a708c83764fee6e79de90f60fb53f76a8ee22257"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/shippEmission.png",
+  "to": "art/meshy/StarshipVanguard0606163455TextureObj/shippEmission.png",
+  "mode": "100644",
+  "oid": "e2ac5638488ca2479ed0269f04cf95651c555d04"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx",
+  "to": "art/meshy/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx",
+  "mode": "100644",
+  "oid": "64b9b5753f74de0c8bb41f44ce08a6acabb927ec"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png",
+  "to": "art/meshy/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png",
+  "mode": "100644",
+  "oid": "dd8e0b1ce451f809622671e7745dbdfe1437c655"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx",
+  "to": "art/meshy/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx",
+  "mode": "100644",
+  "oid": "7d0e1caca5d8b9c4e86e31342dd21372252dee40"
+ },
+ {
+  "from": "src/Asteroids3D/Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png",
+  "to": "art/meshy/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png",
+  "mode": "100644",
+  "oid": "a824bfa3383f8c92e1ee94f6c855b468a3d5f213"
+ }
+]

@@ -1,0 +1,664 @@
+{
+ "moves": [
+  {
+   "from": "Assets/Visuals/Shaders/DrawnComparison/DrawnSurface.shader",
+   "to": "Assets/Visuals/Shaders/DrawnSurface.shader",
+   "guid": "d6e7df444cf744afba34adb40bc36875",
+   "referrers": [
+    "Assets/Visuals/Environment/Asteroids/DrawnField/FieldGraphite.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10Paint.mat",
+    "Assets/Visuals/Ships/Crimson/Breakup/Debris paint.mat",
+    "Assets/Visuals/Ships/Crimson/Hull paint.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Canopy.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Cool gray.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Edge.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Engine.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Graphite.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Ivory.mat",
+    "Assets/Visuals/Ships/Valis/Materials/ivory-lavender/Lavender.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Canopy.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Cool gray.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Edge.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Engine.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Graphite.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Ivory.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-gray/Lavender.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Canopy.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat",
+    "Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat",
+    "Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris blue core.mat",
+    "Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris ink.mat",
+    "Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris paint.mat",
+    "Assets/Visuals/Ships/Vanguard/Materials/Engine glow.mat",
+    "Assets/Visuals/Ships/Vanguard/Materials/Structural ink.mat",
+    "Assets/Visuals/Ships/Vanguard/Vanguard vivid paint.mat"
+   ],
+   "removed_set_referrers": [
+    "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat"
+   ]
+  },
+  {
+   "from": "Assets/Visuals/Shaders/DrawnComparison/DrawnContour.shader",
+   "to": "Assets/Visuals/Shaders/DrawnContour.shader",
+   "guid": "affa24b4d6e246de866922721692a87e",
+   "referrers": [
+    "Assets/Visuals/Ships/Crimson/Breakup/Debris contour.mat",
+    "Assets/Visuals/Ships/Valis/Materials/Contour.mat",
+    "Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris contour.mat",
+    "Assets/Visuals/Ships/_Shared/Illustrated/Ship contour.mat",
+    "Assets/Visuals/Vfx/LayeredExplosion/Materials/AsteroidContour.mat"
+   ],
+   "removed_set_referrers": [
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat",
+    "Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat"
+   ]
+  },
+  {
+   "from": "Assets/Visuals/Shaders/DrawnComparison/DrawnCanopy.shader",
+   "to": "Assets/Visuals/Shaders/DrawnCanopy.shader",
+   "guid": "112c91cc725f0b84eb0b973c51144c0f",
+   "referrers": [
+    "Assets/Visuals/Ships/Vanguard/Materials/Canopy.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidBrushAlbedo.png",
+   "to": "Assets/Visuals/Environment/Asteroids/DrawnField/AsteroidBrushAlbedo.png",
+   "guid": "6ff7b50b5b2e401e8aa978fab244e768",
+   "referrers": [
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9Paint.mat",
+    "Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10Paint.mat"
+   ],
+   "removed_set_referrers": [
+    "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat"
+   ]
+  },
+  {
+   "from": "Assets/Visuals/Vfx/ApprovedPlasma/DrawnExplosion.shader",
+   "to": "Assets/Visuals/Vfx/LayeredExplosion/Materials/DrawnExplosion.shader",
+   "guid": "b41d7fb29e0c27c4b9a48d0a2d485532",
+   "referrers": [
+    "Assets/Visuals/Vfx/LayeredExplosion/Materials/Core.mat",
+    "Assets/Visuals/Vfx/LayeredExplosion/Materials/Smoke.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx",
+   "to": "Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx",
+   "guid": "332cc04717645804db5720f8d781eeab",
+   "referrers": [
+    "Assets/Prefabs/Ships/Nightshade.prefab"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png",
+   "to": "Assets/Visuals/Ships/Nightshade/Nightshade_Albedo.png",
+   "guid": "950b0476dbb3fe7459315fa0c0de5cff",
+   "referrers": [
+    "Assets/Visuals/Ships/_Shared/Ship3Material.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/shippEmission.png",
+   "to": "Assets/Visuals/Ships/_Shared/ShipMaterial_Emission.png",
+   "guid": "91db5a873711ccc4986c7d4f8a332faa",
+   "referrers": [
+    "Assets/Visuals/Ships/_Shared/ShipMaterial.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png",
+   "to": "Assets/Visuals/Ships/_Shared/ShipMaterial_Metal.png",
+   "guid": "3f74d44860d075d4b93d4aefc4555472",
+   "referrers": [
+    "Assets/Visuals/Ships/_Shared/ShipMaterial.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png",
+   "to": "Assets/Visuals/Ships/_Shared/ShipMaterial_Texture.png",
+   "guid": "c8c595322da6f8f4a8829d8e542e214c",
+   "referrers": [
+    "Assets/Visuals/Ships/_Shared/ShipMaterial.mat"
+   ],
+   "removed_set_referrers": []
+  },
+  {
+   "from": "Assets/Visuals/Ships/Ship1/ship2.png",
+   "to": "Assets/Visuals/Ui/AppIcon/ship2.png",
+   "guid": "8a735c1d7ebd1134eb994de05a10599c",
+   "referrers": [
+    "Assets/Settings/Rendering/Build Profiles/Main.asset",
+    "ProjectSettings/ProjectSettings.asset"
+   ],
+   "removed_set_referrers": []
+  }
+ ],
+ "removes": [
+  {
+   "path": "Assets/Scripts/Editor/Visuals/Studies/ArtPreviewAuthoring.cs",
+   "guid": "c566801f45e58864abdc2be9a8000292",
+   "folder": false
+  },
+  {
+   "path": "Assets/Scripts/Editor/Visuals/Studies/ArtPreviewCapture.cs",
+   "guid": "27d32e431976341438fc504843a369d3",
+   "folder": false
+  },
+  {
+   "path": "Assets/Scripts/Editor/Visuals/Studies/Visuals.Studies.Editor.asmdef",
+   "guid": "0230ec2cdee870740a33d7526b4db755",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.mat",
+   "guid": "dc0c5191bd64f6c4b9d91556e34743f3",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFracturePaint.png",
+   "guid": "d7765e624fc086a488519b72015090ce",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidFractureStudy.fbx",
+   "guid": "d9db7114030e1884c870c20028ab4c89",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.mat",
+   "guid": "b2e0085b7dbadd84e83a68c35ab36dda",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaint.png",
+   "guid": "1222cd08780820944bd88962f7a21264",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidPaintStudy.fbx",
+   "guid": "bfbd374bb5746294298a15587639e99c",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidScuffNormal.png",
+   "guid": "8d7d45a3feb4445f920639a87deab428",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidStoneAlbedo.png",
+   "guid": "3c381573752aa804cbd4968c87d5a98c",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.fbx",
+   "guid": "2f7c6b18fe147aa42a04d062ab01b103",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidSurfaceDrawing.mat",
+   "guid": "b5c099f7e433d7d44a4c439591bd2c57",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/Jan 27, 2026, 12_23_20 AM.png",
+   "guid": "045ee76c46ed89c4ab4bac195e27272c",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.fbx",
+   "guid": "83db974bc6ee1174bb077fe7196c3169",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/aColossalDarkGray0729085551Texture.png",
+   "guid": "66c7c41b9cab72e4c8bbf7bf8e11dfe9",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx/capShipMaterial.mat",
+   "guid": "6b11d2ff70788b543b59432c89d6a406",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121500Am.png",
+   "guid": "12380dd11d26c02498d5319fa7d9f9d2",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/chatGptImageJan272026121643Am.png",
+   "guid": "2e2f20aa0a445d64c84b5449ac980057",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/jan272026122322Am.png",
+   "guid": "b359583538068b14fae009a0dd985e89",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/ship3EnginesOff.png",
+   "guid": "670f9f140fd98a14396a4b3aace506ae",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/ship3EnginesOn.png",
+   "guid": "b9fcb4af69fa5524a9b99b6c8003b8b2",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/ship3NoWings.png",
+   "guid": "ed352a397866306458040359876296fe",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/shipTemplate2.cfg",
+   "guid": "4ee7f6f64f2c1b748917271e6353101b",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1/ship.png",
+   "guid": "597687106c9e96948bb5f74cb6f8ac69",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1/ship2Small.png",
+   "guid": "4bba08db2b60b564984a23e69a3a681b",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1/shipEnginesOn.png",
+   "guid": "df7ada0db0dc03a429a56bdb57171cba",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1/shipTemplate.cfg",
+   "guid": "72c816b01a290454380561eaf329e44a",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy/HangarBackground-v2-ui.png",
+   "guid": "716889151c44cf240afc46e352f21fd2",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy/NebulaBackground-v2.png",
+   "guid": "c0b3ce32b1d08c3428a310b8ae03d22b",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v1.png",
+   "guid": "932617ead8a6dbc4dbf2635445f23ad1",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy/PlanetBackground-v2-ui.png",
+   "guid": "b7616cc82f182c74298e7e48178200ac",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy/ShadowedPlate.shader",
+   "guid": "898d4444fd2b36343b5f50191a792f8f",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard.obj",
+   "guid": "f04a30281d8747644becb5008ab81a2c",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Lighting/PodBloom.asset",
+   "guid": "7bcfab6bc97b9854d9a949cb2ced72fe",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Gameplay outline.mat",
+   "guid": "5639a471a3adbf44da94a300bbed5cb7",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline/Hero outline.mat",
+   "guid": "6216033cb0c9ef843a570865fb43f164",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Amber detail.mat",
+   "guid": "88047233d2964b0418a137284f886d1e",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Inner blue gray.mat",
+   "guid": "5c7402ba81bf4ef488340ac3a51a3771",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Panel edges.mat",
+   "guid": "61442fb918a3cba41a770c11ccbdad31",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent charcoal.mat",
+   "guid": "9f28ede11411c4b489c83d11189926e8",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels/Vent slats.mat",
+   "guid": "04a9a2f250ba8414b855e79c7cc710c2",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Battle wear.mat",
+   "guid": "607c7bada82dcfb42a5be50e2184c769",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface/Hull paint.mat",
+   "guid": "505ccd682b9cf784cadaf6616c1bb2e0",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Stage/Asteroid outline.mat",
+   "guid": "d1bb1e9a866ba1b428e348344fd7782e",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Stage/AsteroidField backdrop.mat",
+   "guid": "d1390a6d9f950824fa87f636404c03c5",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Stage/HangarHero backdrop.mat",
+   "guid": "e6dd9fbd9122fc842b50133fa4d18e0f",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Stage/SpaceHero backdrop.mat",
+   "guid": "3544fd09b6472224a89c78f205420b6f",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Core outline.asset",
+   "guid": "f9aa1df36281c594ea99932f7d1e244b",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Engines/MVP Power Nacelle Housing outline.asset",
+   "guid": "f2d2374f4ede48f4aa4d0205b8a66701",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Canopy outline.asset",
+   "guid": "be71bef89dc5505419f714cd199cedbc",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Cockpit.001 outline.asset",
+   "guid": "8ee97295ed2e24f4490f6849c04e1ccb",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Hull/MVP Fuselage outline.asset",
+   "guid": "d515673976a9f2b45886e7331370ada8",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Sparrow Tail outline.asset",
+   "guid": "52131f35ee04efc45aa41b4ed9b5b4c5",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Tail outline.asset",
+   "guid": "248336951f0aafc4282305044c4a417e",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP Wing outline.asset",
+   "guid": "463467c772bb3de4ead7dcb9d0c8c3b1",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armature outline.asset",
+   "guid": "e4f933c83eb288942920bdc185bd06dd",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_armor outline.asset",
+   "guid": "0f67654da0e7db84095d058713b1f42f",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings/MVP wing_tail outline.asset",
+   "guid": "0c16cbacbbc47f148950f1b8a706750e",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Prefabs/AsteroidContext.prefab",
+   "guid": "0f3427c919f1c05408313551b8be34f7",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Prefabs/VanguardPreview.prefab",
+   "guid": "5f7df6c6832daae4db2c63a8e489eae9",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/README.md",
+   "guid": "01f24ee3c5bb77343adaae6b42a2b6c3",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Scenes/AsteroidField.unity",
+   "guid": "2e4bc05f540efde4ea16232421304f58",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Scenes/HangarHero.unity",
+   "guid": "f2bc64f3dbad9d7479e67cc94267974a",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Scenes/SpaceHero.unity",
+   "guid": "fc6608a8a2da00b44a34b173464906a2",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Vfx/Explosion/exp1Zps03A1Bdde.gif",
+   "guid": "4db03e5d4d09cf94280e3848e4c54c4e",
+   "folder": false
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Outline",
+   "guid": "7ed53115e927374479d7f6434d965e61",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Panels",
+   "guid": "8489379ce5f8df04eb3ebd14a7bba1e5",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship/Surface",
+   "guid": "7a2e94ee42aaa584593d8717d4bb827c",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx/AColossalDarkGray0729085551TextureFbx",
+   "guid": "4702e3e072dfcdc479e87c228d3a1e0e",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Ship",
+   "guid": "ce520d9d6850c5d48af99eb672895296",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials/Stage",
+   "guid": "a3519bbd1b3c74f499f0e44a3509b5f1",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Engines",
+   "guid": "20b9e3a4b6e9a9a4ba9caec5930e618c",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Hull",
+   "guid": "c21114088b50ef446bfd6562c9fb50e0",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes/Wings",
+   "guid": "4438a98baa750fa42b493b85d193f5b8",
+   "folder": true
+  },
+  {
+   "path": "Assets/Scripts/Editor/Visuals/Studies",
+   "guid": "4d1026d3260979f4b83050142f9fbd01",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Environment/Asteroids/DrawnStudy",
+   "guid": "6a27f1274e0f005419305c5c9852bc70",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models/AColossalDarkGray0729085551TextureFbx",
+   "guid": "01491866983f76647a91980f2c240367",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx",
+   "guid": "aaee03f47e362e044991543235bcf1a4",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj",
+   "guid": "0d13ff280b6a3d342b09e0dbbcf547f4",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Ships/Vanguard/DrawnStudy",
+   "guid": "7dd0c6b05721c3e4d9dba923936b18c6",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj",
+   "guid": "638a68202abc3ae44a0994c3fe45a2a9",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Lighting",
+   "guid": "acc86615c01ed2846bc1a20691846fb2",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Materials",
+   "guid": "54cf4f1331a80e542b4fe1a62a0c1ede",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Meshes",
+   "guid": "28aed744fdbbdb74babaad9d2fdc7797",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Prefabs",
+   "guid": "262998c4b97ef144aacb13c9f48ab191",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt/Scenes",
+   "guid": "de15d920905f3af4cb4c7bdcd5018e94",
+   "folder": true
+  },
+  {
+   "path": "Assets/Scripts/Editor/Visuals",
+   "guid": "04bddb2a69ccce442b229e6682e7d6ac",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Environment/Models",
+   "guid": "1150da304dd5d4e4ca152339c1664896",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Shaders/DrawnComparison",
+   "guid": "b5bd0b100fb142c9a7540c72f92eec89",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Ships/Ship1",
+   "guid": "6188e556ec37307418d8cf42576d2927",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies/DrawnArt",
+   "guid": "b8ebfdbda6a48bf47a6f42ffd4b731be",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Vfx/ApprovedPlasma",
+   "guid": "cedd9d5ea88a9c342984f34170115d66",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Vfx/Explosion",
+   "guid": "c1208aaf83a5ba74aa6eb82a3a3faeec",
+   "folder": true
+  },
+  {
+   "path": "Assets/Visuals/Studies",
+   "guid": "01bee3e0b04c7454dade67c5105bf051",
+   "folder": true
+  }
+ ],
+ "removed_roots": [
+  "Assets/Visuals/Studies",
+  "Assets/Visuals/Ships/Vanguard/DrawnStudy",
+  "Assets/Visuals/Environment/Asteroids/DrawnStudy",
+  "Assets/Visuals/Shaders/DrawnComparison",
+  "Assets/Visuals/Vfx/ApprovedPlasma",
+  "Assets/Visuals/Vfx/Explosion",
+  "Assets/Visuals/Environment/Models",
+  "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx",
+  "Assets/Visuals/Ships/Ship1",
+  "Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj",
+  "Assets/Scripts/Editor/Visuals"
+ ]
+}

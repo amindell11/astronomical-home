@@ -1,0 +1,4 @@
+Test category filter: !RequiresGraphics
+Running Unity EditMode+PlayMode tests (single boot)...
+UNITY_TEST_SUMMARY_JSON=D:\amind\git\agent-2\results\unity-tests-agent\20261004-045116-summary.json
+STATUS=passed total=974 passed=972 failed=0 skipped=2

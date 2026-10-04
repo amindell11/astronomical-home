@@ -1,0 +1,11 @@
+Assets/Visuals/Shaders/DrawnComparison/DrawnSurface.shader	Assets/Visuals/Shaders/DrawnSurface.shader
+Assets/Visuals/Shaders/DrawnComparison/DrawnContour.shader	Assets/Visuals/Shaders/DrawnContour.shader
+Assets/Visuals/Shaders/DrawnComparison/DrawnCanopy.shader	Assets/Visuals/Shaders/DrawnCanopy.shader
+Assets/Visuals/Environment/Asteroids/DrawnStudy/AsteroidBrushAlbedo.png	Assets/Visuals/Environment/Asteroids/DrawnField/AsteroidBrushAlbedo.png
+Assets/Visuals/Vfx/ApprovedPlasma/DrawnExplosion.shader	Assets/Visuals/Vfx/LayeredExplosion/Materials/DrawnExplosion.shader
+Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx	Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx
+Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/textureAlbedo.png	Assets/Visuals/Ships/Nightshade/Nightshade_Albedo.png
+Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/shippEmission.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Emission.png
+Assets/Visuals/Ships/Ship1/StarshipVanguard0606163455TextureObj/starshipVanguardMetal.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Metal.png
+Assets/Visuals/Ships/_Shared/StarshipVanguard0606163455TextureObj/starshipVanguard0606163455Texture.png	Assets/Visuals/Ships/_Shared/ShipMaterial_Texture.png
+Assets/Visuals/Ships/Ship1/ship2.png	Assets/Visuals/Ui/AppIcon/ship2.png
