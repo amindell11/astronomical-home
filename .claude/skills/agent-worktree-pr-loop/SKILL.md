@@ -23,9 +23,9 @@ session landing it — that approval IS the review; (3) the commit message
 carries the story a PR body would have. Verify (1) mechanically
 (`git diff --cached --stat`) before pushing. These landings are cited by
 commit SHA, not PR number. Anything touching code takes the full loop.
-Sync and push as one command under the merge turn, so the push waits for the
-gate in flight instead of voiding it:
-`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c '<sync with origin/main> && git push origin main'`.
+Commit it in a slot like any change, then sync and push as one command under
+the merge turn, so the push waits for the gate in flight instead of voiding it:
+`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c 'git -C <slot-path> pull -q --rebase origin main && git -C <slot-path> push origin HEAD:main'`.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 

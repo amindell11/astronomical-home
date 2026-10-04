@@ -77,7 +77,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop — the default for any coding task, whether or not the request mentions worktrees, slots, or PRs. Invariants:
 - Scope is confirmed with the user before building.
-- Build and test in a pooled worktree, never the primary tree.
+- Build and test in a pooled worktree. The primary tree is the owner's: an agent's only write there is fast-forwarding main (`git pull --ff-only`). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool; Claude Code's `isolation: "worktree"` / EnterWorktree nests them inside the primary tree. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there.
 - The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
