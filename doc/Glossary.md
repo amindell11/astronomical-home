@@ -332,16 +332,24 @@ Format: **term** — definition. *(authority)*
   opened ready for review, that closes the issue.
   *(agent-worktree-pr-loop → Cloud batch)*
 - **owed-local checklist** — the `### Owed local` list in a *cloud build*'s PR
-  body: the tests the hosted suite cannot run, written by the builder and
-  ticked by a local session. `None.` means nothing was ever owed, as against
-  owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
+  body: the tests the hosted suite cannot run, written by the builder. Its
+  ticks and result lines are written only through `drain_pick.sh result`,
+  except an `eyes` item, which a person ticks. `None.` means nothing was ever
+  owed, as against owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
 - **pipeline PR** — an open PR against `main` whose body has a `### Owed local`
   heading. The heading is the whole membership test: draft state, the closing
   issue and its labels play no part, so a PR built by hand joins by writing
   the section. *(scripts/drain_pick.sh)*
 - **verify queue** — the *pipeline PRs* with an owed `unity` or `script` item
-  no run has tried on the head commit. An item that failed there leaves the
-  queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+  no run has tried on the head commit. An item tried there (failed or not run)
+  leaves the queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+- **verify task** — the desktop scheduled task `verify`, started by hand: one
+  pass over the *verify queue* in one borrowed slot. The only *drain pipeline*
+  session that boots Unity. *(agent-worktree-pr-loop → Verify task)*
+- **main arm** — re-running a failed owed item on `origin/main` in the same
+  slot. The same failure there makes it pre-existing: an issue is filed, and
+  the item stays tried for the user to rule on. *(agent-worktree-pr-loop →
+  Verify task)*
 - **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
   ticked, with their facts (among them `instructed`, and `class`: the
   *auto-merge class* as GitHub shows it) and landing order; it never says who
