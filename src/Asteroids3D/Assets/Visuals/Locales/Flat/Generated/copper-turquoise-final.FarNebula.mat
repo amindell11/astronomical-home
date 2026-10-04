@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Background
-  m_Shader: {fileID: 4800000, guid: 8fee2363b840d2943a9707191583da98, type: 3}
-  m_Parent: {fileID: 2100000, guid: 379db4cdd9bf4424f8032859d0f13293, type: 2}
+  m_Name: copper-turquoise-final.FarNebula
+  m_Shader: {fileID: 4800000, guid: 1af0987870b4c154392851c7d14257dc, type: 3}
+  m_Parent: {fileID: 2100000, guid: 60e08b215014d744c8892c4cd418b23e, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -24,11 +24,9 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats:
-    - _RepeatDistance: 20000
-    - _TextureStrength: 0.025
-    - _ViewHeightInTiles: 0.3
+    m_Floats: []
     m_Colors:
-    - _BaseColor: {r: 0.095, g: 0.035, b: 0.14, a: 1}
+    - _NebulaCool: {r: 0.9063317, g: 0.3958812, b: 0.17184407, a: 1}
+    - _NebulaWarm: {r: 0.06100852, g: 0.6262096, b: 0.7353569, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
