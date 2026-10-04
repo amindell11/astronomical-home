@@ -13,7 +13,7 @@ set -euo pipefail
 #        drain_pick.sh release <issue>
 #        drain_pick.sh owed <pr>
 #        drain_pick.sh result <pr>@<sha> <n> passed|failed|not-run "<evidence>"
-#        drain_pick.sh verify-queue | merge-queue | digest
+#        drain_pick.sh verify-queue | merge-queue [--no-class] | digest [--no-class]
 #        drain_pick.sh instruct <pr>@<sha> [<pr>@<sha>…]
 #        drain_pick.sh land-facts <pr>
 #   pick    read-only. Queue = open `ready-for-agent` issues; an issue is admitted only when it
@@ -64,9 +64,11 @@ set -euo pipefail
 #           than one of its commits, a checklist whose verdict is not open, an item <n> that does
 #           not exist, is ticked or is an eyes item, evidence that is empty or spans lines, and a
 #           rewritten body that would not grade to the same items with only item <n> changed.
-#   The three verbs below take no argument, write nothing, and read the *pipeline PRs*: open PRs
-#   with base `main` whose body has a `### Owed local` heading (owed's verdict is anything but
-#   absent). Draft state, the closing issue and its labels play no part.
+#   The three verbs below write nothing and read the *pipeline PRs*: open PRs with base `main`
+#   whose body has a `### Owed local` heading (owed's verdict is anything but absent). Draft
+#   state, the closing issue and its labels play no part. merge-queue and digest read review
+#   threads in one GraphQL call, only for the class fact; --no-class skips that call and prints
+#   no class fact (cloud sessions, which refuse GraphQL). Without it a refused call exits 1.
 #   verify-queue  the untried items of every pipeline PR, lowest PR number first.
 #   merge-queue   facts and landing order for the candidates: the pipeline PRs whose verdict is
 #           none or discharged. It never says who may merge. Every pipeline PR's `## Merge order`
@@ -105,7 +107,7 @@ set -euo pipefail
 #           latest by chatgpt-codex-connector), its `Code Review` row, status Completed and a
 #           backticked short SHA naming one of the PR's commits. Codex's 👀 on the PR, any other
 #           status, no summary, or any other shape is no completed review.
-#   verify-queue, merge-queue, digest and land-facts call GraphQL. Every other verb calls only
+#   land-facts, and merge-queue and digest without --no-class, call GraphQL. Every other read is
 #   REST, paged by hand: cloud sessions refuse GraphQL, and the Link URLs `gh api --paginate` follows.
 # Env:  GITHUB_REPOSITORY (owner/repo; default: the repository of the git remote, as gh reads it).
 # Exit: pick, owed, verify-queue, merge-queue, digest, land-facts — 0 a verdict (or the digest)
@@ -141,11 +143,11 @@ set -euo pipefail
 #            MERGE=<pr> <head-sha> <fact>[,<fact>…]  (one per placed candidate, in landing order;
 #            facts: owed:none | owed:discharged (always first) · behind-head (a ticked item is
 #            behind head) · draft · scripts (a changed path under scripts/, or more than 100
-#            changed files: the read returns the first 100 paths) · github (a changed path under
-#            .github/) · instructed (a recorded instruction names one of its commits, as
-#            land-facts reads it) · class (the auto-merge class as GitHub shows it: owed:none,
-#            neither scripts nor github, merge-proof/headless and merge-proof/resharper SUCCESS
-#            on the head, Codex's completed review on the head, no unresolved review thread).
+#            changed files) · github (a changed path under .github/) · instructed (a recorded
+#            instruction names one of its commits, as land-facts reads it) · class (never under
+#            --no-class; the auto-merge class as GitHub shows it: owed:none, neither scripts nor
+#            github, merge-proof/headless and merge-proof/resharper SUCCESS on the head, Codex's
+#            completed review on the head, no unresolved review thread).
 #            scripts and github come from GitHub's changed-file list and only set landing order.
 #            The merge gate's landing diff stays the authority for the script suite, and `land`
 #            alone decides whether an instruction covers the landing tree and what CLASS is.)
@@ -174,7 +176,7 @@ set -euo pipefail
 
 PROPOSAL_AUTHOR="amindell11"
 
-usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | result <pr>@<sha> <n> passed|failed|not-run \"<evidence>\" | verify-queue | merge-queue | digest | instruct <pr>@<sha> [<pr>@<sha>…] | land-facts <pr>" >&2; exit 2; }
+usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | result <pr>@<sha> <n> passed|failed|not-run \"<evidence>\" | verify-queue | merge-queue [--no-class] | digest [--no-class] | instruct <pr>@<sha> [<pr>@<sha>…] | land-facts <pr>" >&2; exit 2; }
 infra() { echo "drain_pick: $1" >&2; exit 1; }
 say() { echo "drain_pick: $1" >&2; }
 
@@ -327,7 +329,8 @@ cmd_release() {
 }
 
 # pr_views <verb> <json> [<ready_queue output> <owner/repo>]; <json>: one PR for owed, result and
-# land-facts, else every open PR. result: <json> <n> <outcome> <commit> <evidence file> <out json>.
+# land-facts, else cmd_views' list of every open PR. result: <json> <n> <outcome> <commit> <evidence
+# file> <out json>.
 pr_views() {
   python3 - "$PROPOSAL_AUTHOR" "$@" <<'PY'
 import json, re, sys
@@ -495,7 +498,7 @@ if verb == "land-facts":
     print(f"AFTER={'malformed' if order is None else ','.join(map(str, after)) or 'none'}")
     sys.exit()
 
-open_prs = {n["number"]: n for n in data["data"]["repository"]["pullRequests"]["nodes"]}
+open_prs = {n["number"]: n for n in data}
 prs = []
 for number in sorted(open_prs):
     verdict, items = owed_verdict(open_prs[number])
@@ -512,12 +515,10 @@ def merge_queue():
         skip[n] = ["merge-order-malformed"] if order is None else []
         if pr["verdict"] not in ("none", "discharged"):
             continue
-        paths = [f["path"] for f in pr["files"]["nodes"]]
-        status = pr["commits"]["nodes"][0]["commit"]["status"] or {"contexts": []}
-        states = {c["context"]: c["state"] for c in status["contexts"]}
-        scripts = pr["changedFiles"] > 100 or any(p.startswith("scripts/") for p in paths)
+        paths, states = pr["paths"], pr["states"]
+        scripts = len(paths) > 100 or any(p.startswith("scripts/") for p in paths)
         github = any(p.startswith(".github/") for p in paths)
-        in_class = (pr["verdict"] == "none" and not scripts and not github
+        in_class = ("reviewThreads" in pr and pr["verdict"] == "none" and not scripts and not github
                     and all(states.get(c) == "SUCCESS" for c in PROOF)
                     and review(pr) == ("completed", pr["headRefOid"]) and not unresolved(pr))
         facts[n] = [fact for fact, holds in (
@@ -626,26 +627,75 @@ cmd_owed() {
   pr_views owed "$TMP/pr.json"
 }
 
-# Every GraphQL read of a PR asks for these, so merge-queue and land-facts parse one shape.
-PR_FIELDS='number title isDraft headRefOid body changedFiles
-  files(first: 100) { nodes { path } }
-  commits(last: 1) { nodes { commit { status { contexts { context state } } } } }
+THREADS='reviewThreads(first: 100) { totalCount nodes { isResolved } }'
+# land-facts' read of a PR, in the shape cmd_views builds over REST: pr_views parses both.
+PR_FIELDS='number headRefOid body
   history: commits(last: 100) { nodes { commit { oid } } }
   comments(last: 100) { nodes { author { login } body } }
-  reviewThreads(first: 100) { totalCount nodes { isResolved } }
+  '"$THREADS"'
   reactions(content: EYES, first: 20) { nodes { user { login } } }'
 OPEN_PRS='pullRequests(states: OPEN, baseRefName: "main", first: 100, orderBy: {field: CREATED_AT, direction: ASC})'
 
+# cmd_views <verb> [--no-class]: every open PR into main over REST, in the shape pr_views parses;
+# review threads, which REST cannot read, come from one GraphQL call unless --no-class.
 cmd_views() {
-  [[ $# -eq 1 ]] || usage
-  local r
+  local verb="$1" class=1 r n sha
+  shift
+  if [[ "$verb" != verify-queue && "${1:-}" == --no-class ]]; then class=0; shift; fi
+  [[ $# -eq 0 ]] || usage
   r="$(repo)" || infra "gh api (repository) failed"
   scratch
-  gh api graphql -F owner="${r%%/*}" -F name="${r##*/}" -f query="query(\$owner: String!, \$name: String!) {
-    repository(owner: \$owner, name: \$name) { $OPEN_PRS { nodes { $PR_FIELDS } } } }" \
-    > "$TMP/prs.json" || infra "gh api graphql (open PRs) failed"
-  if [[ "$1" == digest ]]; then ready_queue "$r" digest > "$TMP/ready.txt"; fi
-  pr_views "$1" "$TMP/prs.json" "$TMP/ready.txt" "$r"
+  rest_list "repos/$r/pulls?state=open&base=main&sort=created&direction=asc" \
+    '"\(.number) \(.head.sha) \({number, title, isDraft: .draft, headRefOid: .head.sha, body: (.body // "")} | tojson)"' \
+    > "$TMP/pulls.txt" || infra "gh api (open PRs) failed"
+  if [[ "$verb" != verify-queue ]]; then
+    while read -r n sha _; do
+      mkdir "$TMP/$n"
+      rest_list "repos/$r/pulls/$n/files" .filename > "$TMP/$n/files" || infra "gh api (#$n files) failed"
+      rest_list "repos/$r/pulls/$n/commits" .sha > "$TMP/$n/commits" || infra "gh api (#$n commits) failed"
+      rest_list "repos/$r/commits/$sha/statuses" '{context, state} | tojson' > "$TMP/$n/statuses" \
+        || infra "gh api (#$n statuses) failed"
+      rest_list "repos/$r/issues/$n/comments" '{author: {login: .user.login}, body} | tojson' \
+        > "$TMP/$n/comments" || infra "gh api (#$n comments) failed"
+      rest_list "repos/$r/issues/$n/reactions?content=eyes" '{user: {login: .user.login}} | tojson' \
+        > "$TMP/$n/reactions" || infra "gh api (#$n reactions) failed"
+    done < "$TMP/pulls.txt"
+    if [[ "$class" -eq 1 ]]; then
+      gh api graphql -F owner="${r%%/*}" -F name="${r##*/}" -f query="query(\$owner: String!, \$name: String!) {
+        repository(owner: \$owner, name: \$name) { $OPEN_PRS { nodes { number $THREADS } } } }" \
+        > "$TMP/threads.json" || infra "gh api graphql (review threads) failed; without GraphQL, pass --no-class"
+    fi
+  fi
+  python3 - "$TMP" > "$TMP/prs.json" <<'PY' || exit 1
+import json, os, sys
+tmp = sys.argv[1]
+def lines(path):
+    return open(path, encoding="utf-8").read().splitlines()
+threads = None
+if os.path.exists(f"{tmp}/threads.json"):
+    nodes = json.load(open(f"{tmp}/threads.json", encoding="utf-8"))["data"]["repository"]["pullRequests"]["nodes"]
+    threads = {n["number"]: n["reviewThreads"] for n in nodes}
+prs = []
+for line in lines(f"{tmp}/pulls.txt"):
+    n, _, pr = line.split(" ", 2)
+    pr = json.loads(pr)
+    if os.path.isdir(f"{tmp}/{n}"):
+        states = {}
+        for status in map(json.loads, lines(f"{tmp}/{n}/statuses")):  # newest first
+            states.setdefault(status["context"], status["state"].upper())
+        pr.update(paths=lines(f"{tmp}/{n}/files"), states=states,
+                  history={"nodes": [{"commit": {"oid": c}} for c in lines(f"{tmp}/{n}/commits")[-100:]]},
+                  comments={"nodes": [json.loads(c) for c in lines(f"{tmp}/{n}/comments")[-100:]]},
+                  reactions={"nodes": [json.loads(r) for r in lines(f"{tmp}/{n}/reactions")]})
+    if threads is not None:
+        if int(n) not in threads:
+            sys.exit(f"drain_pick: #{n} is past the 100 open PRs the review-thread read covers")
+        pr["reviewThreads"] = threads[int(n)]
+    prs.append(pr)
+json.dump(prs, sys.stdout)
+PY
+  if [[ "$verb" == digest ]]; then ready_queue "$r" digest > "$TMP/ready.txt"; fi
+  pr_views "$verb" "$TMP/prs.json" "$TMP/ready.txt" "$r"
 }
 
 cmd_land_facts() {
