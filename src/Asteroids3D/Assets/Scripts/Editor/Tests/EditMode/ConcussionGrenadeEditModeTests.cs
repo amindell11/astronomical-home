@@ -1,5 +1,6 @@
 using Combat.Projectiles;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using UnityEngine;
 

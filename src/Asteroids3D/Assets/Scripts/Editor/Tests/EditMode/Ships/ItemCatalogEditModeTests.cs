@@ -38,10 +38,13 @@ namespace Tests.EditMode
         public void Weapons_ListEveryPrefabWithARootWeaponComponent() =>
             AssertGroupMatchesProject("weapons", catalog.Weapons, PrefabsWithRoot<WeaponComponent>());
 
+        // ShipBase carries a root Ship for its variants to inherit; it is not a chassis.
+        private const string ShipBasePath = "Assets/Prefabs/Ships/ShipBase.prefab";
+
         private static List<string> PrefabsWithRoot<T>() where T : Component =>
             AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" })
                 .Select(AssetDatabase.GUIDToAssetPath)
-                .Where(path => AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<T>())
+                .Where(path => path != ShipBasePath && AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<T>())
                 .ToList();
 
         private static List<string> AssetsOfType<T>() where T : ScriptableObject =>

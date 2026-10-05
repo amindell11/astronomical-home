@@ -19,7 +19,7 @@ namespace Tests.EditMode
     [Category("AI")]
     public class AICommanderReferentEditModeTests
     {
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Vanguard.prefab";
         private static readonly ShipId AnchorId = new(4242);
 
         private sealed class StubPilot : IPilot

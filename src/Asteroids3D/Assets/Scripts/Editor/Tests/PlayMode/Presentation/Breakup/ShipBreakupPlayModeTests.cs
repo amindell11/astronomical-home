@@ -55,10 +55,10 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator ValisDeath_IntermediatePoseIsContinuous() => ValisDeath(.2f);
 
         [UnityTest]
-        public IEnumerator CrimsonDeath_RetainsAuthoredBreakup() => FixedHullDeath("Ship_1");
+        public IEnumerator CrimsonDeath_RetainsAuthoredBreakup() => FixedHullDeath("Crimson");
 
         [UnityTest]
-        public IEnumerator VanguardDeath_RetainsAuthoredBreakup() => FixedHullDeath("Ship_1_Vanguard");
+        public IEnumerator VanguardDeath_RetainsAuthoredBreakup() => FixedHullDeath("Vanguard");
 
         [UnityTest]
         public IEnumerator ValisRevive_RestoresHullAndBreaksAgain()

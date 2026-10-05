@@ -3,6 +3,7 @@ using AI;
 using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Damage;
 using Movement;
 using NUnit.Framework;

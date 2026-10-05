@@ -3,18 +3,22 @@ set -euo pipefail
 
 # Drain pipeline control plane (arc #830): the deterministic half of a cloud batch. `pick` reads
 # the ready queue and names the top admitted item; `claim` marks it as a cloud build's; `release`
-# gives it back; `owed` grades a PR body's owed-local checklist; `verify-queue`, `merge-queue`
-# and `digest` read every pipeline PR; `instruct` records the user's merge instruction and
-# `land-facts` reads it back for `agent_worktree_pool.sh land`. Procedure:
-# .claude/skills/agent-worktree-pr-loop/SKILL.md § Cloud batch and § Merge task.
+# gives it back; `owed` grades a PR body's owed-local checklist and `result` writes into it;
+# `verify-queue`, `merge-queue` and `digest` read every pipeline PR; `instruct` records the user's
+# merge instruction and `land-facts` reads it back for `agent_worktree_pool.sh land`; `decision`
+# reads one item's open decision for the decision reconcile (scripts/decision_reconcile.sh).
+# Procedure: .claude/skills/agent-worktree-pr-loop/SKILL.md § Cloud batch, § Verify task and
+# § Merge task.
 #
 # Usage: drain_pick.sh pick [--dry-run]
 #        drain_pick.sh claim <issue>
 #        drain_pick.sh release <issue>
 #        drain_pick.sh owed <pr>
-#        drain_pick.sh verify-queue | merge-queue | digest
+#        drain_pick.sh result <pr>@<sha> <n> passed|failed|not-run "<evidence>"
+#        drain_pick.sh verify-queue | merge-queue [--no-class] | digest [--no-class]
 #        drain_pick.sh instruct <pr>@<sha> [<pr>@<sha>…]
 #        drain_pick.sh land-facts <pr>
+#        drain_pick.sh decision <n>
 #   pick    read-only. Queue = open `ready-for-agent` issues; an issue is admitted only when it
 #           carries exactly one `unity:*` label and that label is `unity:none`, `unity:headless`
 #           or `unity:local-proof` (`unity:editor` never), has no assignee, no open blocked-by
@@ -46,12 +50,28 @@ set -euo pipefail
 #           The tried rule: a unity or script item names the head when one of its result lines
 #           holds a backticked run of 7 to 40 hex characters that is a prefix of the head
 #           commit's SHA, the commit its run was on ("Run at `eb3ddb9`"). Unticked, it is *tried*
-#           when it names the head (it failed on this tree, and no queue serves it until the
-#           head moves) and *untried* otherwise. Ticked, it is *behind head* when it does not
+#           when it names the head (it failed or was not run on this tree, and no queue serves it
+#           until the head moves) and *untried* otherwise. Ticked, it is *behind head* when it does not
 #           name the head. An eyes item is none of these: a person ticks it, with no result line.
-#   The three verbs below take no argument, write nothing, and read the *pipeline PRs*: open PRs
-#   with base `main` whose body has a `### Owed local` heading (owed's verdict is anything but
-#   absent). Draft state, the closing issue and its labels play no part.
+#   result  the only writer of result lines and ticks. It places a result the session decided
+#           and never reads a run: parsing runner output, mapping tests to items, composing the
+#           evidence and judging a failure pre-existing stay with the session. <n> is the item's
+#           1-based position among the section's items, eyes items included (verify-queue's
+#           ITEM=); <sha>, 7 to 40 hex characters naming exactly one of the PR's commits, is the
+#           commit the run was on, not necessarily the head. It appends, two spaces in, after the
+#           item's last result line (or the item line), keeping every other byte of the body:
+#             Run at `<first 7 of the commit>`: passed|failed|not run — <evidence>
+#           passed also ticks the item. The body is read seconds before the write over REST;
+#           GitHub has no compare-and-set on a body, so an edit landing in between is lost.
+#           Refused, writing nothing: a PR not open against main, a <sha> naming none or more
+#           than one of its commits, a checklist whose verdict is not open, an item <n> that does
+#           not exist, is ticked or is an eyes item, evidence that is empty or spans lines, and a
+#           rewritten body that would not grade to the same items with only item <n> changed.
+#   The three verbs below write nothing and read the *pipeline PRs*: open PRs with base `main`
+#   whose body has a `### Owed local` heading (owed's verdict is anything but absent). Draft
+#   state, the closing issue and its labels play no part. merge-queue and digest read review
+#   threads in one GraphQL call, only for the class fact; --no-class skips that call and prints
+#   no class fact (cloud sessions, which refuse GraphQL). Without it a refused call exits 1.
 #   verify-queue  the untried items of every pipeline PR, lowest PR number first.
 #   merge-queue   facts and landing order for the candidates: the pipeline PRs whose verdict is
 #           none or discharged. It never says who may merge. Every pipeline PR's `## Merge order`
@@ -79,26 +99,46 @@ set -euo pipefail
 #           Every argument is checked before anything is written: a PR not open against main, or a
 #           <sha> naming none of its commits, refuses the whole call. Every session is the same
 #           GitHub account, so nothing here can tell who gave the instruction: run it only on the
-#           user's own word.
+#           user's own word. Sessions record only through instruct; the user may type a record.
 #   land-facts  read-only, GraphQL (local sessions only). `land`'s one source for a PR's recorded
 #           instruction, Codex's review state and merge-order constraints; merge-queue's
 #           instructed and class facts come from the same parsers.
 #           Instruction: the latest comment by amindell11 whose first line is a record; it names
-#           nothing when its commit is not among the PR's latest 100. There is no withdraw format:
+#           nothing unless its SHA names exactly one of the PR's latest 100 commits. A record is
+#           `Merge instruction`, an optional ` <YYYY-MM-DD>`, `:`, then 7 to 40 hex characters in
+#           any case, backticked or not, and nothing after them: instruct's form, or the typeable
+#           `Merge instruction: abc1234`. There is no withdraw format:
 #           closing the PR or making it a draft withdraws it, since `land` refuses both.
 #           Review: Codex's summary comment (marker `<!-- codex-pull-request-review-summary -->`, the
 #           latest by chatgpt-codex-connector), its `Code Review` row, status Completed and a
 #           backticked short SHA naming one of the PR's commits. Codex's 👀 on the PR, any other
 #           status, no summary, or any other shape is no completed review.
-#   verify-queue, merge-queue, digest and land-facts call GraphQL. Every other verb calls only
+#   decision  read-only. The open decision on issue or PR <n>, for the board's `Decision` field.
+#           A closed item has none. Otherwise the parts that hold, in this order:
+#             question  the latest comment by amindell11 whose first line starts
+#                       `Question <YYYY-MM-DD>:` (the one-short question format), unless a later
+#                       comment by amindell11 is a ruling: its first line starts
+#                       `Ruled <YYYY-MM-DD>` or `Ruled:` ("Ruled out …" is none). The part is the
+#                       question's text, then ` — rec: ` and its `Recommendation:` line's text, if
+#                       it has one.
+#             tried     a pipeline PR with tried items: tried at `<head7>`: unity <n>, script <n>
+#             eyes      a pipeline PR with unticked eyes items: eyes: <n> to look at
+#             merge     a pipeline PR whose verdict is none or discharged, not a draft, with no
+#                       hosted:failure, no malformed `## Merge order` and no recorded instruction
+#                       naming its head itself (one naming an older commit still asks: only `land`
+#                       judges a delta inert): merge at `<head7>`?
+#           A ruling ends only the question; the PR parts end with the state behind them.
+#   land-facts, and merge-queue and digest without --no-class, call GraphQL. Every other read is
 #   REST, paged by hand: cloud sessions refuse GraphQL, and the Link URLs `gh api --paginate` follows.
 # Env:  GITHUB_REPOSITORY (owner/repo; default: the repository of the git remote, as gh reads it).
-# Exit: pick, owed, verify-queue, merge-queue, digest, land-facts — 0 a verdict (or the digest)
+# Exit: pick, owed, verify-queue, merge-queue, digest, land-facts, decision — 0 a verdict (or the digest)
 #       was printed · 1 infra (gh failed) · 2 usage.
 #       claim — 0 claimed · 1 infra (gh failed; the issue may be half-written) · 2 usage · 4 taken.
 #       release — 0 released · 1 infra (as claim) · 2 usage.
 #       instruct — 0 recorded · 1 infra (gh failed; INSTRUCTED lines name what was written) ·
 #       2 usage · 3 refused, nothing written.
+#       result — 0 written · 1 infra (gh failed; nothing was written unless the write itself
+#       failed) · 2 usage · 3 refused, nothing written.
 # Stdout trailers, one per line, stable:
 #   pick:    SKIP=<n> <reason>[,<reason>…]  (one per queue issue neither admitted nor unfinished;
 #            reasons: no-unity-label unity:<value> unity-conflict (more than one unity:*)
@@ -116,18 +156,19 @@ set -euo pipefail
 #   verify-queue:
 #            VERIFY=<pr> <head-sha> unity:<n>,script:<n>  (one per PR with an untried item; the
 #            full 40-character commit; untried items per kind)
-#            ITEM=<pr> <kind> <text>  (one per untried item, in body order, under its VERIFY
-#            line; <text> is the item line after `<kind>: `)
+#            ITEM=<pr> <n> <kind> <text>  (one per untried item, in body order, under its VERIFY
+#            line; <n> is result's item position, so the numbers can skip; <text> is the item
+#            line after `<kind>: `)
 #            VERIFY=none  (no PR has an untried item)
 #   merge-queue:
 #            MERGE=<pr> <head-sha> <fact>[,<fact>…]  (one per placed candidate, in landing order;
 #            facts: owed:none | owed:discharged (always first) · behind-head (a ticked item is
 #            behind head) · draft · scripts (a changed path under scripts/, or more than 100
-#            changed files: the read returns the first 100 paths) · github (a changed path under
-#            .github/) · instructed (a recorded instruction names one of its commits, as
-#            land-facts reads it) · class (the auto-merge class as GitHub shows it: owed:none,
-#            neither scripts nor github, merge-proof/headless and merge-proof/resharper SUCCESS
-#            on the head, Codex's completed review on the head, no unresolved review thread).
+#            changed files) · github (a changed path under .github/) · instructed (a recorded
+#            instruction names one of its commits, as land-facts reads it) · class (never under
+#            --no-class; the auto-merge class as GitHub shows it: owed:none, neither scripts nor
+#            github, merge-proof/headless and merge-proof/resharper SUCCESS on the head, Codex's
+#            completed review on the head, no unresolved review thread).
 #            scripts and github come from GitHub's changed-file list and only set landing order.
 #            The merge gate's landing diff stays the authority for the script suite, and `land`
 #            alone decides whether an instruction covers the landing tree and what CLASS is.)
@@ -142,6 +183,9 @@ set -euo pipefail
 #   instruct: INSTRUCTED=<pr> <sha>  (one per PR once its comment is posted; the full commit)
 #            REFUSED=<pr> <reason>  (one per refused argument; reasons: not-open · base:<branch> ·
 #            not-a-commit)
+#   result:  RESULT=<pr> <n> <passed|failed|not-run> <sha>  (once written; the full commit)
+#            REFUSED=<pr> <reason>  (reasons: instruct's three · checklist:<verdict> · no-item ·
+#            ticked · eyes · evidence · regrade)
 #   land-facts:
 #            OWED=<verdict>  (owed's verdict)
 #            INSTRUCTION=<sha>|none  (the recorded instruction's full commit)
@@ -149,11 +193,13 @@ set -euo pipefail
 #            full commit it reviewed)
 #            UNRESOLVED=<n>  (unresolved review threads, whoever opened them)
 #            AFTER=none|malformed|<pr>[,<pr>…]  (the live `## Merge order` constraints)
+#   decision: DECISION=<n> <line>|none  (<line>: the parts joined by ` · `, cut with `…` to 300
+#            characters and 1024 UTF-8 bytes, the board text field's limit)
 # Prose to stderr.
 
 PROPOSAL_AUTHOR="amindell11"
 
-usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | verify-queue | merge-queue | digest | instruct <pr>@<sha> [<pr>@<sha>…] | land-facts <pr>" >&2; exit 2; }
+usage() { echo "Usage: drain_pick.sh pick [--dry-run] | claim <issue> | release <issue> | owed <pr> | result <pr>@<sha> <n> passed|failed|not-run \"<evidence>\" | verify-queue | merge-queue [--no-class] | digest [--no-class] | instruct <pr>@<sha> [<pr>@<sha>…] | land-facts <pr> | decision <n>" >&2; exit 2; }
 infra() { echo "drain_pick: $1" >&2; exit 1; }
 say() { echo "drain_pick: $1" >&2; }
 
@@ -305,8 +351,9 @@ cmd_release() {
   echo "RELEASE=released"
 }
 
-# pr_views <verb> <json> [<ready_queue output> <owner/repo>]; <json>: one PR for owed and land-facts,
-# else every open PR.
+# pr_views <verb> <json> [<ready_queue output> <owner/repo>]; <json>: one PR for owed, result and
+# land-facts, cmd_decision's one-row list for decision, else cmd_views' list of every open PR.
+# result: <json> <n> <outcome> <commit> <evidence file> <out json>.
 pr_views() {
   python3 - "$PROPOSAL_AUTHOR" "$@" <<'PY'
 import json, re, sys
@@ -316,7 +363,10 @@ ITEM = re.compile(r"- \[([ x])\] (unity|script|eyes): (\S.*)")
 HEADING = re.compile(r"#{1,6}(\s|$)")
 SHA = re.compile(r"`([0-9a-f]{7,40})`", re.I)
 AFTER = re.compile(r"- after #(\d+)(\s|$)")
-RECORD = re.compile(r"Merge instruction \d{4}-\d{2}-\d{2}: `([0-9a-f]{40})`")
+RECORD = re.compile(r"Merge instruction(?: \d{4}-\d{2}-\d{2})?:\s*`?([0-9a-fA-F]{7,40})`?")
+QUESTION = re.compile(r"Question \d{4}-\d{2}-\d{2}:(.*)")
+RULED = re.compile(r"Ruled(?: \d{4}-\d{2}-\d{2}|:)")
+RECOMMENDATION = re.compile(r"Recommendation:(.*)")
 SUMMARY = "<!-- codex-pull-request-review-summary -->"
 CODEX = "chatgpt-codex-connector"
 STATE = {(False, False): "untried", (False, True): "tried", (True, False): "behind", (True, True): "ticked"}
@@ -348,9 +398,11 @@ def owed_verdict(pr):
     for number, line in rows:
         item = ITEM.match(line)
         if item and not none:
-            items.append({"kind": item[2], "ticked": item[1] == "x", "text": item[3].rstrip(), "at_head": False})
+            items.append({"kind": item[2], "ticked": item[1] == "x", "text": item[3].rstrip(), "at_head": False,
+                          "line": number - 1, "last": number - 1})
         elif items and line.startswith("  "):
             items[-1]["at_head"] |= any(pr["headRefOid"].startswith(s.lower()) for s in SHA.findall(line))
+            items[-1]["last"] = number - 1
         elif not items and not none and line.rstrip() == "None.":
             none = True
         else:
@@ -385,11 +437,27 @@ def on_pr(pr, sha):
     hits = [c["commit"]["oid"] for c in pr["history"]["nodes"] if c["commit"]["oid"].startswith(sha.lower())]
     return hits[0] if len(hits) == 1 else None
 
+def first_line(comment):
+    return ((comment["body"] or "").splitlines() or [""])[0].rstrip()
+
 # The one parser of the recorded instruction: the latest record names the commit, or nothing.
 def instruction(pr):
     records = [m[1] for c in pr["comments"]["nodes"] if login(c["author"]) == author
-               for m in [RECORD.fullmatch(((c["body"] or "").splitlines() or [""])[0])] if m]
+               for m in [RECORD.fullmatch(first_line(c))] if m]
     return on_pr(pr, records[-1]) if records else None
+
+# The one parser of an open question: the latest unruled Question's row part, else None.
+def question(item):
+    own = [c for c in item["comments"]["nodes"] if login(c["author"]) == author]
+    asked = [i for i, c in enumerate(own) if QUESTION.match(first_line(c))]
+    if not asked or any(RULED.match(first_line(c)) for c in own[asked[-1] + 1:]):
+        return None
+    lines = own[asked[-1]]["body"].splitlines()
+    rec = [m[1].strip() for m in map(RECOMMENDATION.match, lines[1:]) if m]
+    return (QUESTION.match(lines[0])[1].strip() or lines[0]) + (f" — rec: {rec[0]}" if rec and rec[0] else "")
+
+def hosted_failure(pr):
+    return any(pr["states"].get(c) in ("FAILURE", "ERROR") for c in PROOF)
 
 # The one parser of Codex's review state: ("completed", <the commit it reviewed>), else (<why not>, None).
 def review(pr):
@@ -422,6 +490,43 @@ if verb == "owed":
     print(f"BEHIND={count(items, 'behind')}")
     sys.exit()
 
+if verb == "result":
+    n, outcome, commit = int(sys.argv[4]), sys.argv[5], sys.argv[6]
+    evidence = open(sys.argv[7], encoding="utf-8", newline="").read()
+    def refuse(reason, why):
+        print(f"drain_pick: #{data['number']}: {why}", file=sys.stderr)
+        print(f"REFUSED={data['number']} {reason}")
+        sys.exit(3)
+    verdict, items = owed_verdict(data)
+    if verdict != "open":
+        refuse(f"checklist:{verdict}", f"its owed-local checklist is {verdict}, not open")
+    if not 1 <= n <= len(items):
+        refuse("no-item", f"its checklist has no item {n}")
+    item = items[n - 1]
+    if item["ticked"]:
+        refuse("ticked", f"item {n} is already ticked")
+    if item["kind"] == "eyes":
+        refuse("eyes", f"item {n} is an eyes item: a person ticks it")
+    if not evidence.strip() or evidence.splitlines() != [evidence]:
+        refuse("evidence", "the evidence must be one non-empty line")
+    lines = data["body"].splitlines(keepends=True)
+    if outcome == "passed":
+        lines[item["line"]] = "- [x]" + lines[item["line"]][5:]
+    anchor = lines[item["last"]]
+    ending = anchor[len(anchor.splitlines()[0]):]
+    if not ending:
+        lines[item["last"]] = anchor + ("\r\n" if "\r\n" in data["body"] else "\n")
+    label = "not run" if outcome == "not-run" else outcome
+    lines.insert(item["last"] + 1, f"  Run at `{commit[:7]}`: {label} — {evidence}{ending}")
+    body = "".join(lines)
+    regraded, after = owed_verdict({**data, "body": body})
+    def shape(xs):
+        return [(i["kind"], i["text"]) + ((i["ticked"], i["at_head"]) if k != n - 1 else ()) for k, i in enumerate(xs)]
+    if regraded not in ("open", "discharged") or shape(after) != shape(items) or after[n - 1]["ticked"] != (outcome == "passed"):
+        refuse("regrade", f"the rewritten body would not grade to the same items with only item {n} changed")
+    json.dump({"body": body}, open(sys.argv[8], "w"))
+    sys.exit()
+
 if verb == "land-facts":
     pr = data["data"]["repository"]["pullRequest"]
     live = {n["number"] for n in data["data"]["repository"]["pullRequests"]["nodes"]}
@@ -435,7 +540,26 @@ if verb == "land-facts":
     print(f"AFTER={'malformed' if order is None else ','.join(map(str, after)) or 'none'}")
     sys.exit()
 
-open_prs = {n["number"]: n for n in data["data"]["repository"]["pullRequests"]["nodes"]}
+if verb == "decision":
+    item = data[0]
+    parts = [question(item)]
+    if item.get("base") == "main":
+        verdict, items = owed_verdict(item)
+        head = item["headRefOid"][:7]
+        if count(items, "tried"):
+            parts.append(f"tried at `{head}`: unity {count(items, 'tried', kind='unity')}, script {count(items, 'tried', kind='script')}")
+        if count(items, "open"):
+            parts.append(f"eyes: {count(items, 'open')} to look at")
+        if (verdict in ("none", "discharged") and not item["isDraft"] and not hosted_failure(item)
+                and merge_order(item) is not None and instruction(item) != item["headRefOid"]):
+            parts.append(f"merge at `{head}`?")
+    line = " · ".join(p for p in parts if p)
+    if len(line) > 300 or len(line.encode()) > 1024:  # the board text field holds 1024 UTF-8 bytes
+        line = line[:299].encode()[:1021].decode(errors="ignore") + "…"
+    print(f"DECISION={item['number']} {line or 'none'}")
+    sys.exit()
+
+open_prs = {n["number"]: n for n in data}
 prs = []
 for number in sorted(open_prs):
     verdict, items = owed_verdict(open_prs[number])
@@ -452,12 +576,10 @@ def merge_queue():
         skip[n] = ["merge-order-malformed"] if order is None else []
         if pr["verdict"] not in ("none", "discharged"):
             continue
-        paths = [f["path"] for f in pr["files"]["nodes"]]
-        status = pr["commits"]["nodes"][0]["commit"]["status"] or {"contexts": []}
-        states = {c["context"]: c["state"] for c in status["contexts"]}
-        scripts = pr["changedFiles"] > 100 or any(p.startswith("scripts/") for p in paths)
+        paths, states = pr["paths"], pr["states"]
+        scripts = len(paths) > 100 or any(p.startswith("scripts/") for p in paths)
         github = any(p.startswith(".github/") for p in paths)
-        in_class = (pr["verdict"] == "none" and not scripts and not github
+        in_class = ("reviewThreads" in pr and pr["verdict"] == "none" and not scripts and not github
                     and all(states.get(c) == "SUCCESS" for c in PROOF)
                     and review(pr) == ("completed", pr["headRefOid"]) and not unresolved(pr))
         facts[n] = [fact for fact, holds in (
@@ -468,7 +590,7 @@ def merge_queue():
             ("github", github),
             ("instructed", instruction(pr)),
             ("class", in_class)) if holds]
-        if any(states.get(c) in ("FAILURE", "ERROR") for c in PROOF):
+        if hosted_failure(pr):
             skip[n].append("hosted:failure")
     for n in after:
         seen, todo = set(), list(after[n])
@@ -494,9 +616,9 @@ def merge_queue():
 if verb == "verify-queue":
     for pr in verify:
         print(f"VERIFY={pr['number']} {pr['headRefOid']} {per_kind(pr['items'], 'untried')}")
-        for i in pr["items"]:
+        for n, i in enumerate(pr["items"], 1):
             if i["state"] == "untried":
-                print(f"ITEM={pr['number']} {i['kind']} {i['text']}")
+                print(f"ITEM={pr['number']} {n} {i['kind']} {i['text']}")
     if not verify:
         print("VERIFY=none")
     sys.exit()
@@ -530,7 +652,7 @@ def with_items(title, state, detail):
 waiting = (
     ("Waiting on the user", (
         with_items("`eyes` items to look at", "open", lambda items, state: f"{count(items, state)} unticked"),
-        with_items("Owed items that failed at head", "tried", per_kind),
+        with_items("Owed items tried at head (failed or not run) — see each result line", "tried", per_kind),
         ("Malformed owed-local checklists", [titled(pr) for pr in prs if pr["verdict"] == "malformed"]),
         ("Merge candidates, in landing order",
          [f"{titled(open_prs[n])} — {', '.join(facts[n])}" for n in placed]),
@@ -566,26 +688,111 @@ cmd_owed() {
   pr_views owed "$TMP/pr.json"
 }
 
-# Every GraphQL read of a PR asks for these, so merge-queue and land-facts parse one shape.
-PR_FIELDS='number title isDraft headRefOid body changedFiles
-  files(first: 100) { nodes { path } }
-  commits(last: 1) { nodes { commit { status { contexts { context state } } } } }
+THREADS='reviewThreads(first: 100) { totalCount nodes { isResolved } }'
+# land-facts' read of a PR, in the shape cmd_views builds over REST: pr_views parses both.
+PR_FIELDS='number headRefOid body
   history: commits(last: 100) { nodes { commit { oid } } }
   comments(last: 100) { nodes { author { login } body } }
-  reviewThreads(first: 100) { totalCount nodes { isResolved } }
+  '"$THREADS"'
   reactions(content: EYES, first: 20) { nodes { user { login } } }'
 OPEN_PRS='pullRequests(states: OPEN, baseRefName: "main", first: 100, orderBy: {field: CREATED_AT, direction: ASC})'
 
+# One REST pull as the row cmd_views lists: <number> <head-sha> <the fields pr_views reads>.
+PR_ROW='"\(.number) \(.head.sha) \({number, title, isDraft: .draft, headRefOid: .head.sha, base: .base.ref, body: (.body // "")} | tojson)"'
+
+# pr_rest <owner/repo> <pr> <head-sha>: one PR's REST reads, into $TMP/<pr>/ for shape_prs.
+pr_rest() {
+  mkdir "$TMP/$2"
+  rest_list "repos/$1/pulls/$2/files" .filename > "$TMP/$2/files" || infra "gh api (#$2 files) failed"
+  rest_list "repos/$1/pulls/$2/commits" .sha > "$TMP/$2/commits" || infra "gh api (#$2 commits) failed"
+  rest_list "repos/$1/commits/$3/statuses" '{context, state} | tojson' > "$TMP/$2/statuses" \
+    || infra "gh api (#$2 statuses) failed"
+  rest_list "repos/$1/issues/$2/comments" '{author: {login: .user.login}, body} | tojson' \
+    > "$TMP/$2/comments" || infra "gh api (#$2 comments) failed"
+  rest_list "repos/$1/issues/$2/reactions?content=eyes" '{user: {login: .user.login}} | tojson' \
+    > "$TMP/$2/reactions" || infra "gh api (#$2 reactions) failed"
+}
+
+# shape_prs: the rows of $TMP/pulls.txt, each PR with its pr_rest reads, as the list pr_views parses.
+shape_prs() {
+  python3 - "$TMP" <<'PY'
+import json, os, sys
+tmp = sys.argv[1]
+def lines(path):
+    return open(path, encoding="utf-8").read().splitlines()
+threads = None
+if os.path.exists(f"{tmp}/threads.json"):
+    nodes = json.load(open(f"{tmp}/threads.json", encoding="utf-8"))["data"]["repository"]["pullRequests"]["nodes"]
+    threads = {n["number"]: n["reviewThreads"] for n in nodes}
+prs = []
+for line in lines(f"{tmp}/pulls.txt"):
+    n, _, pr = line.split(" ", 2)
+    pr = json.loads(pr)
+    if os.path.isdir(f"{tmp}/{n}"):
+        states = {}
+        for status in map(json.loads, lines(f"{tmp}/{n}/statuses")):  # newest first
+            states.setdefault(status["context"], status["state"].upper())
+        pr.update(paths=lines(f"{tmp}/{n}/files"), states=states,
+                  history={"nodes": [{"commit": {"oid": c}} for c in lines(f"{tmp}/{n}/commits")[-100:]]},
+                  comments={"nodes": [json.loads(c) for c in lines(f"{tmp}/{n}/comments")[-100:]]},
+                  reactions={"nodes": [json.loads(r) for r in lines(f"{tmp}/{n}/reactions")]})
+    if threads is not None:
+        if int(n) not in threads:
+            sys.exit(f"drain_pick: #{n} is past the 100 open PRs the review-thread read covers")
+        pr["reviewThreads"] = threads[int(n)]
+    prs.append(pr)
+json.dump(prs, sys.stdout)
+PY
+}
+
+# cmd_views <verb> [--no-class]: every open PR into main over REST, in the shape pr_views parses;
+# review threads, which REST cannot read, come from one GraphQL call unless --no-class.
 cmd_views() {
-  [[ $# -eq 1 ]] || usage
-  local r
+  local verb="$1" class=1 r n sha
+  shift
+  if [[ "$verb" != verify-queue && "${1:-}" == --no-class ]]; then class=0; shift; fi
+  [[ $# -eq 0 ]] || usage
   r="$(repo)" || infra "gh api (repository) failed"
   scratch
-  gh api graphql -F owner="${r%%/*}" -F name="${r##*/}" -f query="query(\$owner: String!, \$name: String!) {
-    repository(owner: \$owner, name: \$name) { $OPEN_PRS { nodes { $PR_FIELDS } } } }" \
-    > "$TMP/prs.json" || infra "gh api graphql (open PRs) failed"
-  if [[ "$1" == digest ]]; then ready_queue "$r" digest > "$TMP/ready.txt"; fi
-  pr_views "$1" "$TMP/prs.json" "$TMP/ready.txt" "$r"
+  rest_list "repos/$r/pulls?state=open&base=main&sort=created&direction=asc" "$PR_ROW" \
+    > "$TMP/pulls.txt" || infra "gh api (open PRs) failed"
+  if [[ "$verb" != verify-queue ]]; then
+    while read -r n sha _; do pr_rest "$r" "$n" "$sha"; done < "$TMP/pulls.txt"
+    if [[ "$class" -eq 1 ]]; then
+      gh api graphql -F owner="${r%%/*}" -F name="${r##*/}" -f query="query(\$owner: String!, \$name: String!) {
+        repository(owner: \$owner, name: \$name) { $OPEN_PRS { nodes { number $THREADS } } } }" \
+        > "$TMP/threads.json" || infra "gh api graphql (review threads) failed; without GraphQL, pass --no-class"
+    fi
+  fi
+  shape_prs > "$TMP/prs.json" || exit 1
+  if [[ "$verb" == digest ]]; then ready_queue "$r" digest > "$TMP/ready.txt"; fi
+  pr_views "$verb" "$TMP/prs.json" "$TMP/ready.txt" "$r"
+}
+
+# cmd_decision <n>: one issue or PR over REST, as the one-row list pr_views parses: a PR through
+# cmd_views' reads and shaper, an issue as its comments alone.
+cmd_decision() {
+  [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || usage
+  local r state pull sha
+  r="$(repo)" || infra "gh api (repository) failed"
+  scratch
+  IFS=$'\t' read -r state pull < <(gh api "repos/$r/issues/$1" --jq '[.state, .pull_request != null] | @tsv') \
+    || infra "gh api (#$1) failed"
+  if [[ "$state" != open ]]; then
+    echo "DECISION=$1 none"
+    return
+  fi
+  if [[ "$pull" == true ]]; then
+    gh api "repos/$r/pulls/$1" --jq "$PR_ROW" > "$TMP/pulls.txt" || infra "gh api (PR #$1) failed"
+    read -r _ sha _ < "$TMP/pulls.txt"
+    pr_rest "$r" "$1" "$sha"
+    shape_prs > "$TMP/item.json" || exit 1
+  else
+    rest_list "repos/$r/issues/$1/comments" '{author: {login: .user.login}, body} | tojson' > "$TMP/comments" \
+      || infra "gh api (#$1 comments) failed"
+    printf '[{"number": %s, "comments": {"nodes": [%s]}}]' "$1" "$(paste -sd, "$TMP/comments")" > "$TMP/item.json"
+  fi
+  pr_views decision "$TMP/item.json"
 }
 
 cmd_land_facts() {
@@ -601,30 +808,51 @@ cmd_land_facts() {
   pr_views land-facts "$TMP/pr.json"
 }
 
+# target <owner/repo> <pr> <sha>: sets TARGET to the full commit when <sha> names exactly one of
+# the commits of <pr>, open against main; otherwise prints the REFUSED line and returns 3.
+target() {
+  local state base
+  TARGET=""
+  IFS=$'\t' read -r state base < <(gh api "repos/$1/pulls/$2" --jq '[.state, .base.ref] | @tsv') \
+    || infra "gh api (PR #$2) failed"
+  if [[ "$state" != open ]]; then
+    say "#$2 is $state, not open"; echo "REFUSED=$2 not-open"; return 3
+  fi
+  if [[ "$base" != main ]]; then
+    say "#$2 is against $base, not main"; echo "REFUSED=$2 base:$base"; return 3
+  fi
+  TARGET="$(rest_list "repos/$1/pulls/$2/commits" .sha)" || infra "gh api (#$2 commits) failed"
+  TARGET="$(grep "^${3,,}" <<<"$TARGET" || true)"
+  if [[ -z "$TARGET" || "$TARGET" == *$'\n'* ]]; then
+    say "#$2: $3 names $([[ -n "$TARGET" ]] && echo 'more than one' || echo none) of its commits"
+    echo "REFUSED=$2 not-a-commit"; TARGET=""; return 3
+  fi
+}
+
+cmd_result() {
+  [[ $# -eq 4 && "$1" =~ ^[0-9]+@[0-9a-fA-F]{7,40}$ && "$2" =~ ^[1-9][0-9]*$ && "$3" =~ ^(passed|failed|not-run)$ ]] \
+    || usage
+  local pr="${1%@*}" r
+  r="$(repo)" || infra "gh api (repository) failed"
+  target "$r" "$pr" "${1#*@}" || exit 3
+  scratch
+  printf '%s' "$4" > "$TMP/evidence"
+  gh api "repos/$r/pulls/$pr" --jq '{number, body: (.body // ""), headRefOid: .head.sha}' > "$TMP/pr.json" \
+    || infra "gh api (PR #$pr) failed"
+  pr_views result "$TMP/pr.json" "$2" "$3" "$TARGET" "$TMP/evidence" "$TMP/body.json" || exit
+  gh api -X PATCH "repos/$r/pulls/$pr" --input "$TMP/body.json" --silent \
+    || infra "writing the result on #$pr failed"
+  echo "RESULT=$pr $2 $3 $TARGET"
+}
+
 cmd_instruct() {
   [[ $# -ge 1 ]] || usage
-  local arg pr sha r state base matches refused=0 records=() record
+  local arg pr r refused=0 records=() record
   for arg in "$@"; do [[ "$arg" =~ ^[0-9]+@[0-9a-fA-F]{7,40}$ ]] || usage; done
   r="$(repo)" || infra "gh api (repository) failed"
   for arg in "$@"; do
     pr="${arg%@*}"
-    sha="${arg#*@}"
-    sha="${sha,,}"
-    IFS=$'\t' read -r state base < <(gh api "repos/$r/pulls/$pr" --jq '[.state, .base.ref] | @tsv') \
-      || infra "gh api (PR #$pr) failed"
-    if [[ "$state" != open ]]; then
-      say "#$pr is $state, not open"; echo "REFUSED=$pr not-open"; refused=1; continue
-    fi
-    if [[ "$base" != main ]]; then
-      say "#$pr is against $base, not main"; echo "REFUSED=$pr base:$base"; refused=1; continue
-    fi
-    matches="$(rest_list "repos/$r/pulls/$pr/commits" .sha)" || infra "gh api (#$pr commits) failed"
-    matches="$(grep "^$sha" <<<"$matches" || true)"
-    if [[ -z "$matches" || "$matches" == *$'\n'* ]]; then
-      say "#$pr: $sha names $([[ -n "$matches" ]] && echo 'more than one' || echo none) of its commits"
-      echo "REFUSED=$pr not-a-commit"; refused=1; continue
-    fi
-    records+=("$pr $matches")
+    if target "$r" "$pr" "${arg#*@}"; then records+=("$pr $TARGET"); else refused=1; fi
   done
   [[ "$refused" -eq 0 ]] || exit 3
   for record in "${records[@]}"; do
@@ -642,8 +870,10 @@ case "$verb" in
   claim) cmd_claim "$@" ;;
   release) cmd_release "$@" ;;
   owed) cmd_owed "$@" ;;
+  result) cmd_result "$@" ;;
   verify-queue|merge-queue|digest) cmd_views "$verb" "$@" ;;
   instruct) cmd_instruct "$@" ;;
   land-facts) cmd_land_facts "$@" ;;
+  decision) cmd_decision "$@" ;;
   *) usage ;;
 esac
