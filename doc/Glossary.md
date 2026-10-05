@@ -225,11 +225,11 @@ Format: **term** — definition. *(authority)*
   consent). *(agent_worktree_pool.sh `land`; #830)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
-  arrival order (**turn ticket**). Any other push to main takes it through
-  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
-  free. A waiter gives up only after watching one holder keep the turn for the
-  cap; a line that keeps moving times nobody out. Machine-local: a base move
-  from any other clone is caught only by the gate's base re-check.
+  arrival order (**turn ticket**). Any other push to main takes it with no
+  ticket, whenever it is free: `land-docs`, or a command run under
+  `lock merge-turn`. A waiter gives up only after watching one holder keep the
+  turn for the cap; a line that keeps moving times nobody out. Machine-local:
+  a base move from any other clone is caught only by the gate's base re-check.
   *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
 - **turn ticket** — a waiting merge gate's recorded arrival; the line for the
   merge turn is the live tickets in arrival order. A ticket is live only while

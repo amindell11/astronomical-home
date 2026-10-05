@@ -73,17 +73,44 @@ jobs:
           git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf" --exclude=""
           du -sh .git/lfs
 
+      # No restore-keys: a Library imported under other Packages/ProjectSettings must miss, not warm-start.
+      - uses: actions/cache@v4
+        with:
+          path: src/Asteroids3D/Library
+          key: unity-library-${{ hashFiles('src/Asteroids3D/Packages/**', 'src/Asteroids3D/ProjectSettings/**') }}
+
       # customParameters reaches Unity verbatim: a quoted category matches nothing and an empty run exits green.
-      - name: Headless suite
+      # One mode per step: testMode all adds a third boot that only combines coverage.
+      - name: Headless suite (editmode)
+        id: editmode
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          cliVersion: v0.1.72
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
-          testMode: all
+          testMode: editmode
+          customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
+          # Empty token: the default github.token would post a second, edit-mode-only "Test Results" check.
+          githubToken: ''
+          artifactsPath: headless-artifacts
+
+      # The check reads every results XML in artifactsPath, so posting it here covers both modes.
+      - name: Headless suite (playmode)
+        if: ${{ !cancelled() && steps.editmode.outcome != 'skipped' }}
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          cliVersion: v0.1.72
+          projectPath: src/Asteroids3D
+          unityVersion: 6000.1.8f1
+          testMode: playmode
           customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: headless-suite
