@@ -12,7 +12,7 @@ on:
   issues:
     types: [closed, reopened]
   pull_request_target:
-    types: [edited, synchronize, closed, reopened, ready_for_review, converted_to_draft]
+    types: [opened, edited, synchronize, closed, reopened, ready_for_review, converted_to_draft]
   # The backstop for missed or cancelled runs, off the top of the hour, when GitHub delays cron.
   schedule:
     - cron: "17 * * * *"
