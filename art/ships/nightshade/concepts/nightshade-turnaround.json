@@ -1,0 +1,34 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-05T23:39:50.573234+00:00",
+  "prompt": "Use case: precise-object-edit.\nImage 1 is the Nightshade turnaround sheet to edit. Image 2 is an ACTUAL STRAIGHT-ON ORTHOGRAPHIC FRONT capture of the current ship mesh and is the authoritative reference for frontal shape and vertical proportions.\n\nChange ONLY the bottom-left drawing labelled FRONT in Image 1. Preserve the SIDE and THREE-QUARTER drawings, including their beloved sculpted tail shapes, exactly as they are. Preserve labels, layout and background.\n\nReplace the existing erroneous pointy front drawing with a clean illustrated adaptation of Image 2's actual frontal silhouette. Copy its spatial anatomy closely: broad rounded oval central nose with a horizontal dark nose band across its middle; blue-violet curved canopy surfaces wrapping above and partially below that band; thin lateral wings stretching across the middle with magenta outer tips; shallow layered smaller fins behind and slightly above/below the cockpit where the real front capture shows them. The frontal hull is rounded and wide, not a triangular aft fuselage pointing downward. Do not invent a long central keel or rear spike in the foreground. The view must look from directly in front at zero downward camera angle, so the long fuselage and rear tails recede and are hidden behind the rounded nose as in Image 2.\n\nKeep changes from the current mesh minimal in the front view, as the owner requests. Interpret Image 2's rough mesh and texture as clean dark-slate shaded facets with blue-violet glass and magenta tips, in exactly the illustration technique of the sheet. Do not copy texture defects or green artifacts. The top and bottom blue glazing and dark midline should agree with the sheet's SIDE view. Render the replacement at the same wing span as the old front drawing within the bottom-left area. Make it symmetric. No changes elsewhere on the sheet, no redesign of the side/quarter.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "edit target Q, side/quarter preserved",
+      "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r12\\nightshade-q-turnaround.png",
+      "sha256": "baa75eecbb4e64ab14d2b30e1cf905727d4f89bf215e8dbd634c0bafe5cae08b"
+    },
+    {
+      "role": "authoritative current mesh frontal shape",
+      "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r13\\references\\mesh-front.png",
+      "sha256": "6616d7333d2ba4f15a3cd05583e608683d618dbb475c5d849ca1c65dd0ad7813"
+    }
+  ],
+  "generated_source": "C:\\Users\\amind\\.codex\\generated_images\\01a10e3a-39f9-7e51-a1fe-cfc15495e311\\exec-7d4f3057-d92c-47f2-9b41-16afc341803d.png",
+  "output": {
+    "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r13\\nightshade-r-turnaround.png",
+    "sha256": "400b627ae2eb46d7c05318ee3ed0919c75a68c8ce32f463069217e2cee59fdcb",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  "approved_asset": {
+    "path": "art/ships/nightshade/concepts/nightshade-turnaround.png",
+    "sha256": "400b627ae2eb46d7c05318ee3ed0919c75a68c8ce32f463069217e2cee59fdcb",
+    "approval": "Owner approved moving forward in chat on 2026-10-05; front remains approximate. Side, top and isometric views take precedence over front.",
+    "concept_round": "2026-10-05-r13"
+  }
+}
