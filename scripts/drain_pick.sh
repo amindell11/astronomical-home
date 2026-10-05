@@ -88,10 +88,11 @@ set -euo pipefail
 #           heading, is malformed. A constraint is live only while the PR it names is open
 #           against `main`.
 #   digest  Markdown for a person, every issue and PR number linked: what waits on the user
-#           (eyes items, tried items, malformed checklists, the merge queue, claimed issues whose
-#           PRs all closed unmerged, ready-labelled issues no cloud batch can build) and what
-#           waits on a session the user starts (build, verify). No machine contract: relay it as
-#           printed.
+#           (PRs merged without an instruction, which `land` labels `auto-merged` until the user
+#           removes the label on review; eyes items, tried items, malformed checklists, the merge
+#           queue, claimed issues whose PRs all closed unmerged, ready-labelled issues no cloud
+#           batch can build) and what waits on a session the user starts (build, verify). No
+#           machine contract: relay it as printed.
 #   instruct  the only writer of a *recorded instruction*: the user's merge instruction for a PR at
 #           commit <sha>, 7 to 40 hex characters naming exactly one of the PR's commits. Posts one
 #           comment per PR whose first line is exactly
@@ -351,8 +352,9 @@ cmd_release() {
   echo "RELEASE=released"
 }
 
-# pr_views <verb> <json> [<ready_queue output> <owner/repo>]; <json>: one PR for owed, result and
-# land-facts, cmd_decision's one-row list for decision, else cmd_views' list of every open PR.
+# pr_views <verb> <json> [<ready_queue output> <owner/repo> <auto-merged rows>]; <json>: one PR
+# for owed, result and land-facts, cmd_decision's one-row list for decision, else cmd_views' list
+# of every open PR.
 # result: <json> <n> <outcome> <commit> <evidence file> <out json>.
 pr_views() {
   python3 - "$PROPOSAL_AUTHOR" "$@" <<'PY'
@@ -649,8 +651,11 @@ def linked(reasons):
                      for r in reasons)
 def with_items(title, state, detail):
     return title, [f"{titled(pr)} — {detail(pr['items'], state)}" for pr in prs if count(pr["items"], state)]
+auto_merged = [json.loads(row) for row in open(sys.argv[6], encoding="utf-8").read().splitlines()]
 waiting = (
     ("Waiting on the user", (
+        ("Merged without an instruction — review each, then remove its `auto-merged` label",
+         [titled(pr) for pr in auto_merged if pr["merged"]]),
         with_items("`eyes` items to look at", "open", lambda items, state: f"{count(items, state)} unticked"),
         with_items("Owed items tried at head (failed or not run) — see each result line", "tried", per_kind),
         ("Malformed owed-local checklists", [titled(pr) for pr in prs if pr["verdict"] == "malformed"]),
@@ -746,7 +751,8 @@ PY
 }
 
 # cmd_views <verb> [--no-class]: every open PR into main over REST, in the shape pr_views parses;
-# review threads, which REST cannot read, come from one GraphQL call unless --no-class.
+# review threads, which REST cannot read, come from one GraphQL call unless --no-class. digest
+# also reads the closed PRs labelled auto-merged.
 cmd_views() {
   local verb="$1" class=1 r n sha
   shift
@@ -765,8 +771,13 @@ cmd_views() {
     fi
   fi
   shape_prs > "$TMP/prs.json" || exit 1
-  if [[ "$verb" == digest ]]; then ready_queue "$r" digest > "$TMP/ready.txt"; fi
-  pr_views "$verb" "$TMP/prs.json" "$TMP/ready.txt" "$r"
+  if [[ "$verb" == digest ]]; then
+    ready_queue "$r" digest > "$TMP/ready.txt"
+    rest_list "repos/$r/issues?state=closed&labels=auto-merged" \
+      '{number, title, merged: (.pull_request.merged_at != null)} | tojson' > "$TMP/auto-merged.jsonl" \
+      || infra "gh api (auto-merged PRs) failed"
+  fi
+  pr_views "$verb" "$TMP/prs.json" "$TMP/ready.txt" "$r" "$TMP/auto-merged.jsonl"
 }
 
 # cmd_decision <n>: one issue or PR over REST, as the one-row list pr_views parses: a PR through

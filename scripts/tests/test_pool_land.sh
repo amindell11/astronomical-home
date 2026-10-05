@@ -4,11 +4,12 @@ set -euo pipefail
 
 # Regression for 'land <pr>': every preflight refusal, slot borrowing (free slots only, a dead
 # run's land-<pr> slot reused, another session's slot refused, a running gate's slot left alone),
-# the authorize phase's covers relation, the shadow CLASS verdict, bounded retries of the
-# transient refusals, and the slot reset after a refusal or finalized after a merge. The real
-# drain_pick.sh reads the PR's facts; gh is a stub that fails closed on any call it does not
-# model, answers the hosted statuses for whatever commit it is asked about, and squash-merges
-# into the bare origin.
+# the authorize phase's covers relation, the CLASS verdict, the class authorizing (and its
+# auto-merged label, written before the merge or refusing it) or, switched off, only reported,
+# bounded retries of the transient refusals, and the slot reset after a refusal or finalized
+# after a merge. The real drain_pick.sh reads the PR's facts; gh is a stub that fails closed on
+# any call it does not model, answers the hosted statuses for whatever commit it is asked about,
+# labels a PR unless $FIX/label-fails exists, and squash-merges into the bare origin.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -55,6 +56,9 @@ case "$1 $2" in
   "pr list")
     n="${args##*--head task/p}"; n="${n%% *}"
     if [[ "$args" == *"--state all"* ]]; then cat "$FIX/merged-$n"; else [[ -e "$FIX/merged-$n" ]] || echo "$n"; fi ;;
+  "pr edit")
+    echo "$args" >> "$GH_MERGE_LOG"
+    [[ ! -e "$FIX/label-fails" ]] || { echo "gh stub: label write failed" >&2; exit 1; } ;;
   "pr merge")
     echo "$args" >> "$GH_MERGE_LOG"
     want="${args##*--match-head-commit }"; want="${want%% *}"
@@ -183,6 +187,8 @@ expect_merged "an exact instruction on a green PR"
 [[ "$(class)" == CLASS=in ]] || { show; fail "nothing owed, no scripts/ or .github/, both statuses accepted and a covering review is in the class"; }
 [[ "$(grep -c '^GATE=' "$TMP/out")" -eq 1 && "$(grep -c '^CLASS=' "$TMP/out")" -eq 1 ]] || { show; fail "land prints each trailer once"; }
 grep -q -- "--match-head-commit $(head_of 1)" "$GH_MERGE_LOG" || fail "gh pr merge names the landing commit (got: $(cat "$GH_MERGE_LOG"))"
+labels() { grep -c "^pr edit $1 --add-label auto-merged$" "$GH_MERGE_LOG" || true; }
+[[ "$(labels 1)" -eq 0 ]] || fail "an instructed merge is not labelled auto-merged, even in the class"
 [[ "$(phases agent-1)" == "turn-wait preflight fetch base-merge authorize proof-check tests resharper push base-recheck gh-merge " ]] \
   || fail "land runs the hosted ladder with authorize after base-merge (got '$(phases agent-1)')"
 grep -q '"msg":"class in"' "$(journal agent-1)" || fail "the journal notes the class verdict"
@@ -208,7 +214,7 @@ printf 'OPEN\tmain\tfeature/p2\tfalse\tfalse\n' > "$FIX/view-2"; preflight_refus
 printf 'OPEN\tmain\ttask/p2\tfalse\ttrue\n' > "$FIX/view-2"; preflight_refuses head-branch "a head branch on a fork"
 facts 2 "$(head_of 2)" - $'### Owed local\n\n- [ ] unity: boot\n'; preflight_refuses owed-open "an open owed item"
 facts 2 "$(head_of 2)" - $'### Owed local\n\n- [ ] manual: look\n'; preflight_refuses owed-malformed "a malformed checklist"
-facts 2 - - "$NONE"; preflight_refuses no-instruction "no recorded instruction"
+facts 2 - - "$NONE"; preflight_refuses no-instruction "no recorded instruction, the class in shadow" WORKTREE_POOL_AUTO_MERGE_CLASS=0
 facts 2 "$(head_of 2)" - "$NONE" 1; preflight_refuses unresolved "an unresolved review thread"
 facts 2 "$(head_of 2)" - "$NONE"$'\n## Merge order\n\n- after #77 — same file\n' 0 77; preflight_refuses after:77 "a live merge-order constraint"
 facts 2 "$(head_of 2)" - "$NONE"$'\n## Merge order\n\nafter #77\n'; preflight_refuses merge-order-malformed "a malformed merge order"
@@ -261,22 +267,40 @@ facts 5 "$(head_of 5 "~1")" - "$NONE"
 land 5
 expect_merged "an instruction covering through a comment-only delta"
 [[ "$(class)" == CLASS=out:review ]] || { show; fail "a missing review is out:review once everything before it holds"; }
-# p6: a code push after the instruction.
+# p6: a code push after the instruction. With the class in shadow, authorize refuses it.
 pr_branch 6 'f.txt=six\n' 'src/Gate.cs=class Gate {\n    // first comment\n    int value = 2;\n}\n'
 facts 6 "$(head_of 6 "~1")" "$(head_of 6)" "$NONE"
 merges_before="$(merges)"
-land 6
-expect_refused unauthorized "a code delta since the instruction"
+land 6 WORKTREE_POOL_AUTO_MERGE_CLASS=0
+expect_refused unauthorized "a code delta since the instruction, the class in shadow"
 [[ "$(attempts)" -eq 1 && "$(merges)" == "$merges_before" ]] || { show; fail "unauthorized is refused once, with no merge"; }
 [[ -z "$(class)" ]] || fail "a refusal at authorize prints no class verdict"
 grep -q "drain_pick.sh instruct 6@<head>" "$TMP/err" || { show; fail "the refusal names how to record a new instruction"; }
 ! locked agent-1 || fail "a refused land releases its slot"
 [[ "$(git -C "$TMP/agent-1" rev-parse HEAD)" == "$(git -C "$TMP/agent-1" rev-parse origin/main)" ]] || fail "a refused land resets its slot to origin/main"
-# Switched on, the class stands in for the instruction.
+# With the class on, it decides once the proofs are in: outside it, refused unlabelled.
+facts 6 "$(head_of 6 "~1")" - "$NONE"
+land 6
+expect_refused unauthorized "a code delta since the instruction, outside the class"
+[[ "$(class)" == CLASS=out:review && "$(merges)" == "$merges_before" && "$(labels 6)" -eq 0 ]] \
+  || { show; fail "outside the class: its verdict printed, no label, no merge"; }
+# In the class it lands, labelled auto-merged before the merge.
 facts 6 - "$(head_of 6)" "$NONE"
-land 6 WORKTREE_POOL_AUTO_MERGE_CLASS=1
-expect_merged "no instruction, but in the class with the switch on"
-[[ "$(class)" == CLASS=in ]] || { show; fail "the switched merge is a class one"; }
+land 6
+expect_merged "no instruction, but in the class"
+[[ "$(class)" == CLASS=in && "$(labels 6)" -eq 1 ]] || { show; fail "a class merge is labelled auto-merged"; }
+[[ "$(grep -E '^pr (edit|merge) 6 ' "$GH_MERGE_LOG" | cut -d' ' -f2 | tr '\n' ' ')" == "edit merge " ]] \
+  || fail "the label is written before the merge (got: $(cat "$GH_MERGE_LOG"))"
+# p10: a failed label write refuses the class merge; land retries gh, and nothing merges.
+pr_branch 10 'j.txt=ten\n'
+facts 10 - "$(head_of 10)" "$NONE"
+touch "$FIX/label-fails"
+merges_before="$(merges)"
+land 10
+rm -f "$FIX/label-fails"
+expect_refused gh "a failed auto-merged label write"
+[[ "$(attempts)" -eq 3 && "$(merges)" == "$merges_before" ]] || { show; fail "a class merge never lands unlabelled"; }
+! locked agent-1 || fail "the slot is released after the last attempt"
 
 # --- retries ----------------------------------------------------------------------------------------------
 # Base moves once mid-gate: the second attempt integrates it, has the hosted suite prove that landing

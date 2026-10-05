@@ -221,7 +221,8 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
-  on the hosted path, in a borrowed slot, on a *recorded instruction*. Always
+  on the hosted path, in a borrowed slot, on a *recorded instruction* or the
+  *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
@@ -276,8 +277,9 @@ Format: **term** — definition. *(authority)*
   user may type it on the PR, naming the commit by a prefix
   (`Merge instruction: abc1234`, the head off its *decisions view* row). It
   *covers* the landing tree when merging its commit with base gives that tree,
-  or one an inert diff away; `land` needs a covering one. Every session is the
-  same GitHub account, so policy alone keeps it the user's.
+  or one an inert diff away; `land` needs a covering one unless the PR is in
+  the *auto-merge class*. Every session is the same GitHub account, so policy
+  alone keeps it the user's.
   *(scripts/drain_pick.sh `instruct`; #830)*
 - **spend** — compute expenditure needing its own explicit approval; a run is a
   run, not a PR.
@@ -365,21 +367,18 @@ Format: **term** — definition. *(authority)*
   may merge. Always qualified ("the pipeline's merge queue", or the verb
   `merge-queue`): it is neither GitHub's merge-queue feature nor the line for
   the *merge turn*. *(scripts/drain_pick.sh `merge-queue`)*
-- **auto-merge class** — the PRs `land` could merge with no *recorded
-  instruction*; its conditions are in `land`'s `--help`. In shadow: `land`
-  reports it (`CLASS=`) and it authorizes nothing until `AUTO_MERGE_CLASS`
-  flips. It means "nothing owed", so discharged PRs stay out; it widens only
-  on evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
+- **auto-merge class** — the PRs `land` merges with no *recorded
+  instruction*; its conditions are in `land`'s `--help`. Each such merge is
+  labelled `auto-merged`, and the *pipeline digest* lists it until the user
+  removes the label on review: the user's review comes after the merge. It
+  means "nothing owed", so discharged PRs stay out; it widens only on
+  evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
 - **merge task** — the desktop scheduled task `merge`, started by hand: one
-  pass over the pipeline's merge queue, landing each instructed PR through
-  `land`. *(agent-worktree-pr-loop → Merge task)*
+  pass over the pipeline's merge queue, landing each instructed or class PR
+  through `land`. *(agent-worktree-pr-loop → Merge task)*
 - **pipeline digest** — the Markdown report of what waits on the user and on a
   session the user starts, relayed as printed. Bare "digest" reads this way
   only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*
-- **drain orchestrator** — the pinned `/loop` chat that surfaces what waits on
-  the user and restocks the *ready queue* via the *triage sweep*; it starts no
-  build. Titled `orchestrator | drain — …`; distinct from an `Arc`
-  orchestrator chat. *(.claude/skills/drain-orchestrator)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
