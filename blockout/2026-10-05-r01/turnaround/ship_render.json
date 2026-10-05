@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "f0182d8b8a30c7dc73c38fe2b4730f548722f39da4ffc3b1ad440baaa72715bb",
+  "images": {
+    "turn000": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\turnaround\\turn315.png"
+  },
+  "set": "turnaround",
+  "verdict": "pass"
+}

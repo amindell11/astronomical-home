@@ -5,6 +5,7 @@ Nothing here merges to main. Started under issue #869.
 
 | Stage | Folder | Notes |
 | --- | --- | --- |
+| blockout | [2026-10-05 round 1](blockout/2026-10-05-r01/) | First live-Blender mesh: swept wings and a rising curved tail pair. Source check passes; owner proportion review pending. |
 | concept | `concept/experiments/2026-09-23-nb2-volume-studies/` | Three image-generation volume studies (shallow profile, raised centre, angled wings) with prompts and sidecars. Moved off the primary tree's untracked `art/ships/ship3/experiments/`. |
 | concept | [2026-10-05 round 1](concept/2026-10-05-r01/) | Current mesh captures and three top concepts; owner rejected the concepts as too far from the source. |
 | concept | [2026-10-05 round 2](concept/2026-10-05-r02/) | Faithful original-image edits; E rejected and D judged too close. Owner requested curved symmetrical tendrils. |
@@ -23,8 +24,10 @@ Nothing here merges to main. Started under issue #869.
 Stage 1 approved in chat on 2026-10-05: O top plus R turnaround. The owner still
 finds the front approximate and directs the later mesh work to weight the side,
 top and isometric views more heavily, especially the sculpted tail side profile.
-Approved views are committed under `art/ships/nightshade/concepts/` in the
-concept-only task branch; no stage-2 work is part of this session.
+Approved views are committed under `art/ships/nightshade/concepts/` on
+`task/nightshade-hull`. The owner subsequently authorized mesh build.
+The premature concept PR was closed at the owner's direction: no PR until
+the ship-art process is finished.
 
 The original Nightshade concept is on main at
 `art/ships/nightshade/concepts/jan272026122322Am.png`.

@@ -1,0 +1,11 @@
+{
+  "source": "D:\\amind\\git\\agent-2\\art\\ships\\nightshade\\Nightshade.blend",
+  "source_sha256": "b409bcc7272f85aefcecbdab27b828e5f0d7eb78be0371578100c625c036ba27",
+  "blender_version": "5.1.2",
+  "views": {
+    "top": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\studio\\top.png",
+    "side": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\studio\\side.png",
+    "quarter": "D:\\amind\\git\\agent-2\\results\\nightshade-blockout\\blockout\\2026-10-05-r01\\studio\\quarter.png"
+  },
+  "note": "Read-only studio-lit review of blockout; no source save."
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "b409bcc7272f85aefcecbdab27b828e5f0d7eb78be0371578100c625c036ba27",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "9cf5733ee468b82eb61e8814567b7c592a5ec7404818102c7b77eeaee2d6eb20",
+      "uv": "b6e78fd6cd134f10e76e633a9314fd412401e94b8ef18f0e454d6e005c4a731d",
+      "materials": "223d675098ae29c2df856f07bbcdfa9712d9017fc83a5c93e593f0e4a9cb4a21"
+    },
+    "parts": {
+      "Central fuselage": {
+        "geometry": "a330593907a6dd159b76aec088ebdf738d93d4398d93bcc4aae42dba022c7d0a",
+        "uv": "a395c7996b6b6b6798d4ce954dcf858bb452f254e53c6ef2013d4157c6710ee0",
+        "materials": "a666b4af7d18326dd858995cf478ad744c42db9cf30d3e918924d39dd9942b29"
+      },
+      "Curved rising tails": {
+        "geometry": "8b55af386305a2be58760ec8c486ac66367c6ad50c198cd5f0cb4f0db900c327",
+        "uv": "80bb79a73b92199df530cba26a74d0e29cec3bb306842709748fe8ff64864def",
+        "materials": "b4190c78a9cf84a86f98b50214fd0bd515cfbfeaa33eb2ccfa2935a5fed9379c"
+      },
+      "Lower canopy": {
+        "geometry": "b00e436ed3d61daf1926b406d5462ee3c12d1c4c70a0fe741dca7e316576f4ad",
+        "uv": "858397eea742311569a5dd117aa1b53a6c0b507b8f76faac20c1ec1cc1fa3182",
+        "materials": "19aa93777a193069249f99afbab4d8af1abda20e94b071e903a7114c31605919"
+      },
+      "Lower inner fins": {
+        "geometry": "d15116465666703553ab4c651fc88d018ccd837230e568f12e013eaa57d672c8",
+        "uv": "12ae66823d365c0db86a982ffdb353de2d30872e2f0d3453f9b2708c849c2a11",
+        "materials": "f7e54a4598437eb024b4b4939110f91bdba7b745e8402bae98a627bf5e501363"
+      },
+      "Swept main wings": {
+        "geometry": "9a0fb51eb09b0d74be477ef920e7f3c09ae4b71e731c3155f65e3bd1294c363c",
+        "uv": "7f901df8593b318aa2b2f64b3c7cb3b76ce4d2859bc4da2919c6a1276644622f",
+        "materials": "d50ec81b0e7bdc278b73bf80c3f6839c933bcea17ef15690d3191da6f76d3625"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper canopy": {
+        "geometry": "fc78e78ab9075c78968bb38f2f3c794367f98bb3c2a24f6aa80d38c64ecaa3e0",
+        "uv": "858397eea742311569a5dd117aa1b53a6c0b507b8f76faac20c1ec1cc1fa3182",
+        "materials": "19aa93777a193069249f99afbab4d8af1abda20e94b071e903a7114c31605919"
+      },
+      "Upper inner fins": {
+        "geometry": "40c21c77299c8c85cdf4284f1a59d97a95effde6b5d2580b8aaedf35a5a09fda",
+        "uv": "12ae66823d365c0db86a982ffdb353de2d30872e2f0d3453f9b2708c849c2a11",
+        "materials": "f7e54a4598437eb024b4b4939110f91bdba7b745e8402bae98a627bf5e501363"
+      },
+      "reference.side": {
+        "geometry": "61ce0800ebfc4b91537ecc29d4d3bf9e0f105ed8bbfea520722bba38f0f63e51",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "a8d92745ea71b436ae946c6735f3d5eb5c6ff7cccf0d5c9c048afcadbbc693c2",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}
