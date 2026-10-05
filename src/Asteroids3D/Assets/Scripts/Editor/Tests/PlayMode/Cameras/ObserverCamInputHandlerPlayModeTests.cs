@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Cameras
 {
     [Category("Camera")]
     public class ObserverCamInputHandlerPlayModeTests : InputTestFixture
