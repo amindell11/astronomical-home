@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: FarNebula
   m_Shader: {fileID: 4800000, guid: 1af0987870b4c154392851c7d14257dc, type: 3}
-  m_Parent: {fileID: 2100000, guid: 7179819298a33464090fd5a40aa4d0cd, type: 2}
+  m_Parent: {fileID: 2100000, guid: ed6aee2bb59633f4aa330f9bc74f72ed, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -24,7 +24,20 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - _CloudCoverage: 0.58
+    - _CloudDirection: 24
+    - _CloudGlow: 0.6
+    - _CloudGlowSpread: 0.2
+    - _CloudOpacity: 0.94
+    - _CloudStretch: 2.4
+    - _NebulaScale: 0.24
+    - _NebulaSpeed: 0
+    - _NebulaStrength: 0.7
+    - _Seed: 37
+    m_Colors:
+    - _CloudGlowCool: {r: 1.1, g: 0.2, b: 0.055, a: 1}
+    - _CloudGlowWarm: {r: 0.02, g: 1.2, b: 1.65, a: 1}
+    - _CloudShadow: {r: 0.22, g: 0.12, b: 0.28, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

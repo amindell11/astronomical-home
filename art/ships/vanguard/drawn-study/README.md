@@ -68,11 +68,11 @@ study overlays and is not the selected paint pipeline. The breakup work in
 [#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
 painted source and material, retain the separate canopy/cores, and leave the
 rejected overlay objects out of the live breakup pieces.
-`DrawnStudy/Meshes/Vanguard painted hull.asset` combines the nine painted hull
+`Visuals/Ships/Vanguard/Meshes/Vanguard painted hull.asset` combines the nine painted hull
 meshes, and `Vanguard contour.asset` combines eleven silhouette meshes. The live
 rig keeps five art renderers: hull, contour, structural ink, canopy and cores.
 The saved meshes preserve triangle indices, painted UVs and transformed positions
 and normals without welding or recalculation. Original source parts remain
 separate in `VanguardPainted.blend` for breakup; the consolidated intact meshes
-are runtime assets rather than the breakup authoring source. The existing
-`Ship_1.prefab` continues to reference the updated illustrated rig.
+are runtime assets rather than the breakup authoring source. `Vanguard.prefab`
+carries the five renderers under its `Hull` slot.

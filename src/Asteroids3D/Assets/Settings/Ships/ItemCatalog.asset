@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: ItemCatalog
   m_EditorClassIdentifier: 
   chassis:
-  - {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
+  - {fileID: 1627378045775059580, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
   - {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
   - {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
-  - {fileID: 6673694342707337422, guid: 3a01ae368c5e8964cb0b7c2b9696ac32, type: 3}
   - {fileID: -3142211812614329419, guid: 6a1f3c13144deb54cb174d2197b87e9b, type: 3}
   - {fileID: 8821681777366619236, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
   engines:

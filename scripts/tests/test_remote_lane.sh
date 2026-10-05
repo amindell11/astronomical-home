@@ -3,8 +3,9 @@ set -euo pipefail
 # covers: scripts/remote_lane.sh scripts/remote_gate.sh scripts/remote_editor.sh
 
 # Hermetic regression for scripts/remote_lane.sh: the verdict order (disabled > unreachable > busy >
-# available), the two-marker switch, and the refusal remote_gate.sh and `remote_editor.sh start`
-# make while it is set. ssh is a stub that replays a canned box report and logs every call.
+# available), the two-marker switch, the refusals remote_gate.sh and `remote_editor.sh start` read
+# from it, and their published exit codes. ssh is a stub that replays a canned box report and logs
+# every call.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LANE="$SCRIPT_DIR/../remote_lane.sh"
@@ -43,6 +44,11 @@ grep -qx 'FREE_RAM_GB=18.2' <<<"$out" && grep -qx 'CONSOLE_SESSION=true' <<<"$ou
 idle_box 2
 [[ "$("$LANE" status 2>/dev/null | head -1)" == "REMOTE_LANE=busy" ]] || fail "a coordinator claim makes the box busy"
 
+# A wedged boot lane refuses the next boot, so it counts as a claim on its own.
+box_report FREE_RAM_GB=18.2 CHECKOUT=abc1234 DIRTY_FILES=0 CONSOLE_SESSION=true UNITY_CLAIMS=0 BOOT_WEDGED=true REPORT=complete
+out="$("$LANE" status 2>/dev/null)"
+[[ "$(head -1 <<<"$out")" == "REMOTE_LANE=busy" ]] && grep -qx 'UNITY_CLAIMS=1' <<<"$out" || fail "a wedged boot lane makes the box busy (got: $out)"
+
 # unreachable is a verdict, not an error.
 touch "$FIX/box.down"
 out="$("$LANE" status 2>/dev/null)" || fail "unreachable must exit 0"
@@ -54,9 +60,33 @@ box_report FREE_RAM_GB=18.2 CHECKOUT=abc1234
 rc=0; out="$("$LANE" status 2>/dev/null)" || rc=$?
 [[ "$rc" -eq 1 && -z "$out" ]] || fail "an incomplete report exits 1 with no verdict (rc=$rc: $out)"
 
-# Only `disabled` refuses: past a failed report a dispatcher runs on to its own preflights.
-rc=0; "$SCRIPT_DIR/../remote_editor.sh" start >/dev/null 2>"$TMP/err" || rc=$?
-[[ "$rc" -eq 4 ]] || fail "remote_editor.sh start gets past a failed report to its console preflight (rc=$rc: $(cat "$TMP/err"))"
+# `remote_editor.sh start` maps each report to its published code with no SSH call of its own.
+editor_start_exits() { # <code> <why>
+    local calls rc=0
+    calls="$(ssh_calls)"
+    "$SCRIPT_DIR/../remote_editor.sh" start >/dev/null 2>"$TMP/err" || rc=$?
+    [[ "$rc" -eq "$1" ]] || fail "remote_editor.sh start exits $1 when $2 (rc=$rc: $(cat "$TMP/err"))"
+    [[ "$(ssh_calls)" -eq $((calls + 1)) ]] || fail "remote_editor.sh start probes nothing beyond status when $2"
+}
+editor_start_exits 9 "status gives no verdict"
+grep -q 'report is incomplete' "$TMP/err" || fail "start relays status's reason for no verdict (got: $(cat "$TMP/err"))"
+touch "$FIX/box.down"
+editor_start_exits 3 "the box is unreachable"
+rm "$FIX/box.down"
+box_report FREE_RAM_GB=18.2 CHECKOUT=abc1234 DIRTY_FILES=0 CONSOLE_SESSION=false UNITY_CLAIMS=0 REPORT=complete
+editor_start_exits 4 "the box has no console session"
+
+# remote_gate.sh: an LFS object missing from the local cache is its own code, before any suite runs.
+git init -q "$TMP/repo"
+git -C "$TMP/repo" lfs install --local --skip-repo >/dev/null
+git -C "$TMP/repo" lfs track '*.bin' >/dev/null
+printf 'payload\n' > "$TMP/repo/a.bin"
+git -C "$TMP/repo" add -A
+git -C "$TMP/repo" -c user.name=t -c user.email=t@t commit -qm lfs
+rm -rf "$TMP/repo/.git/lfs/objects"
+box_report have
+rc=0; (cd "$TMP/repo" && "$SCRIPT_DIR/../remote_gate.sh") </dev/null >/dev/null 2>"$TMP/err" || rc=$?
+[[ "$rc" -eq 4 ]] || fail "remote_gate.sh exits 4 on a missing LFS object (rc=$rc: $(cat "$TMP/err"))"
 
 # The marker on the box disables, ahead of busy.
 box_report "MARKER=gaming tonight" FREE_RAM_GB=18.2 CHECKOUT=abc1234 DIRTY_FILES=0 CONSOLE_SESSION=true UNITY_CLAIMS=1 REPORT=complete

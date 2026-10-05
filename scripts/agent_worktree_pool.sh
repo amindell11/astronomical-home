@@ -25,7 +25,9 @@ mkdir -p "$LOCK_ROOT"
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
 #   Merge gate journal        budgets, journal events, awk renderer, cmd_merge_progress
 #   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
+#   Borrow / return           borrow_slot (land's too), cmd_borrow, return_slot
 #   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
+#   Docs-only landing         cmd_land_docs, land_docs_push (runs under the merge turn)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -251,7 +253,7 @@ Commands:
       (default 3600) it exits 75; stderr names the lock file and the holder
       slot, or says the holder is not a merge gate. Each change of holder
       restarts that count, so a line that keeps moving times nobody out.
-      Any other push to base takes the same turn, e.g. a docs-only landing:
+      Any other push to base takes the same turn, e.g. land-docs, or:
         lock merge-turn --wait 3600 -- <sync and push cmd>
       Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
@@ -272,6 +274,24 @@ Commands:
         github         the hosted path refused a .github/ landing diff
       or else the name of the gate phase that refused. A gate refused at
       the slot's .merge lock never started, and prints none.
+
+  borrow <lease>
+      Lease a slot for a pass of unattended work (the verify task's is
+      'borrow verify'), without moving its tree. Reuses the slot already
+      holding <lease>, which a dead pass left, unless the access
+      coordinator shows a live Unity owner on that slot's project; else
+      claims the first free slot, skipping one holding unpushed work.
+      Never reclaims a stale slot and records no task branch.
+      Output: SLOT=<name> PATH=<abs-path>. Exit 1: no free slot, a live
+      owner, the coordinator unreadable, or a usage error.
+
+  return <slot> <lease>
+      Give back a borrowed slot: refuses, touching nothing, unless <slot>
+      holds <lease>; then prepares it at origin/main with --force (a PR
+      head whose branch is deleted would make plain prepare refuse it for
+      everyone) and releases it. Exit 0 returned, 1 refused or a usage
+      error, 75 a merge gate running on the slot (nothing touched); any
+      other code is a failed prepare's, and the slot keeps <lease>.
 
   land <pr>
       Land an open PR that no slot holds, on the user's recorded
@@ -319,6 +339,28 @@ Commands:
       after:<pr>, slot:<slot>, no-free-slot, gate-running (another land of
       this PR holds its slot), checkout, or error (the gate printed no
       trailer). Exit: 0 merged; 1 refused, or a usage error.
+
+  land-docs
+      The docs-only landing (agent-worktree-pr-loop skill): push the HEAD
+      of the worktree it runs in straight to main, with no PR, when every
+      path it changes is under doc/ or ends in .md. Run it from the
+      worktree holding the commits: a slot, or a cloud session's checkout.
+      Holding the merge turn as 'lock merge-turn' does (no ticket, waiting
+      up to WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS), it fetches origin,
+      checks every path each commit in origin/main..HEAD changes (a rename
+      counts as a delete and an add), rebases HEAD onto origin/main, and
+      pushes HEAD to main without force.
+      Stdout trailer: LAND_DOCS=landed <sha>, or LAND_DOCS=refused:<reason>,
+      the reason one of
+        fetch      the fetch from origin failed
+        paths      a commit changes a path outside doc/ and *.md (stderr
+                   lists them); checked before the rebase, so HEAD is untouched
+        rebase     HEAD did not rebase onto origin/main: a conflict (the
+                   rebase is aborted) or a dirty tree
+        empty      HEAD changes nothing on origin/main
+        push       the push failed, e.g. main moved from another clone
+        turn-held  the merge turn was still held after the wait
+      Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -2513,6 +2555,87 @@ merge_gate() {
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
 }
 
+# ---- Borrow / return -------------------------------------------------------
+slot_leased_to() { slot_table | awk -F'\037' -v lease="$1" '$2 == lease { print $1; exit }'; }
+
+BORROWED_SLOT=""
+
+# Reuse presumes the lease's last holder is dead; callers guard that (Unity owner, .merge flock).
+borrow_slot() {
+  local lease="$1" slot path
+  BORROWED_SLOT="$(slot_leased_to "$lease")"
+  if [[ -n "$BORROWED_SLOT" ]]; then
+    echo "borrow: reusing $BORROWED_SLOT, which already holds lease $lease." >&2
+  else
+    while IFS=$'\t' read -r slot path; do
+      try_lock_slot "$slot" "$lease" "$path" >/dev/null 2>&1 || continue
+      if slot_is_clobber_safe "$path"; then
+        BORROWED_SLOT="$slot"
+        break
+      fi
+      echo "borrow: skipping $slot — it is free but holds unpushed work." >&2
+      with_slot_mutation "$slot" release_slot "$slot" "$lease" >/dev/null || true
+    done < <(slots_tsv)
+    [[ -n "$BORROWED_SLOT" ]] || { echo "borrow: no free slot for $lease (a stale one is never reclaimed)." >&2; return 1; }
+  fi
+  mark_slot_used "$BORROWED_SLOT"
+}
+
+# Asked through the coordinator's client, as boot_admission_status asks for admission (script-contracts.md sec.3).
+OWNER_READER='
+. (Join-Path $env:POOL_SCRIPT_DIR "unity_access_client.ps1")
+$call = Invoke-UnityAccessCoordinator -CoordinatorArgs @("-Action", "Status", "-ProjectPath", $env:POOL_PROJECT_PATH)
+if ($call.stderr) { [Console]::Error.WriteLine($call.stderr) }
+if ($call.exitCode -ne 0 -or $null -eq $call.result) { [Console]::Error.WriteLine("Status exit=" + $call.exitCode + " stdout=" + $call.stdout); exit 1 }
+$owner = $call.result.projectOwner
+if ($null -eq $owner) { Write-Output "none" } else { Write-Output ("owner " + $owner.lease) }
+'
+
+# Prints the lease of the live Unity owner on <path>'s project, or nothing; non-zero = the coordinator could not be asked.
+project_owner() {
+  local out
+  out="$(POOL_SCRIPT_DIR="$SCRIPT_DIR" POOL_PROJECT_PATH="$1/src/Asteroids3D" \
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$OWNER_READER")" || return 1
+  out="${out//$'\r'/}"
+  case "$out" in
+    none) ;;
+    "owner "*) printf '%s\n' "${out#owner }" ;;
+    *) return 1 ;;
+  esac
+}
+
+# A pass between boots owns no project, so only the one-pass-at-a-time rule covers that gap.
+cmd_borrow() {
+  local lease="${1:-}" slot owner
+  [[ $# -eq 1 && "$lease" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "borrow requires <lease>" >&2; return 1; }
+  slot="$(slot_leased_to "$lease")"
+  if [[ -n "$slot" ]]; then
+    if ! owner="$(project_owner "$(slot_path "$slot")")"; then
+      echo "borrow: could not ask the access coordinator who owns $slot's project; nothing was taken." >&2
+      return 1
+    fi
+    if [[ -n "$owner" ]]; then
+      echo "borrow: $slot holds lease $lease and Unity is live on its project (owner $owner); a pass may still be running there." >&2
+      return 1
+    fi
+  fi
+  borrow_slot "$lease" || return 1
+  echo "SLOT=$BORROWED_SLOT PATH=$(slot_path "$BORROWED_SLOT")"
+}
+
+# The lease check comes first: return runs unattended, so a wrong slot must stay untouched.
+return_slot() {
+  local slot="$1" lease="$2" held
+  held="$(lease_for "$slot")"
+  if [[ ! -d "$(lock_dir_for "$slot")" || "$held" != "$lease" ]]; then
+    echo "return: $slot holds lease '${held:-none}', not '$lease'; nothing was reset." >&2
+    return 1
+  fi
+  # A child process keeps prepare's errexit: a failed reset must not release the slot.
+  bash "$SCRIPT_DIR/agent_worktree_pool.sh" prepare "$slot" origin/main --force \
+    && with_slot_mutation "$slot" release_slot "$slot" "$lease"
+}
+
 # ---- Land ------------------------------------------------------------------
 # Off until the switch: the class is reported, and every land needs a covering instruction.
 AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-0}"
@@ -2612,7 +2735,7 @@ slot_table() {
     /^$/ && slot != "" { print slot "\037" lease "\037" branch; slot = "" }'
 }
 
-# Checks needing no slot. Sets LAND_BRANCH, and LAND_SLOT to a dead run's land-<pr> slot.
+# Checks needing no slot. Sets LAND_BRANCH.
 land_preflight() {
   local pr="$1" view state base head draft cross facts owed instruction unresolved after slot lease branch
   LAND_REASON="" LAND_BRANCH="" LAND_SLOT=""
@@ -2658,9 +2781,7 @@ land_preflight() {
     *) land_refuse "after:${after%%,*}" "PR #$pr lands after #${after//,/, #}, still open"; return 1 ;;
   esac
   while IFS=$'\x1f' read -r slot lease branch; do
-    if [[ "$lease" == "land-$pr" ]]; then
-      LAND_SLOT="$slot"
-    elif [[ "$branch" == "$head" ]]; then
+    if [[ "$lease" != "land-$pr" && "$branch" == "$head" ]]; then
       land_refuse "slot:$slot" "$slot holds $head (lease ${lease:-unknown}); its session merges it with 'merge $slot'"
       return 1
     fi
@@ -2668,24 +2789,12 @@ land_preflight() {
   LAND_BRANCH="$head"
 }
 
-# Claims the first free slot that holds no unpushed work, unless preflight found this PR's own slot.
+# A dead run's land-<pr> slot is taken over unasked: a live run holds its .merge lock, which the gate takes.
 land_borrow() {
-  local pr="$1" slot path ldir
-  if [[ -z "$LAND_SLOT" ]]; then
-    while IFS=$'\t' read -r slot path; do
-      try_lock_slot "$slot" "land-$pr" "$path" >/dev/null 2>&1 || continue
-      if slot_is_clobber_safe "$path"; then
-        LAND_SLOT="$slot"
-        break
-      fi
-      echo "land: skipping $slot — it is free but holds unpushed work." >&2
-      with_slot_mutation "$slot" release_slot "$slot" "land-$pr" >/dev/null || true
-    done < <(slots_tsv)
-    [[ -n "$LAND_SLOT" ]] || { land_refuse no-free-slot "no free slot (land never reclaims a stale one)"; return 1; }
-  fi
-  ldir="$(lock_dir_for "$LAND_SLOT")"
-  printf '%s\n' "$LAND_BRANCH" > "$ldir/task_branch"
-  mark_slot_used "$LAND_SLOT"
+  local pr="$1"
+  borrow_slot "land-$pr" || { land_refuse no-free-slot "no free slot (land never reclaims a stale one)"; return 1; }
+  LAND_SLOT="$BORROWED_SLOT"
+  printf '%s\n' "$LAND_BRANCH" > "$(lock_dir_for "$LAND_SLOT")/task_branch"
   echo "land: PR #$pr on $LAND_SLOT ($LAND_BRANCH)." >&2
 }
 
@@ -2702,10 +2811,6 @@ land_gate() {
     return 1
   fi
   run_merge_gate "$slot" origin/main 1 1
-}
-
-land_reset_slot() {
-  cmd_prepare "$1" origin/main --force && with_slot_mutation "$1" release_slot "$1" "$2"
 }
 
 # Waits for the new run's own status: a retry before it would read the errored one.
@@ -2773,12 +2878,59 @@ cmd_land() {
   rm -f "$out" "$out.rc"
   # A gate-running slot is another land's; touching it would pull its tree out from under that gate.
   if [[ -n "$slot" && "$reason" != gate-running ]]; then
-    with_flock "$LOCK_ROOT/$slot.merge" 0 "" land_reset_slot "$slot" "land-$pr" >&2 \
+    with_flock "$LOCK_ROOT/$slot.merge" 0 "" return_slot "$slot" "land-$pr" >&2 \
       || echo "land: $slot was not reset and released; it keeps lease land-$pr." >&2
   fi
   [[ -z "$class" ]] || echo "CLASS=$class"
   echo "GATE=refused:$reason"
   return 1
+}
+
+# ---- Docs-only landing -----------------------------------------------------
+cmd_land_docs() {
+  [[ $# -eq 0 ]] || { echo "land-docs takes no arguments: run it from the worktree whose HEAD lands." >&2; return 1; }
+  local path rc=0
+  path="$(git rev-parse --show-toplevel)"
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" \
+    "land-docs: the merge turn is still held after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not landing." \
+    land_docs_push "$path" || rc=$?
+  [[ "$rc" -ne "$LOCK_BUSY_EXIT" ]] || echo "LAND_DOCS=refused:turn-held"
+  return "$rc"
+}
+
+# Runs under the merge turn, so the push waits for a gate in flight instead of moving base under it.
+land_docs_push() {
+  local path="$1" head non_docs
+  # Git writes progress and conflict reports to stdout; stdout carries only the trailer.
+  if ! git -C "$path" fetch -q origin main >&2; then
+    echo "LAND_DOCS=refused:fetch"
+    return 1
+  fi
+  # Each commit lands on main as it is, so each is checked, before the rebase rewrites any.
+  non_docs="$(git -C "$path" log --full-history --no-renames --format= --name-only origin/main..HEAD \
+    -- ':(top,exclude)doc/' ':(top,exclude)*.md' | sed '/^$/d' | sort -u)"
+  if [[ -n "$non_docs" ]]; then
+    echo "land-docs: these paths are outside doc/ and *.md, so the change takes a PR:" >&2
+    sed 's/^/  /' <<< "$non_docs" >&2
+    echo "LAND_DOCS=refused:paths"
+    return 1
+  fi
+  if ! git -C "$path" rebase -q origin/main >&2; then
+    if git -C "$path" rev-parse -q --verify REBASE_HEAD >/dev/null; then git -C "$path" rebase --abort >&2; fi
+    echo "LAND_DOCS=refused:rebase"
+    return 1
+  fi
+  head="$(git -C "$path" rev-parse HEAD)"
+  if [[ "$head" == "$(git -C "$path" rev-parse origin/main)" ]]; then
+    echo "land-docs: HEAD changes nothing on origin/main." >&2
+    echo "LAND_DOCS=refused:empty"
+    return 1
+  fi
+  if ! git -C "$path" push -q origin HEAD:main >&2; then
+    echo "LAND_DOCS=refused:push"
+    return 1
+  fi
+  echo "LAND_DOCS=landed $head"
 }
 
 # ---- Finalize / review / revise --------------------------------------------
@@ -2969,6 +3121,13 @@ main() {
         cmd_merge "$@"
       ;;
     land) cmd_land "$@" ;;
+    borrow) cmd_borrow "$@" ;;
+    return)
+      [[ $# -eq 2 && "$1" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "return requires <slot> <lease>" >&2; exit 1; }
+      with_flock "$LOCK_ROOT/$1.merge" 0 "return: a merge gate is running on $1 — follow it with 'merge-progress $1'." \
+        return_slot "$@"
+      ;;
+    land-docs) cmd_land_docs "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;

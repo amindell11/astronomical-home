@@ -1,4 +1,5 @@
 using System.Collections;
+using Combat.Weapons.Arsenal;
 using Substrate.Presentation;
 using UnityEngine;
 

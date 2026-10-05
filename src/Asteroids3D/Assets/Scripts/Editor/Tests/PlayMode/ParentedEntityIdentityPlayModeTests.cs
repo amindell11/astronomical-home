@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Combat;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Damage;
 using NUnit.Framework;
 using Tests.PlayMode.Common;

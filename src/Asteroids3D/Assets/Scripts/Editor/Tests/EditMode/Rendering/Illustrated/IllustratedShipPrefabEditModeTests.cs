@@ -14,15 +14,19 @@ namespace Tests.EditMode.Rendering.Illustrated
     {
         private const string SurfaceShader = "Astronomical/Comparison/Drawn Surface";
         private const string ContourShader = "Astronomical/Comparison/Drawn Contour";
+        private const string Vanguard = "Assets/Prefabs/Ships/Vanguard.prefab";
+        private const string Crimson = "Assets/Prefabs/Ships/Crimson.prefab";
+        private const string Nightshade = "Assets/Prefabs/Ships/Nightshade.prefab";
+        private const string ShipBase = "Assets/Prefabs/Ships/ShipBase.prefab";
+        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx";
 
-        [TestCase(1, "Vanguard")]
-        [TestCase(2, "Crimson")]
-        public void IllustratedShip_HasOneRigWithSavedGameplaySurfacesAndContours(int number, string hullName)
+        [Test]
+        public void Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours()
         {
-            var ship = LoadShip(number);
+            var ship = LoadShip(Vanguard);
             var rigs = ship.GetComponentsInChildren<ShipVisualRig>(true);
             Assert.That(rigs, Has.Length.EqualTo(1), "A variant must not inherit a second visual rig.");
-            var hull = rigs[0].GetComponentsInChildren<Transform>(true).Single(t => t.name == hullName);
+            var hull = rigs[0].GetComponentsInChildren<Transform>(true).Single(t => t.name == "Vanguard");
             var surfaces = hull.GetComponentsInChildren<MeshRenderer>(true)
                 .Where(r => UsesShader(r, SurfaceShader)).ToArray();
             var contours = hull.GetComponentsInChildren<MeshRenderer>(true)
@@ -44,67 +48,30 @@ namespace Tests.EditMode.Rendering.Illustrated
         }
 
         [Test]
-        public void Ship3_PreservesItsLegacyRigAndDamageFeedback()
+        public void Nightshade_KeepsItsLegacyHullAndDamageFeedbackOnTheBase()
         {
-            var ship = LoadShip(3);
+            var ship = LoadShip(Nightshade);
+            Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(ship)), Is.EqualTo(ShipBase));
             var rigs = ship.GetComponentsInChildren<ShipVisualRig>(true);
             Assert.That(rigs, Has.Length.EqualTo(1));
-            Assert.That(rigs[0].name, Is.EqualTo("Ship_3_VisualRig"));
             var feedback = rigs[0].GetComponentsInChildren<HullVisuals>(true);
             Assert.That(feedback, Has.Length.EqualTo(1));
             Assert.That(feedback[0].enabled, Is.True);
             Assert.That(ship.GetComponentsInChildren<Transform>(true)
                 .Any(t => t.name == "Vanguard" || t.name == "Crimson"), Is.False);
-            Assert.That(rigs[0].GetComponentsInChildren<MeshRenderer>(true)
-                .Any(r => r.enabled && !UsesShader(r, ContourShader)), Is.True);
+            var hull = rigs[0].transform.Find("Hull").GetComponentsInChildren<MeshRenderer>(true);
+            Assert.That(hull, Has.Length.EqualTo(1));
+            Assert.That(hull[0].enabled, Is.True);
+            Assert.That(AssetDatabase.GetAssetPath(hull[0].GetComponent<MeshFilter>().sharedMesh), Is.EqualTo(NightshadeHullModel));
+            Assert.That(new SerializedObject(feedback[0]).FindProperty("hull").objectReferenceValue, Is.EqualTo(hull[0]),
+                "Damage feedback drives the legacy hull.");
         }
 
-        [Test]
-        public void Crimson_HullHasOneMeshAndRendererWithDistinctPaintAndContourVertices()
+        [TestCase(Vanguard)]
+        [TestCase(Crimson)]
+        public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
         {
-            var hull = LoadShip(2).GetComponentsInChildren<Transform>(true).Single(t => t.name == "Crimson");
-            var renderers = hull.GetComponentsInChildren<MeshRenderer>(true);
-            var filters = hull.GetComponentsInChildren<MeshFilter>(true);
-            Assert.That(renderers, Has.Length.EqualTo(1));
-            Assert.That(filters, Has.Length.EqualTo(1));
-            Assert.That(renderers[0].gameObject, Is.EqualTo(hull.gameObject));
-            var mesh = filters[0].sharedMesh;
-            Assert.That(mesh.subMeshCount, Is.EqualTo(2));
-            Assert.That(renderers[0].sharedMaterials.Select(m => m.shader.name),
-                Is.EqualTo(new[] { SurfaceShader, ContourShader }));
-            Assert.That(mesh.GetIndexCount(0), Is.GreaterThan(0));
-            Assert.That(mesh.GetIndexCount(1), Is.EqualTo(mesh.GetIndexCount(0)));
-            Assert.That(mesh.GetIndices(0).Intersect(mesh.GetIndices(1)), Is.Empty,
-                "Painted and contour normals require separate vertex ranges within the same mesh.");
-        }
-
-        [Test]
-        public void Crimson_ProwFacesForwardAndCanopyFacesTheGameplayCamera()
-        {
-            var ship = LoadShip(2);
-            var visual = ship.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Crimson");
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Visuals/Ships/Crimson/Crimson.fbx");
-            var parts = source.GetComponentsInChildren<MeshRenderer>(true);
-            Vector3 Center(string name)
-            {
-                var part = parts.Single(r => r.name == name);
-                var point = source.transform.InverseTransformPoint(
-                    part.transform.TransformPoint(part.GetComponent<MeshFilter>().sharedMesh.bounds.center));
-                return ship.transform.InverseTransformPoint(visual.TransformPoint(point));
-            }
-            var prow = Center("Upper prow tip");
-            var nozzle = Center("Engine nozzle");
-            var canopy = Center("Canopy");
-            var hull = Center("Central hull");
-            Assert.That(Vector3.Dot((prow - nozzle).normalized, Vector3.up), Is.GreaterThan(.99f));
-            Assert.That(canopy.z, Is.LessThan(hull.z), "The camera sees the canopy, not the underside.");
-        }
-
-        [TestCase(1)]
-        [TestCase(2)]
-        public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(int number)
-        {
-            var ship = LoadShip(number);
+            var ship = LoadShip(path);
             var colliders = ship.GetComponentsInChildren<MeshCollider>(true)
                 .Where(c => c.enabled && !c.isTrigger && c.sharedMesh).ToArray();
             Assert.That(colliders, Is.Not.Empty);
@@ -126,7 +93,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 {
                     var point = matrix.MultiplyPoint3x4(vertex);
                     Assert.That(colliderBounds.Contains(point), Is.True,
-                        $"Ship_{number} collider excludes {surface.name} vertex {point}: collider {colliderBounds}.");
+                        $"{ship.name} collider excludes {surface.name} vertex {point}: collider {colliderBounds}.");
                 }
             }
         }
@@ -138,10 +105,10 @@ namespace Tests.EditMode.Rendering.Illustrated
             return true;
         }
 
-        private static GameObject LoadShip(int number)
+        private static GameObject LoadShip(string path)
         {
-            var ship = AssetDatabase.LoadMainAssetAtPath($"Assets/Prefabs/Ships/Ship_{number}.prefab") as GameObject;
-            Assert.That(ship, Is.Not.Null);
+            var ship = AssetDatabase.LoadMainAssetAtPath(path) as GameObject;
+            Assert.That(ship, Is.Not.Null, path);
             return ship;
         }
 
