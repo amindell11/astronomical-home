@@ -22,6 +22,7 @@ namespace Asteroids
 
         private Vector3 initialVelocity;
         private Vector3 initialAngularVelocity;
+        private uint breakSeed;
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
         public float Radius { get; private set; }
@@ -66,6 +67,7 @@ namespace Asteroids
             float scale,
             Vector3 velocity,
             Vector3 angularVelocity,
+            uint breakSeed,
             float lethality = 1f
         )
         {
@@ -98,6 +100,7 @@ namespace Asteroids
 
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;
+            this.breakSeed = breakSeed;
 
             damage?.Initialize(Volume, lethality);
 
@@ -128,7 +131,7 @@ namespace Asteroids
 
         internal void HandleDestroyed(HitData hit)
         {
-            Fragger.CreateFragments(this, hit, _ => CleanupAsteroid());
+            Fragger.CreateFragments(this, breakSeed, hit, _ => CleanupAsteroid());
             OnDestroyed?.Invoke(transform.position);
         }
 

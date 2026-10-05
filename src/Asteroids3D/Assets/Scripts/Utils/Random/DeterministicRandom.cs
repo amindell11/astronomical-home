@@ -1,12 +1,13 @@
 using UnityEngine;
 
-namespace Asteroids.Fields.Core
+namespace Utils
 {
     /// <summary>
-    /// Small self-contained PCG-style random stream. The deterministic field
-    /// must never depend on UnityEngine.Random (global, order-sensitive) —
-    /// every asteroid draws its attributes from its own stream seeded by its
-    /// stable ID, so results are independent of load order and platform.
+    /// Small self-contained PCG-style random stream for simulation draws that
+    /// must replay. Such draws never come from UnityEngine.Random (global,
+    /// order-sensitive): each consumer owns a stream keyed by a stable seed —
+    /// a field asteroid's ID, a rock's break seed — so results are independent
+    /// of call order, load order and platform.
     /// </summary>
     public struct DeterministicRandom
     {
@@ -42,6 +43,16 @@ namespace Asteroids.Fields.Core
         {
             var angle = NextFloat() * (2f * Mathf.PI);
             return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
+
+        /// <summary>Uniform point inside the unit sphere: always three draws, never a rejection loop.</summary>
+        public Vector3 InsideUnitSphere()
+        {
+            var z = Range(-1f, 1f);
+            var angle = NextFloat() * (2f * Mathf.PI);
+            var radius = Mathf.Pow(NextFloat(), 1f / 3f);
+            var ring = Mathf.Sqrt(1f - z * z);
+            return radius * new Vector3(ring * Mathf.Cos(angle), ring * Mathf.Sin(angle), z);
         }
 
         /// <summary>Uniform random rotation (Shoemake's subgroup algorithm).</summary>

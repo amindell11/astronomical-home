@@ -1,8 +1,8 @@
 # Triage comment formats
 
 The comments a triage run posts for queued verdicts and one-short readiness,
-the on-event triage's note, and the merge reconcile's Shipped and Touched
-notes. Verdict vocabulary: `SKILL.md` § Verdicts.
+the ruling that answers a question, the on-event triage's note, and the merge
+reconcile's Shipped and Touched notes. Verdict vocabulary: `SKILL.md` § Verdicts.
 
 ## Bench proposal
 
@@ -69,6 +69,21 @@ Question <date>: <one line>
 Options: <a> · <b> · <c>
 Recommendation: <one>
 Evidence: <path | PR | comment>
+```
+
+An open question is a row in the *decisions view* (`doc/Glossary.md`) until a
+ruling or a close.
+
+## Ruling
+
+The answer to an open question, posted on the item by the user (web, phone, or
+an email reply to the notification) or by a session on the user's word. Only
+amindell11's comments count, and only their first line: it starts
+`Ruled <date>` or `Ruled:`, so "Ruled out …" or any other reply leaves the row
+up. The grammar's authority is `./scripts/drain_pick.sh decision`.
+
+```
+Ruled <date> (<whose word, where>): <the answer>
 ```
 
 ## On-event note

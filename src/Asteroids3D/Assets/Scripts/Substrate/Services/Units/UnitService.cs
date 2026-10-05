@@ -4,6 +4,7 @@ using AI;
 using AI.Scanning;
 using Ships;
 using Ships.Command;
+using Utils;
 using Ships.Loadout;
 using UnityEngine;
 using ShipFactory = Ships.Factory;
@@ -44,6 +45,7 @@ namespace Substrate.Services.Units
         }
 
         public event Action<Ship> OnShipSpawned;
+        public event Action<Ship> OnShipRespawned;
 
         public Ship SpawnShip(
             Ship template,
@@ -175,6 +177,7 @@ namespace Substrate.Services.Units
             }
             ship.ResetShip();
             ship.Commander?.ResetState();
+            OnShipRespawned?.Invoke(ship);
         }
 
         public void CancelPendingRespawns()
