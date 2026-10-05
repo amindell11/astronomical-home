@@ -29,7 +29,7 @@ namespace Tests.PlayMode.Bootstrap
             host = new GameObject("TestUnitService");
             var units = host.AddComponent<UnitService>();
             units.Initialize(Projectiles, false, host.transform);
-            var template = TestAssets.LoadShip2Prefab();
+            var template = TestAssets.LoadCrimsonPrefab();
 
             var log = new SpawnLog();
             Ship player = null;
