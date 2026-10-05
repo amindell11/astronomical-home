@@ -12,6 +12,10 @@ width, with a curved outline and rigid plated surfaces. It adds more panel detai
 the wings; the owner is asked whether to develop it or simplify the panels.
 No approval is recorded yet. Side profile and turnaround remain to do.
 
+Owner feedback: "That’s much closer, but they are a bit too armored and a bit too
+small. But the shape is nice". The next round preserves the curve, enlarges the pair
+modestly and removes the layered pads and excessive panel divisions.
+
 Original source is in [round 1 references](../2026-10-05-r01/references/);
 edit parent is [D](../2026-10-05-r02/nightshade-d-top.jpg). Sidecar preserves the actual
 generator paths and hashes. This is a generated concept, not authored new geometry.

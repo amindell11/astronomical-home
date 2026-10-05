@@ -11,7 +11,8 @@ Nothing here merges to main. Started under issue #869.
 | concept | [2026-10-05 round 3](concept/2026-10-05-r03/) | G judged closer; both too flowy. Owner requested narrower tails with the wings' organic-mechanical feel. |
 | concept | [2026-10-05 round 4](concept/2026-10-05-r04/) | Mechanical surface variants. H missed the width constraint; I added an unwanted second pair. Both shown, then corrected. |
 | concept | [2026-10-05 round 5](concept/2026-10-05-r05/) | J started from D but still inherited G's excessive width. Shown, then corrected with a drawn width guide. |
-| concept | [2026-10-05 round 6](concept/2026-10-05-r06/) | K follows a narrow drawn tail guide with rigid beveled surfaces. Awaiting owner judgment; turnaround remains. |
+| concept | [2026-10-05 round 6](concept/2026-10-05-r06/) | Owner liked K's shape; asked for a slightly larger and less armored pair. |
+| concept | [2026-10-05 round 7](concept/2026-10-05-r07/) | L enlarges and simplifies K's rear pair; awaiting top-view approval before turnaround. |
 
 The original Nightshade concept is on main at
 `art/ships/nightshade/concepts/jan272026122322Am.png`.
