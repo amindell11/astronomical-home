@@ -58,12 +58,12 @@ whole-file sweeps belong in dedicated hygiene PRs.
 
 | Word | Live senses | Rule |
 |---|---|---|
-| **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
+| **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -75,11 +75,12 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
-| **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
+| **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
+| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
-| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
+| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage* — five schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
@@ -846,6 +847,27 @@ Format: **term** — definition. *(authority)*
   `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
   RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
   never committed. *(GizmoView, GizmoViewWindow)*
+
+### Art pipeline
+
+- **ship art stage** (1–8) — one of the eight owner-approved steps from concept to
+  lineup review; each starts only after the owner approves the one before. Written
+  "ship art stage 4" or by name ("the flight check"). *(`ship-art-pipeline` skill)*
+- **anatomy** — the fixed set of named child slots (anatomy slots) every chassis prefab
+  has; a hull fills them and never restructures them. *(ShipAnatomyEditModeTests)*
+- **socket** — a named empty transform the hull places (engine emitters, hardpoints), so
+  hull geometry, not the base, positions what mounts there. *(the anatomy's `Sockets`;
+  `role.sockets` in art/tools/ship/README.md)*
+- **role collection** — a Blender collection named for what its contents export as; a
+  part in none is not exported. *(art/tools/ship/README.md)*
+- **geometry lock** — the geometry fingerprint written at flight-check approval;
+  `verify` fails on changed geometry, and only a reopen the owner approves moves it,
+  reporting what it invalidates. *(art/tools/ship/ship_lock.py)*
+- **legacy list** — the ship names exempt from the anatomy test, import validation and
+  the rules in `doc/agents/art-pipeline.md` until migrated. It only shrinks: each
+  migration deletes one, and the arc closes when it is empty. *(ShipLegacyList)*
+- **name mirror** — one ship name across the chassis prefab, the visuals folder and the
+  art folder (lowercased). *(doc/agents/art-pipeline.md)*
 
 ### Infra & tooling
 
