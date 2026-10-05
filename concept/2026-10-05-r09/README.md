@@ -9,7 +9,7 @@ guide. K alone is the edit target; no schematic guide was supplied.
 
 Requested slightly larger tails with thinner armor while preserving K's curved
 contours, sculpted transitions and organic-mechanical surface detail. Shown in
-chat. Top-view review is pending; no turnaround or final stage-1 approval yet.
+chat. Owner requested further tail revision; no turnaround or final stage-1 approval yet.
 
 The original generated PNG remains in the tool's output directory. The sidecar
 records the prompt, reference and output hashes, dimensions and provider. The
