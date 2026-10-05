@@ -13,6 +13,9 @@ the matching doc when its branch fires:
   namespace/asmdef naming).
 - Running Unity tests → `doc/agents/testing.md` (artifact dir, unity_access
   protocol, domain categories; suite guide: `TESTING.md`).
+- Ship art, or anything under `art/`, `Assets/Visuals/Ships/` or `Assets/Prefabs/Ships/`
+  → `doc/agents/art-pipeline.md` (layout, name mirror, legacy list, who may change
+  geometry, tree hygiene).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (design
