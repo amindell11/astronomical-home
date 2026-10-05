@@ -7,6 +7,7 @@ Direct image edit of P: replace only its mistaken high-angle front view with a
 shallower straight-on interpretation. Preserve the side and isometric drawings,
 including the tail side silhouette the owner specifically liked.
 
-Shown in chat. Turnaround review is pending. O remains provisional: permission
+Shown in chat. Owner found the front inconsistent with the side and requested
+a current-mesh front capture, expecting little frontal change. O remains provisional: permission
 to develop a turnaround was not final approval of a top plus turnaround.
 No geometry or stage-2 work has begun.
