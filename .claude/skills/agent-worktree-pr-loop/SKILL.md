@@ -42,7 +42,7 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
 - `./scripts/agent_worktree_pool.sh merge <slot>` — the merge path for a PR your slot holds; see Step 6.
 - `./scripts/agent_worktree_pool.sh merge <slot> --remote` / `merge <slot> -- <test args>` — same merge gate with the test-run producer named (hosted headless suite / local run) instead of chosen from memory admission; see Step 6.
-- `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands only on a recorded instruction that covers the landing tree; see Step 6.
+- `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands on a recorded instruction that covers the landing tree or as a member of the auto-merge class; see Step 6.
 - `./scripts/agent_worktree_pool.sh borrow <lease>` / `return <slot> <lease>` — lease a slot for an unattended pass without moving its tree, and give it back reset to `origin/main`; see § Verify task.
 - `./scripts/agent_worktree_pool.sh land-docs` — the docs-only landing, run from the worktree holding the commits; see Applicability.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
@@ -187,13 +187,8 @@ Stage examples:
 - `build | Arc | harness-lane — B/C/D building → next PR-4`
   (an Arc chat's stage word is the arc's current overall stage)
 
-A standing chat with no lifecycle stage leads with `orchestrator` instead, and
-does retitle: `orchestrator | drain — <m> surfaced`, or
-`⛔ orchestrator | drain — <its own question>` only while it waits on the user
-itself (`.claude/skills/drain-orchestrator/SKILL.md`).
-
-A title starting with none of the stage words or `orchestrator` is a
-design-discussion chat — those never retitle.
+A title starting with none of the stage words is a design-discussion chat —
+those never retitle.
 
 Fresh chats are born titled: when breaking out a new session for a slice —
 a spawn chip, a handoff, a launch prompt you draft for the user — give it its
@@ -427,7 +422,10 @@ then fetches and proves on top of the landings ahead of it; `merge-progress
 <slot>` shows its place in the line and the slot holding the turn. Leave it
 waiting: a re-run `merge` arrives at the back of the line.
 
-`land` needs the instruction recorded. On the user's word in your chat, run
+`land` needs the instruction recorded, unless the merge gate puts the PR in
+the *auto-merge class* (`doc/Glossary.md`): that PR lands with none, labelled
+`auto-merged`, and the pipeline digest lists it for the user to review after
+the merge. On the user's word in your chat, run
 `./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
 saw (usually the one on its `MERGE=` line). Every session acts as the same
 GitHub account, so `land` checks that a record exists and covers the landing
@@ -574,14 +572,15 @@ classifier, since a rule on it would also match `--force`.
 ## Merge task
 
 The desktop scheduled task `merge`, started with Run now: one merge pass over
-the pipeline's merge queue, landing what the user instructed. It has no
+the pipeline's merge queue, landing what the user instructed and what the
+auto-merge class admits. It has no
 schedule until the cost of a no-op run is measured. Its prompt:
 
 `In the repo at D:\amind\git\astronomical-home, run one merge pass: follow .claude/skills/agent-worktree-pr-loop/SKILL.md § Merge task.`
 
 1. `git pull --ff-only` on main in the primary tree.
 2. `./scripts/drain_pick.sh merge-queue`.
-3. For each `MERGE=` line carrying the fact `instructed`, in order, run
+3. For each `MERGE=` line carrying the fact `instructed` or `class`, in order, run
    `./scripts/agent_worktree_pool.sh land <pr>` in the background: it can
    wait on a hosted run for 20 minutes.
 4. After each merge, `git pull --ff-only` again, so the next `land` runs the

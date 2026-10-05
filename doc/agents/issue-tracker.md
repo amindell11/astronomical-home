@@ -62,6 +62,10 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   (`scripts/drain_pick.sh pick`). No board Status mapping.
 - **`drain:building`**: a cloud build's claim marker, beside the assignee;
   written and removed by `scripts/drain_pick.sh claim` / `release`.
+- **`auto-merged`**: on a PR `land` merged as a member of the auto-merge class,
+  with no recorded instruction; the merge gate adds it before the merge. The
+  user removes it after reviewing the PR, which takes it off the pipeline
+  digest.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
 - **Domain labels** (`RL`, `Ship`, `Testing`, …) as today; a parent issue that
