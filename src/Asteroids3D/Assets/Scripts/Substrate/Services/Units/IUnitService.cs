@@ -37,7 +37,10 @@ namespace Substrate.Services.Units
 
         /// <summary>Raised when a ship is spawned through this service.</summary>
         event Action<Ship> OnShipSpawned;
-        
+
+        /// <summary>Raised when <see cref="RespawnShip"/> revives a ship in place, starting its next life.</summary>
+        event Action<Ship> OnShipRespawned;
+
         public void RespawnShip(ShipId ship, Vector2 pos, float rotation);
         public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay);
 

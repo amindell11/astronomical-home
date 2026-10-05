@@ -815,14 +815,14 @@ Format: **term** — definition. *(authority)*
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
-- **spawn log** — one entry per ship spawned or sector-adopted in a run, other
-  than the player: its parts by asset name, its loadout stat hash taken at spawn,
-  when it spawned, how long it lived and whether the player's shot killed it (the
-  run tally's rule). A consumer-side recorder on the player rig beside the damage
-  ledger and the run tally, never sim state. It exists because damage kind cannot
-  say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
-  projectile. A ship placed during the sector load reads as spawned at second 0.
-  *(SpawnLog)*
+- **spawn log** — one entry per life of each ship spawned or sector-adopted in a
+  run, other than the player (a respawn-policy revive opens a fresh entry): its
+  parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
+  long it lived and whether the player's shot killed it (the run tally's rule). A
+  consumer-side recorder on the player rig beside the damage ledger and the run
+  tally, never sim state. It exists because damage kind cannot say which weapon
+  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  placed during the sector load reads as spawned at second 0. *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
   editor asks git at run end; a player build carries a file its pre-build hook
