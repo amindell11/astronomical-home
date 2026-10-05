@@ -18,7 +18,13 @@ Nothing here merges to main. Started under issue #869.
 | concept | [2026-10-05 round 10](concept/2026-10-05-r10/) | O integrates the raised plates into K's curved blades. Owner authorized a turnaround, with possible later top revisions. |
 | concept | [2026-10-05 round 11](concept/2026-10-05-r11/) | P turnaround: owner loves side and isometric views, particularly the tail side profile; front needs correction. |
 | concept | [2026-10-05 round 12](concept/2026-10-05-r12/) | Q front rejected as inconsistent with the side. Owner requested a current-mesh front capture. |
-| concept | [2026-10-05 round 13](concept/2026-10-05-r13/) | Native front capture and R's corrected front; preserves P's side and isometric views. Review pending. |
+| concept | [2026-10-05 round 13](concept/2026-10-05-r13/) | Native front capture and R's corrected front; preserves P's side and isometric views. Owner approved moving forward, with the front as a supporting reference. |
+
+Stage 1 approved in chat on 2026-10-05: O top plus R turnaround. The owner still
+finds the front approximate and directs the later mesh work to weight the side,
+top and isometric views more heavily, especially the sculpted tail side profile.
+Approved views are committed under `art/ships/nightshade/concepts/` in the
+concept-only task branch; no stage-2 work is part of this session.
 
 The original Nightshade concept is on main at
 `art/ships/nightshade/concepts/jan272026122322Am.png`.

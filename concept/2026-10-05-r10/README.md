@@ -8,4 +8,6 @@ again starts directly from K. Requested a more noticeable size increase and
 integration of bulky armor pads into the sculpted blade surfaces.
 
 Shown in chat: raised plates are less prominent and the curved outline remains.
-The size change is subtle. Owner review is pending; no top or turnaround approval.
+The size change is subtle. The owner proceeded with a turnaround and subsequently
+approved moving forward with O as the top and R as the turnaround, weighted above
+the front alongside the side and isometric views.

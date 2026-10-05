@@ -14,5 +14,10 @@ band, blue-violet glazing above and below, thin middle wing span and small fins
 at their observed vertical levels. Side and isometric drawings retain the
 direction the owner specifically liked, including the tail side profile.
 
-Shown in chat; turnaround approval is pending. O remains the provisional top.
+Shown in chat. Owner approved moving forward on 2026-10-05, while noting the
+front still looks somewhat off. Stage-1 selection is O top plus this R turnaround.
+For later mesh work, weight side, top and isometric views more heavily than front;
+preserve the tail side profile the owner specifically liked. The front remains
+a supporting reference. Approval is for the concept direction, not exact
+agreement between these generated views.
 These are generated concept drawings, not projections of a new model.
