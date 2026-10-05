@@ -3,6 +3,10 @@
 Return toward the original after the owner rejected round 1 as too far. Both views
 were shown in chat. No top view or turnaround is approved yet.
 
+Owner response: "No, e is ugly, d is too close to the original. Try making them a bit
+more curvy like symmetrical tendrils". The next round retains D's body and wings,
+changing only the rear pair into smooth tapered curves.
+
 | Candidate | Picture | Prompt | Provenance |
 | --- | --- | --- | --- |
 | D: clipped rear ends | [top](nightshade-d-top.jpg) | [prompt](round2-clipped.prompt.txt) | [sidecar](nightshade-d-top.json) |
