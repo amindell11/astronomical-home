@@ -35,6 +35,8 @@ namespace Balance
             new() { distanceToTarget = 5f, angleToTarget = 180f, hasLineOfSight = true },
         };
 
+        private static readonly TargetingContext OutOfEnvelope = new() { distanceToTarget = float.PositiveInfinity };
+
         /// <summary>Appends the weapon's modes to <paramref name="modes"/>. Launched transients stay registered with <paramref name="projectiles"/>.</summary>
         public static IEnumerator Measure(WeaponComponent prefab, IProjectileService projectiles,
             List<WeaponCycleMode> modes, float maxSeconds = DefaultMaxSeconds)
@@ -84,18 +86,23 @@ namespace Balance
             try
             {
                 var start = Time.fixedTime;
+                var prevHeld = false;
                 while (Time.fixedTime - start < maxSeconds && LongGaps(run.Shots) < BurstsToObserve - 1)
                 {
                     yield return new WaitForFixedUpdate();
 
-                    var trigger = pattern switch
+                    var held = pattern switch
                     {
                         Pattern.Hold => true,
                         Pattern.Tap => !weapon.CanFire(),
-                        _ => weapon.ShouldFire(context),
+                        // Ready again under a spent press: the target steps out so its re-entry is a fresh edge.
+                        _ => weapon.ShouldFire(prevHeld && !weapon.AutoFire && weapon.CanFire() ? OutOfEnvelope : context),
                     };
+                    // The AI presses on the rising edge, as the Gunner does.
+                    var pressed = pattern == Pattern.Ai ? held && !prevHeld : held;
+                    prevHeld = held;
                     var hitBefore = target.Damage;
-                    weapon.HandleTrigger(trigger, trigger, launches);
+                    weapon.HandleTrigger(pressed, held, launches);
                     var damage = launches.TakeDamage() + target.Damage - hitBefore;
                     run.EndSeconds = Time.fixedTime - start;
                     if (damage > 0f)

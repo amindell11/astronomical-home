@@ -225,11 +225,11 @@ Format: **term** — definition. *(authority)*
   consent). *(agent_worktree_pool.sh `land`; #830)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
-  arrival order (**turn ticket**). Any other push to main takes it through
-  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
-  free. A waiter gives up only after watching one holder keep the turn for the
-  cap; a line that keeps moving times nobody out. Machine-local: a base move
-  from any other clone is caught only by the gate's base re-check.
+  arrival order (**turn ticket**). Any other push to main takes it with no
+  ticket, whenever it is free: `land-docs`, or a command run under
+  `lock merge-turn`. A waiter gives up only after watching one holder keep the
+  turn for the cap; a line that keeps moving times nobody out. Machine-local:
+  a base move from any other clone is caught only by the gate's base re-check.
   *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
 - **turn ticket** — a waiting merge gate's recorded arrival; the line for the
   merge turn is the live tickets in arrival order. A ticket is live only while
@@ -332,16 +332,24 @@ Format: **term** — definition. *(authority)*
   opened ready for review, that closes the issue.
   *(agent-worktree-pr-loop → Cloud batch)*
 - **owed-local checklist** — the `### Owed local` list in a *cloud build*'s PR
-  body: the tests the hosted suite cannot run, written by the builder and
-  ticked by a local session. `None.` means nothing was ever owed, as against
-  owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
+  body: the tests the hosted suite cannot run, written by the builder. Its
+  ticks and result lines are written only through `drain_pick.sh result`,
+  except an `eyes` item, which a person ticks. `None.` means nothing was ever
+  owed, as against owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
 - **pipeline PR** — an open PR against `main` whose body has a `### Owed local`
   heading. The heading is the whole membership test: draft state, the closing
   issue and its labels play no part, so a PR built by hand joins by writing
   the section. *(scripts/drain_pick.sh)*
 - **verify queue** — the *pipeline PRs* with an owed `unity` or `script` item
-  no run has tried on the head commit. An item that failed there leaves the
-  queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+  no run has tried on the head commit. An item tried there (failed or not run)
+  leaves the queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+- **verify task** — the desktop scheduled task `verify`, started by hand: one
+  pass over the *verify queue* in one borrowed slot. The only *drain pipeline*
+  session that boots Unity. *(agent-worktree-pr-loop → Verify task)*
+- **main arm** — re-running a failed owed item on `origin/main` in the same
+  slot. The same failure there makes it pre-existing: an issue is filed, and
+  the item stays tried for the user to rule on. *(agent-worktree-pr-loop →
+  Verify task)*
 - **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
   ticked, with their facts (among them `instructed`, and `class`: the
   *auto-merge class* as GitHub shows it) and landing order; it never says who

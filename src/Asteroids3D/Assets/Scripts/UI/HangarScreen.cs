@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Ships;
 using Ships.Loadout;

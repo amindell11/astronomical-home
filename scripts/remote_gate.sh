@@ -11,6 +11,7 @@
 #        REMOTE_GATE_UNITY · REMOTE_GATE_MODE (Both) · REMOTE_GATE_TIMEOUT_MIN (45)
 # Exit:  0 suite passed · 1 suite failed · 2 timed out
 #        3 the remote lane is disabled (remote_lane.sh), nothing was sent
+#        4 an LFS object the branch needs is not in the local cache; no suite ran
 #        any other nonzero: a transfer step failed (ssh's or git's own code)
 
 set -euo pipefail
@@ -56,7 +57,7 @@ missing=0
 while read -r oid _; do
     if ! grep -qx "$oid" "$STAGE/remote-oids"; then
         src="$ROOT/.git/lfs/objects/${oid:0:2}/${oid:2:2}/$oid"
-        [ -f "$src" ] || { echo "[remote_gate] LFS object $oid not in local cache" >&2; exit 1; }
+        [ -f "$src" ] || { echo "[remote_gate] LFS object $oid not in local cache" >&2; exit 4; }
         mkdir -p "$STAGE/lfs/${oid:0:2}/${oid:2:2}"
         cp "$src" "$STAGE/lfs/${oid:0:2}/${oid:2:2}/"
         missing=$((missing+1))

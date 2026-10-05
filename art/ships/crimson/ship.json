@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "name": "Crimson",
+  "source": "Crimson.blend",
+  "texture_size": 4096,
+  "uv_density_max_ratio": 2.0,
+  "contour_roles": ["hull"],
+  "exemptions": [
+    {
+      "rule": "name",
+      "parts": ["Cube"],
+      "reason": "Approved hand-edited part kept under its default name; renaming is the owner's call."
+    },
+    {
+      "rule": "scale",
+      "parts": [
+        "Cube",
+        "Cockpit surround",
+        "Engine support frame",
+        "Lower aft shoulder armor",
+        "Lower inner shoulder armor",
+        "Outer rail mounting block",
+        "Rear cockpit yoke",
+        "Shoulder service pod",
+        "Upper aft shoulder armor",
+        "Upper inner shoulder armor",
+        "Wing root beam"
+      ],
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "uv_layer",
+      "parts": [
+        "Canopy", "Canopy perimeter rim", "Canopy transverse frame", "Central hull", "Cockpit surround",
+        "Cube", "Dorsal service spine", "Engine forward cowling", "Engine housing", "Engine neck",
+        "Engine nozzle", "Engine support frame", "Engine throat", "Lower Aft swept fin", "Lower Forward fin",
+        "Lower Outer swept fin", "Lower aft shoulder armor", "Lower inner shoulder armor",
+        "Lower outer armor rail", "Lower prow armor", "Lower prow tip", "Lower wing foundation",
+        "Outer rail mounting block", "Rear cockpit yoke", "Service channel floor", "Service pod cap",
+        "Shoulder service pod", "Shoulder underside link", "Structural center web", "Upper Aft swept fin",
+        "Upper Forward fin", "Upper Outer swept fin", "Upper aft shoulder armor", "Upper inner shoulder armor",
+        "Upper outer armor rail", "Upper prow armor", "Upper prow tip", "Upper wing foundation", "Wing root beam"
+      ],
+      "reason": "The paint layer is named CrimsonPaintUV; the baked atlas keys on it, so it is not renamed."
+    }
+  ]
+}
