@@ -34,9 +34,11 @@ the FBX; the folders and `ship.json` are yours to keep true.
 
 ## Legacy list
 
-`ShipLegacyList` names the ships not yet migrated. A listed name is exempt from the
-anatomy test, import validation and every rule on this page. The list only shrinks: each
-migration PR deletes its name.
+`ShipLegacyList` names the ships not yet migrated. Each array exempts only from its own
+check: `Chassis` from the anatomy test, `HullModels` from import validation and the
+hull-mesh checks, `SavedColliderMeshes` from the collider-from-FBX check. A name on
+`Chassis` or `HullModels` is also exempt from every rule on this page. The list only
+shrinks: each migration PR deletes its name.
 
 ## Tree hygiene
 

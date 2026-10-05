@@ -863,8 +863,8 @@ Format: **term** — definition. *(authority)*
 - **geometry lock** — the geometry fingerprint written at flight-check approval;
   `verify` fails on changed geometry, and only a reopen the owner approves moves it,
   reporting what it invalidates. *(art/tools/ship/ship_lock.py)*
-- **legacy list** — the ship names exempt from the anatomy test, import validation and
-  the rules in `doc/agents/art-pipeline.md` until migrated. It only shrinks: each
+- **legacy list** — the ship names not yet migrated; each array exempts only from its
+  own check (`doc/agents/art-pipeline.md` → Legacy list). It only shrinks: each
   migration deletes one, and the arc closes when it is empty. *(ShipLegacyList)*
 - **name mirror** — one ship name across the chassis prefab, the visuals folder and the
   art folder (lowercased). *(doc/agents/art-pipeline.md)*
