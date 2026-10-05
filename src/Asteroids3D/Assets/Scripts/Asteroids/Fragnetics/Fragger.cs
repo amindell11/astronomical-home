@@ -3,6 +3,7 @@ using System.Collections;
 using Asteroids.Spawning;
 using JetBrains.Annotations;
 using UnityEngine;
+using Utils;
 
 namespace Asteroids.Fragnetics
 {
@@ -20,22 +21,22 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
-        public void CreateFragments(AsteroidController asteroid, HitData hit, Action<Frag[]> onFragment = null)
+        public void CreateFragments(AsteroidController asteroid, uint breakSeed, HitData hit, Action<Frag[]> onFragment = null)
         {            
             var ast = new AsteroidData(asteroid);
-            var frags = calc.GenerateFragments(ast);
-            var initialMomentum = calc.CalculateInitialMomentum(ast, hit);
-            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, frags, initialMomentum, asteroid.AsteroidSpawner, onFragment));
+            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, breakSeed, asteroid.AsteroidSpawner, onFragment));
         }
 
         /// <summary>
         /// spawns placeholder fragments immediately, then updates them with proper physics
         /// </summary>
-        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, AsteroidSpawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
+        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, uint breakSeed, AsteroidSpawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
         {
-
-            calc.CalculatePlaceholderPhysics(ast, hit, frags);
-            var placeholderFragments = SpawnPlaceholderFragments(ast, hit, frags, spawn);
+            var rng = new DeterministicRandom(breakSeed);
+            var frags = calc.GenerateFragments(ast, ref rng);
+            var momentum = calc.CalculateInitialMomentum(ast, hit);
+            calc.CalculatePlaceholderPhysics(ast, hit, frags, ref rng);
+            var placeholderFragments = SpawnPlaceholderFragments(ast, hit, frags, spawn, ref rng);
             onFragment += OnFrag;
             yield return null;
             yield return StartCoroutine(calc.CoCalculateFragmentPhysics(
@@ -43,7 +44,8 @@ namespace Asteroids.Fragnetics
                 hit,
                 frags,
                 momentum, 
-                onFragment
+                onFragment,
+                ref rng
             ));
             yield break;
             void OnFrag(Frag[] f) => UpdatePlaceholderFragments(placeholderFragments, f);
@@ -52,13 +54,13 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Spawn fragments immediately with rough physics for visual continuity
         /// </summary>
-        private AsteroidController[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, AsteroidSpawner spawn)
+        private AsteroidController[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, AsteroidSpawner spawn, ref DeterministicRandom rng)
         {
             var fragments = new AsteroidController[frags.Length];
-            calc.CalculatePlaceholderPhysics(ast, hit, frags);
+            calc.CalculatePlaceholderPhysics(ast, hit, frags, ref rng);
             for (var i = 0; i < frags.Length; i++)
             {
-                fragments[i] = spawn.SpawnFragment(frags[i]);
+                fragments[i] = spawn.SpawnFragment(frags[i], ref rng);
                 if (asteroidFragAsteroidFragSettings.fragmentFadeInTime > 0f)
                     StartCoroutine(FadeInFragment(fragments[i]));
             }

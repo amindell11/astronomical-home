@@ -270,11 +270,14 @@ Format: **term** — definition. *(authority)*
   instruction, except that a *recorded instruction* survives an inert diff
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
-  commit, kept as a PR comment that only `drain_pick.sh` writes (`instruct`)
-  and parses (`land-facts`, `merge-queue`). It *covers* the landing tree when
-  merging its commit with base gives that tree, or one an inert diff away;
-  `land` needs a covering one. Every session is the same GitHub account, so policy alone
-  keeps it the user's. *(scripts/drain_pick.sh `instruct`; #830)*
+  commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
+  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
+  user may type it on the PR, naming the commit by a prefix
+  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  *covers* the landing tree when merging its commit with base gives that tree,
+  or one an inert diff away; `land` needs a covering one. Every session is the
+  same GitHub account, so policy alone keeps it the user's.
+  *(scripts/drain_pick.sh `instruct`; #830)*
 - **spend** — compute expenditure needing its own explicit approval; a run is a
   run, not a PR.
 - **disposition table** — the per-review-round table, one row per comment:
@@ -286,12 +289,13 @@ Format: **term** — definition. *(authority)*
   gets a proposal instead of a build. A *cloud batch* admits items by their
   `unity:*` label and claims each with the assignee plus `drain:building`.
   *(#617, #830, scripts/drain_pick.sh)*
-- **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
-  questions: a fork posted on the issue with options, a recommendation and
-  evidence. An interactive session holds its slot while it waits; a *cloud
-  build* releases its claim and names its pushed branch. Routine priority /
-  bench / park calls are proposals on their own issue, never inbox items.
-  *(#617, #830)*
+- **decisions view** — the board view "Decisions": the open issues and PRs
+  whose `Decision` field is set, each row the one line the user is asked. An
+  item enters with a `Question` comment or pipeline-PR state (tried or `eyes`
+  items, a merge no recorded instruction names) and leaves on a ruling comment,
+  the state change, or a close. Askers only comment: the *decision reconcile*
+  is the field's only writer. Interactive sessions still ask in their chat.
+  *(scripts/drain_pick.sh `decision`; #830)*
 - **triage sweep** — the on-demand or daily triage run over the open tracker,
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
@@ -305,6 +309,10 @@ Format: **term** — definition. *(authority)*
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
+- **decision reconcile** — the Actions job that evaluates one issue or PR with
+  `drain_pick.sh decision` on each comment, close or PR change and writes its
+  board `Decision` field, with an hourly `--all` backstop. It adds items, PRs
+  included, and never removes one. *(scripts/decision_reconcile.sh)*
 - **sweep lead** — a mechanical reason for the *triage sweep* to research an
   open issue since a watermark: a merged PR cites it, an issue it cites
   closed, a path it names is gone, or it was itself updated. With `--since`,
@@ -807,14 +815,14 @@ Format: **term** — definition. *(authority)*
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
-- **spawn log** — one entry per ship spawned or sector-adopted in a run, other
-  than the player: its parts by asset name, its loadout stat hash taken at spawn,
-  when it spawned, how long it lived and whether the player's shot killed it (the
-  run tally's rule). A consumer-side recorder on the player rig beside the damage
-  ledger and the run tally, never sim state. It exists because damage kind cannot
-  say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
-  projectile. A ship placed during the sector load reads as spawned at second 0.
-  *(SpawnLog)*
+- **spawn log** — one entry per life of each ship spawned or sector-adopted in a
+  run, other than the player (a respawn-policy revive opens a fresh entry): its
+  parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
+  long it lived and whether the player's shot killed it (the run tally's rule). A
+  consumer-side recorder on the player rig beside the damage ledger and the run
+  tally, never sim state. It exists because damage kind cannot say which weapon
+  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  placed during the sector load reads as spawned at second 0. *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
   editor asks git at run end; a player build carries a file its pre-build hook
@@ -926,3 +934,4 @@ Format: **term** — definition. *(authority)*
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
 | drain run, drain task | *(retired 2026-10-01)* — the ready queue is built by a **cloud batch**; one item's build is a **cloud build** |
+| decision inbox | *(retired 2026-10-04)* — open questions and PR waits show in the **decisions view**; `ready-for-human` keeps its label meaning |

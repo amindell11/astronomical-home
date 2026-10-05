@@ -2,7 +2,7 @@ using System;
 using AI;
 using AI.Navigation.MPC;
 using Ships;
-using Ships.Command;
+using Utils;
 using UnityEngine;
 using RL.Hosts;
 using RL.Reward;

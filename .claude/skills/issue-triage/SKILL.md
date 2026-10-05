@@ -230,8 +230,8 @@ Post the comment from `comment-formats.md` on the issue
 - readiness `one-short` → the question.
 
 Leave the issue's labels as they are:
-`ready-for-agent` is the user's to apply, and `ready-for-human` is the decision
-inbox, build-blocking questions only.
+`ready-for-agent` is the user's to apply. A question reaches the user through
+the *decisions view* by itself.
 
 `--dry-run`: the report row carries the proposal's `Apply:` line; nothing is
 posted.

@@ -16,7 +16,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [Test]
         public void Contours_DrawAfterEveryActiveIllustratedSkyLayerAndBeforeExplosions()
         {
-            var shader = Shader.Find("Astronomical/Comparison/Drawn Contour");
+            var shader = Shader.Find("Astronomical/Drawn/Contour");
             Assert.That(shader, Is.Not.Null);
             var scene = EditorSceneManager.OpenScene("Assets/Scenes/Locales/Locale_3.unity", OpenSceneMode.Additive);
             try

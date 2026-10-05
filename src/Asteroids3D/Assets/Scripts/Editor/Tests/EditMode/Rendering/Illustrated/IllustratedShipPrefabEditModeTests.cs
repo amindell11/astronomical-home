@@ -12,13 +12,13 @@ namespace Tests.EditMode.Rendering.Illustrated
     [Category("Ships")]
     public sealed class IllustratedShipPrefabEditModeTests
     {
-        private const string SurfaceShader = "Astronomical/Comparison/Drawn Surface";
-        private const string ContourShader = "Astronomical/Comparison/Drawn Contour";
+        private const string SurfaceShader = "Astronomical/Drawn/Surface";
+        private const string ContourShader = "Astronomical/Drawn/Contour";
         private const string Vanguard = "Assets/Prefabs/Ships/Vanguard.prefab";
         private const string Crimson = "Assets/Prefabs/Ships/Crimson.prefab";
         private const string Nightshade = "Assets/Prefabs/Ships/Nightshade.prefab";
         private const string ShipBase = "Assets/Prefabs/Ships/ShipBase.prefab";
-        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/GalacticCruiserTop0705014531TextureFbx/cruiserUpdate1.fbx";
+        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx";
 
         [Test]
         public void Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours()

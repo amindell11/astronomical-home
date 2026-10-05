@@ -20,7 +20,7 @@ namespace Tests.PlayMode
     [Category("Weapons")]
     public class MissileLaunchPlayModeTests : PlayModeWorldFixture
     {
-        private const string MissilePrefabPath = "Assets/Prefabs/Weapons/MissileProjectile.prefab";
+        private const string MissilePrefabPath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
 
         // Shipped prefab values, restated so the expectations read as numbers.
         private const float InitialSpeed = 7f;

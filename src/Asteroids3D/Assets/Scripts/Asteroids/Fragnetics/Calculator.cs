@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using Utils;
 
 namespace Asteroids.Fragnetics
 {
@@ -16,18 +17,18 @@ namespace Asteroids.Fragnetics
             asteroidFragSettings = s;
         }
         
-        public Frag[] GenerateFragments(AsteroidData ast)
+        public Frag[] GenerateFragments(AsteroidData ast, ref DeterministicRandom rng)
         {
-            var masses = GenerateFragmentMasses(ast.Mass * asteroidFragSettings.massLossFactor, asteroidFragSettings);
+            var masses = GenerateFragmentMasses(ast.Mass * asteroidFragSettings.massLossFactor, asteroidFragSettings, ref rng);
             if (masses.Length == 0)
             {
                 return Array.Empty<Frag>();
             }
-            var positions = CalculateFragmentPositions(ast.Position, masses.Length);
+            var positions = CalculateFragmentPositions(ast.Position, masses.Length, ref rng);
             var fragments = new Frag[masses.Length];
             for (var i = 0; i < masses.Length; i++)
             {
-                fragments[i] = new Frag(masses[i], positions[i], UnityEngine.Random.rotationUniform);
+                fragments[i] = new Frag(masses[i], positions[i], rng.RotationUniform());
             }
             return fragments;
         }
@@ -47,7 +48,7 @@ namespace Asteroids.Fragnetics
 
 	        return (totalLinearMomentum, totalAngularMomentum);
         }
-        public void CalculatePlaceholderPhysics(AsteroidData ast, HitData hit, Frag[] frags)
+        public void CalculatePlaceholderPhysics(AsteroidData ast, HitData hit, Frag[] frags, ref DeterministicRandom rng)
         {
 	        var impactDirection = (hit.Velocity - ast.Velocity).normalized;
 
@@ -58,7 +59,7 @@ namespace Asteroids.Fragnetics
 		                        (roughDirection * (asteroidFragSettings.baseSeparationSpeed * 0.5f)) + 
 		                        (impactDirection * (asteroidFragSettings.baseSeparationSpeed * 0.3f));
                 
-		        frags[i].Spin = UnityEngine.Random.insideUnitSphere * (asteroidFragSettings.spinVariation * 0.5f);
+		        frags[i].Spin = rng.InsideUnitSphere() * (asteroidFragSettings.spinVariation * 0.5f);
 	        }
         }
 
@@ -66,9 +67,15 @@ namespace Asteroids.Fragnetics
 	        HitData hit,
 	        Frag[] frags,
 	        (Vector3 linear, Vector3 angular) momentum,
-	        Action<Frag[]> onFrag)
+	        Action<Frag[]> onFrag,
+	        ref DeterministicRandom rng)
         {
-	        return CoCalculateFragmentPhysics(ast, hit, frags, momentum, onFrag, asteroidFragSettings);
+	        // The iterator cannot take the stream by ref, so every draw happens here, up front.
+	        var jitter = new FragJitter[frags.Length];
+	        for (var i = 0; i < jitter.Length; i++)
+		        jitter[i] = new FragJitter(rng.InsideUnitSphere().normalized, rng.Range(0.8f, 1.2f),
+			        rng.InsideUnitSphere() * asteroidFragSettings.spinVariation);
+	        return CoCalculateFragmentPhysics(ast, hit, frags, momentum, onFrag, jitter, asteroidFragSettings);
         }
         
         /// <summary>
@@ -79,7 +86,7 @@ namespace Asteroids.Fragnetics
         ///   - biased toward using more fragments when possible
         /// Returns an empty array if not enough mass to create minFragments.
         /// </summary>
-        private static float[] GenerateFragmentMasses(float totalMass, AsteroidFragSettings s)
+        private static float[] GenerateFragmentMasses(float totalMass, AsteroidFragSettings s, ref DeterministicRandom rng)
         {
             // Determine the feasible number of fragments
             if (totalMass <= 0 || s.minMass <= 0) return Array.Empty<float>();
@@ -87,7 +94,7 @@ namespace Asteroids.Fragnetics
             if (feasibleMax < s.minFragments) return Array.Empty<float>();
 
             // Choose a fragment count, biased toward the high end
-            var randomBiased = Mathf.Pow(UnityEngine.Random.value, s.highCountBias);
+            var randomBiased = Mathf.Pow(rng.NextFloat(), s.highCountBias);
             var n = s.minFragments + Mathf.FloorToInt(randomBiased * (feasibleMax - s.minFragments + 1));
 
             // Slice totalMass into n parts using a Dirichlet distribution
@@ -95,9 +102,8 @@ namespace Asteroids.Fragnetics
             if (remainingMass < 0) remainingMass = 0;
 
             // Generate n random weights
-            var weights = Enumerable.Range(0, n)
-                .Select(_ => UnityEngine.Random.value)
-                .ToArray();
+            var weights = new float[n];
+            for (var i = 0; i < n; i++) weights[i] = rng.NextFloat();
             var sumOfWeights = weights.Sum();
 
             // If the sum of weights is zero (highly unlikely), distribute the remaining mass equally
@@ -113,12 +119,12 @@ namespace Asteroids.Fragnetics
             return finalMasses;
         }
 
-        private static Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount)
+        private static Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount, ref DeterministicRandom rng)
         {
 	        var positions = new Vector3[fragmentCount];
 	        for (var i = 0; i < fragmentCount; i++)
 	        {
-		        Vector3 randomOffset = UnityEngine.Random.insideUnitCircle.normalized * 0.5f;
+		        Vector3 randomOffset = rng.Direction2() * 0.5f;
 		        positions[i] = parentPosition + randomOffset;
 	        }
 
@@ -128,9 +134,8 @@ namespace Asteroids.Fragnetics
         private static IEnumerator CoCalculateFragmentPhysics(
 	        AsteroidData ast, HitData hit, Frag[] frags,  
 	        (Vector3 linear, Vector3 angular) momentum,
-            Action<Frag[]> onFrag, AsteroidFragSettings s)
+            Action<Frag[]> onFrag, FragJitter[] jitter, AsteroidFragSettings s)
         {
-			var spinJitter = new Vector3[frags.Length];
 			var acc = new FragSum();
 
 			var center = ast.Position;
@@ -144,8 +149,7 @@ namespace Asteroids.Fragnetics
 
 			for (var i = 0; i < frags.Length; ++i)
 			{
-				frags[i].Velocity = FragmentationVelocity(frags[i].Position, center, hitDir, momentumPerMass, s);
-				spinJitter[i] = UnityEngine.Random.insideUnitSphere * s.spinVariation;
+				frags[i].Velocity = FragmentationVelocity(frags[i].Position, center, hitDir, momentumPerMass, jitter[i], s);
 
 				var r = frags[i].Position - center;
 				AccumulateFragmentSums(ref acc, frags[i].Mass, frags[i].Velocity, r);
@@ -154,7 +158,7 @@ namespace Asteroids.Fragnetics
 			}
 			
 			var (vCorr, omegaBase) = MomentumCorrection(momentum, acc);
-			ApplyCorrections(frags, spinJitter, vCorr, omegaBase);
+			ApplyCorrections(frags, jitter, vCorr, omegaBase);
 
 			onFrag?.Invoke(frags);
 		}
@@ -166,13 +170,12 @@ namespace Asteroids.Fragnetics
         }
         
         private static Vector3 FragmentationVelocity
-	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float momentumPerMass, AsteroidFragSettings s)
+	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float momentumPerMass, FragJitter jitter, AsteroidFragSettings s)
         {
 	        var outward = (pos - center).normalized;
-	        var random = UnityEngine.Random.insideUnitSphere.normalized;
-	        var dir = (s.outwardBias * outward + s.bulletBias * bulletDir + s.randomBias * random).normalized;
+	        var dir = (s.outwardBias * outward + s.bulletBias * bulletDir + s.randomBias * jitter.Direction).normalized;
             var speed = Mathf.Max(s.baseSeparationSpeed * momentumPerMass, s.minSeparationSpeed)
-                        * UnityEngine.Random.Range(0.8f, 1.2f);
+                        * jitter.SpeedScale;
 	        return dir * speed;
         }
         
@@ -198,15 +201,29 @@ namespace Asteroids.Fragnetics
 		}
 
 		private static void ApplyCorrections
-			(Frag[] frags, Vector3[] spinJitter,
+			(Frag[] frags, FragJitter[] jitter,
 				Vector3 vCorr, Vector3 omegaBase)
 		{
 			for (var i = 0; i < frags.Length; ++i)
 			{
 				frags[i].Velocity += vCorr;
-				frags[i].Spin = omegaBase + spinJitter[i];
+				frags[i].Spin = omegaBase + jitter[i].Spin;
 			}
 		}
+
+        private readonly struct FragJitter
+        {
+            public readonly Vector3 Direction;
+            public readonly float SpeedScale;
+            public readonly Vector3 Spin;
+
+            public FragJitter(Vector3 direction, float speedScale, Vector3 spin)
+            {
+                Direction = direction;
+                SpeedScale = speedScale;
+                Spin = spin;
+            }
+        }
 		
     }
 }

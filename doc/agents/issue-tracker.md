@@ -113,6 +113,20 @@ Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `165b6aec` is set by the merge reconcile at close for PR-closed issues
 (`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
 
+`Decision` (text field `PVTF_lAHOAJsCkc4BfiTvzhkWGNc`, at most 1024 UTF-8
+bytes) is the item's open decision, the row the decisions view lists. It is a
+projection: its only writer is the decision reconcile
+(`scripts/decision_reconcile.sh`, run by `.github/workflows/decision-reconcile.yml`),
+which reads the item with `./scripts/drain_pick.sh decision` and adds an issue
+or a PR to the board to set it. To ask, comment on the item; the field follows.
+The views that would show a PR filter `is:issue`, so a PR's row shows only in
+"Decisions".
+
+New board code goes through `scripts/lib/board.sh` (the ids, an issue's or a
+PR's membership, adding an item, setting and clearing a text field).
+`on_event_triage.sh` and `merge_reconcile.sh` still carry their own copies
+(#922).
+
 ## Wayfinding operations
 
 Used by the wayfinder skill; body law above applies.
