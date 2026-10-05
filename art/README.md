@@ -9,6 +9,8 @@ risk of wiring a half-finished model into a prefab).
 - `third-party/` — whole vendor packs as raw files, no `.meta`. `Assets/` keeps
   only the files something we own uses, moved (same GUID) to a home named for
   that use; the rest lives only here. A file brought back gets a fresh GUID.
+- `meshy/` — Meshy (AI model generator) downloads, one folder per download,
+  kept whole under their generator names as provenance.
 
 The one editable Vanguard source is
 `ships/vanguard/drawn-study/VanguardPainted.blend`.

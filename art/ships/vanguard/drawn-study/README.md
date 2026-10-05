@@ -16,18 +16,22 @@ armor and aft spar. Torn entry chips lead into directional gouges and scrape
 trails. This is one battle-worn finish; damage-level variants remain a future art
 pass. Paired hangar captures isolate the wear layer.
 
-Run `export_study.py` with Blender in background mode to export the packed study
-to Unity. An optional path after `--` selects a different source. Export reads the
-`Vanguard - Texture MVP` scene and retains its paint UV as the exported UV channel.
-Blender's evaluated triangles and corner normals are frozen into the export:
-the source contains nonplanar panels whose alternative triangulations intersect
-the blue disks. The original editable polygons remain in the baseline source.
-The export manifest describes that run; it does not replace source provenance.
+`export_study.py` and `build_structure.py` are retired to branch `evidence/vanguard`
+(`producers/drawn-study/`). These Blender-to-Unity producers read the
+`Vanguard - Texture MVP` scene and froze Blender's evaluated triangles and corner
+normals into the export: the source contains nonplanar panels whose alternative
+triangulations intersect the blue disks. The original editable polygons remain in the
+baseline source. `export-manifest.json` describes the last export run; it does not
+replace source provenance.
 
-Native Unity captures come from the saved study scenes:
-`src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/README.md` covers opening and
-capturing them. No current tool reproduces the paired comparison captures this
-README mentions (layer on/off, bloom on/off, contour proofs).
+Native Unity captures came from the saved study scenes. The scenes, their materials
+and meshes, and the two capture tools are on branch `evidence/vanguard` under
+`studies/drawn-art/`, with `.meta` files and a revive recipe. No current tool
+reproduces the paired comparison captures this README mentions (layer on/off,
+bloom on/off, contour proofs). The backdrop plates that the scenes used
+(`NebulaBackground-v2.png`, `HangarBackground-v2-ui.png`, `PlanetBackground-v1.png`,
+`PlanetBackground-v2-ui.png`) and the `ShadowedPlate.shader` that drew the hangar
+plate sit in this folder.
 The `AsteroidField` scene combines the ship with the ten drawn asteroid assets and
 `NebulaBackground-v2.png`, an AI background plate with foreground objects removed.
 The ship and asteroids are native Unity meshes; the backdrop is a static image.
@@ -63,7 +67,7 @@ unchanged. The production FBX is unchanged.
 
 The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/3da0da5de39c07b98b49f203a13427ce2dbaf13d/pipeline/README.md)
 includes the recovered Crimson recipes, generation helpers and preservation
-checks. Use that pipeline for this source; `export_study.py` regenerates the older
+checks. Use that pipeline for this source; the retired study export regenerated the older
 study overlays and is not the selected paint pipeline. The breakup work in
 [#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
 painted source and material, retain the separate canopy/cores, and leave the

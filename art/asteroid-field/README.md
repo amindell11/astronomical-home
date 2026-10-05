@@ -10,6 +10,6 @@ A finer drawing layer adds short hatch bundles, crossed strokes and chisel ticks
 
 Production spawns these assets: `SpawnSettings` names `FragmentingDrawnAsteroid.prefab`, whose `DrawnAsteroidAppearance` binds each spawn shape to its converted surface, drawing mesh and paint. `IllustratedSceneWiringEditModeTests` checks that every bound surface stays within 2.5% of its source mesh's bounds diagonal.
 
-The saved `AsteroidField` study scene shows all ten shapes with the ship at gameplay distance; `src/Asteroids3D/Assets/Visuals/Studies/DrawnArt/README.md` covers opening and capturing it.
+The saved `AsteroidField` study scene shows all ten shapes with the ship at gameplay distance. It is on branch `evidence/vanguard` under `studies/drawn-art/`, whose README covers reviving it.
 
 Production performance, distant-detail handling and a collision/volume rebake remain outside this art exploration.

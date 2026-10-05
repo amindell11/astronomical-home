@@ -151,13 +151,13 @@ namespace Tests.EditMode
 
         private static readonly string[] TransientPrefabPaths =
         {
-            "Assets/Prefabs/Weapons/Laser.prefab",
-            "Assets/Prefabs/Weapons/TurboLaser.prefab",
-            "Assets/Prefabs/Weapons/RipperSlug.prefab",
-            "Assets/Prefabs/Weapons/ChargeBolt.prefab",
-            "Assets/Prefabs/Weapons/MissileProjectile.prefab",
-            "Assets/Prefabs/Weapons/GrenadeCharge.prefab",
-            "Assets/Prefabs/Weapons/ConcussionWave.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/Laser.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/TurboLaser.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/RipperSlug.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/ChargeBolt.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/GrenadeCharge.prefab",
+            "Assets/Prefabs/Weapons/Projectiles/ConcussionWave.prefab",
             "Assets/Prefabs/Asteroid/Asteroid3D.prefab",
             "Assets/Prefabs/Ships/Vanguard.prefab",
             "Assets/Prefabs/Weapons/Railgun.prefab",

@@ -1,7 +1,7 @@
 # Laser bolt
 
 The base laser's projectile visual: a short, cel-banded blue bolt whose torn edges
-crackle by changing shape. Shipped on `Prefabs/Weapons/Laser.prefab` (child `Bolt`),
+crackle by changing shape. Shipped on `Prefabs/Weapons/Projectiles/Laser.prefab` (child `Bolt`),
 from `Assets/Visuals/Vfx/LaserBolt/`. Worked example for the `aesthetic-authoring`
 skill; the rejected approaches and their reasons are in the PR that shipped it,
 [#767](https://github.com/amindell11/astronomical-home/pull/767).
