@@ -364,7 +364,7 @@ namespace Asteroids.Fields
                 spec.AngularVelocity);
 
             var pose = new Pose(ToWorld(spec.PlanePosition), spec.Rotation);
-            var ast = AsteroidSpawner.Spawn(pose, attrs);
+            var ast = AsteroidSpawner.Spawn(pose, attrs, Model.Layout.BreakSeedFor(spec.Id));
             if (spec.HealthFraction < 1f) ast.Damage?.ApplyHealthFraction(spec.HealthFraction);
 
             Track(ast, spec.Id, chunk);

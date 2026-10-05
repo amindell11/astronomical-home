@@ -3,6 +3,7 @@ using System.Linq;
 using Asteroids.Fields.Core;
 using NUnit.Framework;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {

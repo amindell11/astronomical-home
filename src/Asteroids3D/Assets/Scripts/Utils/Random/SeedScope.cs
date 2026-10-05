@@ -1,4 +1,4 @@
-namespace Ships.Command
+namespace Utils
 {
     /// <summary>
     /// An immutable, reproducible seed namespace for one agent. A per-agent root scope is split into

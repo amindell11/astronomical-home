@@ -3,6 +3,7 @@ using System.Linq;
 using Asteroids.Fragnetics;
 using NUnit.Framework;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -10,6 +11,7 @@ namespace Tests.EditMode
     public class FragneticsCalculatorEditModeTests
     {
         private AsteroidFragSettings asteroidFragSettings;
+        private DeterministicRandom rng;
 
         [SetUp]
         public void SetUp()
@@ -28,7 +30,7 @@ namespace Tests.EditMode
             asteroidFragSettings.randomBias = 0.0f; // remove randomness from directions for predictability
             asteroidFragSettings.massLossFactor = 0.8f;
 
-            Random.InitState(123456); // make Random deterministic per test run
+            rng = new DeterministicRandom(123456);
         }
 
         [TearDown]
@@ -52,7 +54,7 @@ namespace Tests.EditMode
                 position: Vector3.zero,
                 inertiaTensor: new Vector3(2f, 2f, 2f));
 
-            var frags = calc.GenerateFragments(astData);
+            var frags = calc.GenerateFragments(astData, ref rng);
 
             Assert.That(frags.Length, Is.GreaterThanOrEqualTo(asteroidFragSettings.minFragments));
             Assert.That(frags.Length, Is.LessThanOrEqualTo(asteroidFragSettings.maxFragments));
@@ -119,11 +121,11 @@ namespace Tests.EditMode
                 velocity: new Vector3(1, 0, 0),
                 position: Vector3.zero,
                 inertiaTensor: Vector3.one * 2f);
-            var frags = calc.GenerateFragments(astData);
+            var frags = calc.GenerateFragments(astData, ref rng);
 
             var hit = new HitData(5f, new Vector3(3f, 0, 0), astData.Position + new Vector3(0.2f, 0.1f, 0));
 
-            calc.CalculatePlaceholderPhysics(astData, hit, frags);
+            calc.CalculatePlaceholderPhysics(astData, hit, frags, ref rng);
 
             // delta v should be on the order of baseSeparationSpeed
             float avgDelta = frags.Select(f => (f.Velocity - astData.Velocity).magnitude).Average();
@@ -149,10 +151,10 @@ namespace Tests.EditMode
                 inertiaTensor: new Vector3(3f, 2f, 5f));
             var hit = new HitData(8f, new Vector3(-5f, 2f, 1f), astData.Position + new Vector3(0.3f, 0.2f, -0.4f));
 
-            var frags = calc.GenerateFragments(astData);
+            var frags = calc.GenerateFragments(astData, ref rng);
             var momentum = calc.CalculateInitialMomentum(astData, hit);
 
-            var co = calc.CoCalculateFragmentPhysics(astData, hit, frags, momentum, null);
+            var co = calc.CoCalculateFragmentPhysics(astData, hit, frags, momentum, null, ref rng);
             RunToEnd(co);
 
             // Linear momentum sum after correction should match initial momentum
@@ -201,7 +203,7 @@ namespace Tests.EditMode
                 velocity: Vector3.zero,
                 position: Vector3.zero,
                 inertiaTensor: Vector3.one * 2f);
-            var baseFrags = calc.GenerateFragments(astData);
+            var baseFrags = calc.GenerateFragments(astData, ref rng);
             var frags1 = CloneFrags(baseFrags);
             var frags2 = CloneFrags(baseFrags);
 
@@ -211,11 +213,11 @@ namespace Tests.EditMode
             var momSlow = calc.CalculateInitialMomentum(astData, hitSlow);
             var momFast = calc.CalculateInitialMomentum(astData, hitFast);
 
-            Random.InitState(987654);
-            var co1 = calc.CoCalculateFragmentPhysics(astData, hitSlow, frags1, momSlow, null);
+            var rng1 = new DeterministicRandom(987654);
+            var co1 = calc.CoCalculateFragmentPhysics(astData, hitSlow, frags1, momSlow, null, ref rng1);
             RunToEnd(co1);
-            Random.InitState(987654);
-            var co2 = calc.CoCalculateFragmentPhysics(astData, hitFast, frags2, momFast, null);
+            var rng2 = new DeterministicRandom(987654);
+            var co2 = calc.CoCalculateFragmentPhysics(astData, hitFast, frags2, momFast, null, ref rng2);
             RunToEnd(co2);
 
             // Measure dispersion speeds in the center-of-mass frame to remove uniform momentum correction
@@ -234,8 +236,55 @@ namespace Tests.EditMode
             Assert.That(ratio, Is.EqualTo(expectedRatio).Within(0.35f * expectedRatio));
         }
 
+        [Test]
+        public void SameBreakSeed_SameFragments_RegardlessOfGlobalRandomDraws()
+        {
+            asteroidFragSettings.randomBias = 0.5f;
+            asteroidFragSettings.spinVariation = 1f;
+            var calc = new Calculator(asteroidFragSettings);
+            var astData = new AsteroidData(
+                mass: 100f,
+                rotation: Quaternion.identity,
+                angularVelocity: new Vector3(0.1f, 0f, 0.2f),
+                velocity: new Vector3(1f, 0f, 0f),
+                position: Vector3.zero,
+                inertiaTensor: Vector3.one * 2f);
+            var hit = new HitData(5f, new Vector3(10f, 0f, 0f), astData.Position + new Vector3(-0.5f, 0f, 0f));
+
+            Random.InitState(1);
+            var (quiet, quietChildSeed) = Break(calc, astData, hit, 4242u, interleaveGlobalDraws: false);
+            Random.InitState(2);
+            var (noisy, noisyChildSeed) = Break(calc, astData, hit, 4242u, interleaveGlobalDraws: true);
+
+            Assert.That(noisy.Length, Is.EqualTo(quiet.Length));
+            for (var i = 0; i < quiet.Length; i++)
+            {
+                Assert.AreEqual(quiet[i].Mass, noisy[i].Mass);
+                Assert.AreEqual(quiet[i].Position, noisy[i].Position);
+                Assert.AreEqual(quiet[i].Rotation, noisy[i].Rotation);
+                Assert.AreEqual(quiet[i].Velocity, noisy[i].Velocity);
+                Assert.AreEqual(quiet[i].Spin, noisy[i].Spin);
+            }
+            Assert.AreEqual(quietChildSeed, noisyChildSeed, "The stream must end in the same state, so fragment seeds match too.");
+        }
+
         // Helpers
-        // (no GameObject helpers needed)
+
+        private static (Frag[] frags, uint childSeed) Break(
+            Calculator calc, AsteroidData ast, HitData hit, uint breakSeed, bool interleaveGlobalDraws)
+        {
+            var stream = new DeterministicRandom(breakSeed);
+            var frags = calc.GenerateFragments(ast, ref stream);
+            if (interleaveGlobalDraws) _ = Random.value;
+            calc.CalculatePlaceholderPhysics(ast, hit, frags, ref stream);
+            if (interleaveGlobalDraws) _ = Random.insideUnitSphere;
+            var co = calc.CoCalculateFragmentPhysics(ast, hit, frags, calc.CalculateInitialMomentum(ast, hit), null, ref stream);
+            while (co.MoveNext())
+            {
+                if (interleaveGlobalDraws) _ = Random.value;
+            }
+            return (frags, stream.NextUInt());
+        }
 
         private static Frag[] CloneFrags(Frag[] source)
         {

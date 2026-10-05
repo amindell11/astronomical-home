@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 
 namespace Asteroids.Fields.Core
 {
@@ -106,6 +107,7 @@ namespace Asteroids.Fields.Core
     public class AsteroidFieldLayout
     {
         private const int MaxOctaves = 8;
+        private const int BreakStreamSalt = 233;
 
         private readonly int seed;
         private readonly FieldGenerationParams p;
@@ -339,6 +341,9 @@ namespace Asteroids.Fields.Core
 
         private DeterministicRandom RngFor(AsteroidId id) =>
             new(DeterministicRandom.Hash(seed, id.CellX, id.CellY, id.Index));
+
+        /// <summary>Seeds the rock's fragmentation stream, salted apart from its attribute stream.</summary>
+        public uint BreakSeedFor(AsteroidId id) => DeterministicRandom.Hash(seed, id.GetHashCode(), BreakStreamSalt);
 
         /// <summary>
         /// Regenerates one baseline asteroid purely from its stable ID — the
