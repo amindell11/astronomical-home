@@ -12,7 +12,9 @@ Nothing here merges to main. Started under issue #869.
 | concept | [2026-10-05 round 4](concept/2026-10-05-r04/) | Mechanical surface variants. H missed the width constraint; I added an unwanted second pair. Both shown, then corrected. |
 | concept | [2026-10-05 round 5](concept/2026-10-05-r05/) | J started from D but still inherited G's excessive width. Shown, then corrected with a drawn width guide. |
 | concept | [2026-10-05 round 6](concept/2026-10-05-r06/) | Owner liked K's shape; asked for a slightly larger and less armored pair. |
-| concept | [2026-10-05 round 7](concept/2026-10-05-r07/) | L enlarges and simplifies K's rear pair; awaiting top-view approval before turnaround. |
+| concept | [2026-10-05 round 7](concept/2026-10-05-r07/) | L rejected: lost K's nuance. Next edit returns directly to K and omits the guide. |
+| concept | [2026-10-05 round 8](concept/2026-10-05-r08/) | M edits K directly through Gemini; retained detail but barely changed tail size or armor. |
+| concept | [2026-10-05 round 9](concept/2026-10-05-r09/) | N edits K with the built-in image editor, as authorized by the owner. Top-view review pending. |
 
 The original Nightshade concept is on main at
 `art/ships/nightshade/concepts/jan272026122322Am.png`.
