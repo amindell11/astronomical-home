@@ -1,0 +1,20 @@
+{
+  "source": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx",
+  "texture": "src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Nightshade_Albedo.png",
+  "prefab_scale_xyz": [
+    127,
+    110,
+    180
+  ],
+  "blender_proportion_xyz": [
+    1,
+    1,
+    1
+  ],
+  "views": [
+    "top",
+    "side",
+    "quarter"
+  ],
+  "note": "Imported current mesh; embedded lights omitted. Geometry unchanged; native FBX proportions; nonuniform prefab scale omitted for concept reference. Reference lighting differs from Unity."
+}

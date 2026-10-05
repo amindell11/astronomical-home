@@ -1,0 +1,108 @@
+{
+  "output": "nightshade-a-top.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdvQ25FYXR6cktadXN6N0lQa3NHbDRRcxIXb0NuRWF0enJLWnVzejdJUGtzR2w0UXM",
+  "created_utc": "2026-10-05T22:50:06+00:00",
+  "prompt": "Create ONE production-design concept image: NIGHTSHADE, a spaceship, strict orthographic TOP VIEW, nose pointing UP, centered on a quiet warm light gray background, generous margin, no text. This is a concept translation of an existing hull into a bold hand-drawn game art style, not a new generic spaceship.\n\nREFERENCE ROLES, IN ORDER:\nImage 1: actual existing Nightshade mesh TOP, object geometry reference. In this capture the blue canopy and nose are at the BOTTOM and the rear inner fork at the TOP. Rotate the design 180 degrees for the output, keeping the canopy toward the top. Preserve its long narrow body, two broad curved swept wings with long tapering aft ends, small inner magenta-tipped fins, and open channels between the body and wings. The mesh reference governs proportions except the requested rear tail redesign.\nImage 2: actual Nightshade mesh SIDE, object volume reference. Preserve its shallow, slender side profile with a slightly raised canopy. It must be a believable 3D hull, not a flat sticker. No bulky cruiser superstructure.\nImage 3: actual Nightshade mesh three-quarter, object volume reference. Preserve the curved wing roots and thin wing plates.\nImage 4: original Nightshade image, object and palette reference. Preserve dark slate-blue hull, vivid magenta accents concentrated at outer wing tips and small inner fins, blue-violet glass canopy. This is Nightshade's identity, not ivory or white. Simplify the shiny rendering into broad hand-painted light and shadow planes.\nImage 5: VALIS top concept, STYLE AND DIFFERENTIATION ONLY. Borrow its confident selective ink contour, simple dimensional shading and legible major color regions. Do NOT borrow Valis's white palette, layered straight blade wings, blunt black canopy, or long parallel straight rear fork.\n\nOWNER'S SHAPE CHANGE: the two INNER REAR TAIL PRONGS behind Nightshade's fuselage must look clearly different from Valis. Replace their long nearly parallel pointed ends with a pair of SHORTER, WIDER, OUTWARD-SPLAYED HOOKED STABILIZERS. Their roots still run either side of the tapered central aft body. Each ends in a deliberate broad faceted outward-facing barb, forming an OPEN V negative space, no tips converging, no straight tuning-fork silhouette. Keep these two tails distinct from the long OUTER WING trailing tips, which retain Nightshade's silhouette and magenta accents. Bilateral symmetry. Clean structural logic and a few strong overlapping planes. Make the short hooked rear pair obvious in the top silhouette at 100 pixels.\n\nHand-drawn spacecraft house style: expressive clean dark ink at silhouette and important overlaps, broad slate-blue local colors, simple two or three sculptural shade planes, restrained edge highlights and glass highlight. Avoid tiny panel greebles, photorealistic metallic gloss, dense uniform panel linework, weapons added to the hull, engines firing, bloom, stars, scenery or lettering. Show the complete ship, one view only, no cropped parts.\n\nOWNER PROPORTION CORRECTION: the supplied mesh captures use the native FBX proportions, with the legacy prefab's length stretch removed. Keep the broad wing span and a compact body; do not elongate the whole ship into a narrow dart. You may broaden the wing span further toward the original illustrated reference. Native mesh top still has the canopy at the bottom; output nose must point up.\n",
+  "parent": null,
+  "references": [
+    {
+      "path": "results/nightshade-concept/concept/2026-10-05-r01/references/native/mesh-top.png",
+      "sha256": "4f9491d2beb6a8a5f3b3ad937b77e7c8847d174ba0f87ea1970d45bf3d783aec"
+    },
+    {
+      "path": "results/nightshade-concept/concept/2026-10-05-r01/references/native/mesh-side.png",
+      "sha256": "fcee4da6afe4a6e11521ac0c751cae23cdd80db718ac22f738e143841834a894"
+    },
+    {
+      "path": "results/nightshade-concept/concept/2026-10-05-r01/references/native/mesh-quarter.png",
+      "sha256": "8ddeba0720894982aaa1061515f368308fd110fe28ebb8e5c965b65a999ed458"
+    },
+    {
+      "path": "art/ships/nightshade/concepts/jan272026122322Am.png",
+      "sha256": "0e38bd37b7a2591ca01d3633b3d726aff2cc0c4be5fcb635417588d8ec7eac7c"
+    },
+    {
+      "path": "art/ships/valis/concepts/valis-top.png",
+      "sha256": "4fa455a98397383256c3c6def9ed89325cad84d0d9f23a1d7abe28bf537080ef"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "1:1",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 5600
+      },
+      {
+        "modality": "text",
+        "tokens": 712
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 6312,
+    "total_output_tokens": 2220,
+    "total_thought_tokens": 0,
+    "total_tokens": 8532,
+    "total_tool_use_tokens": 0,
+    "raw_prompt_token": 6809,
+    "model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1209
+          },
+          {
+            "modality": "image",
+            "tokens": 5600
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 542
+          }
+        ]
+      }
+    ],
+    "non_grounding_model_invocation_token_counts": [
+      {
+        "prompt_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 1209
+          },
+          {
+            "modality": "image",
+            "tokens": 5600
+          }
+        ],
+        "candidates_tokens_details": [
+          {
+            "modality": "text",
+            "tokens": 542
+          }
+        ]
+      }
+    ]
+  },
+  "model_text": ""
+}
