@@ -1,0 +1,23 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-05T23:37:09.230683+00:00",
+  "prompt": "Use case: precise-object-edit.\nEdit this Nightshade turnaround sheet. The owner LOVES the SIDE and THREE-QUARTER drawings: preserve those two drawings, their labels, layout, dimensions, colors, background, linework and shapes exactly. Change ONLY the drawing at bottom left labelled FRONT, keeping its label and location.\n\nReplace that erroneous high-angle front drawing with a TRUE STRAIGHT-ON ORTHOGRAPHIC FRONT view derived from the preserved side and three-quarter drawings. Camera is level with the ship's nose, looking directly along its longitudinal axis from nose toward tail, zero downward camera angle. The ship is a shallow broad craft with thin wing cross-sections and low hull thickness as shown by the side view. The nose and shallow blue-violet canopy face the viewer centrally. The long aft fuselage and tails are foreshortened behind the nose and largely occluded, NOT presented running downward toward the viewer. Do NOT show a top view disguised as front.\n\nMake a bilaterally symmetric low wide frontal silhouette with the broad curved wing span extending left/right, slight vertical shaping consistent with the other views, magenta outer tips and small inner fin tips where visible. Show the canopy as a shallow curved blue-violet dome with its front profile, dark slate faceted hull underneath, and appropriate dark underside. Keep the same clean shaded dimensional illustration and palette. The corrected front's shallow vertical thickness must agree with the SIDE view. No new appendages, no extra fins, no new features. Preserve all pixels outside the bottom-left FRONT drawing area as closely as possible. Output the full same turnaround sheet with only that corrected front drawing.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "edit target P; preserve side and quarter; replace front",
+      "path": "C:\\Users\\amind\\.codex\\generated_images\\01a10e3a-39f9-7e51-a1fe-cfc15495e311\\exec-ed644b40-7359-4c75-8d08-1387926460cf.png",
+      "sha256": "99ac6107c96cd5a026616c480f6148f8065dfeb637146674afe6b93d11d7300e"
+    }
+  ],
+  "generated_source": "C:\\Users\\amind\\.codex\\generated_images\\01a10e3a-39f9-7e51-a1fe-cfc15495e311\\exec-3e6ab4b2-1ef6-4836-a944-8ecd50788320.png",
+  "output": {
+    "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r12\\nightshade-q-turnaround.png",
+    "sha256": "baa75eecbb4e64ab14d2b30e1cf905727d4f89bf215e8dbd634c0bafe5cae08b",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  }
+}

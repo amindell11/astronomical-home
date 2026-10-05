@@ -1,0 +1,33 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-05T23:37:09.151978+00:00",
+  "prompt": "Use case: stylized-concept.\nCreate a Nightshade spaceship concept TURNAROUND sheet showing the same proposed hull in three views: a true orthographic LEFT SIDE profile across the upper half (nose facing left), a true orthographic FRONT view at lower left (looking straight at the nose), and a clear FRONT THREE-QUARTER view at lower right (looking down enough to read both wings and the curved tail pair). Plain light gray background, ample spacing, no overlaps, no cropping. Small labels exactly \"SIDE\", \"FRONT\", \"THREE-QUARTER\". Draw the ship, not a schematic.\n\nImage 1 is the controlling design and illustration-style reference: concept O. Preserve its silhouette, wing sweep, blue-violet oval forward canopy, dark slate hull, magenta outer wing tips and small inner fin tips, tapered aft central fuselage, and exactly ONE pair of curved sculpted inner rear tail blades with separated pointed ends and a central open gap. The tail pair is compact near the centerline; do not revert to the old straight fork. Preserve O's carved/beveled organic-mechanical detail and subdued armor.\n\nImage 2 is a SIDE reference of the EXISTING native mesh, nose left. Use it only for the shallow hull thickness, low canopy/keel volume, thin swept wing sections and relative vertical levels; NOT for the legacy tail design, rough mesh artifacts or texture defects.\nImage 3 is a THREE-QUARTER reference of the EXISTING native mesh, nose near lower left. Use it only for spatial relationships and shallow volumes; Image 1 overrides its shape and finish.\nAll three new views must agree as one plausible shallow spacecraft: curved tails primarily curve in the horizontal plane with a subtle sculpted thickness, solid mechanical attachment roots, thin wings, modest canopy dome. Keep the ship's native broad compact proportions, no stretching its body length. In the front view show a symmetric low broad wing span and centered low blue-violet canopy; in the quarter view make O's central open tail gap and both pointed tails readable through correct perspective. Match O's clean shaded dimensional concept illustration, not photorealism. Do not add turrets, engines, antennas, extra fins, extra tail branches, bulky stacked armor or high vertical fins. This is a faithful visualization of O from new viewpoints, not a redesign.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "controlling O design and style",
+      "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r10\\nightshade-o-top.png",
+      "sha256": "3bfb6d86805f97a71b97c5a57125c11e6d96d772c36085dd57636f67965693d1"
+    },
+    {
+      "role": "native mesh side volume only",
+      "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r01\\references\\native\\mesh-side.png",
+      "sha256": "fcee4da6afe4a6e11521ac0c751cae23cdd80db718ac22f738e143841834a894"
+    },
+    {
+      "role": "native mesh quarter volume only",
+      "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r01\\references\\native\\mesh-quarter.png",
+      "sha256": "8ddeba0720894982aaa1061515f368308fd110fe28ebb8e5c965b65a999ed458"
+    }
+  ],
+  "generated_source": "C:\\Users\\amind\\.codex\\generated_images\\01a10e3a-39f9-7e51-a1fe-cfc15495e311\\exec-ed644b40-7359-4c75-8d08-1387926460cf.png",
+  "output": {
+    "path": "D:\\amind\\git\\agent-2\\results\\nightshade-concept\\concept\\2026-10-05-r11\\nightshade-p-turnaround.png",
+    "sha256": "99ac6107c96cd5a026616c480f6148f8065dfeb637146674afe6b93d11d7300e",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  }
+}
