@@ -431,7 +431,9 @@ waiting: a re-run `merge` arrives at the back of the line.
 `./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
 saw (usually the one on its `MERGE=` line). Every session acts as the same
 GitHub account, so `land` checks that a record exists and covers the landing
-tree, not who wrote it: record only an instruction the user gave you. A
+tree, not who wrote it: record only an instruction the user gave you. The user
+may also type one on the PR (`Merge instruction: <sha7>`, the head off its
+*decisions view* row); a session records only through `instruct`. A
 recorded instruction survives a docs-only or C#-comment-only delta (`land`
 decides, with the merge gate's inert classifier); any other delta needs a new
 one. `land` refuses a PR with an unresolved review thread, so it takes no
@@ -491,7 +493,9 @@ build*, runs in a subagent. Start prompt:
    two fix rounds: post the question on the issue in the one-short question
    format (`.claude/skills/issue-triage/comment-formats.md`), naming the pushed
    branch; swap `ready-for-agent` for `ready-for-human`;
-   `./scripts/drain_pick.sh release <issue>`; go on to the next item.
+   `./scripts/drain_pick.sh release <issue>`; go on to the next item. The
+   question reaches the *decisions view* by itself; the label swap only takes
+   the issue out of `pick`.
 8. **Parent, once every PR is open:** check the batch's branches pairwise for
    conflicts and write the `## Merge order` lines (Step 4); run
    `./scripts/drain_pick.sh merge-queue --no-class`, fixing the bodies until no

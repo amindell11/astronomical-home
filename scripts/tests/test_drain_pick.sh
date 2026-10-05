@@ -8,8 +8,9 @@ set -euo pipefail
 # two writes, release, every owed verdict and the tried rule, result's line, tick and refusals,
 # the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists,
 # merge-queue and digest without GraphQL (--no-class, and the exit 1 without it), instruct's
-# checks and record, and land-facts' readings of the record, Codex's review, threads and merge
-# order. gh is a stub serving REST lists 100 rows a page; every call it does not model fails
+# checks and record, land-facts' readings of the record, Codex's review, threads and merge
+# order, the typeable record, and decision's question, tried, eyes and merge parts, their join
+# and cap. gh is a stub serving REST lists 100 rows a page; every call it does not model fails
 # closed, and every GraphQL call fails while $FIX/no-graphql exists.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,6 +38,7 @@ case "$args" in
   "api repos/owner/repo/issues?"*) page "$FIX/issues.txt" ;;
   "api repos/owner/repo/issues/"*"/comments?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/comments-${n%%/*}.jsonl" ;;
   "api repos/owner/repo/issues/"*"/reactions?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/reactions-${n%%/*}.jsonl" ;;
+  "api repos/owner/repo/issues/"*"pull_request != null"*) n="${args#api repos/owner/repo/issues/}"; cat "$FIX/item-${n%% *}.tsv" ;;
   "api repos/owner/repo/issues/"*"assignees"*) cat "$FIX/assignees.txt" ;;
   "api repos/owner/repo/issues/"*"labels"*) cat "$FIX/labelled.txt" ;;
   "api repos/owner/repo/pulls?state=open&"*) page "$FIX/open.txt" ;;
@@ -44,6 +46,7 @@ case "$args" in
   "api repos/owner/repo/pulls/"*"/files?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/files-${n%%/*}.txt" ;;
   "api repos/owner/repo/pulls/"*"/commits?"*) n="${args#api repos/owner/repo/pulls/}"; page "$FIX/commits-${n%%/*}.txt" ;;
   "api repos/owner/repo/pulls/"*"[.state, .base.ref]"*) n="${args#api repos/owner/repo/pulls/}"; cat "$FIX/pull-${n%% *}.tsv" ;;
+  "api repos/owner/repo/pulls/"*"isDraft"*) n="${args#api repos/owner/repo/pulls/}"; grep "^${n%% *} " "$FIX/open.txt" ;;
   "api repos/owner/repo/pulls/"*) cat "$FIX/pr.json" ;;
   "api graphql "*"pullRequest(number"*) cat "$FIX/pr-graphql.json" ;;
   "api repos/owner/repo/commits/"*"/statuses?"*) c="${args#api repos/owner/repo/commits/}"; page "$FIX/statuses-${c%%/*}.jsonl" ;;
@@ -105,8 +108,9 @@ PRS=()
 # Assigned apart from `local`: Git Bash drops CR inside `local a=(…)`, so CRLF bodies would arrive as LF.
 pr() { local a; a=("$@" "" "" "" "" "" "" "" ""); PRS+=("${a[@]:0:10}"); }
 # One python spawn per write: open.txt and the per-PR files are the views' REST reads (each status
-# newest first, over an older one it outranks), threads.json their GraphQL read, pr.json the first
-# PR alone over REST, pr-graphql.json the first PR beside every PR's number (land-facts).
+# newest first, over an older one it outranks; open.txt's row is also decision's PR read),
+# threads.json their GraphQL read, pr.json the first PR alone over REST, pr-graphql.json the first
+# PR beside every PR's number (land-facts).
 write_prs() {
   python3 - "$FIX" "$SHA" "$OLD" "${PRS[@]:-}" <<'PY'
 import json, sys
@@ -114,7 +118,7 @@ fix, head, old, fields = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
 nodes = []
 open_rows = []
 def rows(name, lines):
-    with open(f"{fix}/{name}", "w", encoding="utf-8") as out:
+    with open(f"{fix}/{name}", "w", encoding="utf-8", newline="\n") as out:
         out.writelines(f"{line}\n" for line in lines)
 for number, body, draft, paths, statuses, changed, title, comments, unresolved, flags in zip(*[iter(fields)] * 10):
     paths = [p for p in paths.split(",") if p]
@@ -129,7 +133,8 @@ for number, body, draft, paths, statuses, changed, title, comments, unresolved, 
       "reactions": {"nodes": eyes}})
     view_head = f"{head[:7]}{int(number):033d}"
     open_rows.append(f"{number} {view_head} " + json.dumps({"number": int(number), "title": title or f"title {number}",
-      "isDraft": bool(draft), "headRefOid": view_head, "body": body}, ensure_ascii=False))
+      "isDraft": bool(draft), "headRefOid": view_head, "base": "main", "body": body}, ensure_ascii=False))
+    rows(f"item-{number}.tsv", ["open\ttrue"])
     rows(f"files-{number}.txt", paths)
     rows(f"commits-{number}.txt", [old, view_head])
     newest = [dict(zip(("context", "state"), s.lower().split("="))) for s in statuses.split(",") if s]
@@ -166,7 +171,8 @@ skip_of() { grep "^SKIP=$1 " | cut -d' ' -f2-; }
 # --- usage -----------------------------------------------------------------------------------
 reset
 for bad in "" "frob" "pick --force" "claim" "claim abc" "claim 12 lease" "release" "release abc" "owed" "owed abc" \
-    "verify-queue 12" "verify-queue --no-class" "merge-queue 12" "merge-queue --no-class 12" "digest 12" "digest --class"     "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123"     "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed"     "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x"     "result 12@abc1234 1 passed x y"; do
+    "verify-queue 12" "verify-queue --no-class" "merge-queue 12" "merge-queue --no-class 12" "digest 12" "digest --class"     "instruct" "instruct 12" "instruct 12@xyz1234" "instruct 12@abc123"     "instruct 12@abc1234 13" "land-facts" "land-facts abc" "land-facts 12 13" "result" "result 12@abc1234 1 passed"     "result 12 1 passed x" "result 12@abc123 1 passed x" "result 12@abc1234 0 passed x" "result 12@abc1234 1 ok x"     "result 12@abc1234 1 passed x y" \
+    "decision" "decision abc" "decision 12 13"; do
   rc=0; bash "$DRAIN" $bad > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 2 ]] || fail "'$bad' should exit 2 (got $rc)"
 done
@@ -530,9 +536,9 @@ facts_are() {
 }
 facts() { printf 'OWED=none\nINSTRUCTION=%s\nREVIEW=%s\nUNRESOLVED=%s\nAFTER=402' "$@"; }
 reset
-facts_are "the latest record by the author wins; a stranger's, a short SHA and no date are no record; a Completed row names the commit reviewed; threads count unresolved; a constraint on a PR no longer open is dead" \
+facts_are "the latest record by the author wins; a stranger's record and text after the SHA are no record; a Completed row names the commit reviewed; threads count unresolved; a constraint on a PR no longer open is dead" \
   "$(facts "$SHA" "completed $SHA" 2)" \
-  "[$(rec 1 "$OLD"),$(rec 2 "$SHA"),$(note stranger "Merge instruction 2026-10-03: \`$OLD\`"),$(note amindell11 "Merge instruction 2026-10-04: \`76b9204\`"),$(note amindell11 "Merge instruction: \`$OLD\`"),$(codex "$DONE" '`76b9204`')]" 2
+  "[$(rec 1 "$OLD"),$(rec 2 "$SHA"),$(note stranger "Merge instruction 2026-10-03: \`$OLD\`"),$(note amindell11 "Merge instruction: \`$OLD\` once CI is green"),$(codex "$DONE" '`76b9204`')]" 2
 facts_are "the latest record names nothing when its commit is not the PR's; a review of an older commit names that commit" \
   "$(facts none "completed $OLD" 0)" "[$(rec 1 "$SHA"),$(rec 2 "$C3"),$(codex "$DONE" '`0f12fee`')]"
 facts_are "a status other than Completed is a running review; a thread past the first 100 counts as unresolved" \
@@ -583,5 +589,87 @@ grep -q "owed:none, instructed, class$" <<<"$classed" || fail "digest lists the 
 touch "$FIX/no-graphql"
 view digest --no-class
 [[ "$out" == "${classed/, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
+
+# --- the typeable record: instruction() through merge-queue's instructed fact ----------------------
+reset
+pr 801 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction: 0f12fee')]"
+pr 802 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction: `0F12FEE0`')]"
+pr 803 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction 2026-10-04: 0f12fee')]"
+pr 804 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction: abcdef1')]"
+pr 805 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction: 0f12fee thanks')]"
+pr 806 "$NONE" "" src/a.cs "" "" "" "[$(note amindell11 'Merge instruction: 0f12fee')]"
+write_prs
+echo 0f12fee9123456789abcdef0123456789abcdef0 >> "$FIX/commits-806.txt"
+view merge-queue --no-class
+want="MERGE=801 @ owed:none,instructed
+MERGE=802 @ owed:none,instructed
+MERGE=803 @ owed:none,instructed
+MERGE=804 @ owed:none
+MERGE=805 @ owed:none
+MERGE=806 @ owed:none"
+[[ "$out" == "$(heads "$want")" ]] || fail "a 7-hex prefix records with or without backticks, date or lower case; one naming no commit, two commits, or with text after it is none (got: $out)"
+
+# --- decision: a question and its ruling on an issue -----------------------------------------------
+# asked <n> <open|closed> <comment JSON>…: an issue as decision reads it
+asked() { local n="$1"; printf '%s\tfalse\n' "$2" > "$FIX/item-$n.tsv"; shift 2; printf '%s\n' "$@" > "$FIX/comments-$n.jsonl"; }
+decided() {
+  out="$(bash "$DRAIN" decision "$1" 2>/dev/null)" || fail "decision $1 exits 0 (got: $out)"
+  [[ "$out" == "DECISION=$1 $2" ]] || fail "$3 (got: $out)"
+  [[ ! -s "$GH_WRITE_LOG" ]] || fail "decision must write nothing"
+}
+Q="$(note amindell11 'Question 2026-10-04: Cache or recompute?\nOptions: cache · recompute\nRecommendation: recompute\nEvidence: #1')"
+BARE="$(note amindell11 'Question 2026-10-04: Cache or recompute?')"
+reset
+asked 701 open "$Q"
+decided 701 "Cache or recompute? — rec: recompute" "an open question gives its text and its recommendation"
+asked 702 open "$(note stranger 'hello')" "$BARE"
+decided 702 "Cache or recompute?" "a question with no Recommendation line gives its text alone"
+asked 703 open "$Q" "$(note amindell11 'Ruled 2026-10-04 (user, triage scoping): recompute')"
+decided 703 none "a dated ruling ends the question"
+asked 704 open "$Q" "$(note amindell11 'Ruled: recompute')"
+decided 704 none "Ruled: ends the question"
+asked 705 open "$Q" "$(note amindell11 'Ruled out the cache theory first')" \
+  "$(note amindell11 'Repri proposal 2026-10-04: pri:none → pri:next')" "$(note stranger 'Ruled: recompute')"
+decided 705 "Cache or recompute? — rec: recompute" "Ruled out, a Repri proposal and a stranger's ruling leave the question open"
+asked 706 open "$(note stranger 'Question 2026-10-04: Cache or recompute?')"
+decided 706 none "a stranger's question is none"
+asked 707 open "$Q" "$(note amindell11 'Ruled: recompute')" "$(note amindell11 'Question 2026-10-05: Which cache size?')"
+decided 707 "Which cache size?" "a question after a ruling is open again"
+asked 708 closed "$Q"
+decided 708 none "a closed item is none"
+
+# --- decision: a pipeline PR's tried, eyes and merge parts -----------------------------------------
+H7="${SHA:0:7}"
+reset
+pr 711 "${OWED}"$'- [ ] unity: boot\n  Run at `76b9204`: failed — red\n- [ ] script: suite\n  Run at `0f12fee`: failed — red\n- [ ] eyes: look\n- [ ] eyes: look again\n' \
+  "" "" "" "" "" "[$BARE]"
+pr 712 "$NONE"
+pr 713 "$NONE" "" "" "" "" "" "[$(note amindell11 'Merge instruction: 76B9204')]"
+pr 714 "$NONE" "" "" "" "" "" "[$(rec 4 "$OLD")]"
+pr 715 "$NONE" draft
+pr 716 "$NONE" "" "" merge-proof/headless=FAILURE
+pr 717 "$NONE"$'\n## Merge order\n\nafter #712\n'
+pr 718 "no section" "" "" "" "" "" "[$BARE]"
+pr 719 "${OWED}"$'- [x] unity: boot\n  Run at `0f12fee`: passed — green\n'
+write_prs
+decided 711 "Cache or recompute? · tried at \`$H7\`: unity 1, script 0 · eyes: 2 to look at" "the question, then tried, then eyes"
+decided 712 "merge at \`$H7\`?" "nothing owed and no record asks for a merge"
+decided 713 none "a typed record naming the head ends the merge part"
+decided 714 "merge at \`$H7\`?" "a record naming an older commit still asks"
+decided 715 none "a draft asks nothing"
+decided 716 none "a hosted failure asks nothing"
+decided 717 none "a malformed merge order asks nothing"
+decided 718 "Cache or recompute?" "a PR with no owed-local section gives only its question"
+decided 719 "merge at \`$H7\`?" "a discharged PR asks for a merge, with a ticked item behind head"
+
+# --- decision: the cap -----------------------------------------------------------------------------
+# capped <n>: decision <n>'s line as "<characters> <UTF-8 bytes> <ends in …>"
+capped() {
+  bash "$DRAIN" decision "$1" 2>/dev/null | python3 -c 'import sys; l = sys.stdin.buffer.read().decode().rstrip("\n").split(" ", 1)[1]; print(len(l), len(l.encode()), l.endswith("…"))'
+}
+asked 720 open "$(note amindell11 "Question 2026-10-04: $(printf 'a%.0s' {1..400})")"
+[[ "$(capped 720)" == "300 302 True" ]] || fail "a long line is cut to 300 characters, the last one … (got: $(capped 720))"
+asked 721 open "$(note amindell11 "Question 2026-10-04: $(printf '🛰%.0s' {1..300})")"
+[[ "$(capped 721)" == "256 1023 True" ]] || fail "four-byte characters cut the line to the field's 1024 bytes (got: $(capped 721))"
 
 echo "PASS test_drain_pick.sh"
