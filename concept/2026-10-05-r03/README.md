@@ -4,6 +4,11 @@ Owner asked for rear prongs "a bit more curvy like symmetrical tendrils".
 D is the edit parent: its body, wings and canopy stay while the rear pair changes.
 Both candidates were shown in chat. No view is approved yet.
 
+Owner feedback: "Too flowy, g is closer, but they go out too wide, and they should
+preserve a bit more of the organic but mechanical feel of the wings".
+The next round uses G, narrows the pair and gives it rigid beveled surfaces and
+restrained changes of angle that echo the wings.
+
 | Candidate | Picture | Prompt | Provenance |
 | --- | --- | --- | --- |
 | F: outward S-curves | [top](nightshade-f-top.jpg) | [prompt](round3-f.prompt.txt) | [sidecar](nightshade-f-top.json) |
