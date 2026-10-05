@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Ships.Command;
+using Utils;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;

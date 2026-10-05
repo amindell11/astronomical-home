@@ -3,7 +3,7 @@ using AI;
 using AI.Scanning;
 using Combat.Weapons;
 using Ships;
-using Ships.Command;
+using Utils;
 using UnityEngine;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;

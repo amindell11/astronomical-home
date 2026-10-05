@@ -1,13 +1,14 @@
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Utils;
 
 namespace Asteroids.Spawning
 {
     /// <summary>
-    /// UnityEngine.Random-based attribute roller for the fragment path only —
-    /// fragments have no LUT home, and their rolled outcome is persisted in
-    /// the override overlay, so global randomness is acceptable here. The
-    /// baseline field draws everything from seeded per-asteroid streams
+    /// Attribute roller for the fragment path: the mesh pick draws from the
+    /// parent rock's break stream, so a fragment replays with its lineage, never
+    /// with global UnityEngine.Random order. Fragments have no LUT home; their
+    /// rolled outcome persists in the override overlay. The baseline field
+    /// draws from seeded per-asteroid streams
     /// (<see cref="Fields.Core.AsteroidFieldLayout"/>) instead.
     /// </summary>
     public class RandomAsteroidAttributeRoller
@@ -23,37 +24,14 @@ namespace Asteroids.Spawning
         /// Roll a fragment: random mesh, scale derived from the given mass,
         /// kinematics supplied by the fragmentation solver.
         /// </summary>
-        public AsteroidAttributes RollForMass(float mass, Vector3 velocity, Vector3 angularVelocity)
+        public AsteroidAttributes RollForMass(float mass, Vector3 velocity, Vector3 angularVelocity, ref DeterministicRandom rng)
         {
             var meshInfos = settings.meshInfos;
-            var meshIndex = meshInfos is { Length: > 0 } ? Random.Range(0, meshInfos.Length) : -1;
+            var meshIndex = meshInfos is { Length: > 0 } ? rng.RangeInt(meshInfos.Length) : -1;
             var meshInfo = meshIndex >= 0 ? meshInfos[meshIndex] : default;
-            var (finalMass, scale) = CalculateMassAndScale(meshInfo, mass);
-            return new AsteroidAttributes(meshInfo, meshIndex, finalMass, scale, velocity, angularVelocity);
-        }
-
-        private (float finalMass, float finalScale) CalculateMassAndScale(
-            AsteroidSpawnSettings.MeshInfo meshInfo, float? mass = null)
-        {
-            var baseVolume = meshInfo.cachedVolume;
-            var baseMass = baseVolume * settings.density;
-
-            return mass.HasValue ? ScaleFromMass() : MassFromScale();
-
-            (float finalMass, float finalScale) ScaleFromMass()
-            {
-                var factor = mass.Value / baseMass;
-                var finalScale = Mathf.Pow(factor, 1f / 3f);
-                return (mass.Value, finalScale);
-            }
-
-            (float finalMass, float finalScale) MassFromScale()
-            {
-                var factor = Random.Range(settings.massScaleRange.x, settings.massScaleRange.y);
-                var finalScale = Mathf.Pow(factor, 1f / 3f);
-                var finalMassComputed = baseMass * factor;
-                return (finalMassComputed, finalScale);
-            }
+            var baseMass = meshInfo.cachedVolume * settings.density;
+            var scale = Mathf.Pow(mass / baseMass, 1f / 3f);
+            return new AsteroidAttributes(meshInfo, meshIndex, mass, scale, velocity, angularVelocity);
         }
     }
 }

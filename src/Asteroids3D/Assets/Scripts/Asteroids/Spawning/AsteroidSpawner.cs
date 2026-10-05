@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using Substrate.Presentation;
 using UnityEngine;
+using Utils;
 
 namespace Asteroids.Spawning
 {
@@ -97,19 +98,20 @@ namespace Asteroids.Spawning
             Pool.ReleaseAsteroid(ast);
         }
 
-        public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs)
+        public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs, uint breakSeed)
         {
             var ast = SpawnAtPose(pose);
-            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.MeshIndex, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, lethalityScale);
+            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.MeshIndex, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, breakSeed, lethalityScale);
             registry.Register(ast);
             return ast;
         }
 
-        public AsteroidController SpawnFragment(Frag frag)
+        /// <summary>The fragment's break seed is drawn from its parent's stream: seeds follow lineage, not break order.</summary>
+        public AsteroidController SpawnFragment(Frag frag, ref DeterministicRandom parentBreakStream)
         {
             var pose = new Pose(frag.Position, frag.Rotation);
-            var attrs = AttributeProvider.RollForMass(frag.Mass, frag.Velocity, frag.Spin);
-            var ast = Spawn(pose, attrs);
+            var attrs = AttributeProvider.RollForMass(frag.Mass, frag.Velocity, frag.Spin, ref parentBreakStream);
+            var ast = Spawn(pose, attrs, parentBreakStream.NextUInt());
             OnFragmentSpawned?.Invoke(ast);
             return ast;
         }

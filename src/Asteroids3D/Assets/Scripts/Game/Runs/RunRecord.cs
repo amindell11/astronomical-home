@@ -110,15 +110,27 @@ namespace Game.Runs
                 spawns = new List<SpawnRow>(entries.Count),
             };
 
-            foreach (var row in ledger.Rows)
-                record.damage.Add(new DamageRow
+            // Re-aggregated from the hits, because a ledger row spans every life of its attacker.
+            var rowOf = new Dictionary<(ShipId, int, DamageKind), int>();
+            foreach (var hit in ledger.Hits)
+            {
+                var spawn = spawnLog.LifeAt(entries, hit.AttackerId, hit.Time);
+                if (!rowOf.TryGetValue((hit.AttackerId, spawn, hit.Kind), out var i))
                 {
-                    kind = row.Kind.ToString(),
-                    total = row.Total,
-                    hits = row.Hits,
-                    source = row.SourceName,
-                    spawn = SpawnOf(row.AttackerId),
-                });
+                    i = record.damage.Count;
+                    rowOf.Add((hit.AttackerId, spawn, hit.Kind), i);
+                    record.damage.Add(new DamageRow
+                    {
+                        kind = hit.Kind.ToString(),
+                        source = SourceOf(ledger, hit),
+                        spawn = spawn,
+                    });
+                }
+                var row = record.damage[i];
+                row.total += hit.Amount;
+                row.hits++;
+                record.damage[i] = row;
+            }
 
             foreach (var entry in entries)
                 record.spawns.Add(new SpawnRow
@@ -139,6 +151,14 @@ namespace Game.Runs
                 });
 
             return record;
+        }
+
+        private static string SourceOf(DamageLedger ledger, DamageLedger.Hit hit)
+        {
+            foreach (var row in ledger.Rows)
+                if (row.AttackerId == hit.AttackerId && row.Kind == hit.Kind)
+                    return row.SourceName;
+            throw new InvalidOperationException("Every ledger hit aggregates into a ledger row.");
         }
 
         private static string NameOf(Object part) => part ? part.name : string.Empty;
