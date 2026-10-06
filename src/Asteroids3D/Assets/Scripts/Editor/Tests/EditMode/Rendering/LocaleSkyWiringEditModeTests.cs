@@ -17,7 +17,6 @@ namespace Tests.EditMode.Rendering
         private static readonly string[] CandidateLayers = { "Background", "FarNebula", "StarField", "CloseNebula" };
         private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
-        [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
@@ -39,7 +38,6 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/Locales/Locale_1.unity", "copper-turquoise-final")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity", "nebula-glow-flat-final")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity", "illustrated-blue-final")]
-        [TestCase("Assets/Scenes/InitScene.unity", "nebula-glow-flat-final")]
         [TestCase("Assets/Scenes/EditScene.unity", "nebula-glow-flat-final", "Locale_2")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
             string scenePath, string background, string localeFolder = null)
@@ -120,6 +118,25 @@ namespace Tests.EditMode.Rendering
             }
         }
 
+        [Test]
+        public void BootScene_CarriesNoSky()
+        {
+            var previous = SceneManager.GetActiveScene();
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/InitScene.unity", OpenSceneMode.Additive);
+            try
+            {
+                SceneManager.SetActiveScene(scene);
+                Assert.That(scene.GetRootGameObjects().Where(g => g.GetComponentInChildren<LocaleSky>(true)), Is.Empty,
+                    "The idle locale is the first sky the player sees; the boot scene holds the host and services.");
+                Assert.IsNull(RenderSettings.customReflectionTexture, "The boot scene keeps no reflection cubemap.");
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
         // Lightmapping.lightingDataAsset reads a missing asset as null; the serialized reference still names it.
         private static SerializedProperty LightingDataReference()
         {
@@ -132,7 +149,6 @@ namespace Tests.EditMode.Rendering
         [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
-        [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/EditScene.unity", "Locale_2")]
         public void Scene_LightsFromFlatAmbientAndALocaleReflectionCubemap(string scenePath, string localeFolder = null)
         {

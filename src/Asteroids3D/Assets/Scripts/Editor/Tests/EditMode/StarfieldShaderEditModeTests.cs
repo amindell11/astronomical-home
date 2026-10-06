@@ -221,7 +221,6 @@ namespace Tests.EditMode
             }
         }
 
-        [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
