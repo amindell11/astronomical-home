@@ -103,9 +103,6 @@ namespace Game
 
         public Sector ActiveSector => session?.ActiveSector;
 
-        internal (ItemSubset hangarOffer, Sector sector, float killHullRestore) StatFingerprintInputs =>
-            (hangarOffer, sessionProfile.sectorEntry.prefab, killHullRestore);
-
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
@@ -251,9 +248,9 @@ namespace Game
                 return;
             }
 
-            var (offer, sector, refill) = StatFingerprintInputs;
+            var sector = sessionProfile.sectorEntry.prefab;
             runRecords.Append(RunRecord.Compose(DateTime.UtcNow, sector.name, identity,
-                StatHash.OfSetting(offer, sector, refill), rigInstance.Loadout, playerLoadoutStatHash,
+                StatHash.OfSetting(hangarOffer, sector, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
                 rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, lastKillingBlow));
         }
 
