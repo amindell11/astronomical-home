@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "98f63ec49a9535cd70b7b5bd68c4aabb3c1affd1651ee492bb6741830946a1cd",
+  "before_sha256": "76c7a52d8ccf49153233891faa5b5f78d0bc0004170976411f35c277208b7f20",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 41910,
+    "side": 21205
+  },
+  "verdict": "pass"
+}

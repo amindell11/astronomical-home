@@ -1,0 +1,32 @@
+{
+  "changed_parts": [
+    "Aft spine armor",
+    "Dorsal central blade",
+    "Dorsal shield cap",
+    "Dorsal shield inset",
+    "Lower canopy frame",
+    "Lower canopy glazing",
+    "Lower canopy inner seal",
+    "Lower canopy metal bezel",
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper canopy inner seal",
+    "Upper canopy metal bezel",
+    "Upper fin armor joint",
+    "Upper small swept fins",
+    "Ventral central blade",
+    "Ventral shield cap",
+    "Ventral shield inset"
+  ],
+  "parts_added": [
+    "Rear swept wing pair"
+  ],
+  "parts_removed": [],
+  "unclaimed_changes": [],
+  "owner_main_wing_edits_retained": true,
+  "owner_deleted_tail_remains_absent": true,
+  "original_part_topology_retained": true
+}

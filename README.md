@@ -43,3 +43,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade hard-surface revision — owner approval pending](blockout/hard-surface-01/README.md)
 
 - [Nightshade blockout form refinement — owner approval pending](blockout/form-refinement-01/README.md)
+
+- [Nightshade forward pitch and new rear wings — owner approval pending](blockout/pitch-rear-wings-01/README.md)

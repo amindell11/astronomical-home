@@ -1,0 +1,175 @@
+{
+  "claimed_edits": {
+    "Rebuilt pitched hull": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Aft spine armor": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Dorsal central blade": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Dorsal shield cap": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Dorsal shield inset": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Ventral central blade": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Ventral shield cap": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Ventral shield inset": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Upper canopy frame": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Upper canopy glazing": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Upper canopy metal bezel": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Upper canopy inner seal": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Lower canopy frame": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Lower canopy glazing": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Lower canopy metal bezel": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Lower canopy inner seal": "Upper body pitched forward five degrees, blended through underside; attachments follow hull",
+    "Upper small swept fins": "Broader center-root planform and thicker root section tapering into unchanged thin outer blade",
+    "Lower small swept fins": "Broader center-root planform and thicker root section tapering into unchanged thin outer blade",
+    "Upper fin armor joint": "Existing seam follows pitched root plate",
+    "Lower fin armor joint": "Existing seam follows pitched root plate"
+  },
+  "changed_parts": [
+    "Aft spine armor",
+    "Dorsal central blade",
+    "Dorsal shield cap",
+    "Dorsal shield inset",
+    "Lower canopy frame",
+    "Lower canopy glazing",
+    "Lower canopy inner seal",
+    "Lower canopy metal bezel",
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper canopy inner seal",
+    "Upper canopy metal bezel",
+    "Upper fin armor joint",
+    "Upper small swept fins",
+    "Ventral central blade",
+    "Ventral shield cap",
+    "Ventral shield inset"
+  ],
+  "added_parts": [
+    "Rear swept wing pair"
+  ],
+  "removed_parts": [],
+  "parts": {
+    "Rebuilt pitched hull": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.06143307316416508
+    },
+    "Rebuilt main wing blades": {
+      "topology_retained": true,
+      "positions_changed": false,
+      "max_displacement": 0.0
+    },
+    "Upper small swept fins": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.08430762097961716
+    },
+    "Lower small swept fins": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.08901785289293393
+    },
+    "Dorsal central blade": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.0251323400156402
+    },
+    "Dorsal shield cap": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.020448887218081538
+    },
+    "Ventral central blade": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.01375289743950122
+    },
+    "Ventral shield cap": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.012471961751025978
+    },
+    "Upper canopy frame": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.05828184000084417
+    },
+    "Lower canopy frame": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.02693218233629228
+    },
+    "Aft spine armor": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.02701561305019601
+    },
+    "Main wing transverse armor joint": {
+      "topology_retained": true,
+      "positions_changed": false,
+      "max_displacement": 0.0
+    },
+    "Main wing inset channel": {
+      "topology_retained": true,
+      "positions_changed": false,
+      "max_displacement": 0.0
+    },
+    "Upper fin armor joint": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.00831753283006843
+    },
+    "Lower fin armor joint": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.012539456162196953
+    },
+    "Dorsal shield inset": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.017836228542871414
+    },
+    "Ventral shield inset": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.011631171475338408
+    },
+    "Aft engine collar": {
+      "topology_retained": true,
+      "positions_changed": false,
+      "max_displacement": 0.0
+    },
+    "Upper canopy metal bezel": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.06030386408083808
+    },
+    "Upper canopy inner seal": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.058440573776175356
+    },
+    "Lower canopy metal bezel": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.02768899052598266
+    },
+    "Lower canopy inner seal": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.026861040707090555
+    },
+    "Upper canopy glazing": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.058253561381877636
+    },
+    "Lower canopy glazing": {
+      "topology_retained": true,
+      "positions_changed": true,
+      "max_displacement": 0.02679754699296187
+    }
+  },
+  "owner_deleted_tail_remains_absent": true,
+  "modifiers_applied": false,
+  "upper_pitch_degrees": 5
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "98f63ec49a9535cd70b7b5bd68c4aabb3c1affd1651ee492bb6741830946a1cd",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-pitch-rear-wings\\round-01\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}
