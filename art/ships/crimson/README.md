@@ -5,14 +5,11 @@ pass. The 39 mesh parts stay separate, with 33 live Mirror modifiers centered on
 the ship. The original design references and the color atlas
 are packed into the file; external copies are included for editing.
 
-`Crimson.fbx` is a textured interchange export with the modifiers evaluated.
-It contains only the ship meshes, with embedded color texture, UVs and normals.
-The Blender source uses X across the wings, +Y toward the nose and +Z up; the FBX
-uses -Z forward and Y up. Gameplay prefabs and ship configuration are unchanged.
+The Blender source uses X across the wings, +Y toward the nose and +Z up.
 
 ## Texture editing
 
-The `CrimsonPaintUV` map uses `textures/Crimson_BaseColor.png`, a 4096×4096 atlas.
+The `PaintUV` map uses `textures/Crimson_BaseColor.png`, a 4096×4096 atlas.
 Mirrored parts share their paint. Select the atlas in Blender's Texture Paint
 workspace to edit it. Save the external image and repack it when saving the blend.
 The saved solid viewport uses Texture color and Flat lighting to show the painted
