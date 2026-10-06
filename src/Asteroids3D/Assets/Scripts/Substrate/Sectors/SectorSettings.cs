@@ -10,7 +10,7 @@ namespace Substrate.Sectors
 
         [Header("Locale")]
         [Tooltip("Locale scene supplying this sector's sky layers / ambient / reflection / fog / audio. " +
-                 "Unassigned → inherit boot-scene lighting (also the headless path).")]
+                 "Required for any sector a player sees; only runtime-built headless configs leave it unassigned.")]
         [SerializeField] private SceneReference locale;
 
         public string DisplayName => displayName;
