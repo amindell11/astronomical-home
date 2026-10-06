@@ -24,6 +24,7 @@ namespace Combat.Projectiles
 
         private Vector3 targetPoint;
         private Vector3 heading;
+        private bool braking;
         private bool detonated;
 
         protected override DamageKind Kind => DamageKind.ConcussionWave;
@@ -31,11 +32,17 @@ namespace Combat.Projectiles
 
         public event Action<Vector3> OnDetonated;
 
+        /// <summary>Raised once per flight, on the first step the charge thrusts against its heading.</summary>
+        public event Action BrakingStarted;
+
         /// <summary>Announces the detonation's wave so whoever tracks this grenade tracks the wave too (<see cref="ITransientSpawner"/>).</summary>
         public event Action<MonoBehaviour, Action> Spawned;
 
         /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
         public Vector3 TargetPoint => targetPoint;
+
+        /// <summary>World direction of flight, fixed at launch.</summary>
+        public Vector3 Heading => heading;
 
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
@@ -66,6 +73,12 @@ namespace Combat.Projectiles
             {
                 Detonate();
                 return;
+            }
+
+            if (!braking)
+            {
+                braking = true;
+                BrakingStarted?.Invoke();
             }
 
             rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
@@ -102,6 +115,7 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
+            braking = false;
             detonated = false;
         }
     }
