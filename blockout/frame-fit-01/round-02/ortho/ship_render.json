@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "3e834f815d8f6227f60fc91669c8cd634d266a16cdf5004fd3ed4bab0edbc1c0",
+  "images": {
+    "top": "D:\\amind\\git\\agent-1\\results\\nightshade-frame-fit\\round-02\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-1\\results\\nightshade-frame-fit\\round-02\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-1\\results\\nightshade-frame-fit\\round-02\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-1\\results\\nightshade-frame-fit\\round-02\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}

@@ -1,0 +1,20 @@
+{
+  "owner_checkpoint": "c1c0a7bd",
+  "changed_parts": [
+    "Lower canopy metal bezel",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy inner seal"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "all_unclaimed_parts_unchanged": true,
+  "glass_and_fins_unchanged": true,
+  "owner_aperture_boundary_heights_retained": true,
+  "nose_support_loops_added": 2,
+  "hull_vertices_added": 34,
+  "hull_vertices": 422,
+  "existing_meshes_transforms_live_modifiers_and_visibility_retained": true,
+  "hull_aft_of_cockpit_unchanged": true,
+  "deleted_upper_bezel_not_recreated": true
+}

@@ -1,0 +1,11 @@
+{
+  "changed_parts": [
+    "Lower canopy metal bezel",
+    "Upper canopy inner seal"
+  ],
+  "all_unclaimed_parts_unchanged": true,
+  "topology_and_visibility_retained": true,
+  "upper_seal_offset_outward": 0.004,
+  "lower_rim_cross_section_xy_factor": 0.55,
+  "lower_rim_cross_section_z_factor": 0.65
+}
