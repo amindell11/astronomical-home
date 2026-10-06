@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "bc89dba991b6b3888327c3056f306e7876ed2ca538d4295067db3ec528307e4e",
+  "images": {
+    "top": "D:\\amind\\git\\agent-1\\results\\nightshade-blockout\\round-01\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-1\\results\\nightshade-blockout\\round-01\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-1\\results\\nightshade-blockout\\round-01\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-1\\results\\nightshade-blockout\\round-01\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}

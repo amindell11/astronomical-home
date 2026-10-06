@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a192119d8e04df6404170a7c90f46b134a1fb932a2cc249a9d9886a9cede2d4d",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-blockout\\round-03\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a192119d8e04df6404170a7c90f46b134a1fb932a2cc249a9d9886a9cede2d4d",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "682cad5faddd475b18c1f7dbeefe409b10f68f8ca726273e1d89fbc1e4d90a30",
+      "uv": "a9a97c2933de9597557f98283c5932463c4308009245e881d543a9f153ae71b9",
+      "materials": "44defae899358578cc443edbeb4b014029938dd8dcd6a542b0151cfe1709a039"
+    },
+    "parts": {
+      "Fuselage": {
+        "geometry": "9ade4f551716498cb2e1338e63ab5852ec2ff0cda8faf0a37e6f18a03851a4fc",
+        "uv": "135c734f4ac8816eebd61c25f4fa5daf07bd2e35e9178ada31079e7c645b2af2",
+        "materials": "94885bc558476fc8e0248cece8db323d97df00673eb1a0abc20fcf970d64f376"
+      },
+      "Inner swept fins": {
+        "geometry": "3e8a9139da59e0233b714f8ca82e1d2d126f1f85000a6f27e8cbf22c8fb24715",
+        "uv": "51e1af37069e282e98c952b13069e4b8f1680dc10fea3efd25b13419b975f2c7",
+        "materials": "7fe5cbf9f371ca5c0956dbbc02ad075dbda5a4745a1e8cca2886ee8c192e625b"
+      },
+      "Lower canopy": {
+        "geometry": "3ec657326275d2078cab00a35cea0d56395319626af634019c88b7fe5b5d02cb",
+        "uv": "692ce2fd25c1d16f8e27254b2d0b0400f97ab14784a953ffe4a28b2a574b1e2b",
+        "materials": "832dbf9a35b675b1f22a66cd4db577655c8ae63760869d655238ca858a887b21"
+      },
+      "Outer wing blades": {
+        "geometry": "3e8ed6e7e7dd6bf2d00fe961f5f9359069964eff8bc24f3d04eec1dd6e7c8eb0",
+        "uv": "87a5a8af26514e45a1a454a099e8dea27d59cb2a3e1921322ed7350fd4dda4a2",
+        "materials": "ad9f811ea8cb83a229a5c14e303290b45cb67175df33998972f9551453114bac"
+      },
+      "Outer wing shoulders": {
+        "geometry": "3309edd02219d14a781fff7a6cea9905aba1ab7a1a1011357bbb7efbf575194b",
+        "uv": "f195b0ec03d879dfe8dfb409472a295d5382a08a9f0b28525062a013cfa863ff",
+        "materials": "0de22b141a5692fe53e6c896a42d9324d1ef1bd0418e06fde135414af4a327d5"
+      },
+      "Rising tail blades": {
+        "geometry": "1f432948e7618d0c9693f2e86e09f349abf5e1b9700813f0876424a08ba2ed03",
+        "uv": "4294a20b976fe41f287129c9c81407b3166738ee88cfa95ff78e62f72c621c25",
+        "materials": "0b3e637da0625f25416a6737c42acf26a7b647f5d625e636fc6c89d8dd20c6df"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper canopy": {
+        "geometry": "f0e53cd830e93947c0dc3b1b6a80d282197fb2e7b7c419d24d40d16778ccd00d",
+        "uv": "ab925ddbbb3787f85681eb70ea0b03d067568e380a4de62e95c5e1c5da20ce66",
+        "materials": "5cb6bf1bda13639672c8f6db6b2604a1290ef7df095dd8a4c8d5181248515c3a"
+      },
+      "Wing root joints": {
+        "geometry": "dcb536e3fbb7374023e3b79d11881929c7db662350279cd5bda60bd7239c6038",
+        "uv": "a5c249188a5e0c35de34ed5356f5a9790ef8156d95063f8584684fb5df0bb629",
+        "materials": "2f079b11712e68442e5ce4b516f378b7e260cd707408fa75e84bd725f44f0511"
+      },
+      "reference.side": {
+        "geometry": "d4ed513166df963a5eacd11516dfdd2073aa997d16e64a5ef1e92b67fdeecdef",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "f091b6724e72658ae2ff75b3a94abc1f37bb2ca80170ae9aa6325917098cdf31",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.turnaround": {
+        "geometry": "402a9d7e11f79065713a2f834738edb385ed87cbebc7bb07080c8e311d22a8f3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

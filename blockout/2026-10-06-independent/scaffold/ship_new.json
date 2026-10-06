@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_new",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "5f6e942517c152099d6c1a49abf7f5342c6db3818372841f4b156724b15f2879",
+  "source": "D:\\amind\\git\\agent-1\\art\\ships\\nightshade\\Nightshade.blend",
+  "created": "D:\\amind\\git\\agent-1\\art\\ships\\nightshade\\Nightshade.blend",
+  "verdict": "pass"
+}

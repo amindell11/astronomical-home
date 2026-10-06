@@ -33,3 +33,5 @@ The original Nightshade concept is on main at
 `art/ships/nightshade/concepts/jan272026122322Am.png`.
 The September volume studies led to Valis, a separate ship; #796's October 3 ruling
 settles that distinction. They remain here as historical evidence.
+
+- [Independent blockout — 2026-10-06](blockout/2026-10-06-independent/README.md): fresh concept-only start; side/isometric priority; awaiting owner approval.
