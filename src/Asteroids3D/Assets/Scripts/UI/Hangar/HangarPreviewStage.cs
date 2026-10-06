@@ -4,7 +4,7 @@ using Ships.Presentation;
 using Ships.Visuals;
 using UnityEngine;
 
-namespace UI
+namespace UI.Hangar
 {
     /// <summary>
     /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig onto a spinning
