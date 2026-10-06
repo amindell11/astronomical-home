@@ -45,7 +45,7 @@ Rigidbody:
   m_GameObject: {fileID: 1100000000000000001}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 2.5
+  m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -97,11 +97,9 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   damage: 0
-  maxDistance: 1000
+  maxDistance: 25
   mass: 0.5
-  fuseSeconds: 2.5
-  armingSeconds: 0.3
-  dropSpeed: 3
+  launchSpeed: 40
   wavePrefab: {fileID: 1100000000000000102, guid: 07872014d0f2483cbe5d4223faa4d2ca,
     type: 3}
 --- !u!33 &1100000000000000006

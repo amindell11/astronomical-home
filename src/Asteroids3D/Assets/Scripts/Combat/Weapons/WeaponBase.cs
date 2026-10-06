@@ -18,7 +18,7 @@ namespace Combat.Weapons
             SimplePool<TProj>.Warm(projectilePrefab);
         }
 
-        public override ProjectileBase Fire(IProjectileService projectiles)
+        public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
             // An untracked projectile could outlive its context; a deliberate null is refused before conditions consume charge/ammo.
             if (projectiles == null) throw new ArgumentNullException(nameof(projectiles));
@@ -30,7 +30,7 @@ namespace Combat.Weapons
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
-            proj.Launch(firePoint.up);
+            proj.Launch(firePoint.up, targetPoint);
             InvokeOnFire();
 
             return proj;

@@ -85,7 +85,7 @@ namespace Tests.PlayMode
             weaponsController.Primary.OnFire += () => fireCount++;
 
             weaponsController.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
-                new Ships.Command.WeaponCommand { pressed = true, held = true });
+                new Combat.Weapons.WeaponCommand { pressed = true, held = true });
             yield return new WaitForFixedUpdate();
 
             Assert.Greater(fireCount, 0,

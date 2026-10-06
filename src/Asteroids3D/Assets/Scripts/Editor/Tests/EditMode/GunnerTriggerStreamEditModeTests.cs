@@ -21,7 +21,7 @@ namespace Tests.EditMode
 
             public override bool ShouldFire(TargetingContext context) => solution[step++];
 
-            public override ProjectileBase Fire(IProjectileService projectiles) => null;
+            public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles) => null;
         }
 
         private sealed class PrimarySlotContext : IWeaponContext

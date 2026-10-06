@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Combat;
 using Combat.Projectiles;
+using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
 using NUnit.Framework;
@@ -17,14 +18,16 @@ using Substrate;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The concussion grenade drops behind its shooter, detonates by fuse / armed contact /
-    /// being shot, and its wave sweeps outward hitting everything once — the shooter included
-    /// (no friendly exemption) — with damage falling off toward the rim.
+    /// The concussion charge flies straight at its target point (clamped to max range), brakes to
+    /// rest there and detonates on arrival, on contact (never the owner's hull) or when shot — the
+    /// owner's fire included. Its wave sweeps outward hitting everything once, the shooter included,
+    /// with damage and push falling off toward the rim; the push lands where the wave meets each hull.
     /// </summary>
     [Category("Weapons")]
     public class ConcussionGrenadePlayModeTests : PlayModeWorldFixture
     {
         private const string GrenadesPrefabPath = "Assets/Prefabs/Weapons/Grenades.prefab";
+        private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
 
         private readonly List<GameObject> spawned = new();
 
@@ -62,17 +65,23 @@ namespace Tests.PlayMode
         private static DamageInfo Shot(Vector3 point) =>
             new(1f, DamageKind.Laser, Ships.Registry.ShipId.Invalid, 0.1f, Vector3.zero, point);
 
-        /// <summary>A shooter root with the weapon mounted as a child, nose along the plane's forward axis.</summary>
-        private Grenades MountWeapon(out MovingShooter shooter)
+        private static Vector3 Plane(float x, float y) => GamePlane.PlaneDirToWorld(new Vector2(x, y));
+
+        /// <summary>A shooter root at <paramref name="position"/> with the weapon mounted as a child, nose along the plane's forward axis.</summary>
+        private T MountWeapon<T>(string prefabPath, Vector3 position, out MovingShooter shooter) where T : WeaponComponent
         {
             var ship = new GameObject("Shooter") { layer = LayerIds.Ship };
             spawned.Add(ship);
-            ship.transform.rotation = GamePlane.Rotation;
+            ship.transform.SetPositionAndRotation(position, GamePlane.Rotation);
             shooter = ship.AddComponent<MovingShooter>();
+            return Mount<T>(prefabPath, ship);
+        }
 
+        private T Mount<T>(string prefabPath, GameObject ship) where T : WeaponComponent
+        {
 #if UNITY_EDITOR
-            var prefab = AssetDatabase.LoadAssetAtPath<Grenades>(GrenadesPrefabPath);
-            Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {GrenadesPrefabPath}");
+            var prefab = AssetDatabase.LoadAssetAtPath<T>(prefabPath);
+            Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {prefabPath}");
             var weapon = Object.Instantiate(prefab, ship.transform);
             spawned.Add(weapon.gameObject);
             return weapon;
@@ -81,6 +90,12 @@ namespace Tests.PlayMode
             return null;
 #endif
         }
+
+        private Grenades MountWeapon(out MovingShooter shooter) =>
+            MountWeapon<Grenades>(GrenadesPrefabPath, Vector3.zero, out shooter);
+
+        private Grenades MountWeapon(Vector3 position) =>
+            MountWeapon<Grenades>(GrenadesPrefabPath, position, out _);
 
         private DamageRecorder CreateTarget(Vector3 position, string name = "WaveTarget")
         {
@@ -91,10 +106,32 @@ namespace Tests.PlayMode
             return go.AddComponent<DamageRecorder>();
         }
 
+        private static Rigidbody AddBody(Component target)
+        {
+            var body = target.gameObject.AddComponent<Rigidbody>();
+            body.useGravity = false;
+            return body;
+        }
+
         private static ConcussionWave FindActiveWave()
         {
             var waves = Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None);
             return waves.Length > 0 ? waves[0] : null;
+        }
+
+        private static IEnumerator StepUntilGone(Component charge, int maxSteps)
+        {
+            for (var i = 0; i < maxSteps && charge.gameObject.activeSelf; i++)
+                yield return new WaitForFixedUpdate();
+        }
+
+        private static IEnumerator SweepFullWave()
+        {
+            var wave = FindActiveWave();
+            Assert.IsNotNull(wave);
+            for (var i = 0; i < 500 && wave.gameObject.activeSelf; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsFalse(wave.gameObject.activeSelf, "The wave ran its full sweep.");
         }
 
         [Test]
@@ -108,39 +145,111 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void Grenade_DropsBackward_FromTheShooterVelocity()
+        public void Launch_HeadsStraightAtTheTargetPoint_WithoutTheShooterVelocity()
         {
             var weapon = MountWeapon(out var shooter);
-            shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
+            shooter.Velocity = Plane(0f, 10f);
 
-            var grenade = weapon.Fire(Projectiles) as Grenade;
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(15f, 0f), Projectiles) as Grenade;
 
             Assert.IsNotNull(grenade, "Firing releases a charge.");
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
-            var expected = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f - 3f));
-            Assert.Less((velocity - expected).magnitude, 0.01f,
-                "The charge inherits the shooter's velocity minus the backward push.");
+            Assert.Greater(Vector3.Dot(velocity, Plane(1f, 0f)), 1f, "The charge launches toward the target point, any direction.");
+            Assert.AreEqual(0f, Vector3.Dot(velocity, Plane(0f, 1f)), 0.001f, "The shooter's velocity is not inherited.");
         }
 
         [UnityTest]
-        public IEnumerator Grenade_FuseExpiry_SpawnsTheWave()
+        public IEnumerator Charge_ComesToRestOnTheTargetPoint_AndDetonatesThere()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire(Projectiles) as Grenade;
-            grenade.Configure(fuseSeconds: Time.fixedDeltaTime * 2f, armingSeconds: 0f);
+            var point = weapon.firePoint.position + Plane(-12f, 9f);
+            var grenade = weapon.Fire(point, Projectiles) as Grenade;
+            Vector3? detonatedAt = null;
+            grenade.OnDetonated += at => detonatedAt = at;
 
-            for (var i = 0; i < 4; i++)
-                yield return new WaitForFixedUpdate();
+            yield return StepUntilGone(grenade, 200);
 
-            Assert.IsFalse(grenade.gameObject.activeSelf, "The charge returned to the pool on detonation.");
-            Assert.IsNotNull(FindActiveWave(), "Detonation spawned the concussion wave.");
+            Assert.IsTrue(detonatedAt.HasValue, "The charge detonates on arrival — there is no fuse.");
+            Assert.Less(Vector3.Distance(detonatedAt.Value, point), 0.1f, "The charge brakes to rest on its target point.");
+            Assert.IsNotNull(FindActiveWave(), "Arrival spawns the wave.");
         }
 
         [Test]
-        public void Grenade_ShotBeforeTheFuse_DetonatesImmediately()
+        public void TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire(Projectiles) as Grenade;
+            var origin = weapon.firePoint.position;
+
+            var grenade = weapon.Fire(origin + Plane(3f, 4f) * 100f, Projectiles) as Grenade;
+
+            Assert.IsNotNull(grenade, "A shot past max range still fires.");
+            var expected = origin + Plane(0.6f, 0.8f) * grenade.MaxDistance;
+            Assert.Less(Vector3.Distance(grenade.TargetPoint, expected), 0.01f, "The point moves to max range along the same line.");
+        }
+
+        [UnityTest]
+        public IEnumerator ContactBeforeArrival_Detonates()
+        {
+            var weapon = MountWeapon(out _);
+            var origin = weapon.firePoint.position;
+            var blocker = CreateTarget(origin + Plane(0f, 5f), "Blocker");
+
+            var grenade = weapon.Fire(origin + Plane(0f, 20f), Projectiles) as Grenade;
+            Vector3? detonatedAt = null;
+            grenade.OnDetonated += at => detonatedAt = at;
+            yield return StepUntilGone(grenade, 60);
+
+            Assert.IsTrue(detonatedAt.HasValue, "Contact detonated the charge.");
+            Assert.Less(Vector3.Distance(detonatedAt.Value, blocker.transform.position), 1.5f,
+                "It blew on the blocker, short of its target point.");
+        }
+
+        [UnityTest]
+        public IEnumerator OwnerHull_DoesNotDetonateTheCharge()
+        {
+            var weapon = MountWeapon(out var shooter);
+            AddBody(shooter).isKinematic = true;
+            shooter.gameObject.AddComponent<SphereCollider>().radius = 3f;
+            shooter.gameObject.AddComponent<DamageRecorder>();
+
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 20f), Projectiles) as Grenade;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.IsTrue(grenade.gameObject.activeSelf, "The charge leaves through its owner's hull without detonating.");
+            Assert.IsNull(FindActiveWave());
+        }
+
+        [UnityTest]
+        public IEnumerator OwnerFire_DetonatesTheCharge()
+        {
+            var weapon = MountWeapon(out var shooter);
+            var lasers = Mount<Lasers>(LasersPrefabPath, shooter.gameObject);
+            var heading = Plane(0f, 1f);
+
+            var grenade = weapon.Fire(weapon.firePoint.position + heading * 20f, Projectiles) as Grenade;
+            var bolt = lasers.Fire(weapon.firePoint.position + heading * 20f, Projectiles);
+            Assert.IsNotNull(bolt, "The owner's laser fired.");
+
+            // Park the owner's own bolt in the charge's path; a closing bolt would tunnel past it between steps.
+            var boltBody = bolt.GetComponent<Rigidbody>();
+            var boltSpot = grenade.transform.position + heading * 2f;
+            bolt.transform.position = boltSpot;
+            boltBody.position = boltSpot;
+            boltBody.linearVelocity = Vector3.zero;
+
+            yield return StepUntilGone(grenade, 10);
+
+            Assert.IsFalse(grenade.gameObject.activeSelf, "The owner's own fire pops the charge early.");
+            Assert.IsFalse(bolt.gameObject.activeSelf, "The bolt hit the charge rather than passing through it.");
+            Assert.IsNotNull(FindActiveWave(), "Popping it still makes the full wave.");
+        }
+
+        [Test]
+        public void Grenade_Shot_DetonatesImmediately()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 20f), Projectiles) as Grenade;
 
             grenade.TakeDamage(Shot(grenade.transform.position));
 
@@ -151,24 +260,18 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff()
         {
-            var weapon = MountWeapon(out _);
-            var shooterRecorder = weapon.transform.root.gameObject.AddComponent<DamageRecorder>();
-            weapon.transform.root.gameObject.AddComponent<SphereCollider>().radius = 0.5f;
-            weapon.transform.root.position = new Vector3(2f, 0f, 0f);
+            var weapon = MountWeapon(out var shooter);
+            var shooterRecorder = shooter.gameObject.AddComponent<DamageRecorder>();
+            shooter.gameObject.AddComponent<SphereCollider>().radius = 0.5f;
 
-            var origin = Vector3.zero;
-            var near = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 3f)), "NearTarget");
-            var far = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 9f)), "FarTarget");
+            var origin = weapon.firePoint.position;
+            var near = CreateTarget(origin + Plane(0f, 3f), "NearTarget");
+            var far = CreateTarget(origin + Plane(0f, 9f), "FarTarget");
 
-            var grenade = weapon.Fire(Projectiles) as Grenade;
-            grenade.transform.position = origin;
+            var grenade = weapon.Fire(origin + Plane(0f, -20f), Projectiles) as Grenade;
             grenade.TakeDamage(Shot(origin));
-
             var wave = FindActiveWave();
-            Assert.IsNotNull(wave);
-            var steps = Mathf.CeilToInt(wave.MaxRadius / 20f / Time.fixedDeltaTime) + 4;
-            for (var i = 0; i < steps; i++)
-                yield return new WaitForFixedUpdate();
+            yield return SweepFullWave();
 
             Assert.Greater(near.TotalDamage, 0f, "The wave reached the near target.");
             Assert.Greater(far.TotalDamage, 0f, "The wave reached the far target.");
@@ -180,25 +283,52 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Wave_ChainDetonatesAnotherGrenade()
+        public IEnumerator Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere_NorItsBroadphaseVolume()
         {
-            var weapon = MountWeapon(out _);
-            weapon.transform.root.position = new Vector3(50f, 0f, 50f);
+            var weapon = MountWeapon(Plane(60f, 60f));
+            var origin = weapon.firePoint.position;
 
-            var first = weapon.Fire(Projectiles) as Grenade;
-            first.transform.position = Vector3.zero;
+            // A long hull lying across the blast's radial line, clipped near one end.
+            var hull = new GameObject("LongHull") { layer = LayerIds.Ship };
+            spawned.Add(hull);
+            hull.transform.SetPositionAndRotation(origin + Plane(3f, 4f), GamePlane.Rotation);
+            hull.AddComponent<BoxCollider>().size = new Vector3(0.5f, 8f, 0.5f);
+            // An asteroid-style broadphase sphere around the hull: the wave must push the hull, not this volume.
+            var broadphase = hull.AddComponent<SphereCollider>();
+            broadphase.isTrigger = true;
+            broadphase.radius = 4.5f;
+            hull.AddComponent<DamageRecorder>();
+            var hullBody = AddBody(hull.transform);
+
+            var sphereBody = AddBody(CreateTarget(origin + Plane(-4f, 0f), "Sphere"));
+            hullBody.mass = sphereBody.mass = 800f;
+
+            var grenade = weapon.Fire(origin + Plane(0f, -20f), Projectiles) as Grenade;
+            grenade.TakeDamage(Shot(origin));
+            yield return SweepFullWave();
+
+            Assert.Greater(hullBody.linearVelocity.magnitude, 0.1f, "The wave shoves the hull.");
+            Assert.Greater(Mathf.Abs(Vector3.Dot(hullBody.angularVelocity, GamePlane.Normal)), 0.1f,
+                "Pushed off its centre of mass, the hull spins — the spin is the impulse's offset, nothing scripted.");
+            Assert.Greater(sphereBody.linearVelocity.magnitude, 0.1f, "The wave shoves the sphere.");
+            Assert.Less(sphereBody.angularVelocity.magnitude, 0.01f,
+                "A push through the centre of mass spins nothing.");
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_ChainDetonatesAnotherCharge()
+        {
+            var weapon = MountWeapon(Plane(-60f, 60f));
+            var origin = weapon.firePoint.position;
+
+            var second = weapon.Fire(origin + Plane(0f, 20f), Projectiles) as Grenade;
             weapon.Reset();
-            var second = weapon.Fire(Projectiles) as Grenade;
-            second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
-            second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
+            var first = weapon.Fire(origin + Plane(0f, -20f), Projectiles) as Grenade;
+            first.TakeDamage(Shot(origin));
 
-            first.TakeDamage(Shot(Vector3.zero));
+            yield return StepUntilGone(second, 20);
 
-            for (var i = 0; i < 20 && second.gameObject.activeSelf; i++)
-                yield return new WaitForFixedUpdate();
-
-            Assert.IsFalse(second.gameObject.activeSelf,
-                "The first wave swept the drifting second charge and set it off.");
+            Assert.IsFalse(second.gameObject.activeSelf, "The first wave swept the second charge and set it off.");
             Assert.AreEqual(2, Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None).Length,
                 "Both charges produced waves.");
         }
@@ -207,8 +337,8 @@ namespace Tests.PlayMode
         public IEnumerator Wave_SweepsMoreTargetsThanTheQueryBuffer()
         {
             // 70 targets pins the query-regrow path: swept inner colliders would crowd a fixed 64-slot buffer.
-            var weapon = MountWeapon(out _);
-            weapon.transform.root.position = new Vector3(80f, 0f, 80f);
+            var weapon = MountWeapon(Plane(60f, -60f));
+            var origin = weapon.firePoint.position;
 
             const int targetCount = 70;
             var targets = new List<DamageRecorder>(targetCount);
@@ -216,19 +346,12 @@ namespace Tests.PlayMode
             {
                 var angle = i * Mathf.PI * 2f / targetCount;
                 var ring = 2f + i % 8;
-                targets.Add(CreateTarget(
-                    GamePlane.PlanePointToWorld(new Vector2(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring)), $"SwarmTarget{i}"));
+                targets.Add(CreateTarget(origin + Plane(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring), $"SwarmTarget{i}"));
             }
 
-            var grenade = weapon.Fire(Projectiles) as Grenade;
-            grenade.transform.position = Vector3.zero;
-            grenade.TakeDamage(Shot(Vector3.zero));
-
-            var wave = FindActiveWave();
-            Assert.IsNotNull(wave);
-            var steps = Mathf.CeilToInt(wave.MaxRadius / 20f / Time.fixedDeltaTime) + 4;
-            for (var i = 0; i < steps; i++)
-                yield return new WaitForFixedUpdate();
+            var grenade = weapon.Fire(origin + Plane(0f, 20f), Projectiles) as Grenade;
+            grenade.TakeDamage(Shot(origin));
+            yield return SweepFullWave();
 
             for (var i = 0; i < targetCount; i++)
                 Assert.Greater(targets[i].TotalDamage, 0f,
@@ -240,7 +363,7 @@ namespace Tests.PlayMode
         {
             var weapon = MountWeapon(out _);
 
-            var grenade = weapon.Fire(Projectiles) as Grenade;
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 20f), Projectiles) as Grenade;
             Assert.AreEqual(1, Projectiles.ActiveCount, "the fired charge registers");
 
             grenade.TakeDamage(Shot(grenade.transform.position));
@@ -252,23 +375,6 @@ namespace Tests.PlayMode
             Projectiles.ReturnAllToPool();
             Assert.AreEqual(0, Projectiles.ActiveCount);
             Assert.IsFalse(wave.gameObject.activeSelf, "the flush returned the mid-sweep wave to its pool");
-        }
-
-        [UnityTest]
-        public IEnumerator Grenade_ContactBeforeArming_DoesNotDetonate()
-        {
-            var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire(Projectiles) as Grenade;
-            grenade.Configure(fuseSeconds: 999f, armingSeconds: 999f);
-
-            var bumper = CreateTarget(grenade.transform.position, "Bumper");
-            bumper.gameObject.AddComponent<Rigidbody>().useGravity = false;
-
-            for (var i = 0; i < 5; i++)
-                yield return new WaitForFixedUpdate();
-
-            Assert.IsTrue(grenade.gameObject.activeSelf, "An unarmed charge shrugs off contact.");
-            Assert.IsNull(FindActiveWave(), "No wave before the fuse or arming window.");
         }
     }
 }

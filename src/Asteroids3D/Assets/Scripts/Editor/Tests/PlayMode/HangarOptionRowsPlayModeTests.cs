@@ -174,7 +174,7 @@ namespace Tests.PlayMode
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
             "Damage 35 + 15 splash   |   2 rounds (regen 15s/round)   |   Lock-on homing")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
-            "Blast 40 to 12u, hits friend and foe   |   3 charges (regen 12s/round)   |   Fuse 2.5s")]
+            "Blast 50 to 12u, hits friend and foe   |   3 charges (regen 12s/round)   |   Range 25u")]
         public void Describe_FormatsCatalogWeaponAsset(string path, string expected)
         {
             Assert.AreEqual(expected, HangarScreen.Describe(Load<WeaponComponent>(path)));

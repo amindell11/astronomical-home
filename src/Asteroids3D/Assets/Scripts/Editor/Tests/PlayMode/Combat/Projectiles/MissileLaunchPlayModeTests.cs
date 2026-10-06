@@ -87,7 +87,7 @@ namespace Tests.PlayMode
             var worldAim = GamePlane.PlaneDirToWorld(Aim);
             missile = Object.Instantiate(prefab, Vector3.zero, Quaternion.LookRotation(GamePlane.Normal, worldAim));
             missile.Initialize(shooter);
-            missile.Launch(worldAim);
+            missile.Launch(worldAim, missile.transform.position + worldAim);
 #else
             Assert.Ignore("Requires Unity Editor assets.");
 #endif
