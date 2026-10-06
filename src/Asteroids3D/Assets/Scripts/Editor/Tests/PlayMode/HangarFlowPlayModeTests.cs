@@ -62,7 +62,7 @@ namespace Tests.PlayMode
             finished = true;
 
             Assert.IsTrue(finished, "RunHangar completed without waiting for a Launch click");
-            Assert.IsNull(Object.FindFirstObjectByType<UI.HangarScreen>(),
+            Assert.IsNull(Object.FindFirstObjectByType<UI.Hangar.HangarScreen>(),
                 "no hangar screen was instantiated on the non-interactive path");
         }
 

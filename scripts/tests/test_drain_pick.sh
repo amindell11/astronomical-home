@@ -6,7 +6,8 @@ set -euo pipefail
 # blocker, scope block, proposal author), priority-then-age order, a claimed issue's three
 # readings by its closing PRs (unfinished, building, pr-closed), claim's assignee re-read and
 # two writes, release, every owed verdict and the tried rule, result's line, tick and refusals,
-# the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists,
+# the verify queue, the merge queue's facts, landing order and skip reasons, the digest's lists
+# (PRs merged without an instruction among them),
 # merge-queue and digest without GraphQL (--no-class, and the exit 1 without it), instruct's
 # checks and record, land-facts' readings of the record, Codex's review, threads and merge
 # order, the typeable record, and decision's question, tried, eyes and merge parts, their join
@@ -35,6 +36,7 @@ case "$args" in
   "api -X PATCH "*) echo "$args" >> "$GH_WRITE_LOG"; f="${args#*--input }"; cp "${f%% *}" "$FIX/patched.json" ;;
   "api -X "*) echo "$args" >> "$GH_WRITE_LOG" ;;
   "api user --jq .login") echo me ;;
+  "api repos/owner/repo/issues?state=closed&labels=auto-merged&"*) page "$FIX/auto-merged.jsonl" ;;
   "api repos/owner/repo/issues?"*) page "$FIX/issues.txt" ;;
   "api repos/owner/repo/issues/"*"/comments?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/comments-${n%%/*}.jsonl" ;;
   "api repos/owner/repo/issues/"*"/reactions?"*) n="${args#api repos/owner/repo/issues/}"; page "$FIX/reactions-${n%%/*}.jsonl" ;;
@@ -163,6 +165,7 @@ reset() {
   : > "$GH_WRITE_LOG"
   rm -f "$FIX/no-graphql"
   : > "$FIX/assignees.txt"
+  : > "$FIX/auto-merged.jsonl"
   echo false > "$FIX/labelled.txt"
 }
 trailer() { grep -o "^$1=.*" | head -n 1 | cut -d= -f2-; }
@@ -441,6 +444,11 @@ view digest
 [[ "$(under 'Ready-labelled issues no cloud batch can build')" == "- [#54]($U/issues/54) — unity:editor, unity:headless, unity-conflict" ]] || fail "a unity conflict cannot be built (got: $out)"
 [[ "$(under 'Build')" == "- \`pick\` admits 2 issues"$'\n'"- unfinished: [#60]($U/issues/60)" ]] || fail "build list (got: $out)"
 [[ "$(under 'Verify')" == "- [#301]($U/pull/301) feat: a → b — unity:1,script:0" ]] || fail "a PR with an untried item and an eyes item is in both lists (got: $out)"
+printf '%s\n' '{"number":401,"title":"feat: landed","merged":true}' '{"number":402,"title":"closed","merged":false}' \
+  '{"number":403,"title":"an issue","merged":false}' > "$FIX/auto-merged.jsonl"
+view digest
+[[ "$(under 'Merged without an instruction — review each, then remove its `auto-merged` label')" == "- [#401]($U/pull/401) feat: landed" ]] \
+  || fail "a merged PR labelled auto-merged is listed; one closed unmerged, or an issue, is not (got: $out)"
 
 # --- instruct: every argument is checked before one record per PR is written -----------------------------
 C1=aaaa1110123456789abcdef0123456789abcdef0

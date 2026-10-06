@@ -8,8 +8,7 @@ namespace Substrate.Sectors
 {
     /// <summary>
     /// Serialized reference to a locale scene, authored as a <c>SceneAsset</c> in the editor and baked
-    /// to a scene name that survives into builds. Unassigned means "no locale scene" — inherit the boot
-    /// scene's lighting, which is also the headless path.
+    /// to a scene name that survives into builds. Unassigned means "no locale scene".
     /// </summary>
     [Serializable]
     public class SceneReference

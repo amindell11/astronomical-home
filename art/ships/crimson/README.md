@@ -5,14 +5,11 @@ pass. The 39 mesh parts stay separate, with 33 live Mirror modifiers centered on
 the ship. The original design references and the color atlas
 are packed into the file; external copies are included for editing.
 
-`Crimson.fbx` is a textured interchange export with the modifiers evaluated.
-It contains only the ship meshes, with embedded color texture, UVs and normals.
-The Blender source uses X across the wings, +Y toward the nose and +Z up; the FBX
-uses -Z forward and Y up. Gameplay prefabs and ship configuration are unchanged.
+The Blender source uses X across the wings, +Y toward the nose and +Z up.
 
 ## Texture editing
 
-The `CrimsonPaintUV` map uses `textures/Crimson_BaseColor.png`, a 4096×4096 atlas.
+The `PaintUV` map uses `textures/Crimson_BaseColor.png`, a 4096×4096 atlas.
 Mirrored parts share their paint. Select the atlas in Blender's Texture Paint
 workspace to edit it. Save the external image and repack it when saving the blend.
 The saved solid viewport uses Texture color and Flat lighting to show the painted
@@ -24,23 +21,11 @@ light and shadow shapes. `textures/painted-brush-source.png` supplies the imageg
 brush variation; its exact prompt is alongside it. Generated concepts guide the
 paint treatment; the Blender geometry is authoritative.
 
-## Review evidence
+## Evidence
 
-![Textured ship](previews/textured-hero.png)
-
-![Original AI mesh and rebuilt ship rotating together](previews/old-vs-new-turntable.gif)
-
-- [Full-resolution turntable video](previews/old-vs-new-turntable.mp4), original AI
-  mesh on the left and rebuilt ship on the right, matched by nose-to-tail length.
-- [Top](previews/textured-top.png), [side](previews/textured-side.png),
-  [front](previews/textured-front.png) and [game-scale](previews/textured-game-scale.png)
-  texture checks.
-- `orthographic/` contains untextured geometry captures.
-- `asset-validation.json` records mesh, texture and FBX round-trip checks.
+Review renders, the original-versus-rebuilt turntable and the orthographic captures
+live on the `evidence/crimson` branch, which indexes them (paint stage: tag
+`archive/task/crimson-ship`; UV density: `uv/`).
 
 The approved source retains 14 non-manifold edges across `Cube` and `Structural
-center web`; no faces have zero area. These authored parts are preserved in the
-render mesh rather than repaired as part of the asset handoff.
-
-These are Blender previews of the asset; this handoff does not replace the active
-gameplay ship or claim an in-engine rendering match.
+center web`; no faces have zero area. These authored parts are kept, not repaired.

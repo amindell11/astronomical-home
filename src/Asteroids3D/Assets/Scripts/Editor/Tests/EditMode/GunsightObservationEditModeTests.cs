@@ -34,7 +34,7 @@ namespace Tests.EditMode
                 return context.hasLineOfSight;
             }
 
-            public override Combat.Projectiles.ProjectileBase Fire(Substrate.Services.Projectiles.IProjectileService projectiles) => null;
+            public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint, Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
 
         [Test]

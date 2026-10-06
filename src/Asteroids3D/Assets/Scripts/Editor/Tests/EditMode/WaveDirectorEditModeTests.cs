@@ -95,7 +95,7 @@ namespace Tests.EditMode
 
         private sealed class PoolWeapon : WeaponComponent
         {
-            public override Combat.Projectiles.ProjectileBase Fire(Substrate.Services.Projectiles.IProjectileService projectiles) => null;
+            public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint, Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
     }
 }

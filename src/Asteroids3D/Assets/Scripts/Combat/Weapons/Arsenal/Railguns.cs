@@ -54,14 +54,14 @@ namespace Combat.Weapons.Arsenal
                 hitMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }
 
-        public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
+        public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
         {
-            if (Charge && Charge.HandleTrigger(held, Time.fixedDeltaTime))
-                Fire(projectiles);
+            if (Charge && Charge.HandleTrigger(cmd.held, Time.fixedDeltaTime))
+                Fire(cmd.targetPoint, projectiles);
         }
 
         // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
-        public override ProjectileBase Fire(IProjectileService projectiles)
+        public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
             if (!CanFire()) return null;
 

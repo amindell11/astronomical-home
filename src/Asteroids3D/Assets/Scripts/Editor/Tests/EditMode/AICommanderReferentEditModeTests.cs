@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using AI;
+using Combat.Weapons;
 using Asteroids;
 using Combat;
 using AI.Navigation.MPC;

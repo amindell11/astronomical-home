@@ -38,18 +38,18 @@ namespace Combat.Weapons.Arsenal
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
-        public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
+        public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
         {
-            if (Charge && Charge.HandleTrigger(held, Time.fixedDeltaTime))
-                Fire(projectiles);
+            if (Charge && Charge.HandleTrigger(cmd.held, Time.fixedDeltaTime))
+                Fire(cmd.targetPoint, projectiles);
         }
 
-        public override ProjectileBase Fire(IProjectileService projectiles)
+        public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
             // Captured before firing: ProcessFire consumes the charge.
             var charge = Charge ? Charge.ChargePct : 1f;
 
-            var proj = base.Fire(projectiles);
+            var proj = base.Fire(targetPoint, projectiles);
             if (proj != null)
                 proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, charge));
             return proj;

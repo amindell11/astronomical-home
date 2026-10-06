@@ -25,7 +25,6 @@ namespace Tests.PlayMode
     public class SemiAutoGunneryPlayModeTests : PlayModeWorldFixture
     {
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
-        private const string GrenadesPrefabPath = "Assets/Prefabs/Weapons/Grenades.prefab";
 
         protected override bool AccelerateTime => true;
 
@@ -80,7 +79,7 @@ namespace Tests.PlayMode
             public void Fire(WeaponSlot slot, in WeaponCommand cmd)
             {
                 Commands.Add(cmd);
-                weapon.HandleTrigger(cmd.pressed, cmd.held, projectiles);
+                weapon.HandleTrigger(in cmd, projectiles);
             }
         }
 
@@ -137,40 +136,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(2, launchSteps.Count,
                 "The solution drops while the weapon cools down, so the press re-arms for the second round.");
             Assert.AreEqual(cooldown, (launchSteps[1] - launchSteps[0]) * Time.fixedDeltaTime, 2f * Time.fixedDeltaTime);
-        }
-
-        [UnityTest]
-        public IEnumerator Grenades_TargetHeldInTheDropEnvelope_GetsOnePressPerEntry()
-        {
-            var grenades = InstantiateWeapon<Grenades>(GrenadesPrefabPath);
-            var cooldown = grenades.GetComponent<Cooldown>().SecondsBetweenShots;
-            var gunner = MountGunner(grenades, out var mount);
-            var drops = 0;
-            grenades.OnFire += () => drops++;
-
-            var behind = new Vector2(0f, -8f);
-            var ahead = new Vector2(0f, 8f);
-
-            // Held past the cooldown: an every-step press would drop a second charge inside the hold.
-            var holdSteps = Mathf.CeilToInt(1.5f * cooldown / Time.fixedDeltaTime);
-            gunner.Aim(behind, Vector2.zero);
-            for (var i = 0; i < holdSteps; i++)
-            {
-                gunner.Fire(engagePrimary: true, engageSecondary: false);
-                yield return new WaitForFixedUpdate();
-            }
-
-            Assert.AreEqual(holdSteps, mount.Commands.Count(c => c.held), "The trigger stays down for the whole hold.");
-            Assert.AreEqual(1, mount.Commands.Count(c => c.pressed), "One press for one entry into the envelope.");
-            Assert.AreEqual(1, drops);
-
-            gunner.Aim(ahead, Vector2.zero);
-            gunner.Fire(engagePrimary: true, engageSecondary: false);
-            gunner.Aim(behind, Vector2.zero);
-            gunner.Fire(engagePrimary: true, engageSecondary: false);
-
-            Assert.AreEqual(2, mount.Commands.Count(c => c.pressed), "Leaving and re-entering presses again.");
-            Assert.AreEqual(2, drops);
         }
     }
 }

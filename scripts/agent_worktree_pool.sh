@@ -267,11 +267,13 @@ Commands:
         no-verdict     the hosted run gave no verdict in time
         hosted-error   a merge-proof status is error, or pending with no
                        live run (the run was cancelled or timed out)
-        gh             a GitHub read failed, or gh pr merge failed 5 times
+        gh             a GitHub read failed, gh pr merge failed 5 times, or
+                       a class merge's auto-merged label write failed
         failure        a merge-proof status is failure (red, or a dead runner)
         conflict       base does not merge into the slot
         turn-held      exit 75, above
-        unauthorized   land's authorize phase (see land)
+        unauthorized   land found no covering instruction, and the class did
+                       not admit the PR (see land)
         github         the hosted path refused a .github/ landing diff
       or else the name of the gate phase that refused. A gate refused at
       the slot's .merge lock never started, and prints none.
@@ -295,42 +297,48 @@ Commands:
       other code is a failed prepare's, and the slot keeps <lease>.
 
   land <pr>
-      Land an open PR that no slot holds, on the user's recorded
-      instruction (scripts/drain_pick.sh instruct); every fact about the
-      PR's instruction, review and merge order comes from
-      'drain_pick.sh land-facts'. Preflight, before any slot or the merge
-      turn is taken, refuses: a PR not open against main, a draft, a head
-      that is not a task/* branch of this repository (the hosted suite
-      runs only there), an owed-local checklist that is open or malformed,
-      no recorded instruction, an unresolved review thread, a live
-      '## Merge order' constraint naming an open PR, a slot other than a
-      land-<pr> slot holding the PR's head branch (that slot's session
-      merges it with 'merge <slot>'), and no free slot. land never
-      reclaims a stale slot and skips a free one holding unpushed work; it
-      reuses a land-<pr> slot a dead run left.
+      Land an open PR that no slot holds, on the user's recorded instruction
+      (scripts/drain_pick.sh instruct) or as a member of the auto-merge
+      class (below); every fact about the PR's instruction, review and merge
+      order comes from 'drain_pick.sh land-facts'. Preflight, before any
+      slot or the merge turn is taken, refuses: a PR not open against main,
+      a draft, a head that is not a task/* branch of this repository (the
+      hosted suite runs only there), an owed-local checklist that is open or
+      malformed, no recorded instruction (only with the class in shadow,
+      below), an unresolved review thread, a live '## Merge order'
+      constraint naming an open PR, a slot other than a land-<pr> slot
+      holding the PR's head branch (that slot's session merges it with
+      'merge <slot>'), and no free slot. land never reclaims a stale slot
+      and skips a free one holding unpushed work; it reuses a land-<pr> slot
+      a dead run left.
       The slot is leased as land-<pr>, recorded with the PR's head branch
       as its task branch, and checked out at the PR head from origin. The
       merge gate then runs on the hosted path (as --remote: no Unity boot,
       memory admission not asked) from no local proof, with one more
-      phase after base-merge, authorize: it refuses unless the recorded
+      phase after base-merge, authorize: it passes when the recorded
       instruction's commit covers the landing tree, i.e. merging that
       commit with base (git merge-tree) gives the landing tree, or a tree
-      that differs from it only by an inert (doc or comment) delta. A
-      conflicting merge covers nothing. A landing diff touching .github/
-      is refused (GATE reason github); land it with 'merge <slot>'.
+      that differs from it only by an inert (doc or comment) delta, and
+      otherwise leaves the decision to the class. A conflicting merge
+      covers nothing. A landing diff touching .github/ is refused (GATE
+      reason github); land it with 'merge <slot>'.
       After the merge the slot is finalized; after a refusal it is reset
       to origin/main and released.
       At most 3 merge gate attempts per call, and only after base-moved,
       no-verdict, hosted-error or gh; before a hosted-error retry land
       re-dispatches the hosted headless suite on the PR's branch and waits
       for its first status. Nothing counts attempts across calls.
-      The auto-merge class is computed in shadow and authorizes nothing
-      (WORKTREE_POOL_AUTO_MERGE_CLASS=1, for tests, lets class membership
-      stand in for a covering instruction). It holds when the owed verdict
-      is none, the landing diff touches neither scripts/ nor .github/,
-      both merge-proof statuses were accepted on the landing commit, and
-      Codex's completed review covers the landing tree with no unresolved
-      review thread.
+      With no covering instruction, the auto-merge class authorizes: land
+      merges a PR in the class and refuses one outside it (unauthorized).
+      The gate adds the label auto-merged to a PR the class authorized,
+      just before gh pr merge, and refuses the merge if that write fails
+      (gh); the pipeline digest lists merged PRs still carrying the label.
+      WORKTREE_POOL_AUTO_MERGE_CLASS=0 puts the class in shadow: it is
+      reported and authorizes nothing. The class holds when the owed
+      verdict is none, the landing diff touches neither scripts/ nor
+      .github/, both merge-proof statuses were accepted on the landing
+      commit, and Codex's completed review covers the landing tree with no
+      unresolved review thread.
       Trailers, at most once each: CLASS=in | CLASS=out:<condition>, the
       first failing of owed, paths, hosted, review (printed once the gate
       passes every check before its push); then GATE= as for merge, its
@@ -2536,6 +2544,15 @@ merge_gate() {
 
   # GitHub recomputes mergeability asynchronously after the gate's push; a merge call inside that window fails "not mergeable" — brief retries ride it out.
   merge_phase_begin gh-merge
+  # Before the merge: once merged, a failed write would leave an uninstructed merge off the digest.
+  if [[ "$AUTHORIZED_BY" == class ]]; then
+    if ! gh pr edit "$pr" --add-label "$AUTO_MERGED_LABEL" >/dev/null; then
+      GATE_REASON=gh
+      echo "merge: could not label PR #$pr $AUTO_MERGED_LABEL, which a class merge needs — not merging." >&2
+      return 1
+    fi
+    merge_journal_note "labelled $AUTO_MERGED_LABEL"
+  fi
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
     if gh pr merge "$pr" --squash --delete-branch=false --match-head-commit "$landing_sha"; then
@@ -2638,8 +2655,9 @@ return_slot() {
 }
 
 # ---- Land ------------------------------------------------------------------
-# Off until the switch: the class is reported, and every land needs a covering instruction.
-AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-0}"
+# 0 puts the class in shadow: it is reported, and every land needs a covering instruction.
+AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-1}"
+AUTO_MERGED_LABEL=auto-merged
 LAND_ATTEMPTS=3
 # The refusals a fresh merge gate attempt can clear.
 LAND_TRANSIENT=" base-moved no-verdict hosted-error gh "
