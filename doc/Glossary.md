@@ -624,6 +624,12 @@ Format: **term** — definition. *(authority)*
   self-steering projectiles (the concussion charge) read it, and the charge clamps
   it to its max range. Not `ITargetable.TargetPoint`, the lock anchor a missile
   homes on.
+- **braking distance** — how far before its target point a concussion charge stops
+  coasting and starts braking (`Grenade.brakingDistance`). A shot aimed inside it
+  brakes from launch; at max range or above, every shot does.
+- **target marker** — the HUD's ring at a concussion charge's target point plus a
+  faint blast-radius ring, shown for the HUD ship's own charges only: it binds to
+  that ship's launch readout (`ChargeTargetMarkers`), never to an "is player" fact.
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces

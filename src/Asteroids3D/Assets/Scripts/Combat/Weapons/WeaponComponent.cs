@@ -67,7 +67,7 @@ namespace Combat.Weapons
             ? name.Replace("(Clone)", string.Empty).Trim()
             : displayName;
 
-        /// <summary>Displayable state (readout conditions + lock source), built lazily post-Awake; pre-Awake returns empty WITHOUT caching.</summary>
+        /// <summary>Displayable state (readout conditions, lock source, the weapon's own readout), built lazily post-Awake; pre-Awake returns empty WITHOUT caching.</summary>
         public IReadOnlyList<IWeaponReadout> Readouts
         {
             get
@@ -78,6 +78,8 @@ namespace Combat.Weapons
                 readouts = new List<IWeaponReadout>(conditions.OfType<IWeaponReadout>());
                 if (LockSource != null)
                     readouts.Add(LockSource);
+                if (this is IWeaponReadout self)
+                    readouts.Add(self);
                 return readouts;
             }
         }
