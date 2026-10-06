@@ -49,3 +49,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade central aft taper — round 02 awaiting owner review](blockout/aft-taper-01/README.md)
 
 - [Nightshade restored taper and original straight fork — awaiting owner review](blockout/straight-fork-01/README.md)
+
+- [Nightshade tail mounting blocks — awaiting owner review](blockout/tail-mounts-01/README.md)

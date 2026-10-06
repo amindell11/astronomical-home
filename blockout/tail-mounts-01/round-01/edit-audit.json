@@ -1,0 +1,14 @@
+{
+  "changed_existing_parts": [],
+  "added_parts": [
+    "Tail root mounting blocks"
+  ],
+  "removed_parts": [],
+  "owner_checkpoint": "bb5ab4df",
+  "all_existing_owner_parts_unchanged": true,
+  "modifiers_applied": false,
+  "live_mirror": true,
+  "mount_vertices": 40,
+  "mount_faces": 44,
+  "maximum_thickness": 0.124
+}

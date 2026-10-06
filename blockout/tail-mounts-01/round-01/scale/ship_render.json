@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "60b11551272740fe81e20314a258be2d9488df059666dec3deb4b349f3b4c5c0",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-tail-mounts\\round-01\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}
