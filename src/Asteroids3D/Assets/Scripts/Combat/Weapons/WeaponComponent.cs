@@ -78,7 +78,8 @@ namespace Combat.Weapons
                 readouts = new List<IWeaponReadout>(conditions.OfType<IWeaponReadout>());
                 if (LockSource != null)
                     readouts.Add(LockSource);
-                if (this is IWeaponReadout self)
+                var self = this as IWeaponReadout;
+                if (self != null)
                     readouts.Add(self);
                 return readouts;
             }
