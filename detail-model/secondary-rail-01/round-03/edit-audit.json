@@ -1,0 +1,76 @@
+{
+  "baseline": "round-02",
+  "changed_parts": [
+    "Cockpit inset secondary rail"
+  ],
+  "purpose": "Pane divider raised on glass; cross-section thickens gradually toward rear collar",
+  "source_topology_object_transforms_and_visibility_retained": true,
+  "all_other_part_fingerprints_unchanged": true,
+  "stations": [
+    {
+      "station": 0.0,
+      "width_xy": 0.008,
+      "inward_shift": 0.0
+    },
+    {
+      "station": 1.0,
+      "width_xy": 0.008,
+      "inward_shift": 0.00203125
+    },
+    {
+      "station": 2.0,
+      "width_xy": 0.008,
+      "inward_shift": 0.0065
+    },
+    {
+      "station": 3.0,
+      "width_xy": 0.00811522633744856,
+      "inward_shift": 0.01096875
+    },
+    {
+      "station": 4.0,
+      "width_xy": 0.008424032921810699,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 5.0,
+      "width_xy": 0.00887111111111111,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 6.0,
+      "width_xy": 0.009401152263374485,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 7.0,
+      "width_xy": 0.009958847736625516,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 8.0,
+      "width_xy": 0.01048888888888889,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 9.0,
+      "width_xy": 0.0109359670781893,
+      "inward_shift": 0.013
+    },
+    {
+      "station": 10.0,
+      "width_xy": 0.01124477366255144,
+      "inward_shift": 0.009629629629629629
+    },
+    {
+      "station": 11.0,
+      "width_xy": 0.01136,
+      "inward_shift": 0.003370370370370371
+    },
+    {
+      "station": 12.0,
+      "width_xy": 0.01136,
+      "inward_shift": 0.0
+    }
+  ]
+}

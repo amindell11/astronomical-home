@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "images": {
+    "top": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-03\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-03\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-03\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-03\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}

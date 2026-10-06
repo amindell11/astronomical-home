@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "4f201578dab65cad7cd92d3105df0ac5820153040f3c88eab1ab46d4df44aead",
+  "images": {
+    "top": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\top.png",
+    "side": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\side.png",
+    "front": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\front.png",
+    "back": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\back.png",
+    "turn000": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\turn315.png",
+    "sheet": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\sheet\\sheet.png"
+  },
+  "set": "sheet",
+  "verdict": "pass"
+}

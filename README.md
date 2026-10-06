@@ -63,3 +63,5 @@ settles that distinction. They remain here as historical evidence.
 - [Medium detail approved; first mechanical detail candidate — owner review pending](detail-model/mechanical-01/README.md)
 
 - [Nightshade canopy frame detail — owner review pending](detail-model/cockpit-frame-01/README.md)
+
+- [Nightshade canopy pane divider and glass fit — owner review pending](detail-model/secondary-rail-01/README.md)

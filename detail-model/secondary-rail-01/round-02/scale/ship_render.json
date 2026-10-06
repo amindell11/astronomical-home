@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "4f201578dab65cad7cd92d3105df0ac5820153040f3c88eab1ab46d4df44aead",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-secondary-rail-01\\round-02\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}
