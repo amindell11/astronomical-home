@@ -3,7 +3,7 @@
   "geometry_unchanged": true,
   "mesh_parts": 39,
   "live_mirrors": 33,
-  "uv_map": "CrimsonPaintUV",
+  "uv_map": "PaintUV",
   "base_color": "textures/Crimson_BaseColor.png",
   "texture_size": [
     4096,
@@ -11,5 +11,5 @@
   ],
   "image_packed": true,
   "style_reference": "reference/approved-texture-concept.png",
-  "texture_sha256": "225ecd81cd5add159f111b2a26c4c8d987db38a88543f865289fd6094e6f3f8d"
+  "texture_sha256": "151ef752427882b6032630a79789f5c78429368a41bd37fcc4e082aad5d5169f"
 }
