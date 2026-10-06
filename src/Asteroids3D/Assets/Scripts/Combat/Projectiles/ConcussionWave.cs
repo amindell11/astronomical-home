@@ -16,11 +16,18 @@ namespace Combat.Projectiles
         [Stat, SerializeField, Min(0.01f)] private float expandSpeed = 20f;
 
         [Header("Effect")]
-        [Stat, SerializeField, Min(0f)] private float maxDamage = 40f;
+        [Stat, SerializeField, Min(0f)] private float maxDamage = 50f;
+        [Tooltip("Falloff curve exponent: 1 = linear; below 1 holds damage up toward the rim.")]
+        [Stat, SerializeField, Min(0.01f)] private float damageFalloffPower = 0.5f;
         [Tooltip("Impulse at the center, applied where the wavefront meets each hull; spin comes from that offset.")]
         [Stat, SerializeField, Min(0f)] private float impulse = 6000f;
+        [Tooltip("Falloff curve exponent: 1 = linear; above 1 concentrates the push at the center.")]
+        [Stat, SerializeField, Min(0.01f)] private float impulseFalloffPower = 2f;
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
+
+        // A trigger on a hull layer is a broadphase volume (an asteroid's bounding sphere), not the hull itself.
+        private static readonly int HullLayers = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
 
         private readonly HashSet<Collider> resolved = new();
         private readonly HashSet<IDamageable> swept = new();
@@ -71,7 +78,8 @@ namespace Combat.Projectiles
 
         private void Sweep()
         {
-            var falloff = Falloff(radius, maxRadius);
+            var damageFalloff = Falloff(radius, maxRadius, damageFalloffPower);
+            var impulseFalloff = Falloff(radius, maxRadius, impulseFalloffPower);
 
             // Already-swept inner colliders would crowd a fixed-size result and starve newly reached outer targets — regrow until the query fits.
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
@@ -86,14 +94,15 @@ namespace Combat.Projectiles
             {
                 // The disc re-overlaps every swept collider each step; resolve each only once.
                 if (!resolved.Add(buffer[i])) continue;
+                if (buffer[i].isTrigger && (HullLayers & (1 << buffer[i].gameObject.layer)) != 0) continue;
 
                 var target = buffer[i].GetComponentInParent<IDamageable>();
                 if (target == null || !swept.Add(target)) continue;
 
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
-                Push(buffer[i].attachedRigidbody, outward, hitPoint, falloff);
-                target.TakeDamage(new DamageInfo(maxDamage * falloff, DamageKind.ConcussionWave, attackerId,
+                Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
+                target.TakeDamage(new DamageInfo(maxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
                     waveMass, outward * expandSpeed, hitPoint));
             }
         }
@@ -115,10 +124,10 @@ namespace Combat.Projectiles
                 body.AddForceAtPosition(outward * (impulse * falloff), hitPoint, ForceMode.Impulse);
         }
 
-        /// <summary>Linear damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius.</summary>
-        internal static float Falloff(float radius, float maxRadius)
+        /// <summary>Damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius, shaped by <paramref name="power"/>.</summary>
+        internal static float Falloff(float radius, float maxRadius, float power)
         {
-            return maxRadius <= 0f ? 0f : Mathf.Clamp01(1f - radius / maxRadius);
+            return maxRadius <= 0f ? 0f : Mathf.Pow(Mathf.Clamp01(1f - radius / maxRadius), power);
         }
     }
 }

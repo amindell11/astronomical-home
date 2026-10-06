@@ -283,7 +283,7 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere()
+        public IEnumerator Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere_NorItsBroadphaseVolume()
         {
             var weapon = MountWeapon(Plane(60f, 60f));
             var origin = weapon.firePoint.position;
@@ -293,6 +293,10 @@ namespace Tests.PlayMode
             spawned.Add(hull);
             hull.transform.SetPositionAndRotation(origin + Plane(3f, 4f), GamePlane.Rotation);
             hull.AddComponent<BoxCollider>().size = new Vector3(0.5f, 8f, 0.5f);
+            // An asteroid-style broadphase sphere around the hull: the wave must push the hull, not this volume.
+            var broadphase = hull.AddComponent<SphereCollider>();
+            broadphase.isTrigger = true;
+            broadphase.radius = 4.5f;
             hull.AddComponent<DamageRecorder>();
             var hullBody = AddBody(hull.transform);
 

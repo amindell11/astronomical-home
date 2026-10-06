@@ -12,16 +12,25 @@ namespace Tests.EditMode
         [Test]
         public void Falloff_IsFullAtCenter_ZeroAtMaxRadius_LinearBetween()
         {
-            Assert.AreEqual(1f, ConcussionWave.Falloff(0f, 12f), 0.0001f);
-            Assert.AreEqual(0.5f, ConcussionWave.Falloff(6f, 12f), 0.0001f);
-            Assert.AreEqual(0f, ConcussionWave.Falloff(12f, 12f), 0.0001f);
+            Assert.AreEqual(1f, ConcussionWave.Falloff(0f, 12f, 1f), 0.0001f);
+            Assert.AreEqual(0.5f, ConcussionWave.Falloff(6f, 12f, 1f), 0.0001f);
+            Assert.AreEqual(0f, ConcussionWave.Falloff(12f, 12f, 1f), 0.0001f);
         }
 
         [Test]
         public void Falloff_ClampsBeyondMaxRadius_AndHandlesDegenerateRadius()
         {
-            Assert.AreEqual(0f, ConcussionWave.Falloff(20f, 12f), 0.0001f);
-            Assert.AreEqual(0f, ConcussionWave.Falloff(1f, 0f), 0.0001f);
+            Assert.AreEqual(0f, ConcussionWave.Falloff(20f, 12f, 1f), 0.0001f);
+            Assert.AreEqual(0f, ConcussionWave.Falloff(1f, 0f, 1f), 0.0001f);
+        }
+
+        [Test]
+        public void Falloff_PowerShapesTheCurve_KeepingTheEnds()
+        {
+            Assert.AreEqual(1f, ConcussionWave.Falloff(0f, 12f, 0.5f), 0.0001f);
+            Assert.AreEqual(0f, ConcussionWave.Falloff(12f, 12f, 2f), 0.0001f);
+            Assert.Greater(ConcussionWave.Falloff(9f, 12f, 0.5f), 0.25f, "Below 1 holds the curve up toward the rim.");
+            Assert.Less(ConcussionWave.Falloff(3f, 12f, 2f), 0.75f, "Above 1 concentrates it at the center.");
         }
 
         // ── Charge braking ──
