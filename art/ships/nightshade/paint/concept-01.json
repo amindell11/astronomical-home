@@ -9,7 +9,7 @@
   "references": [
     {
       "role": "exact current-model edit target",
-      "path": "D:/amind/git/agent-1/results/nightshade-paint-01/round-01/flat-contact-sheet.png",
+      "path": "https://github.com/amindell11/astronomical-home/tree/e91ef73a98432bba960b72e98790a0db8688e35e/paint/round-01/flat-contact-sheet.png",
       "sha256": "e65f4cf743f9d6add05684c901fa6f5c3d6e645bcd07ad290d3e350818c5d300"
     },
     {
@@ -58,5 +58,6 @@
     "not_in_game": true
   },
   "source_geometry_or_materials_changed": false,
-  "final_masks_generated": false
+  "final_masks_generated": false,
+  "evidence_url": "https://github.com/amindell11/astronomical-home/tree/e91ef73a98432bba960b72e98790a0db8688e35e/paint/round-01"
 }
