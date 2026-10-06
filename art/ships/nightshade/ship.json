@@ -4,6 +4,25 @@
   "source": "Nightshade.blend",
   "texture_size": 2048,
   "uv_density_max_ratio": 2.0,
-  "contour_roles": ["hull"],
-  "exemptions": []
+  "contour_roles": [
+    "hull"
+  ],
+  "exemptions": [
+    {
+      "rule": "scale",
+      "parts": [
+        "Lower canopy glazing",
+        "Lower canopy metal bezel",
+        "Lower small swept fins",
+        "Rebuilt main wing blades",
+        "Rebuilt pitched hull",
+        "Tail root mounting blocks",
+        "Upper small swept fins.001",
+        "Ventral central blade",
+        "Ventral shield cap",
+        "Ventral shield inset"
+      ],
+      "reason": "Owner approved preserving these hand-edited object scales on 2026-10-06. Keep the approved silhouette and live modifiers editable; do not apply transforms."
+    }
+  ]
 }
