@@ -1,0 +1,62 @@
+{
+  "provider": "openai-built-in-imagegen",
+  "tool": "image_gen.imagegen",
+  "recorded_at_utc": "2026-10-06T23:44:53.678426+00:00",
+  "status": "exploration",
+  "approval": "Pending owner paint-concept approval.",
+  "prompt": "Use case: precise-object-edit\nAsset type: Nightshade spacecraft paint concept, round 04.\nInput image: EDIT TARGET, the four-view blue-black / deep-purple Nightshade concept with bright green centre inserts and tiny green side lights.\n\nPrimary request: Make a very small, precise lighting-design revision. The user likes the tiny side lights but dislikes the large green lights in the middle. Remove the large green centre lights and add only one subtle symmetrical pair of tiny lights off the centreline.\n\nChange only these details, consistently in every view:\n1. Recolor all bright green centreline inserts to the same dark, non-emissive cool gunmetal as the surrounding hull. This includes the large hexagonal green patch behind the cockpit, the rectangular green insert directly at the canopy's rear, and the small green circular central fitting in the oblique views. Keep the underlying hardware shapes; remove the green illumination entirely. There must be NO green on the ship's centreline.\n2. Preserve the existing little banks of three green rectangular lights in the outer wing-side recesses exactly; the user likes those.\n3. Add exactly ONE additional matched pair of tiny, dim, recessed green indicator slits on the two inner shoulder/wing-root panels, equally spaced to either side of the central fuselage. Each should be no larger than one individual lamp in the existing side banks, clearly separated from the centreline. Short discreet green dashes, subdued brightness, negligible glow, no large dots or glowing panel areas. Mirror their physical positions left and right. Place them in corresponding locations in every view where visible.\n\nKeep absolutely everything else from the input unchanged: exact ship geometry and silhouette, panels, tail fork, fin shape and placement, mechanical detailing, cockpit and canopy framing, blue-violet glass, blue-black hull, deep violet/plum panel colours, muted purple tips, cool reflections and shading, all four camera views, scale and spacing, grey background and square composition.\nNo bronze, gold, brass, copper, brown or olive metal. No centreline green, no long neon strips, no large luminous surfaces. Do not redesign or add geometry. No text, labels, borders, swatches or watermarks.\n",
+  "transparent_background": false,
+  "references": [
+    {
+      "role": "edit target: round 03, blue-black and violet with green lights",
+      "path": "C:\\Users\\amind\\.codex\\generated_images\\01a112c7-f840-7683-a496-b2b5e5eabf06\\exec-7af4c198-3c2a-4331-b259-b35ac267a89f.png",
+      "sha256": "3982b34cca453cdf6c1c5e23ecc98f1a648ecd5f3c0226bc36c9711637c437c7"
+    }
+  ],
+  "context_reference": {
+    "description": "Original in-game Nightshade mesh and albedo inspected for small side-light character; not an edit target.",
+    "report": "C:\\Users\\amind\\.codex\\visualizations\\2026\\10\\06\\01a112c7-f840-7683-a496-b2b5e5eabf06\\ingame-nightshade-reference\\reference.json"
+  },
+  "output": {
+    "path": "concept-04.png",
+    "sha256": "47649c1ebd3b7d6ce087556b051b78a24de0edd968416d70bcbc26a252562528",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "source_commit": "c1fdb2746421408761f4202dfdef32422c554fdc",
+  "source_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "revision": [
+    "Remove green from central hexagonal, rectangular and circular fittings; restore dark gunmetal.",
+    "Retain the small green lights in the side recesses.",
+    "Add one subtle symmetrical pair of small green slits on the inner shoulders.",
+    "Retain midnight blue-black and violet palette; no bronze or gold."
+  ],
+  "review_thumbnails": {
+    "crop_xyxy": [
+      681,
+      27,
+      1203,
+      600
+    ],
+    "ship_lengths_px": [
+      32,
+      48,
+      64,
+      96
+    ],
+    "reduction": "Lanczos",
+    "enlargement": "nearest",
+    "not_in_game": true
+  },
+  "source_geometry_or_materials_changed": false,
+  "final_masks_generated": false,
+  "prerequisites": {
+    "detail_model_approved": true,
+    "flight_approved": false,
+    "geometry_lock_written": false,
+    "uv_approved": false,
+    "paint_concept_approved": false
+  }
+}
