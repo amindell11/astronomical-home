@@ -47,3 +47,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade forward pitch and new rear wings — owner approval pending](blockout/pitch-rear-wings-01/README.md)
 
 - [Nightshade central aft taper — round 02 awaiting owner review](blockout/aft-taper-01/README.md)
+
+- [Nightshade restored taper and original straight fork — awaiting owner review](blockout/straight-fork-01/README.md)

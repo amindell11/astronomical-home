@@ -1,0 +1,47 @@
+{
+  "changed_parts": [
+    "Aft engine collar",
+    "Aft spine armor",
+    "Rear swept wing pair",
+    "Rebuilt pitched hull"
+  ],
+  "added_parts": [],
+  "removed_parts": [],
+  "parts": {
+    "Rebuilt pitched hull": {
+      "topology_retained": true,
+      "mesh_datablock_retained": true,
+      "vertices_before": 444,
+      "vertices_after": 444,
+      "live_modifiers_retained": true
+    },
+    "Aft spine armor": {
+      "topology_retained": true,
+      "mesh_datablock_retained": true,
+      "vertices_before": 56,
+      "vertices_after": 56,
+      "live_modifiers_retained": true
+    },
+    "Aft engine collar": {
+      "topology_retained": true,
+      "mesh_datablock_retained": true,
+      "vertices_before": 36,
+      "vertices_after": 36,
+      "live_modifiers_retained": true
+    },
+    "Rear swept wing pair": {
+      "topology_retained": false,
+      "mesh_datablock_retained": true,
+      "vertices_before": 156,
+      "vertices_after": 732,
+      "live_modifiers_retained": true
+    }
+  },
+  "modifiers_applied": false,
+  "owner_edits_outside_claimed_parts_unchanged": true,
+  "guide_tolerance": 0.0012,
+  "reference_scaled": false,
+  "legacy_topology_or_uv_imported": false,
+  "hidden_root_start_y": 0.16,
+  "baseline": "6859548d; owner explicitly chose saved file after two-session mismatch"
+}
