@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "fb7193f819787cdeeea3ec2a6be98406be6666f40ec9ddf0d4573e2d338021a9",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "53ed0f646666b76f21d5c36dfa6b71ef7328517ccb0004a7de46cf5ac324fc07",
+      "uv": "bb9e060e72cd19ba794a1006ed5fa399a57eb5aff243e05c04fa5be9fd192586",
+      "materials": "30e8d92490eeca10ba8c7629ef6952222c697376fb8b126f0d7f3f25068ee0e0"
+    },
+    "parts": {
+      "Legacy body wings and upper lower fins": {
+        "geometry": "a2ba5c41315f0c876a5e8d307372e2b2e9b7e4178bb3f17fe4db9088f02e7e48",
+        "uv": "497bfc579313195d1320a94b2f19e9cd27d17f8fdc1e795853bf674dcbe7eabb",
+        "materials": "813b8ac7f2fd982ed0d144dd3a600592736bce73c35cc8aca7f0ffe10712c481"
+      },
+      "Sculpted compact tail pair": {
+        "geometry": "636bfd82050cdc3ce40929c9e79ff3b3fd8f35a60ddd57608869e0956bc62562",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "0196a0ca3b47bac4e38929b38bb0be83f1ad00e94a9c19ad33b75638f6bd24d5"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.side": {
+        "geometry": "a670cdce05fc2d911871420aa0af3441fa5ea55be1dfff98477fe2e6cab5d87e",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "0806fa46b81a99c3e283d657b396e0d9adcfff59df6977e0ddd8abeb60d12abc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.turnaround": {
+        "geometry": "402a9d7e11f79065713a2f834738edb385ed87cbebc7bb07080c8e311d22a8f3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

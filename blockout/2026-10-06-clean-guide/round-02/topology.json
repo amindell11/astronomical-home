@@ -1,0 +1,143 @@
+{
+  "cage_vertices": 2310,
+  "cage_faces": 2184,
+  "quad_faces": 2005,
+  "mesh_parts": 21,
+  "all_mirrors_live": true,
+  "legacy_faces_copied": 0,
+  "legacy_uvs_copied": 0,
+  "legacy_textures_used": 0,
+  "images": [
+    "nightshade-top.png",
+    "nightshade-turnaround.png",
+    "side-profile.png"
+  ],
+  "parts": [
+    {
+      "name": "Sculpted compact tail pair",
+      "vertices": 280,
+      "faces": 272,
+      "uv_layers": 0
+    },
+    {
+      "name": "Rebuilt pitched hull",
+      "vertices": 444,
+      "faces": 432,
+      "uv_layers": 0
+    },
+    {
+      "name": "Rebuilt main wing blades",
+      "vertices": 392,
+      "faces": 402,
+      "uv_layers": 0
+    },
+    {
+      "name": "Upper small swept fins",
+      "vertices": 224,
+      "faces": 234,
+      "uv_layers": 0
+    },
+    {
+      "name": "Lower small swept fins",
+      "vertices": 224,
+      "faces": 234,
+      "uv_layers": 0
+    },
+    {
+      "name": "Dorsal central blade",
+      "vertices": 88,
+      "faces": 82,
+      "uv_layers": 0
+    },
+    {
+      "name": "Dorsal shield cap",
+      "vertices": 48,
+      "faces": 47,
+      "uv_layers": 0
+    },
+    {
+      "name": "Ventral central blade",
+      "vertices": 88,
+      "faces": 82,
+      "uv_layers": 0
+    },
+    {
+      "name": "Ventral shield cap",
+      "vertices": 48,
+      "faces": 47,
+      "uv_layers": 0
+    },
+    {
+      "name": "Upper canopy frame",
+      "vertices": 70,
+      "faces": 54,
+      "uv_layers": 0
+    },
+    {
+      "name": "Lower canopy frame",
+      "vertices": 70,
+      "faces": 54,
+      "uv_layers": 0
+    },
+    {
+      "name": "Aft spine armor",
+      "vertices": 56,
+      "faces": 54,
+      "uv_layers": 0
+    },
+    {
+      "name": "Main wing transverse armor joint",
+      "vertices": 26,
+      "faces": 12,
+      "uv_layers": 0
+    },
+    {
+      "name": "Main wing inset channel",
+      "vertices": 20,
+      "faces": 9,
+      "uv_layers": 0
+    },
+    {
+      "name": "Upper fin armor joint",
+      "vertices": 18,
+      "faces": 8,
+      "uv_layers": 0
+    },
+    {
+      "name": "Lower fin armor joint",
+      "vertices": 18,
+      "faces": 8,
+      "uv_layers": 0
+    },
+    {
+      "name": "Dorsal shield inset",
+      "vertices": 10,
+      "faces": 7,
+      "uv_layers": 0
+    },
+    {
+      "name": "Ventral shield inset",
+      "vertices": 10,
+      "faces": 7,
+      "uv_layers": 0
+    },
+    {
+      "name": "Aft engine collar",
+      "vertices": 36,
+      "faces": 31,
+      "uv_layers": 0
+    },
+    {
+      "name": "Upper canopy glazing",
+      "vertices": 70,
+      "faces": 54,
+      "uv_layers": 0
+    },
+    {
+      "name": "Lower canopy glazing",
+      "vertices": 70,
+      "faces": 54,
+      "uv_layers": 0
+    }
+  ]
+}
