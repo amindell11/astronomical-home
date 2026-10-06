@@ -596,7 +596,11 @@ Format: **term** — definition. *(authority)*
 - **locale** — the per-sector look *scene*: lights, flat ambient, custom
   reflection, ambience and sky layers (under its `LocaleSky` root).
   `LocaleService` loads it additively and makes it active. Look is a scene;
-  gameplay is a prefab.
+  gameplay is a prefab. The boot scene carries none: every authored sector
+  names one, and the session shows its idle locale between sectors.
+- **idle locale** — the locale a presentation session shows while no sector is
+  loaded (the hangar's backdrop). A sector naming the same locale keeps it
+  loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
 - **palette role** — one of base, primary, secondary or accent: the colours
   Blender exports in a flat background's sidecar `.json`. Scene-linear.
   *(FlatBackgroundSidecar)*

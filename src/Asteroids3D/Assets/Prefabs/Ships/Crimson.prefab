@@ -142,16 +142,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Crimson
       objectReference: {fileID: 0}
-    - target: {fileID: 711575465060863133, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.17333338
-      objectReference: {fileID: 0}
-    - target: {fileID: 887810693340239939, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 1ab39ea405c950c45a63569c6b543389, type: 2}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -312,11 +302,31 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7036661780587961740, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7480283619238387818, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 1ab39ea405c950c45a63569c6b543389, type: 2}
+    - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.16666666
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.66666687
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.039999977
+      objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_ImplicitTensor
@@ -359,28 +369,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.16666666
+      objectReference: {fileID: 0}
+    - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.666667
+      value: -0.66666687
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.04111379
-      objectReference: {fileID: 0}
-    - target: {fileID: 8126998812465711489, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: InitialModule.startColor.maxColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8126998812465711489, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: InitialModule.startColor.maxColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8126998812465711489, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: InitialModule.startColor.maxColor.r
-      value: 1
+      value: -0.039999977
       objectReference: {fileID: 0}
     - target: {fileID: 8604375862119254720, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -414,9 +414,7 @@ PrefabInstance:
       objectReference: {fileID: 995146176193022882, guid: 958b213122640184a8eb6c06512fb2fe,
         type: 3}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 9019692503019240084, guid: 6c5c44eda9b86054ba44bc3f0f758310, type: 3}
-    - {fileID: 677372154227177255, guid: 6c5c44eda9b86054ba44bc3f0f758310, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 2203921253897424759, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

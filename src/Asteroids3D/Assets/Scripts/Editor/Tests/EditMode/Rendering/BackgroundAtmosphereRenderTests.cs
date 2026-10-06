@@ -56,7 +56,6 @@ namespace Tests.EditMode.Rendering
             Object.DestroyImmediate(material);
         }
 
-        [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_3.unity")]

@@ -14,6 +14,10 @@ namespace Substrate.Sessions
         [Tooltip("The sector to load. (Single-sector today; the future home for sector sequencing.)")]
         public SectorEntry sectorEntry;
 
+        [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps it loaded. " +
+                 "Unassigned → the boot scene, which carries no sky.")]
+        public SceneReference idleLocale;
+
         [Tooltip("When false, ship visual rigs, HUD/UI and one-shot VFX are disabled (headless/RL) — " +
                  "ships stay renderer/audio/particle-free while fully simulated.")]
         public bool presentation = true;
