@@ -9,31 +9,28 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace UI
+namespace UI.Hangar
 {
     /// <summary>
-    /// Between-run hangar screen: populates the prefab-authored rows from the hangar's offer (a
+    /// Between-run hangar screen: binds the prefab-authored option cyclers to the hangar's offer (a
     /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
     /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class HangarScreen : MonoBehaviour
     {
-        [Header("Row containers (option buttons are cloned into these)")]
-        [SerializeField] private Transform shipRow;
-        [SerializeField] private Transform engineRow;
-        [SerializeField] private Transform shieldRow;
-        [SerializeField] private Transform primaryWeaponRow;
-        [SerializeField] private Transform secondaryWeaponRow;
-
-        [Tooltip("Disabled button cloned once per option. Needs a child Text/label.")]
-        [SerializeField] private Button optionButtonTemplate;
+        [Header("Option rows")]
+        [SerializeField] internal OptionCycler shipRow;
+        [SerializeField] internal OptionCycler engineRow;
+        [SerializeField] internal OptionCycler shieldRow;
+        [SerializeField] internal OptionCycler primaryWeaponRow;
+        [SerializeField] internal OptionCycler secondaryWeaponRow;
 
         [Header("Commit")]
         [SerializeField] internal Button launchButton;
 
         [Header("Stats readout")]
-        [Tooltip("Shows the hovered option's stats; falls back to the current selection.")]
+        [Tooltip("Shows the stats of the hovered row's current pick.")]
         [SerializeField] private Text statsText;
 
         [Header("Ship preview")]
@@ -43,19 +40,13 @@ namespace UI
         [Tooltip("Continue the turntable mid-rotation when switching ships; off = each ship enters at the canonical pose (nose screen-right).")]
         [SerializeField] private bool continueSpinOnSwitch;
 
-        [Header("Selection tint")]
-        [SerializeField] private Color selectedColor = new(0.20f, 0.55f, 0.95f, 1f);
-        [SerializeField] private Color unselectedColor = new(0.20f, 0.20f, 0.24f, 1f);
-
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
+        private Func<string> hoveredStats;
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
         public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
         {
-            if (optionButtonTemplate)
-                optionButtonTemplate.gameObject.SetActive(false);
-
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
@@ -67,7 +58,7 @@ namespace UI
             if (offer)
             {
                 // Picking a ship reseeds the module slots to that ship's authored kit.
-                BuildRow(shipRow, offer.ships, () => loadout.Ship, s =>
+                BindRow(shipRow, offer.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
@@ -77,16 +68,15 @@ namespace UI
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);
                 }, Describe);
-                BuildRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
-                BuildRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
-                BuildRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
+                BindRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
+                BindRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
-                BuildRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
+                BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
                     w => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
-            RefreshHighlights();
-            if (statsText) statsText.text = "";
+            Refresh();
 
             if (launchButton)
             {
@@ -95,42 +85,54 @@ namespace UI
             }
         }
 
-        private void BuildRow<T>(Transform row, IReadOnlyList<T> options, Func<T> getCurrent, Action<T> setCurrent,
+        private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T> setCurrent,
             Func<T, string> describe, Func<T, string> label = null)
             where T : UnityEngine.Object
         {
-            if (!row || !optionButtonTemplate || options == null) return;
+            if (!row || offered == null) return;
 
-            foreach (var option in options)
-            {
-                if (!option) continue;
-                var button = Instantiate(optionButtonTemplate, row);
-                button.gameObject.SetActive(true);
+            var options = new List<T>();
+            foreach (var option in offered)
+                if (option) options.Add(option);
 
-                var labelText = button.GetComponentInChildren<Text>();
-                if (labelText) labelText.text = label != null ? label(option) : option.name;
-
-                var captured = option;
-                button.onClick.AddListener(() =>
+            if (options.Count > 0)
+                row.Stepped += step =>
                 {
-                    setCurrent(captured);
-                    RefreshHighlights();
-                });
-                // Stats are static serialized values; format once here, never per hover.
-                AddHoverStats(button.gameObject, describe(captured));
-            }
+                    var i = options.IndexOf(getCurrent());
+                    // A pick from outside the offer enters the cycle at whichever end the step points to.
+                    if (i < 0 && step < 0) i = options.Count;
+                    setCurrent(options[(i + step + options.Count) % options.Count]);
+                    Refresh();
+                };
 
-            refreshers.Add(() => TintRow(row, options, getCurrent));
+            refreshers.Add(() =>
+            {
+                var current = getCurrent();
+                row.Label = !current ? "None" : label != null ? label(current) : current.name;
+            });
+            AddHoverStats(row.gameObject, () =>
+            {
+                var current = getCurrent();
+                return current ? describe(current) : "";
+            });
         }
 
-        private void AddHoverStats(GameObject button, string stats)
+        private void AddHoverStats(GameObject row, Func<string> stats)
         {
             if (!statsText) return;
-            var trigger = button.AddComponent<EventTrigger>();
+            var trigger = row.AddComponent<EventTrigger>();
             var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            enter.callback.AddListener(_ => statsText.text = stats);
+            enter.callback.AddListener(_ =>
+            {
+                hoveredStats = stats;
+                Refresh();
+            });
             var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
-            exit.callback.AddListener(_ => statsText.text = "");
+            exit.callback.AddListener(_ =>
+            {
+                hoveredStats = null;
+                Refresh();
+            });
             trigger.triggers.Add(enter);
             trigger.triggers.Add(exit);
         }
@@ -197,24 +199,10 @@ namespace UI
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
 
-        private void TintRow<T>(Transform row, IReadOnlyList<T> options, Func<T> getCurrent)
-            where T : UnityEngine.Object
-        {
-            var current = getCurrent();
-            var i = 0;
-            foreach (Transform child in row)
-            {
-                if (child == optionButtonTemplate.transform) continue;
-                if (i >= options.Count) break;
-                var image = child.GetComponent<Image>();
-                if (image) image.color = ReferenceEquals(options[i], current) ? selectedColor : unselectedColor;
-                i++;
-            }
-        }
-
-        private void RefreshHighlights()
+        private void Refresh()
         {
             foreach (var refresh in refreshers) refresh();
+            if (statsText) statsText.text = hoveredStats != null ? hoveredStats() : "";
         }
 
         private void OnDestroy()

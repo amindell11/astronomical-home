@@ -7,7 +7,7 @@ using Substrate.Sessions;
 using NUnit.Framework;
 using Ships.Loadout;
 using Tests.PlayMode.Common;
-using UI;
+using UI.Hangar;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;

@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using UI;
+using UI.Hangar;
 using UnityEngine;
 
 namespace Tests.EditMode

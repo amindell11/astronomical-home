@@ -10,6 +10,7 @@ using Substrate.Sectors;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
+using UI.Hangar;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
