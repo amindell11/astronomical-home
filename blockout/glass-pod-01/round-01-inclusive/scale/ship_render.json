@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "d73330994b5be9ee706ea77eafa9f0216400808baf7e2bae4ba94b4561b7b9d1",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-glass-pod\\round-01-inclusive\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

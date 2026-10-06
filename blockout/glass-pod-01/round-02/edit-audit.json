@@ -1,0 +1,17 @@
+{
+  "changed_parts": [
+    "Lower canopy glazing",
+    "Lower canopy metal bezel",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper canopy inner seal",
+    "Upper canopy metal bezel"
+  ],
+  "all_unclaimed_parts_unchanged": true,
+  "topology_transforms_and_modifiers_retained": true,
+  "hull_boundary_vertices_moved": 34,
+  "direction": "Restore the owner checkpoint tapered canopy profile, retaining pod volume and open cradle",
+  "legacy_mesh_used": false,
+  "normals_recalculated": true
+}

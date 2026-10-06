@@ -1,0 +1,24 @@
+{
+  "owner_checkpoint": "6610e439",
+  "changed_parts": [
+    "Lower canopy glazing",
+    "Lower canopy metal bezel",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper canopy inner seal",
+    "Upper canopy metal bezel"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "existing_objects_and_mesh_datablocks_retained": true,
+  "object_transforms_and_modifier_stacks_retained": true,
+  "modifiers_applied": false,
+  "all_unclaimed_parts_unchanged": true,
+  "hull_faces_removed_for_opening": 64,
+  "hull_aperture_wall_faces_added": 16,
+  "hull_boundary_vertices_moved": 34,
+  "unused_hull_interior_vertices_removed": 56,
+  "pod_halves_share_world_equator": true,
+  "legacy_mesh_used": false
+}
