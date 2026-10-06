@@ -10,6 +10,7 @@ branches folded in stay reachable, so commit-pinned links in merged PRs keep res
 | paint | tag `archive/task/crimson-ship` (`0abd44a5`) | The approved hand-painted Crimson as PR #725 pinned it: source, textures, orthographic set, previews. |
 | paint (recipe) | `producers/codex-blender/crimson-texturing-20260928-010254/` | `texture_pass.py` is the original paint recipe. It opens `Before-texturing.blend` and `textures/painted-brush-source.png`, which are not on any branch. |
 | integration | `producers/unity-integration/` | See below. |
+| uv | `uv/` | UV density rework replacing PR #731: UV transfer, debris UV remap, `ship_uv` reports, debris still. |
 | motion | `motion/breakup/` | Former `evidence/crimson-breakup` (PR #740 captures). |
 | motion (authoring) | tag `archive/codex/crimson-breakup-authoring` (`9913320b`) | Breakup generator and assets as PR #740 pinned them, based on main. |
 

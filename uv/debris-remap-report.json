@@ -1,0 +1,171 @@
+{
+ "control_triangle_centroids": {
+  "n": 7616,
+  "mean": 1.9446341036414565,
+  "p95": 3.3333333333333335
+ },
+ "meshes": {
+  "Armor left.asset": {
+   "vertices": 2828,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 9.082272512965583,
+   "colour_p95": 45.0
+  },
+  "Armor right.asset": {
+   "vertices": 2824,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 9.093484419263456,
+   "colour_p95": 45.0
+  },
+  "Engine left.asset": {
+   "vertices": 3740,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 8.875824963894274e-09,
+   "colour_mean": 3.5762923351158644,
+   "colour_p95": 14.333333333333334
+  },
+  "Engine right.asset": {
+   "vertices": 3740,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 8.875824963894274e-09,
+   "colour_mean": 3.5762923351158644,
+   "colour_p95": 14.333333333333334
+  },
+  "Lower Aft swept fin left.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 0.7460317460317459,
+   "colour_p95": 4.333333333333333
+  },
+  "Lower Aft swept fin right.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 0.746031746031746,
+   "colour_p95": 4.333333333333333
+  },
+  "Lower Forward fin left.asset": {
+   "vertices": 112,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 7.791666666666666,
+   "colour_p95": 46.666666666666664
+  },
+  "Lower Forward fin right.asset": {
+   "vertices": 112,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 7.791666666666666,
+   "colour_p95": 46.666666666666664
+  },
+  "Lower Outer swept fin left.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 0.16666666666666666,
+   "colour_p95": 1.0
+  },
+  "Lower Outer swept fin right.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 0.16666666666666666,
+   "colour_p95": 1.0
+  },
+  "Upper Aft swept fin left.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 1.0555555555555554,
+   "colour_p95": 5.0
+  },
+  "Upper Aft swept fin right.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 1.0555555555555554,
+   "colour_p95": 5.0
+  },
+  "Upper Forward fin left.asset": {
+   "vertices": 112,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 5.934523809523809,
+   "colour_p95": 55.333333333333336
+  },
+  "Upper Forward fin right.asset": {
+   "vertices": 112,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 5.93452380952381,
+   "colour_p95": 55.333333333333336
+  },
+  "Upper Outer swept fin left.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 5.126984126984127,
+   "colour_p95": 43.333333333333336
+  },
+  "Upper Outer swept fin right.asset": {
+   "vertices": 84,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 5.126984126984127,
+   "colour_p95": 43.333333333333336
+  },
+  "Wing left.asset": {
+   "vertices": 1404,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 3.9596391263057926,
+   "colour_p95": 15.333333333333334
+  },
+  "Wing right.asset": {
+   "vertices": 1404,
+   "unmapped": 0,
+   "snapped": 0,
+   "max_snap": 0.0,
+   "max_candidate_disagreement": 0.0,
+   "colour_mean": 3.9596391263057935,
+   "colour_p95": 15.333333333333334
+  }
+ }
+}
