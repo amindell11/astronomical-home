@@ -1,4 +1,5 @@
 using System.Collections;
+using Combat.Weapons;
 using System.Collections.Generic;
 using Movement;
 using NUnit.Framework;

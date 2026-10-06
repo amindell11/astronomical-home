@@ -7,42 +7,38 @@ using Substrate;
 
 namespace Combat.Projectiles
 {
-    /// <summary>Drop-behind concussion charge, detonated by fuse expiry, armed contact, or being shot: detonation spawns a <see cref="ConcussionWave"/> — the grenade itself never applies damage.</summary>
+    /// <summary>
+    /// Concussion charge flown as a reverse missile: launched at a fixed speed straight at its
+    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it brakes by its own
+    /// thrust to rest on that point. Detonates on arrival, on contact (never the owner's hull), or
+    /// when shot — the owner's fire included. Detonation spawns a <see cref="ConcussionWave"/>;
+    /// the charge itself never applies damage. Design: arc #950.
+    /// </summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
     {
         [Header("Charge")]
-        [Stat, SerializeField, Min(0f)] private float fuseSeconds = 2.5f;
-        [Tooltip("Grace period before contact can detonate the charge (fuse and gunfire always can).")]
-        [Stat, SerializeField, Min(0f)] private float armingSeconds = 0.3f;
-        [Tooltip("Backward push relative to the fire direction at release.")]
-        [Stat, SerializeField, Min(0f)] private float dropSpeed = 3f;
+        [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
 
         [Header("Blast")]
         [Stat, SerializeField] private ConcussionWave wavePrefab;
 
-        private float aliveTime;
+        private Vector3 targetPoint;
+        private Vector3 heading;
         private bool detonated;
 
         protected override DamageKind Kind => DamageKind.ConcussionWave;
+        protected override bool TakesOwnerFire => true;
 
         public event Action<Vector3> OnDetonated;
 
         /// <summary>Announces the detonation's wave so whoever tracks this grenade tracks the wave too (<see cref="ITransientSpawner"/>).</summary>
         public event Action<MonoBehaviour, Action> Spawned;
 
-        public bool Armed => aliveTime >= armingSeconds;
+        /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
+        public Vector3 TargetPoint => targetPoint;
 
-        /// <summary>Serialized-state reads for hangar stat lines (evaluated on the prefab asset).</summary>
-        public float FuseSeconds => fuseSeconds;
+        /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
-
-        /// <summary>Deterministic test seam for the fuse/arming timers; resets the clock.</summary>
-        public void Configure(float fuseSeconds, float armingSeconds)
-        {
-            this.fuseSeconds = fuseSeconds;
-            this.armingSeconds = armingSeconds;
-            aliveTime = 0f;
-        }
 
         protected override void Awake()
         {
@@ -50,29 +46,38 @@ namespace Combat.Projectiles
             SimplePool<ConcussionWave>.Warm(wavePrefab);
         }
 
-        public override void Launch(Vector3 direction)
+        public override void Launch(Vector3 direction, Vector3 targetPoint)
         {
-            if (rb)
-            {
-                var shooterVelocity = GamePlane.WorldDirToPlane(Shooter?.Velocity ?? Vector3.zero);
-                var dropVelocity = shooterVelocity - GamePlane.WorldDirToPlane(direction) * dropSpeed;
-                rb.linearVelocity = GamePlane.PlaneDirToWorld(dropVelocity);
-            }
-            base.Launch(direction);
+            var origin = GamePlane.WorldPointToPlane(transform.position);
+            var offset = GamePlane.WorldPointToPlane(targetPoint) - origin;
+            var planarHeading = offset.sqrMagnitude > 0.0001f ? offset.normalized : GamePlane.WorldDirToPlane(direction).normalized;
+
+            heading = GamePlane.PlaneDirToWorld(planarHeading);
+            this.targetPoint = GamePlane.PlanePointToWorld(origin + planarHeading * Mathf.Min(offset.magnitude, maxDistance));
+            rb.linearVelocity = heading * launchSpeed;
+            base.Launch(direction, targetPoint);
         }
 
         protected override void FixedUpdate()
         {
-            base.FixedUpdate();
-
-            aliveTime += Time.fixedDeltaTime;
-            if (aliveTime >= fuseSeconds)
+            var remaining = Vector3.Dot(targetPoint - transform.position, heading);
+            var closingSpeed = Vector3.Dot(rb.linearVelocity, heading);
+            if (remaining <= 0f || closingSpeed <= 0f)
+            {
                 Detonate();
+                return;
+            }
+
+            rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
+            base.FixedUpdate();
         }
+
+        // Discrete-step form of v²/2d, which stops about v·dt/2 short; re-solved each step it holds constant.
+        internal static float BrakingDeceleration(float speed, float distance, float dt) =>
+            speed * speed / (2f * distance + speed * dt);
 
         protected override void OnHit(IDamageable other)
         {
-            if (!Armed) return;
             RaiseHit(other);
             Detonate();
         }
@@ -97,7 +102,6 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
-            aliveTime = 0f;
             detonated = false;
         }
     }

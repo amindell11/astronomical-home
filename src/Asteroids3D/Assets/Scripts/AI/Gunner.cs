@@ -1,6 +1,7 @@
 using System;
 using AI.Context;
 using Combat;
+using Combat.Weapons;
 using Movement;
 using Ships.Command;
 using UnityEngine;
@@ -66,7 +67,7 @@ namespace AI
 
         private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
         {
-            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld };
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, targetPoint = AimPointFor(slot) };
             prevHeld = held;
             actuator.Fire(slot, cmd);
         }

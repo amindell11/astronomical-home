@@ -44,7 +44,8 @@ namespace Combat.Projectiles
             rb.mass = mass;
         }
 
-        public virtual void Launch(Vector3 direction)
+        /// <summary>Sends the projectile off along <paramref name="direction"/>; only self-steering projectiles read <paramref name="targetPoint"/>.</summary>
+        public virtual void Launch(Vector3 direction, Vector3 targetPoint)
         {
             PlaneConstraints.ConstrainPosition(transform);
             startPosition = transform.position;
@@ -114,8 +115,11 @@ namespace Combat.Projectiles
             var shooterComponent = Shooter as Component;
             if (shooterComponent && other.gameObject == shooterComponent.gameObject) return true;
 
-            return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter;
+            return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter && !p.TakesOwnerFire;
         }
+
+        /// <summary>True for a projectile its own shooter's fire can hit (a charge the owner pops early).</summary>
+        protected virtual bool TakesOwnerFire => false;
 
         /// <summary>Immediately returns this projectile to its pool with no detonation or hit effects (episode/scene flush).</summary>
         public void ReturnToPoolImmediate() => ReturnToPool();

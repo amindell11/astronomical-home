@@ -17,7 +17,9 @@ namespace Combat.Projectiles
 
         [Header("Effect")]
         [Stat, SerializeField, Min(0f)] private float maxDamage = 40f;
-        [Stat, SerializeField, Min(0f)] private float impulse = 8f;
+        [Stat, SerializeField, Min(0f)] private float impulse = 800f;
+        [Tooltip("Yaw-rate kick (deg/s) at the center, thrown against the target's current turn.")]
+        [Stat, SerializeField, Min(0f)] private float spinKick = 240f;
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
 
@@ -106,9 +108,15 @@ namespace Combat.Projectiles
 
         private void Push(Rigidbody body, Vector3 outward, float falloff)
         {
-            if (body && !body.isKinematic)
-                body.AddForce(outward * (impulse * falloff), ForceMode.Impulse);
+            if (!body || body.isKinematic) return;
+
+            body.AddForce(outward * (impulse * falloff), ForceMode.Impulse);
+            var spin = SpinSign(Vector3.Dot(body.angularVelocity, GamePlane.Normal)) * spinKick * Mathf.Deg2Rad * falloff;
+            body.AddTorque(GamePlane.Normal * spin, ForceMode.VelocityChange);
         }
+
+        /// <summary>Kick direction: against the current turn so it always reads, even at a yaw-rate cap; fixed when not turning.</summary>
+        internal static float SpinSign(float yawRate) => yawRate > 0f ? -1f : 1f;
 
         /// <summary>Linear damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius.</summary>
         internal static float Falloff(float radius, float maxRadius)

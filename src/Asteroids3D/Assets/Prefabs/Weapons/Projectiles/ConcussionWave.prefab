@@ -48,8 +48,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   maxRadius: 12
   expandSpeed: 20
-  maxDamage: 40
-  impulse: 8
+  maxDamage: 60
+  impulse: 800
+  spinKick: 240
   waveMass: 1
   sweepMask:
     serializedVersion: 2

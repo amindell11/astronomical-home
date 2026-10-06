@@ -91,7 +91,7 @@ namespace Ships.Weapons
             public void Fire(WeaponSlot slot, in WeaponCommand cmd)
             {
                 if (!owner || !owner.enabled) return;
-                owner.Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held, projectiles);
+                owner.Mount(slot)?.HandleTrigger(in cmd, projectiles);
             }
         }
 

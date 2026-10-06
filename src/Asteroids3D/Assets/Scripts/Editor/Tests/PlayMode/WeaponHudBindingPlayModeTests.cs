@@ -233,7 +233,7 @@ namespace Tests.PlayMode
             weapon.OnFire += () => fired++;
             var startingAmmo = weapon.Rounds.AmmoCount;
 
-            var proj = weapon.Fire(Projectiles);
+            var proj = weapon.Fire(weapon.firePoint.position + weapon.firePoint.up * 10f, Projectiles);
 
             Assert.IsNotNull(proj, "Ripper failed to fire from a full magazine.");
             Assert.IsInstanceOf<Laser>(proj);

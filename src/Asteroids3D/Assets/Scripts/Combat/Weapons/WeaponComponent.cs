@@ -38,8 +38,8 @@ namespace Combat.Weapons
                 condition.Initialize(this);
         }
 
-        /// <summary>Fires one shot. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
-        public abstract ProjectileBase Fire(IProjectileService projectiles);
+        /// <summary>Fires one shot at <paramref name="targetPoint"/>. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
+        public abstract ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles);
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
@@ -51,10 +51,10 @@ namespace Combat.Weapons
         public virtual bool AutoFire => true;
 
         /// <summary>Applies one step of trigger state; the weapon owns its firing semantics (charge weapons override to fire on release/full charge).</summary>
-        public virtual void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
+        public virtual void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
         {
-            if (AutoFire ? held : pressed)
-                Fire(projectiles);
+            if (AutoFire ? cmd.held : cmd.pressed)
+                Fire(cmd.targetPoint, projectiles);
         }
 
         public virtual bool CanFire()

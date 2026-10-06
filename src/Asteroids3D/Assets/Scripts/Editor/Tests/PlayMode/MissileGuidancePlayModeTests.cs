@@ -61,7 +61,7 @@ namespace Tests.PlayMode
             m.transform.rotation = Quaternion.LookRotation(GamePlane.Normal, worldDir);
 
             m.Initialize(shooter);
-            m.Launch(worldDir);
+            m.Launch(worldDir, m.transform.position + worldDir);
         }
 
         private float DistanceToTarget()

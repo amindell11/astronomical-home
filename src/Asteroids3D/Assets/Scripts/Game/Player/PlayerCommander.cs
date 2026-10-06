@@ -1,4 +1,5 @@
 using System;
+using Combat.Weapons;
 using Ships.Command;
 using UnityEngine;
 using Substrate;
@@ -51,6 +52,10 @@ namespace Game.Player
         private bool prevSecondaryHeld;
         private bool boostInput;
         private bool wantsRotate;
+        private Vector3 cursorPoint;
+
+        // Past any weapon's range: with no cursor the shot aims down the nose and the weapon clamps it.
+        private const float NoseAimDistance = 1000f;
 
         private void Update()
         {
@@ -62,11 +67,12 @@ namespace Game.Player
             primaryHeld = playerInput.PrimaryFire;
             secondaryHeld = playerInput.SecondaryFire;
             wantsRotate = playerInput.WantsToRotate;
+            if (hasScreenProjector)
+                cursorPoint = playerInput.GetMouseWorldPosition();
 
             if (wantsRotate && hasScreenProjector)
             {
-                var mouseWorldPos = playerInput.GetMouseWorldPosition();
-                directionToMouse = (mouseWorldPos - context.Transform.position).normalized;
+                directionToMouse = (cursorPoint - context.Transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }
         }
@@ -122,10 +128,14 @@ namespace Game.Player
         // interprets its own firing semantics (auto/semi/charge) in HandleTrigger.
         private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
         {
-            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld };
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, targetPoint = TargetPoint() };
             prevHeld = held;
             weapons.Fire(slot, cmd);
         }
+
+        private Vector3 TargetPoint() => hasScreenProjector
+            ? cursorPoint
+            : context.Transform.position + GamePlane.PlaneDirToWorld(context.Kinematics.Forward) * NoseAimDistance;
 
         private float GetMouseRotationTorque()
         {

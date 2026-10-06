@@ -181,7 +181,7 @@ namespace UI.Hangar
             if (grenades)
                 return $"Blast {grenades.BlastDamage:0} to {grenades.BlastRadius:0}u, hits friend and foe" +
                        (grenades.Rounds ? $"   |   {grenades.Rounds.MaxAmmo} charges{Refill(grenades.Rounds)}" : "") +
-                       $"   |   Fuse {grenades.FuseSeconds:0.#}s";
+                       $"   |   Range {grenades.Range:0}u";
 
             return weapon.DisplayName;
         }

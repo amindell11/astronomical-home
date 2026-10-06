@@ -45,9 +45,9 @@ namespace Combat.Weapons.Arsenal
             lockProvider = targetingComputer;
         }
 
-        public override ProjectileBase Fire(IProjectileService projectiles)
+        public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            var proj = base.Fire(projectiles) as Missile;
+            var proj = base.Fire(targetPoint, projectiles) as Missile;
             if (!proj)
                 return null;
 

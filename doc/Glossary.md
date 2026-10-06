@@ -614,6 +614,12 @@ Format: **term** — definition. *(authority)*
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
+- **target point** — the world point in the game plane a shot flies to, fixed
+  at fire time: the cursor for the player (the nose at max range with no cursor),
+  `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only
+  self-steering projectiles (the concussion charge) read it, and the charge clamps
+  it to its max range. Not `ITargetable.TargetPoint`, the lock anchor a missile
+  homes on.
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces

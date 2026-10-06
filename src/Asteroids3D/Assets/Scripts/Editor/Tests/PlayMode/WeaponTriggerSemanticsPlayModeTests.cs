@@ -63,7 +63,7 @@ namespace Tests.PlayMode
             var fired = 0;
             ripper.OnFire += () => fired++;
 
-            ripper.HandleTrigger(pressed: false, held: true, Projectiles);
+            ripper.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "Full-auto fires from held state alone.");
         }
@@ -75,10 +75,10 @@ namespace Tests.PlayMode
             var fired = 0;
             missiles.OnFire += () => fired++;
 
-            missiles.HandleTrigger(pressed: false, held: true, Projectiles);
+            missiles.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
             Assert.AreEqual(0, fired, "Semi-auto must not fire from held state alone.");
 
-            missiles.HandleTrigger(pressed: true, held: true, Projectiles);
+            missiles.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
             Assert.AreEqual(1, fired, "Semi-auto fires on the press.");
         }
 
@@ -91,11 +91,11 @@ namespace Tests.PlayMode
             var fired = 0;
             laser.OnFire += () => fired++;
 
-            laser.HandleTrigger(pressed: true, held: true, Projectiles);
+            laser.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
             Assert.AreEqual(0, fired, "Still charging — a press means nothing to a charge weapon.");
 
             for (var i = 0; i < 20 && fired == 0; i++)
-                laser.HandleTrigger(pressed: false, held: true, Projectiles);
+                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "Full charge while held auto-fires.");
             Assert.AreEqual(0f, laser.Charge.ChargePct, 0.0001f, "Firing consumed the charge.");
@@ -109,11 +109,11 @@ namespace Tests.PlayMode
 
             // Hold for half the charge time, then release.
             for (var i = 0; i < 5; i++)
-                laser.HandleTrigger(pressed: false, held: true, Projectiles);
+                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
             Assert.AreEqual(0.5f, laser.Charge.ChargePct, 0.001f);
 
             var before = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None).Length;
-            laser.HandleTrigger(pressed: false, held: false, Projectiles);
+            laser.HandleTrigger(new WeaponCommand { pressed = false, held = false }, Projectiles);
 
             var bolts = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None);
             Assert.AreEqual(before + 1, bolts.Length, "Release above the minimum fires the shot.");
@@ -159,7 +159,7 @@ namespace Tests.PlayMode
             var fired = 0;
             railgun.OnFire += () => fired++;
 
-            railgun.HandleTrigger(pressed: false, held: true, Projectiles);
+            railgun.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "One held step reaches full charge and auto-fires.");
             Assert.AreEqual(45f, target.TotalDamage, 0.001f, "Beam applies the railgun's damage.");
@@ -176,7 +176,7 @@ namespace Tests.PlayMode
 
             var steps = Mathf.CeilToInt(2f / Time.fixedDeltaTime);
             for (var i = 0; i < steps && fired == 0; i++)
-                railgun.HandleTrigger(pressed: false, held: true, Projectiles);
+                railgun.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "The prefab's authored charge time must reach full and auto-fire.");
             Assert.Greater(target.TotalDamage, 0f);
@@ -208,7 +208,7 @@ namespace Tests.PlayMode
             var enemy = CreateTarget(ship.transform.position + Vector3.up * 6f);
 
             mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
-            mounted.HandleTrigger(pressed: false, held: true, Projectiles);
+            mounted.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
