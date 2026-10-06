@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "8d71a89ff25da69070d31d70547c1852981960bcfdc217a041ffc1ac03cd9b79",
+  "images": {
+    "turn000": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-1\\results\\nightshade-cockpit-frame-01\\round-01\\turnaround\\turn315.png"
+  },
+  "set": "turnaround",
+  "verdict": "pass"
+}

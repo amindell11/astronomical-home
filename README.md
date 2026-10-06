@@ -61,3 +61,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade rounded canopy front — owner review pending](blockout/rounded-canopy-01/README.md)
 
 - [Medium detail approved; first mechanical detail candidate — owner review pending](detail-model/mechanical-01/README.md)
+
+- [Nightshade canopy frame detail — owner review pending](detail-model/cockpit-frame-01/README.md)

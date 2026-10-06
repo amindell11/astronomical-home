@@ -1,0 +1,18 @@
+{
+  "checkpoint": "f12664a4d3c6fbc1e599c0df0f904d2aa58aba88",
+  "new_parts": [
+    "Cockpit upper glazing gasket",
+    "Cockpit upper retaining rail",
+    "Cockpit lower glazing gasket",
+    "Cockpit lower retaining rail",
+    "Cockpit upper cradle plating",
+    "Cockpit lower cradle plating",
+    "Cockpit rear retaining collar",
+    "Cockpit collar latch recess",
+    "Cockpit collar latch tongue"
+  ],
+  "existing_parts_changed": [],
+  "all_original_part_fingerprints_unchanged": true,
+  "glass_shape_and_side_exposure_preserved": true,
+  "frame_parts_have_live_mirror_and_thickness_modifiers": true
+}
