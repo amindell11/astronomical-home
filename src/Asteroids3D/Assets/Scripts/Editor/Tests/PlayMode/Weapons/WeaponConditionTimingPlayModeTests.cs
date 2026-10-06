@@ -90,7 +90,7 @@ namespace Tests.PlayMode.Weapons
                 yield return new WaitForFixedUpdate();
                 var before = Projectiles.ActiveCount;
                 var down = held(weapon);
-                weapon.HandleTrigger(down, down, Projectiles);
+                weapon.HandleTrigger(new WeaponCommand { pressed = down, held = down, targetPoint = weapon.firePoint.position + weapon.firePoint.up * 10f }, Projectiles);
                 if (Projectiles.ActiveCount > before)
                     launches.Add(Time.fixedTime - start);
             }
