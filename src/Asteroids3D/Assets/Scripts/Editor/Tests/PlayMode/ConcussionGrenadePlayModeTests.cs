@@ -21,7 +21,7 @@ namespace Tests.PlayMode
     /// The concussion charge flies straight at its target point (clamped to max range), brakes to
     /// rest there and detonates on arrival, on contact (never the owner's hull) or when shot — the
     /// owner's fire included. Its wave sweeps outward hitting everything once, the shooter included,
-    /// with damage falling off toward the rim; its kick spins targets against their turn.
+    /// with damage and push falling off toward the rim; the push lands where the wave meets each hull.
     /// </summary>
     [Category("Weapons")]
     public class ConcussionGrenadePlayModeTests : PlayModeWorldFixture
@@ -283,22 +283,32 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Wave_SpinsTargets_AgainstTheirTurn_AndStillOnesToo()
+        public IEnumerator Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere()
         {
             var weapon = MountWeapon(Plane(60f, 60f));
             var origin = weapon.firePoint.position;
-            var turning = AddBody(CreateTarget(origin + Plane(1.5f, 0f), "TurningTarget"));
-            var still = AddBody(CreateTarget(origin + Plane(-1.5f, 0f), "StillTarget"));
-            turning.angularVelocity = GamePlane.Normal * 1f;
+
+            // A long hull lying across the blast's radial line, clipped near one end.
+            var hull = new GameObject("LongHull") { layer = LayerIds.Ship };
+            spawned.Add(hull);
+            hull.transform.SetPositionAndRotation(origin + Plane(3f, 4f), GamePlane.Rotation);
+            hull.AddComponent<BoxCollider>().size = new Vector3(0.5f, 8f, 0.5f);
+            hull.AddComponent<DamageRecorder>();
+            var hullBody = AddBody(hull.transform);
+
+            var sphereBody = AddBody(CreateTarget(origin + Plane(-4f, 0f), "Sphere"));
+            hullBody.mass = sphereBody.mass = 800f;
 
             var grenade = weapon.Fire(origin + Plane(0f, -20f), Projectiles) as Grenade;
             grenade.TakeDamage(Shot(origin));
             yield return SweepFullWave();
 
-            Assert.Less(Vector3.Dot(turning.angularVelocity, GamePlane.Normal), 0f,
-                "The kick throws a turning ship back through its turn.");
-            Assert.Greater(Mathf.Abs(Vector3.Dot(still.angularVelocity, GamePlane.Normal)), 1f,
-                "A near-centre hit spins a still ship — the spin does not depend on the offset.");
+            Assert.Greater(hullBody.linearVelocity.magnitude, 0.1f, "The wave shoves the hull.");
+            Assert.Greater(Mathf.Abs(Vector3.Dot(hullBody.angularVelocity, GamePlane.Normal)), 0.1f,
+                "Pushed off its centre of mass, the hull spins — the spin is the impulse's offset, nothing scripted.");
+            Assert.Greater(sphereBody.linearVelocity.magnitude, 0.1f, "The wave shoves the sphere.");
+            Assert.Less(sphereBody.angularVelocity.magnitude, 0.01f,
+                "A push through the centre of mass spins nothing.");
         }
 
         [UnityTest]

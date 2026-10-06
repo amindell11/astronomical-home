@@ -24,16 +24,6 @@ namespace Tests.EditMode
             Assert.AreEqual(0f, ConcussionWave.Falloff(1f, 0f), 0.0001f);
         }
 
-        // ── Wave spin kick ──
-
-        [Test]
-        public void SpinSign_KicksAgainstTheCurrentTurn_AndAFixedWayWhenStill()
-        {
-            Assert.AreEqual(-1f, ConcussionWave.SpinSign(2f));
-            Assert.AreEqual(1f, ConcussionWave.SpinSign(-2f));
-            Assert.AreEqual(1f, ConcussionWave.SpinSign(0f));
-        }
-
         // ── Charge braking ──
 
         // Mirrors Unity's step: velocity integrates first, then position moves by the new velocity.

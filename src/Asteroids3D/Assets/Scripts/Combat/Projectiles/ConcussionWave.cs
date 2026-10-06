@@ -17,9 +17,8 @@ namespace Combat.Projectiles
 
         [Header("Effect")]
         [Stat, SerializeField, Min(0f)] private float maxDamage = 40f;
-        [Stat, SerializeField, Min(0f)] private float impulse = 800f;
-        [Tooltip("Yaw-rate kick (deg/s) at the center, thrown against the target's current turn.")]
-        [Stat, SerializeField, Min(0f)] private float spinKick = 240f;
+        [Tooltip("Impulse at the center, applied where the wavefront meets each hull; spin comes from that offset.")]
+        [Stat, SerializeField, Min(0f)] private float impulse = 6000f;
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
 
@@ -91,32 +90,30 @@ namespace Combat.Projectiles
                 var target = buffer[i].GetComponentInParent<IDamageable>();
                 if (target == null || !swept.Add(target)) continue;
 
-                var outward = OutwardDirection(target.gameObject.transform.position);
-                Push(buffer[i].attachedRigidbody, outward, falloff);
+                var hitPoint = buffer[i].ClosestPoint(transform.position);
+                var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
+                Push(buffer[i].attachedRigidbody, outward, hitPoint, falloff);
                 target.TakeDamage(new DamageInfo(maxDamage * falloff, DamageKind.ConcussionWave, attackerId,
-                    waveMass, outward * expandSpeed, buffer[i].ClosestPoint(transform.position)));
+                    waveMass, outward * expandSpeed, hitPoint));
             }
         }
 
-        private Vector3 OutwardDirection(Vector3 targetPosition)
+        // Blast center to hull point; a center inside the hull falls back to the target's position.
+        private Vector3 OutwardDirection(Vector3 hitPoint, Vector3 targetPosition)
         {
-            var planar = GamePlane.WorldDirToPlane(targetPosition - transform.position);
+            var planar = GamePlane.WorldDirToPlane(hitPoint - transform.position);
+            if (planar.sqrMagnitude < 0.0001f)
+                planar = GamePlane.WorldDirToPlane(targetPosition - transform.position);
             return planar.sqrMagnitude < 0.0001f
                 ? GamePlane.PlaneDirToWorld(Vector2.up)
                 : GamePlane.PlaneDirToWorld(planar.normalized);
         }
 
-        private void Push(Rigidbody body, Vector3 outward, float falloff)
+        private void Push(Rigidbody body, Vector3 outward, Vector3 hitPoint, float falloff)
         {
-            if (!body || body.isKinematic) return;
-
-            body.AddForce(outward * (impulse * falloff), ForceMode.Impulse);
-            var spin = SpinSign(Vector3.Dot(body.angularVelocity, GamePlane.Normal)) * spinKick * Mathf.Deg2Rad * falloff;
-            body.AddTorque(GamePlane.Normal * spin, ForceMode.VelocityChange);
+            if (body && !body.isKinematic)
+                body.AddForceAtPosition(outward * (impulse * falloff), hitPoint, ForceMode.Impulse);
         }
-
-        /// <summary>Against the current turn, so the kick reads even at a yaw-rate cap.</summary>
-        internal static float SpinSign(float yawRate) => yawRate > 0f ? -1f : 1f;
 
         /// <summary>Linear damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius.</summary>
         internal static float Falloff(float radius, float maxRadius)

@@ -49,8 +49,7 @@ MonoBehaviour:
   maxRadius: 12
   expandSpeed: 20
   maxDamage: 60
-  impulse: 800
-  spinKick: 240
+  impulse: 6000
   waveMass: 1
   sweepMask:
     serializedVersion: 2
