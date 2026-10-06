@@ -129,9 +129,9 @@ namespace Tests.PlayMode
         {
             var wave = FindActiveWave();
             Assert.IsNotNull(wave);
-            var steps = Mathf.CeilToInt(wave.MaxRadius / 20f / Time.fixedDeltaTime) + 4;
-            for (var i = 0; i < steps; i++)
+            for (var i = 0; i < 500 && wave.gameObject.activeSelf; i++)
                 yield return new WaitForFixedUpdate();
+            Assert.IsFalse(wave.gameObject.activeSelf, "The wave ran its full sweep.");
         }
 
         [Test]

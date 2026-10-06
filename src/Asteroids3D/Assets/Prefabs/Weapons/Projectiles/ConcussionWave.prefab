@@ -47,12 +47,12 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   maxRadius: 12
-  expandSpeed: 20
+  expandSpeed: 15
   maxDamage: 50
-  damageFalloffPower: 0.5
-  impulse: 6000
-  impulseFalloffPower: 2
-  waveMass: 1
+  damageFalloffPower: 1
+  impulse: 8000
+  impulseFalloffPower: 1
+  waveMass: 2
   sweepMask:
     serializedVersion: 2
     m_Bits: 4294967295

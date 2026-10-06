@@ -18,11 +18,11 @@ namespace Combat.Projectiles
         [Header("Effect")]
         [Stat, SerializeField, Min(0f)] private float maxDamage = 50f;
         [Tooltip("Falloff curve exponent: 1 = linear; below 1 holds damage up toward the rim.")]
-        [Stat, SerializeField, Min(0.01f)] private float damageFalloffPower = 0.5f;
+        [Stat, SerializeField, Min(0.01f)] private float damageFalloffPower = 1f;
         [Tooltip("Impulse at the center, applied where the wavefront meets each hull; spin comes from that offset.")]
-        [Stat, SerializeField, Min(0f)] private float impulse = 6000f;
+        [Stat, SerializeField, Min(0f)] private float impulse = 8000f;
         [Tooltip("Falloff curve exponent: 1 = linear; above 1 concentrates the push at the center.")]
-        [Stat, SerializeField, Min(0.01f)] private float impulseFalloffPower = 2f;
+        [Stat, SerializeField, Min(0.01f)] private float impulseFalloffPower = 1f;
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
 
