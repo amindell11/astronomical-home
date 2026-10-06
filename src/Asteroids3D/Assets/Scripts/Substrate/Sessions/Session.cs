@@ -29,7 +29,7 @@ namespace Substrate.Sessions
         private Transform sectorRoot;
         private readonly UnitService units;
         private readonly ObjectiveService objectives;
-        private readonly LocaleService locale = new();
+        private readonly LocaleService locale;
         private readonly SessionProfile profile;
         private readonly bool presentation;
         private Action<SectorResult> onSectorComplete;
@@ -56,6 +56,7 @@ namespace Substrate.Sessions
             this.units = units ? units : throw new ArgumentNullException(nameof(units));
             this.objectives = objectives ? objectives : throw new ArgumentNullException(nameof(objectives));
             presentation = profile.presentation;
+            locale = new LocaleService(profile.idleLocale?.SceneName);
             Frame = new SessionFrame(profile.offset);
         }
 
@@ -72,8 +73,10 @@ namespace Substrate.Sessions
             Units = units;
             Objectives = objectives;
 
+            if (presentation)
+                yield return locale.ApplyIdleLocaleAsync();
+
             phase = Phase.Composed;
-            yield break;
         }
 
         /// <summary>
@@ -122,7 +125,7 @@ namespace Substrate.Sessions
             UnityEngine.Object.Destroy(holder);
         }
 
-        /// <summary>Unload the sector (run its teardown phase, destroy its content) and, with presentation, restore the boot scene's look; the registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
+        /// <summary>Unload the sector (run its teardown phase, destroy its content) and, with presentation, return to the idle locale; the registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
         public IEnumerator UnloadSector()
         {
             Require(Phase.Loaded, nameof(UnloadSector));
@@ -134,7 +137,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: true);
 
             if (presentation)
-                yield return locale.RestoreBootLocaleAsync();
+                yield return locale.ApplyIdleLocaleAsync();
 
             phase = Phase.Composed;
         }
@@ -148,7 +151,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: false);
 
             if (presentation)
-                yield return locale.RestoreBootLocaleAsync();
+                yield return locale.UnloadLocaleAsync();
 
             Projectiles.ReturnAllToPool();
             Units.Clear();

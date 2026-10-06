@@ -11,7 +11,8 @@ namespace Tests.PlayMode
     /// <summary>
     /// PlayMode coverage for the locale scene seam on <see cref="LocaleService"/>:
     /// apply makes the locale the active scene, a repeat apply is a no-op, a different locale swaps the
-    /// active scene (unloading the previous), and restore returns the boot scene to active. Locale
+    /// active scene (unloading the previous), a shared idle locale survives the hand-off, and unload
+    /// returns the boot scene to active. Locale
     /// scenes are created empty at runtime so the tests exercise the SetActive/diff/restore paths
     /// without depending on Build Settings.
     /// </summary>
@@ -81,11 +82,33 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator RestoreBoot_RestoresActiveAndUnloadsLocale()
+        public IEnumerator SectorNamingTheIdleLocale_KeepsTheSameSceneLoaded()
+        {
+            var locale = new LocaleService(LocaleA);
+            yield return locale.ApplyIdleLocaleAsync();
+            var idle = SceneManager.GetActiveScene().handle;
+            yield return locale.ApplyLocaleAsync(LocaleA);
+            yield return locale.ApplyIdleLocaleAsync();
+            Assert.AreEqual(idle, SceneManager.GetActiveScene().handle,
+                "A shared locale must survive the hand-off both ways without a reload.");
+        }
+
+        [UnityTest]
+        public IEnumerator ApplyIdle_WithNoIdleLocale_UnloadsToTheBootScene()
         {
             var locale = new LocaleService();
             yield return locale.ApplyLocaleAsync(LocaleA);
-            yield return locale.RestoreBootLocaleAsync();
+            yield return locale.ApplyIdleLocaleAsync();
+            Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
+            Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded);
+        }
+
+        [UnityTest]
+        public IEnumerator UnloadLocale_RestoresBootAndUnloadsLocale()
+        {
+            var locale = new LocaleService(LocaleA);
+            yield return locale.ApplyIdleLocaleAsync();
+            yield return locale.UnloadLocaleAsync();
             Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
             Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
                 "The locale must unload on restore.");

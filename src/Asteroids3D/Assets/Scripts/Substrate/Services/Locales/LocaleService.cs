@@ -6,24 +6,30 @@ namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Locale switching for one session, held privately by it rather than exposed beside its services:
-    /// swap the active (lighting) scene to a sector's authored locale before its content builds, and
-    /// put the boot scene's look back — and unload the locale — whenever the sector unloads or the
-    /// session tears down. Both steps are presentation-only — the session skips them headless — and
-    /// nothing outside the session ever calls them.
+    /// swap the active (lighting) scene to a sector's authored locale before its content builds, return
+    /// to the idle locale — the one shown while no sector is loaded — whenever the sector unloads, and
+    /// hand the boot scene back when the session tears down. Every step is presentation-only — the
+    /// session skips them headless — and nothing outside the session ever calls them.
     /// </summary>
     public class LocaleService
     {
         private readonly Scene bootScene = SceneManager.GetActiveScene();
+        private readonly string idleLocaleName;
         private string loadedLocaleName;
 
-        /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty (inherit boot lighting) or already applied.</summary>
+        public LocaleService(string idleLocaleName = null)
+        {
+            this.idleLocaleName = idleLocaleName;
+        }
+
+        /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty or already applied.</summary>
         public IEnumerator ApplyLocaleAsync(string localeSceneName)
         {
             if (string.IsNullOrWhiteSpace(localeSceneName) || loadedLocaleName == localeSceneName)
                 yield break;
 
             if (!string.IsNullOrEmpty(loadedLocaleName))
-                yield return UnloadLocaleAsync(loadedLocaleName);
+                yield return UnloadSceneAsync(loadedLocaleName);
 
             var scene = SceneManager.GetSceneByName(localeSceneName);
             if (!scene.isLoaded)
@@ -45,8 +51,16 @@ namespace Substrate.Services.Locales
             loadedLocaleName = localeSceneName;
         }
 
+        /// <summary>Apply the idle locale, keeping it loaded when it is already applied; with none configured, unload to the boot scene.</summary>
+        public IEnumerator ApplyIdleLocaleAsync()
+        {
+            if (string.IsNullOrWhiteSpace(idleLocaleName))
+                return UnloadLocaleAsync();
+            return ApplyLocaleAsync(idleLocaleName);
+        }
+
         /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
-        public IEnumerator RestoreBootLocaleAsync()
+        public IEnumerator UnloadLocaleAsync()
         {
             if (string.IsNullOrEmpty(loadedLocaleName))
                 yield break;
@@ -55,11 +69,11 @@ namespace Substrate.Services.Locales
             if (bootScene.IsValid() && bootScene.isLoaded)
                 SceneManager.SetActiveScene(bootScene);
 
-            yield return UnloadLocaleAsync(loadedLocaleName);
+            yield return UnloadSceneAsync(loadedLocaleName);
             loadedLocaleName = null;
         }
 
-        private static IEnumerator UnloadLocaleAsync(string sceneName)
+        private static IEnumerator UnloadSceneAsync(string sceneName)
         {
             var scene = SceneManager.GetSceneByName(sceneName);
             if (scene.isLoaded)

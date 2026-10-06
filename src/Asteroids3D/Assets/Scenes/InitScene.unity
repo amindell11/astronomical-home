@@ -170,6 +170,9 @@ MonoBehaviour:
       config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
       prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
+    idleLocale:
+      sceneName: Locale_3
+      sceneAsset: {fileID: 102900000, guid: 698aaeb8a1d76a5479daa3c40fafa4ea, type: 3}
     presentation: 1
     offset: {x: 0, y: 0}
   playerRig: {fileID: 3540623995813302772, guid: 07feb380eb970254986133c3546b624c,

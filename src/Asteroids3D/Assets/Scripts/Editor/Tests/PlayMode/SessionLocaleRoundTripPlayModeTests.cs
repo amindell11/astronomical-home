@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sessions;
@@ -13,8 +15,9 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The hangar round trip at session level: a presentation session applies the sector's locale on
-    /// every load and hands the boot scene back on every unload, so no sector look carries into the hangar —
+    /// The hangar round trip at session level: a presentation session shows its idle locale from
+    /// compose, applies the sector's locale on every load and returns to the idle one on every unload —
+    /// keeping a locale both name loaded straight through — so no sector look carries into the hangar,
     /// including the ambient probe and default reflection derived from the active scene's lighting.
     /// </summary>
     [TestFixture]
@@ -23,16 +26,12 @@ namespace Tests.PlayMode
     {
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
-        private const string BootCubemapPath = "Assets/Visuals/Locales/Sky/Locales/InitScene/ReflectionCubemap.asset";
+        private const string OtherLocalePath = "Assets/Scenes/Locales/Locale_1.unity";
 
         private GameObject root;
         private Scene boot;
-        private string locale;
+        private readonly List<string> locales = new();
         private bool savedAudioPause;
-        private AmbientMode savedAmbientMode;
-        private Color savedAmbientLight;
-        private DefaultReflectionMode savedReflectionMode;
-        private Texture savedReflection;
 
         [SetUp]
         public void SetUp()
@@ -40,106 +39,111 @@ namespace Tests.PlayMode
             boot = SceneManager.GetActiveScene();
             savedAudioPause = AudioListener.pause;
             AudioListener.pause = true;
-            savedAmbientMode = RenderSettings.ambientMode;
-            savedAmbientLight = RenderSettings.ambientLight;
-            savedReflectionMode = RenderSettings.defaultReflectionMode;
-            savedReflection = RenderSettings.customReflectionTexture;
         }
 
-        // A failed assertion mid-trip must not leave the locale active for later fixtures.
+        // A failed assertion mid-trip must not leave a locale active for later fixtures.
         [UnityTearDown]
         public IEnumerator TearDown()
         {
             if (root) Object.DestroyImmediate(root);
             SceneManager.SetActiveScene(boot);
-            if (!string.IsNullOrEmpty(locale) && SceneManager.GetSceneByName(locale).isLoaded)
-                yield return SceneManager.UnloadSceneAsync(locale);
+            foreach (var locale in locales)
+                if (SceneManager.GetSceneByName(locale).isLoaded)
+                    yield return SceneManager.UnloadSceneAsync(locale);
+            locales.Clear();
             AudioListener.pause = savedAudioPause;
-            RenderSettings.ambientMode = savedAmbientMode;
-            RenderSettings.ambientLight = savedAmbientLight;
-            RenderSettings.defaultReflectionMode = savedReflectionMode;
-            RenderSettings.customReflectionTexture = savedReflection;
         }
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator UnloadSector_RestoresTheBootScene_AndReloadReappliesTheLocale()
+        public IEnumerator IdleLocaleSharedWithTheSector_StaysLoadedAcrossTheHandOff()
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
-            Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
-            locale = config.Locale?.SceneName;
-            Assert.That(locale, Is.Not.Null.And.Not.Empty, "The default sector must name a locale for this round trip to mean anything.");
-
-            root = new GameObject("SessionRoot");
-            var session = TestSession.Create(root, new SessionProfile
-            {
-                sectorEntry = new SectorEntry
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    config = config
-                },
-                presentation = true
-            });
+            var config = LoadConfig(out var sectorLocale);
+            var session = CreateSession(config, sectorLocale);
 
             yield return session.Compose();
+            Assert.AreEqual(sectorLocale, SceneManager.GetActiveScene().name, "Compose shows the idle locale.");
+            var idle = SceneManager.GetActiveScene().handle;
+
             yield return session.LoadSector();
-            Assert.AreEqual(locale, SceneManager.GetActiveScene().name, "The first load makes the locale active.");
+            Assert.AreEqual(idle, SceneManager.GetActiveScene().handle,
+                "A sector naming the idle locale must not unload and reload it.");
 
             yield return session.UnloadSector();
-            Assert.AreEqual(boot.handle, SceneManager.GetActiveScene().handle,
-                "Unloading the sector must hand the active scene back to the boot scene.");
-            Assert.IsFalse(SceneManager.GetSceneByName(locale).isLoaded, "Unloading the sector must unload its locale.");
-
-            yield return session.LoadSector();
-            Assert.AreEqual(locale, SceneManager.GetActiveScene().name, "Re-entry reapplies the locale.");
+            Assert.AreEqual(idle, SceneManager.GetActiveScene().handle, "Unloading the sector keeps the shared locale.");
 
             yield return session.Teardown();
             Assert.AreEqual(boot.handle, SceneManager.GetActiveScene().handle);
+            Assert.IsFalse(SceneManager.GetSceneByName(sectorLocale).isLoaded, "Teardown unloads the locale.");
         }
 
         [UnityTest]
         [Timeout(600000)]
         public IEnumerator EachStep_LightsFromTheActiveScenesFlatAmbientAndCustomReflection()
         {
-            // The runner's scene stands in for InitScene, lit the way InitScene is authored.
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.95f, 0.97f, 1.05f);
-            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
-            RenderSettings.customReflectionTexture = AssetDatabase.LoadAssetAtPath<Cubemap>(BootCubemapPath);
-            Assert.IsNotNull(RenderSettings.customReflectionTexture, $"Boot cubemap missing at {BootCubemapPath}");
-            var bootAmbient = RenderSettings.ambientLight;
-            var bootReflection = RenderSettings.customReflectionTexture;
-
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
-            locale = config.Locale?.SceneName;
-            root = new GameObject("SessionRoot");
-            var session = TestSession.Create(root, new SessionProfile
-            {
-                sectorEntry = new SectorEntry
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    config = config
-                },
-                presentation = true
-            });
+            var config = LoadConfig(out var sectorLocale);
+            var other = AssetDatabase.LoadAssetAtPath<SceneAsset>(OtherLocalePath);
+            Assert.IsNotNull(other, $"Locale missing at {OtherLocalePath}");
+            Assert.AreNotEqual(other.name, sectorLocale, "test premise: the idle and sector locales differ");
+            locales.Add(other.name);
+            var session = CreateSession(config, other.name);
 
             yield return session.Compose();
+            Assert.AreEqual(other.name, SceneManager.GetActiveScene().name);
+            var idleAmbient = RenderSettings.ambientLight;
+            var idleReflection = RenderSettings.customReflectionTexture;
+            AssertLitByActiveScene("after compose");
+
             yield return session.LoadSector();
-            Assert.AreEqual(locale, SceneManager.GetActiveScene().name);
-            Assert.AreNotEqual(bootAmbient, RenderSettings.ambientLight,
-                "test premise: the locale's ambient differs from boot, so a stale probe would show");
-            Assert.AreNotSame(bootReflection, RenderSettings.customReflectionTexture,
-                "test premise: the locale's cubemap differs from boot, so a stale reflection would show");
+            Assert.AreEqual(sectorLocale, SceneManager.GetActiveScene().name);
+            Assert.AreNotEqual(idleAmbient, RenderSettings.ambientLight,
+                "test premise: the sector's ambient differs from the idle locale's, so a stale probe would show");
+            Assert.AreNotSame(idleReflection, RenderSettings.customReflectionTexture,
+                "test premise: the sector's cubemap differs from the idle locale's, so a stale reflection would show");
             AssertLitByActiveScene("after the first load");
 
             yield return session.UnloadSector();
-            Assert.AreEqual(boot.handle, SceneManager.GetActiveScene().handle);
+            Assert.AreEqual(other.name, SceneManager.GetActiveScene().name);
+            Assert.IsFalse(SceneManager.GetSceneByName(sectorLocale).isLoaded, "Unloading the sector unloads its locale.");
             AssertLitByActiveScene("after the unload");
 
             yield return session.LoadSector();
             AssertLitByActiveScene("after re-entry");
 
             yield return session.Teardown();
+        }
+
+        private SectorSettings LoadConfig(out string sectorLocale)
+        {
+            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
+            Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
+            sectorLocale = config.Locale?.SceneName;
+            Assert.That(sectorLocale, Is.Not.Null.And.Not.Empty, "The default sector must name a locale.");
+            locales.Add(sectorLocale);
+            return config;
+        }
+
+        private Session CreateSession(SectorSettings config, string idleLocale)
+        {
+            root = new GameObject("SessionRoot");
+            return TestSession.Create(root, new SessionProfile
+            {
+                sectorEntry = new SectorEntry
+                {
+                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                    config = config
+                },
+                idleLocale = SceneReferenceTo(idleLocale),
+                presentation = true
+            });
+        }
+
+        private static SceneReference SceneReferenceTo(string sceneName)
+        {
+            var reference = new SceneReference();
+            typeof(SceneReference).GetField("sceneName", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(reference, sceneName);
+            return reference;
         }
 
         // Flat ambient fills the probe with the linear ambient colour; ambientIntensity does not scale it.
