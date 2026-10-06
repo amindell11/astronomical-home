@@ -59,3 +59,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade lowered frame fit and rounded nose — owner review pending](blockout/frame-fit-01/README.md)
 
 - [Nightshade rounded canopy front — owner review pending](blockout/rounded-canopy-01/README.md)
+
+- [Medium detail approved; first mechanical detail candidate — owner review pending](detail-model/mechanical-01/README.md)

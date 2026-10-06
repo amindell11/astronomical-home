@@ -1,0 +1,46 @@
+{
+  "approved_source": "124a71cf4c050b2232d6f19b815233980fa9fa97",
+  "changed_existing_parts": [
+    "SymmetryOrigin.001"
+  ],
+  "new_parts": [
+    "Wing forward armor",
+    "Wing shoulder armor",
+    "Wing outer armor",
+    "Wing aft blade armor",
+    "Wing ventral armor",
+    "Wing ventral aft armor",
+    "Upper fin armor",
+    "Lower fin armor",
+    "Tail root armor",
+    "Tail fork armor",
+    "Tail tip armor",
+    "Tail ventral armor",
+    "Spine shoulder armor",
+    "Spine aft armor",
+    "Panel joint beds",
+    "Wing cooling louvers",
+    "Cockpit shoulder latch",
+    "Cockpit forward latch",
+    "Tail mount service panel",
+    "Dorsal bridge service cover",
+    "Main exhaust throat",
+    "Main exhaust core",
+    "Engine.Main"
+  ],
+  "existing_mesh_geometry_materials_transforms_modifiers_unchanged": true,
+  "old_visibility_preserved": true,
+  "role_assignments": {
+    "ignored_hidden_parts": [
+      "Upper small swept fins",
+      "Upper canopy frame",
+      "Upper canopy inner seal",
+      "Lower canopy metal bezel"
+    ],
+    "hull": [
+      "Upper small swept fins.001"
+    ]
+  },
+  "parent_change": "SymmetryOrigin.001 parented to SymmetryOrigin, both identity; world transforms preserved",
+  "moving_assemblies": "None in this detail candidate; straight forks remain rigid."
+}
