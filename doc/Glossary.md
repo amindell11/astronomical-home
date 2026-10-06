@@ -770,6 +770,15 @@ Format: **term** — definition. *(authority)*
   Stakes reads the opening burst. Damage is counted at launch, so every shot is
   a hit: missiles count direct damage only, grenades the blast at its centre.
   *(WeaponCycleProbe · #772)*
+- **balance dump** — one JSON measurement of the item catalog. Only an explicit
+  PlayMode test writes one, so a run measures only when it names that test.
+  Dumps are named by UTC time under the results root; the one before a new dump
+  by filename is its previous dump, whatever branch wrote it.
+  *(BalanceDump, BalanceDumpPlayModeTests · #772)*
+- **derived table** — a balance dump rendered as markdown by the one renderer,
+  so Unity never formats a row; the **delta table** is the diff of two dumps.
+  Its keys and the compared-as-printed gotcha are in the renderer's header.
+  *(scripts/balance/balance_table.py)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
@@ -805,7 +814,7 @@ Format: **term** — definition. *(authority)*
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
-  *(StatHash.OfSetting, StatAttribute)*
+  *(StatHash.OfSetting, StatAttribute, GameHost.StatFingerprintInputs)*
 - **run record** — one JSON line appended when a run ends in the player's death:
   what it was played on (build identity, stat fingerprint), the player's loadout,
   kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
