@@ -3,11 +3,12 @@ using UnityEngine;
 namespace Combat.Weapons
 {
     /// <summary>
-    /// Per-frame trigger state for a <em>single</em> weapon slot, pushed to an
-    /// <see cref="Ships.Command.IWeapons"/>. Carries raw input facts only — what the trigger is doing, not
-    /// what it means. The weapon interprets its own firing semantics (full-auto fires while
-    /// held, semi-auto on each press, charge weapons accumulate while held and fire on
-    /// release; see <see cref="WeaponComponent.HandleTrigger"/>). Weapons are commanded individually
+    /// Per-frame trigger state for a <em>single</em> weapon slot, plus the target point a shot fired
+    /// this step flies to, pushed to an <see cref="Ships.Command.IWeapons"/>. Carries raw input facts
+    /// only — what the trigger is doing and where it aims, not what it means. Commanders always fill
+    /// the target point; a left-default zero would send a self-steering charge to the world origin.
+    /// The weapon interprets its own firing semantics (full-auto fires while held, semi-auto on each
+    /// press, charge weapons accumulate while held and fire on release; see <see cref="WeaponComponent.HandleTrigger"/>). Weapons are commanded individually
     /// (one command per slot) rather than bundled, so the piloting and firing channels — and
     /// the weapons among themselves — stay independent.
     /// </summary>
