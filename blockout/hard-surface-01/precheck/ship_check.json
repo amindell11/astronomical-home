@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "88cec980374e004bf8134e71bede43dfa584bb7b4f24cf2c14a57427cba127df",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "4479ccfba569a0d4bc1e7da173180b07f58b953faa74f022eb1cf21d8c7af3cd",
+      "uv": "751a0c98f0d58822400cfaaa7892dfa1f11fbbd3767e203411497a1aae1773bb",
+      "materials": "377922c22ad909d65d323649d3428edf0a225e7f877ad7682acfad42f385c266"
+    },
+    "parts": {
+      "Aft engine collar": {
+        "geometry": "2fbc21833d0c89e6a45674c3b5a1870ec0ecc1882e2c7aa50459401ce5b3783d",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "519b20b110cda5d103f5dc323e6b390baeb47a84d8f2fb32bfad3f5ead0d2b0a"
+      },
+      "Aft spine armor": {
+        "geometry": "1884630da8716ab8a9684ef6786701432988a651ba801d0cd362259ed7516354",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "69743f20382ed04020573c634bf6687c3a4630aca87c75848af2a33881acd7e8"
+      },
+      "Dorsal central blade": {
+        "geometry": "7c70d5f24b774c040c82a42484d6603db91e44255e4170f4e6f41fbb4c08065b",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "c30e5693070d79e943a2b4322db4e6b5eccccd87089e5b224d8d7d411758d99b"
+      },
+      "Dorsal shield cap": {
+        "geometry": "5b846c1f2633185fc04688ae303e6289d9eb162ff2236ebd5c7e6955c93789d5",
+        "uv": "f54a73258f9052f2844757e2d6a42ce36fd264dc278d6efc3da2b899c6b5e3a2",
+        "materials": "832080b14c4874709655e6e893a3bd115160377b6f94473a3b77dc8ffa3f2059"
+      },
+      "Dorsal shield inset": {
+        "geometry": "65cfec8deba940ac73d53eed9273cb97390e6f2242323f85f7cf9b8bf7243475",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "27efffb71b6470897e26daac1d7cc25bfbac90f31c36ae9d7e4f671120a79a4d"
+      },
+      "Lower canopy frame": {
+        "geometry": "3d44bada7c0301d20de9d7b135acbbddb951b51452da21c3b6ec2e74e3e50d76",
+        "uv": "3e500b6bccf128ef86fb9aa19361847599f4e01fab45dcfad744b263f6f54079",
+        "materials": "c9300906ef894c1f59ac09849774b976c60c258e04bf76f15b7b6657d888a37e"
+      },
+      "Lower canopy glazing": {
+        "geometry": "59af233a9094c0ce0375f0ff6a3aea1153173ee7bcff2d1b05ef8e5cb9e2ee3f",
+        "uv": "3e500b6bccf128ef86fb9aa19361847599f4e01fab45dcfad744b263f6f54079",
+        "materials": "27cc4412248bcfaa4954ebfa6699b9e4cfead7ddbcb8de1b1f7f44d6e435945a"
+      },
+      "Lower fin armor joint": {
+        "geometry": "7a7e678e3dedee6e4e1a77e6efb9231ac1f479bbebfcb93e2e7a7a4a31dc56d1",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "8846564b270ee491ffa2051d4ba26fbf9b100b4b82fdf9bda0e5717ffce3f18b"
+      },
+      "Lower small swept fins": {
+        "geometry": "29c4eabb2c464124b511d7648299b96eb1667fb0a8c90edbc90689c776909a28",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "da5c8b431ce65eb0423285ea020a937a4c29a612d5c0b2e8a80322112b7b12d4"
+      },
+      "Main wing inset channel": {
+        "geometry": "e18efff9ed91e99efbac7801d6ac5e338df5a72f520b32d2c03348d46e9296e5",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "bbb9c82a1782964c8a29ed183a8ac6edcc4444f5f5cef09d854e3dd29060344c"
+      },
+      "Main wing transverse armor joint": {
+        "geometry": "b3395f7abe780f1a96b655eec12d74ee1eef5b18ee18ed5664422ff35c4b47ae",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "7b8d024015acacf7f71aa79dedc4491d2c28d9d15aa113cf81efa8ad18eba2a8"
+      },
+      "Rebuilt main wing blades": {
+        "geometry": "ab048f8e01a7861ebb90deb8185b4a38625592f487a29b1959548b716d18bfe1",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "5134f34a5d954c7d6c36c9cc70dcc55647e18db42dd452304bd5919a29702e7d"
+      },
+      "Rebuilt pitched hull": {
+        "geometry": "2da2ad0d2c2e3497902e5467fafced2b54c4232e9442ada63faa957324307771",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "6897f397cc43707e158bdc02ba7c9715061d7e3dc05ffa808297949c688d06d4"
+      },
+      "Sculpted compact tail pair": {
+        "geometry": "636bfd82050cdc3ce40929c9e79ff3b3fd8f35a60ddd57608869e0956bc62562",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "0196a0ca3b47bac4e38929b38bb0be83f1ad00e94a9c19ad33b75638f6bd24d5"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper canopy frame": {
+        "geometry": "a18182da6ea806b7e2cdc48d78f561fc4f134c9474ce86da552e789a67d6e90c",
+        "uv": "3e500b6bccf128ef86fb9aa19361847599f4e01fab45dcfad744b263f6f54079",
+        "materials": "c9300906ef894c1f59ac09849774b976c60c258e04bf76f15b7b6657d888a37e"
+      },
+      "Upper canopy glazing": {
+        "geometry": "1e3086098453b20f23674c706783b1832177d6bda18306719bf8798271b04506",
+        "uv": "3e500b6bccf128ef86fb9aa19361847599f4e01fab45dcfad744b263f6f54079",
+        "materials": "27cc4412248bcfaa4954ebfa6699b9e4cfead7ddbcb8de1b1f7f44d6e435945a"
+      },
+      "Upper fin armor joint": {
+        "geometry": "c50ac1f45411b83944310a62dbc0b1abc2b30d606eb3119a549adfa32f38aaac",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "8846564b270ee491ffa2051d4ba26fbf9b100b4b82fdf9bda0e5717ffce3f18b"
+      },
+      "Upper small swept fins": {
+        "geometry": "c2a323347f783a2b867983e8d5f117f16533c03be1b3e79cb0493fff08aecc68",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "da5c8b431ce65eb0423285ea020a937a4c29a612d5c0b2e8a80322112b7b12d4"
+      },
+      "Ventral central blade": {
+        "geometry": "1817957013fb1fedb9b5b51d8090b8fa23ad59b1a779e3f1a49c53cd25b8cb25",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "c30e5693070d79e943a2b4322db4e6b5eccccd87089e5b224d8d7d411758d99b"
+      },
+      "Ventral shield cap": {
+        "geometry": "09654fca2b584313d0a47349b298d88163f1ab563989776c44907051765045ac",
+        "uv": "f54a73258f9052f2844757e2d6a42ce36fd264dc278d6efc3da2b899c6b5e3a2",
+        "materials": "832080b14c4874709655e6e893a3bd115160377b6f94473a3b77dc8ffa3f2059"
+      },
+      "Ventral shield inset": {
+        "geometry": "6366f2f3a72e33b1313f1a2c647492babde80d3441d9e1dc4039cccbc0cad99b",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "27efffb71b6470897e26daac1d7cc25bfbac90f31c36ae9d7e4f671120a79a4d"
+      },
+      "reference.side": {
+        "geometry": "a670cdce05fc2d911871420aa0af3441fa5ea55be1dfff98477fe2e6cab5d87e",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "0806fa46b81a99c3e283d657b396e0d9adcfff59df6977e0ddd8abeb60d12abc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.turnaround": {
+        "geometry": "402a9d7e11f79065713a2f834738edb385ed87cbebc7bb07080c8e311d22a8f3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

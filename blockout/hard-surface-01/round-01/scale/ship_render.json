@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "3c54c6e3bb4654ba09ba4a1da91410e27bd29218022030f60a53e286fcad9bd5",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-hard-surface\\round-01\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

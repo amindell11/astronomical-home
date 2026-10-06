@@ -1,0 +1,22 @@
+{
+  "changed_parts": [
+    "Aft spine armor",
+    "Dorsal central blade",
+    "Dorsal shield cap",
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Main wing inset channel",
+    "Main wing transverse armor joint",
+    "Rebuilt main wing blades",
+    "Rebuilt pitched hull",
+    "Upper fin armor joint",
+    "Upper small swept fins",
+    "Ventral central blade",
+    "Ventral shield cap"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "unclaimed_changes": [],
+  "tail_geometry_unchanged": true,
+  "canopy_geometry_unchanged": true
+}
