@@ -14,10 +14,8 @@ using UnityEngine.UI;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The hangar's option cyclers: each row steps through its slice of the offer and wraps, a step
-    /// writes only its own loadout slot, a ship step reseeds both mounts to the ship's authored kit,
-    /// and the hovered row's stats follow the pick. Headless-safe: the preview RawImage is removed
-    /// before Show so no render-texture stage is ever created.
+    /// Headless-safe: the preview RawImage is removed before Show so no render-texture stage is
+    /// ever created.
     /// </summary>
     [Category("UI")]
     public class HangarOptionRowsPlayModeTests : PlayModeWorldFixture
