@@ -343,7 +343,7 @@ namespace Tests.PlayMode
             var bolt = lasers.Fire(weapon.firePoint.position + heading * 20f, Projectiles);
             Assert.IsNotNull(bolt, "The owner's laser fired.");
 
-            // Park the owner's own bolt where the coasting charge lands two steps on; anywhere between steps it tunnels past.
+            // Park the bolt exactly two steps ahead; between steps the charge tunnels past it.
             var boltBody = bolt.GetComponent<Rigidbody>();
             var stepLength = grenade.GetComponent<Rigidbody>().linearVelocity.magnitude * Time.fixedDeltaTime;
             var boltSpot = grenade.transform.position + heading * (2f * stepLength);
