@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "42741374e8c5bcf71be727098630a58ff5ca793a4703547ff0a2463a2c5f0088",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-sharp-fins\\round-02\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

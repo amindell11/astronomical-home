@@ -1,0 +1,21 @@
+{
+  "changed_parts": [
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Upper fin armor joint",
+    "Upper small swept fins"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "topology_retained": true,
+  "object_transforms_retained": true,
+  "modifiers_applied": false,
+  "live_mirrors_retained": true,
+  "local_fin_z_unchanged": true,
+  "xy_factor_from_sharpened_pass": 0.62,
+  "y_anchor": 0.24,
+  "owner_checkpoint": "e77f6110",
+  "intermediate_checkpoint": "9060885a",
+  "all_unclaimed_parts_unchanged": true,
+  "lower_fin_seam": "Existing vertices reseated on the owner-tilted fin; topology and object transform retained"
+}

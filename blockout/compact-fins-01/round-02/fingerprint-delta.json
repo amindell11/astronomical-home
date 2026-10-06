@@ -1,0 +1,20 @@
+{
+  "changed_parts": [
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Upper fin armor joint",
+    "Upper small swept fins"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "all_unclaimed_parts_unchanged": true,
+  "existing_findings": [
+    {
+      "rule": "scale",
+      "part": "Tail root mounting blocks",
+      "message": "Unapplied scale (0.756041, 0.754301, 0.490019)"
+    }
+  ],
+  "finding_part_unchanged_since_owner_checkpoint": true,
+  "new_findings": []
+}

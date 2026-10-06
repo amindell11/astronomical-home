@@ -51,3 +51,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade restored taper and original straight fork — awaiting owner review](blockout/straight-fork-01/README.md)
 
 - [Nightshade tail mounting blocks — awaiting owner review](blockout/tail-mounts-01/README.md)
+
+- [Nightshade compact, sharper fins — round 02 awaiting owner review](blockout/compact-fins-01/README.md)

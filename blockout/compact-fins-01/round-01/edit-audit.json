@@ -1,0 +1,38 @@
+{
+  "changed_parts": [
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Upper fin armor joint",
+    "Upper small swept fins"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "parts": {
+    "Upper small swept fins": {
+      "topology_retained": true,
+      "object_transform_retained": true,
+      "live_modifiers_retained": true
+    },
+    "Lower small swept fins": {
+      "topology_retained": true,
+      "object_transform_retained": true,
+      "live_modifiers_retained": true
+    },
+    "Upper fin armor joint": {
+      "topology_retained": true,
+      "object_transform_retained": true,
+      "live_modifiers_retained": true
+    },
+    "Lower fin armor joint": {
+      "topology_retained": true,
+      "object_transform_retained": true,
+      "live_modifiers_retained": true
+    }
+  },
+  "owner_checkpoint": "e77f6110",
+  "modifiers_applied": false,
+  "existing_root_thickness_retained": true,
+  "local_fin_z_unchanged": true,
+  "owner_lower_fin_transform_retained": true,
+  "all_unclaimed_parts_unchanged": true
+}
