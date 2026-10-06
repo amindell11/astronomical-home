@@ -259,6 +259,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Camera",
+            "id": "1b644a57-b5c1-48d4-8769-ee879b1c3d4c",
+            "actions": [
+                {
+                    "name": "ToggleLock",
+                    "type": "Button",
+                    "id": "a46a254e-364e-4a65-9112-a37d3f546434",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d3bd41bd-a5a7-4493-8e33-0c86e93a5f78",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleLock",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

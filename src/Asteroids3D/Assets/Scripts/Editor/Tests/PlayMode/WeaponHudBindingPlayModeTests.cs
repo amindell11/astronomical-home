@@ -29,7 +29,7 @@ namespace Tests.PlayMode
         private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
-        private const string RipperSlugPrefabPath = "Assets/Prefabs/Weapons/RipperSlug.prefab";
+        private const string RipperSlugPrefabPath = "Assets/Prefabs/Weapons/Projectiles/RipperSlug.prefab";
         private const string OverlayPrefabPath = "Assets/Prefabs/UI/UIOverlay.prefab";
 
         private readonly List<GameObject> spawned = new();

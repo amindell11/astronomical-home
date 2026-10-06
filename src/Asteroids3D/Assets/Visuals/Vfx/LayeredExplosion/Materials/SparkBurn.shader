@@ -1,4 +1,4 @@
-Shader "Astronomical/Studies/Traveling Ember"
+Shader "Astronomical/Vfx/Traveling Ember"
 {
     Properties { _BaseMap ("Paint", 2D) = "white" {} }
     SubShader

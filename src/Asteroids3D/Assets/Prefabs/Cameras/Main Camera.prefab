@@ -279,5 +279,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d633ad9b159fc8a4fad28319a76d6e89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  toggleLockKey: 99
   observerCam: {fileID: 5165561948949764142}

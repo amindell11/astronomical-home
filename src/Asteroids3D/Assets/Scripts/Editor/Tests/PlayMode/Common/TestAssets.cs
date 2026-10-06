@@ -35,10 +35,10 @@ public static class TestAssets
     }
 
     /// <summary>A live observer camera built from the authored prefab the game host spawns.</summary>
-    public static Cameras.ObserverCam NewObserverCam()
+    public static global::Cameras.ObserverCam NewObserverCam()
     {
 #if UNITY_EDITOR
-        var prefab = AssetDatabase.LoadAssetAtPath<Cameras.ObserverCam>(ObserverCamPrefabPath);
+        var prefab = AssetDatabase.LoadAssetAtPath<global::Cameras.ObserverCam>(ObserverCamPrefabPath);
         return prefab ? UnityEngine.Object.Instantiate(prefab) : null;
 #else
         return null;

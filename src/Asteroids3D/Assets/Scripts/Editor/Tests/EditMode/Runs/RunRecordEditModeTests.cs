@@ -6,7 +6,6 @@ using Game.Player;
 using Game.Runs;
 using NUnit.Framework;
 using Ships;
-using Ships.Damage;
 using Ships.Loadout;
 using Ships.Registry;
 using UnityEditor;
@@ -53,23 +52,21 @@ namespace Tests.EditMode.Runs
             spawns.Log(Laserer, NewHull(), 2f);
             spawns.End(42.5f);
 
-            var victimGo = new GameObject("RecordVictim");
-            scratch.Add(victimGo);
-            var victim = victimGo.AddComponent<DamageController>();
-            victim.PopulateSettings(new ResolvedShipStats { maxHealth = 1000f, maxShield = 0f });
             var ledger = new DamageLedger();
-            ledger.Bind(victim, null);
-            victim.TakeDamage(Hit(10f, DamageKind.Laser, Laserer));
-            victim.TakeDamage(Hit(15f, DamageKind.Laser, Laserer));
-            victim.TakeDamage(Hit(40f, DamageKind.Collision, ShipId.Invalid));
+            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 3f);
+            ledger.Record(Hit(15f, DamageKind.Laser, Laserer), 4f);
+            ledger.Record(Hit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
 
-            record = RunRecord.Compose(
+            record = Compose(ledger, spawns);
+            json = record.ToJsonLine();
+        }
+
+        private RunRecord Compose(DamageLedger ledger, SpawnLog spawns) =>
+            RunRecord.Compose(
                 new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), "TrialSector",
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.engines[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), ledger, spawns, Hit(99f, DamageKind.Laser, Laserer));
-            json = record.ToJsonLine();
-        }
 
         [TearDown]
         public void TearDown()
@@ -151,6 +148,33 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(RunRecord.NoSpawn, read.damage[1].spawn, "a non-ship source links to no entry");
             Assert.AreEqual("Laser", read.killingBlow.kind);
             Assert.AreEqual(1, read.killingBlow.spawn);
+        }
+
+        [Test]
+        public void DamageRows_SplitByTheAttackersLife()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.Log(Laserer, NewHull(), 1f);
+            spawns.MarkDead(Laserer, Hit(1f, DamageKind.Laser, Player), 10f);
+            spawns.Log(Laserer, NewHull(), 15f);
+            spawns.End(30f);
+
+            var ledger = new DamageLedger();
+            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 5f);
+            ledger.Record(Hit(20f, DamageKind.Laser, Laserer), 20f);
+            ledger.Record(Hit(30f, DamageKind.Laser, Laserer), 25f);
+
+            var damage = Compose(ledger, spawns).damage;
+
+            Assert.AreEqual(2, damage.Count, "one row per attacker life, though the ledger holds one");
+            Assert.AreEqual(0, damage[0].spawn, "the first-life hit points at the first life");
+            Assert.AreEqual(10f, damage[0].total, 1e-4f);
+            Assert.AreEqual(1, damage[0].hits);
+            Assert.AreEqual(1, damage[1].spawn);
+            Assert.AreEqual(50f, damage[1].total, 1e-4f);
+            Assert.AreEqual(2, damage[1].hits);
         }
 
         [Test]

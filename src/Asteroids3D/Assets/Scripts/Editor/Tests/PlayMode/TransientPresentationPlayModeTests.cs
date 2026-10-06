@@ -21,7 +21,7 @@ namespace Tests.PlayMode
     [Category("Presentation")]
     public class TransientPresentationPlayModeTests : PlayModeWorldFixture
     {
-        private const string ConcussionWavePrefabPath = "Assets/Prefabs/Weapons/ConcussionWave.prefab";
+        private const string ConcussionWavePrefabPath = "Assets/Prefabs/Weapons/Projectiles/ConcussionWave.prefab";
 
         private ProjectileService headless;
 
@@ -52,7 +52,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator LaserCheckout_IsDarkHeadless_ThenRestoredByPresentingSession()
         {
-            var prefab = LoadProjectilePrefab<Laser>("Assets/Prefabs/Weapons/Laser.prefab");
+            var prefab = LoadProjectilePrefab<Laser>("Assets/Prefabs/Weapons/Projectiles/Laser.prefab");
             var laser = SimplePool<Laser>.Get(prefab, Vector3.zero, Quaternion.identity);
             try
             {
@@ -84,7 +84,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator MissileCheckout_HeadlessStopsParticles_AndSilencesAudio()
         {
-            var prefab = LoadProjectilePrefab<Missile>("Assets/Prefabs/Weapons/MissileProjectile.prefab");
+            var prefab = LoadProjectilePrefab<Missile>("Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab");
             var missile = SimplePool<Missile>.Get(prefab, Vector3.zero, Quaternion.identity);
             try
             {

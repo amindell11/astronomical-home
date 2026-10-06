@@ -13,6 +13,9 @@ the matching doc when its branch fires:
   namespace/asmdef naming).
 - Running Unity tests → `doc/agents/testing.md` (artifact dir, unity_access
   protocol, domain categories; suite guide: `TESTING.md`).
+- Ship art, or anything under `art/`, `Assets/Visuals/Ships/` or `Assets/Prefabs/Ships/`
+  → `doc/agents/art-pipeline.md` (layout, name mirror, legacy list, who may change
+  geometry, tree hygiene).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (design
@@ -80,7 +83,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 - Build and test in a pooled worktree. The primary tree is the owner's: an agent's only write there is fast-forwarding main (`git pull --ff-only`). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool; Claude Code's `isolation: "worktree"` / EnterWorktree nests them inside the primary tree. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there.
 - The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
-- Merge ONLY through the pool script — `merge <slot>`, or `land <pr>` for a PR no slot holds — and only on an explicit user merge instruction (definition in the skill). `land` needs that instruction recorded (`./scripts/drain_pick.sh instruct <pr>@<sha>`); a recorded instruction survives only an inert delta. Every session is the same GitHub account, so record only an instruction the user gave you. Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
+- Merge ONLY through the pool script — `merge <slot>`, or `land <pr>` for a PR no slot holds — and only on an explicit user merge instruction (definition in the skill), or by `land` for a PR in the *auto-merge class* (glossary). For any other PR, `land` needs that instruction recorded (`./scripts/drain_pick.sh instruct <pr>@<sha>`); a recorded instruction survives only an inert delta. Every session is the same GitHub account, so record only an instruction the user gave you. Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
 - Follow-up rounds on an open PR go on that PR's existing slot/branch; acquire a fresh slot only for genuinely independent work.
 - After any pool-script merge, `git pull` main in every live session before its next pool command — a session executing an old script copy is the live hazard.

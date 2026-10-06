@@ -27,6 +27,7 @@ mkdir -p "$LOCK_ROOT"
 #   Merge gate                merge turn + turn tickets, cmd_merge (takes the turn), merge_gate (runs under it)
 #   Borrow / return           borrow_slot (land's too), cmd_borrow, return_slot
 #   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
+#   Docs-only landing         cmd_land_docs, land_docs_push (runs under the merge turn)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -173,8 +174,9 @@ Commands:
       and exactly one of --body/--body-file are REQUIRED — the PR must
       describe the change, not echo the last commit subject. If an open
       PR already exists for that head/base, prints URL. Exits 2 before
-      anything runs when the body negates a closing keyword ("does not
-      close #N"): GitHub still closes #N (scripts/lib/negated_close.py).
+      anything runs when the body names #N with a closing keyword anywhere
+      but a line-leading "Closes #N" (a negated or quoted keyword): GitHub
+      still closes #N (scripts/lib/negated_close.py).
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
@@ -252,7 +254,7 @@ Commands:
       (default 3600) it exits 75; stderr names the lock file and the holder
       slot, or says the holder is not a merge gate. Each change of holder
       restarts that count, so a line that keeps moving times nobody out.
-      Any other push to base takes the same turn, e.g. a docs-only landing:
+      Any other push to base takes the same turn, e.g. land-docs, or:
         lock merge-turn --wait 3600 -- <sync and push cmd>
       Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
@@ -265,11 +267,13 @@ Commands:
         no-verdict     the hosted run gave no verdict in time
         hosted-error   a merge-proof status is error, or pending with no
                        live run (the run was cancelled or timed out)
-        gh             a GitHub read failed, or gh pr merge failed 5 times
+        gh             a GitHub read failed, gh pr merge failed 5 times, or
+                       a class merge's auto-merged label write failed
         failure        a merge-proof status is failure (red, or a dead runner)
         conflict       base does not merge into the slot
         turn-held      exit 75, above
-        unauthorized   land's authorize phase (see land)
+        unauthorized   land found no covering instruction, and the class did
+                       not admit the PR (see land)
         github         the hosted path refused a .github/ landing diff
       or else the name of the gate phase that refused. A gate refused at
       the slot's .merge lock never started, and prints none.
@@ -293,42 +297,48 @@ Commands:
       other code is a failed prepare's, and the slot keeps <lease>.
 
   land <pr>
-      Land an open PR that no slot holds, on the user's recorded
-      instruction (scripts/drain_pick.sh instruct); every fact about the
-      PR's instruction, review and merge order comes from
-      'drain_pick.sh land-facts'. Preflight, before any slot or the merge
-      turn is taken, refuses: a PR not open against main, a draft, a head
-      that is not a task/* branch of this repository (the hosted suite
-      runs only there), an owed-local checklist that is open or malformed,
-      no recorded instruction, an unresolved review thread, a live
-      '## Merge order' constraint naming an open PR, a slot other than a
-      land-<pr> slot holding the PR's head branch (that slot's session
-      merges it with 'merge <slot>'), and no free slot. land never
-      reclaims a stale slot and skips a free one holding unpushed work; it
-      reuses a land-<pr> slot a dead run left.
+      Land an open PR that no slot holds, on the user's recorded instruction
+      (scripts/drain_pick.sh instruct) or as a member of the auto-merge
+      class (below); every fact about the PR's instruction, review and merge
+      order comes from 'drain_pick.sh land-facts'. Preflight, before any
+      slot or the merge turn is taken, refuses: a PR not open against main,
+      a draft, a head that is not a task/* branch of this repository (the
+      hosted suite runs only there), an owed-local checklist that is open or
+      malformed, no recorded instruction (only with the class in shadow,
+      below), an unresolved review thread, a live '## Merge order'
+      constraint naming an open PR, a slot other than a land-<pr> slot
+      holding the PR's head branch (that slot's session merges it with
+      'merge <slot>'), and no free slot. land never reclaims a stale slot
+      and skips a free one holding unpushed work; it reuses a land-<pr> slot
+      a dead run left.
       The slot is leased as land-<pr>, recorded with the PR's head branch
       as its task branch, and checked out at the PR head from origin. The
       merge gate then runs on the hosted path (as --remote: no Unity boot,
       memory admission not asked) from no local proof, with one more
-      phase after base-merge, authorize: it refuses unless the recorded
+      phase after base-merge, authorize: it passes when the recorded
       instruction's commit covers the landing tree, i.e. merging that
       commit with base (git merge-tree) gives the landing tree, or a tree
-      that differs from it only by an inert (doc or comment) delta. A
-      conflicting merge covers nothing. A landing diff touching .github/
-      is refused (GATE reason github); land it with 'merge <slot>'.
+      that differs from it only by an inert (doc or comment) delta, and
+      otherwise leaves the decision to the class. A conflicting merge
+      covers nothing. A landing diff touching .github/ is refused (GATE
+      reason github); land it with 'merge <slot>'.
       After the merge the slot is finalized; after a refusal it is reset
       to origin/main and released.
       At most 3 merge gate attempts per call, and only after base-moved,
       no-verdict, hosted-error or gh; before a hosted-error retry land
       re-dispatches the hosted headless suite on the PR's branch and waits
       for its first status. Nothing counts attempts across calls.
-      The auto-merge class is computed in shadow and authorizes nothing
-      (WORKTREE_POOL_AUTO_MERGE_CLASS=1, for tests, lets class membership
-      stand in for a covering instruction). It holds when the owed verdict
-      is none, the landing diff touches neither scripts/ nor .github/,
-      both merge-proof statuses were accepted on the landing commit, and
-      Codex's completed review covers the landing tree with no unresolved
-      review thread.
+      With no covering instruction, the auto-merge class authorizes: land
+      merges a PR in the class and refuses one outside it (unauthorized).
+      The gate adds the label auto-merged to a PR the class authorized,
+      just before gh pr merge, and refuses the merge if that write fails
+      (gh); the pipeline digest lists merged PRs still carrying the label.
+      WORKTREE_POOL_AUTO_MERGE_CLASS=0 puts the class in shadow: it is
+      reported and authorizes nothing. The class holds when the owed
+      verdict is none, the landing diff touches neither scripts/ nor
+      .github/, both merge-proof statuses were accepted on the landing
+      commit, and Codex's completed review covers the landing tree with no
+      unresolved review thread.
       Trailers, at most once each: CLASS=in | CLASS=out:<condition>, the
       first failing of owed, paths, hosted, review (printed once the gate
       passes every check before its push); then GATE= as for merge, its
@@ -338,6 +348,28 @@ Commands:
       after:<pr>, slot:<slot>, no-free-slot, gate-running (another land of
       this PR holds its slot), checkout, or error (the gate printed no
       trailer). Exit: 0 merged; 1 refused, or a usage error.
+
+  land-docs
+      The docs-only landing (agent-worktree-pr-loop skill): push the HEAD
+      of the worktree it runs in straight to main, with no PR, when every
+      path it changes is under doc/ or ends in .md. Run it from the
+      worktree holding the commits: a slot, or a cloud session's checkout.
+      Holding the merge turn as 'lock merge-turn' does (no ticket, waiting
+      up to WORKTREE_POOL_MERGE_TURN_WAIT_SECONDS), it fetches origin,
+      checks every path each commit in origin/main..HEAD changes (a rename
+      counts as a delete and an add), rebases HEAD onto origin/main, and
+      pushes HEAD to main without force.
+      Stdout trailer: LAND_DOCS=landed <sha>, or LAND_DOCS=refused:<reason>,
+      the reason one of
+        fetch      the fetch from origin failed
+        paths      a commit changes a path outside doc/ and *.md (stderr
+                   lists them); checked before the rebase, so HEAD is untouched
+        rebase     HEAD did not rebase onto origin/main: a conflict (the
+                   rebase is aborted) or a dirty tree
+        empty      HEAD changes nothing on origin/main
+        push       the push failed, e.g. main moved from another clone
+        turn-held  the merge turn was still held after the wait
+      Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -1538,7 +1570,7 @@ parse_pr_flags() {
   require_no_negated_close "$cmd"
 }
 
-# GitHub's keyword parser ignores negation: "does not close #N" still closes #N on merge.
+# GitHub's keyword parser ignores negation and quotation: only a line-leading "Closes #N" passes.
 require_no_negated_close() {
   local cmd="$1" rc=0
   if [[ -n "$PR_BODY_FILE" ]]; then
@@ -2512,6 +2544,15 @@ merge_gate() {
 
   # GitHub recomputes mergeability asynchronously after the gate's push; a merge call inside that window fails "not mergeable" — brief retries ride it out.
   merge_phase_begin gh-merge
+  # Before the merge: once merged, a failed write would leave an uninstructed merge off the digest.
+  if [[ "$AUTHORIZED_BY" == class ]]; then
+    if ! gh pr edit "$pr" --add-label "$AUTO_MERGED_LABEL" >/dev/null; then
+      GATE_REASON=gh
+      echo "merge: could not label PR #$pr $AUTO_MERGED_LABEL, which a class merge needs — not merging." >&2
+      return 1
+    fi
+    merge_journal_note "labelled $AUTO_MERGED_LABEL"
+  fi
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
     if gh pr merge "$pr" --squash --delete-branch=false --match-head-commit "$landing_sha"; then
@@ -2614,8 +2655,9 @@ return_slot() {
 }
 
 # ---- Land ------------------------------------------------------------------
-# Off until the switch: the class is reported, and every land needs a covering instruction.
-AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-0}"
+# 0 puts the class in shadow: it is reported, and every land needs a covering instruction.
+AUTO_MERGE_CLASS="${WORKTREE_POOL_AUTO_MERGE_CLASS:-1}"
+AUTO_MERGED_LABEL=auto-merged
 LAND_ATTEMPTS=3
 # The refusals a fresh merge gate attempt can clear.
 LAND_TRANSIENT=" base-moved no-verdict hosted-error gh "
@@ -2863,6 +2905,53 @@ cmd_land() {
   return 1
 }
 
+# ---- Docs-only landing -----------------------------------------------------
+cmd_land_docs() {
+  [[ $# -eq 0 ]] || { echo "land-docs takes no arguments: run it from the worktree whose HEAD lands." >&2; return 1; }
+  local path rc=0
+  path="$(git rev-parse --show-toplevel)"
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" \
+    "land-docs: the merge turn is still held after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not landing." \
+    land_docs_push "$path" || rc=$?
+  [[ "$rc" -ne "$LOCK_BUSY_EXIT" ]] || echo "LAND_DOCS=refused:turn-held"
+  return "$rc"
+}
+
+# Runs under the merge turn, so the push waits for a gate in flight instead of moving base under it.
+land_docs_push() {
+  local path="$1" head non_docs
+  # Git writes progress and conflict reports to stdout; stdout carries only the trailer.
+  if ! git -C "$path" fetch -q origin main >&2; then
+    echo "LAND_DOCS=refused:fetch"
+    return 1
+  fi
+  # Each commit lands on main as it is, so each is checked, before the rebase rewrites any.
+  non_docs="$(git -C "$path" log --full-history --no-renames --format= --name-only origin/main..HEAD \
+    -- ':(top,exclude)doc/' ':(top,exclude)*.md' | sed '/^$/d' | sort -u)"
+  if [[ -n "$non_docs" ]]; then
+    echo "land-docs: these paths are outside doc/ and *.md, so the change takes a PR:" >&2
+    sed 's/^/  /' <<< "$non_docs" >&2
+    echo "LAND_DOCS=refused:paths"
+    return 1
+  fi
+  if ! git -C "$path" rebase -q origin/main >&2; then
+    if git -C "$path" rev-parse -q --verify REBASE_HEAD >/dev/null; then git -C "$path" rebase --abort >&2; fi
+    echo "LAND_DOCS=refused:rebase"
+    return 1
+  fi
+  head="$(git -C "$path" rev-parse HEAD)"
+  if [[ "$head" == "$(git -C "$path" rev-parse origin/main)" ]]; then
+    echo "land-docs: HEAD changes nothing on origin/main." >&2
+    echo "LAND_DOCS=refused:empty"
+    return 1
+  fi
+  if ! git -C "$path" push -q origin HEAD:main >&2; then
+    echo "LAND_DOCS=refused:push"
+    return 1
+  fi
+  echo "LAND_DOCS=landed $head"
+}
+
 # ---- Finalize / review / revise --------------------------------------------
 cmd_finalize() {
   local slot="$1"
@@ -3057,6 +3146,7 @@ main() {
       with_flock "$LOCK_ROOT/$1.merge" 0 "return: a merge gate is running on $1 — follow it with 'merge-progress $1'." \
         return_slot "$@"
       ;;
+    land-docs) cmd_land_docs "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;

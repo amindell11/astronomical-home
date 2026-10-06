@@ -20,12 +20,12 @@ be committed/pushed to main directly when ALL of: (1) the diff touches only
 documentation paths (`doc/**`, `*.md`, `.claude/**.md` — no code, no assets,
 nothing that executes); (2) the content was explicitly user-approved in the
 session landing it — that approval IS the review; (3) the commit message
-carries the story a PR body would have. Verify (1) mechanically
-(`git diff --cached --stat`) before pushing. These landings are cited by
+carries the story a PR body would have. These landings are cited by
 commit SHA, not PR number. Anything touching code takes the full loop.
-Commit it in a slot like any change, then sync and push as one command under
-the merge turn, so the push waits for the gate in flight instead of voiding it:
-`./scripts/agent_worktree_pool.sh lock merge-turn --wait 3600 -- bash -c 'git -C <slot-path> pull -q --rebase origin main && git -C <slot-path> push origin HEAD:main'`.
+Commit it in a slot like any change (a cloud session: its checkout), then run
+`./scripts/agent_worktree_pool.sh land-docs` from that worktree: it checks (1)
+mechanically and syncs and pushes under the merge turn, so the push waits for
+the gate in flight instead of voiding it.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
@@ -42,8 +42,9 @@ the PR ceremony added review the session had already performed.)
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
 - `./scripts/agent_worktree_pool.sh merge <slot>` — the merge path for a PR your slot holds; see Step 6.
 - `./scripts/agent_worktree_pool.sh merge <slot> --remote` / `merge <slot> -- <test args>` — same merge gate with the test-run producer named (hosted headless suite / local run) instead of chosen from memory admission; see Step 6.
-- `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands only on a recorded instruction that covers the landing tree; see Step 6.
+- `./scripts/agent_worktree_pool.sh land <pr>` — the merge path for a PR no slot holds: borrows a free slot, runs the merge gate on the hosted path, and lands on a recorded instruction that covers the landing tree or as a member of the auto-merge class; see Step 6.
 - `./scripts/agent_worktree_pool.sh borrow <lease>` / `return <slot> <lease>` — lease a slot for an unattended pass without moving its tree, and give it back reset to `origin/main`; see § Verify task.
+- `./scripts/agent_worktree_pool.sh land-docs` — the docs-only landing, run from the worktree holding the commits; see Applicability.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 - `./scripts/agent_worktree_pool.sh hold <slot> [--local]` / `resume <lease> [slot]` — take waiting work off a slot and put it back; see "Holding a slot".
@@ -186,13 +187,8 @@ Stage examples:
 - `build | Arc | harness-lane — B/C/D building → next PR-4`
   (an Arc chat's stage word is the arc's current overall stage)
 
-A standing chat with no lifecycle stage leads with `orchestrator` instead, and
-does retitle: `orchestrator | drain — <m> surfaced`, or
-`⛔ orchestrator | drain — <its own question>` only while it waits on the user
-itself (`.claude/skills/drain-orchestrator/SKILL.md`).
-
-A title starting with none of the stage words or `orchestrator` is a
-design-discussion chat — those never retitle.
+A title starting with none of the stage words is a design-discussion chat —
+those never retitle.
 
 Fresh chats are born titled: when breaking out a new session for a slice —
 a spawn chip, a handoff, a launch prompt you draft for the user — give it its
@@ -360,9 +356,7 @@ After each round, post ONE PR comment containing a disposition table —
 round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
 hash, thread reply, or issue number). No comment may lack a row. Use `revise`
 to re-push fixes. Resolve each review thread once its disposition reply is
-posted: `land` refuses a PR with an unresolved thread. After pushing a code
-fix for a finding, post one `@codex review` comment so Codex reviews the fix:
-its review of an earlier commit no longer covers the tree.
+posted: `land` refuses a PR with an unresolved thread.
 
 ## Step 6 — Merge
 
@@ -428,11 +422,16 @@ then fetches and proves on top of the landings ahead of it; `merge-progress
 <slot>` shows its place in the line and the slot holding the turn. Leave it
 waiting: a re-run `merge` arrives at the back of the line.
 
-`land` needs the instruction recorded. On the user's word in your chat, run
+`land` needs the instruction recorded, unless the merge gate puts the PR in
+the *auto-merge class* (`doc/Glossary.md`): that PR lands with none, labelled
+`auto-merged`, and the pipeline digest lists it for the user to review after
+the merge. On the user's word in your chat, run
 `./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
 saw (usually the one on its `MERGE=` line). Every session acts as the same
 GitHub account, so `land` checks that a record exists and covers the landing
-tree, not who wrote it: record only an instruction the user gave you. A
+tree, not who wrote it: record only an instruction the user gave you. The user
+may also type one on the PR (`Merge instruction: <sha7>`, the head off its
+*decisions view* row); a session records only through `instruct`. A
 recorded instruction survives a docs-only or C#-comment-only delta (`land`
 decides, with the merge gate's inert classifier); any other delta needs a new
 one. `land` refuses a PR with an unresolved review thread, so it takes no
@@ -492,13 +491,15 @@ build*, runs in a subagent. Start prompt:
    two fix rounds: post the question on the issue in the one-short question
    format (`.claude/skills/issue-triage/comment-formats.md`), naming the pushed
    branch; swap `ready-for-agent` for `ready-for-human`;
-   `./scripts/drain_pick.sh release <issue>`; go on to the next item.
+   `./scripts/drain_pick.sh release <issue>`; go on to the next item. The
+   question reaches the *decisions view* by itself; the label swap only takes
+   the issue out of `pick`.
 8. **Parent, once every PR is open:** check the batch's branches pairwise for
    conflicts and write the `## Merge order` lines (Step 4); run
-   `./scripts/drain_pick.sh merge-queue`, fixing the bodies until no `SKIP=`
-   line says `merge-order-malformed` or `order-cycle`; then report the PRs
-   opened and the items blocked, ending on `./scripts/drain_pick.sh digest`,
-   relayed as printed.
+   `./scripts/drain_pick.sh merge-queue --no-class`, fixing the bodies until no
+   `SKIP=` line says `merge-order-malformed` or `order-cycle`; then report the
+   PRs opened and the items blocked, ending on
+   `./scripts/drain_pick.sh digest --no-class`, relayed as printed.
 9. **A cloud batch ends at open PRs.** It never merges and never boots Unity.
 
 ## Verify task
@@ -571,14 +572,15 @@ classifier, since a rule on it would also match `--force`.
 ## Merge task
 
 The desktop scheduled task `merge`, started with Run now: one merge pass over
-the pipeline's merge queue, landing what the user instructed. It has no
+the pipeline's merge queue, landing what the user instructed and what the
+auto-merge class admits. It has no
 schedule until the cost of a no-op run is measured. Its prompt:
 
 `In the repo at D:\amind\git\astronomical-home, run one merge pass: follow .claude/skills/agent-worktree-pr-loop/SKILL.md § Merge task.`
 
 1. `git pull --ff-only` on main in the primary tree.
 2. `./scripts/drain_pick.sh merge-queue`.
-3. For each `MERGE=` line carrying the fact `instructed`, in order, run
+3. For each `MERGE=` line carrying the fact `instructed` or `class`, in order, run
    `./scripts/agent_worktree_pool.sh land <pr>` in the background: it can
    wait on a hosted run for 20 minutes.
 4. After each merge, `git pull --ff-only` again, so the next `land` runs the

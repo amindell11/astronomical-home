@@ -12,6 +12,7 @@ using Ships.Loadout;
 using UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
@@ -185,7 +186,7 @@ namespace Game
         // The hangar and recap screens click through uGUI, which needs exactly one EventSystem.
         private static void BuildEventSystem(Transform parent)
         {
-            var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+            var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.transform.SetParent(parent, false);
         }
 

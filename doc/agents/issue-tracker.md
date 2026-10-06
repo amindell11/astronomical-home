@@ -62,6 +62,10 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
   (`scripts/drain_pick.sh pick`). No board Status mapping.
 - **`drain:building`**: a cloud build's claim marker, beside the assignee;
   written and removed by `scripts/drain_pick.sh claim` / `release`.
+- **`auto-merged`**: on a PR `land` merged as a member of the auto-merge class,
+  with no recorded instruction; the merge gate adds it before the merge. The
+  user removes it after reviewing the PR, which takes it off the pipeline
+  digest.
 - **Wayfinder family**: `wayfinder:map` on maps; `wayfinder:research` /
   `wayfinder:prototype` / `wayfinder:grilling` / `wayfinder:task` on tickets.
 - **Domain labels** (`RL`, `Ship`, `Testing`, …) as today; a parent issue that
@@ -112,6 +116,20 @@ Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
 `pri:later` → Later `225f15fa`; Doing `772cf1a0` is a human state. Done
 `165b6aec` is set by the merge reconcile at close for PR-closed issues
 (`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
+
+`Decision` (text field `PVTF_lAHOAJsCkc4BfiTvzhkWGNc`, at most 1024 UTF-8
+bytes) is the item's open decision, the row the decisions view lists. It is a
+projection: its only writer is the decision reconcile
+(`scripts/decision_reconcile.sh`, run by `.github/workflows/decision-reconcile.yml`),
+which reads the item with `./scripts/drain_pick.sh decision` and adds an issue
+or a PR to the board to set it. To ask, comment on the item; the field follows.
+The views that would show a PR filter `is:issue`, so a PR's row shows only in
+"Decisions".
+
+New board code goes through `scripts/lib/board.sh` (the ids, an issue's or a
+PR's membership, adding an item, setting and clearing a text field).
+`on_event_triage.sh` and `merge_reconcile.sh` still carry their own copies
+(#922).
 
 ## Wayfinding operations
 

@@ -58,12 +58,12 @@ whole-file sweeps belong in dedicated hygiene PRs.
 
 | Word | Live senses | Rule |
 |---|---|---|
-| **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
+| **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -75,11 +75,12 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
-| **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror | Always qualified. |
+| **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
+| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
-| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch* — four schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". |
+| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage* — five schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
@@ -220,16 +221,17 @@ Format: **term** — definition. *(authority)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
-  on the hosted path, in a borrowed slot, on a *recorded instruction*. Always
+  on the hosted path, in a borrowed slot, on a *recorded instruction* or the
+  *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
-  arrival order (**turn ticket**). Any other push to main takes it through
-  `lock merge-turn`, which holds no ticket and takes the turn whenever it is
-  free. A waiter gives up only after watching one holder keep the turn for the
-  cap; a line that keeps moving times nobody out. Machine-local: a base move
-  from any other clone is caught only by the gate's base re-check.
+  arrival order (**turn ticket**). Any other push to main takes it with no
+  ticket, whenever it is free: `land-docs`, or a command run under
+  `lock merge-turn`. A waiter gives up only after watching one holder keep the
+  turn for the cap; a line that keeps moving times nobody out. Machine-local:
+  a base move from any other clone is caught only by the gate's base re-check.
   *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
 - **turn ticket** — a waiting merge gate's recorded arrival; the line for the
   merge turn is the live tickets in arrival order. A ticket is live only while
@@ -270,11 +272,15 @@ Format: **term** — definition. *(authority)*
   instruction, except that a *recorded instruction* survives an inert diff
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
-  commit, kept as a PR comment that only `drain_pick.sh` writes (`instruct`)
-  and parses (`land-facts`, `merge-queue`). It *covers* the landing tree when
-  merging its commit with base gives that tree, or one an inert diff away;
-  `land` needs a covering one. Every session is the same GitHub account, so policy alone
-  keeps it the user's. *(scripts/drain_pick.sh `instruct`; #830)*
+  commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
+  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
+  user may type it on the PR, naming the commit by a prefix
+  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  *covers* the landing tree when merging its commit with base gives that tree,
+  or one an inert diff away; `land` needs a covering one unless the PR is in
+  the *auto-merge class*. Every session is the same GitHub account, so policy
+  alone keeps it the user's.
+  *(scripts/drain_pick.sh `instruct`; #830)*
 - **spend** — compute expenditure needing its own explicit approval; a run is a
   run, not a PR.
 - **disposition table** — the per-review-round table, one row per comment:
@@ -286,12 +292,13 @@ Format: **term** — definition. *(authority)*
   gets a proposal instead of a build. A *cloud batch* admits items by their
   `unity:*` label and claims each with the assignee plus `drain:building`.
   *(#617, #830, scripts/drain_pick.sh)*
-- **decision inbox** — the `ready-for-human` filter, reserved for build-blocking
-  questions: a fork posted on the issue with options, a recommendation and
-  evidence. An interactive session holds its slot while it waits; a *cloud
-  build* releases its claim and names its pushed branch. Routine priority /
-  bench / park calls are proposals on their own issue, never inbox items.
-  *(#617, #830)*
+- **decisions view** — the board view "Decisions": the open issues and PRs
+  whose `Decision` field is set, each row the one line the user is asked. An
+  item enters with a `Question` comment or pipeline-PR state (tried or `eyes`
+  items, a merge no recorded instruction names) and leaves on a ruling comment,
+  the state change, or a close. Askers only comment: the *decision reconcile*
+  is the field's only writer. Interactive sessions still ask in their chat.
+  *(scripts/drain_pick.sh `decision`; #830)*
 - **triage sweep** — the on-demand or daily triage run over the open tracker,
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
@@ -305,6 +312,10 @@ Format: **term** — definition. *(authority)*
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
+- **decision reconcile** — the Actions job that evaluates one issue or PR with
+  `drain_pick.sh decision` on each comment, close or PR change and writes its
+  board `Decision` field, with an hourly `--all` backstop. It adds items, PRs
+  included, and never removes one. *(scripts/decision_reconcile.sh)*
 - **sweep lead** — a mechanical reason for the *triage sweep* to research an
   open issue since a watermark: a merged PR cites it, an issue it cites
   closed, a path it names is gone, or it was itself updated. With `--since`,
@@ -356,21 +367,18 @@ Format: **term** — definition. *(authority)*
   may merge. Always qualified ("the pipeline's merge queue", or the verb
   `merge-queue`): it is neither GitHub's merge-queue feature nor the line for
   the *merge turn*. *(scripts/drain_pick.sh `merge-queue`)*
-- **auto-merge class** — the PRs `land` could merge with no *recorded
-  instruction*; its conditions are in `land`'s `--help`. In shadow: `land`
-  reports it (`CLASS=`) and it authorizes nothing until `AUTO_MERGE_CLASS`
-  flips. It means "nothing owed", so discharged PRs stay out; it widens only
-  on evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
+- **auto-merge class** — the PRs `land` merges with no *recorded
+  instruction*; its conditions are in `land`'s `--help`. Each such merge is
+  labelled `auto-merged`, and the *pipeline digest* lists it until the user
+  removes the label on review: the user's review comes after the merge. It
+  means "nothing owed", so discharged PRs stay out; it widens only on
+  evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
 - **merge task** — the desktop scheduled task `merge`, started by hand: one
-  pass over the pipeline's merge queue, landing each instructed PR through
-  `land`. *(agent-worktree-pr-loop → Merge task)*
+  pass over the pipeline's merge queue, landing each instructed or class PR
+  through `land`. *(agent-worktree-pr-loop → Merge task)*
 - **pipeline digest** — the Markdown report of what waits on the user and on a
   session the user starts, relayed as printed. Bare "digest" reads this way
   only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*
-- **drain orchestrator** — the pinned `/loop` chat that surfaces what waits on
-  the user and restocks the *ready queue* via the *triage sweep*; it starts no
-  build. Titled `orchestrator | drain — …`; distinct from an `Arc`
-  orchestrator chat. *(.claude/skills/drain-orchestrator)*
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
 
@@ -816,14 +824,14 @@ Format: **term** — definition. *(authority)*
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
-- **spawn log** — one entry per ship spawned or sector-adopted in a run, other
-  than the player: its parts by asset name, its loadout stat hash taken at spawn,
-  when it spawned, how long it lived and whether the player's shot killed it (the
-  run tally's rule). A consumer-side recorder on the player rig beside the damage
-  ledger and the run tally, never sim state. It exists because damage kind cannot
-  say which weapon fired: Lasers, ChargeLasers and Rippers all fire the `Laser`
-  projectile. A ship placed during the sector load reads as spawned at second 0.
-  *(SpawnLog)*
+- **spawn log** — one entry per life of each ship spawned or sector-adopted in a
+  run, other than the player (a respawn-policy revive opens a fresh entry): its
+  parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
+  long it lived and whether the player's shot killed it (the run tally's rule). A
+  consumer-side recorder on the player rig beside the damage ledger and the run
+  tally, never sim state. It exists because damage kind cannot say which weapon
+  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  placed during the sector load reads as spawned at second 0. *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
   editor asks git at run end; a player build carries a file its pre-build hook
@@ -847,6 +855,27 @@ Format: **term** — definition. *(authority)*
   `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
   RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
   never committed. *(GizmoView, GizmoViewWindow)*
+
+### Art pipeline
+
+- **ship art stage** (1–8) — one of the eight owner-approved steps from concept to
+  lineup review; each starts only after the owner approves the one before. Written
+  "ship art stage 4" or by name ("the flight check"). *(`ship-art-pipeline` skill)*
+- **anatomy** — the fixed set of named child slots (anatomy slots) every chassis prefab
+  has; a hull fills them and never restructures them. *(ShipAnatomyEditModeTests)*
+- **socket** — a named empty transform the hull places (engine emitters, hardpoints), so
+  hull geometry, not the base, positions what mounts there. *(the anatomy's `Sockets`;
+  `role.sockets` in art/tools/ship/README.md)*
+- **role collection** — a Blender collection named for what its contents export as; a
+  part in none is not exported. *(art/tools/ship/README.md)*
+- **geometry lock** — the geometry fingerprint written at flight-check approval;
+  `verify` fails on changed geometry, and only a reopen the owner approves moves it,
+  reporting what it invalidates. *(art/tools/ship/ship_lock.py)*
+- **legacy list** — the ship names not yet migrated; each array exempts only from its
+  own check (`doc/agents/art-pipeline.md` → Legacy list). It only shrinks: each
+  migration deletes one, and the arc closes when it is empty. *(ShipLegacyList)*
+- **name mirror** — one ship name across the chassis prefab, the visuals folder and the
+  art folder (lowercased). *(doc/agents/art-pipeline.md)*
 
 ### Infra & tooling
 
@@ -935,3 +964,4 @@ Format: **term** — definition. *(authority)*
 | Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
 | "Driver:" as a doc header | *(drop it — say what it motivates)* |
 | drain run, drain task | *(retired 2026-10-01)* — the ready queue is built by a **cloud batch**; one item's build is a **cloud build** |
+| decision inbox | *(retired 2026-10-04)* — open questions and PR waits show in the **decisions view**; `ready-for-human` keeps its label meaning |
