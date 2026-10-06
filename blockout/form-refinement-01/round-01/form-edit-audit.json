@@ -1,0 +1,146 @@
+{
+  "edits": {
+    "Rebuilt main wing blades": "Flared angular tip cap; maximum added downward bend 0.014 m; unchanged main wing roots",
+    "Sculpted compact tail pair": "Broader blade and root cross-sections; roots extend into hull shoulders; tail centerline remains low",
+    "Upper small swept fins": "More decisive swept leading edge, broader chisel tip and thicker armor section",
+    "Lower small swept fins": "More decisive swept leading edge, broader chisel tip and thicker armor section",
+    "Rebuilt pitched hull": "Stronger angular hull shoulders and modest depth increase; top-view width retained",
+    "Upper canopy glazing": "Single continuous curved glass piece seated inside a separate metal frame",
+    "Upper canopy frame": "Existing frame underlay becomes the recessed canopy seat",
+    "Lower canopy glazing": "Single continuous curved glass piece seated inside a separate metal frame",
+    "Lower canopy frame": "Existing frame underlay becomes the recessed canopy seat",
+    "Main wing inset channel": "Existing seam re-seated on its edited plate",
+    "Upper fin armor joint": "Existing seam re-seated on its edited plate",
+    "Lower fin armor joint": "Existing seam re-seated on its edited plate"
+  },
+  "new_parts": [
+    "Upper canopy metal bezel",
+    "Upper canopy inner seal",
+    "Lower canopy metal bezel",
+    "Lower canopy inner seal"
+  ],
+  "parts": {
+    "Sculpted compact tail pair": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.11351878299761857
+    },
+    "Rebuilt pitched hull": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.027009867539688447
+    },
+    "Rebuilt main wing blades": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.055365164917658576
+    },
+    "Upper small swept fins": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.040673736834832636
+    },
+    "Lower small swept fins": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.040673736834832636
+    },
+    "Dorsal central blade": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Dorsal shield cap": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Ventral central blade": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Ventral shield cap": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Upper canopy frame": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.010999970138072968
+    },
+    "Lower canopy frame": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.010999992489814758
+    },
+    "Aft spine armor": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Main wing transverse armor joint": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Main wing inset channel": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0014022286050021648
+    },
+    "Upper fin armor joint": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0021657943725585938
+    },
+    "Lower fin armor joint": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0021658241748809814
+    },
+    "Dorsal shield inset": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Ventral shield inset": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Aft engine collar": {
+      "positions_changed": false,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.0
+    },
+    "Upper canopy glazing": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.03593837469816208
+    },
+    "Lower canopy glazing": {
+      "positions_changed": true,
+      "topology_unchanged": true,
+      "max_vertex_displacement": 0.03593837469816208
+    }
+  },
+  "original_topology_retained": true,
+  "modifiers_applied": false,
+  "changed_parts": [
+    "Lower canopy frame",
+    "Lower canopy glazing",
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Main wing inset channel",
+    "Rebuilt main wing blades",
+    "Rebuilt pitched hull",
+    "Sculpted compact tail pair",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper fin armor joint",
+    "Upper small swept fins"
+  ],
+  "wingtip_added_drop_m": 0.014
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "e27684748405e3f015809aaff7f0e716ebaeab8718fd9a055ec8dee083c83d4f",
+  "before_sha256": "3c54c6e3bb4654ba09ba4a1da91410e27bd29218022030f60a53e286fcad9bd5",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-1\\results\\nightshade-form-refinement\\round-02\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 30115,
+    "side": 15341
+  },
+  "verdict": "pass"
+}

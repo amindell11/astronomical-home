@@ -41,3 +41,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade clean remodel from native guide — shape approval pending](blockout/2026-10-06-clean-guide/README.md)
 
 - [Nightshade hard-surface revision — owner approval pending](blockout/hard-surface-01/README.md)
+
+- [Nightshade blockout form refinement — owner approval pending](blockout/form-refinement-01/README.md)

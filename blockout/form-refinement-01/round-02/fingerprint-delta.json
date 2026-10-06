@@ -1,0 +1,25 @@
+{
+  "changed_parts": [
+    "Lower canopy frame",
+    "Lower canopy glazing",
+    "Lower fin armor joint",
+    "Lower small swept fins",
+    "Main wing inset channel",
+    "Rebuilt main wing blades",
+    "Rebuilt pitched hull",
+    "Sculpted compact tail pair",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper fin armor joint",
+    "Upper small swept fins"
+  ],
+  "parts_added": [
+    "Lower canopy inner seal",
+    "Lower canopy metal bezel",
+    "Upper canopy inner seal",
+    "Upper canopy metal bezel"
+  ],
+  "parts_removed": [],
+  "unclaimed_changes": [],
+  "original_topology_retained": true
+}
