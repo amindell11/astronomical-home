@@ -1,0 +1,371 @@
+{
+  "source_commit": "c1fdb2746421408761f4202dfdef32422c554fdc",
+  "source_sha256_before": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "source_sha256_after": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "geometry_unchanged": true,
+  "source_saved": false,
+  "blender_version": "5.1.2",
+  "visible_parts": [
+    "Aft engine collar",
+    "Aft spine armor",
+    "Cockpit collar latch recess",
+    "Cockpit collar latch tongue",
+    "Cockpit forward latch",
+    "Cockpit inset secondary rail",
+    "Cockpit lower cradle plating",
+    "Cockpit lower glazing gasket",
+    "Cockpit lower retaining rail",
+    "Cockpit rear retaining collar",
+    "Cockpit shoulder latch",
+    "Cockpit upper cradle plating",
+    "Cockpit upper glazing gasket",
+    "Cockpit upper retaining rail",
+    "Dorsal bridge service cover",
+    "Dorsal central blade",
+    "Dorsal shield cap",
+    "Dorsal shield inset",
+    "Lower canopy glazing",
+    "Lower fin armor",
+    "Lower small swept fins",
+    "Main exhaust core",
+    "Main exhaust throat",
+    "Panel joint beds",
+    "Rear swept wing pair",
+    "Rebuilt main wing blades",
+    "Rebuilt pitched hull",
+    "Spine aft armor",
+    "Spine shoulder armor",
+    "Tail fork armor",
+    "Tail mount service panel",
+    "Tail root armor",
+    "Tail root mounting blocks",
+    "Tail tip armor",
+    "Tail ventral armor",
+    "Upper canopy glazing",
+    "Upper fin armor",
+    "Upper small swept fins.001",
+    "Ventral central blade",
+    "Ventral shield cap",
+    "Ventral shield inset",
+    "Wing aft blade armor",
+    "Wing cooling louvers",
+    "Wing forward armor",
+    "Wing outer armor",
+    "Wing shoulder armor",
+    "Wing ventral aft armor",
+    "Wing ventral armor"
+  ],
+  "views": [
+    "isometric",
+    "top",
+    "side",
+    "underside"
+  ],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "0295e454e717db1006aa102f4fdedea1cb71f9de876f128e47b149ddb3b293e5",
+      "uv": "42338743b90ce152ecc327791508f67247a6cf7f99eb9a4756cc443e36a34753",
+      "materials": "76e4e0cecfc80c0c284993c3c03eb50c3dd3466acf23538abceb69932142379b"
+    },
+    "parts": {
+      "Aft engine collar": {
+        "geometry": "01fd716236405d18143e993398a76aa9622de29d78e1d82277ced067e4e76576",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "519b20b110cda5d103f5dc323e6b390baeb47a84d8f2fb32bfad3f5ead0d2b0a"
+      },
+      "Aft spine armor": {
+        "geometry": "3233713fc5b0803201d461a974efdd28532fa789ab20a6a30a68903c06b50b1f",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "69743f20382ed04020573c634bf6687c3a4630aca87c75848af2a33881acd7e8"
+      },
+      "Cockpit collar latch recess": {
+        "geometry": "6c6a6ea0a0b73d858eed044fe764a661fb7ef1102ffdf699701c406151490433",
+        "uv": "8a05f47b4651251c8d1f7974c9231970a8b67730e15b7c70826c4e8c9de502d9",
+        "materials": "91f62c8409954c4e512a244f92dd249eca50e30e56730ba1f655b84b2aa1466d"
+      },
+      "Cockpit collar latch tongue": {
+        "geometry": "0bc3e52f38d2c257413803ac0df68dbe095cf9bf14c8b4418b1db666b2955b2a",
+        "uv": "8a05f47b4651251c8d1f7974c9231970a8b67730e15b7c70826c4e8c9de502d9",
+        "materials": "f06834be633033e8da18482b9e178835c699d4980e0a50f388df637801144ede"
+      },
+      "Cockpit forward latch": {
+        "geometry": "f94929cde6e99d3a8e07074808e0088e3eff5db19e56ac0195d6c9fec0103ff3",
+        "uv": "3e00e153274db644173ad28f65b31f67017ee098dd5ec5355ddc0cce7fdfe93a",
+        "materials": "d70844d7c32386acab62e10654ecfc3b9bb84cdb1676bb9a90790d64467a9129"
+      },
+      "Cockpit inset secondary rail": {
+        "geometry": "d585cb44517220ed34da77205b403885981eb5e9f7263a093ed1eb09ee3c1283",
+        "uv": "0bcbeeed16ec2246ae5ccedc54d10cdd5cab53c56e03c550c7b3ce0d1087aa08",
+        "materials": "aca0491fd60aeed8491541e5594acc2974309eb6bc011b49fb962072ea5189aa"
+      },
+      "Cockpit lower cradle plating": {
+        "geometry": "5809b23aec4f548c59c4106cc5d3cdc68304e04e3a04db22effbf0dc477e3ef8",
+        "uv": "e20f3577ef9554e33ab8707973ccecff81cf88e8200d2543ca426134fa047e16",
+        "materials": "49f85308ab82bf8f9490417da0424d14f6002abc79899c3676d99396eabaff69"
+      },
+      "Cockpit lower glazing gasket": {
+        "geometry": "a65465f359685d6f183cf401cae27e8b3b2a9266f82edb1d8ccdf9336f562989",
+        "uv": "b9fad1e7093ff7b15d6ae7a10b013e2f0c7c72994346e3145e93daf346fe5891",
+        "materials": "8ade03f64547e87a1bff307d5eff7e488be3bcc26cbf4df0a23aa97401232386"
+      },
+      "Cockpit lower retaining rail": {
+        "geometry": "6417f98b212223b8ba0ca0c2bf93bfecc1e00b74bf05a40e0b30d60394550612",
+        "uv": "6aed98d9c41d228fb009d5587da12fa918118870a202f89e784c84701e9dab2c",
+        "materials": "a38a017cac3d4cf2e14b42e1754505e860e174a6d9ba2fae0d64b6d7c39f6fc0"
+      },
+      "Cockpit rear retaining collar": {
+        "geometry": "2658777436d7588d2161e1f031cc2fd2c7aaef933c7f053ad6074831ae95c526",
+        "uv": "44e03d155c8c75018afb97859a395a35fff14df6c4cad6beadebc9951ae90726",
+        "materials": "f801dd4e0a7e8cfaecc1104275d933e00da94cae273ea081ae0594e7a4077182"
+      },
+      "Cockpit shoulder latch": {
+        "geometry": "1886c7a267fd4fbc90e958d20e0837cc1694724f3384ff190c41dac1b6e7b0f3",
+        "uv": "3e00e153274db644173ad28f65b31f67017ee098dd5ec5355ddc0cce7fdfe93a",
+        "materials": "d70844d7c32386acab62e10654ecfc3b9bb84cdb1676bb9a90790d64467a9129"
+      },
+      "Cockpit upper cradle plating": {
+        "geometry": "00f70d052e6b4c54f02b06dcce455bdd1a1020fc04397e07ce1a96472bee3d73",
+        "uv": "e20f3577ef9554e33ab8707973ccecff81cf88e8200d2543ca426134fa047e16",
+        "materials": "49f85308ab82bf8f9490417da0424d14f6002abc79899c3676d99396eabaff69"
+      },
+      "Cockpit upper glazing gasket": {
+        "geometry": "20d1ba9004c2ff80d4284b27ff8c5b8e74f14d3556f7e9849c75048e25befa8d",
+        "uv": "b9fad1e7093ff7b15d6ae7a10b013e2f0c7c72994346e3145e93daf346fe5891",
+        "materials": "8ade03f64547e87a1bff307d5eff7e488be3bcc26cbf4df0a23aa97401232386"
+      },
+      "Cockpit upper retaining rail": {
+        "geometry": "9fe0edd319cbd9fbd9c387076c142e349f63eae4dd22b85be36a2f61f3936bf3",
+        "uv": "6aed98d9c41d228fb009d5587da12fa918118870a202f89e784c84701e9dab2c",
+        "materials": "a38a017cac3d4cf2e14b42e1754505e860e174a6d9ba2fae0d64b6d7c39f6fc0"
+      },
+      "Dorsal bridge service cover": {
+        "geometry": "77e737b56765c61eb0f335af6a3aa0ef58a4b335765594edf19a8871ce2b4159",
+        "uv": "3e00e153274db644173ad28f65b31f67017ee098dd5ec5355ddc0cce7fdfe93a",
+        "materials": "d70844d7c32386acab62e10654ecfc3b9bb84cdb1676bb9a90790d64467a9129"
+      },
+      "Dorsal central blade": {
+        "geometry": "07e58198c4a1694996bfff20e8224bc6aefe66fb85ae3f913ed77faa844ac48d",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "c30e5693070d79e943a2b4322db4e6b5eccccd87089e5b224d8d7d411758d99b"
+      },
+      "Dorsal shield cap": {
+        "geometry": "543babace3891688c4192ee1c5710fde655094ebc5db05bfbfb35b78f9494cb9",
+        "uv": "f54a73258f9052f2844757e2d6a42ce36fd264dc278d6efc3da2b899c6b5e3a2",
+        "materials": "832080b14c4874709655e6e893a3bd115160377b6f94473a3b77dc8ffa3f2059"
+      },
+      "Dorsal shield inset": {
+        "geometry": "ccb9883a5bdca6062e80c44fd369ccefb8a2c23733a2a498525dcfafbc56b521",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "27efffb71b6470897e26daac1d7cc25bfbac90f31c36ae9d7e4f671120a79a4d"
+      },
+      "Engine.Main": {
+        "geometry": "95b4137d6d999db1736df7a265beb793748f71dea4037d32d33963b2dd7590fb",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower canopy glazing": {
+        "geometry": "09967ab9b2c52749e52fa89288d48dec6d9ac546474d4040032510506f1574d6",
+        "uv": "fb01a6fc9dc30a0a5da5d254900098fdfbb2d7b7076aa8dcb9b378bea8bf31c4",
+        "materials": "2c5a6387f823eb1c6d484f90a0df68bf1dc1c1b99932aa04d5a25f2b999c2d52"
+      },
+      "Lower canopy metal bezel": {
+        "geometry": "4b45917a46c1e7de65a1a5aa35deb1dc777091df0e16a3a11848ad2cf46b7ce1",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "46d99248e864c2bbe3e770f3c5305d7520deffd065e47c176712248f275423f4"
+      },
+      "Lower fin armor": {
+        "geometry": "616fc54045301835dd4630f29f41805abbcc96d39eee1a6684762d30289c9a9a",
+        "uv": "777b5414b603b9cb98b534d15386aa7e2aa0347ffc94dc19cf16c1bc9246c63e",
+        "materials": "2e46a19072a258d2170336e19f82b867dcda9c82763ae6f4c8fa1717ca3b3b63"
+      },
+      "Lower small swept fins": {
+        "geometry": "5522baa0cb0fc43e89bce42b21d26f30ca58a0f1e68bc7b45e89638438db216a",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "da5c8b431ce65eb0423285ea020a937a4c29a612d5c0b2e8a80322112b7b12d4"
+      },
+      "Main exhaust core": {
+        "geometry": "483013d27815ff59654d2b6ea90c957d46245f2684c7a470977e99fbba6b2b03",
+        "uv": "315457290c9d8d848fa490f0ce09a40b08324524c969d5505e0d2986240c57d4",
+        "materials": "8846564b270ee491ffa2051d4ba26fbf9b100b4b82fdf9bda0e5717ffce3f18b"
+      },
+      "Main exhaust throat": {
+        "geometry": "3701c489d490d68e7c6ca4029410be1e7b084b6b7cfe4d04ee9a6e61b6037eab",
+        "uv": "580734e22c4eaed91be4d7201a907f1e0cab93eaaa009f2e12c58c8560960936",
+        "materials": "889293d31e2116329919ec46c11a2c5af2ddb14568759c28a4d3d45c219a0021"
+      },
+      "Panel joint beds": {
+        "geometry": "bdbaf51743b0ba7dfa642d5155b7310ca35b0ff6baa5a2d348db87396ca08d4d",
+        "uv": "250f4d5b98bc807413514f01ca267036bf5765fef7eb870d3e1cd52ce1ad4c11",
+        "materials": "f30e16bf38552a4455b0fc1d995420402e550c579bc7b57f4dcbf6a5b4b93142"
+      },
+      "Rear swept wing pair": {
+        "geometry": "3182dfaafadee0ce5d15bc8cfe3deb53aa8fbe3cc0054dbaf66834fd3896ffed",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "dad3937126ed807cd8df7ea21b201b50f78a465ca6e2d51d23787dde3a1e961d"
+      },
+      "Rebuilt main wing blades": {
+        "geometry": "157e8355155003e9d66ee77f0863373d069467f8fcb6e30e8be760e607b9adce",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "ac9deca80dd6e251c7d1763835dd8c3fdfc2fe19f9bfb5fc23c2dcc49f79a7ee"
+      },
+      "Rebuilt pitched hull": {
+        "geometry": "2b69905571239c003fcb9229c4782e746d156a5c6e6eaaf85e7502c4c4199fba",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "b83ee2588102ccc3a6b5b8a8002052f3af5c9c11c364dddfe77353bc9b55113b"
+      },
+      "Spine aft armor": {
+        "geometry": "d64678f6f36519375611f52ea17429cf265d72c872dd740413cf5a235e225880",
+        "uv": "580734e22c4eaed91be4d7201a907f1e0cab93eaaa009f2e12c58c8560960936",
+        "materials": "ff813191b0c8e1917826fcc07c54b7b73b5ca6ee61f24fad73cd3ad7b401bb33"
+      },
+      "Spine shoulder armor": {
+        "geometry": "746155ba6769efd662269fbf203ff195ede46fc80a11ab50a1684f4c47310ab1",
+        "uv": "ba64c2706513718c9ab1221eee985cb0c878d7df762027870994825daac4436b",
+        "materials": "64c998cf8e793e20e0753649a1c87d09e46df662805aca28a81d9786c90447f1"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.001": {
+        "geometry": "b31c794c02fc8cd2f18701611a59e5193c6a024c2fee46db8ae34e5bc9916ca4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail fork armor": {
+        "geometry": "8bb3214322686c68f93876d688b1ca03767e13bfd6b1c6c8ed2386c22da2de8f",
+        "uv": "9b97afbe0b464c253f61e1ec7a100091abbc59dcf63bf4d22806c8f7978028bc",
+        "materials": "38565e1605482fad081124d91c2f04f57277e00c06422ec5ec81137325509a70"
+      },
+      "Tail mount service panel": {
+        "geometry": "5af8cc3db249be8a2a37dc5f389a19640f4bcdc4aedbdc6a93ae7ccd8be84e08",
+        "uv": "3e00e153274db644173ad28f65b31f67017ee098dd5ec5355ddc0cce7fdfe93a",
+        "materials": "d70844d7c32386acab62e10654ecfc3b9bb84cdb1676bb9a90790d64467a9129"
+      },
+      "Tail root armor": {
+        "geometry": "6b8c9276114cd3c95fa71c6a073f2677c467aa1dbe5755b64df265df44950ea7",
+        "uv": "580734e22c4eaed91be4d7201a907f1e0cab93eaaa009f2e12c58c8560960936",
+        "materials": "432c3c41c434ffe45bab8c3dce29e55d8fa191df1682f3d43ac190c159e36522"
+      },
+      "Tail root mounting blocks": {
+        "geometry": "bc7f6571d3059adf1fc18462af59018489d73feafc6fd208d843a2b7a44769fc",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "3f9ff30828377f371b77365ba12d72ac04c6bcadb3b018fe330578513bfd3d08"
+      },
+      "Tail tip armor": {
+        "geometry": "0a5f2233293393f8a96cde9df32c17ae3eb444607e9e2ec1925c9dc274760e6b",
+        "uv": "ba64c2706513718c9ab1221eee985cb0c878d7df762027870994825daac4436b",
+        "materials": "cb53931b794a0fdda241cf0c95b2011785cc0208b7f1986e55816afd717c0a9e"
+      },
+      "Tail ventral armor": {
+        "geometry": "4e98a4b19bc2c6facc74b6532e3cd9f40d29336631c24b182c1b44bd1c24ca81",
+        "uv": "9b97afbe0b464c253f61e1ec7a100091abbc59dcf63bf4d22806c8f7978028bc",
+        "materials": "5432d9dbb1e79d39c65d9645d5fec6475bcc27199b8df7305d9c56a8842a433d"
+      },
+      "Upper canopy frame": {
+        "geometry": "37bad994a4b0647667378d5fe86c15ac29e783d8924a3e6ee1ebe01586c11970",
+        "uv": "3e500b6bccf128ef86fb9aa19361847599f4e01fab45dcfad744b263f6f54079",
+        "materials": "e700b675a12f5278160411d678479afd01665adbc9f683cb0748437a27a11fb9"
+      },
+      "Upper canopy glazing": {
+        "geometry": "1d358549d182875cf858fc49b4b706958dddafef734548bbc7a64c6fae5b4684",
+        "uv": "fb01a6fc9dc30a0a5da5d254900098fdfbb2d7b7076aa8dcb9b378bea8bf31c4",
+        "materials": "2c5a6387f823eb1c6d484f90a0df68bf1dc1c1b99932aa04d5a25f2b999c2d52"
+      },
+      "Upper canopy inner seal": {
+        "geometry": "c0257264e888e3d37ab30df6975d58ef817dc2d140b71d2729cf9fb5d07c5125",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "c57b60429133b5f7f696e662d891ea54327595d186d63ba9850faee1ad41b32d"
+      },
+      "Upper fin armor": {
+        "geometry": "ef74f8bd993e01b7565b68fe08601fc2db4eaeac88143b77d843af8ffad610ec",
+        "uv": "51068ed9455bfa642055789aa8890bbd0752b8bc4a63a021c35b8a23c9b43abb",
+        "materials": "a87352bb530695b8a8a9cd92c907fb0779a272884ad4830d4e736d626160826d"
+      },
+      "Upper small swept fins": {
+        "geometry": "e17680ea103cb4ba192ad6db4759895ddcee46914361264bb6d15e62f790b39f",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "da5c8b431ce65eb0423285ea020a937a4c29a612d5c0b2e8a80322112b7b12d4"
+      },
+      "Upper small swept fins.001": {
+        "geometry": "c5a7be934b06b02c3d497b53ee7c13d03934bd114e2daa5255cf03b75c9ddea9",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "70cc44b12cca5f3987f8174049a19d87e8c2579b141f38dc7474f6ff4334f363"
+      },
+      "Ventral central blade": {
+        "geometry": "ffedf5678daf6ad2e1a03865c2d198f1d971cba0c2b2b20ac1de4adeaa9d82dd",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "c30e5693070d79e943a2b4322db4e6b5eccccd87089e5b224d8d7d411758d99b"
+      },
+      "Ventral shield cap": {
+        "geometry": "105ad4c06da9778cdd7cd7f8e681aa001d8e6773b2425d0569a1e1c539da9456",
+        "uv": "f54a73258f9052f2844757e2d6a42ce36fd264dc278d6efc3da2b899c6b5e3a2",
+        "materials": "832080b14c4874709655e6e893a3bd115160377b6f94473a3b77dc8ffa3f2059"
+      },
+      "Ventral shield inset": {
+        "geometry": "ac2dd8650d7c4ebedf3c92ace9122f1ae7e89a9b0a152a756828a6663adeb204",
+        "uv": "e54df1e820f5436715019f682778bc96233e470339cefa3449dd7db9bedb3672",
+        "materials": "27efffb71b6470897e26daac1d7cc25bfbac90f31c36ae9d7e4f671120a79a4d"
+      },
+      "Wing aft blade armor": {
+        "geometry": "486c9be3b1366d42ccd47fd75aa0090fb94fbcb476bedf6f22f584ece0c33f9d",
+        "uv": "c53b1a49c9f5d659aad6170d61da7fe919df0b9ba40588c4ba8a585f45585aa2",
+        "materials": "e350d0d747e05cbfcc971dd8b757d6290720dc1e4968d00e21d094e9f178bd79"
+      },
+      "Wing cooling louvers": {
+        "geometry": "eae10657b95fbe53d749085bb7e4e3fb85c95674f085b8f4f8b470eadacb4d3e",
+        "uv": "42a0c935318589acdd7bebb8199707e5945fb5c1dde8620c7967737972b2d838",
+        "materials": "c6b49cc709ebb5a6e104ec7eec0ee7344e8567d0b3a26b9879b3cdc75756ef5f"
+      },
+      "Wing forward armor": {
+        "geometry": "47c99461f4175c73c28c159953d56563a6e6ff2f7014babb7c8379157273cd78",
+        "uv": "e983d35d44d69b55585705f77cdd0bc6798dd469bb52717ae41c069d51e16ca1",
+        "materials": "73395a03f706baf060566f7ec2bc3096126d0897424f8ed1d9accbee66ad081a"
+      },
+      "Wing outer armor": {
+        "geometry": "b57616f212964c272ca7000b37572b44d38207786741eb1c4348d7f045f2441c",
+        "uv": "c53b1a49c9f5d659aad6170d61da7fe919df0b9ba40588c4ba8a585f45585aa2",
+        "materials": "e973e05ce40deb7c162f0d8bd0dd6bdf884f4067c7098218d3c82684ab13114e"
+      },
+      "Wing shoulder armor": {
+        "geometry": "aeea05c3409492d02f4d28dce52c1e98ebad777a572bba477779f8a4a4228976",
+        "uv": "c53b1a49c9f5d659aad6170d61da7fe919df0b9ba40588c4ba8a585f45585aa2",
+        "materials": "e350d0d747e05cbfcc971dd8b757d6290720dc1e4968d00e21d094e9f178bd79"
+      },
+      "Wing ventral aft armor": {
+        "geometry": "c6c4a47e5cd7c2d8c63d6beac6c2fcf6b6e1155d417abd5d48d4d29ef0d7e380",
+        "uv": "858397eea742311569a5dd117aa1b53a6c0b507b8f76faac20c1ec1cc1fa3182",
+        "materials": "17d8d1653b9f25b17a65386fc62e5bc80dbaf82927540ff01bb64558f0d1209d"
+      },
+      "Wing ventral armor": {
+        "geometry": "eb4cf6a0ba4b1f65a012ed46f6dea58b5906bd6cfcc85f1fa0eac6162dddcdab",
+        "uv": "ca65f94d1f221c4b908dcbb4e0ce0aafae818473c514974b6f0442be9c2a944f",
+        "materials": "9dbe2470a53d1381141b265a18124a2b80e314ae2ba60bf823272efe2eb97ead"
+      },
+      "reference.side": {
+        "geometry": "a670cdce05fc2d911871420aa0af3441fa5ea55be1dfff98477fe2e6cab5d87e",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "c70f31937cdce8ea072f34a1b2e8dc85494956893dcb85a824a15c568caebaf2",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.turnaround": {
+        "geometry": "402a9d7e11f79065713a2f834738edb385ed87cbebc7bb07080c8e311d22a8f3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "prerequisites": {
+    "detail_model_approved": true,
+    "flight_approved": false,
+    "geometry_lock_written": false,
+    "uv_approved": false,
+    "paint_concept_approved": false
+  }
+}

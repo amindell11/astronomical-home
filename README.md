@@ -65,3 +65,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade canopy frame detail — owner review pending](detail-model/cockpit-frame-01/README.md)
 
 - [Nightshade canopy pane divider and glass fit — owner review pending](detail-model/secondary-rail-01/README.md)
+
+- [Nightshade paint concept — round 01; owner review pending](paint/round-01/README.md)
