@@ -1,0 +1,134 @@
+{
+  "changed_parts": [
+    "Aft engine collar",
+    "Aft spine armor",
+    "Rebuilt pitched hull"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "parts": {
+    "Rebuilt pitched hull": {
+      "topology_retained": true,
+      "xy_positions_unchanged": true,
+      "max_displacement": 0.053999999538064
+    },
+    "Aft spine armor": {
+      "topology_retained": true,
+      "xy_positions_unchanged": true,
+      "max_displacement": 0.04199129343032837
+    },
+    "Aft engine collar": {
+      "topology_retained": true,
+      "xy_positions_unchanged": true,
+      "max_displacement": 6.5556635397978624e-09
+    }
+  },
+  "sections": [
+    {
+      "row": 14,
+      "y": 0.19831865412347457,
+      "old_top": 0.1462578922510147,
+      "old_bottom": -0.16879570484161377,
+      "new_top": 0.147,
+      "new_bottom": -0.155
+    },
+    {
+      "row": 15,
+      "y": 0.1486926595954334,
+      "old_top": 0.1505582481622696,
+      "old_bottom": -0.16383501887321472,
+      "new_top": 0.143,
+      "new_bottom": -0.141
+    },
+    {
+      "row": 16,
+      "y": 0.09892562557669247,
+      "old_top": 0.14000000059604645,
+      "old_bottom": -0.125,
+      "new_top": 0.139,
+      "new_bottom": -0.122
+    },
+    {
+      "row": 17,
+      "y": 0.04849785522503011,
+      "old_top": 0.11400000005960464,
+      "old_bottom": -0.0729999989271164,
+      "new_top": 0.135,
+      "new_bottom": -0.102
+    },
+    {
+      "row": 18,
+      "y": -0.0014964227739255875,
+      "old_top": 0.09600000083446503,
+      "old_bottom": -0.029999999329447746,
+      "new_top": 0.131,
+      "new_bottom": -0.081
+    },
+    {
+      "row": 19,
+      "y": -0.10117294989964541,
+      "old_top": 0.0860000029206276,
+      "old_bottom": 0.009999999776482582,
+      "new_top": 0.128,
+      "new_bottom": -0.044
+    },
+    {
+      "row": 20,
+      "y": -0.1952993186081157,
+      "old_top": 0.08699999749660492,
+      "old_bottom": 0.029999999329447746,
+      "new_top": 0.127,
+      "new_bottom": -0.007
+    },
+    {
+      "row": 21,
+      "y": -0.29497029676156883,
+      "old_top": 0.09300000220537186,
+      "old_bottom": 0.050999999046325684,
+      "new_top": 0.129,
+      "new_bottom": 0.031
+    },
+    {
+      "row": 22,
+      "y": -0.4004685878753662,
+      "old_top": 0.10100000351667404,
+      "old_bottom": 0.07199999690055847,
+      "new_top": 0.132,
+      "new_bottom": 0.066
+    },
+    {
+      "row": 23,
+      "y": -0.4508793161195867,
+      "old_top": 0.1080000028014183,
+      "old_bottom": 0.08399999886751175,
+      "new_top": 0.134,
+      "new_bottom": 0.084
+    },
+    {
+      "row": 24,
+      "y": -0.4857620333924013,
+      "old_top": 0.11299999803304672,
+      "old_bottom": 0.09300000220537186,
+      "new_top": 0.134,
+      "new_bottom": 0.098
+    },
+    {
+      "row": 25,
+      "y": -0.4981640454600839,
+      "old_top": 0.11699999868869781,
+      "old_bottom": 0.0989999994635582,
+      "new_top": 0.132,
+      "new_bottom": 0.102
+    }
+  ],
+  "modifiers_applied": false,
+  "baseline_findings": [
+    {
+      "rule": "scale",
+      "part": "Upper canopy metal bezel",
+      "message": "Unapplied scale (0.658016, 0.827789, 0.658016)"
+    }
+  ],
+  "construction": "Continuous aft hull taper from the body shoulder with volume carried through the middle; attached armor and collar follow",
+  "owner_canopy_and_wing_edits_unchanged": true
+}

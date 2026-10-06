@@ -45,3 +45,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade blockout form refinement — owner approval pending](blockout/form-refinement-01/README.md)
 
 - [Nightshade forward pitch and new rear wings — owner approval pending](blockout/pitch-rear-wings-01/README.md)
+
+- [Nightshade central aft taper — round 02 awaiting owner review](blockout/aft-taper-01/README.md)

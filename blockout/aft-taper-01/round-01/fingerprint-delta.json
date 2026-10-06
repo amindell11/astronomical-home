@@ -1,0 +1,19 @@
+{
+  "changed_parts": [
+    "Aft engine collar",
+    "Aft spine armor",
+    "Rebuilt pitched hull"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "unclaimed_changes": [],
+  "new_findings": [],
+  "existing_findings": [
+    {
+      "rule": "scale",
+      "part": "Upper canopy metal bezel",
+      "message": "Unapplied scale (0.658016, 0.827789, 0.658016)"
+    }
+  ],
+  "owner_canopy_and_wings_unchanged": true
+}

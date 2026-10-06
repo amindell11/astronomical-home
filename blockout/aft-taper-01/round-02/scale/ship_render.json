@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "9443b057fe70dfb728e278ec9e71f5acacd0bca2d6fff116d66901c038f0fd8d",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-aft-taper\\round-02\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}
