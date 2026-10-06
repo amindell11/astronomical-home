@@ -19,7 +19,7 @@ namespace Combat.Weapons
         /// <summary>True only on the step <see cref="held"/> rises, from a human or an AI commander alike.</summary>
         public bool pressed;
 
-        /// <summary>World point in the game plane a shot fired this step flies to; weapons that fly a straight bolt ignore it.</summary>
+        /// <summary>Game-plane world point a shot fired this step flies to; straight-bolt weapons ignore it.</summary>
         public Vector3 targetPoint;
     }
 }

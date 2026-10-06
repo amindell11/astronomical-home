@@ -115,7 +115,7 @@ namespace Combat.Projectiles
             body.AddTorque(GamePlane.Normal * spin, ForceMode.VelocityChange);
         }
 
-        /// <summary>Kick direction: against the current turn so it always reads, even at a yaw-rate cap; fixed when not turning.</summary>
+        /// <summary>Against the current turn, so the kick reads even at a yaw-rate cap.</summary>
         internal static float SpinSign(float yawRate) => yawRate > 0f ? -1f : 1f;
 
         /// <summary>Linear damage/impulse scale at a frontier radius: 1 at the center, 0 at max radius.</summary>

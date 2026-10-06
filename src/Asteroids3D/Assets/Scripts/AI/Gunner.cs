@@ -59,15 +59,16 @@ namespace AI
             {
                 var slot = slots[i];
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
-                var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
-                if (slot == WeaponSlot.Primary) FireSlot(slot, held, ref prevPrimaryHeld);
-                else FireSlot(slot, held, ref prevSecondaryHeld);
+                var aim = AimPointFor(slot);
+                var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(aim) ?? false);
+                if (slot == WeaponSlot.Primary) FireSlot(slot, held, aim, ref prevPrimaryHeld);
+                else FireSlot(slot, held, aim, ref prevSecondaryHeld);
             }
         }
 
-        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
+        private void FireSlot(WeaponSlot slot, bool held, Vector3 aim, ref bool prevHeld)
         {
-            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, targetPoint = AimPointFor(slot) };
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, targetPoint = aim };
             prevHeld = held;
             actuator.Fire(slot, cmd);
         }
