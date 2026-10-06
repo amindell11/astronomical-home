@@ -17,7 +17,7 @@ namespace Tests.PlayMode
     /// <summary>
     /// The hangar round trip at session level: a presentation session shows its idle locale from
     /// compose, applies the sector's locale on every load and returns to the idle one on every unload —
-    /// keeping a locale both name loaded straight through — so no sector look carries into the hangar,
+    /// a locale both name stays loaded throughout — so no sector look carries into the hangar,
     /// including the ambient probe and default reflection derived from the active scene's lighting.
     /// </summary>
     [TestFixture]

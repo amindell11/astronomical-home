@@ -12,9 +12,8 @@ namespace Tests.PlayMode
     /// PlayMode coverage for the locale scene seam on <see cref="LocaleService"/>:
     /// apply makes the locale the active scene, a repeat apply is a no-op, a different locale swaps the
     /// active scene (unloading the previous), a shared idle locale survives the hand-off, and unload
-    /// returns the boot scene to active. Locale
-    /// scenes are created empty at runtime so the tests exercise the SetActive/diff/restore paths
-    /// without depending on Build Settings.
+    /// returns the boot scene to active. Locale scenes are created empty at runtime so the tests
+    /// exercise the SetActive/diff/restore paths without depending on Build Settings.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]

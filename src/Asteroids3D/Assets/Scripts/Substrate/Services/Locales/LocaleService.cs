@@ -51,7 +51,7 @@ namespace Substrate.Services.Locales
             loadedLocaleName = localeSceneName;
         }
 
-        /// <summary>Apply the idle locale, keeping it loaded when it is already applied; with none configured, unload to the boot scene.</summary>
+        /// <summary>With no idle locale configured, unloads to the boot scene.</summary>
         public IEnumerator ApplyIdleLocaleAsync()
         {
             if (string.IsNullOrWhiteSpace(idleLocaleName))

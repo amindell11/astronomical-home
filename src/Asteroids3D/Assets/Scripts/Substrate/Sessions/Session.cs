@@ -60,7 +60,7 @@ namespace Substrate.Sessions
             Frame = new SessionFrame(profile.offset);
         }
 
-        /// <summary>Compose the services — once; they persist across sector loads until <see cref="Teardown"/>.</summary>
+        /// <summary>Compose the services — once; they persist across sector loads until <see cref="Teardown"/>. With presentation, shows the idle locale.</summary>
         public IEnumerator Compose()
         {
             Require(Phase.Created, nameof(Compose));
