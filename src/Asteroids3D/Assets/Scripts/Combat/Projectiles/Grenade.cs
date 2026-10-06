@@ -9,15 +9,18 @@ namespace Combat.Projectiles
 {
     /// <summary>
     /// Concussion charge flown as a reverse missile: launched at a fixed speed straight at its
-    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it brakes by its own
-    /// thrust to rest on that point. Detonates on arrival, on contact (never the owner's hull), or
-    /// when shot — the owner's fire included. Detonation spawns a <see cref="ConcussionWave"/>;
-    /// the charge itself never applies damage. Design: arc #950.
+    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it coasts until the point
+    /// is within its braking distance, then brakes by its own thrust to rest on that point.
+    /// Detonates on arrival, on contact (never the owner's hull), or when shot — the owner's fire
+    /// included. Detonation spawns a <see cref="ConcussionWave"/>; the charge itself never applies
+    /// damage. Design: arc #950.
     /// </summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
+        [Tooltip("Distance before the target point where the charge stops coasting and brakes. At max range or above, it brakes from launch.")]
+        [Stat, SerializeField, Min(0f)] private float brakingDistance = 10f;
 
         [Header("Blast")]
         [Stat, SerializeField] private ConcussionWave wavePrefab;
@@ -72,6 +75,12 @@ namespace Combat.Projectiles
             if (remaining <= 0f || closingSpeed <= 0f)
             {
                 Detonate();
+                return;
+            }
+
+            if (remaining > brakingDistance)
+            {
+                base.FixedUpdate();
                 return;
             }
 

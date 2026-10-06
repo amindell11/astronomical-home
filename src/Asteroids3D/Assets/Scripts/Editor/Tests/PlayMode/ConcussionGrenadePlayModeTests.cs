@@ -18,8 +18,9 @@ using Substrate;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The concussion charge flies straight at its target point (clamped to max range), brakes to
-    /// rest there and detonates on arrival, on contact (never the owner's hull) or when shot — the
+    /// The concussion charge flies straight at its target point (clamped to max range), coasts until
+    /// the point is within its braking distance, brakes to rest there under a retro-thrust flame and
+    /// detonates on arrival, on contact (never the owner's hull) or when shot — the
     /// owner's fire included. Its wave sweeps outward hitting everything once, the shooter included,
     /// with damage and push falling off toward the rim; the push lands where the wave meets each hull.
     /// </summary>
@@ -158,6 +159,94 @@ namespace Tests.PlayMode
             Assert.AreEqual(0f, Vector3.Dot(velocity, Plane(0f, 1f)), 0.001f, "The shooter's velocity is not inherited.");
         }
 
+        private static float BrakingDistanceOf(Grenade grenade)
+        {
+#if UNITY_EDITOR
+            return new SerializedObject(grenade).FindProperty("brakingDistance").floatValue;
+#else
+            Assert.Ignore("Requires Unity Editor assets.");
+            return 0f;
+#endif
+        }
+
+        private static float RemainingDistance(Grenade grenade) =>
+            Vector3.Dot(grenade.TargetPoint - grenade.transform.position, grenade.Heading);
+
+        [UnityTest]
+        public IEnumerator ChargeAimedBeyondBrakingDistance_CoastsAtLaunchSpeed_ThenBrakesToRestOnThePoint()
+        {
+            var weapon = MountWeapon(out _);
+            var point = weapon.firePoint.position + Plane(0f, 22f);
+            var grenade = weapon.Fire(point, Projectiles) as Grenade;
+            var brakingDistance = BrakingDistanceOf(grenade);
+            Assume.That(brakingDistance, Is.LessThan(15f), "The tuned braking distance leaves a coast on a 22 u shot.");
+            var body = grenade.GetComponent<Rigidbody>();
+            var launchSpeed = body.linearVelocity.magnitude;
+            float? remainingAtBrake = null;
+            grenade.BrakingStarted += () => remainingAtBrake = RemainingDistance(grenade);
+            Vector3? detonatedAt = null;
+            grenade.OnDetonated += at => detonatedAt = at;
+
+            for (var i = 0; i < 200 && !remainingAtBrake.HasValue; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (!remainingAtBrake.HasValue)
+                    Assert.AreEqual(launchSpeed, body.linearVelocity.magnitude, 0.001f, "No thrust while coasting.");
+            }
+
+            Assert.IsTrue(remainingAtBrake.HasValue, "The charge starts braking.");
+            Assert.LessOrEqual(remainingAtBrake.Value, brakingDistance, "Braking starts once the point is within the braking distance.");
+            Assert.Greater(remainingAtBrake.Value, brakingDistance - launchSpeed * Time.fixedDeltaTime, "…and not a step later.");
+
+            yield return StepUntilGone(grenade, 200);
+            Assert.IsTrue(detonatedAt.HasValue, "The charge detonates on arrival.");
+            Assert.Less(Vector3.Distance(detonatedAt.Value, point), 0.1f, "The late brake still rests the charge on its target point.");
+        }
+
+        [UnityTest]
+        public IEnumerator ChargeAimedInsideBrakingDistance_BrakesFromLaunch_OncePerFlight()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(3f, 0f), Projectiles) as Grenade;
+            Assume.That(BrakingDistanceOf(grenade), Is.GreaterThan(3f), "The tuned braking distance covers a 3 u shot.");
+            var body = grenade.GetComponent<Rigidbody>();
+            var launchSpeed = body.linearVelocity.magnitude;
+            var brakingStarts = 0;
+            grenade.BrakingStarted += () => brakingStarts++;
+
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreEqual(1, brakingStarts, "A shot inside the braking distance brakes from the first step.");
+            Assert.Less(body.linearVelocity.magnitude, launchSpeed, "The first step already thrusts against the heading.");
+
+            yield return StepUntilGone(grenade, 200);
+            Assert.AreEqual(1, brakingStarts, "Braking starts once per flight.");
+        }
+
+        [UnityTest]
+        public IEnumerator Flame_LightsWhenBrakingStarts_BlowingTowardTheTargetPoint()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(-16f, 12f), Projectiles) as Grenade;
+            Assume.That(BrakingDistanceOf(grenade), Is.LessThan(15f), "The tuned braking distance leaves a coast on a 20 u shot.");
+            var flame = grenade.GetComponentInChildren<ParticleSystem>(true);
+            Assert.IsNotNull(flame, "The charge carries a retro-thrust flame.");
+            var braking = false;
+            grenade.BrakingStarted += () => braking = true;
+
+            yield return new WaitForFixedUpdate();
+            Assert.IsFalse(flame.isEmitting, "No flame while coasting.");
+
+            for (var i = 0; i < 200 && !braking; i++)
+                yield return new WaitForFixedUpdate();
+
+            Assert.IsTrue(flame.isEmitting, "The flame lights when braking starts.");
+            Assert.Greater(Vector3.Dot(flame.transform.forward, grenade.Heading), 0.99f, "The exhaust blows ahead, toward the target point.");
+
+            yield return StepUntilGone(grenade, 200);
+            Assert.IsFalse(flame.isEmitting, "Pool return puts the flame out.");
+        }
+
         [UnityTest]
         public IEnumerator Charge_ComesToRestOnTheTargetPoint_AndDetonatesThere()
         {
@@ -231,9 +320,10 @@ namespace Tests.PlayMode
             var bolt = lasers.Fire(weapon.firePoint.position + heading * 20f, Projectiles);
             Assert.IsNotNull(bolt, "The owner's laser fired.");
 
-            // Park the owner's own bolt in the charge's path; a closing bolt would tunnel past it between steps.
+            // Park the owner's own bolt where the coasting charge lands two steps on; anywhere between steps it tunnels past.
             var boltBody = bolt.GetComponent<Rigidbody>();
-            var boltSpot = grenade.transform.position + heading * 2f;
+            var stepLength = grenade.GetComponent<Rigidbody>().linearVelocity.magnitude * Time.fixedDeltaTime;
+            var boltSpot = grenade.transform.position + heading * (2f * stepLength);
             bolt.transform.position = boltSpot;
             boltBody.position = boltSpot;
             boltBody.linearVelocity = Vector3.zero;
