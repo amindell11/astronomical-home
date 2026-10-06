@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "5e83c4f83b490e0eeb14af05ae94f2c4dc3ca2790c3c97ff9972d0f0eed947d7",
+  "images": {
+    "top": "D:\\amind\\git\\agent-1\\results\\nightshade-rounded-canopy\\round-03\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-1\\results\\nightshade-rounded-canopy\\round-03\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-1\\results\\nightshade-rounded-canopy\\round-03\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-1\\results\\nightshade-rounded-canopy\\round-03\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}

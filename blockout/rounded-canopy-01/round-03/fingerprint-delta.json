@@ -1,0 +1,82 @@
+{
+  "changed_parts": [
+    "Lower canopy glazing",
+    "Lower canopy metal bezel",
+    "Rebuilt pitched hull",
+    "Upper canopy frame",
+    "Upper canopy glazing",
+    "Upper canopy inner seal"
+  ],
+  "parts_added": [],
+  "parts_removed": [],
+  "all_unclaimed_parts_unchanged": true,
+  "all_fin_meshes_unchanged": true,
+  "existing_findings": [
+    {
+      "rule": "scale",
+      "part": "Lower canopy glazing",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    },
+    {
+      "rule": "scale",
+      "part": "Lower canopy metal bezel",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    },
+    {
+      "rule": "scale",
+      "part": "Lower small swept fins",
+      "message": "Unapplied scale (0.75415, 0.75235, 0.654057)"
+    },
+    {
+      "rule": "scale",
+      "part": "Rebuilt main wing blades",
+      "message": "Unapplied scale (1.0, 0.792287, 1.0)"
+    },
+    {
+      "rule": "scale",
+      "part": "Rebuilt pitched hull",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Tail root mounting blocks",
+      "message": "Unapplied scale (0.756041, 0.754301, 0.490019)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper small swept fins.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Upper small swept fins.001",
+      "message": "Unapplied scale (1.378019, 1.0, 1.0)"
+    },
+    {
+      "rule": "visual_role",
+      "part": "Upper small swept fins.001",
+      "message": "In 0 visual roles; expected exactly one"
+    },
+    {
+      "rule": "scale",
+      "part": "Ventral central blade",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    },
+    {
+      "rule": "scale",
+      "part": "Ventral shield cap",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    },
+    {
+      "rule": "scale",
+      "part": "Ventral shield inset",
+      "message": "Unapplied scale (1.0, 1.0, 0.829677)"
+    }
+  ],
+  "new_findings": []
+}

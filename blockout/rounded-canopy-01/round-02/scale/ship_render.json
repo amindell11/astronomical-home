@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "65cb40fb532488b4f5c7f8b8141bca0ca801891db87b1b3559833a2589df48dd",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-1\\results\\nightshade-rounded-canopy\\round-02\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

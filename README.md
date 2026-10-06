@@ -57,3 +57,5 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade tapered glass pod — round 02 awaiting owner review](blockout/glass-pod-01/README.md)
 
 - [Nightshade lowered frame fit and rounded nose — owner review pending](blockout/frame-fit-01/README.md)
+
+- [Nightshade rounded canopy front — owner review pending](blockout/rounded-canopy-01/README.md)
