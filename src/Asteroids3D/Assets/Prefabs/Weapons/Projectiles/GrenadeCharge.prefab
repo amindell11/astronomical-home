@@ -35,7 +35,7 @@ Transform:
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 271878223742115161}
+  - {fileID: 6311929106743931760}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &1100000000000000003
@@ -102,6 +102,7 @@ MonoBehaviour:
   maxDistance: 25
   mass: 0.5
   launchSpeed: 40
+  brakingDistance: 10
   wavePrefab: {fileID: 1100000000000000102, guid: 07872014d0f2483cbe5d4223faa4d2ca,
     type: 3}
 --- !u!33 &1100000000000000006
@@ -169,8 +170,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d31ac21f8c8688c439b06362b28d65b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flame: {fileID: 1150847323611560579}
---- !u!1 &2783151512130174035
+  nozzle: {fileID: 6311929106743931760}
+  flame: {fileID: 1472851344493497138}
+--- !u!1 &2725471467573438153
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -178,9 +180,41 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 271878223742115161}
-  - component: {fileID: 1150847323611560579}
-  - component: {fileID: 3910265303131120855}
+  - component: {fileID: 6311929106743931760}
+  m_Layer: 6
+  m_Name: RetroNozzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6311929106743931760
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2725471467573438153}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6676136498734382609}
+  m_Father: {fileID: 1100000000000000002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3243943307591220487
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6676136498734382609}
+  - component: {fileID: 1472851344493497138}
+  - component: {fileID: 7206354024068629482}
   m_Layer: 6
   m_Name: RetroFlame
   m_TagString: Untagged
@@ -188,28 +222,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &271878223742115161
+--- !u!4 &6676136498734382609
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2783151512130174035}
+  m_GameObject: {fileID: 3243943307591220487}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: -0.5, y: -0.5, z: -0.50000006, w: 0.5}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalScale: {x: 1.9499999, y: 0.645, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1100000000000000002}
+  m_Father: {fileID: 6311929106743931760}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
---- !u!198 &1150847323611560579
+--- !u!198 &1472851344493497138
 ParticleSystem:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2783151512130174035}
+  m_GameObject: {fileID: 3243943307591220487}
   serializedVersion: 8
   lengthInSec: 1
   simulationSpeed: 9
@@ -4998,14 +5032,14 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
---- !u!199 &3910265303131120855
+--- !u!199 &7206354024068629482
 ParticleSystemRenderer:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2783151512130174035}
+  m_GameObject: {fileID: 3243943307591220487}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0

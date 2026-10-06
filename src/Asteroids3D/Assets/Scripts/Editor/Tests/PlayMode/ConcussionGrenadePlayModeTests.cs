@@ -242,7 +242,7 @@ namespace Tests.PlayMode
                 yield return new WaitForFixedUpdate();
 
             Assert.IsTrue(flame.isEmitting, "The flame lights when braking starts.");
-            Assert.Greater(Vector3.Dot(flame.transform.forward, grenade.Heading), 0.99f, "The exhaust blows ahead, toward the target point.");
+            Assert.Greater(Vector3.Dot(flame.transform.parent.forward, grenade.Heading), 0.99f, "The exhaust blows ahead, toward the target point.");
 
             yield return StepUntilGone(grenade, 200);
             Assert.IsFalse(flame.isEmitting, "Pool return puts the flame out.");

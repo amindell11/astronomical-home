@@ -11,6 +11,8 @@ namespace Combat.Projectiles.Visual
     [RequireComponent(typeof(Grenade))]
     public sealed class GrenadeThrustVisual : MonoBehaviour, IPresentationPart
     {
+        [Tooltip("Pivot whose forward is the exhaust direction; the flame mesh hangs under it at its rest pose.")]
+        [SerializeField] private Transform nozzle;
         [SerializeField] private ParticleSystem flame;
 
         private Grenade grenade;
@@ -36,7 +38,7 @@ namespace Combat.Projectiles.Visual
         private void Ignite()
         {
             if (!flame) return;
-            flame.transform.rotation = Quaternion.LookRotation(grenade.Heading, GamePlane.Normal);
+            nozzle.rotation = Quaternion.LookRotation(grenade.Heading, GamePlane.Normal);
             flame.Play(true);
         }
     }
