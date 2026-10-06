@@ -26,7 +26,9 @@ namespace Tests.EditMode
         private const string BaseRigPath = "Assets/Visuals/Ships/_Shared/ShipBaseRig.prefab";
         private const string Rig = "ShipBaseRig";
         private const string HullSlot = Rig + "/Hull";
-        private static readonly string[] Sockets = { "Hardpoints/Primary", "Hardpoints/Secondary", Rig + "/Thruster/EngineExhaust", Rig + "/Thruster/Reactor" };
+        private const string Exhaust = Rig + "/Thruster/EngineExhaust";
+        private const string TwinExhaust = Rig + "/Thruster/EngineExhaustTwin";
+        private static readonly string[] Sockets = { "Hardpoints/Primary", "Hardpoints/Secondary", Exhaust };
 
         private static readonly (string path, System.Type type, string propertyPrefix)[] Slots =
         {
@@ -42,6 +44,7 @@ namespace Tests.EditMode
             (Rig, typeof(ShipBreakupVisual), "hull"),
             (Rig, typeof(ShipBreakupVisual), "debrisPrefab"),
             (Rig, typeof(ShipBreakupVisual), "poseSources"),
+            (TwinExhaust, typeof(GameObject), "m_IsActive"),
         };
 
         public static IEnumerable<TestCaseData> MigratedChassis()
@@ -76,8 +79,9 @@ namespace Tests.EditMode
             Assert.That(root.transform.Find(HullSlot).GetComponentsInChildren<Renderer>(true), Is.Empty, "The base hull slot is empty.");
             Assert.That(root.transform.Find(Rig + "/MinimapMarker").GetComponent<MeshFilter>().sharedMesh, Is.Null);
             Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root.transform.Find(Rig).gameObject)), Is.EqualTo(BaseRigPath));
-            foreach (var socket in Sockets)
+            foreach (var socket in Sockets.Append(TwinExhaust))
                 Assert.That(root.transform.Find(socket).localPosition, Is.EqualTo(Vector3.zero), socket);
+            Assert.That(root.transform.Find(TwinExhaust).gameObject.activeSelf, Is.False, "A hull opts into a second engine.");
         }
 
         [TestCaseSource(nameof(MigratedChassis))]
@@ -110,7 +114,7 @@ namespace Tests.EditMode
                 var instancePath = PathOf(instance, root.transform);
                 var type = instance.GetType();
                 var declared = Slots.Any(s => s.path == instancePath && s.type.IsAssignableFrom(type) && mod.propertyPath.StartsWith(s.propertyPrefix))
-                    || Sockets.Contains(instancePath) && type == typeof(Transform) && mod.propertyPath.StartsWith("m_Local")
+                    || IsSocket(instancePath) && type == typeof(Transform) && mod.propertyPath.StartsWith("m_Local")
                     || IsFlameTuning(instance, mod.propertyPath);
                 if (!declared) undeclared.Add($"{instancePath}#{type.Name}.{mod.propertyPath}");
             }
@@ -122,18 +126,21 @@ namespace Tests.EditMode
         {
             var root = Load(path);
             var mods = PrefabUtility.GetPropertyModifications(root);
-            foreach (var socket in Sockets)
+            var exhausts = root.transform.Find(TwinExhaust).gameObject.activeSelf ? new[] { Exhaust, TwinExhaust } : new[] { Exhaust };
+            foreach (var socket in Sockets.Union(exhausts))
             {
                 var transform = root.transform.Find(socket);
                 Assert.That(transform, Is.Not.Null, socket);
                 var placed = mods.Any(m => m.propertyPath.StartsWith("m_LocalPosition") && InstanceObjectFor(root, m.target) == transform);
                 Assert.That(placed, Is.True, $"{socket}: the hull must place every socket.");
             }
-            var exhaust = root.transform.InverseTransformPoint(root.transform.Find(Rig + "/Thruster/EngineExhaust").position);
+            var exhaust = root.transform.InverseTransformPoint(root.transform.Find(Exhaust).position);
             if (!ShipLegacyList.HullModels.Contains(root.name))
             {
                 var hull = HullBounds(root);
-                Assert.That(exhaust.y, Is.LessThan(hull.center.y - hull.extents.y * .5f), "The engine exhaust sits aft of the hull; the prow faces +Y.");
+                foreach (var socket in exhausts)
+                    Assert.That(root.transform.InverseTransformPoint(root.transform.Find(socket).position).y, Is.LessThan(hull.center.y - hull.extents.y * .5f),
+                        $"{socket}: the engine exhaust sits aft of the hull; the prow faces +Y.");
             }
             foreach (var hardpoint in new[] { "Hardpoints/Primary", "Hardpoints/Secondary" })
                 Assert.That(root.transform.InverseTransformPoint(root.transform.Find(hardpoint).position).y, Is.GreaterThan(exhaust.y), hardpoint);
@@ -227,11 +234,13 @@ namespace Tests.EditMode
         {
             var component = instance as Component;
             var transform = component ? component.transform : null;
-            if (!transform || !transform.parent || !Sockets.Contains(PathOf(transform.parent, transform.root))) return false;
+            if (!transform || !transform.parent || !IsSocket(PathOf(transform.parent, transform.root))) return false;
             return instance as ParticleSystemRenderer != null && propertyPath.StartsWith("m_Materials")
                 || instance as ParticleSystem != null && propertyPath.StartsWith("InitialModule.startColor")
                 || instance as Transform != null && propertyPath.StartsWith("m_LocalScale");
         }
+
+        private static bool IsSocket(string path) => Sockets.Contains(path) || path == TwinExhaust;
 
         private static bool IsActiveInPrefab(Transform transform)
         {
