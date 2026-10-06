@@ -26,12 +26,10 @@ namespace Combat.Projectiles
         [SerializeField, Min(0f)] private float waveMass = 1f;
         [SerializeField] private LayerMask sweepMask = -1;
 
-        // A trigger on a hull layer is a broadphase volume (an asteroid's bounding sphere), not the hull itself.
-        private static readonly int HullLayers = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
-
         private readonly HashSet<Collider> resolved = new();
         private readonly HashSet<IDamageable> swept = new();
         private float radius;
+        private int hullLayers;
         private Ships.Registry.ShipId attackerId;
 
         public float Radius => radius;
@@ -40,6 +38,7 @@ namespace Combat.Projectiles
 
         private void Awake()
         {
+            hullLayers = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
             if (sweepMask == -1)
                 sweepMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid, LayerIds.Projectile, LayerIds.Missile);
         }
@@ -94,7 +93,8 @@ namespace Combat.Projectiles
             {
                 // The disc re-overlaps every swept collider each step; resolve each only once.
                 if (!resolved.Add(buffer[i])) continue;
-                if (buffer[i].isTrigger && (HullLayers & (1 << buffer[i].gameObject.layer)) != 0) continue;
+                // A trigger on a hull layer is a broadphase volume (an asteroid's bounding sphere), not the hull.
+                if (buffer[i].isTrigger && (hullLayers & (1 << buffer[i].gameObject.layer)) != 0) continue;
 
                 var target = buffer[i].GetComponentInParent<IDamageable>();
                 if (target == null || !swept.Add(target)) continue;
