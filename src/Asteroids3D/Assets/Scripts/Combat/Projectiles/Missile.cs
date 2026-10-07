@@ -15,7 +15,7 @@ namespace Combat.Projectiles
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
-        [Tooltip("Full angle around the nose; a target outside it, or behind a rock, is lost for good.")]
+        [Tooltip("Full width (degrees) of the cone around the nose; a target outside it, or behind an asteroid, is lost for good.")]
         [Stat, SerializeField] internal float seekerConeAngle = 140f;
 
         [Header("Explosion")]

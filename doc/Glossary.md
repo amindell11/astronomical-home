@@ -619,7 +619,7 @@ Format: **term** — definition. *(authority)*
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
 - **seeker cone** — the angle around a missile's nose within which it can see its
-  target. A full angle, checked at half like the lock-on cone. *(`Missile.seekerConeAngle`)*
+  target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
 - **lose track** — a missile drops its target for good and flies straight: on the
   first physics step its target is outside the seeker cone, or an asteroid cuts one
   thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no

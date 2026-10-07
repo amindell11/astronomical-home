@@ -198,7 +198,7 @@ namespace Tests.PlayMode
             var origin = GamePlane.PlanePointToWorld(Vector2.zero);
             missile = CreateTestMissile(origin);
             targetGo = CreateTarget(new Vector2(6, 6));
-            // On the line to the target, 3 u off the missile's straight path, so no collision explains the result.
+            // Blocks the sightline but sits 3 u off the flight path: never hit.
             rock = CreateRock(new Vector2(3, 3));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
