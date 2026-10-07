@@ -1,0 +1,95 @@
+{
+  "model": null,
+  "status": "owner-review-pending",
+  "styleReferences": [
+    {
+      "role": "style only",
+      "name": "original-mvp-v7-large-detail",
+      "sources": [
+        {
+          "ref": "origin/evidence/vanguard",
+          "commit": "375a63dd4f2aa77e851133243eb67379211d1ae8",
+          "path": "paint/experiments/2026-09-23-texture-concept/original-mvp-v7-large-detail.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/375a63dd4f2aa77e851133243eb67379211d1ae8/paint/experiments/2026-09-23-texture-concept/original-mvp-v7-large-detail.png"
+        }
+      ],
+      "sha256": "20a654a82fd23ab99a5c36e848d83579c5764a28af972ac2a2c3c2b609ef60b2"
+    },
+    {
+      "role": "style only",
+      "name": "approved-texture-concept",
+      "sources": [
+        {
+          "ref": "HEAD",
+          "commit": "25785b31721d5db290e9ca60079625b9fb7740ad",
+          "path": "art/ships/crimson/reference/approved-texture-concept.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/25785b31721d5db290e9ca60079625b9fb7740ad/art/ships/crimson/reference/approved-texture-concept.png"
+        },
+        {
+          "ref": "archive/task/crimson-ship",
+          "commit": "0abd44a51baa9a54363d5bb38fafe69d1455007b",
+          "path": "art/ships/crimson/reference/approved-texture-concept.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/0abd44a51baa9a54363d5bb38fafe69d1455007b/art/ships/crimson/reference/approved-texture-concept.png"
+        },
+        {
+          "ref": "archive/task/crimson-drawn-wip",
+          "commit": "2a3842957785573668b29b9e35c0f723bd23c149",
+          "path": "art/ships/crimson/reference/approved-texture-concept.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/2a3842957785573668b29b9e35c0f723bd23c149/art/ships/crimson/reference/approved-texture-concept.png"
+        },
+        {
+          "ref": "archive/task/crimson-drawn-wip",
+          "commit": "2a3842957785573668b29b9e35c0f723bd23c149",
+          "path": "art/ships/crimson/texture-concepts/02-hand-painted-worn.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/2a3842957785573668b29b9e35c0f723bd23c149/art/ships/crimson/texture-concepts/02-hand-painted-worn.png"
+        }
+      ],
+      "sha256": "a82526015c925ef42b5fb1e9afb96207b8bb36bacf12f47b7b2b19f30ddb64d7"
+    },
+    {
+      "role": "style only",
+      "name": "valis-turnaround",
+      "sources": [
+        {
+          "ref": "HEAD",
+          "commit": "25785b31721d5db290e9ca60079625b9fb7740ad",
+          "path": "art/ships/valis/concepts/valis-turnaround.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/25785b31721d5db290e9ca60079625b9fb7740ad/art/ships/valis/concepts/valis-turnaround.png"
+        },
+        {
+          "ref": "origin/evidence/valis",
+          "commit": "a132af7accb7b92ee3dc79956ba5922cf9f41b07",
+          "path": "concept/approved-views/valis-turnaround.png",
+          "url": "https://github.com/amindell11/astronomical-home/blob/a132af7accb7b92ee3dc79956ba5922cf9f41b07/concept/approved-views/valis-turnaround.png"
+        }
+      ],
+      "sha256": "9ea9f23e0cb4b14e2e5f31543cf86b7b08bfb4c8caa85890137ac984478e066c"
+    }
+  ],
+  "createdAtUtc": "2026-10-07T03:25:15.2796412Z",
+  "issue": "https://github.com/amindell11/astronomical-home/issues/963",
+  "output": {
+    "file": "bulwark-concept-sheet.png",
+    "sha256": "1a291aa4d87a21eccca1f2346f5c801832c732e052be4b46f5797f95dad5185e",
+    "height": 1024,
+    "width": 1536
+  },
+  "stage": "concept",
+  "evidencePublisherSource": "4e89ee0e9612b92aa7f20aecf92dde1cae2ab9fd:scripts/evidence_publish.sh",
+  "asset": "Bulwark",
+  "sketch": {
+    "file": "owner-sketch.jpg",
+    "sha256": "486e284e25d9d66e931d518f6038845d3d2fed8aec9446fc63ef4024384b79c7",
+    "role": "silhouette and rough design authority"
+  },
+  "round": "2026-10-06-r01",
+  "tool": "image_gen.imagegen",
+  "provider": "OpenAI",
+  "caveats": [
+    "First concept, not owner-approved.",
+    "Circular side element interpreted as an armored mechanical pod; function unspecified by owner.",
+    "Ivory and muted orange are a proposed palette.",
+    "No model, gameplay implementation, or integration produced."
+  ],
+  "promptFile": "prompt.txt"
+}
