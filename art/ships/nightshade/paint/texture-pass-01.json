@@ -1,0 +1,46 @@
+{
+  "approved_at_utc": "2026-10-07T00:10:41.385325+00:00",
+  "owner_instruction": "Approve a texture pass",
+  "paint_concept": "concept-05.png",
+  "paint_concept_approved": true,
+  "texture_pass": 1,
+  "texture_approved": false,
+  "flight_approved": false,
+  "geometry_lock_written": false,
+  "uv_layout_approved": false,
+  "geometry_unchanged": true,
+  "geometry_fingerprint": "0295e454e717db1006aa102f4fdedea1cb71f9de876f128e47b149ddb3b293e5",
+  "method": "Blender-authored palette regions and separately baked grayscale shadow, highlight, ink and green-light masks.",
+  "source_materials_changed": true,
+  "uv_layer": "PaintUV",
+  "mask_resolution": [
+    2048,
+    2048
+  ],
+  "palette": "nightshade",
+  "publication": "local only; remote publication awaits owner instruction",
+  "source_sha256": "0c79e34b37b77d88c38446da01ce84f35f3036649efda40dea749b7cdc6a56b1",
+  "source_geometry_before_sha256": "bf15def6d4d91f4c9744262f3920b0f9e0ac58466a9aa362993ef9f8f61cf4d2",
+  "source_check": "pass",
+  "uv_check": "pass",
+  "uv_density_ratio": 1.1267956139728017,
+  "source_file": "Nightshade.blend",
+  "layers": {
+    "Shadow": {
+      "path": "layers/Shadow.png",
+      "sha256": "4015e732ecdd312a18d7ab51aebc967c2fc1ed42888beac71e4e7dc44d2b4c8b"
+    },
+    "Light": {
+      "path": "layers/Light.png",
+      "sha256": "539457e25a671f5fb36533e95430b56436b07c2b29db16e64b434d59ec7da7dd"
+    },
+    "Ink": {
+      "path": "layers/Ink.png",
+      "sha256": "2d57d7fb7c762da2052380eb8c2f89775df5095fb6fe0cfd4c3af32f36d1b8e2"
+    },
+    "Emission": {
+      "path": "layers/Emission.png",
+      "sha256": "b6c9e1e391ddfc6cdf253dd0d87235ccb8b539c1c6405fdca1f5807ea5e187f5"
+    }
+  }
+}

@@ -2,8 +2,8 @@
   "provider": "openai-built-in-imagegen",
   "tool": "image_gen.imagegen",
   "recorded_at_utc": "2026-10-06T23:48:51.510160+00:00",
-  "status": "exploration",
-  "approval": "Pending owner paint-concept approval.",
+  "status": "approved",
+  "approval": "Owner approved concept 05 for a texture pass: \"Approve a texture pass\".",
   "prompt": "Use case: precise-object-edit\nAsset type: Nightshade concept 05, restrained final vibrancy adjustment.\nImage 1: EDIT TARGET, Nightshade concept 04 before the vibrancy change. This is the baseline to preserve.\nImage 2: REJECTED OVERSTRONG COLOUR EXAMPLE, the previous attempt, whose purple panels became too bright and saturated. Use only to understand what is too much; do not match that strength.\n\nThe user asks for the colours to be a TINY bit more vibrant. Starting from image 1, produce a palette that looks almost identical to image 1, only about one quarter of the way from image 1 toward image 2. Dark smoky violet panels should stay dark and smoky. Add only a small amount of purer violet to them and slightly enrich their existing coloured edge reflections. Preserve the original panel brightness. Do not brighten the big broad panel faces as in image 2. Keep roughly 75\u00e2\u20ac\u201c80 percent of the original image 1 colour appearance and only 20\u00e2\u20ac\u201c25 percent of the image 2 intensity.\nKeep the blue-black hull, dark gunmetal centre, blue-violet canopy and muted purple tips essentially identical to image 1. Existing green side lamps and the tiny matched inner shoulder pair remain EXACTLY the same size, brightness, hue and placement. No green in the centre.\n\nKeep every other feature absolutely unchanged from image 1: geometry, silhouette, proportions, mechanical panels, fins, forked tail, cockpit, markings, all four views, lighting, gray background, square layout, scale and spacing. This is a very slight paint vibrancy change only. Do not use overall saturation or exposure changes that affect the background.\nNo gold, bronze, brass, warm metal, new colours, extra lights, neon edging, new details, text, swatches or labels. The final should remain a dark Nightshade, with a slight additional richness visible side by side with image 1.\n",
   "transparent_background": false,
   "references": [
@@ -60,7 +60,7 @@
     "flight_approved": false,
     "geometry_lock_written": false,
     "uv_approved": false,
-    "paint_concept_approved": false
+    "paint_concept_approved": true
   },
   "discarded_attempts": [
     {
