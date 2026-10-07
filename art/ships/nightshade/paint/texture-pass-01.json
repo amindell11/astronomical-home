@@ -42,5 +42,6 @@
       "path": "layers/Emission.png",
       "sha256": "b6c9e1e391ddfc6cdf253dd0d87235ccb8b539c1c6405fdca1f5807ea5e187f5"
     }
-  }
+  },
+  "visual_review": "Rejected: colors too pale and flat compared with concept 05; revised by texture pass 02."
 }
