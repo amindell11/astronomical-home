@@ -161,6 +161,7 @@ MonoBehaviour:
   mass: 0.1
   homingSpeed: 30
   homingTurnRate: 80
+  seekerConeAngle: 140
   explosionRadius: 3
   splashDamage: 15
   damageLayerMask:

@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using Combat.Targeting;
 using Damage;
 using Movement;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace Combat.Projectiles
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
+        [Tooltip("Full angle around the nose; a target outside it, or behind a rock, is lost for good.")]
+        [Stat, SerializeField] internal float seekerConeAngle = 140f;
 
         [Header("Explosion")]
         [Stat, SerializeField] internal float explosionRadius = 3f;
@@ -93,12 +96,16 @@ namespace Combat.Projectiles
             }
 
             var kin = kinematicsPoller.Kinematics;
+            if (target && !CanSeeTarget(kin)) target = null;
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);
             ApplyVelocitySteering(desiredDir);
         }
 
+        private bool CanSeeTarget(in Kinematics kin) =>
+            TargetingMath.AngleTo(kin, GamePlane.WorldPointToPlane(target.position)) <= seekerConeAngle * 0.5f
+            && TargetingMath.HasLineOfSight(kin, target.position);
 
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
