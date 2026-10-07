@@ -9,25 +9,21 @@ namespace Combat.Projectiles
 {
     /// <summary>
     /// Concussion charge flown as a reverse missile: launched at a fixed speed straight at its
-    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it coasts until the point
-    /// is within its braking distance, then brakes by its own thrust to rest on that point.
-    /// Detonates on arrival, on contact (never the owner's hull), or when shot — the owner's fire
-    /// included. Detonation spawns a <see cref="ConcussionWave"/>; the charge itself never applies
-    /// damage. Design: arc #950.
+    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it brakes by its own
+    /// thrust to rest on that point. Detonates on arrival, on contact (never the owner's hull), or
+    /// when shot — the owner's fire included. Detonation spawns a <see cref="ConcussionWave"/>;
+    /// the charge itself never applies damage. Design: arc #950.
     /// </summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
-        [Tooltip("Distance before the target point where the charge stops coasting and brakes. At max range or above, it brakes from launch.")]
-        [Stat, SerializeField, Min(0f)] private float brakingDistance = 10f;
 
         [Header("Blast")]
         [Stat, SerializeField] private ConcussionWave wavePrefab;
 
         private Vector3 targetPoint;
         private Vector3 heading;
-        private bool braking;
         private bool detonated;
 
         protected override DamageKind Kind => DamageKind.ConcussionWave;
@@ -35,22 +31,14 @@ namespace Combat.Projectiles
 
         public event Action<Vector3> OnDetonated;
 
-        /// <summary>Raised once per flight, on the first step the charge thrusts against its heading.</summary>
-        public event Action BrakingStarted;
-
         /// <summary>Announces the detonation's wave so whoever tracks this grenade tracks the wave too (<see cref="ITransientSpawner"/>).</summary>
         public event Action<MonoBehaviour, Action> Spawned;
 
         /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
         public Vector3 TargetPoint => targetPoint;
 
-        /// <summary>World direction of flight, fixed at launch.</summary>
-        public Vector3 Heading => heading;
-
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
-
-        public float BlastRadius => wavePrefab.MaxRadius;
 
         event Action IChargeFlight.Ended
         {
@@ -84,18 +72,6 @@ namespace Combat.Projectiles
             {
                 Detonate();
                 return;
-            }
-
-            if (remaining > brakingDistance)
-            {
-                base.FixedUpdate();
-                return;
-            }
-
-            if (!braking)
-            {
-                braking = true;
-                BrakingStarted?.Invoke();
             }
 
             rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
@@ -132,7 +108,6 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
-            braking = false;
             detonated = false;
         }
     }

@@ -27,7 +27,6 @@ namespace Tests.PlayMode
         private sealed class FakeFlight : IChargeFlight
         {
             public Vector3 TargetPoint { get; set; }
-            public float BlastRadius { get; set; } = 12f;
             public event Action Ended;
             public void End() => Ended?.Invoke();
         }
@@ -75,10 +74,11 @@ namespace Tests.PlayMode
             launches.Launch(flight);
 
             Assert.AreEqual(1, markers.transform.childCount, "One marker per charge in flight.");
-            var rings = markers.GetComponentsInChildren<LineRenderer>();
-            Assert.AreEqual(2, rings.Length, "A ring at the point and a ring at the blast radius.");
-            Assert.AreEqual(flight.BlastRadius, Vector3.Distance(rings[1].GetPosition(0), flight.TargetPoint), 0.001f,
-                "The faint ring traces the blast radius around the target point.");
+            var ring = markers.GetComponentInChildren<LineRenderer>();
+            var centre = Vector3.zero;
+            for (var i = 0; i < ring.positionCount; i++)
+                centre += ring.GetPosition(i) / ring.positionCount;
+            Assert.Less(Vector3.Distance(centre, flight.TargetPoint), 0.001f, "The ring sits on the target point.");
 
             flight.End();
             yield return null;

@@ -9,10 +9,10 @@ using UnityEngine;
 namespace UI.Markers
 {
     /// <summary>
-    /// Draws a target marker for each of the HUD ship's concussion charges in flight: a ring at its
-    /// target point and a faint ring at its blast radius, in the game plane. The overlay binds it to
-    /// its own ship's weapon readouts, so another ship's charges never get one. Markers are world
-    /// geometry drawn by the observer camera, so they follow the overlay's visibility by hand.
+    /// Draws a target marker for each of the HUD ship's concussion charges in flight: a small ring
+    /// at its target point, in the game plane. The overlay binds it to its own ship's weapon
+    /// readouts, so another ship's charges never get one. Markers are world geometry drawn by the
+    /// observer camera, so they follow the overlay's visibility by hand.
     /// </summary>
     public sealed class ChargeTargetMarkers : MonoBehaviour
     {
@@ -27,7 +27,6 @@ namespace UI.Markers
 
         [SerializeField] private Material ringMaterial;
         [SerializeField] private Color pointColor = new(1f, 0.65f, 0.25f, 0.9f);
-        [SerializeField] private Color blastColor = new(1f, 0.65f, 0.25f, 0.2f);
         [SerializeField, Min(0.01f)] private float pointRadius = 0.6f;
         [SerializeField, Min(0.001f)] private float lineWidth = 0.08f;
         [SerializeField, Min(8)] private int segments = 48;
@@ -76,8 +75,7 @@ namespace UI.Markers
             var root = new GameObject("ChargeTargetMarker") { layer = DefaultLayer };
             root.transform.SetParent(transform, false);
             root.SetActive(visible);
-            AddRing(root, "Point", flight.TargetPoint, pointRadius, pointColor);
-            AddRing(root, "Blast", flight.TargetPoint, flight.BlastRadius, blastColor);
+            AddRing(root, flight.TargetPoint);
 
             var marker = new Marker { Flight = flight, Root = root };
             marker.OnEnded = () => Remove(marker);
@@ -92,21 +90,19 @@ namespace UI.Markers
             if (marker.Root) Destroy(marker.Root);
         }
 
-        private void AddRing(GameObject root, string ringName, Vector3 centre, float radius, Color color)
+        private void AddRing(GameObject root, Vector3 centre)
         {
-            var go = new GameObject(ringName) { layer = root.layer };
-            go.transform.SetParent(root.transform, false);
-            var ring = go.AddComponent<LineRenderer>();
+            var ring = root.AddComponent<LineRenderer>();
             ring.sharedMaterial = ringMaterial;
             ring.useWorldSpace = true;
             ring.loop = true;
             ring.widthMultiplier = lineWidth;
-            ring.startColor = ring.endColor = color;
+            ring.startColor = ring.endColor = pointColor;
             ring.positionCount = segments;
             for (var i = 0; i < segments; i++)
             {
                 var angle = i * Mathf.PI * 2f / segments;
-                ring.SetPosition(i, centre + GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))) * radius);
+                ring.SetPosition(i, centre + GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))) * pointRadius);
             }
         }
     }
