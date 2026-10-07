@@ -42,5 +42,5 @@
   },
   "neutral_surface_response": 0.18,
   "green_emission_strength": 1,
-  "method": "ImageGen marker paint projected by native face positions into unchanged PaintUV. Separate grayscale Shadow, Light, Ink masks. Native Emission mask preserved byte-for-byte. No physical specular or coat."
+  "method": "Existing ImageGen marker paint projected independently onto both mirrored sides. Grayscale masks on separate PaintUV atlas halves at the prior texel density. Green side indicators moved from occluded louver backs onto visible front strips; shoulder lights retained. No physical specular or coat."
 }

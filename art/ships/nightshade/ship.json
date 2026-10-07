@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "Nightshade",
   "source": "Nightshade.blend",
-  "texture_size": 2048,
+  "texture_size": 4096,
   "uv_density_max_ratio": 2.0,
   "contour_roles": [
     "hull"
