@@ -8,6 +8,8 @@ PaintUV gives native and mirrored surfaces independent charts in the lower-left 
 
 Shadow, Light and Ink carry overlapping marker tones, selective dark accents and drawn cockpit reflections. Emission places three small lights on each visible side louver bank and retains the paired shoulder indicators. Base coats stay recolourable through palettes.json and each material's "Base coat - recolour here" node.
 
+The shared "Nightshade Palette Saturation" node group adjusts all six materials after their paint and indicator colors are combined. Select "GLOBAL SATURATION - Tab to edit" in any material and press Tab; its single Saturation slider controls the whole palette. 1 preserves the authored colors, 0 is grayscale, and values above 1 increase saturation. Keep this shared group when repairing the textures.
+
 The material contains no physical specular or clearcoat. "Painted-only color" exposes the paint without scene lighting; "Surface lighting response" adds a small matte diffuse contribution for source review. paint-settings.json records the controls.
 
 paint/marker-top.png and marker-bottom.png are the paint sources; marker-provenance.json records generation, transfer and the light cleanup. Nightshade-Paint-Layers.ora exposes the grayscale layers, and UV-guide.svg shows both sets of charts. After editing a mask, export it over its PNG, reload and repack it in Blender, and save the source.
