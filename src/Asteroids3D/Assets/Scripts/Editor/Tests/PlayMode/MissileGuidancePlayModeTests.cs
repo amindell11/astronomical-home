@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat;
 using Combat.Projectiles;
+using Combat.Projectiles.Visual;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -91,6 +92,15 @@ namespace Tests.PlayMode
         {
             for (var t = 0f; t < seconds; t += Time.fixedDeltaTime)
                 yield return new WaitForFixedUpdate();
+        }
+
+        private bool BodyTintedRed()
+        {
+            var body = missile.GetComponent<MeshRenderer>();
+            if (!body.HasPropertyBlock()) return false;
+            var block = new MaterialPropertyBlock();
+            body.GetPropertyBlock(block);
+            return block.GetColor("_BaseColor") == Color.red;
         }
 
         private void AssertFlewStraightUp()
@@ -213,6 +223,36 @@ namespace Tests.PlayMode
 
             yield return FlyFor(0.5f);
             AssertFlewStraightUp();
+        }
+
+        [Test]
+        public void Dumbfire_TintsBodyRed()
+        {
+            missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
+            missile.gameObject.AddComponent<MissileTrackingTint>();
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            LaunchAt(missile, Vector2.up, shooter);
+
+            Assert.That(BodyTintedRed(), Is.True, "Dumbfired missile body is not tinted");
+        }
+
+        [UnityTest]
+        public IEnumerator LockedLaunch_TintsBodyRedOnlyAfterLosingTrack()
+        {
+            missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
+            missile.gameObject.AddComponent<MissileTrackingTint>();
+            targetGo = CreateTarget(new Vector2(0, -15));
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            // Missiles.Fire launches first, then hands over the locked target.
+            LaunchAt(missile, Vector2.up, shooter);
+            missile.SetTarget(targetGo.transform);
+            Assert.That(BodyTintedRed(), Is.False, "Missile body tinted while it was tracking");
+
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.IsTracking, Is.False, "Precondition: the missile lost track of a target behind it");
+            Assert.That(BodyTintedRed(), Is.True, "Missile body not tinted after it lost track");
         }
 
         [UnityTest]

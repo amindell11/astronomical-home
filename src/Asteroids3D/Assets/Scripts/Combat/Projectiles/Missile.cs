@@ -36,7 +36,15 @@ namespace Combat.Projectiles
         private bool hasLos;
         private float aliveTime;
 
-        public void SetTarget(Transform tgt) => target = tgt;
+        public bool IsTracking => target;
+
+        public event Action TrackingChanged;
+
+        public void SetTarget(Transform tgt)
+        {
+            target = tgt;
+            TrackingChanged?.Invoke();
+        }
 
         protected override DamageKind Kind => DamageKind.Missile;
 
@@ -96,7 +104,7 @@ namespace Combat.Projectiles
             }
 
             var kin = kinematicsPoller.Kinematics;
-            if (target && !CanSeeTarget(kin)) target = null;
+            if (target && !CanSeeTarget(kin)) LoseTrack();
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);
@@ -106,6 +114,12 @@ namespace Combat.Projectiles
         private bool CanSeeTarget(in Kinematics kin) =>
             TargetingMath.AngleTo(kin, GamePlane.WorldPointToPlane(target.position)) <= seekerConeAngle * 0.5f
             && TargetingMath.HasLineOfSight(kin, target.position);
+
+        private void LoseTrack()
+        {
+            target = null;
+            TrackingChanged?.Invoke();
+        }
 
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
