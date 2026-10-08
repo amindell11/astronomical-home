@@ -42,5 +42,6 @@
   },
   "neutral_surface_response": 0.18,
   "green_emission_strength": 1,
-  "method": "Existing ImageGen marker paint projected independently onto both mirrored sides. Grayscale masks on separate PaintUV atlas halves at the prior texel density. Green side indicators moved from occluded louver backs onto visible front strips; shoulder lights retained. No physical specular or coat."
+  "method": "Independent asymmetric grayscale paint masks, repaired to exclude source outlines when projecting onto underlying wing and fin surfaces. Tail highlight contrast recalibrated for its reassigned Glass faces. Existing armor strokes, canopy reflection, material colors and emission mask retained. No physical specular or coat.",
+  "global_saturation": 1.25
 }

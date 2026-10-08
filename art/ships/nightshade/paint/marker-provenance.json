@@ -16,7 +16,26 @@
   "physical_specular": false,
   "clearcoat": false,
   "evidence": "Actual Blender model renders, including an unlit painted-color view; not yet integrated into Unity.",
-  "approval": "Texture pass 04 awaiting visual review; user requested asymmetric painted lighting and tidier edge lights after pass 03.",
+  "approval": "Owner requested repair of textures on the current mesh; texture repair 05 saved locally for viewport review.",
   "edge_light_cleanup": "Three paired side lights moved from obscured backing faces onto visible louver strips. Projected fixture silhouettes cleared from the underlying wing surface. Paired small shoulder indicators retained.",
-  "new_image_generation": false
+  "new_image_generation": false,
+  "texture_repair_05": {
+    "reason": "Source outline samples produced streaks on exposed wing/fin surfaces; tail masks retained Violet contrast after faces changed to Glass.",
+    "method": "Independent asymmetric grayscale paint masks, repaired to exclude source outlines when projecting onto underlying wing and fin surfaces. Tail highlight contrast recalibrated for its reassigned Glass faces. Existing armor strokes, canopy reflection, material colors and emission mask retained. No physical specular or coat.",
+    "preserved": [
+      "geometry",
+      "PaintUV",
+      "material assignments",
+      "palette node values",
+      "shared saturation group at 1.25",
+      "Emission mask",
+      "canopy and armor masks"
+    ],
+    "fingerprint": {
+      "geometry": "6383a7f327241beb75faac48cf671820ca0ae2ffa0295ca5d04a41ba4b193fab",
+      "uv": "18ad15248c264eb83240c25d42819350c3bb6d4b727ab1f9d35982d5b6fd25e3",
+      "materials": "5b86229692fb247905781a7d0fc28b39ad9456c6b45294f4016a94dc3710c117"
+    },
+    "source_image_generation": false
+  }
 }

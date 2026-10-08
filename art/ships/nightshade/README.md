@@ -1,6 +1,6 @@
 # Nightshade
 
-Nightshade.blend holds the editable source and packed 4096-pixel paint masks. The geometry and live X mirrors remain editable. Concept 05 is approved. The source is open for owner modeling edits; texture pass 04 is retained pending repairs after those edits.
+Nightshade.blend holds the editable source and packed 4096-pixel paint masks. The geometry and live X mirrors remain editable. Concept 05 is approved. Texture repair 05 removes projected outline streaks on exposed wing and fin surfaces and recalibrates tail highlight masks for the current material assignments. Owner geometry, palette edits and the shared saturation control are preserved.
 
 The Sub-assemblies collection contains nine ASSEMBLY controls: Cockpit, Main wings, Upper fins, Lower fins, Tail, Upper spine, Lower spine, Engine and Central hull. Select a control and use G, R or S to manipulate its complete assembly. Expand it to edit individual meshes. Each control carries its own mirror plane, and the panel joint beds follow their matching assembly. Export roles remain in a separate collection tree.
 
@@ -8,7 +8,7 @@ PaintUV gives native and mirrored surfaces independent charts in the lower-left 
 
 Shadow, Light and Ink carry overlapping marker tones, selective dark accents and drawn cockpit reflections. Emission places three small lights on each visible side louver bank and retains the paired shoulder indicators. Base coats stay recolourable through palettes.json and each material's "Base coat - recolour here" node.
 
-The shared "Nightshade Palette Saturation" node group adjusts all six materials after their paint and indicator colors are combined. Select "GLOBAL SATURATION - Tab to edit" in any material and press Tab; its single Saturation slider controls the whole palette. 1 preserves the authored colors, 0 is grayscale, and values above 1 increase saturation. Keep this shared group when repairing the textures.
+The shared "Nightshade Palette Saturation" node group adjusts all six materials after their paint and indicator colors are combined. Select "GLOBAL SATURATION - Tab to edit" in any material and press Tab; its single Saturation slider controls the whole palette. The saved setting is 1.25. 1 preserves the authored colors, 0 is grayscale, and values above 1 increase saturation. Keep this shared group when repairing the textures.
 
 The material contains no physical specular or clearcoat. "Painted-only color" exposes the paint without scene lighting; "Surface lighting response" adds a small matte diffuse contribution for source review. paint-settings.json records the controls.
 
