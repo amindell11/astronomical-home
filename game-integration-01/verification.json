@@ -1,0 +1,23 @@
+{
+  "commit": "be32db04e18061f4b51fadbc61af78446003224a",
+  "source": "pass",
+  "uv": "pass",
+  "export": "pass",
+  "ships_tests": {
+    "total": 47,
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "palette_saturation": 1.25,
+  "collider_triangles": 182,
+  "visuals": "Actual Unity prefab/material captures under neutral lighting; no hangar or owner flight approval claimed.",
+  "lineup_order": [
+    "Crimson",
+    "Vanguard",
+    "Valis",
+    "Nightshade"
+  ],
+  "scope": "Approved source and palette preserved. Collider and engine socket integrated; legacy anatomy/breakup migration remains separate."
+}
