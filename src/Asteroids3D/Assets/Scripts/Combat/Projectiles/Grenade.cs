@@ -14,7 +14,7 @@ namespace Combat.Projectiles
     /// when shot — the owner's fire included. Detonation spawns a <see cref="ConcussionWave"/>;
     /// the charge itself never applies damage. Design: arc #950.
     /// </summary>
-    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
+    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
@@ -39,6 +39,12 @@ namespace Combat.Projectiles
 
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
+
+        event Action IChargeFlight.Ended
+        {
+            add => ReturnedToPool += value;
+            remove => ReturnedToPool -= value;
+        }
 
         protected override void Awake()
         {

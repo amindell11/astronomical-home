@@ -1,6 +1,7 @@
 using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
+using UI.Markers;
 using UI.PlayerState;
 using Combat.Weapons.Conditions;
 
@@ -20,6 +21,7 @@ namespace UI
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
+        private ChargeTargetMarkers chargeMarkers;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
@@ -34,6 +36,7 @@ namespace UI
             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
+            chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
         }
 
         public void SetCanvasWorldCamera(Camera uicam)
@@ -43,14 +46,17 @@ namespace UI
         }
 
         /// <summary>
-        /// Toggles every canvas under the overlay — nested canvases (minimap) keep rendering when
-        /// only the root canvas is disabled, and disabling GameObjects would break the HUD audio
-        /// binders, which unsubscribe in OnDisable and never resubscribe.
+        /// Toggles every canvas under the overlay, and the world-space charge markers — nested
+        /// canvases (minimap) keep rendering when only the root canvas is disabled, and disabling
+        /// GameObjects would break the HUD audio binders, which unsubscribe in OnDisable and never
+        /// resubscribe.
         /// </summary>
         public void SetVisible(bool visible)
         {
             foreach (var c in canvases)
                 c.enabled = visible;
+            if (chargeMarkers)
+                chargeMarkers.SetVisible(visible);
         }
 
         public void Initialize(in HudBinding binding)
@@ -66,6 +72,9 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
+
+            if (chargeMarkers)
+                chargeMarkers.Initialize(binding.Weapons);
 
             if (!tallyReadout)
                 tallyReadout = RunTallyReadout.Create(transform);
