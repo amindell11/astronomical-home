@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Tests.EditMode.Rendering
+namespace Tests.EditMode.Rendering.Illustrated
 {
     [Category("Ships"), Category("RequiresGraphics")]
     public sealed class DrawnSurfaceEditModeTests
