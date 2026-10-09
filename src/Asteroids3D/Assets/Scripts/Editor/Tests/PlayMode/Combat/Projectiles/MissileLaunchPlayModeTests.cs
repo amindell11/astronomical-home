@@ -23,8 +23,8 @@ namespace Tests.PlayMode
         private const string MissilePrefabPath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
 
         // Shipped prefab values, restated so the expectations read as numbers.
-        private const float InitialSpeed = 7f;
-        private const float HomingSpeed = 30f;
+        private const float InitialSpeed = 1f;
+        private const float HomingSpeed = 25f;
 
         // Fast enough that InitialSpeed + inheritance overshoots the homing cap.
         private const float OverCapShooterSpeed = 34f;
