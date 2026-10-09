@@ -618,6 +618,12 @@ Format: **term** — definition. *(authority)*
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
+- **seeker cone** — the angle around a missile's nose within which it can see its
+  target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
+- **lose track** — a missile drops its target for good and flies straight: on the
+  first physics step its target is outside the seeker cone, or an asteroid cuts one
+  thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
+  reacquire. *(`Missile.CanSeeTarget`)*
 - **target point** — the world point in the game plane a shot flies to, fixed
   at fire time: the cursor for the player (the nose at max range with no cursor),
   `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only
