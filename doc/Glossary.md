@@ -624,6 +624,10 @@ Format: **term** — definition. *(authority)*
   self-steering projectiles (the concussion charge) read it, and the charge clamps
   it to its max range. Not `ITargetable.TargetPoint`, the lock anchor a missile
   homes on.
+- **target marker** — the HUD's small ring at a concussion charge's target point,
+  shown for the HUD ship's own charges only: it binds to that ship's launch readout
+  (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
+  owner ruled it handholding.
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces

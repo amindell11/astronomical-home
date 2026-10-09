@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
@@ -156,6 +157,27 @@ namespace Tests.PlayMode
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
             Assert.Greater(Vector3.Dot(velocity, Plane(1f, 0f)), 1f, "The charge launches toward the target point, any direction.");
             Assert.AreEqual(0f, Vector3.Dot(velocity, Plane(0f, 1f)), 0.001f, "The shooter's velocity is not inherited.");
+        }
+
+        [UnityTest]
+        public IEnumerator Launch_IsAnnouncedOnTheWeaponReadouts_UntilTheChargeEnds()
+        {
+            var weapon = MountWeapon(out _);
+            var launches = weapon.Readouts.OfType<IChargeLaunchReadout>().SingleOrDefault();
+            Assert.IsNotNull(launches, "The launcher surfaces its launches as a HUD readout.");
+            IChargeFlight announced = null;
+            launches.Launched += flight => announced = flight;
+
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(8f, 0f), Projectiles) as Grenade;
+
+            Assert.AreSame(grenade, announced, "Each launched charge is announced.");
+            Assert.AreEqual(grenade.TargetPoint, announced.TargetPoint, "The announcement carries the clamped target point.");
+            var ends = 0;
+            announced.Ended += () => ends++;
+
+            yield return StepUntilGone(grenade, 200);
+
+            Assert.AreEqual(1, ends, "The flight ends once, when the charge leaves play.");
         }
 
         [UnityTest]
