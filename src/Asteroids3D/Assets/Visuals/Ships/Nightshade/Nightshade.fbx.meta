@@ -3,9 +3,44 @@ guid: 332cc04717645804db5720f8d781eeab
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Contour
+    second: {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Edge
+    second: {fileID: 2100000, guid: d655a7c1542f3a147a9b8b380c8b9a42, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Glass
+    second: {fileID: 2100000, guid: ceb8a18c2fd61c54a92aa9defcdd048a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Midnight
+    second: {fileID: 2100000, guid: ab1d7ea672bf9d14497118238a8fc9b9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Plum
+    second: {fileID: 2100000, guid: 11584b9c41ca4314583788bb315c9391, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Recess
+    second: {fileID: 2100000, guid: 0ce77a25dd06700409d8eda9fda20380, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Nightshade Violet
+    second: {fileID: 2100000, guid: 6e5daec440f139e43a4271d6332ebbe4, type: 2}
   materials:
-    materialImportMode: 2
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -41,15 +76,15 @@ ModelImporter:
     importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importCameras: 0
+    importLights: 0
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     keepQuads: 0
-    weldVertices: 1
+    weldVertices: 0
     bakeAxisConversion: 0
     preserveHierarchy: 0
     skinWeightsMode: 0
@@ -76,7 +111,7 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
   humanDescription:
     serializedVersion: 3
     human: []

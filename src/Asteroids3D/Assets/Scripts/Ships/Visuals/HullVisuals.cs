@@ -29,9 +29,11 @@ namespace Ships.Visuals
         private bool subscribed;
 
         private MaterialPropertyBlock block;
-        private static readonly int Color = Shader.PropertyToID("_BaseColor"); // URP Lit shader
+        private static readonly int Color = Shader.PropertyToID("_BaseColor");
         private static readonly int DetailScale = Shader.PropertyToID("_DetailAlbedoMapScale");
 
+        private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
+        private bool supportsDamageFlash;
         private Color baseColor;
         private bool flashActive;
         private float flashElapsed;
@@ -40,6 +42,7 @@ namespace Ships.Visuals
         {
             block = new MaterialPropertyBlock();
             if (!hull) return;
+            supportsDamageFlash = hull.sharedMaterial.HasProperty(DamageFlash);
             hull.GetPropertyBlock(block);
             baseColor = !block.HasVector(Color) ? hull.sharedMaterial.GetColor(Color) : block.GetColor(Color);
         }
@@ -168,6 +171,7 @@ namespace Ships.Visuals
                 ? normalizedTime * 2f
                 : 2f - normalizedTime * 2f;
             pb.SetColor(Color, UnityEngine.Color.Lerp(baseColor, flashColor, blend));
+            if (supportsDamageFlash) pb.SetFloat(DamageFlash, blend);
             hull.SetPropertyBlock(pb);
         }
     }

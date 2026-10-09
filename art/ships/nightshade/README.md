@@ -13,3 +13,5 @@ The shared "Nightshade Palette Saturation" node group adjusts all six materials 
 The material contains no physical specular or clearcoat. "Painted-only color" exposes the paint without scene lighting; "Surface lighting response" adds a small matte diffuse contribution for source review. paint-settings.json records the controls.
 
 paint/marker-top.png and marker-bottom.png are the paint sources; marker-provenance.json records generation, transfer and the light cleanup. Nightshade-Paint-Layers.ora exposes the grayscale layers, and UV-guide.svg shows both sets of charts. After editing a mask, export it over its PNG, reload and repack it in Blender, and save the source.
+
+The Unity version uses Nightshade.fbx with Hull, Canopy, Cores and Collider roles. Its materials retain the grayscale masks, the current blue palette, 1.25 post-mix saturation and painted green indicators. The source contains a hidden convex Flight collision hull; visual meshes remain unchanged. The prefab retains the previous inertia explicitly and places the engine exhaust at Engine.Main. Full chassis-anatomy and breakup migration remain separate from this visual integration.
