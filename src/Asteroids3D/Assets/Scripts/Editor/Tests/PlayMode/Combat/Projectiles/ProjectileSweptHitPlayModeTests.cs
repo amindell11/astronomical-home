@@ -15,11 +15,6 @@ using UnityEditor;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// The swept hit test on the shipped Laser: a step that straddles a thin target hits it at the
-    /// contact pose, a path just clear of it misses, and a layer the shot's layer ignores is never hit.
-    /// Also the missile's hitbox: one capsule whose world radius is its hitboxRadius stat, still body-long.
-    /// </summary>
     [Category("Weapons")]
     public class ProjectileSweptHitPlayModeTests : PlayModeWorldFixture
     {
@@ -57,7 +52,7 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            // Hit bursts (PooledVFX, untracked by design) outlive their test and would trip the grenade fixture's zero-VFX assertion.
+            // Hit bursts (untracked PooledVFX) outlive the test and trip the grenade test fixture's zero-VFX assertion.
             foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(vfx.gameObject);
 
@@ -136,7 +131,7 @@ namespace Tests.PlayMode
             return go.AddComponent<DamageRecorder>();
         }
 
-        /// <summary>Launches a Laser half a step short of the target at the origin, offset across its path, so one step carries it as far past.</summary>
+        // Starts half a step short of the target so one step straddles it.
         private Laser FireLaserPastTarget(float acrossOffset)
         {
 #if UNITY_EDITOR

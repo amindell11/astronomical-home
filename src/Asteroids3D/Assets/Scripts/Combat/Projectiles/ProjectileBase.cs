@@ -69,7 +69,7 @@ namespace Combat.Projectiles
             SweepStep();
         }
 
-        // Trigger callbacks see only end-of-step overlaps, so a fast shot would cross a thin target unseen.
+        // Trigger-collider callbacks see only end-of-step overlaps; a fast shot can cross a thin target unseen.
         private void SweepStep()
         {
             var velocity = rb.linearVelocity;
