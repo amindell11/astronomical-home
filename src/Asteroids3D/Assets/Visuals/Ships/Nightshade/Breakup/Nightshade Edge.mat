@@ -82,7 +82,7 @@ Material:
     - _PigmentPreservation: 0
     - _ShadowSoftness: 0.25
     - _ShadowThreshold: 0.1
-    - _SootStrength: 0.9
+    - _SootStrength: 0.1
     - _SpecularStrength: 0
     - _TextureStrength: 0
     - _UseRelief: 0

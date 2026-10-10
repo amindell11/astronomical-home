@@ -3,7 +3,7 @@
   "name": "Nightshade",
   "lifetime": 1.4,
   "fade_duration": 0.25,
-  "soot": 0.9,
+  "soot": 0.1,
   "burst_seconds": 0.12,
   "burst_fraction": 0.62,
   "drift_start": 0.34,
