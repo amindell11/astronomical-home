@@ -1,5 +1,7 @@
 # Nightshade breakup — large sections
 
+**Superseded for color:** the owner rejected the immediate gray shift. [Round 2](../2026-10-09-r02/README.md) corrects it.
+
 Actual Unity Game View recording of Nightshade dying through its normal damage event.
 Owner approved starting breakup and chose large sections. Final motion review remains pending.
 

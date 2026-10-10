@@ -69,3 +69,7 @@ settles that distinction. They remain here as historical evidence.
 - [Nightshade paint concept — round 01; owner review pending](paint/round-01/README.md)
 
 - [Large-section breakup — awaiting owner motion review](breakup/2026-10-09-r01/README.md)
+
+## Breakup color correction
+
+[2026-10-09 round 2](breakup/2026-10-09-r02/README.md) retains the approved painted colors through the breakup; motion review pending.

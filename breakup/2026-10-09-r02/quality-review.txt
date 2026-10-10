@@ -1,0 +1,3 @@
+Combined breakup review: no actionable correctness or scope findings. Reviewed source ownership, geometry lock, painted triangle/UV preservation, intact export compatibility, death/reset wiring, single explosion, section lifetimes, outward offsets and material continuity. Applied only redundant-comment and metadata-whitespace cleanup.
+
+Color correction follow-up: all six debris materials and breakup.json agree at soot 0.1. Intact materials, geometry, animation and fade unchanged. No correctness issue. Native capture is the visual acceptance evidence; owner motion review remains pending.
