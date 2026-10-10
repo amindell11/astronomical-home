@@ -1,0 +1,211 @@
+{
+    "generatedAt":  "2026-10-09T22:38:28.8028753-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-3\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Auto",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  {
+                                   "diffBase":  "origin/main",
+                                   "mergeBase":  "a2a158c8cdccfb1b0651a588b80378fce98c4933",
+                                   "mode":  "fallback",
+                                   "matchedModules":  [
+                                                          "ui"
+                                                      ],
+                                   "unmatchedFiles":  [
+                                                          "art/ui/hangar/hangar-interior.json",
+                                                          "src/Asteroids3D/Assets/Prefabs/UI/HangarScreen.prefab",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar.meta",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat.meta",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader.meta",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png",
+                                                          "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png.meta"
+                                                      ],
+                                   "ignoredFiles":  [
+
+                                                    ],
+                                   "emptyCategoryModules":  [
+
+                                                            ],
+                                   "categories":  [
+
+                                                  ]
+                               },
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  985,
+                   "passed":  983,
+                   "failed":  0,
+                   "skipped":  2,
+                   "durationSec":  66.303
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261009-223533-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261009-223533-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  757,
+                     "passed":  757,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  23.8055062,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  {
+                                                    "diffBase":  "origin/main",
+                                                    "mergeBase":  "a2a158c8cdccfb1b0651a588b80378fce98c4933",
+                                                    "mode":  "fallback",
+                                                    "matchedModules":  [
+                                                                           "ui"
+                                                                       ],
+                                                    "unmatchedFiles":  [
+                                                                           "art/ui/hangar/hangar-interior.json",
+                                                                           "src/Asteroids3D/Assets/Prefabs/UI/HangarScreen.prefab",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png.meta"
+                                                                       ],
+                                                    "ignoredFiles":  [
+
+                                                                     ],
+                                                    "emptyCategoryModules":  [
+
+                                                                             ],
+                                                    "categories":  [
+
+                                                                   ]
+                                                },
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Auto",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-10 05:37:08Z",
+                     "finishedAt":  "2026-10-10 05:37:32Z"
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261009-223533-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-3\\results\\unity-tests-agent\\20261009-223533-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "unknown",
+                     "total":  228,
+                     "passed":  226,
+                     "failed":  0,
+                     "skipped":  2,
+                     "durationSec":  42.4974381,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  {
+                                                    "diffBase":  "origin/main",
+                                                    "mergeBase":  "a2a158c8cdccfb1b0651a588b80378fce98c4933",
+                                                    "mode":  "fallback",
+                                                    "matchedModules":  [
+                                                                           "ui"
+                                                                       ],
+                                                    "unmatchedFiles":  [
+                                                                           "art/ui/hangar/hangar-interior.json",
+                                                                           "src/Asteroids3D/Assets/Prefabs/UI/HangarScreen.prefab",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.mat.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarFloorShadow.shader.meta",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png",
+                                                                           "src/Asteroids3D/Assets/Visuals/Ui/Hangar/HangarInterior.png.meta"
+                                                                       ],
+                                                    "ignoredFiles":  [
+
+                                                                     ],
+                                                    "emptyCategoryModules":  [
+
+                                                                             ],
+                                                    "categories":  [
+
+                                                                   ]
+                                                },
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Auto",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-10 05:37:38Z",
+                     "finishedAt":  "2026-10-10 05:38:20Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  176.693,
+                       "startupToFirstTestSec":  89.47,
+                       "executionSec":  66,
+                       "remainingSec":  21.222,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "scopeType=Auto"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  45832,
+                                         "rootPeakPrivateGB":  3.326,
+                                         "rootPeakWorkingSetGB":  3.059,
+                                         "treePeakSampledPrivateGB":  3.907,
+                                         "treePeakSampledWorkingSetGB":  3.676,
+                                         "treeSumOfPeaksPrivateGB":  5.38,
+                                         "commitHeadroomAtLaunchGB":  13.26,
+                                         "commitHeadroomMinGB":  9.04,
+                                         "availablePhysicalAtLaunchGB":  6.49,
+                                         "availablePhysicalMinGB":  2.19,
+                                         "bootLaneReleasedAtSec":  14.58,
+                                         "treePeakAtSec":  143.161,
+                                         "samples":  25,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
