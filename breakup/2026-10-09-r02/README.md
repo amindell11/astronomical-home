@@ -33,3 +33,9 @@ in the stopped editor to update the six existing materials. SootProbe.cs documen
 ![Intact](intact.png)
 ![Burst](burst.png)
 ![Drift](drift.png)
+
+## Static review
+
+ReSharper completed successfully on 9f754af3 after refreshing the editor and regenerating project files.
+No blocking Unity findings overlap changed lines; 12 touched-file/report-only findings remain informational.
+See [summary](resharper-summary.json) and [SARIF](resharper.sarif.json). Hosted CI is separate and was running when this result was recorded.
