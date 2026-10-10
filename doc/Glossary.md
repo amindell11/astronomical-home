@@ -632,11 +632,9 @@ Format: **term** — definition. *(authority)*
   triage and rescue sweeps share the word. *(`ProjectileBase.SweepStep`)*
 - **lock reticle** — the mark over a ship while a missile lock builds or holds on it,
   and while a missile tracks that ship (has its target and hasn't lost track). Every
-  ship's rig carries one, bound to that ship's `LockChannel`, so it answers whoever
-  locks the ship: an enemy missile tracking the player shows over the player. Only a
-  lost track plays the break; impact, being shot down and lifetime expiry clear it
-  without one. The tracking count lives on the channel, never the reticle, so it stays
-  right while the reticle is disabled. *(`LockOnIndicator`, `LockChannel.TrackingCount`)*
+  ship's rig carries one, so an enemy missile tracking the player shows over the
+  player. Only a lost track plays the break animation; impact, being shot down and
+  lifetime expiry clear it without one. *(`LockOnIndicator`, `LockChannel.TrackingCount`)*
 - **target point** — the world point in the game plane a shot flies to, fixed
   at fire time: the cursor for the player (the nose at max range with no cursor),
   `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only

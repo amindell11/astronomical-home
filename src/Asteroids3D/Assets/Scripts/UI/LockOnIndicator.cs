@@ -127,7 +127,6 @@ namespace UI
             if (animator) animator.SetTrigger(TrackLost);
         }
 
-        // Lock events and a playing break own the reticle; otherwise the tracking count decides.
         private void Settle()
         {
             if (breaking || lockBuildingOrHeld) return;

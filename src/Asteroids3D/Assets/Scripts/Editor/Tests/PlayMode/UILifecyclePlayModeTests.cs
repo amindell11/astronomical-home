@@ -127,7 +127,7 @@ namespace Tests.PlayMode
             channel.RaiseAcquired();
             yield return null;
 
-            // Missiles.Fire: consuming the lock raises Released, then the missile adds its track.
+            // Missiles.Fire: consuming the missile lock raises Released, then the missile adds its track.
             channel.RaiseReleased();
             channel.AddTrack();
             yield return null;
