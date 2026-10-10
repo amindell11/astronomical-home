@@ -1,0 +1,47 @@
+{
+  "shadow_strength": 1,
+  "light_strength": 1,
+  "ink_strength": 1,
+  "highlight_colors_linear": {
+    "Midnight": [
+      0.13013647496700287,
+      0.1946178376674652,
+      0.3324515223503113,
+      1.0
+    ],
+    "Violet": [
+      0.46207699179649353,
+      0.3049873113632202,
+      0.6104955673217773,
+      1.0
+    ],
+    "Plum": [
+      0.520995557308197,
+      0.16202937066555023,
+      0.7379103899002075,
+      1.0
+    ],
+    "Edge": [
+      0.08437620848417282,
+      0.13013647496700287,
+      0.22322796285152435,
+      1.0
+    ],
+    "Recess": [
+      0.005605391692370176,
+      0.011612244881689548,
+      0.02518685907125473,
+      1.0
+    ],
+    "Glass": [
+      0.5840784311294556,
+      0.5149176716804504,
+      1.0,
+      1.0
+    ]
+  },
+  "neutral_surface_response": 0.18,
+  "green_emission_strength": 1,
+  "method": "Independent asymmetric grayscale paint masks, repaired to exclude source outlines when projecting onto underlying wing and fin surfaces. Tail highlight contrast recalibrated for its reassigned Glass faces. Existing armor strokes, canopy reflection, material colors and emission mask retained. No physical specular or coat.",
+  "global_saturation": 1.25
+}

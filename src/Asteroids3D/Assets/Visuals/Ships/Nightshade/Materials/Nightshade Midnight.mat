@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Nightshade Midnight
+  m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _PAINT_LAYERS
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties:
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: 8aea8e95bf5cec449a6ab9767308020a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintInkMap:
+        m_Texture: {fileID: 2800000, guid: 9f49c4c6be0958f41947a6662a0b92cc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintLightMap:
+        m_Texture: {fileID: 2800000, guid: 51c20064e13794942b00dcbbe3fa2b3b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintShadowMap:
+        m_Texture: {fileID: 2800000, guid: 112464a3894e07f43aafe338eee2216d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WearMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientStrength: 0.486
+    - _BumpScale: 1
+    - _CastShadowStrength: 0.213
+    - _DamageFlash: 0
+    - _DebrisVisibility: 1
+    - _DetailAlbedoMapScale: 0
+    - _EmissionStrength: 1
+    - _LineSoftness: 0.027
+    - _LineStrength: 0
+    - _LineThreshold: 0.395
+    - _PaintEmissionBlend: 1
+    - _PaintInkStrength: 1
+    - _PaintLayers: 1
+    - _PaintLightStrength: 1
+    - _PaintSaturation: 1.25
+    - _PaintShadowStrength: 1.531
+    - _PaletteLighting: 0.954
+    - _PigmentPreservation: 0
+    - _ShadowSoftness: 0.263
+    - _ShadowThreshold: -0.063
+    - _SootStrength: 0
+    - _SpecularStrength: 0
+    - _TextureStrength: 0
+    - _UseRelief: 0
+    - _WearStrength: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 2.0235293, g: 2.9803917, b: 1.1294116, a: 1}
+    - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
+    - _PaintInkColor: {r: 0.015686275, g: 0.02745098, b: 0.06274508, a: 1}
+    - _PaintLightColor: {r: 0.39607838, g: 0.47843134, b: 0.61176467, a: 1}
+    - _PaperColor: {r: 0.6536583, g: 0.79639655, b: 1, a: 1}
+    - _ShadowColor: {r: 0.9162735, g: 0.93574095, b: 0.9776915, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

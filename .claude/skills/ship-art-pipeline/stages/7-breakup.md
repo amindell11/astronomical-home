@@ -10,9 +10,12 @@ per-ship number overrides in a settings file.
 
 ## Commands
 
-None yet. Debris roles (`role.debris.<id>`) are reserved and the exporter refuses them in
-this version; the breakup build arrives with the arc's second-cut tools (#868, slice 8),
-which add the commands here.
+Verify the geometry lock, then run `ship_export --debris` with the stage's `--ship`
+and `--out` paths. Group ownership and paired mirrored sections follow
+`art/tools/ship/README.md` → Debris export. Import the emitted FBX under the ship's
+`Breakup/` folder. Generate the legacy motion clip and prefab through the Editor from
+`art/ships/<name>/breakup.json`; preserve the build script with the capture evidence.
+The shared motion/prefab builder remains deferred to #868, slice 8.
 
 ## Done
 

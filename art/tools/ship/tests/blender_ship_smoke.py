@@ -148,6 +148,64 @@ assert abs(hull[:, 2].max() - 0.5) < 1e-5, "hidden Fin missing from Hull"
 everything = np.concatenate([[v.co for v in objects[n].data.vertices] for n in meshes])
 assert "Scratch" not in objects and everything[:, 0].max() < 4, "ignored Scratch exported"
 
+def painted_triangles(path):
+    from collections import Counter
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.wm.fbx_import(filepath=path)
+    triangles = Counter()
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.name == "Collider":
+            continue
+        mesh = obj.data
+        for face in mesh.polygons:
+            corners = []
+            for index in face.loop_indices:
+                position = obj.matrix_world @ mesh.vertices[mesh.loops[index].vertex_index].co
+                normal = obj.matrix_world.to_3x3().inverted().transposed() @ mesh.corner_normals[index].vector
+                normal.normalize()
+                uv = mesh.uv_layers[contract.PAINT_UV].uv[index].vector
+                corners.append(tuple(round(float(v), 4) for v in (*position, *normal, *uv)))
+            triangles[(mesh.materials[face.material_index].name, tuple(sorted(corners)))] += 1
+    return triangles
+
+
+intact_triangles = painted_triangles(trailers["SHIP_FBX"])
+grouped = ship("debris", variant=False)
+bpy.ops.wm.open_mainfile(filepath=str(source))
+for ident, names in {"Wing.L": ["Wing"], "Wing.R": ["Wing"],
+                     "Body": ["Fuselage", "Canopy", "Core", "Fin", "Spine"]}.items():
+    collection = bpy.data.collections.new("role.debris." + ident)
+    bpy.context.scene.collection.children.link(collection)
+    for name in names:
+        collection.objects.link(bpy.data.objects[name])
+grouped_source = grouped.parent / "Fixture.blend"
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+shutil.copy(lock, grouped.parent / "lock.json")
+grouped_sha = contract.sha256_file(grouped_source)
+assert painted_triangles(tool("export", grouped)[0]["SHIP_FBX"]) == intact_triangles
+fragments, fragment_report = tool("export", grouped, "--debris")
+assert painted_triangles(fragments["SHIP_FBX"]) == intact_triangles
+fragment_sidecar = json.loads(Path(fragment_report["sidecar"]).read_text(encoding="utf-8"))
+assert fragment_sidecar["set"] == "debris"
+assert set(fragment_sidecar["roles"]) == {"Wing.L", "Wing.R", "Body"}
+assert contract.sha256_file(grouped_source) == grouped_sha
+(grouped.parent / "lock.json").unlink()
+tool("export", grouped, "--debris", expect=3)
+shutil.copy(lock, grouped.parent / "lock.json")
+bpy.ops.wm.open_mainfile(filepath=str(grouped_source))
+bpy.data.collections.remove(bpy.data.collections["role.debris.Wing.R"])
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+tool("export", grouped, "--debris", expect=3)
+for ident in ("Wing.R", "Duplicate"):
+    collection = bpy.data.collections.new("role.debris." + ident)
+    bpy.context.scene.collection.children.link(collection)
+    collection.objects.link(bpy.data.objects["Wing"])
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+tool("export", grouped, "--debris", expect=3)
+results["debris_painted_triangles"] = sum(intact_triangles.values())
+
 # One failure case per tool.
 assert ("modifier_order", "Wing") in rules(tool("check", ship("solidify_first", "solidify_first"), expect=3)[1])
 assert ("name", "Cube") in rules(tool("check", ship("cube_name", "cube_name"), expect=3)[1])

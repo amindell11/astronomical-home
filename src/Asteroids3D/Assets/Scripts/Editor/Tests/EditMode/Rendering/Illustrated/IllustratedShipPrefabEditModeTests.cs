@@ -18,7 +18,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         private const string Crimson = "Assets/Prefabs/Ships/Crimson.prefab";
         private const string Nightshade = "Assets/Prefabs/Ships/Nightshade.prefab";
         private const string ShipBase = "Assets/Prefabs/Ships/ShipBase.prefab";
-        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/cruiserUpdate1.fbx";
+        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/Nightshade.fbx";
 
         [Test]
         public void Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours()
@@ -48,7 +48,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         }
 
         [Test]
-        public void Nightshade_KeepsItsLegacyHullAndDamageFeedbackOnTheBase()
+        public void Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback()
         {
             var ship = LoadShip(Nightshade);
             Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(ship)), Is.EqualTo(ShipBase));
@@ -60,15 +60,26 @@ namespace Tests.EditMode.Rendering.Illustrated
             Assert.That(ship.GetComponentsInChildren<Transform>(true)
                 .Any(t => t.name == "Vanguard" || t.name == "Crimson"), Is.False);
             var hull = rigs[0].transform.Find("Hull").GetComponentsInChildren<MeshRenderer>(true);
-            Assert.That(hull, Has.Length.EqualTo(1));
-            Assert.That(hull[0].enabled, Is.True);
-            Assert.That(AssetDatabase.GetAssetPath(hull[0].GetComponent<MeshFilter>().sharedMesh), Is.EqualTo(NightshadeHullModel));
-            Assert.That(new SerializedObject(feedback[0]).FindProperty("hull").objectReferenceValue, Is.EqualTo(hull[0]),
-                "Damage feedback drives the legacy hull.");
+            Assert.That(hull, Has.Length.EqualTo(3));
+            foreach (var renderer in hull)
+            {
+                Assert.That(renderer.enabled, Is.True);
+                Assert.That(AssetDatabase.GetAssetPath(renderer.GetComponent<MeshFilter>().sharedMesh), Is.EqualTo(NightshadeHullModel));
+                foreach (var material in renderer.sharedMaterials.Where(m => m.shader.name == SurfaceShader))
+                {
+                    Assert.That(material.IsKeywordEnabled("_PAINT_LAYERS"), Is.True);
+                    Assert.That(material.GetFloat("_PaintSaturation"), Is.EqualTo(1.25f));
+                    Assert.That(material.GetFloat("_PaintEmissionBlend"), Is.EqualTo(1f));
+                    Assert.That(material.GetFloat("_SpecularStrength"), Is.Zero);
+                }
+            }
+            Assert.That(new SerializedObject(feedback[0]).FindProperty("hull").objectReferenceValue,
+                Is.EqualTo(hull.Single(r => r.name == "Nightshade")));
         }
 
         [TestCase(Vanguard)]
         [TestCase(Crimson)]
+        [TestCase(Nightshade)]
         public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
         {
             var ship = LoadShip(path);

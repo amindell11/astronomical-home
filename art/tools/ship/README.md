@@ -20,7 +20,8 @@ fails loudly if it changed.
 | `role.hull`, `role.canopy`, `role.cores`, `role.ink` | one joined mesh each: `Hull`, `Canopy`, `Cores`, `Ink` |
 | `role.collider` | `Collider`, no materials, no contour (optional) |
 | `role.sockets` | empties under `Sockets`, names verbatim |
-| `role.move.<id>`, `role.debris.<id>` | reserved: parsed; the exporter refuses them in this version |
+| `role.move.<id>` | reserved: parsed; the exporter refuses it |
+| `role.debris.<id>` | one breakup section; exported by `ship_export --debris` |
 
 Only `role.hull` is required. Any other `role.*` name is an error. Visual roles exclude each
 other. Objects in the `ignore` collection are fingerprinted and never exported. Visibility
@@ -55,7 +56,7 @@ blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/ship_X.py --
 | `ship_check` | | Findings for the rules above plus per-part fingerprints. |
 | `ship_lock` | `--mode lock\|verify\|reopen` | Writes `lock.json` beside the source; `verify` fails on changed geometry; `reopen` reports changed parts and the stages they invalidate (`uv`, `masks`, `breakup`) and rewrites the lock. |
 | `ship_render` | `--set ortho\|turnaround\|sheet\|scale\|compare`, `--size N`, `--before BLEND` | Workbench review renders of the visual roles; `compare` renders `--before` beside the source and counts changed pixels. |
-| `ship_export` | | `<Name>.fbx` and `<Name>.export.json` in `--out`. |
+| `ship_export` | `--debris` | Intact: `<Name>.fbx` and `<Name>.export.json`. Debris: `<Name>Breakup.fbx` and `<Name>Breakup.export.json`. |
 | `ship_uv` | | Texel density per part on `PaintUV`; fails when max/min exceeds `uv_density_max_ratio`. |
 
 ## Contract
@@ -85,6 +86,16 @@ sidecar records each role's parts, slots, UV layers, per-part vertex and triangl
 surface and contour, socket matrices and the fingerprint. Unity's importer welds vertices with
 identical attributes by default, which can merge contour and surface vertices; the importing
 side decides that setting.
+
+**Debris export.** Requires the current geometry lock. Each visual mesh belongs to one
+whole `role.debris.<id>` or a matching `role.debris.<id>.L` / `.R` pair. A pair contains
+the same source objects: evaluated triangles with negative symmetry-space X centroids go
+left, the rest right. This partitions every triangle exactly once without cutting faces
+or applying source modifiers. Each group becomes one mesh, retaining its source material
+slots, UVs, surface normals and contours. Mixed hull/canopy groups retain contours only
+on the parts whose visual role requests them. Missing, overlapping, empty or nonvisual
+groups fail with exit 3. Intact export accepts debris annotations and ignores them.
+The sidecar's `set` is `intact` or `debris`; `roles` keys are section IDs for debris.
 
 ## Tests
 

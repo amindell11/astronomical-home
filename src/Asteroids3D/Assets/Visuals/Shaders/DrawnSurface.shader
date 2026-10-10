@@ -10,8 +10,11 @@ Shader "Astronomical/Drawn/Surface"
         _PaintShadowStrength ("Shadow Depth", Range(0,2)) = 1
         _PaintLightStrength ("Painted Light", Range(0,2)) = 1
         _PaintInkStrength ("Panel Ink", Range(0,2)) = 1
+        _PaintSaturation ("Paint Saturation", Range(0,2)) = 1
+        _PaintEmissionBlend ("Painted Indicator Blend", Range(0,1)) = 0
         _PaintLightColor ("Painted Light Color", Color) = (0.82,0.93,0.88,1)
         _PaintInkColor ("Panel Ink Color", Color) = (0.006,0.012,0.018,1)
+        _DamageFlash ("Damage Flash", Range(0,1)) = 0
         _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
         _SootStrength ("Destruction Soot", Range(0,1)) = 0
         [Toggle(_NORMALMAP)] _UseRelief ("Sculpted Relief", Float) = 0
@@ -51,12 +54,13 @@ Shader "Astronomical/Drawn/Surface"
             half4 _BaseColor, _PaperColor, _ShadowColor, _EmissionColor;
             half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
             half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
+            half _PaintSaturation, _PaintEmissionBlend;
             half _TextureStrength, _PigmentPreservation, _LineStrength, _LineThreshold, _LineSoftness, _WearStrength;
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
             half _SpecularStrength, _EmissionStrength;
             half _CastShadowStrength, _BumpScale;
-            half _DebrisVisibility, _SootStrength;
+            half _DebrisVisibility, _SootStrength, _DamageFlash;
         CBUFFER_END
         TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
         half3 DrawnWorldNormal(half3 normalWS, half4 tangentWS, float2 uv)
@@ -79,6 +83,7 @@ Shader "Astronomical/Drawn/Surface"
             #pragma fragment SurfaceFragment
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _PAINT_LAYERS
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
@@ -143,6 +148,14 @@ Shader "Astronomical/Drawn/Surface"
                     albedo = _PaperColor.rgb * (1 - shadow);
                     albedo = lerp(albedo, _PaintLightColor.rgb, saturate(paintedLight));
                     albedo = lerp(albedo, _PaintInkColor.rgb, saturate(ink));
+                    half indicator = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).r;
+                    albedo = lerp(albedo, _EmissionColor.rgb, saturate(indicator * _PaintEmissionBlend));
+                    if (_PaintSaturation != 1)
+                    {
+                        half3 paintHSV = RgbToHsv(albedo);
+                        paintHSV.y = saturate(paintHSV.y * _PaintSaturation);
+                        albedo = HsvToRgb(paintHSV);
+                    }
                 #endif
                 albedo *= 1 - marks * _LineStrength;
                 albedo *= 1 - SAMPLE_TEXTURE2D(_WearMap, sampler_WearMap, input.uv).r * _WearStrength;
@@ -151,6 +164,7 @@ Shader "Astronomical/Drawn/Surface"
                 half mask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, input.uv).a;
                 albedo *= lerp(1, 2 * detail * _DetailAlbedoMapScale - _DetailAlbedoMapScale + 1, mask);
                 albedo *= _BaseColor.rgb;
+                albedo = lerp(albedo, _BaseColor.rgb, _DamageFlash);
                 half soot = smoothstep(0.22, 0.72, input.soot) * _SootStrength;
                 albedo = lerp(albedo * (1 - _SootStrength * 0.18), half3(0.065, 0.055, 0.05), soot * 0.88);
                 half3 normal = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
@@ -173,7 +187,7 @@ Shader "Astronomical/Drawn/Surface"
                 illumination /= max(1, peak);
                 color = lerp(color, albedo * diffuse * illumination, _PaletteLighting);
                 color += light.color * highlight * _SpecularStrength * light.shadowAttenuation * (1 - soot);
-                color += SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionStrength * (1 - _SootStrength);
+                color += SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb * _EmissionStrength * (1 - _SootStrength) * (1 - _PaintEmissionBlend);
                 return half4(MixFog(color, input.fog), 1);
             }
             ENDHLSL
