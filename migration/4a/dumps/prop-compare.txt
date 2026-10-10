@@ -1,0 +1,25 @@
+CHANGED /#WeaponsController .primaryMount: Assets/Prefabs/Weapons/TurboLasers.prefab:/#Lasers -> Assets/Prefabs/Weapons/Lasers.prefab:/#Lasers
+CHANGED /Mesh#Transform .m_LocalEulerAnglesHint: (0,180,180) -> (0,180,0)
+CHANGED /Valis VisualRig#HullVisuals .explosionPrefab: null -> Assets/Prefabs/Particles/ExplosionVFX.prefab:/#GameObject
+CHANGED /Valis VisualRig#HullVisuals .hull: self:/Valis VisualRig/Valis#SkinnedMeshRenderer -> null
+CHANGED /Valis VisualRig#HullVisuals .m_Enabled: 1 -> 0
+CHANGED /Valis VisualRig/Thruster#Transform .m_LocalPosition: (-3.44227669E-09,-0.412100881,-0.139578983) -> (0,0,0)
+CHANGED /Valis VisualRig/Thruster#ThrusterVisuals .thrustParticles.Array.data[1]: None -> self:/ShipBaseRig/Thruster/EngineExhaustTwin/ThrustMain#ParticleSystem
+CHANGED /Valis VisualRig/Thruster#ThrusterVisuals .thrustParticles.Array.size: 1 -> 2
+GONE    /Valis VisualRig/Thruster/Reactor#Transform
+GONE    /Valis VisualRig/Thruster/Reactor#ParticleSystem
+GONE    /Valis VisualRig/Thruster/Reactor#ParticleSystemRenderer
+CHANGED /Valis VisualRig/Thruster/ThrustSmall#Transform .m_LocalPosition: (0,-0.19,-0.03) -> (0,0,0)
+CHANGED /Valis VisualRig/Thruster/ThrustMain#Transform .m_LocalPosition: (0,-0.19,-0.03) -> (0,0,0)
+CHANGED /Valis VisualRig/Thruster/ThrustLight#Transform .m_LocalPosition: (0,-0.2666668,0) -> (0,0,0)
+CHANGED /Valis VisualRig/Thruster/ThrustLight#Light .m_BoundingSphereOverride: (0, -1.30099913E-38, 5.549142E-43, 0) -> (-0.006920819, 0.0152331637, 0.0002831174, 0.008889561)
+CHANGED /Valis VisualRig/MinimapMarker#Transform .m_LocalEulerAnglesHint: (0,180,180) -> (0,180,0)
+NEW     /ShipBaseRig/Thruster/EngineExhaust#Transform
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin#Transform
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustMain#Transform
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustMain#ParticleSystem
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustMain#ParticleSystemRenderer
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustSmall#Transform
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustSmall#ParticleSystem
+NEW     /ShipBaseRig/Thruster/EngineExhaustTwin/ThrustSmall#ParticleSystemRenderer
+NEW     /ShipBaseRig/Hull#Transform

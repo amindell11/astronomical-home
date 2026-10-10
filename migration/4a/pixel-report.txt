@@ -1,0 +1,50 @@
+Valis pixel report -- slice 4a of #868 (#970)
+============================================
+
+Harness: ShipChassisRenderPlayModeTests (the tracer harness), Valis cases added in cb1d27dd:
+yaw 0/90/135 at the prefab pose and with the wings swept (every WingVisuals joint at identity,
+the full-thrust pose). Particle renderers off, Ship layer only. "Changed" = per-pixel |dR|+|dG|+|dB| > 6.
+
+1. Golden image across sessions (the acceptance as written)
+   Baseline: main's Valis (working tree = cb1d27dd, main + harness), cold run 1, copied to baseline/.
+
+   run                       tree     Valis-0  -90  -135  -0sw  -90sw  -135sw   other ships
+   main-run1 (baseline)      main        -      -     -     -      -      -
+   main-run2                 main        0      0     0     0      0      0      Crimson/Vanguard 0; Nightshade-0 see note
+   branch-run1 (+wing/brk)   branch      8      8     5     8      7      6      Nightshade-90/135: 1 px each
+   branch-run2 (harness only) branch     9     10     6     7      5      8      all 0
+
+   Branch runs miss main's golden image by 5-10 edge pixels (max difference 269), and the two
+   branch runs also differ from each other (1-6 px).
+
+   Note: main-run1's Nightshade-0 rendered untextured (white): the first run on a freshly prepared
+   slot, with #965's new Nightshade textures still importing. Re-baselined from main-run2.
+
+2. Same session, old vs new (pixel-noise/bisect/, logs/ScratchValisBisectPlayModeTests.cs)
+   One batch session renders main's Valis (a temporary copy of 099b09cf's Valis.prefab) and the
+   migrated Valis with the harness's exact procedure, back to back.
+
+   O-0 vs N-0              changed=0 max=0
+   O-90 vs N-90            changed=0 max=0
+   O-135 vs N-135          changed=0 max=0
+   O-0-swept vs N-0-swept  changed=0 max=0
+   O-90-swept vs N-90-swept   changed=0 max=0
+   O-135-swept vs N-135-swept changed=0 max=0
+
+   An earlier session also stripped the hierarchy in stages (only the hull renderer left; the hull
+   reparented one level up; the hull extracted alone; the SortingGroup removed): 0 changed pixels
+   between old and new at every stage.
+
+3. Why the golden image wobbles for Valis
+   - Main's own prefab, rendered in a branch-tree session, misses main's golden image by the same
+     5-8 pixels (session O vs main-run2), and lands within 1-6 px of branch-run2.
+   - Same prefab, same session, with the hull's eight materials re-instanced: forward creation order
+     changes 73 pixels (max 326), reverse order 5 pixels (max 118). Valis's coplanar paint submeshes
+     tie in depth (DrawnSurface: ZTest LEqual, no offset; the contour is stencil-masked by them), so
+     which wins at a tie follows URP's opaque draw order, and that order keys on material identity,
+     which is assigned per session by load order.
+   - Crimson, Nightshade and Vanguard were stable across these runs.
+
+Verdict: the migrated Valis renders pixel-identical to main's Valis at every harness pose when both
+render in one session. The golden image as written (baseline from one session, render in another)
+cannot reach zero for Valis even for main's own prefab; that is a harness property, not the migration.

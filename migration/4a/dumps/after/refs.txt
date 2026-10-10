@@ -1,0 +1,4 @@
+Assets/Settings/Ships/ItemCatalog.asset ItemCatalog .chassis.Array.data[4] -> 2198c10e93bde5f42b7b9a44dbff3e6a:1448741880885153620 resolves=True to Assets/Prefabs/Ships/Valis.prefab:/#Ship (asset root True)
+
+Assets/Settings/Ships/PlayerLoadout.asset PlayerLoadout .ships.Array.data[3] -> 2198c10e93bde5f42b7b9a44dbff3e6a:1448741880885153620 resolves=True to Assets/Prefabs/Ships/Valis.prefab:/#Ship (asset root True)
+

@@ -1,0 +1,15 @@
+renderer     /Valis VisualRig/Valis#SkinnedMeshRenderer                 -> /ShipBaseRig/Hull/Valis#SkinnedMeshRenderer                    max|d|=0
+transform    /Valis VisualRig/Valis#Transform                           -> /ShipBaseRig/Hull/Valis#Transform                              max|d|=0
+transform    /Valis VisualRig/Valis/Flight surfaces/Upper wing right#Transform -> /ShipBaseRig/Hull/Valis/Flight surfaces/Upper wing right#Transform max|d|=0
+transform    /Valis VisualRig/Valis/Flight surfaces/Upper wing left#Transform -> /ShipBaseRig/Hull/Valis/Flight surfaces/Upper wing left#Transform max|d|=0
+transform    /Valis VisualRig/Valis/Flight surfaces/Lower wing right#Transform -> /ShipBaseRig/Hull/Valis/Flight surfaces/Lower wing right#Transform max|d|=0
+transform    /Valis VisualRig/Valis/Flight surfaces/Lower wing left#Transform -> /ShipBaseRig/Hull/Valis/Flight surfaces/Lower wing left#Transform max|d|=0
+transform    /Valis VisualRig/Valis/Flight surfaces#Transform           -> /ShipBaseRig/Hull/Valis/Flight surfaces#Transform              max|d|=0
+collider     /Mesh#MeshCollider                                         -> /Mesh#MeshCollider                                             max|d|=0
+collider     /ShipBody#SphereCollider                                   -> /ShipBody#SphereCollider                                       max|d|=0
+hardpoint[0] /Hardpoints/Primary#Transform                              -> /Hardpoints/Primary#Transform                                  max|d|=0
+hardpoint[1] /Hardpoints/Secondary#Transform                            -> /Hardpoints/Secondary#Transform                                max|d|=0
+emitter      /Valis VisualRig/Thruster/ThrustMain#ParticleSystem        -> /ShipBaseRig/Thruster/EngineExhaust/ThrustMain#ParticleSystem  max|d|=2e-07
+emitter      /Valis VisualRig/Thruster/ThrustSmall#ParticleSystem       -> /ShipBaseRig/Thruster/EngineExhaust/ThrustSmall#ParticleSystem max|d|=2e-07
+renderer     /Valis VisualRig/MinimapMarker#MeshRenderer                -> /ShipBaseRig/MinimapMarker#MeshRenderer                        max|d|=0
+WORST 2e-07

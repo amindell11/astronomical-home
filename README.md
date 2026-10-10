@@ -15,6 +15,7 @@ commit-pinned links in merged PRs (#843, #852, #865) keep resolving at the old p
 | motion | `motion/2026-10-02-wing-motion-and-profiles/` | same name under `valis-geometry:history/` |
 | motion | `motion/wings-evidence/` | all of `evidence/valis-wings` (PR #852 captures) |
 | producers | `producers/wing-motion/` | local files saved 2026-10-03, see below |
+| migration | `migration/4a/` | slice 4a of #868 (#970): prefab onto the neutral base; pixel, structure, reference and engine evidence, see its README |
 
 `legacy/valis-geometry-README.md` is the old branch README; its `history/...` paths map
 through the table above.

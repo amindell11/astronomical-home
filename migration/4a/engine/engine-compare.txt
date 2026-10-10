@@ -1,0 +1,8 @@
+main            vs branch idle-tail: changed px (>6)=40317 max=447
+main-noreactor  vs branch idle-tail: changed px (>6)=0 max=4
+main            vs branch idle-whole: changed px (>6)=5617 max=469
+main-noreactor  vs branch idle-whole: changed px (>6)=0 max=0
+main            vs branch thrust-tail: changed px (>6)=40317 max=447
+main-noreactor  vs branch thrust-tail: changed px (>6)=0 max=3
+main            vs branch thrust-whole: changed px (>6)=5617 max=469
+main-noreactor  vs branch thrust-whole: changed px (>6)=0 max=0

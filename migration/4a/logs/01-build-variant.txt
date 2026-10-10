@@ -1,0 +1,17 @@
+root rotation (0,0,0,1) (default override), name Valis
+root scale (1.35,1.35,1.35)
+Hardpoints/Primary local=(0.4,1.04633272,0)
+Hardpoints/Secondary local=(-0.4,1.04633272,0)
+EngineExhaust local=(-2.2948512E-09,-0.464734018,-0.169579) world=(-4.64707339E-09,-0.9410863,-0.228931651) (legacy ThrustMain world=(-4.64707339E-09,-0.9410861,-0.228931636); legacy Thruster local=(-3.44227669E-09,-0.412100881,-0.139578983))
+flame ThrustMain scale (1,0.43,1) -> (1.3,0.43,1)
+flame ThrustMain materials [Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat] -> [Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat]
+flame ThrustMain startColor copied
+flame ThrustSmall materials [Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat] -> [Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat]
+flame ThrustSmall startColor copied
+poseSources[0] = Hull/Valis/Flight surfaces/Upper wing right
+poseSources[1] = Hull/Valis/Flight surfaces/Upper wing left
+poseSources[2] = Hull/Valis/Flight surfaces/Lower wing right
+poseSources[3] = Hull/Valis/Flight surfaces/Lower wing left
+Rigidbody implicitTensor=False tensor=(279,38,295)
+Ship stats equal the base: no override
+saved Assets/Prefabs/Ships/Valis.prefab: guid 2198c10e93bde5f42b7b9a44dbff3e6a -> 2198c10e93bde5f42b7b9a44dbff3e6a; type=Variant; source=Assets/Prefabs/Ships/ShipBase.prefab; root name=Valis

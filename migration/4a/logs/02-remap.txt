@@ -1,0 +1,4 @@
+Assets/Settings/Ships/ItemCatalog.asset: remapped=1
+REMAP ItemCatalog .chassis.Array.data[4]: 2198c10e93bde5f42b7b9a44dbff3e6a:8821681777366619236 -> 2198c10e93bde5f42b7b9a44dbff3e6a:1448741880885153620 (Valis#Ship)
+Assets/Settings/Ships/PlayerLoadout.asset: remapped=1
+REMAP PlayerLoadout .ships.Array.data[3]: 2198c10e93bde5f42b7b9a44dbff3e6a:8821681777366619236 -> 2198c10e93bde5f42b7b9a44dbff3e6a:1448741880885153620 (Valis#Ship)

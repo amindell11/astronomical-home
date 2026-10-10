@@ -1,0 +1,201 @@
+{
+    "generatedAt":  "2026-10-10T03:27:09.9179377-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-6\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "ShipChassisRenderPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  15,
+                   "passed":  0,
+                   "failed":  15,
+                   "skipped":  0,
+                   "durationSec":  4.375
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-6\\results\\unity-tests-agent\\20261010-032529-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-6\\results\\unity-tests-agent\\20261010-032529-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  15,
+                     "passed":  0,
+                     "failed":  15,
+                     "skipped":  0,
+                     "durationSec":  4.3747894,
+                     "failures":  [
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",0,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",0,False)",
+                                          "durationSec":  1.766683,
+                                          "message":  "Crimson-0: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Crimson-0.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Crimson-0.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",90,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",90,False)",
+                                          "durationSec":  0.05039,
+                                          "message":  "Crimson-90: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Crimson-90.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Crimson-90.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",135,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Crimson.prefab\",135,False)",
+                                          "durationSec":  0.040935,
+                                          "message":  "Crimson-135: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Crimson-135.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Crimson-135.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",0,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",0,False)",
+                                          "durationSec":  1.073677,
+                                          "message":  "Nightshade-0: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Nightshade-0.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Nightshade-0.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",90,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",90,False)",
+                                          "durationSec":  0.051278,
+                                          "message":  "Nightshade-90: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Nightshade-90.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Nightshade-90.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",135,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Nightshade.prefab\",135,False)",
+                                          "durationSec":  0.041431,
+                                          "message":  "Nightshade-135: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Nightshade-135.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Nightshade-135.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",0,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",0,False)",
+                                          "durationSec":  0.423233,
+                                          "message":  "Vanguard-0: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Vanguard-0.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Vanguard-0.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",90,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",90,False)",
+                                          "durationSec":  0.039844,
+                                          "message":  "Vanguard-90: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Vanguard-90.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Vanguard-90.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",135,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Vanguard.prefab\",135,False)",
+                                          "durationSec":  0.038794,
+                                          "message":  "Vanguard-135: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Vanguard-135.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Vanguard-135.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",0,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",0,False)",
+                                          "durationSec":  0.564724,
+                                          "message":  "Valis-0: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-0.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-0.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",90,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",90,False)",
+                                          "durationSec":  0.041057,
+                                          "message":  "Valis-90: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-90.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-90.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",135,False)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",135,False)",
+                                          "durationSec":  0.052758,
+                                          "message":  "Valis-135: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-135.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-135.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",0,True)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",0,True)",
+                                          "durationSec":  0.04908,
+                                          "message":  "Valis-0-swept: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-0-swept.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-0-swept.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",90,True)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",90,True)",
+                                          "durationSec":  0.039304,
+                                          "message":  "Valis-90-swept: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-90-swept.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-90-swept.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      },
+                                      {
+                                          "name":  "Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",135,True)",
+                                          "fullName":  "Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline(\"Assets/Prefabs/Ships/Valis.prefab\",135,True)",
+                                          "durationSec":  0.041417,
+                                          "message":  "Valis-135-swept: no baseline at D:\\amind\\git\\agent-6\\results\\ship-render\\baseline\\Valis-135-swept.png. To seed it, inspect D:\\amind\\git\\agent-6\\results\\ship-render\\Valis-135-swept.png and copy it there. Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Presentation.ShipChassisRenderPlayModeTests.Chassis_RendersPixelIdenticalToBaseline (System.String chassisPath, System.Int32 yaw, System.Boolean wingsSwept) [0x00383] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "ShipChassisRenderPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-10 10:26:55Z",
+                     "finishedAt":  "2026-10-10 10:27:00Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  100.534,
+                       "startupToFirstTestSec":  81.297,
+                       "executionSec":  5,
+                       "remainingSec":  14.237,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  50416,
+                                         "rootPeakPrivateGB":  4.287,
+                                         "rootPeakWorkingSetGB":  3.325,
+                                         "treePeakSampledPrivateGB":  4.079,
+                                         "treePeakSampledWorkingSetGB":  3.329,
+                                         "treeSumOfPeaksPrivateGB":  5.383,
+                                         "commitHeadroomAtLaunchGB":  13.44,
+                                         "commitHeadroomMinGB":  9.22,
+                                         "availablePhysicalAtLaunchGB":  3.76,
+                                         "availablePhysicalMinGB":  1.17,
+                                         "bootLaneReleasedAtSec":  12.701,
+                                         "treePeakAtSec":  88.901,
+                                         "samples":  14,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

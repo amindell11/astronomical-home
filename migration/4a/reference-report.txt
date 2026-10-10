@@ -1,0 +1,42 @@
+Valis reference report -- slice 4a of #868 (#970)
+=================================================
+
+Subject: Assets/Prefabs/Ships/Valis.prefab, GUID 2198c10e93bde5f42b7b9a44dbff3e6a (kept).
+Before: regular prefab, Ship component fileID 8821681777366619236 (root).
+After:  depth-1 variant of ShipBase, Ship component fileID 1448741880885153620 (root).
+
+1. Whole-tree scan, before (main @ 099b09cf), every YAML asset under Assets/ and ProjectSettings/
+   (343 files; .meta files excluded; source: dumps/before/scan-valis-guid.txt)
+
+   Assets/Settings/Ships/ItemCatalog.asset:20    {fileID: 8821681777366619236, guid: 2198c10e...}
+   Assets/Settings/Ships/PlayerLoadout.asset:19  {fileID: 8821681777366619236, guid: 2198c10e...}
+
+   git grep over the whole repo finds the GUID in exactly these two files plus Valis.prefab.meta.
+
+2. Editor-resolved, before (dumps/before/refs.txt)
+
+   ItemCatalog   .chassis[4] -> 2198c10e:8821681777366619236 resolves to Valis.prefab:/#Ship (asset root)
+   PlayerLoadout .ships[3]   -> 2198c10e:8821681777366619236 resolves to Valis.prefab:/#Ship (asset root)
+
+3. Between the build and the rewrite: ItemCatalog .chassis[4] -> 2198c10e:8821681777366619236 resolves=False
+   (the old fileID is gone with the rebuild; this is the pointer the rewrite replaces).
+
+4. Rewrite (editor script ValisMigrate.RemapShip; logs/02-remap.txt). Each pointer is read through
+   SerializedObject (objectReferenceInstanceIDValue -> TryGetGUIDAndLocalFileIdentifier); only a
+   pointer with the Valis GUID and the old Ship fileID, which no longer resolves, is reassigned to the
+   rebuilt prefab's Ship component. No text edit.
+
+   ItemCatalog   .chassis.Array.data[4]: 8821681777366619236 -> 1448741880885153620 (Valis#Ship)
+   PlayerLoadout .ships.Array.data[3]:   8821681777366619236 -> 1448741880885153620 (Valis#Ship)
+
+5. Editor-resolved, after (dumps/after/refs.txt)
+
+   ItemCatalog   .chassis[4] -> 2198c10e:1448741880885153620 resolves to Valis.prefab:/#Ship (asset root)
+   PlayerLoadout .ships[3]   -> 2198c10e:1448741880885153620 resolves to Valis.prefab:/#Ship (asset root)
+
+6. Whole-tree scan, after (dumps/after/scan-valis-guid.txt): the same two files, the same two lines,
+   now carrying 1448741880885153620. Nothing else references the GUID.
+
+   git diff of both assets is that one line each; no other serialized field moved.
+
+Verdict: 2 of 2 references rewritten; both resolve to Valis's Ship component on the prefab root.

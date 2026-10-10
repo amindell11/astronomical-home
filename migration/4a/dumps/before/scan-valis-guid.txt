@@ -1,0 +1,4 @@
+guid 2198c10e93bde5f42b7b9a44dbff3e6a: scanned 343 files; 2 hits
+Assets/Settings/Ships/ItemCatalog.asset:20: - {fileID: 8821681777366619236, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
+Assets/Settings/Ships/PlayerLoadout.asset:19: - {fileID: 8821681777366619236, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
+

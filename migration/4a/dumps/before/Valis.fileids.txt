@@ -1,0 +1,119 @@
+3636199504902276647 /#GameObject
+3616075974534314358 /#Transform
+2848318543215771574 /#Rigidbody
+8821681777366619236 /#Ship
+5221774157900420185 /#MovementController
+3445078380155423585 /#DamageController
+4841671523571436666 /#WeaponsController
+7279613468887580643 /#KinematicsPoller
+7171922794240896060 /Mesh#Transform
+963018219280219164 /Hardpoints#Transform
+6295041644351892269 /ShipBody#Transform
+8389063327274184294 /Valis VisualRig#Transform
+6520682649814717661 /Hardpoints/Primary#Transform
+3260895614583196289 /Hardpoints/Secondary#Transform
+8569108147785638936 /Hardpoints#GameObject
+7160544730569708904 /Hardpoints/Secondary#GameObject
+5580322542847150426 /ShipBody#GameObject
+8259392099608895733 /Hardpoints/Primary#GameObject
+5250934134030249979 /Mesh#GameObject
+8251161148197266919 /Valis VisualRig#GameObject
+8808324393442049537 /Valis VisualRig/Thruster#Transform
+1329019202623391931 /Valis VisualRig/SmokeTrail#Transform
+5150503599082870637 /Valis VisualRig/Valis#Transform
+1561280222698888982 /Valis VisualRig/MinimapMarker#Transform
+2503030100236031750 /Valis VisualRig/Shield#RectTransform
+2819236709702581933 /Valis VisualRig/UILockOnIndicator#RectTransform
+6918079060288882071 /Valis VisualRig/SmokeTrail#GameObject
+3190817808700242852 /Valis VisualRig/MinimapMarker#GameObject
+6355125940439591559 /Valis VisualRig/Shield#GameObject
+7821524873942494931 /Valis VisualRig/Shield/ShieldBar#RectTransform
+3435685708421679077 /Valis VisualRig/Shield/HealthBar#RectTransform
+4714179674458236100 /Valis VisualRig/UILockOnIndicator#GameObject
+6500622469630222814 /Valis VisualRig/Valis#GameObject
+4973989668819634791 /Valis VisualRig/Valis/Flight surfaces#Transform
+6568527212180390747 /Mesh#MeshCollider
+2781687288280829129 /ShipBody#SphereCollider
+5050076120642936321 /Valis VisualRig#HullVisuals
+26992000559413095 /Valis VisualRig#AudioSource
+3507603775805860302 /Valis VisualRig#ShipDamageAudio
+3652984621127007958 /Valis VisualRig#ShipVisualRig
+7833337768893192654 /Valis VisualRig#ShipBreakupVisual
+4923625431585562147 /Valis VisualRig/Thruster#GameObject
+541149108709136346 /Valis VisualRig/Thruster/Reactor#Transform
+809605067768689030 /Valis VisualRig/Thruster/ThrustSmall#Transform
+2463827702717210447 /Valis VisualRig/Thruster/ThrustMain#Transform
+3743599757046467616 /Valis VisualRig/Thruster/ThrustLight#Transform
+9205950940731187218 /Valis VisualRig/Thruster/ThrustAudio#Transform
+5111993232665114345 /Valis VisualRig/Thruster/StrafeAudio#Transform
+7413984665968026602 /Valis VisualRig/Thruster/Reactor#GameObject
+2071357542199791714 /Valis VisualRig/Thruster/ThrustSmall#GameObject
+253542929916627905 /Valis VisualRig/Thruster/ThrustMain#GameObject
+4653417178655972777 /Valis VisualRig/MinimapMarker#MeshFilter
+2762073683025790802 /Valis VisualRig/MinimapMarker#MeshRenderer
+1320097242325875332 /Valis VisualRig/MinimapMarker#SortingGroup
+2144053789208260338 /Valis VisualRig/MinimapMarker#MinimapShipMarker
+1199619997947746374 /Valis VisualRig/Shield/HealthBar#GameObject
+223783365621336020 /Valis VisualRig/Shield/HealthBar/Fill#RectTransform
+7948246005736087677 /Valis VisualRig/Shield/HealthBar/Value#RectTransform
+6802678987693508617 /Valis VisualRig/Thruster/ThrustLight#GameObject
+1970069653195343171 /Valis VisualRig/UILockOnIndicator#Canvas
+4448967149576444993 /Valis VisualRig/UILockOnIndicator#CanvasRenderer
+2641760352013415552 /Valis VisualRig/UILockOnIndicator#Image
+8167011167580375005 /Valis VisualRig/UILockOnIndicator#Animator
+1105662218233753842 /Valis VisualRig/UILockOnIndicator#CanvasGroup
+2743127998176677713 /Valis VisualRig/UILockOnIndicator#LockOnIndicator
+4604692963242472436 /Valis VisualRig/UILockOnIndicator#Billboard
+6887705499813118540 /Valis VisualRig/UILockOnIndicator#GlowingUIController
+7848993240897089532 /Valis VisualRig/Thruster#ThrusterVisuals
+4689089600726361456 /Valis VisualRig/Thruster#EngineAudio
+5343176729652257727 /Valis VisualRig/Valis/Flight surfaces#GameObject
+8274897195795635495 /Valis VisualRig/Valis/Flight surfaces/Upper wing right#Transform
+1487819225375183717 /Valis VisualRig/Valis/Flight surfaces/Upper wing left#Transform
+5351850966559771919 /Valis VisualRig/Valis/Flight surfaces/Lower wing right#Transform
+3744335446112757371 /Valis VisualRig/Valis/Flight surfaces/Lower wing left#Transform
+5875875655365219757 /Valis VisualRig/Valis#SkinnedMeshRenderer
+1136616910192530844 /Valis VisualRig/SmokeTrail#ParticleSystem
+919730388378274896 /Valis VisualRig/Thruster/StrafeAudio#GameObject
+378705911458000056 /Valis VisualRig/Shield#Canvas
+6401255099007253091 /Valis VisualRig/Shield#CanvasScaler
+7695341964297783283 /Valis VisualRig/Shield#GraphicRaycaster
+3454980369002213869 /Valis VisualRig/Valis#SortingGroup
+1540148485540874341 /Valis VisualRig/Valis#WingVisuals
+6280900494652602486 /Valis VisualRig/SmokeTrail#ParticleSystemRenderer
+6421861063456005886 /Valis VisualRig/Shield/ShieldBar#GameObject
+1840916005171429061 /Valis VisualRig/Shield/ShieldBar/Fill#RectTransform
+2790405691940433954 /Valis VisualRig/Shield/ShieldBar/Value#RectTransform
+2762032369973913922 /Valis VisualRig/Thruster/ThrustAudio#GameObject
+4295410052384847071 /Valis VisualRig/Shield/HealthBar/Fill#GameObject
+5009977373853464722 /Valis VisualRig/Thruster/ThrustMain#ParticleSystem
+1004024167386998780 /Valis VisualRig/Thruster/ThrustMain#ParticleSystemRenderer
+2857592498294613077 /Valis VisualRig/Thruster/StrafeAudio#AudioSource
+6739098144277825168 /Valis VisualRig/Shield/HealthBar#CanvasRenderer
+5427581328909509014 /Valis VisualRig/Shield/HealthBar#Image
+2804327051153306323 /Valis VisualRig/Shield/HealthBar#StatusBarUI
+7155688347909400861 /Valis VisualRig/Valis/Flight surfaces/Upper wing left#GameObject
+7679711129272855642 /Valis VisualRig/Shield/ShieldBar/Fill#GameObject
+7198181009196726627 /Valis VisualRig/Thruster/ThrustSmall#ParticleSystem
+7722312995693481827 /Valis VisualRig/Thruster/ThrustSmall#ParticleSystemRenderer
+8830855351008121037 /Valis VisualRig/Thruster/ThrustAudio#AudioSource
+3083575459688111277 /Valis VisualRig/Shield/ShieldBar/Value#GameObject
+2068502836543832788 /Valis VisualRig/Valis/Flight surfaces/Lower wing left#GameObject
+8161824956180016633 /Valis VisualRig/Valis/Flight surfaces/Lower wing right#GameObject
+6936605007126328728 /Valis VisualRig/Shield/ShieldBar#CanvasRenderer
+2689956003449997620 /Valis VisualRig/Shield/ShieldBar#Image
+5872894658360823822 /Valis VisualRig/Shield/ShieldBar#StatusBarUI
+7114535261675178110 /Valis VisualRig/Thruster/ThrustLight#Light
+7709434990766040180 /Valis VisualRig/Thruster/ThrustLight#UniversalAdditionalLightData
+3721530820756854269 /Valis VisualRig/Thruster/Reactor#ParticleSystem
+5517412340372343109 /Valis VisualRig/Thruster/Reactor#ParticleSystemRenderer
+5010652930540995746 /Valis VisualRig/Shield/HealthBar/Value#GameObject
+7068600731538240141 /Valis VisualRig/Valis/Flight surfaces/Upper wing right#GameObject
+2166280911985997810 /Valis VisualRig/Shield/HealthBar/Fill#Image
+4926634570669518388 /Valis VisualRig/Shield/HealthBar/Value#Text
+4437058371874364735 /Valis VisualRig/Shield/ShieldBar/Value#CanvasRenderer
+5581124195252673550 /Valis VisualRig/Shield/ShieldBar/Value#Text
+6314076979727315240 /Valis VisualRig/Shield/HealthBar/Fill#CanvasRenderer
+7026966614414121953 /Valis VisualRig/Shield/HealthBar/Value#CanvasRenderer
+5034306527789046197 /Valis VisualRig/Shield/ShieldBar/Fill#Image
+1256959058948390162 /Valis VisualRig/Shield/ShieldBar/Fill#CanvasRenderer
