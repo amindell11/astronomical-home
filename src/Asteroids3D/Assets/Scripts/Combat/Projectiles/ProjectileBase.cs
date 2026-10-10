@@ -60,7 +60,28 @@ namespace Combat.Projectiles
         protected virtual void FixedUpdate()
         {
             PlaneConstraints.ConstrainPosition(transform);
-            if (DistanceTraveled > maxDistance) Dispose();
+            if (DistanceTraveled > maxDistance)
+            {
+                Dispose();
+                return;
+            }
+
+            SweepStep();
+        }
+
+        // Trigger callbacks see only end-of-step overlaps, so a fast shot would cross a thin target unseen.
+        private void SweepStep()
+        {
+            var velocity = rb.linearVelocity;
+            var speed = velocity.magnitude;
+            if (speed <= 0f) return;
+
+            var direction = velocity / speed;
+            if (!rb.SweepTest(direction, out var hit, speed * Time.fixedDeltaTime, QueryTriggerInteraction.Collide)) return;
+            if (!TryGetHitTarget(hit.collider, out var target)) return;
+
+            transform.position += direction * hit.distance;
+            OnHit(target);
         }
 
         protected virtual void OnHit(IDamageable other)
@@ -72,13 +93,16 @@ namespace Combat.Projectiles
 
         protected void OnTriggerEnter(Collider other)
         {
-            var dmg = other.GetComponentInParent<IDamageable>();
-            var shooterComponent = Shooter as Component;
-            if (dmg == null || !shooterComponent) return;
-            if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return;
-            if (IsFriendly(dmg)) return;
+            if (TryGetHitTarget(other, out var target)) OnHit(target);
+        }
 
-            OnHit(dmg);
+        private bool TryGetHitTarget(Collider other, out IDamageable target)
+        {
+            target = other.GetComponentInParent<IDamageable>();
+            var shooterComponent = Shooter as Component;
+            if (target == null || !shooterComponent) return false;
+            if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return false;
+            return !IsFriendly(target);
         }
 
         protected virtual void ResetState()

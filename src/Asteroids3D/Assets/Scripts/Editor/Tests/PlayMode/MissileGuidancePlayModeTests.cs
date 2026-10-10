@@ -43,6 +43,7 @@ namespace Tests.PlayMode
 
             var rb = go.AddComponent<Rigidbody>();
             rb.useGravity = false;
+            go.AddComponent<CapsuleCollider>().isTrigger = true;
 
             var m = go.AddComponent<Missile>();
             m.Configure(maxDistance: 200f, maxLifetime: 10f);

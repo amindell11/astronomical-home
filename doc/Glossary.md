@@ -624,6 +624,12 @@ Format: **term** — definition. *(authority)*
   first physics step its target is outside the seeker cone, or an asteroid cuts one
   thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
   reacquire. *(`Missile.CanSeeTarget`)*
+- **swept hit test** — each physics step a projectile tests the whole path it is
+  about to cover, so a fast shot can't pass through a thin target between steps
+  (tunneling). Its trigger collider callback still catches anything already
+  overlapping when a step starts; both paths share one hit filter. Not Unity's
+  continuous collision detection, which skips trigger colliders, and every shot is
+  one. Always qualified: the triage and rescue sweeps own bare "sweep". *(`ProjectileBase.SweepStep`)*
 - **target point** — the world point in the game plane a shot flies to, fixed
   at fire time: the cursor for the player (the nose at max range with no cursor),
   `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only
