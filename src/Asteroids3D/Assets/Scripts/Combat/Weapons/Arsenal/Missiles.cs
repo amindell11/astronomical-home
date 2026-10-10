@@ -53,7 +53,7 @@ namespace Combat.Weapons.Arsenal
 
             var lockedTarget = lockProvider?.ConsumeLock();
             if (lockedTarget != null)
-                proj.SetTarget(lockedTarget.TargetPoint);
+                proj.SetTarget(lockedTarget);
 
             return proj;
         }

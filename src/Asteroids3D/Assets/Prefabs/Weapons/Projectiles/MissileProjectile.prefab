@@ -17,7 +17,6 @@ GameObject:
   - component: {fileID: 4444444444444444444}
   - component: {fileID: 4664427866684414092}
   - component: {fileID: 8872551713227938681}
-  - component: {fileID: 7310584162907163219}
   - component: {fileID: 8040663769741657070}
   m_Layer: 6
   m_Name: MissileProjectile
@@ -306,18 +305,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &7310584162907163219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3744751405240154114}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16117133862e457595f4b87c8d96b77d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8040663769741657070
 MonoBehaviour:
   m_ObjectHideFlags: 0

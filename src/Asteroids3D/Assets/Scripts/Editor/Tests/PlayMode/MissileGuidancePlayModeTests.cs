@@ -1,12 +1,14 @@
 using System.Collections;
+using System.Collections.Generic;
 using Combat;
 using Combat.Projectiles;
-using Combat.Projectiles.Visual;
+using Combat.Targeting;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Substrate;
+using Utils;
 
 namespace Tests.PlayMode
 {
@@ -27,12 +29,24 @@ namespace Tests.PlayMode
             public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
         }
 
+        private sealed class TestTargetable : ITargetable
+        {
+            public TestTargetable(Transform targetPoint)
+            {
+                TargetPoint = targetPoint;
+            }
+
+            public Transform TargetPoint { get; }
+            public LockChannel Lock { get; } = new();
+        }
+
         public override void TearDown()
         {
             DestroyTestObject(missile);
             DestroyTestObject(targetGo);
             DestroyTestObject(rock);
             DestroyTestObject(shooter);
+            SimplePool<Missile>.Clear();
             base.TearDown();
         }
 
@@ -95,13 +109,11 @@ namespace Tests.PlayMode
                 yield return new WaitForFixedUpdate();
         }
 
-        private bool BodyTintedRed()
+        private static List<TrackChange> RecordTrackChanges(LockChannel channel)
         {
-            var body = missile.GetComponent<MeshRenderer>();
-            if (!body.HasPropertyBlock()) return false;
-            var block = new MaterialPropertyBlock();
-            body.GetPropertyBlock(block);
-            return block.GetColor("_BaseColor") == Color.red;
+            var changes = new List<TrackChange>();
+            channel.TrackingChanged += changes.Add;
+            return changes;
         }
 
         private void AssertFlewStraightUp()
@@ -120,7 +132,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, 20));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return AsyncAssert.WaitUntil(
@@ -143,7 +155,7 @@ namespace Tests.PlayMode
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
 
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return AsyncAssert.WaitUntil(
@@ -161,7 +173,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, -15));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return new WaitForFixedUpdate();
@@ -184,7 +196,7 @@ namespace Tests.PlayMode
             targetRb.linearVelocity = GamePlane.PlaneDirToWorld(new Vector2(40, 0));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             var halfCone = missile.seekerConeAngle * 0.5f;
@@ -213,7 +225,7 @@ namespace Tests.PlayMode
             rock = CreateRock(new Vector2(3, 3));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             Assert.That(OffNoseAngle(), Is.LessThan(missile.seekerConeAngle * 0.5f),
@@ -227,33 +239,58 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void Dumbfire_TintsBodyRed()
+        public void SetTarget_AddsTrackToTargetChannel()
         {
             missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
-            missile.gameObject.AddComponent<MissileTrackingTint>();
+            targetGo = CreateTarget(new Vector2(0, 20));
+            var targetable = new TestTargetable(targetGo.transform);
+            var changes = RecordTrackChanges(targetable.Lock);
 
-            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            LaunchAt(missile, Vector2.up, shooter);
+            missile.SetTarget(targetable);
 
-            Assert.That(BodyTintedRed(), Is.True, "Dumbfired missile body is not tinted");
+            Assert.That(targetable.Lock.TrackingCount, Is.EqualTo(1));
+            Assert.That(changes, Is.EqualTo(new[] { TrackChange.Added }));
         }
 
         [UnityTest]
-        public IEnumerator LockedLaunch_TintsBodyRedOnlyAfterLosingTrack()
+        public IEnumerator LostTrack_LeavesTargetChannelOnce()
         {
             missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
-            missile.gameObject.AddComponent<MissileTrackingTint>();
             targetGo = CreateTarget(new Vector2(0, -15));
+            var targetable = new TestTargetable(targetGo.transform);
+            var changes = RecordTrackChanges(targetable.Lock);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            // Missiles.Fire launches first, then hands over the locked target.
+            missile.SetTarget(targetable);
             LaunchAt(missile, Vector2.up, shooter);
-            missile.SetTarget(targetGo.transform);
-            Assert.That(BodyTintedRed(), Is.False, "Missile body tinted while it was tracking");
 
             yield return new WaitForFixedUpdate();
             Assert.That(missile.IsTracking, Is.False, "Precondition: the missile lost track of a target behind it");
-            Assert.That(BodyTintedRed(), Is.True, "Missile body not tinted after it lost track");
+            Assert.That(targetable.Lock.TrackingCount, Is.EqualTo(0), "Lost track still counted on the target");
+
+            missile.TakeDamage(default);
+            Assert.That(targetable.Lock.TrackingCount, Is.EqualTo(0), "Detonation after a lost track left the count again");
+            Assert.That(changes, Is.EqualTo(new[] { TrackChange.Added, TrackChange.Lost }));
+        }
+
+        [UnityTest]
+        public IEnumerator DetonationWhileTracking_EndsTrack()
+        {
+            missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
+            targetGo = CreateTarget(new Vector2(0, 20));
+            var targetable = new TestTargetable(targetGo.transform);
+            var changes = RecordTrackChanges(targetable.Lock);
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            missile.SetTarget(targetable);
+            LaunchAt(missile, Vector2.up, shooter);
+
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.IsTracking, Is.True, "Precondition: the missile still tracks a target ahead");
+
+            missile.TakeDamage(default);
+            Assert.That(targetable.Lock.TrackingCount, Is.EqualTo(0), "Detonation left the track counted");
+            Assert.That(changes, Is.EqualTo(new[] { TrackChange.Added, TrackChange.Ended }));
         }
 
         [UnityTest]
@@ -264,7 +301,7 @@ namespace Tests.PlayMode
             targetGo = CreateTarget(new Vector2(0, 2.5f));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
+            missile.SetTarget(new TestTargetable(targetGo.transform));
             LaunchAt(missile, Vector2.up, shooter);
 
             var startDist = DistanceToTarget();

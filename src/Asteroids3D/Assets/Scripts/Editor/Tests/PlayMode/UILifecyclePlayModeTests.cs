@@ -96,6 +96,126 @@ namespace Tests.PlayMode
                 "Indicator should resubscribe and show again after disable/enable");
         }
 
+        private const string LockReticlePrefabPath = "Assets/Prefabs/UI/UILockOnIndicator.prefab";
+        private static readonly int LockProgress = Animator.StringToHash("lockProgress");
+
+        private CanvasGroup reticleGroup;
+        private Animator reticleAnimator;
+
+        // The authored prefab, so the break runs through the real reticle controller.
+        private IEnumerator SpawnLockReticle(LockChannel channel)
+        {
+            var parent = CreateRoot("RigRoot");
+            var reticle = Object.Instantiate(TestAssets.Load<LockOnIndicator>(LockReticlePrefabPath), parent.transform);
+            reticleGroup = reticle.GetComponent<CanvasGroup>();
+            reticleAnimator = reticle.GetComponent<Animator>();
+            reticle.Bind(new ShipView(reticle.transform, null, null, channel, isPlayer: false));
+            yield return null;
+        }
+
+        private bool ReticleShown => reticleGroup.alpha > 0f;
+        private bool ReticleHeld => ReticleShown && Mathf.Approximately(reticleAnimator.GetFloat(LockProgress), 1f);
+        private bool ReticleBreaking => reticleAnimator.GetCurrentAnimatorStateInfo(0).IsName("ReticleBreak");
+
+        [UnityTest]
+        public IEnumerator LockReticle_StaysUpThroughReleasesWhileTracking()
+        {
+            var channel = new LockChannel();
+            yield return SpawnLockReticle(channel);
+
+            channel.RaiseProgress(1f);
+            channel.RaiseAcquired();
+            yield return null;
+
+            // Missiles.Fire: consuming the lock raises Released, then the missile adds its track.
+            channel.RaiseReleased();
+            channel.AddTrack();
+            yield return null;
+            Assert.IsTrue(ReticleHeld, "Reticle should hold the locked pose after a tracking launch");
+
+            channel.RaiseProgress(0.3f);
+            channel.RaiseReleased();
+            Assert.IsTrue(ReticleHeld, "A missile lock cancelled mid-build should return the reticle to the held pose");
+
+            channel.RaiseProgress(1f);
+            channel.RaiseAcquired();
+            channel.RaiseReleased();
+            Assert.IsTrue(ReticleShown, "A second launch should never hide the reticle while a missile tracks");
+            channel.AddTrack();
+            yield return null;
+            Assert.IsTrue(ReticleHeld);
+        }
+
+        [UnityTest]
+        public IEnumerator LockReticle_LostTrack_PlaysBreakThenHides()
+        {
+            var channel = new LockChannel();
+            yield return SpawnLockReticle(channel);
+            channel.AddTrack();
+            yield return null;
+
+            channel.LoseTrack();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(ReticleBreaking, "A lost track should play the break");
+            Assert.IsTrue(ReticleShown, "The reticle should stay up while the break plays");
+
+            yield return AsyncAssert.WaitUntil(() => !ReticleBreaking, 2f, "The break never finished");
+            Assert.IsFalse(ReticleShown, "With no missile tracking, the reticle should hide after the break");
+        }
+
+        [UnityTest]
+        public IEnumerator LockReticle_OtherTrackEnd_ClearsWithoutBreak()
+        {
+            var channel = new LockChannel();
+            yield return SpawnLockReticle(channel);
+            channel.AddTrack();
+            yield return null;
+
+            channel.EndTrack();
+            Assert.IsFalse(ReticleShown, "A track ending any other way should clear the reticle at once");
+            yield return null;
+            yield return null;
+            Assert.IsFalse(ReticleBreaking, "Only a lost track should play the break");
+        }
+
+        [UnityTest]
+        public IEnumerator LockReticle_TwoTracks_HoldsUntilLastEnds()
+        {
+            var channel = new LockChannel();
+            yield return SpawnLockReticle(channel);
+            channel.AddTrack();
+            channel.AddTrack();
+            yield return null;
+
+            channel.LoseTrack();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(ReticleBreaking, "Precondition: the lost track plays the break");
+            yield return AsyncAssert.WaitUntil(() => !ReticleBreaking, 2f, "The break never finished");
+            Assert.IsTrue(ReticleHeld, "With a missile still tracking, the break should return to the held pose");
+
+            channel.EndTrack();
+            Assert.IsFalse(ReticleShown, "The reticle should clear when the last track ends");
+        }
+
+        [UnityTest]
+        public IEnumerator LockReticle_HeldLockOutlastsTrackEnd()
+        {
+            var channel = new LockChannel();
+            yield return SpawnLockReticle(channel);
+            channel.AddTrack();
+            channel.RaiseProgress(1f);
+            channel.RaiseAcquired();
+            yield return null;
+
+            channel.EndTrack();
+            Assert.IsTrue(ReticleShown, "A missile lock held on the ship should keep the reticle up after a track ends");
+
+            channel.RaiseReleased();
+            Assert.IsFalse(ReticleShown);
+        }
+
         // Bars live under a parent in the rig; LateUpdate reads transform.parent.
         private static StatusBarUI CreateBar(Transform parent, StatusBarUI.TrackedResource tracked, out Image fill)
         {
