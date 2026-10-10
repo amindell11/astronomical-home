@@ -10,6 +10,7 @@ using Substrate.Services;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
 using UnityEditor;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Utils;
@@ -59,6 +60,83 @@ namespace Tests.PlayMode.Presentation.Breakup
 
         [UnityTest]
         public IEnumerator VanguardDeath_RetainsAuthoredBreakup() => FixedHullDeath("Vanguard");
+
+        [UnityTest]
+        public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections()
+        {
+            var ship = Spawn("Nightshade");
+            yield return null;
+            var visual = ship.GetComponentInChildren<ShipBreakupVisual>();
+            var hull = (Transform)new SerializedObject(visual).FindProperty("hull").objectReferenceValue;
+            var before = PaintedCorners(hull.GetComponentsInChildren<MeshFilter>());
+            var velocity = new Vector3(.7f, -.3f, 0f);
+            ship.Rigidbody.linearVelocity = velocity;
+            Kill(ship);
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
+            var pieces = debris.GetComponentsInChildren<MeshFilter>();
+            Assert.That(pieces, Has.Length.EqualTo(13));
+            Assert.That(hull.gameObject.activeSelf, Is.False);
+            Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
+                .Count(e => e.gameObject.activeInHierarchy), Is.EqualTo(1));
+            var after = PaintedCorners(pieces);
+            Assert.That(after.Keys, Is.EquivalentTo(before.Keys));
+            foreach (var material in before.Keys)
+            {
+                Assert.That(after[material], Has.Count.EqualTo(before[material].Count), material);
+                var buckets = before[material].GroupBy(c => Vector3Int.RoundToInt(c.position / .0001f))
+                    .ToDictionary(g => g.Key, g => g.ToList());
+                foreach (var corner in after[material])
+                {
+                    var key = Vector3Int.RoundToInt(corner.position / .0001f);
+                    var matched = false;
+                    for (var x = -1; x <= 1 && !matched; x++)
+                    for (var y = -1; y <= 1 && !matched; y++)
+                    for (var z = -1; z <= 1 && !matched; z++)
+                    {
+                        if (!buckets.TryGetValue(key + new Vector3Int(x, y, z), out var candidates)) continue;
+                        var index = candidates.FindIndex(c => Vector3.Distance(c.position, corner.position) < .0001f &&
+                            Vector2.Distance(c.uv, corner.uv) < .00001f);
+                        if (index < 0) continue;
+                        candidates.RemoveAt(index);
+                        matched = true;
+                    }
+                    if (!matched) Assert.Fail(material + " painted corner moved: " + corner);
+                }
+            }
+            yield return VerifyMotionFadeAndCleanup(debris, velocity);
+            ship.ResetShip();
+            yield return null;
+            Assert.That(hull.gameObject.activeInHierarchy, Is.True);
+            Kill(ship);
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(hull.gameObject.activeSelf, Is.False);
+        }
+
+        private static Dictionary<string, List<(Vector3 position, Vector2 uv)>> PaintedCorners(IEnumerable<MeshFilter> filters)
+        {
+            var result = new Dictionary<string, List<(Vector3 position, Vector2 uv)>>();
+            foreach (var filter in filters)
+            {
+                var mesh = filter.sharedMesh;
+                var materials = filter.GetComponent<Renderer>().sharedMaterials;
+                using var data = MeshUtility.AcquireReadOnlyMeshData(mesh);
+                using var positions = new NativeArray<Vector3>(data[0].vertexCount, Allocator.Temp);
+                using var uv = new NativeArray<Vector2>(data[0].vertexCount, Allocator.Temp);
+                data[0].GetVertices(positions);
+                data[0].GetUVs(0, uv);
+                for (var submesh = 0; submesh < mesh.subMeshCount; submesh++)
+                {
+                    var material = materials[submesh].name;
+                    if (!result.TryGetValue(material, out var corners))
+                        result[material] = corners = new List<(Vector3, Vector2)>();
+                    using var indices = new NativeArray<int>(data[0].GetSubMesh(submesh).indexCount, Allocator.Temp);
+                    data[0].GetIndices(indices, submesh);
+                    foreach (var index in indices)
+                        corners.Add((filter.transform.TransformPoint(positions[index]), uv[index]));
+                }
+            }
+            return result;
+        }
 
         [UnityTest]
         public IEnumerator ValisRevive_RestoresHullAndBreaksAgain()
@@ -161,12 +239,12 @@ namespace Tests.PlayMode.Presentation.Breakup
                 .Select(authoredPieces.GetArrayElementAtIndex)
                 .OrderByDescending(p => p.FindPropertyRelative("lifetime").floatValue)
                 .First().FindPropertyRelative("renderer").objectReferenceValue;
-            var startPiece = renderer.transform.localPosition;
+            var startPiece = debris.transform.InverseTransformPoint(renderer.transform.position);
             var startRoot = debris.transform.position;
             var startTime = Time.time;
             yield return new WaitForSeconds(.2f);
             yield return null;
-            Assert.That(Vector3.Distance(renderer.transform.localPosition, startPiece), Is.GreaterThan(.01f));
+            Assert.That(Vector3.Distance(debris.transform.InverseTransformPoint(renderer.transform.position), startPiece), Is.GreaterThan(.01f));
             Assert.That(Vector3.Distance(debris.transform.position, startRoot + velocity * (Time.time - startTime)), Is.LessThan(.003f));
             var block = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(block);

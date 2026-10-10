@@ -10,6 +10,19 @@ namespace Tests.EditMode.Rendering.Illustrated
     public sealed class DrawnSurfaceEditModeTests
     {
         [Test]
+        public void Nightshade_PaintTexturesAreImported()
+        {
+            var ship = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Ships/Nightshade.prefab");
+            foreach (var renderer in ship.GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var material in renderer.sharedMaterials)
+            {
+                if (!material.IsKeywordEnabled("_PAINT_LAYERS")) continue;
+                foreach (var slot in new[] {"_PaintShadowMap", "_PaintLightMap", "_PaintInkMap", "_EmissionMap"})
+                    Assert.That(material.GetTexture(slot), Is.Not.Null, material.name + " " + slot);
+            }
+        }
+
+        [Test]
         public void PaintedHull_FlashRestoresItsColorsInHighFidelity()
         {
             var priorPipeline = QualitySettings.renderPipeline;

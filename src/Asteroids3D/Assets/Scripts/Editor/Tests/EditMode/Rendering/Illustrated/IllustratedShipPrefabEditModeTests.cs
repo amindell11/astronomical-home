@@ -68,9 +68,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                 foreach (var material in renderer.sharedMaterials.Where(m => m.shader.name == SurfaceShader))
                 {
                     Assert.That(material.IsKeywordEnabled("_PAINT_LAYERS"), Is.True);
-                    Assert.That(material.GetTexture("_PaintShadowMap"), Is.Not.Null);
-                    Assert.That(material.GetTexture("_PaintLightMap"), Is.Not.Null);
-                    Assert.That(material.GetTexture("_PaintInkMap"), Is.Not.Null);
                     Assert.That(material.GetFloat("_PaintSaturation"), Is.EqualTo(1.25f));
                     Assert.That(material.GetFloat("_PaintEmissionBlend"), Is.EqualTo(1f));
                     Assert.That(material.GetFloat("_SpecularStrength"), Is.Zero);

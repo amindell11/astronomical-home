@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Nightshade Violet
+  m_Name: Nightshade Recess
   m_Shader: {fileID: 4800000, guid: d6e7df444cf744afba34adb40bc36875, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -17,7 +17,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3100
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties:
@@ -77,23 +77,23 @@ Material:
     - _PaintLayers: 1
     - _PaintLightStrength: 1
     - _PaintSaturation: 1.25
-    - _PaintShadowStrength: 0.79
+    - _PaintShadowStrength: 1
     - _PaletteLighting: 1
     - _PigmentPreservation: 0
     - _ShadowSoftness: 0.25
     - _ShadowThreshold: 0.1
-    - _SootStrength: 0
+    - _SootStrength: 0.9
     - _SpecularStrength: 0
     - _TextureStrength: 0
     - _UseRelief: 0
     - _WearStrength: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 2.0235293, g: 2.9803917, b: 1.1294116, a: 1}
+    - _EmissionColor: {r: 0.5058823, g: 0.74509794, b: 0.2823529, a: 1}
     - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
     - _PaintInkColor: {r: 0.015686275, g: 0.02745098, b: 0.06274508, a: 1}
-    - _PaintLightColor: {r: 0.7798742, g: 0.7798742, b: 0.7798742, a: 1}
-    - _PaperColor: {r: 0.42452794, g: 0.57772917, b: 0.9103458, a: 1}
+    - _PaintLightColor: {r: 0.06666665, g: 0.10980389, b: 0.17254901, a: 1}
+    - _PaperColor: {r: 0.015686275, g: 0.02745098, b: 0.06274508, a: 1}
     - _ShadowColor: {r: 0.9162735, g: 0.93574095, b: 0.9776915, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

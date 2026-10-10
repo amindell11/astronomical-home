@@ -5,9 +5,12 @@ FBX: root empty <Name> in symmetry-origin space (-Z forward, Y up); one triangul
 present visual role (Hull, Canopy, Cores, Ink) with material slots sorted by name, Collider
 without materials, and socket empties verbatim under Sockets. Roles in contour_roles carry a
 contour: a separate vertex range with joined normals, in a last slot named Contour.
-The sidecar records parts, slots, triangle and vertex ranges, sockets and the fingerprint.
+--debris requires a matching geometry lock and exports <Name>Breakup instead. Visual parts
+need one whole role.debris.<id> or matching .L/.R groups; paired triangles partition by
+negative/nonnegative symmetry-space X centroid. Each group retains source paint and contours.
+The sidecar records set (intact/debris), parts, slots, ranges, sockets and the fingerprint.
 Refuses (exit 3) a source without SymmetryOrigin, with role grammar errors, reserved
-move/debris roles, an empty hull, or faces without a material. Prints SHIP_FBX=<fbx path>.
+move roles, an empty hull, or faces without a material. Prints SHIP_FBX=<fbx path>.
 """
 
 import json
@@ -96,7 +99,15 @@ def build_mesh(name, pieces, uv_names, slot_count):
     return mesh
 
 
-def export_role(evaluation, report, role, names, contour):
+def select_triangles(piece, selected):
+    co, corners, normals, materials, uvs = piece
+    corner_mask = np.repeat(selected, 3)
+    vertices, remapped = np.unique(corners[corner_mask], return_inverse=True)
+    return (co[vertices], remapped, normals[corner_mask], materials[selected],
+            {name: values[corner_mask] for name, values in uvs.items()})
+
+
+def export_role(evaluation, report, role, names, contour_names=(), side=None):
     uv_names = sorted({layer.name for name in names for layer in evaluation.copies[name].data.uv_layers})
     parts = {name: Part(evaluation, name, uv_names) for name in names}
     slots = sorted({m.name for part in parts.values() for m in part.materials if m is not None})
@@ -108,19 +119,25 @@ def export_role(evaluation, report, role, names, contour):
     for name, part in parts.items():
         remap = np.array([slots.index(m.name) if m is not None else -1 for m in part.materials], np.int32)
         co, normals = part.placed(part.normals)
-        pieces.append((co, part.corners, normals, remap[part.material_index], part.uvs))
-        if contour:
+        selected = np.ones(len(part.material_index), bool)
+        if side:
+            negative = co[part.corners].reshape(-1, 3, 3)[:, :, 0].mean(axis=1) < 0
+            selected = negative if side == "L" else ~negative
+        pieces.append(select_triangles((co, part.corners, normals, remap[part.material_index], part.uvs), selected))
+        if name in contour_names:
             co, normals = part.placed(part.contour_normals())
-            contour_pieces.append((co, part.corners, normals, np.full(len(part.material_index), len(slots), np.int32),
-                                   part.uvs))
-    mesh = build_mesh(role, pieces + contour_pieces, uv_names, len(slots) + bool(contour))
+            contour_pieces.append(select_triangles(
+                (co, part.corners, normals, np.full(len(part.material_index), len(slots), np.int32), part.uvs), selected))
+    if not sum(len(piece[1]) for piece in pieces):
+        raise report.refuse(f"{role} has no triangles")
+    mesh = build_mesh(role, pieces + contour_pieces, uv_names, len(slots) + bool(contour_pieces))
     for slot in slots:
         mesh.materials.append(bpy.data.materials[slot])
-    if contour:
+    if contour_pieces:
         mesh.materials.append(bpy.data.materials.get(contract.CONTOUR) or bpy.data.materials.new(contract.CONTOUR))
-    return mesh, {"parts": list(parts), "material_slots": slots + ([contract.CONTOUR] if contour else []),
+    return mesh, {"parts": list(parts), "material_slots": slots + ([contract.CONTOUR] if contour_pieces else []),
                   "uv_layers": uv_names, "surface": ranges(parts, pieces, 0, 0),
-                  "contour": ranges(parts, contour_pieces, *(sum(len(p[i]) for p in pieces) for i in (0, 1)))}
+                  "contour": ranges([n for n in parts if n in contour_names], contour_pieces, *(sum(len(p[i]) for p in pieces) for i in (0, 1)))}
 
 
 def ranges(names, pieces, vertex, corner):
@@ -143,10 +160,13 @@ def export_collider(evaluation, names):
 
 
 def main(argv):
-    args = contract.tool_parser("Export a ship's role collections to FBX.").parse_args(argv)
+    parser = contract.tool_parser("Export a ship's role collections to FBX.")
+    parser.add_argument("--debris", action="store_true", help="Export locked source debris groups instead of intact roles.")
+    args = parser.parse_args(argv)
     ship, source = contract.load_ship(args.ship)
     out = Path(args.out).resolve()
-    fbx = out / f"{ship['name']}.fbx"
+    export_name = ship["name"] + ("Breakup" if args.debris else "")
+    fbx = out / f"{export_name}.fbx"
     trailers = [("SHIP_FBX", str(fbx))]
     report = contract.Report("ship_export", out, ship_source.blender_version(), [source])
     if not source.is_file():
@@ -155,8 +175,9 @@ def main(argv):
     roles = ship_source.Roles(scene)
     if roles.errors:
         raise report.refuse("; ".join(error for _, error in roles.errors))
-    if roles.reserved:
-        raise report.refuse(f"{', '.join(sorted(roles.reserved))}: not supported in this version")
+    reserved = [name for name in roles.reserved if name.startswith("role.move.")]
+    if reserved:
+        raise report.refuse(f"{', '.join(sorted(reserved))}: not supported in this version")
     meshes = {role: sorted(n for n in roles.members.get(role, ()) if scene.objects[n].type == "MESH")
               for role in contract.STATIC_ROLES}
     if not meshes["hull"]:
@@ -170,23 +191,52 @@ def main(argv):
         raise report.refuse(f"No {contract.SYMMETRY_ORIGIN} empty")
 
     built, sidecar_roles = [], {}
-    for role, export_name in contract.VISUAL_ROLES.items():
-        if meshes[role]:
-            mesh, record = export_role(evaluation, report, export_name, meshes[role], role in ship["contour_roles"])
-            built.append((export_name, mesh))
-            sidecar_roles[export_name] = record
-    if meshes["collider"]:
-        mesh, record = export_collider(evaluation, meshes["collider"])
-        built.append(("Collider", mesh))
-        sidecar_roles["Collider"] = record
-    sockets = {name: evaluation.to_space(name) for name in sorted(roles.members.get("sockets", ()))
-               if scene.objects[name].type == "EMPTY"}
+    sockets = {}
+    if args.debris:
+        lock_path = source.parent / "lock.json"
+        locked = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.is_file() else {}
+        if (locked.get("recipe") != contract.FINGERPRINT_RECIPE or
+                locked.get("geometry") != fingerprint["components"]["geometry"]):
+            raise report.refuse("Debris export requires a matching geometry lock")
+        groups = {key[7:]: sorted(names) for key, names in roles.members.items() if key.startswith("debris.")}
+        owners = {name: [] for name in visual}
+        for group, names in groups.items():
+            if not names:
+                raise report.refuse(f"role.debris.{group} is empty")
+            for name in names:
+                if name not in owners:
+                    raise report.refuse(f"role.debris.{group}: {name} is not a visual mesh part")
+                owners[name].append(group)
+        for name, ids in owners.items():
+            pair = len(ids) == 2 and {i[-2:] for i in ids} == {".L", ".R"} and ids[0][:-2] == ids[1][:-2]
+            whole = len(ids) == 1 and not ids[0].endswith((".L", ".R"))
+            if not (pair or whole):
+                raise report.refuse(f"{name} needs one whole debris group or one matching .L/.R pair; found {ids}")
+        contours = {n for role in ship["contour_roles"] for n in meshes[role]}
+        for group, names in sorted(groups.items()):
+            side = group[-1] if group.endswith((".L", ".R")) else None
+            mesh, record = export_role(evaluation, report, group, names, contours, side)
+            built.append((group, mesh))
+            sidecar_roles[group] = record
+    else:
+        for role, role_name in contract.VISUAL_ROLES.items():
+            if meshes[role]:
+                mesh, record = export_role(evaluation, report, role_name, meshes[role],
+                                           meshes[role] if role in ship["contour_roles"] else ())
+                built.append((role_name, mesh))
+                sidecar_roles[role_name] = record
+        if meshes["collider"]:
+            mesh, record = export_collider(evaluation, meshes["collider"])
+            built.append(("Collider", mesh))
+            sidecar_roles["Collider"] = record
+        sockets = {name: evaluation.to_space(name) for name in sorted(roles.members.get("sockets", ()))
+                   if scene.objects[name].type == "EMPTY"}
 
     for block in list(bpy.data.objects) + list(bpy.data.meshes):
         if block not in [mesh for _, mesh in built]:
             block.name = "~source~" + block.name
     export_scene = bpy.data.scenes.new("ship export")
-    root = bpy.data.objects.new(ship["name"], None)
+    root = bpy.data.objects.new(export_name, None)
     export_scene.collection.objects.link(root)
     for name, mesh in built:
         mesh.name = name
@@ -211,11 +261,11 @@ def main(argv):
                              axis_forward="-Z", axis_up="Y", global_scale=1.0, apply_unit_scale=True)
     sidecar = {"schema_version": contract.SCHEMA_VERSION, "recipe": contract.FINGERPRINT_RECIPE,
                "blender_version": ship_source.blender_version(), "source_sha256": report.data["source_sha256"],
-               "name": ship["name"], "fbx": fbx.name, "fbx_sha256": contract.sha256_file(fbx),
+               "name": ship["name"], "set": "debris" if args.debris else "intact", "fbx": fbx.name, "fbx_sha256": contract.sha256_file(fbx),
                "axes": {"forward": "-Z", "up": "Y"}, "roles": sidecar_roles,
                "sockets": {name: [list(row) for row in matrix] for name, matrix in sockets.items()},
                "fingerprint": fingerprint["components"]}
-    sidecar_path = out / f"{ship['name']}.export.json"
+    sidecar_path = out / f"{export_name}.export.json"
     sidecar_path.write_text(json.dumps(sidecar, indent=2) + "\n", encoding="utf-8")
     return report.finish(True, trailers, fbx=str(fbx), sidecar=str(sidecar_path))
 
