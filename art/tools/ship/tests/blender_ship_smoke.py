@@ -148,7 +148,6 @@ assert abs(hull[:, 2].max() - 0.5) < 1e-5, "hidden Fin missing from Hull"
 everything = np.concatenate([[v.co for v in objects[n].data.vertices] for n in meshes])
 assert "Scratch" not in objects and everything[:, 0].max() < 4, "ignored Scratch exported"
 
-# Debris annotations preserve intact export and partition painted triangles exactly once.
 def painted_triangles(path):
     from collections import Counter
     bpy.ops.wm.read_factory_settings(use_empty=True)
