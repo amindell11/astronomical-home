@@ -1,0 +1,1220 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7d525f4afb230f8811286ac403eb2a9538224faff1f22a0b3a746dfe07f7e664",
+  "name": "Nightshade",
+  "set": "debris",
+  "fbx": "NightshadeBreakup.fbx",
+  "fbx_sha256": "6c8e6f5fb90187facaf54b3f769fd691f539cba3653532c2ef2603886044f3d9",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Central_hull": {
+      "parts": [
+        "Rebuilt pitched hull"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Rebuilt pitched hull": [
+          0,
+          800,
+          0,
+          1600
+        ]
+      },
+      "contour": {
+        "Rebuilt pitched hull": [
+          800,
+          800,
+          1600,
+          1600
+        ]
+      }
+    },
+    "Cockpit": {
+      "parts": [
+        "Cockpit collar latch recess",
+        "Cockpit collar latch tongue",
+        "Cockpit forward latch",
+        "Cockpit inset secondary rail",
+        "Cockpit lower cradle plating",
+        "Cockpit lower glazing gasket",
+        "Cockpit lower retaining rail",
+        "Cockpit rear retaining collar",
+        "Cockpit upper cradle plating",
+        "Cockpit upper glazing gasket",
+        "Cockpit upper retaining rail",
+        "Lower canopy glazing",
+        "Upper canopy glazing"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Glass",
+        "Nightshade Midnight",
+        "Nightshade Recess",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit collar latch recess": [
+          0,
+          16,
+          0,
+          24
+        ],
+        "Cockpit collar latch tongue": [
+          16,
+          16,
+          24,
+          24
+        ],
+        "Cockpit forward latch": [
+          32,
+          44,
+          48,
+          80
+        ],
+        "Cockpit inset secondary rail": [
+          76,
+          1544,
+          128,
+          3084
+        ],
+        "Cockpit lower cradle plating": [
+          1620,
+          976,
+          3212,
+          1928
+        ],
+        "Cockpit lower glazing gasket": [
+          2596,
+          524,
+          5140,
+          1044
+        ],
+        "Cockpit lower retaining rail": [
+          3120,
+          1064,
+          6184,
+          2108
+        ],
+        "Cockpit rear retaining collar": [
+          4184,
+          98,
+          8292,
+          192
+        ],
+        "Cockpit upper cradle plating": [
+          4282,
+          976,
+          8484,
+          1928
+        ],
+        "Cockpit upper glazing gasket": [
+          5258,
+          524,
+          10412,
+          1044
+        ],
+        "Cockpit upper retaining rail": [
+          5782,
+          1064,
+          11456,
+          2108
+        ],
+        "Lower canopy glazing": [
+          6846,
+          13202,
+          13564,
+          26400
+        ],
+        "Upper canopy glazing": [
+          20048,
+          13202,
+          39964,
+          26400
+        ]
+      },
+      "contour": {
+        "Cockpit collar latch recess": [
+          33250,
+          16,
+          66364,
+          24
+        ],
+        "Cockpit collar latch tongue": [
+          33266,
+          16,
+          66388,
+          24
+        ],
+        "Cockpit forward latch": [
+          33282,
+          44,
+          66412,
+          80
+        ],
+        "Cockpit inset secondary rail": [
+          33326,
+          1544,
+          66492,
+          3084
+        ],
+        "Cockpit lower cradle plating": [
+          34870,
+          976,
+          69576,
+          1928
+        ],
+        "Cockpit lower glazing gasket": [
+          35846,
+          524,
+          71504,
+          1044
+        ],
+        "Cockpit lower retaining rail": [
+          36370,
+          1064,
+          72548,
+          2108
+        ],
+        "Cockpit rear retaining collar": [
+          37434,
+          98,
+          74656,
+          192
+        ],
+        "Cockpit upper cradle plating": [
+          37532,
+          976,
+          74848,
+          1928
+        ],
+        "Cockpit upper glazing gasket": [
+          38508,
+          524,
+          76776,
+          1044
+        ],
+        "Cockpit upper retaining rail": [
+          39032,
+          1064,
+          77820,
+          2108
+        ]
+      }
+    },
+    "Engine": {
+      "parts": [
+        "Aft engine collar",
+        "Main exhaust core",
+        "Main exhaust throat"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Recess",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Aft engine collar": [
+          0,
+          64,
+          0,
+          110
+        ],
+        "Main exhaust core": [
+          64,
+          17,
+          110,
+          16
+        ],
+        "Main exhaust throat": [
+          81,
+          128,
+          126,
+          256
+        ]
+      },
+      "contour": {
+        "Aft engine collar": [
+          209,
+          64,
+          382,
+          110
+        ],
+        "Main exhaust throat": [
+          273,
+          128,
+          492,
+          256
+        ]
+      }
+    },
+    "Lower_fin.L": {
+      "parts": [
+        "Lower fin armor",
+        "Lower fin joint beds",
+        "Lower small swept fins"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Lower fin armor": [
+          0,
+          140,
+          0,
+          276
+        ],
+        "Lower fin joint beds": [
+          140,
+          56,
+          276,
+          108
+        ],
+        "Lower small swept fins": [
+          196,
+          224,
+          384,
+          444
+        ]
+      },
+      "contour": {
+        "Lower fin armor": [
+          420,
+          140,
+          828,
+          276
+        ],
+        "Lower fin joint beds": [
+          560,
+          56,
+          1104,
+          108
+        ],
+        "Lower small swept fins": [
+          616,
+          224,
+          1212,
+          444
+        ]
+      }
+    },
+    "Lower_fin.R": {
+      "parts": [
+        "Lower fin armor",
+        "Lower fin joint beds",
+        "Lower small swept fins"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Lower fin armor": [
+          0,
+          140,
+          0,
+          276
+        ],
+        "Lower fin joint beds": [
+          140,
+          56,
+          276,
+          108
+        ],
+        "Lower small swept fins": [
+          196,
+          224,
+          384,
+          444
+        ]
+      },
+      "contour": {
+        "Lower fin armor": [
+          420,
+          140,
+          828,
+          276
+        ],
+        "Lower fin joint beds": [
+          560,
+          56,
+          1104,
+          108
+        ],
+        "Lower small swept fins": [
+          616,
+          224,
+          1212,
+          444
+        ]
+      }
+    },
+    "Lower_spine": {
+      "parts": [
+        "Ventral central blade",
+        "Ventral shield cap",
+        "Ventral shield inset"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Ventral central blade": [
+          0,
+          154,
+          0,
+          304
+        ],
+        "Ventral shield cap": [
+          154,
+          218,
+          304,
+          432
+        ],
+        "Ventral shield inset": [
+          372,
+          16,
+          736,
+          22
+        ]
+      },
+      "contour": {
+        "Ventral central blade": [
+          388,
+          154,
+          758,
+          304
+        ],
+        "Ventral shield cap": [
+          542,
+          218,
+          1062,
+          432
+        ],
+        "Ventral shield inset": [
+          760,
+          16,
+          1494,
+          22
+        ]
+      }
+    },
+    "Main_wing.L": {
+      "parts": [
+        "Main wing joint beds",
+        "Rebuilt main wing blades",
+        "Wing aft blade armor",
+        "Wing cooling louvers",
+        "Wing forward armor",
+        "Wing outer armor",
+        "Wing shoulder armor",
+        "Wing ventral aft armor",
+        "Wing ventral armor"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Main wing joint beds": [
+          0,
+          284,
+          0,
+          544
+        ],
+        "Rebuilt main wing blades": [
+          284,
+          392,
+          544,
+          794
+        ],
+        "Wing aft blade armor": [
+          676,
+          110,
+          1338,
+          216
+        ],
+        "Wing cooling louvers": [
+          786,
+          96,
+          1554,
+          144
+        ],
+        "Wing forward armor": [
+          882,
+          120,
+          1698,
+          236
+        ],
+        "Wing outer armor": [
+          1002,
+          110,
+          1934,
+          216
+        ],
+        "Wing shoulder armor": [
+          1112,
+          110,
+          2150,
+          216
+        ],
+        "Wing ventral aft armor": [
+          1222,
+          100,
+          2366,
+          196
+        ],
+        "Wing ventral armor": [
+          1322,
+          160,
+          2562,
+          316
+        ]
+      },
+      "contour": {
+        "Main wing joint beds": [
+          1482,
+          284,
+          2878,
+          544
+        ],
+        "Rebuilt main wing blades": [
+          1766,
+          392,
+          3422,
+          794
+        ],
+        "Wing aft blade armor": [
+          2158,
+          110,
+          4216,
+          216
+        ],
+        "Wing cooling louvers": [
+          2268,
+          96,
+          4432,
+          144
+        ],
+        "Wing forward armor": [
+          2364,
+          120,
+          4576,
+          236
+        ],
+        "Wing outer armor": [
+          2484,
+          110,
+          4812,
+          216
+        ],
+        "Wing shoulder armor": [
+          2594,
+          110,
+          5028,
+          216
+        ],
+        "Wing ventral aft armor": [
+          2704,
+          100,
+          5244,
+          196
+        ],
+        "Wing ventral armor": [
+          2804,
+          160,
+          5440,
+          316
+        ]
+      }
+    },
+    "Main_wing.R": {
+      "parts": [
+        "Main wing joint beds",
+        "Rebuilt main wing blades",
+        "Wing aft blade armor",
+        "Wing cooling louvers",
+        "Wing forward armor",
+        "Wing outer armor",
+        "Wing shoulder armor",
+        "Wing ventral aft armor",
+        "Wing ventral armor"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Main wing joint beds": [
+          0,
+          284,
+          0,
+          544
+        ],
+        "Rebuilt main wing blades": [
+          284,
+          392,
+          544,
+          794
+        ],
+        "Wing aft blade armor": [
+          676,
+          110,
+          1338,
+          216
+        ],
+        "Wing cooling louvers": [
+          786,
+          96,
+          1554,
+          144
+        ],
+        "Wing forward armor": [
+          882,
+          120,
+          1698,
+          236
+        ],
+        "Wing outer armor": [
+          1002,
+          110,
+          1934,
+          216
+        ],
+        "Wing shoulder armor": [
+          1112,
+          110,
+          2150,
+          216
+        ],
+        "Wing ventral aft armor": [
+          1222,
+          100,
+          2366,
+          196
+        ],
+        "Wing ventral armor": [
+          1322,
+          160,
+          2562,
+          316
+        ]
+      },
+      "contour": {
+        "Main wing joint beds": [
+          1482,
+          284,
+          2878,
+          544
+        ],
+        "Rebuilt main wing blades": [
+          1766,
+          392,
+          3422,
+          794
+        ],
+        "Wing aft blade armor": [
+          2158,
+          110,
+          4216,
+          216
+        ],
+        "Wing cooling louvers": [
+          2268,
+          96,
+          4432,
+          144
+        ],
+        "Wing forward armor": [
+          2364,
+          120,
+          4576,
+          236
+        ],
+        "Wing outer armor": [
+          2484,
+          110,
+          4812,
+          216
+        ],
+        "Wing shoulder armor": [
+          2594,
+          110,
+          5028,
+          216
+        ],
+        "Wing ventral aft armor": [
+          2704,
+          100,
+          5244,
+          196
+        ],
+        "Wing ventral armor": [
+          2804,
+          160,
+          5440,
+          316
+        ]
+      }
+    },
+    "Tail.L": {
+      "parts": [
+        "Rear swept wing pair",
+        "Tail fork armor",
+        "Tail joint beds",
+        "Tail mount service panel",
+        "Tail root armor",
+        "Tail root mounting blocks",
+        "Tail tip armor",
+        "Tail ventral armor"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Glass",
+        "Nightshade Midnight",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Rear swept wing pair": [
+          0,
+          732,
+          0,
+          1460
+        ],
+        "Tail fork armor": [
+          732,
+          80,
+          1460,
+          156
+        ],
+        "Tail joint beds": [
+          812,
+          116,
+          1616,
+          216
+        ],
+        "Tail mount service panel": [
+          928,
+          22,
+          1832,
+          40
+        ],
+        "Tail root armor": [
+          950,
+          70,
+          1872,
+          136
+        ],
+        "Tail root mounting blocks": [
+          1020,
+          40,
+          2008,
+          76
+        ],
+        "Tail tip armor": [
+          1060,
+          60,
+          2084,
+          116
+        ],
+        "Tail ventral armor": [
+          1120,
+          80,
+          2200,
+          156
+        ]
+      },
+      "contour": {
+        "Rear swept wing pair": [
+          1200,
+          732,
+          2356,
+          1460
+        ],
+        "Tail fork armor": [
+          1932,
+          80,
+          3816,
+          156
+        ],
+        "Tail joint beds": [
+          2012,
+          116,
+          3972,
+          216
+        ],
+        "Tail mount service panel": [
+          2128,
+          22,
+          4188,
+          40
+        ],
+        "Tail root armor": [
+          2150,
+          70,
+          4228,
+          136
+        ],
+        "Tail root mounting blocks": [
+          2220,
+          40,
+          4364,
+          76
+        ],
+        "Tail tip armor": [
+          2260,
+          60,
+          4440,
+          116
+        ],
+        "Tail ventral armor": [
+          2320,
+          80,
+          4556,
+          156
+        ]
+      }
+    },
+    "Tail.R": {
+      "parts": [
+        "Rear swept wing pair",
+        "Tail fork armor",
+        "Tail joint beds",
+        "Tail mount service panel",
+        "Tail root armor",
+        "Tail root mounting blocks",
+        "Tail tip armor",
+        "Tail ventral armor"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Glass",
+        "Nightshade Midnight",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Rear swept wing pair": [
+          0,
+          732,
+          0,
+          1460
+        ],
+        "Tail fork armor": [
+          732,
+          80,
+          1460,
+          156
+        ],
+        "Tail joint beds": [
+          812,
+          116,
+          1616,
+          216
+        ],
+        "Tail mount service panel": [
+          928,
+          22,
+          1832,
+          40
+        ],
+        "Tail root armor": [
+          950,
+          70,
+          1872,
+          136
+        ],
+        "Tail root mounting blocks": [
+          1020,
+          40,
+          2008,
+          76
+        ],
+        "Tail tip armor": [
+          1060,
+          60,
+          2084,
+          116
+        ],
+        "Tail ventral armor": [
+          1120,
+          80,
+          2200,
+          156
+        ]
+      },
+      "contour": {
+        "Rear swept wing pair": [
+          1200,
+          732,
+          2356,
+          1460
+        ],
+        "Tail fork armor": [
+          1932,
+          80,
+          3816,
+          156
+        ],
+        "Tail joint beds": [
+          2012,
+          116,
+          3972,
+          216
+        ],
+        "Tail mount service panel": [
+          2128,
+          22,
+          4188,
+          40
+        ],
+        "Tail root armor": [
+          2150,
+          70,
+          4228,
+          136
+        ],
+        "Tail root mounting blocks": [
+          2220,
+          40,
+          4364,
+          76
+        ],
+        "Tail tip armor": [
+          2260,
+          60,
+          4440,
+          116
+        ],
+        "Tail ventral armor": [
+          2320,
+          80,
+          4556,
+          156
+        ]
+      }
+    },
+    "Upper_fin.L": {
+      "parts": [
+        "Cockpit shoulder latch",
+        "Upper fin armor",
+        "Upper fin joint beds",
+        "Upper small swept fins.001"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit shoulder latch": [
+          0,
+          22,
+          0,
+          40
+        ],
+        "Upper fin armor": [
+          22,
+          130,
+          40,
+          256
+        ],
+        "Upper fin joint beds": [
+          152,
+          52,
+          296,
+          100
+        ],
+        "Upper small swept fins.001": [
+          204,
+          210,
+          396,
+          416
+        ]
+      },
+      "contour": {
+        "Cockpit shoulder latch": [
+          414,
+          22,
+          812,
+          40
+        ],
+        "Upper fin armor": [
+          436,
+          130,
+          852,
+          256
+        ],
+        "Upper fin joint beds": [
+          566,
+          52,
+          1108,
+          100
+        ],
+        "Upper small swept fins.001": [
+          618,
+          210,
+          1208,
+          416
+        ]
+      }
+    },
+    "Upper_fin.R": {
+      "parts": [
+        "Cockpit shoulder latch",
+        "Upper fin armor",
+        "Upper fin joint beds",
+        "Upper small swept fins.001"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit shoulder latch": [
+          0,
+          22,
+          0,
+          40
+        ],
+        "Upper fin armor": [
+          22,
+          130,
+          40,
+          256
+        ],
+        "Upper fin joint beds": [
+          152,
+          52,
+          296,
+          100
+        ],
+        "Upper small swept fins.001": [
+          204,
+          210,
+          396,
+          416
+        ]
+      },
+      "contour": {
+        "Cockpit shoulder latch": [
+          414,
+          22,
+          812,
+          40
+        ],
+        "Upper fin armor": [
+          436,
+          130,
+          852,
+          256
+        ],
+        "Upper fin joint beds": [
+          566,
+          52,
+          1108,
+          100
+        ],
+        "Upper small swept fins.001": [
+          618,
+          210,
+          1208,
+          416
+        ]
+      }
+    },
+    "Upper_spine": {
+      "parts": [
+        "Aft spine armor",
+        "Dorsal bridge service cover",
+        "Dorsal central blade",
+        "Dorsal shield cap",
+        "Dorsal shield inset",
+        "Spine shoulder armor",
+        "Upper spine joint beds"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Aft spine armor": [
+          0,
+          98,
+          0,
+          192
+        ],
+        "Dorsal bridge service cover": [
+          98,
+          44,
+          192,
+          80
+        ],
+        "Dorsal central blade": [
+          142,
+          154,
+          272,
+          304
+        ],
+        "Dorsal shield cap": [
+          296,
+          218,
+          576,
+          432
+        ],
+        "Dorsal shield inset": [
+          514,
+          16,
+          1008,
+          22
+        ],
+        "Spine shoulder armor": [
+          530,
+          120,
+          1030,
+          232
+        ],
+        "Upper spine joint beds": [
+          650,
+          104,
+          1262,
+          192
+        ]
+      },
+      "contour": {
+        "Aft spine armor": [
+          754,
+          98,
+          1454,
+          192
+        ],
+        "Dorsal bridge service cover": [
+          852,
+          44,
+          1646,
+          80
+        ],
+        "Dorsal central blade": [
+          896,
+          154,
+          1726,
+          304
+        ],
+        "Dorsal shield cap": [
+          1050,
+          218,
+          2030,
+          432
+        ],
+        "Dorsal shield inset": [
+          1268,
+          16,
+          2462,
+          22
+        ],
+        "Spine shoulder armor": [
+          1284,
+          120,
+          2484,
+          232
+        ],
+        "Upper spine joint beds": [
+          1404,
+          104,
+          2716,
+          192
+        ]
+      }
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "4db72b72422540524b7c9e26a7e97ff1e2db72829181fb780e8b925cf3d599f4",
+    "uv": "806b5c826809cf11bf11b9f129db4186bd212ec02aceaa853a008f15ac26a545",
+    "materials": "f87748b3c2f2aebacc1872c8413c5648676a34a3db6249b31a45989098a0e13d"
+  }
+}

@@ -1,0 +1,15 @@
+00:17.532  blend            | Read blend: "C:\Users\amind\.codex\visualizations\2026\10\06\01a112c7-f840-7683-a496-b2b5e5eabf06\breakup-01\tool-smoke-final\base\Fixture.blend"
+01:11.547  blend            | Read blend: "C:\Users\amind\.codex\visualizations\2026\10\06\01a112c7-f840-7683-a496-b2b5e5eabf06\breakup-01\tool-smoke-final\base\Fixture.blend"
+01:18.828  blend            | Read blend: "C:\Users\amind\.codex\visualizations\2026\10\06\01a112c7-f840-7683-a496-b2b5e5eabf06\breakup-01\tool-smoke-final\debris\Fixture.blend"
+Info: Saved copy as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+SHIP_SMOKE_PASS {"fingerprint": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8", "uv_ratio": 1.0865915985497308, "Canopy_triangles": 24, "Cores_triangles": 12, "Hull_triangles": 216, "debris_painted_triangles": 252}
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+FBX import of 'Fixture.fbx' took 7.58 ms
+FBX import of 'Fixture.fbx' took 1.43 ms
+FBX import of 'Fixture.fbx' took 1.25 ms
+FBX import of 'FixtureBreakup.fbx' took 1.50 ms
+
+Blender quit

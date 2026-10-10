@@ -1,0 +1,27 @@
+{
+  "groups": {
+    "Cockpit": 13,
+    "Main_wing.L": 9,
+    "Main_wing.R": 9,
+    "Upper_fin.L": 4,
+    "Upper_fin.R": 4,
+    "Lower_fin.L": 3,
+    "Lower_fin.R": 3,
+    "Tail.L": 8,
+    "Tail.R": 8,
+    "Upper_spine": 7,
+    "Lower_spine": 3,
+    "Engine": 3,
+    "Central_hull": 1
+  },
+  "before": {
+    "geometry": "4db72b72422540524b7c9e26a7e97ff1e2db72829181fb780e8b925cf3d599f4",
+    "uv": "806b5c826809cf11bf11b9f129db4186bd212ec02aceaa853a008f15ac26a545",
+    "materials": "f87748b3c2f2aebacc1872c8413c5648676a34a3db6249b31a45989098a0e13d"
+  },
+  "after": {
+    "geometry": "4db72b72422540524b7c9e26a7e97ff1e2db72829181fb780e8b925cf3d599f4",
+    "uv": "806b5c826809cf11bf11b9f129db4186bd212ec02aceaa853a008f15ac26a545",
+    "materials": "f87748b3c2f2aebacc1872c8413c5648676a34a3db6249b31a45989098a0e13d"
+  }
+}

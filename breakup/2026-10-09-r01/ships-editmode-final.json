@@ -1,0 +1,372 @@
+{
+  "success": true,
+  "command": "command run_tests",
+  "data": {
+    "command": "run_tests",
+    "parameters": {
+      "mode": "editor",
+      "filter": "Ships",
+      "filter_type": "category"
+    },
+    "result": {
+      "Summary": {
+        "Total": 48,
+        "Passed": 48,
+        "Failed": 0,
+        "Skipped": 0,
+        "Inconclusive": 0
+      },
+      "Results": [
+        {
+          "FullName": "Tests.EditMode.ItemCatalogEditModeTests.Chassis_ListEveryPrefabWithARootShip",
+          "Status": "Passed",
+          "Duration": 0.382963,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ItemCatalogEditModeTests.Engines_ListEveryEngineModuleAsset",
+          "Status": "Passed",
+          "Duration": 0.0048451,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ItemCatalogEditModeTests.Shields_ListEveryShieldModuleAsset",
+          "Status": "Passed",
+          "Duration": 0.0038821,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ItemCatalogEditModeTests.Weapons_ListEveryPrefabWithARootWeaponComponent",
+          "Status": "Passed",
+          "Duration": 0.0027638,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.Nightshade_PaintTexturesAreImported",
+          "Status": "Passed",
+          "Duration": 0.2383304,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity",
+          "Status": "Passed",
+          "Duration": 0.5457664,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback",
+          "Status": "Passed",
+          "Duration": 0.0253042,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(\"Assets/Prefabs/Ships/Vanguard.prefab\")",
+          "Status": "Passed",
+          "Duration": 0.2027535,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(\"Assets/Prefabs/Ships/Crimson.prefab\")",
+          "Status": "Passed",
+          "Duration": 0.266786,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(\"Assets/Prefabs/Ships/Nightshade.prefab\")",
+          "Status": "Passed",
+          "Duration": 1.5153661,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours",
+          "Status": "Passed",
+          "Duration": 0.0052392,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Vanguard)",
+          "Status": "Passed",
+          "Duration": 0.0144927,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Crimson)",
+          "Status": "Passed",
+          "Duration": 0.0171167,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Crimson)",
+          "Status": "Passed",
+          "Duration": 0.0092857,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Vanguard)",
+          "Status": "Passed",
+          "Duration": 0.0032059,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Crimson)",
+          "Status": "Passed",
+          "Duration": 0.0004843,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Vanguard)",
+          "Status": "Passed",
+          "Duration": 0.003296,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Crimson)",
+          "Status": "Passed",
+          "Duration": 0.0002932,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Vanguard)",
+          "Status": "Passed",
+          "Duration": 0.0043881,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Crimson)",
+          "Status": "Passed",
+          "Duration": 0.0024199,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.LegacyList_NamesOnlyCatalogChassis",
+          "Status": "Passed",
+          "Duration": 0.0745337,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipAnatomyEditModeTests.ShipBase_IsNeutralAndNotAVariant",
+          "Status": "Passed",
+          "Duration": 0.0068099,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipObjectiveColliderWiringEditModeTests.CrimsonPrefab_HasObjectiveCompatibleCollider",
+          "Status": "Passed",
+          "Duration": 0.0577249,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Speed,1)",
+          "Status": "Passed",
+          "Duration": 0.0022491,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Controls,3)",
+          "Status": "Passed",
+          "Duration": 0.0001655,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Shield,1)",
+          "Status": "Passed",
+          "Duration": 0.0000914,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Health,1)",
+          "Status": "Passed",
+          "Duration": 0.0000664,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Heat,1)",
+          "Status": "Passed",
+          "Duration": 0.0002786,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Missiles,2)",
+          "Status": "Passed",
+          "Duration": 0.0001149,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(LockOn,3)",
+          "Status": "Passed",
+          "Duration": 0.0002042,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Policy,4)",
+          "Status": "Passed",
+          "Duration": 0.0001131,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_AcceptsOnlyTheMirroredHullPath(\"Assets/Visuals/Ships/Crimson/Crimson.fbx\",\"Crimson\")",
+          "Status": "Passed",
+          "Duration": 0.0008937,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_AcceptsOnlyTheMirroredHullPath(\"Assets/Visuals/Ships/Nightshade/Nightshade.fbx\",\"Nightshade\")",
+          "Status": "Passed",
+          "Duration": 0.0000822,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(\"Assets/Visuals/Ships/Crimson/Other.fbx\")",
+          "Status": "Passed",
+          "Duration": 0.0019139,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(\"Assets/Visuals/Ships/Ship3/Study/Ship3.fbx\")",
+          "Status": "Passed",
+          "Duration": 0.0000598,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(\"Assets/Visuals/Studies/Crimson/Crimson.fbx\")",
+          "Status": "Passed",
+          "Duration": 0.0004832,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(\"Assets/Visuals/Ships/Crimson/Crimson.blend\")",
+          "Status": "Passed",
+          "Duration": 0.0000497,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.Validate_PassesTheExporterGrammar",
+          "Status": "Passed",
+          "Duration": 0.001747,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.ShipRoleNamesEditModeTests.Validate_ReportsMissingUnknownAndDuplicateRoles",
+          "Status": "Passed",
+          "Duration": 0.0035045,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.Of_HashesOneItemsOwnSubtree_AndNothingElse",
+          "Status": "Passed",
+          "Duration": 0.0310944,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfLoadout_DoesNotDependOnTheMachinesCulture",
+          "Status": "Passed",
+          "Duration": 0.0022663,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfLoadout_EveryHangarWeapon_ReachesEachConditionOnItsPrefab",
+          "Status": "Passed",
+          "Duration": 0.0055719,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfLoadout_MovesWithMarkedFields_AndIgnoresUnmarkedOnes",
+          "Status": "Passed",
+          "Duration": 0.0060036,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfLoadout_PrefabAssetAndInstance_HashAlike_ForEveryHangarHull",
+          "Status": "Passed",
+          "Duration": 0.0169541,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool",
+          "Status": "Passed",
+          "Duration": 0.0242418,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfSetting_IgnoresListOrder",
+          "Status": "Passed",
+          "Duration": 0.0082657,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfSetting_MovesWhenTwoRosterEntriesSwapPilots",
+          "Status": "Passed",
+          "Duration": 0.0031955,
+          "Message": null,
+          "StackTrace": null
+        },
+        {
+          "FullName": "Tests.EditMode.StatHashEditModeTests.OfSetting_MovesWithPacingAndKillRefill",
+          "Status": "Passed",
+          "Duration": 0.0026217,
+          "Message": null,
+          "StackTrace": null
+        }
+      ],
+      "Duration": 7.88,
+      "StatusPath": null,
+      "Mode": "EditMode",
+      "FilterApplied": "category: Ships",
+      "success": true,
+      "result": null
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-1\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

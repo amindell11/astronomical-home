@@ -1,0 +1,444 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "C:/Users/amind/.codex/visualizations/2026/10/06/01a112c7-f840-7683-a496-b2b5e5eabf06/breakup-01/InspectBreakup.cs"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 2369,
+      "executeMs": 16,
+      "assemblyName": "PipelineRunScript_InspectBreakup_83bdaad744cb430da7f4ce81a77d7590",
+      "success": true,
+      "result": {
+        "Assets/Visuals/Ships/Nightshade/Nightshade.fbx": [
+          {
+            "name": "Canopy",
+            "submeshes": 1,
+            "slots": [
+              {
+                "name": "Nightshade Glass",
+                "triangles": 52800
+              }
+            ]
+          },
+          {
+            "name": "Collider",
+            "submeshes": 1,
+            "slots": [
+              {
+                "name": "No Name",
+                "triangles": 182
+              }
+            ]
+          },
+          {
+            "name": "Cores",
+            "submeshes": 1,
+            "slots": [
+              {
+                "name": "Nightshade Recess",
+                "triangles": 16
+              }
+            ]
+          },
+          {
+            "name": "Hull",
+            "submeshes": 7,
+            "slots": [
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 11050
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 13742
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 3434
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 1728
+              },
+              {
+                "name": "Nightshade Plum",
+                "triangles": 1292
+              },
+              {
+                "name": "Nightshade Glass",
+                "triangles": 244
+              },
+              {
+                "name": "Astronomical/Comparison/Drawn Contour",
+                "triangles": 31490
+              }
+            ]
+          }
+        ],
+        "Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.fbx": [
+          {
+            "name": "Central_hull",
+            "submeshes": 4,
+            "slots": [
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 1312
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 224
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 64
+              },
+              {
+                "name": "Contour",
+                "triangles": 1600
+              }
+            ]
+          },
+          {
+            "name": "Cockpit",
+            "submeshes": 5,
+            "slots": [
+              {
+                "name": "Nightshade Recess",
+                "triangles": 2112
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 7016
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 4436
+              },
+              {
+                "name": "Nightshade Glass",
+                "triangles": 52800
+              },
+              {
+                "name": "Contour",
+                "triangles": 13564
+              }
+            ]
+          },
+          {
+            "name": "Engine",
+            "submeshes": 4,
+            "slots": [
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 32
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 224
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 126
+              },
+              {
+                "name": "Contour",
+                "triangles": 366
+              }
+            ]
+          },
+          {
+            "name": "Lower_fin.L",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 308
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 140
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 108
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 236
+              },
+              {
+                "name": "Nightshade Plum",
+                "triangles": 36
+              },
+              {
+                "name": "Contour",
+                "triangles": 828
+              }
+            ]
+          },
+          {
+            "name": "Lower_fin.R",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 308
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 140
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 108
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 236
+              },
+              {
+                "name": "Nightshade Plum",
+                "triangles": 36
+              },
+              {
+                "name": "Contour",
+                "triangles": 828
+              }
+            ]
+          },
+          {
+            "name": "Lower_spine",
+            "submeshes": 3,
+            "slots": [
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 752
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 6
+              },
+              {
+                "name": "Contour",
+                "triangles": 758
+              }
+            ]
+          },
+          {
+            "name": "Main_wing.L",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Plum",
+                "triangles": 592
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 456
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 500
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 1282
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 48
+              },
+              {
+                "name": "Contour",
+                "triangles": 2878
+              }
+            ]
+          },
+          {
+            "name": "Main_wing.R",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Plum",
+                "triangles": 592
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 456
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 500
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 1282
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 48
+              },
+              {
+                "name": "Contour",
+                "triangles": 2878
+              }
+            ]
+          },
+          {
+            "name": "Tail.L",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 1098
+              },
+              {
+                "name": "Nightshade Glass",
+                "triangles": 122
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 784
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 136
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 216
+              },
+              {
+                "name": "Contour",
+                "triangles": 2356
+              }
+            ]
+          },
+          {
+            "name": "Tail.R",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 1098
+              },
+              {
+                "name": "Nightshade Glass",
+                "triangles": 122
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 784
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 136
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 216
+              },
+              {
+                "name": "Contour",
+                "triangles": 2356
+              }
+            ]
+          },
+          {
+            "name": "Upper_fin.L",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 329
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 233
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 132
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 100
+              },
+              {
+                "name": "Nightshade Plum",
+                "triangles": 18
+              },
+              {
+                "name": "Contour",
+                "triangles": 812
+              }
+            ]
+          },
+          {
+            "name": "Upper_fin.R",
+            "submeshes": 6,
+            "slots": [
+              {
+                "name": "Nightshade Edge",
+                "triangles": 329
+              },
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 233
+              },
+              {
+                "name": "Nightshade Violet",
+                "triangles": 132
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 100
+              },
+              {
+                "name": "Nightshade Plum",
+                "triangles": 18
+              },
+              {
+                "name": "Contour",
+                "triangles": 812
+              }
+            ]
+          },
+          {
+            "name": "Upper_spine",
+            "submeshes": 4,
+            "slots": [
+              {
+                "name": "Nightshade Midnight",
+                "triangles": 1012
+              },
+              {
+                "name": "Nightshade Edge",
+                "triangles": 244
+              },
+              {
+                "name": "Nightshade Recess",
+                "triangles": 198
+              },
+              {
+                "name": "Contour",
+                "triangles": 1454
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-1\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

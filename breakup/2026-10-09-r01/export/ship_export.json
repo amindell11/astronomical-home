@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_export",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7d525f4afb230f8811286ac403eb2a9538224faff1f22a0b3a746dfe07f7e664",
+  "fbx": "C:\\Users\\amind\\.codex\\visualizations\\2026\\10\\06\\01a112c7-f840-7683-a496-b2b5e5eabf06\\breakup-01\\export\\NightshadeBreakup.fbx",
+  "sidecar": "C:\\Users\\amind\\.codex\\visualizations\\2026\\10\\06\\01a112c7-f840-7683-a496-b2b5e5eabf06\\breakup-01\\export\\NightshadeBreakup.export.json",
+  "verdict": "pass"
+}
