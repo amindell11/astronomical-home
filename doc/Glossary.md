@@ -76,7 +76,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
-| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) | Always qualified. |
+| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) · missile lock (a `LockOnSensor` lock on a target, `LockState`) · lock reticle (§2) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
@@ -630,6 +630,11 @@ Format: **term** — definition. *(authority)*
   overlapping when a step starts. Not Unity's continuous collision detection,
   which skips trigger colliders, and every shot is one. Always qualified: the
   triage and rescue sweeps share the word. *(`ProjectileBase.SweepStep`)*
+- **lock reticle** — the mark over a ship while a missile lock builds or holds on it,
+  and while a missile tracks that ship (has its target and hasn't lost track). Every
+  ship's rig carries one, so an enemy missile tracking the player shows over the
+  player. Only a lost track plays the break animation; impact, being shot down and
+  lifetime expiry clear it without one. *(`LockOnIndicator`, `LockChannel.TrackingCount`)*
 - **target point** — the world point in the game plane a shot flies to, fixed
   at fire time: the cursor for the player (the nose at max range with no cursor),
   `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only

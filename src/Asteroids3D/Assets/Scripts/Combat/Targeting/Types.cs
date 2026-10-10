@@ -32,9 +32,13 @@ namespace Combat.Targeting
         LockChannel Lock { get; }
     }
 
+    /// <summary><see cref="Lost"/> is a lost track; <see cref="Ended"/> is any other end of a tracking flight.</summary>
+    public enum TrackChange { Added, Lost, Ended }
+
     /// <summary>
-    /// Lightweight container that holds delegates related to missile lock-on events for a single target.
-    /// Components may freely subscribe (+=) or invoke (?.Invoke) these delegates.
+    /// One target's missile-lock events, raised by whoever locks it, and the count of missiles
+    /// tracking it, kept by those missiles. It lives as long as the target, so the count stays
+    /// right while a lock reticle bound to it is disabled through death and respawn.
     /// </summary>
     public sealed class LockChannel
     {
@@ -60,6 +64,22 @@ namespace Combat.Targeting
         public void RaiseReleased()
         {
             Released?.Invoke();
+        }
+
+        public int TrackingCount { get; private set; }
+
+        public event Action<TrackChange> TrackingChanged;
+
+        public void AddTrack() => ChangeTracking(1, TrackChange.Added);
+
+        public void LoseTrack() => ChangeTracking(-1, TrackChange.Lost);
+
+        public void EndTrack() => ChangeTracking(-1, TrackChange.Ended);
+
+        private void ChangeTracking(int delta, TrackChange change)
+        {
+            TrackingCount += delta;
+            TrackingChanged?.Invoke(change);
         }
     }
 }

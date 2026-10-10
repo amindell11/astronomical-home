@@ -33,6 +33,7 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float maxLifetime = 4f;
 
         internal Transform target;
+        private LockChannel targetChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
         private bool hasLos;
@@ -40,12 +41,11 @@ namespace Combat.Projectiles
 
         public bool IsTracking => target;
 
-        public event Action TrackingChanged;
-
-        public void SetTarget(Transform tgt)
+        public void SetTarget(ITargetable tgt)
         {
-            target = tgt;
-            TrackingChanged?.Invoke();
+            target = tgt.TargetPoint;
+            targetChannel = tgt.Lock;
+            targetChannel.AddTrack();
         }
 
         protected override DamageKind Kind => DamageKind.Missile;
@@ -124,7 +124,8 @@ namespace Combat.Projectiles
         private void LoseTrack()
         {
             target = null;
-            TrackingChanged?.Invoke();
+            targetChannel.LoseTrack();
+            targetChannel = null;
         }
 
         private Vector2 GetDesiredDirection(Kinematics kin)
@@ -217,6 +218,8 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
+            targetChannel?.EndTrack();
+            targetChannel = null;
             target = null;
             hasLos = false;
             aliveTime = 0f;
