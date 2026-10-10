@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using Combat.Targeting;
 using Damage;
 using Movement;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace Combat.Projectiles
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
+        [Tooltip("Full width (degrees) of the cone around the nose; a target outside it, or behind an asteroid, is lost for good.")]
+        [Stat, SerializeField] internal float seekerConeAngle = 140f;
 
         [Header("Explosion")]
         [Stat, SerializeField] internal float explosionRadius = 3f;
@@ -33,7 +36,15 @@ namespace Combat.Projectiles
         private bool hasLos;
         private float aliveTime;
 
-        public void SetTarget(Transform tgt) => target = tgt;
+        public bool IsTracking => target;
+
+        public event Action TrackingChanged;
+
+        public void SetTarget(Transform tgt)
+        {
+            target = tgt;
+            TrackingChanged?.Invoke();
+        }
 
         protected override DamageKind Kind => DamageKind.Missile;
 
@@ -93,12 +104,22 @@ namespace Combat.Projectiles
             }
 
             var kin = kinematicsPoller.Kinematics;
+            if (target && !CanSeeTarget(kin)) LoseTrack();
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);
             ApplyVelocitySteering(desiredDir);
         }
 
+        private bool CanSeeTarget(in Kinematics kin) =>
+            TargetingMath.AngleTo(kin, GamePlane.WorldPointToPlane(target.position)) <= seekerConeAngle * 0.5f
+            && TargetingMath.HasLineOfSight(kin, target.position);
+
+        private void LoseTrack()
+        {
+            target = null;
+            TrackingChanged?.Invoke();
+        }
 
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
