@@ -17,6 +17,8 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float homingTurnRate = 90f;
         [Tooltip("Full width (degrees) of the cone around the nose; a target outside it, or behind an asteroid, is lost for good.")]
         [Stat, SerializeField] internal float seekerConeAngle = 140f;
+        [Tooltip("Radius of the hitbox capsule in world units: how far off the missile's centreline a shot or ship still hits it.")]
+        [Stat, SerializeField] internal float hitboxRadius = 0.3f;
 
         [Header("Explosion")]
         [Stat, SerializeField] internal float explosionRadius = 3f;
@@ -73,6 +75,10 @@ namespace Combat.Projectiles
             if (!kinematicsPoller) kinematicsPoller = gameObject.AddComponent<KinematicsPoller>();
             if (damageLayerMask == -1)
                 damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
+
+            // Unity scales a Y-axis capsule's radius by the larger of the root's X and Z scales.
+            var scale = transform.lossyScale;
+            GetComponent<CapsuleCollider>().radius = hitboxRadius / Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
         }
 
         public override void Initialize(IShooter shooter)
