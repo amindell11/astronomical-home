@@ -3,6 +3,7 @@ using System;
 using AI.Scanning.Sensors;
 using Combat.Projectiles;
 using Combat.Weapons;
+using Movement;
 using Ships;
 using UnityEngine;
 using Utils;
@@ -14,22 +15,24 @@ namespace Combat.Targeting
     public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
     {
         private const float ScanInterval = 0.1f;
+        private const float FanRayStepDeg = 5f;
+        private const float FanSphereRadius = 2f;
 
         [Header("Lock-On Settings")]
-        [Tooltip("Full width (degrees) of the cone around the fire point in which a target can be acquired and held.")]
+        [Tooltip("Full width (degrees) of the cone around the ship's nose, measured from its centre, in which a target can be acquired and held.")]
         [Stat, SerializeField] internal float lockOnConeAngle = 30f;
         [Tooltip("Seconds a target must stay in the cone before the lock is acquired.")]
         [Stat, SerializeField] private float lockOnTime = 0.6f;
         [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
         [Stat, SerializeField] private float lockExpiry = 3f;
-        [Tooltip("Max distance from the fire point at which a target can be locked.")]
+        [Tooltip("Max distance from the ship's centre at which a target can be locked.")]
         [Stat, SerializeField] internal float maxLockDistance = 100f;
 
-        [SerializeField] internal Transform firePoint;
         [SerializeField] internal WeaponBase<Missile> weapon;
 
+        private readonly Collider[] fanHits = new Collider[64];
         private TargetLock targetLock;
-        private FanSensor sensor;
+        private int shipMask;
         private IShipRegistry registry;
         private ShipId selfShipId;
         internal Ship selfShip;
@@ -44,10 +47,17 @@ namespace Combat.Targeting
         public bool IsLocked => targetLock?.IsLocked ?? false;
         public bool HasRegistry => registry != null;
 
+        internal Kinematics Pose => selfShip.Kinematics;
+
         public void SetRegistry(IShipRegistry shipRegistry)
         {
             if (ReferenceEquals(registry, shipRegistry))
                 return;
+
+            if (shipRegistry != null && !selfShip)
+                throw new InvalidOperationException(
+                    $"{nameof(LockOnSensor)} '{name}' has no {nameof(Ship)} above it: the sensor measures from its ship's centre, " +
+                    "so only a ship-mounted sensor can take a registry.");
 
             registry = shipRegistry;
 
@@ -71,8 +81,6 @@ namespace Combat.Targeting
         {
             if (!weapon)
                 weapon = GetComponent<WeaponBase<Missile>>();
-            if (!firePoint)
-                firePoint = transform;
 
             selfShip = GetComponentInParent<Ship>();
             if (selfShip)
@@ -81,14 +89,7 @@ namespace Combat.Targeting
             targetLock = new TargetLock(lockOnTime, lockExpiry, CanLock);
             targetLock.OnStateChanged += HandleTargetLockStateChanged;
 
-            sensor = new FanSensor(
-                firePoint,
-                maxLockDistance,
-                lockOnConeAngle,
-                5f,
-                2f,
-                LayerIds.Mask(LayerIds.Ship)
-            );
+            shipMask = LayerIds.Mask(LayerIds.Ship);
         }
 
         private void Start()
@@ -173,46 +174,54 @@ namespace Combat.Targeting
                 targetLock.TryStartLock(bestTarget);
         }
 
-        private bool IsAcquired(ITargetable t) =>
-            IsValid(t) && InRange(t) && InCone(t) && InLineOfSight(t);
+        private bool IsAcquired(ITargetable t)
+        {
+            if (!IsValid(t)) return false;
+            var pose = Pose;
+            var target = PlanePoint(t);
+            return InRange(pose, target) && InCone(pose, target) && InLineOfSight(pose, t);
+        }
 
         // Destroyed MonoBehaviours pass the interface null-check; liveness must test the underlying Object.
         private static bool IsValid(ITargetable t) =>
             (t is UnityEngine.Object obj ? obj : t != null) && t.TargetPoint;
 
-        private bool InRange(ITargetable t)
-        {
-            return Vector3.Distance(firePoint.position, t.TargetPoint.position) <= maxLockDistance;
-        }
+        private static Vector2 PlanePoint(ITargetable t) => GamePlane.WorldPointToPlane(t.TargetPoint.position);
 
-        private bool InCone(ITargetable t)
-        {
-            return Vector3.Angle(firePoint.up, (t.TargetPoint.position - firePoint.position).normalized) <= lockOnConeAngle / 2f;
-        }
+        private bool InRange(in Kinematics pose, Vector2 target) =>
+            TargetingMath.DistanceTo(pose, target) <= maxLockDistance;
 
-        private bool InLineOfSight(ITargetable t)
-        {
-            return LineOfSight.IsClear(firePoint.position, t.TargetPoint.position, t.TargetPoint);
-        }
+        private bool InCone(in Kinematics pose, Vector2 target) =>
+            TargetingMath.AngleTo(pose, target) <= lockOnConeAngle / 2f;
+
+        private static bool InLineOfSight(in Kinematics pose, ITargetable t) =>
+            LineOfSight.IsClear(GamePlane.PlanePointToWorld(pose.pos), t.TargetPoint.position, t.TargetPoint);
 
         private ITargetable FindBestTargetInCone()
         {
             if (registry == null)
                 return null;
 
-            var colliderCount = sensor.Detect(firePoint.up);
-            var colliders = sensor.Buffer;
+            var pose = Pose;
+            var colliderCount = RayFanSensor.Detect(
+                GamePlane.PlanePointToWorld(pose.pos),
+                GamePlane.PlaneDirToWorld(pose.Forward),
+                maxLockDistance,
+                lockOnConeAngle,
+                FanRayStepDeg,
+                FanSphereRadius,
+                shipMask,
+                fanHits);
 
             ITargetable bestCandidate = null;
             var smallestAngle = lockOnConeAngle / 2f;
 
             for (var i = 0; i < colliderCount; i++)
             {
-                if (!registry.TryGetShip(colliders[i], out var ship, selfShipId)) continue;
+                if (!registry.TryGetShip(fanHits[i], out var ship, selfShipId)) continue;
                 if (!IsValid(ship)) continue;
 
-                var dirToTarget = ship.TargetPoint.position - firePoint.position;
-                var angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
+                var angle = TargetingMath.AngleTo(pose, PlanePoint(ship));
 
                 if (angle >= smallestAngle) continue;
 

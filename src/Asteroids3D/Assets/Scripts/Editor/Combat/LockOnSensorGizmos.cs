@@ -25,13 +25,22 @@ namespace Combat.Targeting
         private static void Draw(LockOnSensor sensor, GizmoType gizmoType)
         {
             if (!GizmoView.IsOn(typeof(LockOnSensor), "lock") || !GizmoView.InScope(sensor)) return;
-            if (!sensor.firePoint) return;
             // Edit mode: Awake hasn't cached the ship and Kinematics is unpopulated — derive both from transforms.
             var ship = sensor.selfShip ? sensor.selfShip : sensor.GetComponentInParent<Ship>();
             if (!ship) return;
 
-            var origin = GamePlane.WorldPointToPlane(sensor.firePoint.position);
-            var forward = SafeDir(GamePlane.WorldDirToPlane(sensor.firePoint.up));
+            Vector2 origin, forward;
+            if (Application.isPlaying)
+            {
+                var pose = sensor.Pose;
+                origin = pose.pos;
+                forward = pose.Forward;
+            }
+            else
+            {
+                origin = GamePlane.WorldPointToPlane(ship.transform.position);
+                forward = SafeDir(GamePlane.WorldDirToPlane(ship.transform.up));
+            }
             var stateColor = StateColor(sensor.State);
 
             DrawCone(sensor, origin, forward, stateColor);
@@ -42,10 +51,7 @@ namespace Combat.Targeting
 
             var cooldown = sensor.weapon ? sensor.weapon.GetComponent<Cooldown>() : null;
             var cooldownRemaining = cooldown ? cooldown.CooldownRemaining : 0f;
-            var subject = Application.isPlaying
-                ? ship.Kinematics.pos
-                : GamePlane.WorldPointToPlane(ship.transform.position);
-            ShipReadout.Draw(subject, ShipReadoutRow.LockOn,
+            ShipReadout.Draw(origin, ShipReadoutRow.LockOn,
                 $"Targeting: {sensor.State}\nLock: {sensor.LockProgress:P0}\nCooldown: {cooldownRemaining:F1}s",
                 stateColor);
         }

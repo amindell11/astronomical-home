@@ -198,5 +198,4 @@ MonoBehaviour:
   lockOnTime: 0.85
   lockExpiry: 3
   maxLockDistance: 100
-  firePoint: {fileID: 8383258865359498199}
   weapon: {fileID: 0}

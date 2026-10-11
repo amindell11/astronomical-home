@@ -76,7 +76,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
-| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) | Always qualified. |
+| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) · missile lock (`LockOnSensor`) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
@@ -618,6 +618,10 @@ Format: **term** — definition. *(authority)*
 - **firing envelope** — whether a shot is currently takeable (nose cone, range,
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
+- **lock-on cone** — the cone around a ship's nose, measured from the ship's centre,
+  within which its lock-on sensor acquires and holds a missile lock. Missiles
+  launch from the mount, so the cone's tip is not where they leave.
+  *(`LockOnSensor.lockOnConeAngle`)*
 - **seeker cone** — the angle around a missile's nose within which it can see its
   target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
 - **lose track** — a missile drops its target for good and flies straight: on the

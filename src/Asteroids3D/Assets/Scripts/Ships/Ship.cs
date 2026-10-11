@@ -191,6 +191,9 @@ namespace Ships
             // Collider bounds must reflect authored root scale before deriving radius.
             Physics.SyncTransforms();
 
+            // Consumers wired straight after spawn read the snapshot before the poller's first FixedUpdate.
+            KinematicsPoller.Poll();
+
             if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
 
             Stats.shipRadius = DeriveShipRadius();
