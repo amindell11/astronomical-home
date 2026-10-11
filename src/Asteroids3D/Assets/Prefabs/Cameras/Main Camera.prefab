@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 5939155143076008333}
   - component: {fileID: 2955169299585790518}
   - component: {fileID: 406062432869659639}
+  - component: {fileID: 3827857952577153320}
   m_Layer: 0
   m_Name: AudioListener
   m_TagString: Untagged
@@ -114,6 +115,20 @@ AudioReverbZone:
   m_Density: 100
   m_LFReference: 250
   m_RoomLF: 0
+--- !u!114 &3827857952577153320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630577056879540629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nonRigidbodyVelocity: 0
+  attenuationObject: {fileID: 0}
 --- !u!1 &4999706493144585137
 GameObject:
   m_ObjectHideFlags: 0

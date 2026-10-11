@@ -1,0 +1,6 @@
+# Audio sources and built banks are binary — keep them in LFS (mirrors src/Asteroids3D/.gitattributes)
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.aif filter=lfs diff=lfs merge=lfs -text
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.als filter=lfs diff=lfs merge=lfs -text
+*.bank filter=lfs diff=lfs merge=lfs -text

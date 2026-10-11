@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8105349543242701031}
   - component: {fileID: 6448982411033854647}
   - component: {fileID: -8301958025146036882}
+  - component: {fileID: 8653804347652268947}
   m_Layer: 0
   m_Name: Lasers
   m_TagString: Untagged
@@ -77,7 +78,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
+  displayName: 
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
+  fireDistance: 20
+  fireAngleTolerance: 5
   heat: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
+--- !u!114 &8653804347652268947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43015ba957764bc419ec8953b26aae2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireEvent:
+    Guid:
+      Data1: -2052215289
+      Data2: 1197622911
+      Data3: -67555695
+      Data4: -1468177357
+    Path: event:/Weapons/Laser/Fire
