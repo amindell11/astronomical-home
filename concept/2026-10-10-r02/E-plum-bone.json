@@ -1,0 +1,27 @@
+{
+  "name": "plum-bone",
+  "provider": "OpenAI",
+  "reference": {
+    "path": "../2026-10-06-r01/owner-sketch.jpg",
+    "sha256": "486e284e25d9d66e931d518f6038845d3d2fed8aec9446fc63ef4024384b79c7",
+    "role": "only shape reference; original owner pencil sketch"
+  },
+  "tool": "image_gen.imagegen",
+  "sha256": "aa9c09a431707803f5a139efe03fedcaeab107bc4dc440a3274d1e2e0917ff6c",
+  "output": "E-plum-bone.png",
+  "promptFile": "E-plum-bone.prompt.txt",
+  "stage": "concept",
+  "createdAtUtc": "2026-10-11T03:07:57.9603307Z",
+  "asset": "Bulwark",
+  "ownerDirection": [
+    "Previous sheet rejected as too realistic and losing the design spirit.",
+    "Top and side views only until owner approves.",
+    "Hand-drawn low detail with linework and color.",
+    "Canopy rounded bulb at forward left; narrow taper toward aft right.",
+    "Produce multiple variants for owner choice."
+  ],
+  "model": null,
+  "variant": "E",
+  "round": "2026-10-10-r02",
+  "status": "owner-review-pending"
+}

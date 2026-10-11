@@ -1,0 +1,27 @@
+{
+  "name": "charcoal-vermilion",
+  "provider": "OpenAI",
+  "reference": {
+    "path": "../2026-10-06-r01/owner-sketch.jpg",
+    "sha256": "486e284e25d9d66e931d518f6038845d3d2fed8aec9446fc63ef4024384b79c7",
+    "role": "only shape reference; original owner pencil sketch"
+  },
+  "tool": "image_gen.imagegen",
+  "sha256": "b220051ad5fad9543f34bce217c7b39cada085d8c88192bda1ead75db1eb6b3b",
+  "output": "F-charcoal-vermilion.png",
+  "promptFile": "F-charcoal-vermilion.prompt.txt",
+  "stage": "concept",
+  "createdAtUtc": "2026-10-11T03:07:57.9852902Z",
+  "asset": "Bulwark",
+  "ownerDirection": [
+    "Previous sheet rejected as too realistic and losing the design spirit.",
+    "Top and side views only until owner approves.",
+    "Hand-drawn low detail with linework and color.",
+    "Canopy rounded bulb at forward left; narrow taper toward aft right.",
+    "Produce multiple variants for owner choice."
+  ],
+  "model": null,
+  "variant": "F",
+  "round": "2026-10-10-r02",
+  "status": "owner-review-pending"
+}
