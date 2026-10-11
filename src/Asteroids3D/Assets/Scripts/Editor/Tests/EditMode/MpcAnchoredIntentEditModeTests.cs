@@ -12,6 +12,8 @@ using Unity.Mathematics;
 using UnityEngine;
 using Ships.Registry;
 using AI.Strategy;
+using System.Collections.Generic;
+using Combat.Targeting;
 
 namespace Tests.EditMode
 {
@@ -297,6 +299,7 @@ namespace Tests.EditMode
             public float BoostCooldownPct => 0f;
             public float MaxSpeed => 10f;
             public float MaxYawRate => 90f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
         }
 
         private Navigator nav;

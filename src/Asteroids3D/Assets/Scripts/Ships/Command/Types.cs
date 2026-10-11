@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Combat;
+using Combat.Targeting;
 using Combat.Weapons;
 using Movement;
 using UnityEngine;
@@ -83,6 +84,7 @@ namespace Ships.Command
         float BoostCooldownPct { get; }
         float MaxSpeed { get; }
         float MaxYawRate { get; }
+        IReadOnlyList<ITrackingMissile> TrackingMissiles { get; }
     }
 
     /// <summary>

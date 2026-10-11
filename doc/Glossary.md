@@ -628,6 +628,16 @@ Format: **term** — definition. *(authority)*
   first physics step its target is outside the seeker cone, or an asteroid cuts one
   thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
   reacquire. *(`Missile.CanSeeTarget`)*
+- **tracking missile** — a missile that has a target and hasn't lost track. The
+  target's lock channel lists it from launch until it loses track or leaves play,
+  and a ship reads its own list as status. *(`Missile.IsTracking`, `LockChannel.Trackers`,
+  `IShipStatus.TrackingMissiles`)*
+- **missile evasion** — a scripted pilot leaning away from a tracking missile and
+  boosting to escape it. Only missiles tracking its own ship count: a lost track ends
+  it, and a missile lock before launch draws none (dodging the lock-on cone would deny
+  every missile lock). The Dummy never evades. *(`ArchetypeBrain.evadeMissiles`)*
+- **evasion urgency** — 0 to 1, how hard missile evasion leans, from the missile's
+  time to impact. *(`ArchetypeLaws.EvasionUrgency`, `ArchetypeLaws.TimeToImpact`)*
 - **swept hit test** — each physics step a projectile tests the whole path it is
   about to cover, so a fast shot can't pass through a thin target between steps
   (tunneling). Its trigger collider callback still catches anything already

@@ -11,10 +11,12 @@ using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
 using RL.Opponents;
+using System.Collections.Generic;
+using Combat.Targeting;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, and the ArchetypePilot authoring that makes an archetype flyable in a live sector.</summary>
+    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, and the pure missile-evasion laws.</summary>
     [Category("AI")]
     public class ArchetypeBrainEditModeTests
     {
@@ -43,6 +45,14 @@ namespace Tests.EditMode
             public float BoostCooldownPct => 0f;
             public float MaxSpeed => 10f;
             public float MaxYawRate => 90f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
+        }
+
+        private sealed class StubMissile : ITrackingMissile
+        {
+            public StubMissile(Vector2 pos, Vector2 vel) => Kinematics = new Kinematics(pos, vel, 0f, 0f, 0f);
+
+            public Kinematics Kinematics { get; }
         }
 
         private GameObject brainHost;
@@ -149,6 +159,68 @@ namespace Tests.EditMode
             Assert.IsNotNull(settings, "ArchetypePilot must author MPC settings");
             Assert.AreEqual(50f, settings.wVelTrack,
                 "the scripted velocity laws need the roster's tracker weight — the script default is too loose to hold a reference");
+        }
+
+        [TestCase(5f, 10f / 15f, TestName = "TimeToImpact_SlowMissile_ClosesAtTheFloor")]
+        [TestCase(20f, 10f / 20f, TestName = "TimeToImpact_FastMissile_ClosesAtItsSpeed")]
+        public void TimeToImpact_FloorsTheClosingSpeed(float missileSpeed, float expected)
+        {
+            var self = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
+            var missile = new Kinematics(new Vector2(0f, -10f), new Vector2(0f, missileSpeed), 0f, 0f, 0f);
+
+            Assert.AreEqual(expected, ArchetypeLaws.TimeToImpact(in self, in missile, speedFloor: 15f), 1e-5f);
+        }
+
+        [TestCase(3f, 0f)]
+        [TestCase(2f, 0f)]
+        [TestCase(1.25f, 0.5f)]
+        [TestCase(0.5f, 1f)]
+        [TestCase(0.1f, 1f)]
+        public void EvasionUrgency_RampsFromTheFarTimeToTheNearTime(float timeToImpact, float expected)
+        {
+            Assert.AreEqual(expected, ArchetypeLaws.EvasionUrgency(timeToImpact, farTime: 2f, nearTime: 0.5f), 1e-5f);
+        }
+
+        [TestCase(0f, 3f, 180f, 1f, TestName = "EscapeSide_Moving_BreaksToTheVelocitySideOverTheNose")]
+        [TestCase(0f, 0f, 0f, 1f, TestName = "EscapeSide_AtRest_BreaksToTheNoseSide")]
+        [TestCase(0f, 0f, 180f, -1f, TestName = "EscapeSide_AtRestNoseReversed_BreaksToTheOtherSide")]
+        public void EscapeHeading_IsSquareToTheApproachOnTheChosenSide(float velX, float velY, float yaw,
+            float expectedY)
+        {
+            var self = new Kinematics(Vector2.zero, new Vector2(velX, velY), yaw, 0f, 0f);
+            var missilePos = new Vector2(10f, 0f);
+
+            var side = ArchetypeLaws.EscapeSide(in self, missilePos);
+            var heading = ArchetypeLaws.EscapeHeading(self.pos, missilePos, side);
+
+            Assert.AreEqual(0f, heading.x, 1e-5f, "square to the missile's approach");
+            Assert.AreEqual(expectedY, heading.y, 1e-5f);
+        }
+
+        [Test]
+        public void MostUrgentTracker_PicksTheShortestFlooredTimeToImpact()
+        {
+            var self = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
+            var fastFar = new StubMissile(new Vector2(0f, -20f), new Vector2(0f, 40f));
+            var slowNear = new StubMissile(new Vector2(6f, 0f), Vector2.zero);
+            var cruising = new StubMissile(new Vector2(-30f, 0f), new Vector2(15f, 0f));
+
+            var picked = ArchetypeLaws.MostUrgentTracker(in self, new ITrackingMissile[] { fastFar, slowNear, cruising },
+                speedFloor: 15f, out var timeToImpact);
+
+            Assert.AreSame(slowNear, picked, "a parked missile 6 u away closes at the floor: 0.4 s beats 0.5 s and 2 s");
+            Assert.AreEqual(0.4f, timeToImpact, 1e-5f);
+        }
+
+        [TestCase(0f, 4f, 2f)]
+        [TestCase(1f, 0f, 20f)]
+        [TestCase(0.5f, 2f, 11f)]
+        public void EvasionVelocity_BlendsTheLawTowardTheEscapeByUrgency(float urgency, float expectedX, float expectedY)
+        {
+            var velocity = ArchetypeLaws.EvasionVelocity(new Vector2(4f, 2f), Vector2.up, escapeSpeed: 20f, urgency);
+
+            Assert.AreEqual(expectedX, velocity.x, 1e-5f);
+            Assert.AreEqual(expectedY, velocity.y, 1e-5f);
         }
     }
 }

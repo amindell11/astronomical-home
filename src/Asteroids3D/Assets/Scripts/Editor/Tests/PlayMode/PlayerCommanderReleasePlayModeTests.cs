@@ -11,6 +11,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Ships.Registry;
+using Combat.Targeting;
 
 namespace Tests.PlayMode
 {
@@ -48,6 +49,7 @@ namespace Tests.PlayMode
             public float BoostCooldownPct => 0f;
             public float MaxSpeed => 0f;
             public float MaxYawRate => 0f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
         }
 
         private GameObject commanderGo;

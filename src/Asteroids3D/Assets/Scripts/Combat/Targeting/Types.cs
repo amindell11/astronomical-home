@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Combat.Weapons;
+using Movement;
 using UnityEngine;
 
 namespace Combat.Targeting
@@ -32,12 +34,22 @@ namespace Combat.Targeting
         LockChannel Lock { get; }
     }
 
+    /// <summary>A missile's plane motion, as read by the ship it tracks.</summary>
+    public interface ITrackingMissile
+    {
+        Kinematics Kinematics { get; }
+    }
+
     /// <summary>
-    /// Lightweight container that holds delegates related to missile lock-on events for a single target.
-    /// Components may freely subscribe (+=) or invoke (?.Invoke) these delegates.
+    /// One target's missile-lock events, raised by whoever locks it, and the missiles tracking it,
+    /// kept by those missiles. It lives as long as the target.
     /// </summary>
     public sealed class LockChannel
     {
+        private readonly List<ITrackingMissile> trackers = new();
+
+        public IReadOnlyList<ITrackingMissile> Trackers => trackers;
+
         /// <summary>Called every frame while a lock is building. Parameter: progress [0-1].</summary>
         public event Action<float> Progress;
 
@@ -61,5 +73,9 @@ namespace Combat.Targeting
         {
             Released?.Invoke();
         }
+
+        public void AddTracker(ITrackingMissile missile) => trackers.Add(missile);
+
+        public void RemoveTracker(ITrackingMissile missile) => trackers.Remove(missile);
     }
 }
