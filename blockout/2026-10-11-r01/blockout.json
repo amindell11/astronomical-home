@@ -1,0 +1,13 @@
+{
+  "asset": "Bulwark",
+  "stage": "blockout",
+  "round": "2026-10-11-r01",
+  "status": "owner-review-pending",
+  "sourceCommit": "e2c72ba9f3dcf449d813aa2a54c9270c4b270fdd",
+  "source": "art/ships/bulwark/Bulwark.blend",
+  "sourceSha256": "aaff1647b918bf760bf260bc2ab1b8417b81e3472718c9f4c768c4a37a0e926c",
+  "approvedConceptCommit": "2fd62770db5877afee95e4416160c5eb5731ed23",
+  "authoring": "Interactive Blender; reference-aligned hull and tail masses, simple canopy and side inset; live X Mirror modifiers",
+  "modelingReferenceLength": 10,
+  "frontViewQuestion": "Raised tail tips follow the side profile and are visible from the front; the concept front drawing omitted them."
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "aaff1647b918bf760bf260bc2ab1b8417b81e3472718c9f4c768c4a37a0e926c",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "e015fbd17c0dfc94ef9874dd65bb3e4da303fe63c8ef2ced9531a557c1f42dfa",
+      "uv": "62ecd03ab13bc274e5aba9d0edc9a9eabfc7d0709941fa7b1d484544f761ac3f",
+      "materials": "a46ab0a1e381321047bcb38b15a0cdabf310b2d922a7a5ebda6eb7fe9c61504a"
+    },
+    "parts": {
+      "Bulwark.Canopy": {
+        "geometry": "d0093f1f8f298937a57ed4ab8bd5fc70e157aaabdd7bd3baa5ce24be885a5a19",
+        "uv": "371841f7953dd90ba8c0d61c5f8c9c8ed3da3b44c5b4e6d6444bdf5a397665fe",
+        "materials": "24d96f6d569019187c21b0e9327341f096a15032ab06be9f142546bf3b436e7b"
+      },
+      "Bulwark.Hull": {
+        "geometry": "328e47af6528e48e1492ea6046a86cf8cf2fa002d83f63f2c030b4d98dc09a69",
+        "uv": "ec3928c05c4ce5dba5022334458b70f0b78384ce215a30cc33f6a49aaf5a695c",
+        "materials": "d8c965ae596b761a89d8f57d4c1b5d1e2d7c9609122bf14413abd42c4b605edb"
+      },
+      "Bulwark.SideInset": {
+        "geometry": "49705f471bc86dcebadd634930f24313749260126b5f9c50d2ba0a113f616502",
+        "uv": "653f1ac6848bc05f8cce50e8a7ba5932f42beb5ef493c3e73073f2e94bb2fa00",
+        "materials": "019086d388e93e776f5c6a6d4a3c63ea95fb91000fc0b1045609d354ba2badc7"
+      },
+      "Bulwark.Tail": {
+        "geometry": "be07088f9e6a9f8386193c64e9682e95fd4307e07c284f89adaf245fccc263d6",
+        "uv": "5e3be1dfe716221c40977b6cb17751d05c0c1c04f8c6b2a01627170c450eb21d",
+        "materials": "b3856e022ec74789bb9dbd97b5af0edde04f2e325a696ff0200dadbedca42ccc"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.side": {
+        "geometry": "fa90a37911bf963c6a818b0550667f213b55492a0ddd9caceb141336015e98cc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "016c9e92999841abc8a1eae8cfcbbe1b53f876dcf013925bd599cad343119c5c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

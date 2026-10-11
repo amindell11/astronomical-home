@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "aaff1647b918bf760bf260bc2ab1b8417b81e3472718c9f4c768c4a37a0e926c",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-3\\results\\bulwark\\blockout-2026-10-11\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}
