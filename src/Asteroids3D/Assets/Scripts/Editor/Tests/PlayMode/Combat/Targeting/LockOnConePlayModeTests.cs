@@ -40,12 +40,12 @@ namespace Tests.PlayMode
             var prefab = TestAssets.Load<Ship>(VanguardPrefabPath);
             Assert.IsNotNull(prefab, "Vanguard prefab loads");
 
-            shooter = Factory.CreateShip(prefab, null, 0, 0, Projectiles, Vector3.zero, Quaternion.identity);
+            shooter = Factory.CreateShip(prefab, null, team: 0, decisionSeed: 0, Projectiles, Vector3.zero, Quaternion.identity);
             var bearing = TargetBearingDeg * Mathf.Deg2Rad;
             var targetPos = shooter.transform.position
                 + shooter.transform.up * (TargetRange * Mathf.Cos(bearing))
                 + shooter.transform.right * (TargetRange * Mathf.Sin(bearing));
-            target = Factory.CreateShip(prefab, null, 1, 0, Projectiles, targetPos, Quaternion.identity);
+            target = Factory.CreateShip(prefab, null, team: 1, decisionSeed: 0, Projectiles, targetPos, Quaternion.identity);
             registry.ActiveShips.Add(shooter);
             registry.ActiveShips.Add(target);
 

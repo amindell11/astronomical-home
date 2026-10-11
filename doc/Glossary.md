@@ -619,7 +619,7 @@ Format: **term** — definition. *(authority)*
   LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
   mutates the firing path's LOS cache, so observing changes behaviour.
 - **lock-on cone** — the cone around a ship's nose, measured from the ship's centre,
-  within which its lock-on sensor acquires and holds a missile lock. Missiles still
+  within which its lock-on sensor acquires and holds a missile lock. Missiles
   launch from the mount, so the cone's tip is not where they leave.
   *(`LockOnSensor.lockOnConeAngle`)*
 - **seeker cone** — the angle around a missile's nose within which it can see its
