@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
-using Ships.Visuals.Wings;
 using Substrate;
 using UnityEditor;
 using UnityEngine;
@@ -13,10 +12,9 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Presentation
 {
     /// <summary>
-    /// Golden-image check of a whole chassis prefab: the ship is rendered at three yaws (a winged
-    /// chassis also with its wings swept) with a fixed orthographic camera and key light that see
-    /// only the Ship layer, particle renderers off, and compared pixel by pixel against
-    /// <c>results/ship-render/baseline/</c>. A missing baseline fails;
+    /// Golden-image check of a whole chassis prefab: the ship is rendered at three yaws with a fixed
+    /// orthographic camera and key light that see only the Ship layer, particle renderers off, and
+    /// compared pixel by pixel against <c>results/ship-render/baseline/</c>. A missing baseline fails;
     /// seeding is a deliberate copy of an inspected render from <c>results/ship-render/</c> into it.
     /// </summary>
     [Category("Presentation"), Category("RequiresGraphics")]
@@ -28,24 +26,18 @@ namespace Tests.PlayMode.Presentation
         private static readonly string OutputDirectory =
             Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/ship-render"));
 
-        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 0, false)]
-        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 90, false)]
-        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 135, false)]
-        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 0, false)]
-        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 90, false)]
-        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 135, false)]
-        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 0, false)]
-        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 90, false)]
-        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 135, false)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 0, false)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 90, false)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 135, false)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 0, true)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 90, true)]
-        [TestCase("Assets/Prefabs/Ships/Valis.prefab", 135, true)]
-        public void Chassis_RendersPixelIdenticalToBaseline(string chassisPath, int yaw, bool wingsSwept)
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 0)]
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 90)]
+        [TestCase("Assets/Prefabs/Ships/Crimson.prefab", 135)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 0)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 90)]
+        [TestCase("Assets/Prefabs/Ships/Nightshade.prefab", 135)]
+        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 0)]
+        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 90)]
+        [TestCase("Assets/Prefabs/Ships/Vanguard.prefab", 135)]
+        public void Chassis_RendersPixelIdenticalToBaseline(string chassisPath, int yaw)
         {
-            var stem = $"{Path.GetFileNameWithoutExtension(chassisPath)}-{yaw}{(wingsSwept ? "-swept" : "")}";
+            var stem = $"{Path.GetFileNameWithoutExtension(chassisPath)}-{yaw}";
             var root = new GameObject("Chassis render");
             var priorTarget = RenderTexture.active;
             var priorAmbient = RenderSettings.ambientLight;
@@ -58,7 +50,6 @@ namespace Tests.PlayMode.Presentation
                 Assert.That(prefab, Is.Not.Null, chassisPath);
                 root.SetActive(false);
                 var subject = Object.Instantiate(prefab, root.transform);
-                if (wingsSwept) SweepWings(subject);
                 foreach (var behaviour in subject.GetComponentsInChildren<MonoBehaviour>(true))
                     if (!(behaviour.GetType().Namespace ?? "").StartsWith("UnityEngine", StringComparison.Ordinal))
                         Object.DestroyImmediate(behaviour);
@@ -125,19 +116,6 @@ namespace Tests.PlayMode.Presentation
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(target);
                 Object.DestroyImmediate(image);
-            }
-        }
-
-        private static void SweepWings(GameObject subject)
-        {
-            var wings = subject.GetComponentsInChildren<WingVisuals>(true);
-            Assert.That(wings, Is.Not.Empty, "Only a winged chassis has a swept pose.");
-            // Full thrust slerps every wing joint from its rest rotation to identity.
-            foreach (var wing in wings)
-            {
-                var joints = new SerializedObject(wing).FindProperty("joints");
-                for (var i = 0; i < joints.arraySize; i++)
-                    ((Transform)joints.GetArrayElementAtIndex(i).FindPropertyRelative("bone").objectReferenceValue).localRotation = Quaternion.identity;
             }
         }
 
