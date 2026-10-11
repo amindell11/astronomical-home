@@ -40,7 +40,7 @@ namespace RL.Opponents
             return Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
         }
 
-        /// <summary>Range over closing speed, the closing speed floored so a missile in its slow start doesn't read as far away.</summary>
+        /// <summary>Closing speed is floored so a slow-starting missile doesn't read as far away.</summary>
         internal static float TimeToImpact(in Kinematics self, in Kinematics missile, float speedFloor)
         {
             var los = self.pos - missile.pos;
@@ -49,11 +49,9 @@ namespace RL.Opponents
             return range / Mathf.Max(closing, speedFloor);
         }
 
-        /// <summary>Evasion urgency: 0 at the far time to impact, rising linearly to 1 at the near time.</summary>
         internal static float EvasionUrgency(float timeToImpact, float farTime, float nearTime) =>
             Mathf.InverseLerp(farTime, nearTime, timeToImpact);
 
-        /// <summary>The tracker with the shortest time to impact.</summary>
         internal static ITrackingMissile MostUrgentTracker(in Kinematics self, IReadOnlyList<ITrackingMissile> trackers,
             float speedFloor, out float timeToImpact)
         {
@@ -69,7 +67,6 @@ namespace RL.Opponents
             return mostUrgent;
         }
 
-        /// <summary>Which side of the missile's line of sight to break to: the side the velocity leans, or the nose's side when the ship is near rest along it.</summary>
         internal static int EscapeSide(in Kinematics self, Vector2 missilePos)
         {
             var perp = LeftOfApproach(self.pos, missilePos);
@@ -78,11 +75,9 @@ namespace RL.Opponents
             return lean >= 0f ? 1 : -1;
         }
 
-        /// <summary>Square to the missile's line of sight, on the held side.</summary>
         internal static Vector2 EscapeHeading(Vector2 selfPos, Vector2 missilePos, int side) =>
             side * LeftOfApproach(selfPos, missilePos);
 
-        /// <summary>The law velocity blended toward the escape velocity by urgency.</summary>
         internal static Vector2 EvasionVelocity(Vector2 lawVelocity, Vector2 escapeHeading, float escapeSpeed,
             float urgency) =>
             Vector2.Lerp(lawVelocity, escapeSpeed * escapeHeading, urgency);

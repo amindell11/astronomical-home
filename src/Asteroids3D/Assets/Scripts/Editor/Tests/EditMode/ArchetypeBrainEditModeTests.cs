@@ -161,7 +161,7 @@ namespace Tests.EditMode
                 "the scripted velocity laws need the roster's tracker weight — the script default is too loose to hold a reference");
         }
 
-        [TestCase(5f, 10f / 15f, TestName = "TimeToImpact_SlowMissile_ClosesAtTheFloor")]
+        [TestCase(5f, 10f / 15f, TestName = "TimeToImpact_SlowMissile_ClosesAtTheSpeedFloor")]
         [TestCase(20f, 10f / 20f, TestName = "TimeToImpact_FastMissile_ClosesAtItsSpeed")]
         public void TimeToImpact_FloorsTheClosingSpeed(float missileSpeed, float expected)
         {
@@ -208,7 +208,7 @@ namespace Tests.EditMode
             var picked = ArchetypeLaws.MostUrgentTracker(in self, new ITrackingMissile[] { fastFar, slowNear, cruising },
                 speedFloor: 15f, out var timeToImpact);
 
-            Assert.AreSame(slowNear, picked, "a parked missile 6 u away closes at the floor: 0.4 s beats 0.5 s and 2 s");
+            Assert.AreSame(slowNear, picked, "a parked missile 6 u away closes at the speed floor: 0.4 s beats 0.5 s and 2 s");
             Assert.AreEqual(0.4f, timeToImpact, 1e-5f);
         }
 

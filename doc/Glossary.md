@@ -74,7 +74,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
 | **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
-| **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor | Always qualified. |
+| **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor · speed floor (missile evasion's closing-speed floor, `ArchetypeBrain.closingSpeedFloor`) | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
 | **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) · missile lock (`LockOnSensor`) | Always qualified. |
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
@@ -629,13 +629,12 @@ Format: **term** — definition. *(authority)*
   thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
   reacquire. *(`Missile.CanSeeTarget`)*
 - **tracking missile** — a missile that has a target and hasn't lost track. The
-  target's lock channel lists it from launch until it loses track or leaves play,
-  and a ship reads its own list as status. *(`Missile.IsTracking`, `LockChannel.Trackers`,
-  `IShipStatus.TrackingMissiles`)*
+  target's lock channel lists it from launch until it loses track or leaves play.
+  *(`Missile.IsTracking`, `LockChannel.Trackers`, `IShipStatus.TrackingMissiles`)*
 - **missile evasion** — a scripted pilot leaning away from a tracking missile and
   boosting to escape it. Only missiles tracking its own ship count: a lost track ends
   it, and a missile lock before launch draws none (dodging the lock-on cone would deny
-  every missile lock). The Dummy never evades. *(`ArchetypeBrain.evadeMissiles`)*
+  every missile lock). *(`ArchetypeBrain.evadeMissiles`)*
 - **evasion urgency** — 0 to 1, how hard missile evasion leans, from the missile's
   time to impact. *(`ArchetypeLaws.EvasionUrgency`, `ArchetypeLaws.TimeToImpact`)*
 - **swept hit test** — each physics step a projectile tests the whole path it is

@@ -34,7 +34,6 @@ namespace Combat.Targeting
         LockChannel Lock { get; }
     }
 
-    /// <summary>A missile's plane motion, as read by the ship it tracks.</summary>
     public interface ITrackingMissile
     {
         Kinematics Kinematics { get; }

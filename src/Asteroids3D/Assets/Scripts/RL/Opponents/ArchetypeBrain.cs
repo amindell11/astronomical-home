@@ -153,7 +153,6 @@ namespace RL.Opponents
             }
         }
 
-        /// <summary>Packs the law's velocity, blended toward the missile escape by evasion urgency, as the border-steered world reference; for the fire-capable archetypes, the enemy-facing aim, eased by urgency; and the escape boost.</summary>
         private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages)
         {
             var self = status.Kinematics;
