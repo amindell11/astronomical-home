@@ -1,0 +1,36 @@
+{
+  "asset": "Bulwark",
+  "stage": "concept",
+  "round": "2026-10-10-r03",
+  "variant": "E",
+  "name": "plum-bone-light-detail",
+  "status": "owner-review-pending",
+  "provider": "OpenAI",
+  "tool": "image_gen.imagegen",
+  "model": null,
+  "output": "E-light-detail.png",
+  "sha256": "f68b16ec8601531be6b80951c9ee08a63d0fc751f9fc0d8dc78afe630d323a12",
+  "promptFile": "prompt.txt",
+  "parent": {
+    "path": "../2026-10-10-r02/E-plum-bone.png",
+    "sha256": "aa9c09a431707803f5a139efe03fedcaeab107bc4dc440a3274d1e2e0917ff6c",
+    "role": "edit target; selected E design, style, color and layout",
+    "evidenceCommit": "c4f5a3769985d9ce9a9f114533120e92adc053ca"
+  },
+  "parameters": {
+    "transparent_background": false
+  },
+  "ownerDirection": [
+    "Use selected E, plum and bone.",
+    "Light detail pass on existing top and side views only.",
+    "Keep the hand-drawn style; no 3D.",
+    "Preserve the canopy round bulb forward left and taper aft right."
+  ],
+  "createdAtUtc": "2026-10-11T04:03:38.7283338Z",
+  "visualReview": [
+    "Two existing views retained, side above top.",
+    "Blunt nose, rear fork and palette retained.",
+    "Top-view teardrop round bulb left, point right.",
+    "Sparse seams, rim lines and small aft vents added."
+  ]
+}
