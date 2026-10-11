@@ -1,8 +1,16 @@
 # Bulwark evidence
 
-Concept-stage work for [issue #963](https://github.com/amindell11/astronomical-home/issues/963). No approval is inferred from publication.
+Concept-stage work for [issue #963](https://github.com/amindell11/astronomical-home/issues/963).
 
-- [Round 2 — October 10, 2026](concept/2026-10-10-r02/README.md): six low-detail hand-drawn top/side options with corrected canopy direction. Owner choice and approval pending.
-- [Round 1 — October 6, 2026](concept/2026-10-06-r01/README.md): full sheet rejected by the owner as too realistic and unfaithful to the sketch; canopy direction reversed. Preserved as history.
+## Current selection
 
-Current owner scope: iterate top and side views with linework and color until approval. No geometry or other views yet.
+The owner selected **E — plum / bone** from round 2 as the base for continued top-and-side refinement on October 10, 2026. All six palettes are retained as future skin directions.
+
+[Selection record](concept/2026-10-10-r02/selection.json) · [Selected drawing](concept/2026-10-10-r02/E-plum-bone.png) · [All variants](concept/2026-10-10-r02/index.html)
+
+Scope remains low-detail, hand-drawn top and side views with linework and color until owner approval. Selecting the base does not establish final-view or blockout approval.
+
+## Rounds
+
+- [Round 2 — six drawing options](concept/2026-10-10-r02/README.md): E selected for continuation; all palettes retained for skins.
+- [Round 1](concept/2026-10-06-r01/README.md): rejected for excessive realism, lost sketch character, and reversed canopy. Preserved as historical evidence.

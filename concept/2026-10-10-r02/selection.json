@@ -1,0 +1,21 @@
+{
+  "asset": "Bulwark",
+  "stage": "concept",
+  "round": "2026-10-10-r02",
+  "selectedVariant": "E",
+  "selectedPalette": "Plum / bone",
+  "status": "selected-for-top-and-side-refinement",
+  "selectedImage": "E-plum-bone.png",
+  "selectedImageCommit": "50ab54a4e0db55772e05ae63b88ee0a9423f7b80",
+  "ownerInstruction": "I like all of those especially for when we do skins but let’s start with E",
+  "retainedSkinDirections": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F"
+  ],
+  "scope": "Continue top and side views until owner approval.",
+  "selectedAtLocalDate": "2026-10-10"
+}
