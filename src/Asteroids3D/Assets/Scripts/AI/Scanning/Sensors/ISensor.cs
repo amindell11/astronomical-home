@@ -11,9 +11,4 @@ namespace AI.Scanning.Sensors
         int Detect();
         Collider[] Buffer { get; }
     }
-    
-    public interface IDirectionalSensor : ISensor
-    {
-        int Detect(Vector3 direction);
-    }
 }
