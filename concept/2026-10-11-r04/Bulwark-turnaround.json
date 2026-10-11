@@ -1,0 +1,38 @@
+{
+  "asset": "Bulwark",
+  "stage": "concept",
+  "round": "2026-10-11-r04",
+  "variant": "E",
+  "name": "plum-bone-full-turnaround",
+  "status": "owner-review-pending",
+  "provider": "OpenAI",
+  "tool": "image_gen.imagegen",
+  "model": null,
+  "output": "Bulwark-turnaround.png",
+  "sha256": "3f4c75fd9d9ad0f17905d232525ff779758013f163cde94b2e38ae0f9aa64864",
+  "promptFile": "prompt.txt",
+  "parent": {
+    "path": "../2026-10-10-r03/E-light-detail.png",
+    "sha256": "f68b16ec8601531be6b80951c9ee08a63d0fc751f9fc0d8dc78afe630d323a12",
+    "role": "sole edit target and reference for shape, palette, style and existing views",
+    "evidenceCommit": "ad44ed3dafac51407aebd5d0c7ac2ee7dcb4064e"
+  },
+  "parameters": {
+    "transparent_background": false
+  },
+  "ownerDirection": "ok lets do the full turnaround",
+  "views": [
+    "top",
+    "side",
+    "front",
+    "three-quarter"
+  ],
+  "createdAtUtc": "2026-10-11T19:48:36.8925054Z",
+  "visualReview": [
+    "Four labeled views present.",
+    "Plum and bone palette and sparse hand-drawn linework retained.",
+    "Broad blunt nose, rear fork and circular side inset retained.",
+    "Canopy rounded bulb faces forward; pointed taper faces aft.",
+    "Front and three-quarter surfaces are concept interpretations for owner review."
+  ]
+}

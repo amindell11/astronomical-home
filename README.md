@@ -4,18 +4,17 @@ Concept-stage work for [issue #963](https://github.com/amindell11/astronomical-h
 
 ## Current drawing
 
-[Round 3 — E light detail pass](concept/2026-10-10-r03/README.md) adds sparse details to the selected plum-and-bone top and side views. It awaits owner review.
+[Round 4 — full turnaround](concept/2026-10-11-r04/README.md) adds front and three-quarter views to the selected E light-detail concept. The new views await owner review.
 
-[Drawing](concept/2026-10-10-r03/E-light-detail.png) · [Before / after](concept/2026-10-10-r03/index.html)
+[Turnaround](concept/2026-10-11-r04/Bulwark-turnaround.png) · [Review](concept/2026-10-11-r04/index.html)
 
 ## Selected base
 
-The owner selected E — plum / bone from round 2 for continued top-and-side refinement. All six palettes are retained as future skin directions. [Selection record](concept/2026-10-10-r02/selection.json).
-
-Scope remains low-detail hand-drawn top and side views with linework and color until owner approval. No geometry or additional views are included.
+The owner chose E — plum / bone from round 2, requested a light detail pass, then requested the full turnaround. All six round 2 palettes remain future skin directions. [Selection record](concept/2026-10-10-r02/selection.json).
 
 ## Rounds
 
-- [Round 3 — light detail pass](concept/2026-10-10-r03/README.md): pending owner review.
+- [Round 4 — full turnaround](concept/2026-10-11-r04/README.md): top, side, front and three-quarter; pending review.
+- [Round 3 — light detail pass](concept/2026-10-10-r03/README.md): source for the requested turnaround.
 - [Round 2 — six drawing options](concept/2026-10-10-r02/README.md): E selected for continuation; all palettes retained for skins.
 - [Round 1](concept/2026-10-06-r01/README.md): rejected for excessive realism, lost sketch character, and reversed canopy. Preserved as historical evidence.
