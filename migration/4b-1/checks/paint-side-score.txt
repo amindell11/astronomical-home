@@ -1,0 +1,2 @@
+before-top.png: same=0.784 mirrored=0.870 -> paint on mirrored sides
+after-top.png: same=0.870 mirrored=0.786 -> paint on game sides

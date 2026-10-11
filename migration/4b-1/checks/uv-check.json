@@ -1,0 +1,788 @@
+{
+  "before": "C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/c5db0fa1-dabc-42f7-85d5-14c53b6c18f7/scratchpad/4b-1/edit1.blend",
+  "after": "D:/amind/git/agent-3/art/ships/valis/Valis.blend",
+  "parts": {
+    "01 central fuselage": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 42,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 42,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.1444035165380725e-07,
+      "swap_mismatches": 0,
+      "loops": 340,
+      "ok": true
+    },
+    "02 black canopy": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 18,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 18,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 5.186329254553015e-07,
+      "swap_mismatches": 0,
+      "loops": 148,
+      "ok": true
+    },
+    "03 canopy side cheeks": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 10,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 10,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.733345528822993e-07,
+      "swap_mismatches": 0,
+      "loops": 336,
+      "ok": true
+    },
+    "04 dorsal armor": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 4,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 4,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.2154085301675756e-06,
+      "swap_mismatches": 0,
+      "loops": 88,
+      "ok": true
+    },
+    "05 dorsal shoulder bevel": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 0.0024507602841605546,
+      "swap_mismatches": 0,
+      "loops": 176,
+      "ok": true
+    },
+    "06 dorsal lavender rails": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 1,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 1,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.1741158037761871e-07,
+      "swap_mismatches": 0,
+      "loops": 36,
+      "ok": true
+    },
+    "07 rear crest": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 3,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 3,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 4.4983651360464604e-08,
+      "swap_mismatches": 0,
+      "loops": 68,
+      "ok": true
+    },
+    "08 ventral armor": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.1237255462617806e-07,
+      "swap_mismatches": 0,
+      "loops": 208,
+      "ok": true
+    },
+    "10 upper swept wings": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 369,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 369,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 7.562757875190184e-07,
+      "swap_mismatches": 0,
+      "loops": 2484,
+      "ok": true
+    },
+    "11 upper wing gray planes": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 288,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 288,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 6.656418328120471e-07,
+      "swap_mismatches": 0,
+      "loops": 1944,
+      "ok": true
+    },
+    "12 upper wing lavender tips": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 7.976874670817984e-07,
+      "swap_mismatches": 0,
+      "loops": 864,
+      "ok": true
+    },
+    "12 upper wing lavender tips underside": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.4155914664025772e-06,
+      "swap_mismatches": 0,
+      "loops": 864,
+      "ok": true
+    },
+    "13 charcoal trailing spars": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 180,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 180,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 3.423569449257084e-07,
+      "swap_mismatches": 0,
+      "loops": 1224,
+      "ok": true
+    },
+    "20 lower swept blades": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 234,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 234,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 4.3095870988811867e-07,
+      "swap_mismatches": 0,
+      "loops": 1584,
+      "ok": true
+    },
+    "21 lower blade lavender tips": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 5.118890631198212e-07,
+      "swap_mismatches": 0,
+      "loops": 864,
+      "ok": true
+    },
+    "21 lower blade lavender tips underside": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 126,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 4.897414056572626e-07,
+      "swap_mismatches": 0,
+      "loops": 864,
+      "ok": true
+    },
+    "22 lower blade dark inner facets": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 153,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 153,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 3.188329778686854e-07,
+      "swap_mismatches": 0,
+      "loops": 1044,
+      "ok": true
+    },
+    "40 forward outriggers": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 29,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 29,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.553854595611495e-07,
+      "swap_mismatches": 0,
+      "loops": 196,
+      "ok": true
+    },
+    "41 outrigger lavender toes": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 11,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 11,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.5061025674490272e-07,
+      "swap_mismatches": 0,
+      "loops": 76,
+      "ok": true
+    },
+    "42 outrigger inner sockets": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 11,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 11,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.0031967192125017e-07,
+      "swap_mismatches": 0,
+      "loops": 76,
+      "ok": true
+    },
+    "50 aft split prongs": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 477,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 477,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 8.322798660607942e-07,
+      "swap_mismatches": 0,
+      "loops": 3204,
+      "ok": true
+    },
+    "51 midship auxiliary vanes": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 5,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 5,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.921634962875034e-07,
+      "swap_mismatches": 0,
+      "loops": 116,
+      "ok": true
+    },
+    "52 auxiliary vane feet": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 3,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 3,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.2154087600527984e-07,
+      "swap_mismatches": 0,
+      "loops": 76,
+      "ok": true
+    },
+    "53 auxiliary vane roots": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 8,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.5758470427976252e-07,
+      "swap_mismatches": 0,
+      "loops": 56,
+      "ok": true
+    },
+    "60 engine spine": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 2.845265589139558e-07,
+      "swap_mismatches": 0,
+      "loops": 116,
+      "ok": true
+    },
+    "61 engine side fairings": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 4,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 4,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 0.02703476093986442,
+      "swap_mismatches": 0,
+      "loops": 96,
+      "ok": true
+    },
+    "62 engine raised ribs": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 9,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 9,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 2.1627900560208652e-07,
+      "swap_mismatches": 0,
+      "loops": 304,
+      "ok": true
+    },
+    "64 exhaust rim": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 24,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 24,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 5.340124725212193e-08,
+      "swap_mismatches": 0,
+      "loops": 192,
+      "ok": true
+    },
+    "70 shoulder pivot housing": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.5713207661252663e-07,
+      "swap_mismatches": 0,
+      "loops": 144,
+      "ok": true
+    },
+    "71 shoulder lavender cap": {
+      "layer_before": "ValisPaintUV",
+      "layer_after": "PaintUV",
+      "copy_before": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": -0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "copy_after": {
+        "ok": true,
+        "native_in_half": true,
+        "offset_v": 0.5,
+        "faces": 14,
+        "unpaired": 0,
+        "unpaired_gap": 0.0,
+        "uv_mismatches": 0
+      },
+      "full_stack_symmetry_gap": 1.5955259563253534e-07,
+      "swap_mismatches": 0,
+      "loops": 144,
+      "ok": true
+    }
+  },
+  "failed": [],
+  "verdict": "pass"
+}

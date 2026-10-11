@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "96eac70880308cee11aa3df5be4511a3f6d3e8c74e32bcb938588a29350fc500",
+  "findings": [
+    {
+      "rule": "ngon",
+      "part": "01 central fuselage",
+      "message": "1 non-planar n-gon(s)"
+    }
+  ],
+  "exempted": [
+    {
+      "rule": "scale",
+      "part": "02 black canopy",
+      "message": "Unapplied scale (1.165178, 0.934369, 0.999845)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "04 dorsal armor",
+      "message": "Unapplied scale (1.0, 1.146993, 1.0)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "05 dorsal shoulder bevel",
+      "message": "Unapplied scale (1.254457, 1.049406, 1.049406)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "07 rear crest",
+      "message": "Unapplied scale (0.703577, 1.0, 1.0)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "40 forward outriggers",
+      "message": "Unapplied scale (1.0, 1.0, 0.455798)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "modifier_order",
+      "part": "40 forward outriggers",
+      "message": "Solidify precedes Mirror",
+      "reason": "Approved plates are solidified before mirroring; reordering the stack changes their evaluated geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "41 outrigger lavender toes",
+      "message": "Unapplied scale (1.0, 1.0, 0.455798)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "modifier_order",
+      "part": "41 outrigger lavender toes",
+      "message": "Solidify precedes Mirror",
+      "reason": "Approved plates are solidified before mirroring; reordering the stack changes their evaluated geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "42 outrigger inner sockets",
+      "message": "Unapplied scale (1.0, 1.0, 0.455798)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "modifier_order",
+      "part": "42 outrigger inner sockets",
+      "message": "Solidify precedes Mirror",
+      "reason": "Approved plates are solidified before mirroring; reordering the stack changes their evaluated geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "51 midship auxiliary vanes",
+      "message": "Unapplied scale (1.0, 1.276236, 1.032452)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "52 auxiliary vane feet",
+      "message": "Unapplied scale (1.135353, 1.211385, 1.729152)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "53 auxiliary vane roots",
+      "message": "Unapplied scale (1.0, 1.298949, 0.662685)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "modifier_order",
+      "part": "53 auxiliary vane roots",
+      "message": "Solidify precedes Mirror",
+      "reason": "Approved plates are solidified before mirroring; reordering the stack changes their evaluated geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "61 engine side fairings",
+      "message": "Unapplied scale (0.6007, 0.99994, 0.998105)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "64 exhaust rim",
+      "message": "Unapplied scale (1.0, 1.0, 0.699478)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "70 shoulder pivot housing",
+      "message": "Unapplied scale (0.699626, 0.595092, 0.699626)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "71 shoulder lavender cap",
+      "message": "Unapplied scale (0.699626, 0.595092, 0.699626)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Valis symmetry origin",
+      "message": "Unapplied scale (0.77574, 1.0, 1.0)",
+      "reason": "Intermediate empty under SymmetryOrigin keeping the approved X scale and tilt; reparenting the parts out from under it would leave shear that object transforms cannot hold."
+    }
+  ],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "1730bdb7e55e96af6684f8852f861454a60fa6200fc58a5ec453fc3a35bf4261",
+      "uv": "7a4d8a69abf6ce0dd1f00c9f1188cd6da23db09a049219a57de3ed67bea29fe8",
+      "materials": "43d8156a272126ab47d82c7673059f8f868300e6908b72e2b66aa478fe920061"
+    },
+    "parts": {
+      "01 central fuselage": {
+        "geometry": "de39931c4d8e465f62def157d4d3876048404b5afcc202314fc6517cc94213be",
+        "uv": "d6e28d857a37d560c1ad407887d100a3e6dcf13e1435e28a776a27b46b54c2cd",
+        "materials": "677ad2916bc368ad363bb7916805f41ffe1b0c8ac28c06d68a43c925e9700ecd"
+      },
+      "02 black canopy": {
+        "geometry": "20a135856b4fe1fb28d14c6e223a44b31ef1ef0e2e0ea35c073d796cfb5ee08e",
+        "uv": "d1f7d69a6082b2c236dfbeefd287de9e3076d3cb4e0c2fc61f69060e30fe435f",
+        "materials": "fa4bbe2bfce92ac614fb7eb1621a5d26bab9786d4a1d7f89f698211c60b8e76a"
+      },
+      "03 canopy side cheeks": {
+        "geometry": "88fe08346da0795f13527b1d62c597d16112ce2c126cd84929824330a47d1cdd",
+        "uv": "e22e651063ac82598d8a23c91de68ead999ca3ccac710badc0b4160d99dd96d6",
+        "materials": "671a80f071a2f7d33c5cf0b39e404a8f1fa33a4f9096d7a9b5e43d156194bc6b"
+      },
+      "04 dorsal armor": {
+        "geometry": "882084761b67c75f1d8ae3e2e5b45364512b12f28273633bbc69895cec7b4310",
+        "uv": "a712246723b2eba6a6a3c4fee19eee3f8b6ccd3a5635becedc85f3c1f2688f88",
+        "materials": "efbdb12837f858053879b08a3c428867f7e4001daf5b19caf6eeb8a5fec3b0ac"
+      },
+      "05 dorsal shoulder bevel": {
+        "geometry": "d43a19426be40dd174035fd069cdd12c31c71f1d4330a8830c65e632711d7c68",
+        "uv": "f1bac433b1fef77e121123cd529faaeb8b643aa88ebc214cb34016b058096652",
+        "materials": "de567ee46e7aed3859b7911daa889a9dbdcff9e07d54f80a3a8b113b4a9d14b4"
+      },
+      "06 dorsal lavender rails": {
+        "geometry": "50a4e6e8793abed60967cd9397c53456c6db4d6452e819fdfe194d23b96c2b11",
+        "uv": "fd2671d9357f4ab6bf4579b51ac4ffd98486a0bb17603dfb24531f6c8b68d568",
+        "materials": "aeec871dde508b945628bc31c0f7e88be7ec84cda357fefb194b18536363f5b6"
+      },
+      "07 rear crest": {
+        "geometry": "2eaa8b57e6708831e1c39aa59b7aa76b60f662b42ae50aac771ad94841165d11",
+        "uv": "b67fba3ad3bc4a0b79ffe38a209ad9538f67e3689cbd40377ce51663f22fbd0a",
+        "materials": "781cc4176b02db94713771ccb5a737778eedb83d43e43e9a4d2e554c57451ae1"
+      },
+      "08 ventral armor": {
+        "geometry": "cc2389c03d84ec19b434135fc93ae3bdcc793fee5b88763a026b9dec4badc38a",
+        "uv": "2572c20fa5af38723fe76001c603133e68afcde6bd0ac955caf620af3733990f",
+        "materials": "1219cc28dd88d50d8c86f70dcdc0b8726c4da53b1117a39d85cf32c31cd305c0"
+      },
+      "10 upper swept wings": {
+        "geometry": "bd8cd7fde503eb16b3db63f24f3496bf713ef426699a5ad01de54180cced5561",
+        "uv": "1766da6a0202afd2bc7d62692ee3dd4ad7ca8298b4b2a333339d06e6ef9180a0",
+        "materials": "8100800e2fc72649ac10161b059b96e1b7bcf119ba13179f936f0c1ee3441c33"
+      },
+      "11 upper wing gray planes": {
+        "geometry": "95bae84b06e7d9b74581ba242d50b2fb6d5e88b1c34c43aa2da876d7b61835a1",
+        "uv": "31a95da8baee5c7570024cced3fe23aea7abfb98e508e5b1d40bb28f8fec1d26",
+        "materials": "9e8818795b9490be139ccb04ed8ed8e3e2b1302e5dfc33f9271503117ee4f477"
+      },
+      "12 upper wing lavender tips": {
+        "geometry": "3fb323fcb03b192ab496411b0997810d77ac2cffbc7e380d4de8a9164661909a",
+        "uv": "531e371485e9f81b69228c54b2c4a320d3d3d4820954592fd1af7adb418ea03f",
+        "materials": "5b16f45670968fc68c513a61ac8afb744e0227385155e0fdbef55bbe7597a8ef"
+      },
+      "12 upper wing lavender tips underside": {
+        "geometry": "bc8008c04bb31d1ab6da6a3f901ec17fdb8ec1e681f11d97334b9a3245b3d3bc",
+        "uv": "c12e36895d96ed8c214707ea98c5858424ca41edf39b6d683114c8487998ad77",
+        "materials": "5b16f45670968fc68c513a61ac8afb744e0227385155e0fdbef55bbe7597a8ef"
+      },
+      "13 charcoal trailing spars": {
+        "geometry": "49704d0964d8cca2db4bb636354803b4906c7a9bca12f504b8d5b9ec8cfcfad3",
+        "uv": "3977899acef5dcb672617b08ad2357a470631ea0fc6990b75df0fa582dd56af8",
+        "materials": "7d44d3ed9714848e354bebcd7c938957f9bcb2b41ddb12d3a31662fa2f318d7a"
+      },
+      "20 lower swept blades": {
+        "geometry": "384451312515e52789a52873ff1a97c68031f5860dea29ab8eb58e1e0fe41457",
+        "uv": "ea4e4997ab4b2ec43eaa81f2e855a64ad357189b54ba403365fe8e3cbcf3e5e5",
+        "materials": "2a245419b734feff5f3eca02a3468dc0148bd32cb3adf05de840568f8ac525aa"
+      },
+      "21 lower blade lavender tips": {
+        "geometry": "ee2b9de97329bd2d3d905a92fb4905044e854086d09d94544b29bf5e584f958f",
+        "uv": "442335629b35b71e757618216bd3d2ba6c4c3407de7ad2b738ecee15ba556759",
+        "materials": "5b16f45670968fc68c513a61ac8afb744e0227385155e0fdbef55bbe7597a8ef"
+      },
+      "21 lower blade lavender tips underside": {
+        "geometry": "66063aef04081ea9e2c560826164b8c902f2b3ed034c1955b245320c69c0b848",
+        "uv": "7f36f6d6d50616fb0b2118512f7a7a5cee4d12f38b8b91f41c297dedc85b8b84",
+        "materials": "5b16f45670968fc68c513a61ac8afb744e0227385155e0fdbef55bbe7597a8ef"
+      },
+      "22 lower blade dark inner facets": {
+        "geometry": "fa403cbccde31070e4883b068be0a5bd77258cd1723d9ef5a6bc6b37de834628",
+        "uv": "29482ecc871bbeb2e235c0fed36fb857f239e80e2a7ad20ae3d4a08bf6d9549c",
+        "materials": "1fd364b1114c553a84581d787e7b82b8ef8f81b44caa6b47ebce4a653ebbb3fa"
+      },
+      "40 forward outriggers": {
+        "geometry": "d225f8581abd0dde54e8c03f24ed8a61e53406c6cff7091c6432ad87a09672cb",
+        "uv": "568ced4274e8710738b89fb4970aa6a46ba7684c36af9af03258656e79534013",
+        "materials": "f31078984faf481bfa2290cd084df54148764cad181cb98ae9674f0ef1dd3f01"
+      },
+      "41 outrigger lavender toes": {
+        "geometry": "ed42b5dda644ba528ec7ddc8bcdd4ea9b1bd3f8cad37ee013a94bf8d35159f5e",
+        "uv": "7d60f69d2479d11c05fbae70da4bf3a99d1bd0d6cce58427061757e596babe84",
+        "materials": "781cc4176b02db94713771ccb5a737778eedb83d43e43e9a4d2e554c57451ae1"
+      },
+      "42 outrigger inner sockets": {
+        "geometry": "407679785e37f002a31f728b16f8ea537a721e9fe0dac79452876794f88c87ee",
+        "uv": "e855d44c484cb5704e7ad76e0f97df5500e1d4ae267cf9cbe610b51bbe3a814f",
+        "materials": "abbbb46675b385b4e19b184b11ff45ab545f0f4927d5f7bc95d82f337cbe95d7"
+      },
+      "50 aft split prongs": {
+        "geometry": "a25c020d246bd5af3aadd8652d47f57210a3fbfd14981c3820c141b6e32438e9",
+        "uv": "2774bc14a5efb33f5bceed933f4e75d917a0c717928f672d7324cbd4e644ffe0",
+        "materials": "4fafd8a9d6b81fb63d7a2368f8ef755dc73ea548e139e49775d1d8c51140387c"
+      },
+      "51 midship auxiliary vanes": {
+        "geometry": "89e0bad376f103b9aef3be26d049eb663aa932deb8eabd2ac5562a37e4980c31",
+        "uv": "9eb177938f508b0e75c33f90f876b0f6bf461c1a6cd66a0e1ffff7f6f8b256f7",
+        "materials": "f93c5615550c340cbf1f486bfc9a60fb9d6ccdc24295ef74c3902c696b4441b4"
+      },
+      "52 auxiliary vane feet": {
+        "geometry": "10d1c8adb3305239ff2f9f501301eb52c3ffc27ae6fca0ff98bbaae16601a75d",
+        "uv": "ef2cea7bed46976fd3c3efb8c673c0e7140ffbb163e856f217748c7f96988016",
+        "materials": "5ae1242b0bff1491a2903c9ea7823f9a4c148df6331a44fcd1f6e3266dc07381"
+      },
+      "53 auxiliary vane roots": {
+        "geometry": "dd363d3ba92a6fa72cf8dece3080a37544d63173b348e5f7efd16fec1d9c21d4",
+        "uv": "3a8f59d835791886dd20e5077aa525b4a2ed046106c28199354ba7512332e91e",
+        "materials": "fcf62b6488547d893b9938df86bf752c2dbf1f2cb43fc3b5d5363669737d2ac7"
+      },
+      "60 engine spine": {
+        "geometry": "e4266852e203a2035a288992c5c120f86d25935d9f7df61c41ae6b2c6929cb15",
+        "uv": "ed47c00b4e7ba9bedbdf86199e430d975acf079f0d95425b41bcff15e9a018dd",
+        "materials": "0d5ecfe68826c470b92ff2dd364f393fbf969a4088203759c27306c4c578a140"
+      },
+      "61 engine side fairings": {
+        "geometry": "a889bceaf0d1004b8e187d6fc314136b3b357bc3b5009ac063eddc54181d5b73",
+        "uv": "01f549c043ad3e88308d9a4edd33fd782e6c72854250e50da54e95644890f754",
+        "materials": "861886f1626845d7b1aa8164c2aeaee5e3d5f965fed0b75b62701b19e23308df"
+      },
+      "62 engine raised ribs": {
+        "geometry": "6be4456fc75368803f04d1f88bc3fd14daaaf4c5b5b5d6dded59fcaa98d62ec8",
+        "uv": "d76a1068fe9b8156765313d2d8410dbee116aab2e49daec6a601b4d983f30f5f",
+        "materials": "f31078984faf481bfa2290cd084df54148764cad181cb98ae9674f0ef1dd3f01"
+      },
+      "64 exhaust rim": {
+        "geometry": "58d7e8ab4d79d9b9acc3232cd229d494c62ff9fb99a535bb9401f2b198a02a21",
+        "uv": "49ad661ed76cde8df993304868cf97cfeaf1beb42413e66f892b5ebd2edeb4be",
+        "materials": "6012c7fe89429e227f2a8427db233c4b0ec361143cf52a144d123625a19d718f"
+      },
+      "70 shoulder pivot housing": {
+        "geometry": "daf892f19a5abbf56ce8cc1761b67726ca01dfa512e644a5f8d2e06f4bf75a61",
+        "uv": "d330912e3e9fb2cad06b39eb62b43c5907f730072a7dc24b76f695b31b6a3ec4",
+        "materials": "1b8f8a6d5f32a9050c572f0290ef3cd3a91285e851233a1614bac2d7b4704eb2"
+      },
+      "71 shoulder lavender cap": {
+        "geometry": "4459e639bead3a4bc505b720fd2f812f6c54f17a48a535ed119190ad315bff4f",
+        "uv": "348f688813ed9d77b5da59394ef358036053e3e10ef6fbe050af17a9150f90ec",
+        "materials": "bbc6de477015829790711b119f471197247fd2c9710511847212cbea04db1ad2"
+      },
+      "Aft prongs": {
+        "geometry": "92ea10059e225fbe1de83d7483cc575753b86e80fc9d2a93ee691e4e87287dc3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Auxiliary vanes": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body": {
+        "geometry": "92ea10059e225fbe1de83d7483cc575753b86e80fc9d2a93ee691e4e87287dc3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Canopy": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Dorsal armor": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Engine": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Flight surfaces": {
+        "geometry": "92ea10059e225fbe1de83d7483cc575753b86e80fc9d2a93ee691e4e87287dc3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Forward outriggers": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Fuselage": {
+        "geometry": "ca724ea4c23181ee922e337900691c573ab98d4173e6b2087e306e625e963149",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Joined preview - Aft prongs": {
+        "geometry": "71a55bd04e69cc120588a5b3e558cb6c11b17a29572d3b16921288201f6481dc",
+        "uv": "f6b8a5f575343f67247b0b7e71a7a8fba8e14f22dc98fe8eedf3079208e00a8e",
+        "materials": "df49589562a83f8991f0e4d19bbf6cf0dfca42eb22abab9ab64ff47e989bc737"
+      },
+      "Joined preview - Body": {
+        "geometry": "fb9bd35b46f4c40433da86a164b14b8fb4894b849c33ac54bb60db62fa316bcb",
+        "uv": "7ba1d39c9a51ee35276c698ff30ede0daf3634c18981afbf7a49ca5e7998c60e",
+        "materials": "a3b43056b7b8e9b8c660c572cae1cf137694892e28cb4591a42e62a09e9663c3"
+      },
+      "Joined preview - Wing lower.L": {
+        "geometry": "fa16056c554ad4448992c4d52263fc52dfb9137a37fbee0c6f74c21a3310e0f3",
+        "uv": "03fb908c452c81f8f2297b3889686d25230482c71c4587764995fcefbb1310e5",
+        "materials": "ac469ffaa045fb3f23917f813289462fee5cf218e82b6cd5052acadc0ae36328"
+      },
+      "Joined preview - Wing lower.R": {
+        "geometry": "8f4244849e6764858ffa9ff444099759d5be1d803297b3d53b7922d9bd45c378",
+        "uv": "38df5d02c5a5b77d4364a3cd40d4e87e4f68e556aa42e34344d10e29345b3735",
+        "materials": "ac469ffaa045fb3f23917f813289462fee5cf218e82b6cd5052acadc0ae36328"
+      },
+      "Joined preview - Wing upper.L": {
+        "geometry": "a8323694a020403a5c103694d76427acd0c5a91db980655e2a08bc156b24e3af",
+        "uv": "c9b0d18dbd45fd02b3f4e85d6ff5f647d08c4dece61ac1306e0aff37269b3a56",
+        "materials": "46753171c1976b5de1b5698aab5cc3eeea3e8d15e1c09c31593f527063e8ec07"
+      },
+      "Joined preview - Wing upper.R": {
+        "geometry": "a1359b1e4220782a82d57735503c072f281b3c824dc49607a4ad9f91849db015",
+        "uv": "a5b068ddd070bdebfc4b9a7de8d659f732509b779e9034b7f488ac9578ac4e87",
+        "materials": "46753171c1976b5de1b5698aab5cc3eeea3e8d15e1c09c31593f527063e8ec07"
+      },
+      "Lower wings": {
+        "geometry": "18e0b5ea787ef9183bbdf8c6cf59f8144c7fa0b3b3f3dbc722d7902a33cbd571",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Shoulder pivots": {
+        "geometry": "b1dbd9c2db588ec182eec3c1cef3f65adde95c933a9270748f21e85fdf9319da",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Trailing spars": {
+        "geometry": "b1dbd9c2db588ec182eec3c1cef3f65adde95c933a9270748f21e85fdf9319da",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper wings": {
+        "geometry": "b85b3aa592ce48f989757d0de9a5df63e18ce58fdef1f4954aef0e8b2e9383a3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Valis collider": {
+        "geometry": "7b49b33686921d267d5f9e720b6433101deabb36c03be04abcd53001ada2ce83",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "51968529cf7468dedde987b20ebd923680b191eae2c85d0eece7ce1becfc4576"
+      },
+      "Valis symmetry origin": {
+        "geometry": "6e468a1e4997393ad44c4c9c08e7702db88b138bf4fde1838522db1bdb1107dd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Wing panels": {
+        "geometry": "b1dbd9c2db588ec182eec3c1cef3f65adde95c933a9270748f21e85fdf9319da",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "fail"
+}

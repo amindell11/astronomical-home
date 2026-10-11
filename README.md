@@ -16,6 +16,7 @@ commit-pinned links in merged PRs (#843, #852, #865) keep resolving at the old p
 | motion | `motion/wings-evidence/` | all of `evidence/valis-wings` (PR #852 captures) |
 | producers | `producers/wing-motion/` | local files saved 2026-10-03, see below |
 | migration | `migration/4a/` | slice 4a of #868 (#970): prefab onto the neutral base; pixel, structure, reference and engine evidence, see its README |
+| migration | `migration/4b-1/` | slice 4b-1 of #868 (#983): source onto the ship conventions; edit scripts, shape/UV/collider checks, `ship_check`, paint side score and renders, see its README |
 
 `legacy/valis-geometry-README.md` is the old branch README; its `history/...` paths map
 through the table above.

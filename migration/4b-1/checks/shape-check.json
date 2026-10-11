@@ -1,0 +1,307 @@
+{
+  "tolerance": 1e-05,
+  "before": "C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/c5db0fa1-dabc-42f7-85d5-14c53b6c18f7/scratchpad/4b-1/pre-edit.blend",
+  "after": "D:/amind/git/agent-3/art/ships/valis/Valis.blend",
+  "compared": 51,
+  "meshes": 36,
+  "added": [
+    "SymmetryOrigin",
+    "Valis collider"
+  ],
+  "failed": [],
+  "verdict": "pass",
+  "max_abs_diff": 2.074183056866019e-06,
+  "parts": {
+    "01 central fuselage": {
+      "type": "MESH",
+      "vertices": 88,
+      "max_abs_diff": 4.983279406900465e-07,
+      "status": "ok"
+    },
+    "02 black canopy": {
+      "type": "MESH",
+      "vertices": 40,
+      "max_abs_diff": 4.797633454955985e-07,
+      "status": "ok"
+    },
+    "03 canopy side cheeks": {
+      "type": "MESH",
+      "vertices": 88,
+      "max_abs_diff": 4.3813509842394183e-07,
+      "status": "ok"
+    },
+    "04 dorsal armor": {
+      "type": "MESH",
+      "vertices": 20,
+      "max_abs_diff": 6.075703553598544e-07,
+      "status": "ok"
+    },
+    "05 dorsal shoulder bevel": {
+      "type": "MESH",
+      "vertices": 40,
+      "max_abs_diff": 2.904196466646525e-07,
+      "status": "ok"
+    },
+    "06 dorsal lavender rails": {
+      "type": "MESH",
+      "vertices": 12,
+      "max_abs_diff": 1.200987714833346e-07,
+      "status": "ok"
+    },
+    "07 rear crest": {
+      "type": "MESH",
+      "vertices": 16,
+      "max_abs_diff": 2.0795790070526898e-07,
+      "status": "ok"
+    },
+    "08 ventral armor": {
+      "type": "MESH",
+      "vertices": 54,
+      "max_abs_diff": 4.945550369228613e-07,
+      "status": "ok"
+    },
+    "10 upper swept wings": {
+      "type": "MESH",
+      "vertices": 508,
+      "max_abs_diff": 1.5792739542774825e-06,
+      "status": "ok"
+    },
+    "11 upper wing gray planes": {
+      "type": "MESH",
+      "vertices": 400,
+      "max_abs_diff": 1.2871792112179037e-06,
+      "status": "ok"
+    },
+    "12 upper wing lavender tips": {
+      "type": "MESH",
+      "vertices": 184,
+      "max_abs_diff": 1.952119740522562e-06,
+      "status": "ok"
+    },
+    "12 upper wing lavender tips underside": {
+      "type": "MESH",
+      "vertices": 184,
+      "max_abs_diff": 2.074183056866019e-06,
+      "status": "ok"
+    },
+    "13 charcoal trailing spars": {
+      "type": "MESH",
+      "vertices": 256,
+      "max_abs_diff": 4.289787742806084e-07,
+      "status": "ok"
+    },
+    "20 lower swept blades": {
+      "type": "MESH",
+      "vertices": 328,
+      "max_abs_diff": 4.322425759539783e-07,
+      "status": "ok"
+    },
+    "21 lower blade lavender tips": {
+      "type": "MESH",
+      "vertices": 184,
+      "max_abs_diff": 4.299188542944421e-07,
+      "status": "ok"
+    },
+    "21 lower blade lavender tips underside": {
+      "type": "MESH",
+      "vertices": 184,
+      "max_abs_diff": 4.3247276337865515e-07,
+      "status": "ok"
+    },
+    "22 lower blade dark inner facets": {
+      "type": "MESH",
+      "vertices": 220,
+      "max_abs_diff": 3.4697176198861257e-07,
+      "status": "ok"
+    },
+    "40 forward outriggers": {
+      "type": "MESH",
+      "vertices": 44,
+      "max_abs_diff": 5.542800871616294e-07,
+      "status": "ok"
+    },
+    "41 outrigger lavender toes": {
+      "type": "MESH",
+      "vertices": 20,
+      "max_abs_diff": 5.598232448722484e-07,
+      "status": "ok"
+    },
+    "42 outrigger inner sockets": {
+      "type": "MESH",
+      "vertices": 20,
+      "max_abs_diff": 3.6628442345865153e-07,
+      "status": "ok"
+    },
+    "50 aft split prongs": {
+      "type": "MESH",
+      "vertices": 652,
+      "max_abs_diff": 1.013256216708669e-06,
+      "status": "ok"
+    },
+    "51 midship auxiliary vanes": {
+      "type": "MESH",
+      "vertices": 28,
+      "max_abs_diff": 1.4102647449831807e-07,
+      "status": "ok"
+    },
+    "52 auxiliary vane feet": {
+      "type": "MESH",
+      "vertices": 20,
+      "max_abs_diff": 1.5659729557526703e-07,
+      "status": "ok"
+    },
+    "53 auxiliary vane roots": {
+      "type": "MESH",
+      "vertices": 16,
+      "max_abs_diff": 1.427345719395845e-07,
+      "status": "ok"
+    },
+    "60 engine spine": {
+      "type": "MESH",
+      "vertices": 32,
+      "max_abs_diff": 3.021985501006075e-07,
+      "status": "ok"
+    },
+    "61 engine side fairings": {
+      "type": "MESH",
+      "vertices": 24,
+      "max_abs_diff": 4.833124966907576e-07,
+      "status": "ok"
+    },
+    "62 engine raised ribs": {
+      "type": "MESH",
+      "vertices": 80,
+      "max_abs_diff": 2.953157342278079e-07,
+      "status": "ok"
+    },
+    "64 exhaust rim": {
+      "type": "MESH",
+      "vertices": 64,
+      "max_abs_diff": 3.028945510658021e-07,
+      "status": "ok"
+    },
+    "70 shoulder pivot housing": {
+      "type": "MESH",
+      "vertices": 48,
+      "max_abs_diff": 3.3152439460337746e-07,
+      "status": "ok"
+    },
+    "71 shoulder lavender cap": {
+      "type": "MESH",
+      "vertices": 48,
+      "max_abs_diff": 3.0601883649339356e-07,
+      "status": "ok"
+    },
+    "Aft prongs": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Auxiliary vanes": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Body": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Canopy": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Dorsal armor": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Engine": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Flight surfaces": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Forward outriggers": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Fuselage": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.742277657347586e-08,
+      "status": "ok"
+    },
+    "Joined preview - Aft prongs": {
+      "type": "MESH",
+      "vertices": 652,
+      "max_abs_diff": 4.155138093597799e-07,
+      "status": "ok"
+    },
+    "Joined preview - Body": {
+      "type": "MESH",
+      "vertices": 706,
+      "max_abs_diff": 3.5243457352507335e-07,
+      "status": "ok"
+    },
+    "Joined preview - Wing lower.L": {
+      "type": "MESH",
+      "vertices": 458,
+      "max_abs_diff": 3.886842647737865e-07,
+      "status": "ok"
+    },
+    "Joined preview - Wing lower.R": {
+      "type": "MESH",
+      "vertices": 458,
+      "max_abs_diff": 3.886842647737865e-07,
+      "status": "ok"
+    },
+    "Joined preview - Wing upper.L": {
+      "type": "MESH",
+      "vertices": 594,
+      "max_abs_diff": 3.657614469076975e-07,
+      "status": "ok"
+    },
+    "Joined preview - Wing upper.R": {
+      "type": "MESH",
+      "vertices": 594,
+      "max_abs_diff": 3.657614469076975e-07,
+      "status": "ok"
+    },
+    "Lower wings": {
+      "type": "EMPTY",
+      "max_abs_diff": 1.1920928955078125e-07,
+      "status": "ok"
+    },
+    "Shoulder pivots": {
+      "type": "EMPTY",
+      "max_abs_diff": 1.1920928955078125e-07,
+      "status": "ok"
+    },
+    "Trailing spars": {
+      "type": "EMPTY",
+      "max_abs_diff": 1.1920928955078125e-07,
+      "status": "ok"
+    },
+    "Upper wings": {
+      "type": "EMPTY",
+      "max_abs_diff": 1.1920928955078125e-07,
+      "status": "ok"
+    },
+    "Valis symmetry origin": {
+      "type": "EMPTY",
+      "max_abs_diff": 8.713039534313793e-08,
+      "status": "ok"
+    },
+    "Wing panels": {
+      "type": "EMPTY",
+      "max_abs_diff": 1.1920928955078125e-07,
+      "status": "ok"
+    }
+  }
+}
