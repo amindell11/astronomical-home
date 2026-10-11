@@ -4,14 +4,14 @@
   "recipe": "ship-fp-1",
   "blender_version": "5.1.2",
   "source_sha256": "96eac70880308cee11aa3df5be4511a3f6d3e8c74e32bcb938588a29350fc500",
-  "findings": [
+  "findings": [],
+  "exempted": [
     {
       "rule": "ngon",
       "part": "01 central fuselage",
-      "message": "1 non-planar n-gon(s)"
-    }
-  ],
-  "exempted": [
+      "message": "1 non-planar n-gon(s)",
+      "reason": "Owner exempted the approved non-planar aft-cap pentagon on 2026-10-10; flattening or triangulating it would edit approved geometry."
+    },
     {
       "rule": "scale",
       "part": "02 black canopy",
@@ -402,5 +402,5 @@
       }
     }
   },
-  "verdict": "fail"
+  "verdict": "pass"
 }
