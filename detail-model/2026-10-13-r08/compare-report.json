@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "before_sha256": "362ebab5128a2e3b1db1c038d2bdbf444aaf28a3626d9693d220369a8825019e",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 608,
+    "side": 667
+  },
+  "verdict": "pass"
+}

@@ -1,0 +1,61 @@
+{
+  "source_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "hinge_meshes": {
+    "11 Upper hinge brackets": {
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 536,
+      "faces": 492,
+      "volume": 0.03542425968938971
+    },
+    "12 Upper hinge leaves": {
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 468,
+      "faces": 438,
+      "volume": 0.042673501897699626
+    },
+    "13 Lower hinge brackets": {
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 536,
+      "faces": 492,
+      "volume": 0.05030676004796399
+    },
+    "14 Lower hinge leaves": {
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 462,
+      "faces": 429,
+      "volume": 0.06310447732998112
+    }
+  },
+  "motion": [
+    {
+      "flap": "10 Tail fins",
+      "tested_degrees": -12,
+      "max_rigidity_error": 5.893977972348807e-07,
+      "mirrored_cage_symmetry_error": 7.539457464619588e-07,
+      "restoration_error": 0.0,
+      "stationary_brackets_unchanged": true
+    },
+    {
+      "flap": "10 Tail fins.001",
+      "tested_degrees": 12,
+      "max_rigidity_error": 5.30176865520815e-07,
+      "mirrored_cage_symmetry_error": 4.915124923727108e-07,
+      "restoration_error": 0.0,
+      "stationary_brackets_unchanged": true
+    }
+  ],
+  "findings_before": 60,
+  "findings_after": 59,
+  "new_findings": [],
+  "resolved_findings": [
+    [
+      "origin",
+      "10 Tail fins.001"
+    ]
+  ],
+  "only_flap_parenting_changed": true
+}

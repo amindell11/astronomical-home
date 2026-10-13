@@ -1,0 +1,124 @@
+{
+  "source_sha256": "362ebab5128a2e3b1db1c038d2bdbf444aaf28a3626d9693d220369a8825019e",
+  "owner_checkpoint": "ebc22a5431ebf13e808df45aed1337237f89eb61",
+  "output_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "changed_existing_parts": [
+    "10 Tail fins",
+    "10 Tail fins.001"
+  ],
+  "change_kind": "Only the two flaps are reparented to deployment controls; mesh data and owner world-space poses are preserved.",
+  "max_owner_pose_vertex_error": 8.429369702178807e-07,
+  "all_other_existing_parts_unchanged": true,
+  "added_parts": [
+    "11 Upper hinge brackets",
+    "12 Upper hinge leaves",
+    "13 Lower hinge brackets",
+    "14 Lower hinge leaves",
+    "Lower flap axis",
+    "Lower flap deployment",
+    "Upper flap axis",
+    "Upper flap deployment"
+  ],
+  "hinges": [
+    {
+      "flap": "10 Tail fins",
+      "control": "Upper flap deployment",
+      "axis": "Upper flap axis",
+      "edge_vertex_indices": [
+        5,
+        0
+      ],
+      "axis_center": [
+        1.603714942932129,
+        -1.9404361248016357,
+        2.660137414932251
+      ],
+      "axis_direction": [
+        0.7941856384277344,
+        -0.3829455077648163,
+        -0.47182825207710266
+      ],
+      "length": 0.8932965974221635,
+      "fixed": "11 Upper hinge brackets",
+      "moving": "12 Upper hinge leaves",
+      "anchors": [
+        {
+          "pin": [
+            1.4816906452178955,
+            -1.881597638130188,
+            2.7326323986053467
+          ],
+          "seat": [
+            1.4501851797103882,
+            -1.888181447982788,
+            2.6728172302246094
+          ],
+          "distance": 0.06792492419481277
+        },
+        {
+          "pin": [
+            1.7257392406463623,
+            -1.9992746114730835,
+            2.5876424312591553
+          ],
+          "seat": [
+            1.577103853225708,
+            -1.9630131721496582,
+            2.5964603424072266
+          ],
+          "distance": 0.15324857831001282
+        }
+      ]
+    },
+    {
+      "flap": "10 Tail fins.001",
+      "control": "Lower flap deployment",
+      "axis": "Lower flap axis",
+      "edge_vertex_indices": [
+        4,
+        0
+      ],
+      "axis_center": [
+        1.3278312683105469,
+        -1.706568956375122,
+        1.6946704387664795
+      ],
+      "axis_direction": [
+        0.5026661157608032,
+        0.8366826176643372,
+        0.21746064722537994
+      ],
+      "length": 1.2691909598069822,
+      "fixed": "13 Lower hinge brackets",
+      "moving": "14 Lower hinge leaves",
+      "anchors": [
+        {
+          "pin": [
+            1.2180988788604736,
+            -1.889217495918274,
+            1.6471985578536987
+          ],
+          "seat": [
+            1.2457221746444702,
+            -1.8162829875946045,
+            1.8716769218444824
+          ],
+          "distance": 0.23764052987098694
+        },
+        {
+          "pin": [
+            1.4375636577606201,
+            -1.5239204168319702,
+            1.7421423196792603
+          ],
+          "seat": [
+            1.4387645721435547,
+            -1.520749568939209,
+            1.751901388168335
+          ],
+          "distance": 0.010331306606531143
+        }
+      ]
+    }
+  ]
+}
