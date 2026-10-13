@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7b2cfa3a5b633f1e8787c1433d6157911c03c2c2cdbaf4f5b89f7511adbc1096",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "77736a103f28c6873200a8bb95998486734221baea39f2e6c441a6d241b5dc02",
+      "uv": "c8f63a0e6469152c2022998ae1275f0a21abd8685541ab53738fb58c4f16b8bf",
+      "materials": "cbfa640f43f034973cb9864e1496c5aeb41743b90bdca3b87c14ea624f6496bd"
+    },
+    "parts": {
+      "Cockpit - teardrop canopy": {
+        "geometry": "ba813e6168e4ec207424497001ae0d2c2f02c7baa193b42f14f65e42a66c9320",
+        "uv": "62f2f0379726f51f3729ea5239fdc010d8b4138f95e00a50c17bef4df2d3dcba",
+        "materials": "95bf08fc135d57588734b135dce04ea8213d14377c63e28711977e3f04d105b6"
+      },
+      "Engines - protected twin nozzles": {
+        "geometry": "baa70767875f0071d8d5dcaee1005d46bacbf64229143b61a2ba9a7181c17cc0",
+        "uv": "da1b80b5d96c4cc83fbb1ca622327165d9e5f35ae14425fd66f9db639c4d35f8",
+        "materials": "d61ac4ae432c32fbe13048f76e5a97cddc1fc251762a7433e33c10b4a2341bdb"
+      },
+      "Flank modules - round armor interfaces": {
+        "geometry": "7867d1b0aaa5884929993551e54b13554762be0d688bf1c3da8a826be084ceb1",
+        "uv": "abfa970e85732aabac159c52ebcca3bbe6ab11a5e7994559c971e6c3f631eb78",
+        "materials": "2838d865c1c29910cd929c7dd774fd923bb93014e56d791891b91089d3d0852e"
+      },
+      "Hull - coherent armored shell": {
+        "geometry": "105c6407b748a2dcc87ca3c14ce9cb20f721539ac60830a7e509517bfb8c1504",
+        "uv": "8774936e531fd28f2bbed17c9f768822a2d448c625c54f9991952681e08d874a",
+        "materials": "f3872835e5d64d3e00712c63f66e9fec683194b55a0b4c201f1b283449d62dd8"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

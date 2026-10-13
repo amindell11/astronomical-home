@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7b2cfa3a5b633f1e8787c1433d6157911c03c2c2cdbaf4f5b89f7511adbc1096",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\back.png",
+    "turn000": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\turn315.png",
+    "sheet": "D:\\amind\\git\\agent-3\\results\\bulwark\\coherent-cleanup\\refined\\sheet\\sheet.png"
+  },
+  "set": "sheet",
+  "verdict": "pass"
+}

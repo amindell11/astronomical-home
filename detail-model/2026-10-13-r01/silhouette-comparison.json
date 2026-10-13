@@ -1,0 +1,46 @@
+{
+  "source_sha256": {
+    "owner": "9a3ccb8dfcd23f6a628826bf51336ea526ac8fed67169c46c280fb5257df948e",
+    "refined": "7b2cfa3a5b633f1e8787c1433d6157911c03c2c2cdbaf4f5b89f7511adbc1096"
+  },
+  "views": {
+    "top": {
+      "intersection_over_union": 0.9980171470547442,
+      "changed_pixels": 386,
+      "owner_pixels": 194283,
+      "refined_pixels": 194669
+    },
+    "side": {
+      "intersection_over_union": 0.9999530571529163,
+      "changed_pixels": 4,
+      "owner_pixels": 85210,
+      "refined_pixels": 85206
+    },
+    "front": {
+      "intersection_over_union": 1.0,
+      "changed_pixels": 0,
+      "owner_pixels": 162811,
+      "refined_pixels": 162811
+    },
+    "rear": {
+      "intersection_over_union": 1.0,
+      "changed_pixels": 0,
+      "owner_pixels": 162810,
+      "refined_pixels": 162810
+    },
+    "hero": {
+      "intersection_over_union": 1.0,
+      "changed_pixels": 0,
+      "owner_pixels": 90813,
+      "refined_pixels": 90813
+    },
+    "rear-quarter": {
+      "intersection_over_union": 0.9982373772172993,
+      "changed_pixels": 110,
+      "owner_pixels": 62297,
+      "refined_pixels": 62407
+    }
+  },
+  "all_source_files_unchanged": true,
+  "minimum_overlap": 0.9980171470547442
+}
