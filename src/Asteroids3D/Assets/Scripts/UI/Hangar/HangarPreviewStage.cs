@@ -21,9 +21,13 @@ namespace UI.Hangar
         private const float PopOutSeconds = 0.12f;
         private const float PopInSeconds = 0.25f;
         private const float CameraFovDeg = 30f;
-        private const int TextureSize = 768;
+        private const int MaxTextureSize = 2560;
+        private const int TextureMsaa = 8;
+        // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
+        private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
+        private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
         // EaseOutBack (k = 1.70158) peaks ~10% past target scale mid-pop-in.
         internal const float PopInOvershoot = 1.101f;
 
@@ -40,14 +44,14 @@ namespace UI.Hangar
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent)
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.continueSpinOnSwitch = continueSpinOnSwitch;
-            stage.BuildStage();
+            stage.BuildStage(texturePixels);
             return stage;
         }
 
@@ -62,12 +66,10 @@ namespace UI.Hangar
             return layer;
         }
 
-        private void BuildStage()
+        private void BuildStage(int texturePixels)
         {
             var layer = PreviewLayer();
             gameObject.layer = layer;
-
-            texture = new RenderTexture(TextureSize, TextureSize, 24) { name = "HangarPreviewRT" };
 
             anchor = new GameObject("Anchor").transform;
             anchor.SetParent(transform, false);
@@ -81,7 +83,7 @@ namespace UI.Hangar
             stageCamera.fieldOfView = CameraFovDeg;
             stageCamera.clearFlags = CameraClearFlags.SolidColor;
             stageCamera.backgroundColor = Color.clear;
-            stageCamera.targetTexture = texture;
+            Resize(texturePixels);
 
             var lightGo = new GameObject("PreviewLight");
             lightGo.layer = layer;
@@ -91,6 +93,40 @@ namespace UI.Hangar
             light.type = LightType.Directional;
             light.cullingMask = 1 << layer;
             light.intensity = 1.6f;
+        }
+
+        /// <summary>Re-renders at <paramref name="pixels"/> square (capped), so the UI never upscales the
+        /// preview. Replaces <see cref="Texture"/> when the size changes.</summary>
+        public void Resize(int pixels)
+        {
+            var size = Mathf.Min(pixels, MaxTextureSize);
+            if (texture && texture.width == size) return;
+
+            stageCamera.targetTexture = null;
+            ReleaseTexture();
+            texture = new RenderTexture(size, size, 24) { name = "HangarPreviewRT", antiAliasing = TextureMsaa };
+            stageCamera.targetTexture = texture;
+            ScaleInk(current);
+            ScaleInk(retiring);
+        }
+
+        // Contour width is in render-target pixels; scaling with the texture holds on-screen ink weight.
+        private void ScaleInk(Transform rig)
+        {
+            if (!rig) return;
+            var scale = texture.width / InkReferenceTextureSize;
+            var block = new MaterialPropertyBlock();
+            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+            {
+                var materials = r.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                {
+                    if (!materials[i] || !materials[i].HasProperty(ContourPixelsId)) continue;
+                    r.GetPropertyBlock(block, i);
+                    block.SetFloat(ContourPixelsId, materials[i].GetFloat(ContourPixelsId) * scale);
+                    r.SetPropertyBlock(block, i);
+                }
+            }
         }
 
         /// <summary>Swap the preview to the loadout's ship. A null ship (or rigless ship) clears the stage.</summary>
@@ -111,6 +147,7 @@ namespace UI.Hangar
             root.gameObject.name = ship.name + "_Preview";
             StripNonHull(clone);
             SetLayerRecursive(root, gameObject.layer);
+            ScaleInk(root);
 
             // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
             // full in-prefab scale. Under the spinning anchor, BaseOrientation as LOCAL rotation
@@ -236,11 +273,14 @@ namespace UI.Hangar
         private void OnDestroy()
         {
             if (stageCamera) stageCamera.targetTexture = null;
-            if (texture)
-            {
-                texture.Release();
-                Destroy(texture);
-            }
+            ReleaseTexture();
+        }
+
+        private void ReleaseTexture()
+        {
+            if (!texture) return;
+            texture.Release();
+            Destroy(texture);
         }
     }
 }

@@ -42,6 +42,7 @@ namespace UI.Hangar
 
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
+        private readonly Vector3[] previewCorners = new Vector3[4];
         private Func<string> hoveredStats;
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
@@ -50,7 +51,7 @@ namespace UI.Hangar
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
-                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent);
+                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent, PreviewPixels());
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);
             }
@@ -83,6 +84,22 @@ namespace UI.Hangar
                 launchButton.onClick.RemoveAllListeners();
                 launchButton.onClick.AddListener(() => onLaunch?.Invoke());
             }
+        }
+
+        // Resolution and layout can change while the hangar is open; the preview follows its on-screen size.
+        private void LateUpdate()
+        {
+            if (!previewStage) return;
+            previewStage.Resize(PreviewPixels());
+            previewImage.texture = previewStage.Texture;
+        }
+
+        // Overlay canvas: world corners are screen pixels.
+        private int PreviewPixels()
+        {
+            previewImage.rectTransform.GetWorldCorners(previewCorners);
+            var size = previewCorners[2] - previewCorners[0];
+            return Mathf.CeilToInt(Mathf.Max(size.x, size.y));
         }
 
         private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T> setCurrent,
