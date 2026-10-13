@@ -1,0 +1,13 @@
+{
+  "texture_size": 2048,
+  "uv_layer": "PaintUV",
+  "shadow": 0.85,
+  "light": 0.5,
+  "ink": 0.9,
+  "light_color": "#E3D8CB",
+  "ink_color": "#29222F",
+  "base_region_mask": "layers/BaseRegion.png",
+  "unity_shader": "Astronomical/Drawn/Surface",
+  "base_region_shader_binding": "_EmissionMap with _PaintEmissionBlend=1 and emission strength 0; alternate coat supplied as linear color",
+  "status": "mask-review-pending"
+}

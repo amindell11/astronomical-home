@@ -1,0 +1,651 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "96a9e782c7dc5cb59eb24ce8f84248474246b4065a2c6bc76f5ef36a2b400a50",
+  "findings": [
+    {
+      "rule": "scale",
+      "part": "01 Ram nose",
+      "message": "Unapplied scale (1.0, 1.000815, 0.859777)"
+    },
+    {
+      "rule": "scale",
+      "part": "02 Upper hull",
+      "message": "Unapplied scale (0.395266, 0.99695, 0.826311)"
+    },
+    {
+      "rule": "ngon",
+      "part": "02 Upper hull",
+      "message": "4 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "02 Upper hull.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "02 Upper hull.001",
+      "message": "Unapplied scale (1.04602, 0.99695, 0.826311)"
+    },
+    {
+      "rule": "scale",
+      "part": "03 Lower hull",
+      "message": "Unapplied scale (1.04602, 1.379389, 1.172308)"
+    },
+    {
+      "rule": "scale",
+      "part": "04 Tail booms",
+      "message": "Unapplied scale (0.950164, 1.116789, 0.351858)"
+    },
+    {
+      "rule": "scale",
+      "part": "05 Tail tips",
+      "message": "Unapplied scale (0.748225, 0.588531, 0.537151)"
+    },
+    {
+      "rule": "ngon",
+      "part": "05 Tail tips",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "05 Tail tips.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "05 Tail tips.001",
+      "message": "Unapplied scale (1.0, 0.999749, 0.822922)"
+    },
+    {
+      "rule": "ngon",
+      "part": "05 Tail tips.001",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "visual_role",
+      "part": "05 Tail tips.001",
+      "message": "In 0 visual roles; expected exactly one"
+    },
+    {
+      "rule": "origin",
+      "part": "05 Tail tips.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "05 Tail tips.002",
+      "message": "Unapplied scale (0.718793, 0.765009, 0.659586)"
+    },
+    {
+      "rule": "mirror",
+      "part": "05 Tail tips.002",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "origin",
+      "part": "05 Tail tips.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "05 Tail tips.003",
+      "message": "Unapplied scale (0.649002, 0.557101, 0.634156)"
+    },
+    {
+      "rule": "mirror",
+      "part": "05 Tail tips.003",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "scale",
+      "part": "06 Cockpit dome",
+      "message": "Unapplied scale (1.0, 0.72303, 0.701778)"
+    },
+    {
+      "rule": "scale",
+      "part": "07 Side insets",
+      "message": "Unapplied scale (0.887958, 0.88525, 0.73373)"
+    },
+    {
+      "rule": "scale",
+      "part": "08 Nested engines",
+      "message": "Unapplied scale (1.274017, 1.514544, 1.274915)"
+    },
+    {
+      "rule": "origin",
+      "part": "08 Nested engines.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "08 Nested engines.001",
+      "message": "Unapplied scale (1.274017, 1.514544, 1.274915)"
+    },
+    {
+      "rule": "ngon",
+      "part": "08 Nested engines.001",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "visual_role",
+      "part": "08 Nested engines.001",
+      "message": "In 0 visual roles; expected exactly one"
+    },
+    {
+      "rule": "scale",
+      "part": "09 Side armor",
+      "message": "Unapplied scale (1.115341, 1.046705, 0.645742)"
+    },
+    {
+      "rule": "origin",
+      "part": "09 Side armor.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "09 Side armor.001",
+      "message": "Unapplied scale (0.848541, 0.657615, 0.329921)"
+    },
+    {
+      "rule": "mirror",
+      "part": "09 Side armor.001",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "scale",
+      "part": "10 Tail fins",
+      "message": "Unapplied scale (1.066224, 1.066224, 1.066224)"
+    },
+    {
+      "rule": "scale",
+      "part": "10 Tail fins.001",
+      "message": "Unapplied scale (0.895618, 1.284738, 0.948676)"
+    },
+    {
+      "rule": "mirror",
+      "part": "10 Tail fins.001",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "origin",
+      "part": "Body.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Body.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Body.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Body.004",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Side armor.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Side armor.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Side armor.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Side insets.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.004",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.005",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.006",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.007",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.008",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "SymmetryOrigin.009",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail fins.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail tips.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail tips.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail tips.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail.001",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail.002",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Tail.002",
+      "message": "Unapplied scale (0.624987, 1.133155, 0.908228)"
+    },
+    {
+      "rule": "origin",
+      "part": "Tail.003",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Tail.003",
+      "message": "Unapplied scale (0.624987, 1.133155, 0.908228)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper hull.001",
+      "message": "Not parented under SymmetryOrigin"
+    }
+  ],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "0aabdfc2c19bcc908687b9df63ad7bf3d0747a7a0c53a9c85a9b95cb57925f82",
+      "uv": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+      "materials": "204cb9336b949b48e9891b5dc36a78c082f66dc39678a26bbc2cd9d0e08a5cbc"
+    },
+    "parts": {
+      "01 Ram nose": {
+        "geometry": "62eb0d1b1229eeaf8bd4429a91add241913c0784350bd2fee1f8aabdf919ca68",
+        "uv": "32cc86f3185fc3d11d3fdbd0b1605af071ba97b25b7e511258b75e02c9c399cf",
+        "materials": "a24c945b943fa2b1d0ae964c6076ab21c0bd12c14e2773b653a63bf4c47fb6bc"
+      },
+      "02 Upper hull": {
+        "geometry": "c510d274349094d101d60ba1c15839e03896e86b27d81e63bbf0b4d15487fd95",
+        "uv": "0facc08ca4c58a4d9c287f2a35fff1aafc0e233dacd71d73860fe87bed9a7212",
+        "materials": "ca105bea030d68c91f07ca63420445be12fd03baae48faa799ed72b7ed9a020b"
+      },
+      "02 Upper hull.001": {
+        "geometry": "20eac6146fc0df5b8b2c37c0ee1e386e3a4c3746bd1eb1196935c15c70a3214e",
+        "uv": "5ebac91392d34f6914b14e021febc31aef952df880858c29528a267e952d13dc",
+        "materials": "13398b5a721acb0ed99c845743a1310be6c0e0f2e8d3c763bca84661a522ca13"
+      },
+      "03 Lower hull": {
+        "geometry": "04dac670de2d0397767b0f5bf8e61117fde2edd0a6c6e9b442a5e98bfcb59bcf",
+        "uv": "3a948d7aa5901d80bfbae24c8654f2e763c7ee1f0e7a7dbf170bf4e3c76de82a",
+        "materials": "cf8a5f8cb368d03c342d3b59f5c5593859139095f31d49aa45691bfe486d4de8"
+      },
+      "04 Tail booms": {
+        "geometry": "464b76abe156c62bc31a969d61b7538367898c38564d9912d9c002bb64082db0",
+        "uv": "7102b327f9d1ec768762369d77ffa0d00698f72d75255e1da73ed1b9fe5b51aa",
+        "materials": "5f3eed4a33f8f8f565c49c6b35f8397704b8a067dc0ee45d0f1bb70b73cfb330"
+      },
+      "05 Tail tips": {
+        "geometry": "b28ece48de2ac29d0c3acc3deae6c2678a7843f590d3b4adb95217bc8d5ba3c1",
+        "uv": "0911ee9afc8513c8000418d9ac481d842c25145d88e2a309b517ef7696ac873e",
+        "materials": "681ed0755eb3442ad2d5319e2e2d05efcc21599d867d3c7a56ec97e5354517e6"
+      },
+      "05 Tail tips.001": {
+        "geometry": "a652bf17fb396209dc7245f17680173dc15b53f3dc1246924ce695ea1e1ae0fe",
+        "uv": "5e3be1dfe716221c40977b6cb17751d05c0c1c04f8c6b2a01627170c450eb21d",
+        "materials": "be6cddd57d97a67f38f4f432a77c9787baffb601f03965243da126ceeb46a004"
+      },
+      "05 Tail tips.002": {
+        "geometry": "108daabad7810475e4d31d05e24a62428ef5bbf3366f605354b3f225edce6bb1",
+        "uv": "a354c6819057d9efaadb6ef44c281236834263189fb37d94c8bdce97fd394cd6",
+        "materials": "b2a1684c904765242ee776adf1af4c14ec58ecf9ebb7f2d8a7422f6ab1c7c572"
+      },
+      "05 Tail tips.003": {
+        "geometry": "45c47a2d9f04dcfa08604f809afb14b9efb777431e35171bd226ed9ee57f0d6d",
+        "uv": "0f19c4a7b8ccd474294e6a6383d6475166febc6dff107425faa850d71f9af6d1",
+        "materials": "43a8a9ebe56d419d7af03dadcc5d20e0ede161d2ec6baf228b0f25f7cc50d7d5"
+      },
+      "06 Cockpit dome": {
+        "geometry": "7e0ccdd9eb0e4b9fa086427537012f638e1d818174b8c8aaa2af57fc4f553a2f",
+        "uv": "c4d103a66938e90d37427f1b2a53bc42b46c06c159a0fb50320f9b70befaa9a1",
+        "materials": "2c68da9fe241e027ba109ac5a6e881e25861db0e74de3431aac7cd96dc7b807e"
+      },
+      "06 Cockpit surround": {
+        "geometry": "2e8cbfc4b2132ceb00bc560a4e466ec952fb280cb2521cdb9bbad8a5be415261",
+        "uv": "b27ca4b676e96aff6e7057e8e87b3ef3fdcd5deb93ae32e3ceb4a61b4e66fd1e",
+        "materials": "0f99d47596608eb7bbbe362bf5aaa718d59798c4da02db2c3a4127a1196fc896"
+      },
+      "07 Side insets": {
+        "geometry": "11bb8263a02e01964378298534ba45b3fcd8cf13b5bb901212fa1a67b98b8501",
+        "uv": "6fa80f08767a83e6a0aa0b80f15be7a8a2fa517211f318d2ac95f28966e8738c",
+        "materials": "17b4931aaa1668c55b93e2bc2cfdd293194cdd595655417dfd744a591d0a7976"
+      },
+      "08 Nested engines": {
+        "geometry": "2a104a817b9b3f45f03534cacf0b1203805b63f1def4d544b2f9c3be198d1606",
+        "uv": "078558b9d5b57a07cc65dac1f3e34cac8e970f41d12a8a7d7cd8590a7a5952f6",
+        "materials": "7ca6ed95d398b163e46c23fc5e7dfb9cfa75d4be6bc3aab7d24ccbe43f5b0ee4"
+      },
+      "08 Nested engines.001": {
+        "geometry": "3c37485a076b684131d94a2ca8d0f8eb36065297e5dca91a5096538cc1e24b78",
+        "uv": "da1b80b5d96c4cc83fbb1ca622327165d9e5f35ae14425fd66f9db639c4d35f8",
+        "materials": "42b0861ee577414bf303bd1c2091d5c62e22190ee6063f4e98c378a407809afd"
+      },
+      "09 Side armor": {
+        "geometry": "9e9b4439d01945fd2ee1622060cfb1ee5a9afc15350b694a659ffb84f9ff5250",
+        "uv": "3d73c66e95f709306448d00969db52b04fc7a8f7884d8bdcdb31edeaf9a5028c",
+        "materials": "0feb7b8780803d23c3588747e2919f72d0518299b02a0349041e31f47b261a52"
+      },
+      "09 Side armor.001": {
+        "geometry": "3ac62d072d853372c852c4384e2d31428c418bffd41c4a6420b815bbd3f11089",
+        "uv": "c92b5bcc26d777992911f461f054e796b642eed403b4f55086052949fe87d1f9",
+        "materials": "0feb7b8780803d23c3588747e2919f72d0518299b02a0349041e31f47b261a52"
+      },
+      "10 Tail fins": {
+        "geometry": "fd8c144aa210b4d59ab0fec835ed154c8ff0c165cf1877fe728838211fabab11",
+        "uv": "491e6904723ce1c5bcfe419730d27e11c821ee9d25d7d1ae0b174175aa5a81d4",
+        "materials": "64704b7bed83dbe13a62a0842f9bcc98789cca8ae420013b1a59798385e9cb18"
+      },
+      "10 Tail fins.001": {
+        "geometry": "43a2b8d801639292172f37eec2130149bb578d1ab9d36024619cd43104764567",
+        "uv": "0096b8c9fbfa6aaf930210c1e29b95ef6f6dc051dd000140ed53ffbbb21998d8",
+        "materials": "64704b7bed83dbe13a62a0842f9bcc98789cca8ae420013b1a59798385e9cb18"
+      },
+      "11 Upper hinge brackets": {
+        "geometry": "9bdbb6846f7399809396cd4d676de9599aa46a1a52f91f15de0d7021316c3a4f",
+        "uv": "cf85876b90a8945a0574fb723cae654bd66403a91b29a883b985822a4a094e35",
+        "materials": "d9907e6761d54ea03c58c796c1a69bca8b891414fd6c7c6ec8d615f4a3c0c666"
+      },
+      "12 Upper hinge leaves": {
+        "geometry": "3ec827e41fc7528b97fe9f6ec63b411fd3ce353cb7b162c3d0d19824161a6a7c",
+        "uv": "cc0f57dbac9fd765ba321effff321ab797f529dda5e36355cca719086babcacf",
+        "materials": "bbd391fc9d64fd06aefe95c68ea16d2de5a3fc9e270098ac60acdeb6b46a8f24"
+      },
+      "13 Lower hinge brackets": {
+        "geometry": "ada3d07824e2de74ddc9c4aa3d441c7003bbc7f24ea998d6a3f031bac3b45502",
+        "uv": "b43817e5999140aa564ec6bc3de14e345f7a8c24745677485e435328d0ce4b1c",
+        "materials": "d9907e6761d54ea03c58c796c1a69bca8b891414fd6c7c6ec8d615f4a3c0c666"
+      },
+      "14 Lower hinge leaves": {
+        "geometry": "554aba1df3822e7058d386c803491cffd19bcf47697956b0a161875e9957c2c6",
+        "uv": "33010902c5021c8ba436871aaeaceec87bbc106fb082521659322552e732b9b5",
+        "materials": "bbd391fc9d64fd06aefe95c68ea16d2de5a3fc9e270098ac60acdeb6b46a8f24"
+      },
+      "Body": {
+        "geometry": "c61e3f1ba7544a00a31eb767302742b95a5577b86ec15f66593f8c76c97b73dd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.001": {
+        "geometry": "123b7eb41730c8c9a7101a6c753e23cb8d05efc13555150b1dbba24eccfe0aae",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.002": {
+        "geometry": "c032ffe9d756d162607c78402cf0a02a4aefd23d537ccfd413ed71d2a24c0558",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.003": {
+        "geometry": "eb82ca435a5fba763325d7a0494cc099d11380bf0f5bc791a2bea1a737ab0553",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.004": {
+        "geometry": "71a6f0c6273d80f8d788441351729e592388e8dbd1143405cb54d41010f3b47b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Cockpit": {
+        "geometry": "350b8ad842c7c20fdb44fd689e3ad7eb3792122a52953a11601c3d0056212c47",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Flap mounts": {
+        "geometry": "b31c794c02fc8cd2f18701611a59e5193c6a024c2fee46db8ae34e5bc9916ca4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower flap axis": {
+        "geometry": "342790dc12420d8af82d6000f24ffaab9f20eac399e36844c06bfc90db578ef3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower flap deployment": {
+        "geometry": "e3a205c3b7d17cdfb647b50007427a1105cef847a795851c1f70f9ad6d893783",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Ram nose": {
+        "geometry": "8256dc1304d29556970fc052ab206de40a6210471b1ef962548b06b3ef1ee446",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor": {
+        "geometry": "c52db368dcde2b8b1f9d47e2d26e7587cf64d5100b476850edbfb1512add4eca",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor.001": {
+        "geometry": "88d9764e5a70d59da3afee6bd77c5cc06be7dc6e9d71833628ba1ada2839359f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor.002": {
+        "geometry": "d799260b08ba9e6adfd4ff2db4934398ecf6bc8320b8420d6dfe33ca7789371c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor.003": {
+        "geometry": "9040eb280716caf7dcafdb4dd5093ba97ceee30f2ca87e76e5d5744a8bda096c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side insets": {
+        "geometry": "b0fe44aed06e00ee3226d15b8c9b15f24279be1b2196836c0dd6aa023118dd72",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side insets.001": {
+        "geometry": "2f4a323944f7679d634075e3322565a26a8519d20f5536414175c7baeddbf53a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.001": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.002": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.003": {
+        "geometry": "e9f45ccb02c142679e0f12e92dea3ebc33d07c49eae3f5ab92b4d034116d6c7a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.004": {
+        "geometry": "40b05434774bc322a8c987778c3b31d2ae8a823fcf36469de41c48d7267aa4e9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.005": {
+        "geometry": "a63ddf8a4bc42788c72516f7c6952b9c0c33bd9e0a2170766b0d403624789872",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.006": {
+        "geometry": "aff5ec7dcd880283dba87cb745a66e6ca446a48f63f0b3bd4f9db874d1cbeec4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.007": {
+        "geometry": "a63ddf8a4bc42788c72516f7c6952b9c0c33bd9e0a2170766b0d403624789872",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.008": {
+        "geometry": "24caba69bedee25fae18bbc2f26469cb4faf9dbf8c26dda3701846b8d011c8c8",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.009": {
+        "geometry": "5960f0e5630c126c65e2442200ec50de336b782918a8b1bc351e0ea2bb43da83",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail": {
+        "geometry": "f41f9f3cb881ba25cf25e117a815c545944b9ec96f87afae3a00c919a2ef3e8f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail booms": {
+        "geometry": "1738b12bf0abc4124f09ebd5fecf53792a781d24babbf70f326f0d284a1f70d6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail fins": {
+        "geometry": "c4a63c47b7cd36f1d1408bc1ea9af8a40d32f042b092036369375fc834450f4a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail fins.001": {
+        "geometry": "aa8f82fe9050e5b687b95f3bcb41614a03aa1a3a143a46fb23c8415a4206202f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips": {
+        "geometry": "a404d6d4169c0d816a931e281dea37d7e5dd599f8b571aec7294bef7d4b90ffc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.001": {
+        "geometry": "eb7c9b00fbe531e99596f6b9bd5c2061ca70fe17fecc2f336ce004c90ffb9ddf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.002": {
+        "geometry": "58db2696e73bb0dfe7784563bc8793daca8865cf4983430629f75a8c83b548d2",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.003": {
+        "geometry": "3575a0931eb4800869c5365269847ca09ae0b01326e42b37adfa9f69c845bc55",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.001": {
+        "geometry": "42b889e0a33707ef4adba73cafaa29505ac0e308ce6b7c53ed88fc62e4fa1d75",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.002": {
+        "geometry": "7beea3517953c9c28e307195ff24131b31e93b33ac70c2aba843461f5dfc0761",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.003": {
+        "geometry": "be12b3cdd91804b2e73ce8621a51c4f40a759c7b5a77b68326330187d71b3716",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper flap axis": {
+        "geometry": "487eebdc60fe69037b00c8a8f97cd59c994d226fd1211ed00687e0763c22748a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper flap deployment": {
+        "geometry": "361e109cc3aae5cb357019f97edc51faad23eb3e4ab87412b2e821fc05eb8408",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper hull.001": {
+        "geometry": "d6a8702b989158e7da35fd17a54f7f123a2cd2ddd57895d9ae9edec49eef736d",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.side": {
+        "geometry": "fa90a37911bf963c6a818b0550667f213b55492a0ddd9caceb141336015e98cc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "016c9e92999841abc8a1eae8cfcbbe1b53f876dcf013925bd599cad343119c5c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "fail"
+}

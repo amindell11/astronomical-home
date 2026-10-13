@@ -1,0 +1,159 @@
+{
+  "engine": "6000.1.8f1",
+  "project": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets",
+  "colorSpace": "Linear",
+  "roster": [
+    {
+      "ship": "Vanguard",
+      "source": "Assets/Prefabs/Ships/Vanguard.prefab",
+      "renderers": 5,
+      "materials": [
+        {
+          "path": "Assets/Visuals/Ships/Vanguard/Materials/Canopy.mat",
+          "shader": "Astronomical/Drawn/Canopy",
+          "paperColor": "texture"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Vanguard/Materials/Engine glow.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.650, 0.700, 0.750, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Vanguard/Materials/Structural ink.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.650, 0.700, 0.750, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Vanguard/Vanguard vivid paint.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.650, 0.700, 0.750, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/_Shared/Illustrated/Ship contour.mat",
+          "shader": "Astronomical/Drawn/Contour",
+          "paperColor": "texture"
+        }
+      ]
+    },
+    {
+      "ship": "Crimson",
+      "source": "Assets/Prefabs/Ships/Crimson.prefab",
+      "renderers": 1,
+      "materials": [
+        {
+          "path": "Assets/Visuals/Ships/Crimson/Hull paint.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.650, 0.700, 0.750, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/_Shared/Illustrated/Ship contour.mat",
+          "shader": "Astronomical/Drawn/Contour",
+          "paperColor": "texture"
+        }
+      ]
+    },
+    {
+      "ship": "Nightshade",
+      "source": "Assets/Prefabs/Ships/Nightshade.prefab",
+      "renderers": 3,
+      "materials": [
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Midnight.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.654, 0.796, 1.000, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Edge.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.030, 0.042, 0.062, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Recess.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.016, 0.027, 0.063, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Violet.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.425, 0.578, 0.910, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Plum.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.066, 0.138, 0.366, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Glass.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.108, 0.152, 0.428, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Contour.mat",
+          "shader": "Astronomical/Drawn/Contour",
+          "paperColor": "texture"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Glass.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.108, 0.152, 0.428, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Recess.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.016, 0.027, 0.063, 1.000)"
+        }
+      ]
+    },
+    {
+      "ship": "Valis",
+      "source": "Assets/Prefabs/Ships/Valis.prefab",
+      "renderers": 1,
+      "materials": [
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.196, 0.624, 0.569, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.278, 0.443, 0.482, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.686, 0.580, 0.839, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.149, 0.239, 0.275, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.235, 0.325, 0.365, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Canopy.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.078, 0.141, 0.192, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat",
+          "shader": "Astronomical/Drawn/Surface",
+          "paperColor": "RGBA(0.482, 0.588, 0.565, 1.000)"
+        },
+        {
+          "path": "Assets/Visuals/Ships/Valis/Materials/Contour.mat",
+          "shader": "Astronomical/Drawn/Contour",
+          "paperColor": "texture"
+        }
+      ]
+    }
+  ],
+  "bulwark": "Locked r08 geometry and approved r02 UVs with separate grayscale paint masks; temporary materials, no gameplay prefab.",
+  "framing": "Equal maximum model dimension; shared orthographic camera and neutral lighting.",
+  "sceneOrAssetSaved": false,
+  "capturedUtc": "2026-10-13T23:13:06.6981124Z"
+}

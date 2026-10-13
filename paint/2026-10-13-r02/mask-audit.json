@@ -1,0 +1,30 @@
+{
+  "mesh_source_sha256": "2790e4dfce08191ccf35443e46b2bacfecf70b630b2babdf6ca7c44cbbfe9e54",
+  "texture_size": 2048,
+  "covered_texels": 1880241,
+  "grayscale_layers": {
+    "Shadow": {
+      "min": 0.07230455756960048,
+      "max": 0.5839999957755208,
+      "sha256": "498d02869fabc6868ebedf068bca1685477ef4966c309945b43288ec432d9c93"
+    },
+    "Light": {
+      "min": 0.0,
+      "max": 0.6759011149406433,
+      "sha256": "25fb6ad12a434d3c623cab45d6c2e6c0c2b66b5c1befb50975f2aec51de5c704"
+    },
+    "Ink": {
+      "min": 0.0,
+      "max": 0.5198236703872681,
+      "sha256": "8c0f2b8b60faa50eaee42787e13c8c320ffcc4635b3f67703b43da886167cf24"
+    },
+    "BaseRegion": {
+      "min": 0.0,
+      "max": 1.0,
+      "sha256": "0572cec6139a5ef33ea87dad2ed2a4c56fbedb60623715a4234f274d7623fe82"
+    }
+  },
+  "colour_baked": false,
+  "layout": "Approved r02 PaintUV; 6px dilation",
+  "method": "Geometry-projected painted planes, edge wear, selective panel ink and canopy reflection; deterministic seed-free brush variation"
+}
