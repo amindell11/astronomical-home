@@ -13,8 +13,8 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Weapons
 {
     /// <summary>
-    /// Local FMOD evidence, compiled only against the real package: one laser shot starts the fire
-    /// event with Heat fed from the weapon, and the log records which output FMOD initialised with.
+    /// Local FMOD evidence, compiled only against the real package; the log records which output
+    /// FMOD initialised with.
     /// </summary>
     [Category("Audio")]
     public class LaserFireAudioPlayModeTests : PlayModeWorldFixture

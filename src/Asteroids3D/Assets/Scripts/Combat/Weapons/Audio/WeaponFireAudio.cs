@@ -6,10 +6,9 @@ using UnityEngine;
 namespace Combat.Weapons.Audio
 {
     /// <summary>
-    /// One-shot fire sound for a weapon family: on every shot it starts <c>fireEvent</c> at the
-    /// fire point, lets the family set the event's parameters, and releases the instance. One-shots
-    /// only, by ruling: a sustained sound (charging, engines) is a sibling component that holds its
-    /// own instance across state changes and stops it in <see cref="ApplyPresentation"/>.
+    /// A weapon family's fire sound, one-shot only by ruling: a sustained sound (charging, engines)
+    /// is a sibling component that holds its own instance across state changes and stops it in
+    /// <see cref="IPresentationPart.ApplyPresentation"/>.
     /// </summary>
     public abstract class WeaponFireAudio : MonoBehaviour, IPresentationPart
     {
