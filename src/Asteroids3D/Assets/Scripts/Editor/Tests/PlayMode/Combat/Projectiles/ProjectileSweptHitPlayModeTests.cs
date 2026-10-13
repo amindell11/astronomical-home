@@ -8,7 +8,6 @@ using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -52,10 +51,6 @@ namespace Tests.PlayMode
 
         public override void TearDown()
         {
-            // Hit bursts (untracked PooledVFX) outlive the test and trip the grenade test fixture's zero-VFX assertion.
-            foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(vfx.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();

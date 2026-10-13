@@ -29,7 +29,6 @@ namespace Tests.PlayMode.Presentation.Breakup
         public override void SetUp()
         {
             base.SetUp();
-            DestroyBreakupTransients();
             savedMaxDelta = Time.maximumDeltaTime;
             Time.maximumDeltaTime = .05f;
             host = new GameObject("[BreakupTestServices]");
@@ -41,7 +40,6 @@ namespace Tests.PlayMode.Presentation.Breakup
         {
             units.Clear();
             Object.DestroyImmediate(host);
-            DestroyBreakupTransients();
             Time.maximumDeltaTime = savedMaxDelta;
             base.TearDown();
         }
@@ -154,6 +152,23 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(hull.gameObject.activeSelf, Is.False);
         }
 
+        [UnityTest]
+        public IEnumerator FixtureSetUp_ClearsTheLastFixturesDeathTransients()
+        {
+            var ship = Spawn("Crimson");
+            yield return null;
+            Kill(ship);
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
+                .Count(e => e.name.StartsWith("LayeredAsteroidExplosion")), Is.EqualTo(1));
+
+            TearDown();
+            SetUp();
+
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None), Is.Empty);
+            Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None), Is.Empty);
+        }
+
         private Ship Spawn(string name)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/" + name + ".prefab");
@@ -215,16 +230,6 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(Vector3.Distance(debris.transform.position, expected), Is.LessThan(.00001f));
             Assert.That(debris.PoseCount, Is.Zero);
             yield return VerifyMotionFadeAndCleanup(debris, Vector3.zero);
-        }
-
-        // Debris and bursts outlive whichever fixture's ship died; these tests count them globally.
-        private static void DestroyBreakupTransients()
-        {
-            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(debris.gameObject);
-            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(effect.gameObject);
-            SimplePool<PooledVFX>.Clear();
         }
 
         private static void Kill(Ship ship) => ship.Damage.TakeDamage(new DamageInfo(
