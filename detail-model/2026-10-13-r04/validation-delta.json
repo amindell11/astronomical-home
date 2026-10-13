@@ -1,0 +1,26 @@
+{
+  "source_sha256": "29459999061552c660fd5dfe702e3043d0c14a9fb5e898746c0bdb42713a8b34",
+  "parts": {
+    "04 Tail booms": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "vertices": 172,
+      "faces": 190
+    },
+    "05 Tail tips": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "vertices": 200,
+      "faces": 232
+    }
+  },
+  "findings_before": 52,
+  "findings_after": 51,
+  "new_findings": [],
+  "removed_findings": [
+    [
+      "ngon",
+      "05 Tail tips"
+    ]
+  ]
+}
