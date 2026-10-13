@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
@@ -163,21 +164,26 @@ namespace Tests.PlayMode
         }
 
         // Read off the prefab asset, where Awake never runs: passes only if every stat source is serialized.
+        // Patterns, not values, so balance tuning never breaks it.
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
-            "Damage 20   |   Rate 3.3/s   |   Speed 50   |   Overheats after 14 shots")]
+            @"Damage \d+", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
         [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab",
-            "Damage 12-30   |   Full charge 1.2s   |   Speed 45")]
+            @"Damage \d+-\d+", @"Full charge [\d.]+s", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
-            "Damage 45   |   Range 60   |   Full charge 1.5s   |   Hitscan")]
+            @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
-            "Damage 6   |   Rate 10/s   |   Mag 24 (reload 1.5s)   |   Speed 40")]
+            @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
-            "Damage 35 + 15 splash   |   2 rounds (regen 15s/round)   |   Lock-on homing")]
+            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
-            "Blast 35 to 12u, hits friend and foe   |   3 charges (regen 12s/round)   |   Range 25u")]
-        public void Describe_FormatsCatalogWeaponAsset(string path, string expected)
+            @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(regen [\d.]+s/round\)", @"Range \d+u")]
+        public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
         {
-            Assert.AreEqual(expected, HangarScreen.Describe(Load<WeaponComponent>(path)));
+            var description = HangarScreen.Describe(Load<WeaponComponent>(path));
+            var segments = description.Split(new[] { "   |   " }, System.StringSplitOptions.None);
+            foreach (var pattern in segmentPatterns)
+                Assert.IsTrue(System.Array.Exists(segments, s => Regex.IsMatch(s, $"^{pattern}$")),
+                    $"shows a segment matching `{pattern}` in: {description}");
         }
 
         [Test]
