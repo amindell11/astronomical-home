@@ -1,0 +1,112 @@
+<style>
+#weapon-framing-study { --glyph-ink:#eeece3; --study-ink:#d1d9dd; --study-muted:#9caeb9; --study-bg:#09131f; --glyph-stroke:1.6; --frame-stroke:1.05; --frame-alpha:.8; --hud-size:28px; color-scheme:dark; }
+#weapon-framing-study .symbol-sheet { box-sizing:border-box; min-height:808px; padding:24px; color:var(--study-ink); background:var(--study-bg); font:14px/1.4 "Bahnschrift","Arial Narrow","Segoe UI",sans-serif; }
+#weapon-framing-study .sheet-heading { margin:0 104px 3px 0; color:var(--glyph-ink); font-size:22px; font-weight:400; letter-spacing:.025em; }
+#weapon-framing-study .sheet-subtitle { margin:0 0 22px; color:var(--study-muted); font-size:12px; }
+#weapon-framing-study .symbol-grid { display:grid; grid-template-columns:minmax(95px,1.4fr) minmax(64px,1fr) repeat(3,minmax(32px,.6fr)); align-items:center; column-gap:8px; }
+#weapon-framing-study .column-label { color:var(--study-muted); font-size:11px; text-align:center; padding-bottom:9px; }
+#weapon-framing-study .column-label:first-child { text-align:left; }
+#weapon-framing-study .weapon-name { color:var(--study-ink); font-size:13px; }
+#weapon-framing-study .weapon-cue { display:block; color:var(--study-muted); font-size:11px; margin-top:2px; }
+#weapon-framing-study .weapon-row { min-height:65px; border-top:1px solid #22303d; }
+#weapon-framing-study .glyph-cell { display:flex; align-items:center; justify-content:center; min-width:0; height:65px; }
+#weapon-framing-study .weapon-glyph { display:block; flex:none; fill:none; stroke:var(--glyph-ink); stroke-width:var(--glyph-stroke); stroke-linecap:butt; stroke-linejoin:miter; overflow:visible; }
+#weapon-framing-study .icon-frame { stroke-width:var(--frame-stroke); opacity:var(--frame-alpha); }
+#weapon-framing-study .glyph-large { width:48px; height:48px; }
+#weapon-framing-study .glyph-32 { width:32px; height:32px; }
+#weapon-framing-study .glyph-24 { width:24px; height:24px; }
+#weapon-framing-study .glyph-16 { width:16px; height:16px; }
+#weapon-framing-study .scene-section { margin-top:22px; border-top:1px solid #2b3a47; padding-top:15px; }
+#weapon-framing-study .scene-heading { color:var(--study-muted); margin:0 0 14px; font-size:11px; letter-spacing:.055em; font-weight:400; }
+#weapon-framing-study .hud-examples { display:flex; gap:22px 38px; flex-wrap:wrap; align-items:flex-start; }
+#weapon-framing-study .hud-example { flex:1 1 245px; min-width:0; }
+#weapon-framing-study .hud-label { display:block; color:var(--study-muted); font-size:11px; margin-bottom:9px; }
+#weapon-framing-study .ship-hud { display:flex; gap:calc(var(--hud-size) * .25); align-items:center; height:36px; }
+#weapon-framing-study .equipped-symbols { display:flex; gap:calc(var(--hud-size) * .2); }
+#weapon-framing-study .equipped-symbols .weapon-glyph { width:var(--hud-size); height:var(--hud-size); }
+#weapon-framing-study .status-bars { width:calc(var(--hud-size) * 4.2857); flex:none; display:grid; gap:calc(var(--hud-size) * .14286); }
+#weapon-framing-study .status-track { height:calc(var(--hud-size) * .42857); background:#364049; position:relative; }
+#weapon-framing-study .status-fill { height:100%; }
+#weapon-framing-study .shield-fill { background:#77afc8; width:72%; }
+#weapon-framing-study .health-fill { background:#d97c87; width:86%; }
+#weapon-framing-study .status-value { position:absolute; top:50%; left:calc(100% + 5px); transform:translateY(-50%); font:11px/1 "Segoe UI",sans-serif; color:#e2e4e5; }
+#weapon-framing-study .sheet-foot { color:var(--study-muted); margin:19px 0 0; font-size:11px; }
+#weapon-framing-study .distance-samples { display:flex; gap:16px; align-items:center; margin-top:18px; flex-wrap:wrap; }
+#weapon-framing-study .distance-label { color:var(--study-muted); font-size:11px; }
+#weapon-framing-study .distance-row { display:flex; gap:7px; align-items:center; }
+@media(max-width:430px) {
+  #weapon-framing-study .symbol-sheet { padding:18px 12px; min-height:886px; }
+  #weapon-framing-study .sheet-heading { font-size:20px; }
+  #weapon-framing-study .symbol-grid { column-gap:4px; grid-template-columns:minmax(88px,1.4fr) minmax(56px,1fr) repeat(3,minmax(30px,.6fr)); }
+  #weapon-framing-study .weapon-name { font-size:12px; }
+}
+</style>
+<div id="weapon-framing-study" aria-label="Refined Cuts symbols and icon borders">
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
+    <defs>
+      <g id="frame-clipped"><path d="M8 2 H31 L38 9 V31 L31 38 H9 L2 31 V8 Z"/></g>
+      <g id="frame-open"><path d="M2 13 V8 L8 2 H13 M27 2 H31 L38 9 V13 M38 27 V31 L31 38 H27 M13 38 H9 L2 31 V27"/></g>
+      <g id="meaning-lasers"><path d="M11 30 21 11 M19 29 27 14 M23 7 27 7"/></g>
+      <g id="meaning-turbo"><path d="M9 28 12 22 M14 18 17 12 M16 31 19 25 M21 21 24 15 M25 28 29 20 M22 8 28 8"/></g>
+      <g id="meaning-charge"><path d="M10 12 15 18 12 25 M30 12 25 18 28 25 M17 30 23 9"/></g>
+      <g id="meaning-railgun"><path d="M10 31 25 12 M20 8 30 16 M10 17 14 17"/></g>
+      <g id="meaning-missiles"><path d="M10 30 V23 L22 17 V14 M18 9 22 5 26 9 22 13 Z M9 14 13 14"/></g>
+      <g id="meaning-rippers"><path d="M10 27 13 22 16 24 13 29 Z M17 18 20 13 23 15 20 20 Z M24 9 27 6 29 8 26 11 Z"/></g>
+      <g id="meaning-concussion"><path d="M16 8 20 5 24 8 M29 16 32 20 29 24 M24 31 20 34 16 31 M11 24 8 20 11 16 M17 20 20 17 23 20 20 23 Z"/></g>
+    </defs>
+  </svg>
+  <div class="viz-carousel viz-dotted-background" aria-label="Cuts border treatments">
+    <section data-variant="Clipped frame" aria-label="Clipped frame around each symbol">
+      <div class="symbol-sheet" data-border="clipped">
+        <h2 class="sheet-heading">Clipped frame</h2>
+        <p class="sheet-subtitle">Cuts · clearer weapon cues · unfilled outline</p>
+        <div class="symbol-grid"><span class="column-label">Weapon / cue</span><span class="column-label">Form</span><span class="column-label">32 px</span><span class="column-label">24 px</span><span class="column-label">16 px</span></div>
+        <div class="glyph-rows" aria-label="Refined weapon symbols in clipped frames"></div>
+        <div class="scene-section"><h3 class="scene-heading">BESIDE THE HEALTH BARS</h3><div class="hud-examples"></div><div class="distance-samples"><span class="distance-label">16 px lineup</span><div class="distance-row"></div></div></div>
+        <p class="sheet-foot">Concept study · 28 px HUD icons · colors illustrative · not in-engine</p>
+      </div>
+    </section>
+    <section data-variant="Open corners" aria-label="Open corner brackets around each symbol" hidden>
+      <div class="symbol-sheet" data-border="open">
+        <h2 class="sheet-heading">Open corners</h2>
+        <p class="sheet-subtitle">Cuts · clearer weapon cues · unfilled brackets</p>
+        <div class="symbol-grid"><span class="column-label">Weapon / cue</span><span class="column-label">Form</span><span class="column-label">32 px</span><span class="column-label">24 px</span><span class="column-label">16 px</span></div>
+        <div class="glyph-rows" aria-label="Refined weapon symbols with open corners"></div>
+        <div class="scene-section"><h3 class="scene-heading">BESIDE THE HEALTH BARS</h3><div class="hud-examples"></div><div class="distance-samples"><span class="distance-label">16 px lineup</span><div class="distance-row"></div></div></div>
+        <p class="sheet-foot">Concept study · 28 px HUD icons · colors illustrative · not in-engine</p>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('weapon-framing-study');
+  const weapons = [['lasers','Lasers','Straight bolts'],['turbo','Turbo Lasers','Faster cadence'],['charge','Charge Lasers','Charge → bolt'],['railgun','Railgun','Instant line → hit'],['missiles','Missiles','Guided trajectory'],['rippers','Rippers','Discrete slugs'],['concussion','Concussion','Expanding blast']];
+  function glyph(border,weapon,name,size) {
+    return `<svg viewBox="0 0 40 40" class="weapon-glyph glyph-${size}" role="img" aria-label="${name}"><use class="icon-frame" href="#frame-${border}"></use><use href="#meaning-${weapon}"></use></svg>`;
+  }
+  for (const sheet of root.querySelectorAll('[data-border]')) {
+    const border = sheet.dataset.border;
+    sheet.querySelector('.glyph-rows').innerHTML = weapons.map(([key,name,cue]) => `<div class="symbol-grid weapon-row"><span class="weapon-name">${name}<span class="weapon-cue">${cue}</span></span>${['large',32,24,16].map(size=>`<span class="glyph-cell">${glyph(border,key,name,size)}</span>`).join('')}</div>`).join('');
+    const examples = [['Lasers + Missiles',['lasers','missiles']],['Railgun + Concussion',['railgun','concussion']]];
+    sheet.querySelector('.hud-examples').innerHTML = examples.map(([label,pair]) => `<div class="hud-example"><span class="hud-label">${label}</span><div class="ship-hud" role="img" aria-label="${label}, shield 72, health 86"><div class="equipped-symbols">${pair.map(key=>glyph(border,key,key,24)).join('')}</div><div class="status-bars"><div class="status-track"><div class="status-fill shield-fill"></div><span class="status-value">72</span></div><div class="status-track"><div class="status-fill health-fill"></div><span class="status-value">86</span></div></div></div></div>`).join('');
+    sheet.querySelector('.distance-row').innerHTML = weapons.map(([key,name])=>glyph(border,key,name,16)).join('');
+  }
+  const state = {stroke:1.6,border:1.05,size:28,background:'#09131f'};
+  function render() {
+    root.style.setProperty('--glyph-stroke',state.stroke);
+    root.style.setProperty('--frame-stroke',state.border);
+    root.style.setProperty('--hud-size',`${state.size}px`);
+    root.style.setProperty('--study-bg',state.background);
+    for (const foot of root.querySelectorAll('.sheet-foot')) foot.textContent = `Concept study · ${state.size} px HUD icons · colors illustrative · not in-engine`;
+  }
+  render();
+  if (globalThis.Tweak) {
+    const tweak = new Tweak({container:root,onChange:render});
+    tweak.addSlider(state,'stroke',{label:'Symbol stroke',min:1.2,max:2.4,step:.1,unit:'px'});
+    tweak.addSlider(state,'border',{label:'Border stroke',min:.6,max:1.8,step:.05,unit:'px'});
+    tweak.addSlider(state,'size',{label:'HUD icon size',min:16,max:32,step:1,unit:'px'});
+    tweak.addColorPicker(state,'background',{label:'Scene background'});
+  }
+})();
+</script>
