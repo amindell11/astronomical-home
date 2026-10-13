@@ -35,7 +35,7 @@ namespace Tests.EditMode.Rendering
             }
         }
 
-        // RenderObjects drops a renderer whose own material sits outside the pass's queue filter, even with an override material.
+        // RenderObjects filters on the renderer's own material queue, even with an override material.
         [Test]
         public void MinimapLayerRenderers_SourceMaterialPassesTheirMinimapPassFilter()
         {
@@ -58,13 +58,14 @@ namespace Tests.EditMode.Rendering
                     var matching = passes.Where(p => (p.mask & layerBit) != 0).ToList();
                     if (matching.Count == 0) continue;
 
+                    var opaque = matching[0].opaque;
+                    var range = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
                     foreach (var material in renderer.sharedMaterials)
                     {
-                        var range = matching[0].opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
                         if (!material)
                             failures.Add($"{path}: {renderer.name} has no material");
                         else if (material.renderQueue < range.lowerBound || material.renderQueue > range.upperBound)
-                            failures.Add($"{path}: {renderer.name} material {material.name} queue {material.renderQueue} outside {(matching[0].opaque ? "opaque" : "transparent")}");
+                            failures.Add($"{path}: {renderer.name} material {material.name} queue {material.renderQueue} outside {(opaque ? "opaque" : "transparent")}");
                     }
                 }
             }
