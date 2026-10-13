@@ -58,6 +58,9 @@ namespace Tests.PlayMode.Weapons
             RuntimeManager.StudioSystem.flushCommands();
 
             Assert.IsNotNull(lasers.Fire(lasers.firePoint.position + lasers.firePoint.up * 10f, Projectiles), "shot refused");
+            // The weapon cools from the next frame on; the parameter holds the heat as the shot left it.
+            var heatAfterShot = lasers.Heat.HeatPct;
+            Assert.Greater(heatAfterShot, 0f, "a shot leaves heat behind");
             RuntimeManager.StudioSystem.flushCommands();
             yield return null;
 
@@ -67,9 +70,9 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(1, instances.Length, "fire event instances after one shot");
             instances[0].getParameterByName("Heat", out var heat);
             instances[0].getPlaybackState(out var state);
-            Debug.Log($"[FMOD] heat={heat} weaponHeat={lasers.Heat.HeatPct} state={state}");
+            Debug.Log($"[FMOD] heat={heat} weaponHeat={heatAfterShot} state={state}");
 
-            Assert.AreEqual(lasers.Heat.HeatPct, heat, 1e-4f);
+            Assert.AreEqual(heatAfterShot, heat, 1e-4f);
             Assert.That(state, Is.EqualTo(PLAYBACK_STATE.PLAYING).Or.EqualTo(PLAYBACK_STATE.STARTING));
         }
     }
