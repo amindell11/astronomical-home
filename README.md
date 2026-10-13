@@ -1,6 +1,8 @@
 # Bulwark evidence
 
-[Current review — first plum paint masks](paint/2026-10-13-r02/REVIEW.md) · [Editable painted Blender source](paint/2026-10-13-r02/Bulwark.blend). Separate grayscale masks over recolourable base coats, rendered through the current Unity shader beside the actual fleet. Geometry and approved UVs are unchanged. The paint mask pass awaits review; gameplay integration and flight check remain separate.
+[Current review — concept paint correction](paint/2026-10-13-r04/REVIEW.md) · [Editable painted Blender source](paint/2026-10-13-r04/Bulwark.blend). Charcoal structure beneath plum armor, an angled bone coat crossing the nose seam, diagonal fin wedges and a charcoal aft bridge. The original concept appears beside native shader views and the actual current fleet. Geometry and approved UVs are unchanged. Revised paint awaits review; gameplay integration and flight check remain separate.
+
+[Previous paint mask pass](paint/2026-10-13-r02/REVIEW.md).
 
 [Approved UV layout — cockpit seam beneath the rim](uv/2026-10-13-r02/REVIEW.md). The owner approved the corrected layout on 2026-10-13. UV density and geometry lock pass; the 60 inherited source-check findings remain unchanged.
 
