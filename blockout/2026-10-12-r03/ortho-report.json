@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "79a762b1045ee40d77ab326436f41ca46959b7a2044a236412b561c9d30167a2",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\gray-blockout-2026-10-12\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\gray-blockout-2026-10-12\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\gray-blockout-2026-10-12\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\gray-blockout-2026-10-12\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}

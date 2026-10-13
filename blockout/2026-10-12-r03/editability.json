@@ -1,0 +1,70 @@
+{
+  "stage": "blockout",
+  "mesh_count": 7,
+  "parts": [
+    {
+      "part": "01 Ram nose",
+      "parent": "Ram nose",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": true,
+      "signed_volume": 18.116586107930978
+    },
+    {
+      "part": "02 Upper hull",
+      "parent": "Upper hull",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": true,
+      "signed_volume": 23.215061409775213
+    },
+    {
+      "part": "03 Lower hull",
+      "parent": "Lower hull",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": true,
+      "signed_volume": 22.27341878160485
+    },
+    {
+      "part": "04 Tail booms",
+      "parent": "Tail booms",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": true,
+      "signed_volume": 10.048046999762187
+    },
+    {
+      "part": "05 Tail tips",
+      "parent": "Tail tips",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": true,
+      "signed_volume": 2.954357621386195
+    },
+    {
+      "part": "06 Cockpit dome",
+      "parent": "Cockpit",
+      "modifiers": [
+        "MIRROR",
+        "SUBSURF"
+      ],
+      "closed": false,
+      "signed_volume": 1.0287535821277853
+    },
+    {
+      "part": "07 Side insets",
+      "parent": "Side insets",
+      "modifiers": [
+        "MIRROR"
+      ],
+      "closed": false,
+      "signed_volume": 4.130895478307799
+    }
+  ]
+}
