@@ -21,8 +21,8 @@ namespace UI.Hangar
         private const float PopOutSeconds = 0.12f;
         private const float PopInSeconds = 0.25f;
         private const float CameraFovDeg = 30f;
-        private const int MaxTextureSize = 2560;
-        private const int TextureMsaa = 8;
+        private const int MaxTextureSize = 2048;
+        private const int TextureMsaa = 4;
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;

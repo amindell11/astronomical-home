@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Cameras;
 using Game;
@@ -10,6 +11,7 @@ using Tests.PlayMode.Common;
 using UI.Hangar;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using Substrate.Services;
 using Substrate.Services.Units;
@@ -21,7 +23,7 @@ namespace Tests.PlayMode
     /// While the hangar screen is open the player's commander must be inactive — primary fire shares
     /// the left mouse button with UI clicks, so a live commander turns every hangar button press into a
     /// weapon shot on the ship behind the screen — and its HUD hidden. Launch must bring both back.
-    /// The guarantee is the rig's park/unpark, not the hangar's, so the hangar flow drives it here.
+    /// The visible preview must leave option clicks reachable and stay within its rendering budget.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
     [Category("RequiresGraphics")]
@@ -33,6 +35,7 @@ namespace Tests.PlayMode
 
         private GameObject servicesGo;
         private GameObject hostGo;
+        private GameObject eventSystemGo;
         private PlayerRig rig;
         private ObserverCam observer;
         private UnitService unitService;
@@ -44,6 +47,7 @@ namespace Tests.PlayMode
             if (rig) rig.Teardown();
             if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
+            DestroyTestObject(eventSystemGo);
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(observer ? observer.gameObject : null);
             DestroyTestObject(servicesGo);
@@ -90,6 +94,27 @@ namespace Tests.PlayMode
                 "player input is disconnected while the hangar screen is open");
             Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar screen is open");
 
+            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
+            eventSystemGo = eventSystem.gameObject;
+            Canvas.ForceUpdateCanvases();
+            var rows = new[] { screen.shipRow, screen.engineRow, screen.shieldRow,
+                screen.primaryWeaponRow, screen.secondaryWeaponRow };
+            var buttons = rows.SelectMany(row => new[] { row.previousButton, row.nextButton })
+                .Append(screen.launchButton);
+            foreach (var button in buttons)
+            {
+                var rect = (RectTransform)button.transform;
+                var pointer = new PointerEventData(eventSystem)
+                {
+                    position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center))
+                };
+                var hits = new List<RaycastResult>();
+                eventSystem.RaycastAll(pointer, hits);
+                Assert.IsNotEmpty(hits, $"{button.name} receives pointer hits");
+                Assert.IsTrue(hits[0].gameObject.transform.IsChildOf(button.transform),
+                    $"{button.transform.parent.name}/{button.name} is covered by {hits[0].gameObject.name}");
+            }
+
             var launchButton = screen.launchButton;
             Assert.IsNotNull(launchButton, "hangar screen has a launch button");
             launchButton.onClick.Invoke();
@@ -101,6 +126,23 @@ namespace Tests.PlayMode
             Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
             Assert.IsTrue(HudVisible(), "the HUD is back after launch");
             Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
+        }
+
+        [Test]
+        public void Preview_StaysWithin224MiB_WhenRequestedAt4K()
+        {
+            var stage = HangarPreviewStage.Create(false, null, 4096);
+            try
+            {
+                var texture = (RenderTexture)stage.Texture;
+                Assert.IsTrue(texture.Create(), "preview target allocates on the graphics device");
+                Assert.LessOrEqual(UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(texture),
+                    224L * 1024 * 1024, "preview target exceeds its GPU allocation budget");
+            }
+            finally
+            {
+                DestroyTestObject(stage);
+            }
         }
 
         private bool HudVisible()
