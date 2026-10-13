@@ -3,7 +3,7 @@
   "tool": "ship_check",
   "recipe": "ship-fp-1",
   "blender_version": "5.1.2",
-  "source_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
   "findings": [
     {
       "rule": "scale",
@@ -14,6 +14,11 @@
       "rule": "scale",
       "part": "02 Upper hull",
       "message": "Unapplied scale (0.395266, 0.99695, 0.826311)"
+    },
+    {
+      "rule": "ngon",
+      "part": "02 Upper hull",
+      "message": "4 non-planar n-gon(s)"
     },
     {
       "rule": "origin",
@@ -305,7 +310,7 @@
   "fingerprint": {
     "recipe": "ship-fp-1",
     "components": {
-      "geometry": "eacfe11794ff9bb1d08f4da5e867c78acdee37079cfa0c5e063c96028636c104",
+      "geometry": "0aabdfc2c19bcc908687b9df63ad7bf3d0747a7a0c53a9c85a9b95cb57925f82",
       "uv": "cc2955857f28392fc7c5aa3db79e5bae3c0243bca3c5a5c6625259d47a59ad7c",
       "materials": "3f4ec6fd1f23e042e2858eb636d3d7fa95b96ddd3e13edd8eb4e969033078d6f"
     },
@@ -316,7 +321,7 @@
         "materials": "77a2d3e55a718ddd67614430760deb6b584dd7252a0df890efaa5b776359604f"
       },
       "02 Upper hull": {
-        "geometry": "43d00d88c43ac585c684ba65817bd71c33f2ab4a0c95583c9ffa99896a49d129",
+        "geometry": "c510d274349094d101d60ba1c15839e03896e86b27d81e63bbf0b4d15487fd95",
         "uv": "70d9f1fb1225134cc7c71ae4159e0c482f510b7f2c5dd65130c622cadc4c6a76",
         "materials": "0df2a82e771212a716fec4d1f2944942d8426fc7021a49acf60bb33a8c989dbb"
       },

@@ -6,7 +6,7 @@ sys.path.insert(0,'D:/amind/git/agent-3/art/tools/ship')
 import ship_source
 root=Path('D:/amind/git/agent-3/results/bulwark/hinged-flaps')
 source=root/'owner/Bulwark.blend'
-expected='362ebab5128a2e3b1db1c038d2bdbf444aaf28a3626d9693d220369a8825019e'
+expected='f93b5fb2cd35fcadffdff999ca590cd3152dd9476aa73e1f882cf61915acb81a'
 assert hashlib.sha256(source.read_bytes()).hexdigest()==expected
 bpy.ops.wm.open_mainfile(filepath=str(source),load_ui=False,use_scripts=False)
 scene=bpy.context.scene
@@ -79,7 +79,7 @@ for label,name,edge,number in [('Upper',names[0],(5,0),11),('Lower',names[1],(4,
     control.lock_rotation=(False,True,True)
     control.lock_scale=(True,True,True)
     control['editing']='Rotate local X to deploy both mirrored flaps; X=0 restores the owner pose.'
-    control['zero_pose']='Owner save 2026-10-13, checkpoint ebc22a5431ebf13e808df45aed1337237f89eb61'
+    control['zero_pose']='Owner save 2026-10-13, checkpoint 82dcdda7cf250d766c6e05800e697ec7ce488823'
     bpy.context.view_layer.update()
     old_parent_world=flap.parent.matrix_world.copy()
     old_inverse=flap.matrix_parent_inverse.copy()
@@ -136,7 +136,7 @@ scene['review_stage']='Medium-detail: compact edge hinges with editable deployme
 out=root/'refined';out.mkdir(exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'Bulwark.blend'))
 shutil.copy2(root/'owner/ship.json',out/'ship.json')
-audit={'source_sha256':expected,'owner_checkpoint':'ebc22a5431ebf13e808df45aed1337237f89eb61','output_sha256':hashlib.sha256((out/'Bulwark.blend').read_bytes()).hexdigest(),'changed_existing_parts':changed,'change_kind':'Only the two flaps are reparented to deployment controls; mesh data and owner world-space poses are preserved.','max_owner_pose_vertex_error':max_error,'all_other_existing_parts_unchanged':True,'added_parts':added,'hinges':details}
+audit={'source_sha256':expected,'owner_checkpoint':'82dcdda7cf250d766c6e05800e697ec7ce488823','output_sha256':hashlib.sha256((out/'Bulwark.blend').read_bytes()).hexdigest(),'changed_existing_parts':changed,'change_kind':'Only the two flaps are reparented to deployment controls; mesh data and owner world-space poses are preserved.','max_owner_pose_vertex_error':max_error,'all_other_existing_parts_unchanged':True,'added_parts':added,'hinges':details}
 (out/'hinge-audit.json').write_text(json.dumps(audit,indent=2))
 assert hashlib.sha256(source.read_bytes()).hexdigest()==expected
 print(json.dumps(audit))

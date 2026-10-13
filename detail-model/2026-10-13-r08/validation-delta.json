@@ -1,5 +1,5 @@
 {
-  "source_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
   "hinge_meshes": {
     "11 Upper hinge brackets": {
       "nonmanifold_edges": 0,
@@ -48,8 +48,8 @@
       "stationary_brackets_unchanged": true
     }
   ],
-  "findings_before": 60,
-  "findings_after": 59,
+  "findings_before": 61,
+  "findings_after": 60,
   "new_findings": [],
   "resolved_findings": [
     [

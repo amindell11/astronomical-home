@@ -12,14 +12,14 @@ The flap meshes remain `10 Tail fins` and `10 Tail fins.001`, with their editabl
 
 ## Preservation and validation
 
-- Owner checkpoint: `ebc22a5431ebf13e808df45aed1337237f89eb61`.
-- Saved owner SHA256: `362ebab5128a2e3b1db1c038d2bdbf444aaf28a3626d9693d220369a8825019e`.
-- Candidate SHA256: `62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674`.
+- Owner checkpoint: `82dcdda7cf250d766c6e05800e697ec7ce488823`.
+- Saved owner SHA256: `f93b5fb2cd35fcadffdff999ca590cd3152dd9476aa73e1f882cf61915acb81a`.
+- Candidate SHA256: `0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3`.
 - Only the two flap parent relationships changed among existing objects; their mesh data are untouched. Maximum world-space vertex deviation at the saved pose: `8.43e-07` units.
 - All other existing fingerprints match the owner's save exactly.
 - Motion checks verify rigid flap movement, fixed brackets, mirrored cage symmetry, and exact return to the zero pose.
 - New hinge meshes have no nonmanifold edges or zero-area faces and have positive signed volumes.
-- Source checks report 60 findings before and 59 after. Reparenting the lower pair resolves its origin finding. No new findings or exemptions; the remaining findings are inherited, so overall source validation is not clean.
+- Source checks report 61 findings before and 60 after. Reparenting the lower pair resolves its origin finding. No new findings or exemptions; the remaining findings are inherited, so overall source validation is not clean.
 - Studio, orthographic/eight-view sheet, game-scale, comparison, and deployment preview renders completed without changing source hashes.
 
 The owner save remains available at `owner/Bulwark.blend` in the evidence branch. Medium-detail shape review continues; tracked source is unchanged.

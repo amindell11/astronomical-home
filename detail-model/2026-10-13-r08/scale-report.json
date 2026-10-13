@@ -3,7 +3,7 @@
   "tool": "ship_render",
   "recipe": "ship-fp-1",
   "blender_version": "5.1.2",
-  "source_sha256": "62bbb20bfe5a96cac53e790237d35a3159864101bcd9459d0028e78ad0711674",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
   "images": {
     "scale": "D:\\amind\\git\\agent-3\\results\\bulwark\\hinged-flaps\\refined\\scale\\scale.png"
   },
