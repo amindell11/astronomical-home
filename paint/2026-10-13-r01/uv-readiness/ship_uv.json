@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "tool": "ship_uv",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
+  "densities": {
+    "01 Ram nose": null,
+    "02 Upper hull": null,
+    "02 Upper hull.001": null,
+    "03 Lower hull": null,
+    "04 Tail booms": null,
+    "05 Tail tips": null,
+    "05 Tail tips.002": null,
+    "05 Tail tips.003": null,
+    "06 Cockpit dome": 12400.010219712902,
+    "06 Cockpit surround": 27429.060797140497,
+    "07 Side insets": 816.0352235187678,
+    "08 Nested engines": 7338.108262828147,
+    "09 Side armor": 2444.3237426341357,
+    "09 Side armor.001": 4251.884388522709,
+    "10 Tail fins": 2621.3277602065855,
+    "10 Tail fins.001": 2927.0119839797467,
+    "11 Upper hinge brackets": 18646.154299274778,
+    "12 Upper hinge leaves": 16975.19155443098,
+    "13 Lower hinge brackets": 16882.422035726424,
+    "14 Lower hinge leaves": 14955.359999326001
+  },
+  "ratio": 33.61259417070943,
+  "max_ratio": 2.0,
+  "findings": [
+    {
+      "rule": "uv_layer",
+      "part": "01 Ram nose",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "02 Upper hull",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "02 Upper hull.001",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "03 Lower hull",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "04 Tail booms",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "05 Tail tips",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "05 Tail tips.002",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_layer",
+      "part": "05 Tail tips.003",
+      "message": "No PaintUV layer with UV area"
+    },
+    {
+      "rule": "uv_density",
+      "part": "06 Cockpit surround",
+      "message": "Density ratio 33.613 exceeds 2.0"
+    },
+    {
+      "rule": "uv_density",
+      "part": "07 Side insets",
+      "message": "Density ratio 33.613 exceeds 2.0"
+    }
+  ],
+  "exempted": [],
+  "verdict": "fail"
+}
+

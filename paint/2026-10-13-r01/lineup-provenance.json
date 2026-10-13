@@ -1,0 +1,33 @@
+{
+  "asset": "Bulwark",
+  "stage": "paint-concept-review",
+  "status": "palette-approved-production-prerequisites-pending",
+  "engine": "Unity 6000.1.8f1",
+  "roster": [
+    "Crimson",
+    "Vanguard",
+    "Nightshade",
+    "Valis",
+    "Bulwark"
+  ],
+  "existingShips": "Current live Unity prefab meshes and material references, rendered natively; no generated edits or recoloring.",
+  "bulwark": "Exact r08 evaluated visible geometry with temporary recolorable base regions; no production texture masks.",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
+  "source_modified": false,
+  "scene_state_unchanged": true,
+  "selection_unchanged": true,
+  "dirty_materials": 0,
+  "framing": "Shared top and quarter cameras, neutral preview lighting, equal maximum model dimension for palette comparison; not relative gameplay size.",
+  "flight_check": "unverified",
+  "geometry_lock": "missing; read-only verify failed",
+  "uv_check": "fail: 8 parts have no PaintUV area; existing density max/min 33.613 exceeds 2.0",
+  "source_check": "60 inherited findings; not rerun for this image-only review",
+  "production_masks_created": false,
+  "owner_direction": "Compare only Crimson, Vanguard, Nightshade and Valis with Bulwark; exclude cargo.",
+  "palette_approval": {
+    "date": "2026-10-13",
+    "instruction": "Proceed with plum then",
+    "palette": "Warm aubergine / bone / charcoal / muted slate glass"
+  }
+}
+

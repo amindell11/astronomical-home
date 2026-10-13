@@ -1,0 +1,29 @@
+{
+  "asset": "Bulwark",
+  "stage": "paint-concept",
+  "round": "2026-10-13-r01",
+  "status": "awaiting-owner-concept-review",
+  "provider": "OpenAI",
+  "tool": "image_gen.imagegen",
+  "prompt_file": "Bulwark-paint-concept.prompt.txt",
+  "generated_png_sha256": "a9bdabbe7be2fce3b86c5a882ff3eb09a33e6218f1d9b2ebac69885a6daa1d0b",
+  "published_webp_sha256": "51f927d4a83f99cfebd750d27f37f995d9d4180d849fb8f3de87e7cac7b36bae",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
+  "source_evidence_commit": "c260d17849c962210a5e8ff8626b5d44afa0f294",
+  "source_modified": false,
+  "production_masks_created": false,
+  "palette_direction_srgb": {
+    "Warm aubergine": "#66505C",
+    "Bone": "#D8CDB4",
+    "Charcoal": "#302E34",
+    "Slate glass": "#718591"
+  },
+  "note": "Concept paintover, not a production texture or geometry record. Views were visually compared to the exact r08 render references; generated linework is interpretive. PNG to WebP is lossless. Game-scale review crops and resizes the top paintover.",
+  "prerequisites": {
+    "flight_check": "unverified",
+    "geometry_lock": "unverified",
+    "uv_check": "unverified",
+    "source_check": "60 inherited findings; not rerun for this image-only pass"
+  },
+  "created_at_utc": "2026-10-13T20:18:09.600079+00:00"
+}

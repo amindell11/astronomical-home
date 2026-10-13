@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "tool": "ship_lock",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
+  "mode": "verify",
+  "refusal": "No lock at C:\\Users\\amind\\.codex\\visualizations\\2026\\10\\07\\01a11457-037a-7c22-8788-f0f5a5d26229\\ship-concepts\\bulwark\\detail-model\\2026-10-13-r08\\lock.json",
+  "verdict": "fail"
+}
+
