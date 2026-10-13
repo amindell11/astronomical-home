@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "81fed1bd43effbce21f622c59574b414fa41f8c55bc3f93fbcc5da2f6b8c5f37",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "5d26edc4e57b55df75904da50e304b0b44b2db78b8eec939e8534539744156c5",
+      "uv": "edfff73001518382c14557629c4f6d1fc9928d9400ad6acfd96e540b1f2143b9",
+      "materials": "c396a28329dc46469c836511a979e6065774842c3eb62462b491b12ae0bfd0d0"
+    },
+    "parts": {
+      "01 Ram nose": {
+        "geometry": "f783083e23550c54b40b4e942f56ea757bc9910eee1c1217035bf4b3f42cb85d",
+        "uv": "1d5f1af34d0242338daeda2ea1dbaf91fdd750b015348a27fd8fd0756a9b2a41",
+        "materials": "2b3c47dfbd7448d2b2b6ba3680f9384e378cd1eb516f6c8ed42333860c5fa01d"
+      },
+      "02 Upper hull": {
+        "geometry": "a51844efccd1f454c58f01c7e9781e5ab266eb12e6be36e727cc5be04d6c1813",
+        "uv": "aa9193bce842f28738eda8d69f9a714e06fb9c785c41c01cf11efbddbb8856c2",
+        "materials": "3967c7d66dd9e5532e3f98dcbb2451b2bd85cb0b5184b52956b18ed728a5f58e"
+      },
+      "03 Lower hull": {
+        "geometry": "d89a76932aa5d073f669099a1c8464cc77b79eb67c64679bee9f1f748c4a9d2e",
+        "uv": "aa9193bce842f28738eda8d69f9a714e06fb9c785c41c01cf11efbddbb8856c2",
+        "materials": "2e89e6cbf1d86676fc19d980c6cf85dc869d60e517f93a3d9875eeacd45b4795"
+      },
+      "04 Tail booms": {
+        "geometry": "eccc0663ea5fbae3cb4df9362d4b3320d4138b1de18324b0abf249b3dfaf1d4f",
+        "uv": "bc093055d6d6ab037b1e7fc342fec0dbcd0d291afe429f0c6a553418faa8c0a9",
+        "materials": "0723c28c27f16f33420f12cdcc3a89f4e289b36c757bb8364299e101fbab5944"
+      },
+      "05 Tail tips": {
+        "geometry": "a74a26c74625e1a65d66f19f9d8b2567aff3f22474256be32f0b7a350923092e",
+        "uv": "bc093055d6d6ab037b1e7fc342fec0dbcd0d291afe429f0c6a553418faa8c0a9",
+        "materials": "23616ac81298514f257b0719f23bb58dcbb797c7decc324c92d0f3b83852dc87"
+      },
+      "06 Cockpit dome": {
+        "geometry": "6e9d51f39b6e8e6deaf7d77d92649c651eb2a267367bdfae03f204e6e1b8996b",
+        "uv": "62f2f0379726f51f3729ea5239fdc010d8b4138f95e00a50c17bef4df2d3dcba",
+        "materials": "1b0bc50def179e649433b784a3064be703e7343694609892f312b4be17647710"
+      },
+      "07 Side insets": {
+        "geometry": "5dbd3e5984960e79885712f28e64e2f1cff23dc08e6b35485bf64feb28599a8f",
+        "uv": "653f1ac6848bc05f8cce50e8a7ba5932f42beb5ef493c3e73073f2e94bb2fa00",
+        "materials": "019086d388e93e776f5c6a6d4a3c63ea95fb91000fc0b1045609d354ba2badc7"
+      },
+      "Body": {
+        "geometry": "c61e3f1ba7544a00a31eb767302742b95a5577b86ec15f66593f8c76c97b73dd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Cockpit": {
+        "geometry": "350b8ad842c7c20fdb44fd689e3ad7eb3792122a52953a11601c3d0056212c47",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Ram nose": {
+        "geometry": "8256dc1304d29556970fc052ab206de40a6210471b1ef962548b06b3ef1ee446",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side insets": {
+        "geometry": "b0fe44aed06e00ee3226d15b8c9b15f24279be1b2196836c0dd6aa023118dd72",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail": {
+        "geometry": "f41f9f3cb881ba25cf25e117a815c545944b9ec96f87afae3a00c919a2ef3e8f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail booms": {
+        "geometry": "1738b12bf0abc4124f09ebd5fecf53792a781d24babbf70f326f0d284a1f70d6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips": {
+        "geometry": "6ad2d37b73d5bf39a01b1833cc74f822838de29aee059957123f44bcf72383a1",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.side": {
+        "geometry": "fa90a37911bf963c6a818b0550667f213b55492a0ddd9caceb141336015e98cc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "016c9e92999841abc8a1eae8cfcbbe1b53f876dcf013925bd599cad343119c5c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "pass"
+}

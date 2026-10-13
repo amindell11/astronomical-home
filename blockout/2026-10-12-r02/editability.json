@@ -1,0 +1,161 @@
+{
+  "source_sha256": "81fed1bd43effbce21f622c59574b414fa41f8c55bc3f93fbcc5da2f6b8c5f37",
+  "parts": [
+    {
+      "part": "01 Ram nose",
+      "group": "Ram nose",
+      "mirror_live": true,
+      "symmetry_max_error": 0.0,
+      "closed": true,
+      "signed_volume": 15.576257366653618,
+      "bounds": [
+        [
+          -2.6600000858306885,
+          2.6600000858306885
+        ],
+        [
+          2.7799999713897705,
+          5.0
+        ],
+        [
+          0.12000000476837158,
+          2.7799999713897705
+        ]
+      ]
+    },
+    {
+      "part": "02 Upper hull",
+      "group": "Upper hull",
+      "mirror_live": true,
+      "symmetry_max_error": 0.0,
+      "closed": true,
+      "signed_volume": 23.805434554461595,
+      "bounds": [
+        [
+          -2.6600000858306885,
+          2.6600000858306885
+        ],
+        [
+          -0.8999999761581421,
+          2.7799999713897705
+        ],
+        [
+          1.5,
+          2.940000057220459
+        ]
+      ]
+    },
+    {
+      "part": "03 Lower hull",
+      "group": "Lower hull",
+      "mirror_live": true,
+      "symmetry_max_error": 0.0,
+      "closed": true,
+      "signed_volume": 22.839846372809458,
+      "bounds": [
+        [
+          -2.6600000858306885,
+          2.6600000858306885
+        ],
+        [
+          -0.8999999761581421,
+          2.7799999713897705
+        ],
+        [
+          0.019999980926513672,
+          1.500000238418579
+        ]
+      ]
+    },
+    {
+      "part": "04 Tail booms",
+      "group": "Tail booms",
+      "mirror_live": true,
+      "symmetry_max_error": 1.1920928955078125e-07,
+      "closed": true,
+      "signed_volume": 10.303575258263548,
+      "bounds": [
+        [
+          -1.9900001287460327,
+          1.9900000095367432
+        ],
+        [
+          -3.179999828338623,
+          -0.6200000047683716
+        ],
+        [
+          0.559999942779541,
+          3.059999942779541
+        ]
+      ]
+    },
+    {
+      "part": "05 Tail tips",
+      "group": "Tail tips",
+      "mirror_live": true,
+      "symmetry_max_error": 1.1920928955078125e-07,
+      "closed": true,
+      "signed_volume": 2.4327592474001003,
+      "bounds": [
+        [
+          -1.7999999523162842,
+          1.7999999523162842
+        ],
+        [
+          -5.0,
+          -3.180000066757202
+        ],
+        [
+          1.840000033378601,
+          3.680000066757202
+        ]
+      ]
+    },
+    {
+      "part": "06 Cockpit dome",
+      "group": "Cockpit",
+      "mirror_live": true,
+      "symmetry_max_error": 3.384893146634265e-07,
+      "closed": false,
+      "signed_volume": 1.5909373755760863,
+      "bounds": [
+        [
+          -0.7300000786781311,
+          0.7300000786781311
+        ],
+        [
+          0.5933332443237305,
+          3.8633334636688232
+        ],
+        [
+          2.2535736560821533,
+          3.5376358032226562
+        ]
+      ]
+    },
+    {
+      "part": "07 Side insets",
+      "group": "Side insets",
+      "mirror_live": true,
+      "symmetry_max_error": 2.384185791015625e-07,
+      "closed": false,
+      "signed_volume": 4.141854639141459,
+      "bounds": [
+        [
+          -2.6775765419006348,
+          2.677576780319214
+        ],
+        [
+          0.32999998331069946,
+          2.069999933242798
+        ],
+        [
+          0.2799999713897705,
+          2.0199999809265137
+        ]
+      ]
+    }
+  ],
+  "saved_assembled": true,
+  "exploded_is_preview_only": true
+}

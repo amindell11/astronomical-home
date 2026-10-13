@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "81fed1bd43effbce21f622c59574b414fa41f8c55bc3f93fbcc5da2f6b8c5f37",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\editable-2026-10-12\\ortho\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\editable-2026-10-12\\ortho\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\editable-2026-10-12\\ortho\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\editable-2026-10-12\\ortho\\back.png"
+  },
+  "set": "ortho",
+  "verdict": "pass"
+}
