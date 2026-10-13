@@ -1,0 +1,115 @@
+<style>
+#weapon-symbol-study { --glyph-ink:#eeece3; --study-ink:#ced7dc; --study-muted:#94a5b1; --study-bg:#09131f; --glyph-stroke:1.4; --hud-size:24px; color-scheme:dark; }
+#weapon-symbol-study .symbol-sheet { box-sizing:border-box; min-height:708px; padding:24px; color:var(--study-ink); background:var(--study-bg); font:14px/1.4 "Bahnschrift","Arial Narrow","Segoe UI",sans-serif; }
+#weapon-symbol-study .sheet-heading { margin:0 104px 3px 0; color:var(--glyph-ink); font-size:22px; font-weight:400; letter-spacing:.025em; }
+#weapon-symbol-study .sheet-subtitle { margin:0 0 22px; color:var(--study-muted); font-size:12px; letter-spacing:.035em; }
+#weapon-symbol-study .symbol-grid { display:grid; grid-template-columns:minmax(86px,1.4fr) minmax(62px,1fr) repeat(3,minmax(34px,.6fr)); align-items:center; column-gap:8px; }
+#weapon-symbol-study .column-label { color:var(--study-muted); font-size:11px; text-align:center; padding-bottom:9px; }
+#weapon-symbol-study .column-label:first-child { text-align:left; }
+#weapon-symbol-study .weapon-name { color:var(--study-ink); font-size:13px; }
+#weapon-symbol-study .weapon-row { min-height:57px; border-top:1px solid #22303d; }
+#weapon-symbol-study .glyph-cell { display:flex; align-items:center; justify-content:center; min-width:0; height:57px; }
+#weapon-symbol-study .weapon-glyph { display:block; flex:none; fill:none; stroke:var(--glyph-ink); stroke-width:var(--glyph-stroke); stroke-linecap:butt; stroke-linejoin:miter; overflow:visible; }
+#weapon-symbol-study .glyph-large { width:44px; height:44px; }
+#weapon-symbol-study .glyph-32 { width:32px; height:32px; }
+#weapon-symbol-study .glyph-24 { width:24px; height:24px; }
+#weapon-symbol-study .glyph-16 { width:16px; height:16px; }
+#weapon-symbol-study .scene-section { margin-top:24px; border-top:1px solid #2b3a47; padding-top:15px; }
+#weapon-symbol-study .scene-heading { color:var(--study-muted); margin:0 0 14px; font-size:11px; letter-spacing:.055em; font-weight:400; }
+#weapon-symbol-study .hud-examples { display:flex; gap:24px 38px; flex-wrap:wrap; align-items:flex-start; }
+#weapon-symbol-study .hud-example { flex:1 1 245px; min-width:0; }
+#weapon-symbol-study .hud-label { display:block; color:var(--study-muted); font-size:11px; margin-bottom:10px; }
+#weapon-symbol-study .ship-hud { display:flex; gap:calc(var(--hud-size) * .28); align-items:center; height:32px; }
+#weapon-symbol-study .equipped-symbols { display:flex; gap:calc(var(--hud-size) * .16); }
+#weapon-symbol-study .equipped-symbols .weapon-glyph { width:var(--hud-size); height:var(--hud-size); }
+#weapon-symbol-study .status-bars { width:calc(var(--hud-size) * 4.2857); flex:none; display:grid; gap:calc(var(--hud-size) * .14286); }
+#weapon-symbol-study .status-track { height:calc(var(--hud-size) * .42857); background:#364049; position:relative; }
+#weapon-symbol-study .status-fill { height:100%; }
+#weapon-symbol-study .shield-fill { background:#77afc8; width:72%; }
+#weapon-symbol-study .health-fill { background:#d97c87; width:86%; }
+#weapon-symbol-study .status-value { position:absolute; top:50%; left:calc(100% + 5px); transform:translateY(-50%); font:10px/1 "Segoe UI",sans-serif; color:#e2e4e5; }
+#weapon-symbol-study .sheet-foot { color:var(--study-muted); margin:20px 0 0; font-size:11px; }
+@media(max-width:430px) {
+  #weapon-symbol-study .symbol-sheet { padding:18px 12px; min-height:782px; }
+  #weapon-symbol-study .sheet-heading { font-size:20px; }
+  #weapon-symbol-study .symbol-grid { column-gap:4px; }
+  #weapon-symbol-study .weapon-name { font-size:12px; }
+}
+</style>
+<div id="weapon-symbol-study" aria-label="Two families of abstract weapon symbols">
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
+    <defs>
+      <g id="cuts-lasers"><path d="M8 25 16 8 M17 25 23 12 M21 6 25 6"/></g>
+      <g id="cuts-turbo"><path d="M5 25 12 10 M13 27 21 10 M23 23 27 14 M15 5 20 5"/></g>
+      <g id="cuts-charge"><path d="M9 24 7 15 12 6 M20 26 25 16 23 8 M14 21 18 12"/></g>
+      <g id="cuts-railgun"><path d="M7 27 24 4 M5 18 11 18 M21 13 27 13"/></g>
+      <g id="cuts-missiles"><path d="M6 22 11 9 21 5 26 13 M24 19 19 24 11 26 M18 12 16 17"/></g>
+      <g id="cuts-rippers"><path d="M4 12 11 8 9 15 M12 24 19 20 17 27 M21 12 28 8 26 15"/></g>
+      <g id="cuts-concussion"><path d="M11 5 16 3 21 5 M8 12 5 17 8 23 M24 12 27 17 24 23 M13 28 19 28 M13 12 16 10 19 12"/></g>
+      <g id="orbits-lasers"><path d="M7 24 C7 14 16 7 24 8 M11 27 C11 17 20 11 26 12 M7 7 10 5"/></g>
+      <g id="orbits-turbo"><path d="M4 22 C5 12 13 6 21 5 M9 25 C10 15 17 10 25 10 M15 27 C16 20 21 16 28 16"/></g>
+      <g id="orbits-charge"><path d="M8 24 C1 15 7 5 17 5 M24 8 C31 16 24 27 15 27 M12 18 C10 12 16 9 20 13"/></g>
+      <g id="orbits-railgun"><path d="M15 4 18 28 M6 15 C9 9 15 7 21 9 M11 23 C17 26 24 22 26 17"/></g>
+      <g id="orbits-missiles"><path d="M8 24 C2 17 5 7 13 5 C21 3 27 8 27 15 M23 20 C20 26 11 24 12 18 C13 14 18 14 19 17"/></g>
+      <g id="orbits-rippers"><path d="M3 14 C3 8 9 5 14 8 M11 26 C11 20 17 17 22 20 M20 13 C20 7 26 4 30 7"/></g>
+      <g id="orbits-concussion"><path d="M10 4 C1 9 1 22 10 28 M22 7 C30 12 29 23 22 27 M14 11 C10 13 10 18 14 21 M19 13 C23 15 23 20 19 22"/></g>
+    </defs>
+  </svg>
+  <div class="viz-carousel viz-dotted-background" aria-label="Weapon symbol families">
+    <section data-variant="Cuts" aria-label="Cuts symbol family">
+      <div class="symbol-sheet" data-family="cuts">
+        <h2 class="sheet-heading">Cuts</h2>
+        <p class="sheet-subtitle">Angular · interrupted · offset</p>
+        <div class="symbol-grid"><span class="column-label">Weapon</span><span class="column-label">Form</span><span class="column-label">32 px</span><span class="column-label">24 px</span><span class="column-label">16 px</span></div>
+        <div class="glyph-rows" aria-label="Cuts weapon symbols"></div>
+        <div class="scene-section">
+          <h3 class="scene-heading">BESIDE THE HEALTH BARS</h3>
+          <div class="hud-examples"></div>
+        </div>
+        <p class="sheet-foot">Concept study · 24 px HUD symbols · bar colors illustrative · not in-engine</p>
+      </div>
+    </section>
+    <section data-variant="Orbits" aria-label="Orbits symbol family" hidden>
+      <div class="symbol-sheet" data-family="orbits">
+        <h2 class="sheet-heading">Orbits</h2>
+        <p class="sheet-subtitle">Curved · detached · off-axis</p>
+        <div class="symbol-grid"><span class="column-label">Weapon</span><span class="column-label">Form</span><span class="column-label">32 px</span><span class="column-label">24 px</span><span class="column-label">16 px</span></div>
+        <div class="glyph-rows" aria-label="Orbits weapon symbols"></div>
+        <div class="scene-section">
+          <h3 class="scene-heading">BESIDE THE HEALTH BARS</h3>
+          <div class="hud-examples"></div>
+        </div>
+        <p class="sheet-foot">Concept study · 24 px HUD symbols · bar colors illustrative · not in-engine</p>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('weapon-symbol-study');
+  const weapons = [['lasers','Lasers'],['turbo','Turbo Lasers'],['charge','Charge Lasers'],['railgun','Railgun'],['missiles','Missiles'],['rippers','Rippers'],['concussion','Concussion']];
+  function glyph(family, weapon, name, size) {
+    return `<svg viewBox="0 0 32 32" class="weapon-glyph glyph-${size}" role="img" aria-label="${name}"><use href="#${family}-${weapon}"></use></svg>`;
+  }
+  for (const sheet of root.querySelectorAll('[data-family]')) {
+    const family = sheet.dataset.family;
+    sheet.querySelector('.glyph-rows').innerHTML = weapons.map(([key,name]) => `<div class="symbol-grid weapon-row"><span class="weapon-name">${name}</span>${['large',32,24,16].map(size=>`<span class="glyph-cell">${glyph(family,key,name,size)}</span>`).join('')}</div>`).join('');
+    const examples = [['Lasers + Missiles',['lasers','missiles']],['Duplicate Rippers',['rippers','rippers']]];
+    sheet.querySelector('.hud-examples').innerHTML = examples.map(([label,pair]) => `<div class="hud-example"><span class="hud-label">${label}</span><div class="ship-hud" role="img" aria-label="${label}, shield 72, health 86"><div class="equipped-symbols">${pair.map(key=>glyph(family,key,key,24)).join('')}</div><div class="status-bars"><div class="status-track"><div class="status-fill shield-fill"></div><span class="status-value">72</span></div><div class="status-track"><div class="status-fill health-fill"></div><span class="status-value">86</span></div></div></div></div>`).join('');
+  }
+  const state = {stroke:1.4, size:24, background:'#09131f'};
+  function render() {
+    root.style.setProperty('--glyph-stroke', state.stroke);
+    root.style.setProperty('--hud-size', `${state.size}px`);
+    root.style.setProperty('--study-bg', state.background);
+    for (const foot of root.querySelectorAll('.sheet-foot')) foot.textContent = `Concept study · ${state.size} px HUD symbols · bar colors illustrative · not in-engine`;
+  }
+  render();
+  if (globalThis.Tweak) {
+    const tweak = new Tweak({container:root,onChange:render});
+    tweak.addSlider(state,'stroke',{label:'Stroke weight',min:1,max:2,step:.1,unit:'px'});
+    tweak.addSlider(state,'size',{label:'HUD symbol size',min:16,max:32,step:1,unit:'px'});
+    tweak.addColorPicker(state,'background',{label:'Scene background'});
+  }
+})();
+</script>
