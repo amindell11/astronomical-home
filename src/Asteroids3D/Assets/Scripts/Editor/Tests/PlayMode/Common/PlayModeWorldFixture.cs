@@ -1,13 +1,15 @@
 using AI.Scanning;
 using NUnit.Framework;
 using Tests.Common;
+using Ships.Visuals.Breakup;
 using UnityEngine;
 using Substrate.Services.Projectiles;
+using Utils;
 
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Per-test world fixture: a swappable obstacle field, projectile registry, and audio pause.</summary>
+/// <summary>Per-test world fixture: a swappable obstacle field, projectile registry, audio pause, and an empty presentation world.</summary>
 public abstract class PlayModeWorldFixture
 {
     /// <summary>Override false if a test needs audio.</summary>
@@ -48,6 +50,7 @@ public abstract class PlayModeWorldFixture
         ObstacleField = new SwappableField();
         Field = ObstacleField;
         Projectiles = new ProjectileService(arenaHost.transform);
+        DestroyPresentationTransients();
     }
 
     /// <summary>Overrides must call base.TearDown().</summary>
@@ -67,6 +70,16 @@ public abstract class PlayModeWorldFixture
 
         if (PauseAudio)
             AudioListener.pause = false;
+    }
+
+    // Ship-death debris and pooled bursts outlive the fixture that spawned them; tests count them globally.
+    private static void DestroyPresentationTransients()
+    {
+        foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
+            Object.DestroyImmediate(debris.gameObject);
+        foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+            Object.DestroyImmediate(vfx.gameObject);
+        SimplePool<PooledVFX>.Clear();
     }
 
     /// <summary>Destroys a GameObject immediately, null-tolerant (for derived TearDowns).</summary>
