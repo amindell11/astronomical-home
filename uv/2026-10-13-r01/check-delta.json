@@ -1,0 +1,12 @@
+{
+  "source_sha256": "44ddcb64c81d22cdea4c875c9c66c56b50281d53929b3a5573f4f3d6c9cdf9a7",
+  "baseline_source_sha256": "0fe0ee9690d0f3e16791d6398fc8bcbe168641847f2c501881a9d10326eaf3a3",
+  "before": 60,
+  "after": 60,
+  "added": [],
+  "resolved": [],
+  "geometry_unchanged": true,
+  "materials_unchanged": true,
+  "changed_geometry_parts": [],
+  "part_count": 66
+}
