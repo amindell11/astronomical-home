@@ -4,13 +4,14 @@
     run summary other tools read.
 
 .DESCRIPTION
-    Exit codes: 0 all green, 1 test failures, 2 infra_error (no trustworthy verdict - compile
-    failure, a launch problem, a Unity access refusal, or an unreadable Unity exit code), any other
-    non-zero = the wrapper itself failed before a summary existed.
+    Exit codes: 0 all green, 1 test failures or no test passed, 2 infra_error (no trustworthy
+    verdict - compile failure, a launch problem, a Unity access refusal, or an unreadable Unity exit
+    code), any other non-zero = the wrapper itself failed before a summary existed.
 
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
     content). Fields consumers depend on:
       projectPath, mode, status (passed|failed|infra_error), totals, runs[], selection{...}
+      status=passed requires totals.passed > 0: an all-skipped or zero-test run is failed.
       runs[].unityExitCode - the Unity process exit code; null when it could not be read, and
                        that run is then infra_error whatever its XML says.
       wallTiming     - elapsedSec from runner entry to summary construction; cold startupToFirstTestSec
@@ -102,7 +103,7 @@ $memoryProcesses = @()
 #   Unity access coordination Get-UnityAccessSlot .. Test-UnityBootComplete (lease + boot lane)
 #   Parsers & formatting      Get-ArgumentValue .. Get-TopStackFrame, Write-AutoSelection
 #   Cold transport            Test-ScopeFilterMatchesTests, Invoke-UnityProcess (boot, watchdog, kill, memory sampling)
-#   Run records & results     New-RunRecord, New-FailureEntry, Parse-UnityResultXml, Get-CoverageVerdict
+#   Run records & results     New-RunRecord, New-FailureEntry, Parse-UnityResultXml, Get-CoverageVerdict, Get-OverallStatus
 #   Routed transport          attach to a resident editor via the unity CLI pipeline
 #   Setup                     paths, output dir, scratch-scenario staging
 #   Scope resolution & run    Auto / Module / authored filter -> selection; routed | single-boot | per-platform
@@ -970,6 +971,17 @@ function Get-CoverageVerdict {
     return [ordered]@{ verdict = "full"; reason = "mode=Both scopeType=Workspace excludeCategory=$($Selection.excludeCategory)" }
 }
 
+function Get-OverallStatus {
+    param([int]$Passed, [int]$Failed, [int]$Skipped, [bool]$HasInfraError)
+    if ($HasInfraError) { return "infra_error" }
+    if ($Failed -gt 0) { return "failed" }
+    if ($Passed -eq 0) {
+        Write-Host "[FAIL] No test passed ($Skipped skipped): a run that proves nothing is not green."
+        return "failed"
+    }
+    return "passed"
+}
+
 # --- Routed transport -------------------------------------------------------
 # Attaches to a resident com.unity.pipeline editor instead of booting one. The
 # pipeline's run_tests takes a single include-only filter (no '!' exclusion, no
@@ -1716,18 +1728,7 @@ foreach ($run in $runs) {
     }
 }
 
-$zeroTestGraphicsRun = ($WithGraphics.IsPresent -and $total -eq 0)
-if ($zeroTestGraphicsRun) {
-    Write-Host "[FAIL] -WithGraphics run executed zero tests: the filter matched nothing, so no frame was ever rendered."
-}
-
-$overallStatus = if ($hasInfraError) {
-    "infra_error"
-} elseif ($failed -gt 0 -or $zeroTestGraphicsRun) {
-    "failed"
-} else {
-    "passed"
-}
+$overallStatus = Get-OverallStatus -Passed $passed -Failed $failed -Skipped $skipped -HasInfraError $hasInfraError
 
 $summary = [ordered]@{
     generatedAt = (Get-Date).ToString("o")
