@@ -36,8 +36,6 @@ namespace AI.Context
         public float EnemyHealthPct => HasEnemy ? cachedEnemy.HealthPct : 0f;
         public float EnemyShieldPct => HasEnemy ? cachedEnemy.ShieldPct : 0f;
 
-        public bool IncomingMissile => false; // TODO
-
         public void Update(float deltaTime)
         {
             simTime += deltaTime;

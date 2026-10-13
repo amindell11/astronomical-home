@@ -7,6 +7,8 @@ using Ships.Command;
 using UnityEngine;
 using Ships.Registry;
 using Substrate;
+using System.Collections.Generic;
+using Combat.Targeting;
 
 namespace Tests.EditMode
 {
@@ -34,6 +36,7 @@ namespace Tests.EditMode
             public float BoostCooldownPct { get; set; }
             public float MaxSpeed { get; set; } = 10f;
             public float MaxYawRate { get; set; } = 90f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
         }
 
         private static Kinematics Pose(Vector2 pos, Vector2 vel, float yaw = 0f, float yawRate = 0f) =>

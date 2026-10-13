@@ -2,6 +2,8 @@ using Movement;
 using Ships.Command;
 using Ships.Registry;
 using UnityEngine;
+using System.Collections.Generic;
+using Combat.Targeting;
 
 namespace Tests.Common
 {
@@ -20,5 +22,6 @@ namespace Tests.Common
         public float BoostCooldownPct => 0f;
         public float MaxSpeed => dynamics.maxSpeed;
         public float MaxYawRate => dynamics.maxYawRate;
+        public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
     }
 }

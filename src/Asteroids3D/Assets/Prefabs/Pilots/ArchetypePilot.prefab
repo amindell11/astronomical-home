@@ -144,3 +144,10 @@ MonoBehaviour:
   jukeSeed: 1
   borderRadius: 500
   liveTargeting: 1
+  evadeMissiles: 1
+  reactionDelay: 0.4
+  closingSpeedFloor: 15
+  urgencyFarTime: 2
+  urgencyNearTime: 0.5
+  boostUrgency: 0.5
+  boostAlignment: 30

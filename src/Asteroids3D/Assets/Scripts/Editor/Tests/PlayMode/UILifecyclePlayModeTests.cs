@@ -13,6 +13,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UI.PlayerState;
 using Ships.Registry;
+using System.Collections.Generic;
 
 namespace Tests.PlayMode
 {
@@ -40,6 +41,7 @@ namespace Tests.PlayMode
             public float BoostCooldownPct { get; set; }
             public float MaxSpeed => 10f;
             public float MaxYawRate => 90f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
         }
 
         private GameObject ownedRoot;
