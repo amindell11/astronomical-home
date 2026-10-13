@@ -46,5 +46,5 @@ for name,direction,up,center,scale,w,h in [
  cam.matrix_world=ship_render.camera_matrix(direction,up,center,30);cam.data.ortho_scale=scale
  scene.render.resolution_x=w;scene.render.resolution_y=h;scene.render.filepath=str(root/(name+'.png'));bpy.ops.render.render(write_still=True)
 assert hashlib.sha256(source.read_bytes()).hexdigest()==sha
-(root/'checker-report.json').write_text(json.dumps({'source_sha256':sha,'source_unchanged':True,'views':['checker-hero','checker-top','checker-side']},indent=2))
+(root/'checker-report.json').write_text(json.dumps({'source_sha256':sha,'source_unchanged':True,'views':['checker-hero','checker-canopy','checker-top','checker-side']},indent=2))
 

@@ -3,6 +3,7 @@
   "source_unchanged": true,
   "views": [
     "checker-hero",
+    "checker-canopy",
     "checker-top",
     "checker-side"
   ]
