@@ -1,0 +1,31 @@
+{
+  "source_sha256": "1477dbfe5d96727133c6ae2aa2bc8b18f6bc012bf7e1833f3d244077da7d4b3b",
+  "mount_meshes": {
+    "11 Upper flap mounts": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 64,
+      "faces": 74,
+      "volume": 0.23190174532306648
+    },
+    "12 Lower flap mounts": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "zero_area_faces": 0,
+      "vertices": 38,
+      "faces": 38,
+      "volume": 0.4589229326376082
+    }
+  },
+  "findings_before": 60,
+  "findings_after": 59,
+  "new_findings": [],
+  "resolved_findings": [
+    [
+      "visual_role",
+      "10 Tail fins.001"
+    ]
+  ],
+  "all_existing_parts_unchanged": true
+}

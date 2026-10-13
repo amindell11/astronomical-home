@@ -1,0 +1,15 @@
+{
+  "owner_checkpoint": "9b7cb3ed6f5ed1834a1ebfc0ad14d04b7cc03514",
+  "source_sha256": "afbc3c140f3716d3d50e11e7e3dd04080c750a443a0cba7b1656c555f48dec1d",
+  "output_sha256": "1477dbfe5d96727133c6ae2aa2bc8b18f6bc012bf7e1833f3d244077da7d4b3b",
+  "added_parts": [
+    "11 Upper flap mounts",
+    "12 Lower flap mounts",
+    "Flap mounts"
+  ],
+  "changed_existing_parts": [],
+  "existing_geometry_unchanged": true,
+  "flap_transforms_and_vertices_unchanged": true,
+  "role_assignment": "10 Tail fins.001 added to role.hull",
+  "design": "Two independent mirrored tapered mounting shoes. Free flap tips, body, booms, engine armor, and engines retained exactly."
+}
