@@ -15,6 +15,11 @@ namespace Ships.Loadout
         [NonSerialized]
         public readonly UnityEvent onChanged = new UnityEvent();
 
+        [Tooltip("Name shown in the hangar. Empty = the asset name.")]
+        [SerializeField] private string displayName;
+
+        public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
+
         protected virtual void OnValidate()
         {
             onChanged?.Invoke();
