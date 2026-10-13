@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireRate: 0.2
+  fireRate: 0.4
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,7 +77,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
+  displayName: 
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
+  fireDistance: 20
+  fireAngleTolerance: 5
   heat: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
