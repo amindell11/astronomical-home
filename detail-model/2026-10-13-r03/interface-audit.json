@@ -1,0 +1,88 @@
+{
+  "source_sha256": "e218ca1f4c0e13ce4ef7b3e22de0c24d45c4f89a519d725363ea40a41f7fd505",
+  "owner_checkpoint": "9d17e34f53414637ac43c3f96d69cf3fac5d9458",
+  "changes": {
+    "04 Tail booms": "Rear boom section extends to the housing profile, with a shaped transition and 0.03-unit seam. Tip, engine, and owner collar geometry remain unchanged.",
+    "07 Side insets": "Three concentric, planar circular rings with 60 segments, correcting the previous oval and irregular back face.",
+    "06 Cockpit dome": "Base follows ram and deck heights, keeping the teardrop planform and live subdivision.",
+    "06 Cockpit surround": "New thin, separate cockpit surround conforming to the hull and evaluated canopy edge."
+  },
+  "boom_joint_gap": 0.03,
+  "side_circle": {
+    "radius": 0.6844346111854884,
+    "depth": 0.4444084119895706,
+    "radial_error_max": 2.0715575266283537e-07,
+    "normal": [
+      0.9995923638343811,
+      0.018629534170031548,
+      0.02163415402173996
+    ],
+    "segments": 60
+  },
+  "cockpit_base_vertical_adjustments": [
+    0.17361573696136468,
+    0.156276626586914,
+    0.10588876724243157,
+    0.022532386779785085,
+    0.004765434265136648,
+    -0.02333481788635261,
+    -0.07973917007446296,
+    -0.09871490478515632
+  ],
+  "changed_existing_parts": [
+    "04 Tail booms",
+    "06 Cockpit dome",
+    "07 Side insets"
+  ],
+  "untouched_parts": [
+    "01 Ram nose",
+    "02 Upper hull",
+    "02 Upper hull.001",
+    "03 Lower hull",
+    "05 Tail tips",
+    "05 Tail tips.001",
+    "05 Tail tips.002",
+    "05 Tail tips.003",
+    "08 Nested engines",
+    "08 Nested engines.001",
+    "09 Side armor",
+    "09 Side armor.001",
+    "09 Side armor.002",
+    "Body",
+    "Body.001",
+    "Body.002",
+    "Body.003",
+    "Cockpit",
+    "Lower hull",
+    "Ram nose",
+    "Side armor",
+    "Side armor.001",
+    "Side armor.002",
+    "Side insets",
+    "SymmetryOrigin",
+    "SymmetryOrigin.001",
+    "SymmetryOrigin.002",
+    "SymmetryOrigin.003",
+    "SymmetryOrigin.004",
+    "SymmetryOrigin.005",
+    "SymmetryOrigin.006",
+    "Tail",
+    "Tail booms",
+    "Tail tips",
+    "Tail tips.001",
+    "Tail tips.002",
+    "Tail tips.003",
+    "Tail.001",
+    "Tail.002",
+    "Tail.003",
+    "Upper hull",
+    "Upper hull.001",
+    "reference.side",
+    "reference.top"
+  ],
+  "new_parts": [
+    "06 Cockpit surround"
+  ],
+  "output_sha256": "9f0afcb1206d45c53da73bd418a243c4ee96dc702faf664ef355951e318f9842",
+  "original_unchanged": true
+}

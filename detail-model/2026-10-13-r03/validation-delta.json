@@ -1,0 +1,27 @@
+{
+  "source_sha256": "9f0afcb1206d45c53da73bd418a243c4ee96dc702faf664ef355951e318f9842",
+  "parts": {
+    "04 Tail booms": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "vertices": 188,
+      "faces": 210
+    },
+    "06 Cockpit surround": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "vertices": 458,
+      "faces": 461
+    },
+    "07 Side insets": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "vertices": 894,
+      "faces": 806
+    }
+  },
+  "findings_before": 52,
+  "findings_after": 52,
+  "new_findings": [],
+  "removed_findings": []
+}
