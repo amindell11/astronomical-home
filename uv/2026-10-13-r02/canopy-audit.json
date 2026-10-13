@@ -1,0 +1,29 @@
+{
+  "source_sha256": "2790e4dfce08191ccf35443e46b2bacfecf70b630b2babdf6ca7c44cbbfe9e54",
+  "baseline_commit": "bc706397d38000c82ec86bf57b08fb0b76d27201",
+  "owner_instruction": "Move the cockpit seam to the hidden underside",
+  "geometry_unchanged": true,
+  "materials_unchanged": true,
+  "other_uvs_unchanged": true,
+  "changed_uv_parts": [
+    "06 Cockpit dome"
+  ],
+  "target_density": 82.5139425089533,
+  "canopy_density": 82.51394525843084,
+  "seam_location": "open underside perimeter beneath cockpit rim",
+  "visible_glazing_continuous": true,
+  "mapping": "Cross-section arc lengths and longitudinal crown arc length; mirrored UVs meet at the centerline",
+  "placement": {
+    "turn": 0,
+    "translation": [
+      0.49267578125,
+      0.400390625
+    ],
+    "margin_pixels": 8,
+    "other_charts_moved": false,
+    "footprint_pixels": [
+      115,
+      229
+    ]
+  }
+}

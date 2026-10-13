@@ -1,0 +1,26 @@
+{
+  "source_sha256": "2790e4dfce08191ccf35443e46b2bacfecf70b630b2babdf6ca7c44cbbfe9e54",
+  "native_uv_selected_loop_counts": {
+    "02 Upper hull.001": 0,
+    "09 Side armor.001": 0,
+    "05 Tail tips.002": 0,
+    "05 Tail tips.003": 0,
+    "10 Tail fins.001": 0,
+    "01 Ram nose": 0,
+    "02 Upper hull": 0,
+    "03 Lower hull": 0,
+    "04 Tail booms": 0,
+    "05 Tail tips": 0,
+    "06 Cockpit dome": 0,
+    "07 Side insets": 0,
+    "08 Nested engines": 0,
+    "09 Side armor": 0,
+    "06 Cockpit surround": 0,
+    "10 Tail fins": 0,
+    "11 Upper hinge brackets": 0,
+    "12 Upper hinge leaves": 0,
+    "13 Lower hinge brackets": 0,
+    "14 Lower hinge leaves": 0
+  },
+  "overlapping_parts": []
+}
