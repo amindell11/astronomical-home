@@ -56,7 +56,7 @@ Diagnosis tree: main `eddfa101722dd151deb01e9035b352a313745f56`, pooled worktree
 unity command run_script --file <absolute-path>/hangar_probe.cs --entry HangarProbe.Main --project-path <worktree>/src/Asteroids3D --format json
 ```
 
-The returned `data.result.result.verdict` is RED and blocked=10 on the shipped tree. `hangar_set_raycast.cs` and `hangar_set_scale.cs` provide the independent green controls. `hangar_resource_snapshot.cs` and `hangar_render_cost.cs` record the actual created-target allocations. Evidence branch and pinned commit are recorded below once uploaded.
+The returned `data.result.result.verdict` is RED and blocked=10 on the shipped tree. `hangar_set_raycast.cs` and `hangar_set_scale.cs` provide the independent green controls. `hangar_resource_snapshot.cs` and `hangar_render_cost.cs` record the actual created-target allocations. The probes and raw reports accompany this README on the evidence/hangar-regression branch. The diagnosis issue pins its evidence commit.
 
 ## Exit criterion
 
