@@ -1,0 +1,7 @@
+{0a75aa53-831f-45a5-97ce-8fd31cc4d649} bank:/Master
+{92688a87-f264-09e7-1187-052ded37d0d1} bank:/Master.strings
+{56d0553b-e4a9-4f30-96f1-4d4006cb1b6c} bank:/Weapons
+{2fbb1511-ccb2-4fd2-9a27-eff30263dc28} bus:/
+{b6cda0c2-7027-4991-bd43-4273b51b9f17} bus:/Reverb
+{85adae07-467f-4762-912e-f9fb33647da8} event:/Weapons/Laser/Fire
+{c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat
