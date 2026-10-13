@@ -1,6 +1,6 @@
 # Bulwark evidence
 
-[Current review — locked geometry and repaired UVs](uv/2026-10-13-r01/REVIEW.md) · [Editable Blender source](uv/2026-10-13-r01/Bulwark.blend). Geometry and materials match approved r08. UV density and geometry lock pass; the 60 inherited source-check findings remain unchanged. The owner explicitly requested the lock ahead of flight-check, which remains unestablished.
+[Current review — cockpit seam beneath the rim](uv/2026-10-13-r02/REVIEW.md) · [Editable Blender source](uv/2026-10-13-r02/Bulwark.blend). The canopy glazing is continuous, with its chart boundary hidden underneath. Other parts retain the reviewed UV layout. Geometry and materials match approved r08. UV density and geometry lock pass; the 60 inherited source-check findings remain unchanged. The owner explicitly requested the lock ahead of flight-check, which remains unestablished.
 
 [Approved plum palette and native fleet comparison](paint/2026-10-13-r01/REVIEW.md). Crimson, Vanguard, Nightshade and Valis use their current Unity materials. Cargo is excluded at the owner's direction. UV layout review precedes production paint.
 
