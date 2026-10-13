@@ -1,0 +1,13 @@
+{
+  "source_sha256": "67d7f875b6b6b8248a6eee410a837f6d75f740f362f146bbfd25a5e2146d2d14",
+  "fin_mesh": {
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "vertices": 72,
+    "faces": 88
+  },
+  "findings_before": 52,
+  "findings_after": 52,
+  "new_findings": [],
+  "all_existing_parts_unchanged": true
+}

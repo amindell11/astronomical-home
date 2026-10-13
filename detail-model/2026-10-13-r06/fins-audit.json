@@ -1,0 +1,40 @@
+{
+  "source_sha256": "72544cec74fb246faec56a6e1af73dd4e004e4355a9ab0fca284404b110fab6e",
+  "owner_checkpoint": "44c6a0791767235e6140804d3ca74631b9138ea8",
+  "output_sha256": "67d7f875b6b6b8248a6eee410a837f6d75f740f362f146bbfd25a5e2146d2d14",
+  "added_parts": [
+    "10 Tail fins",
+    "Tail fins"
+  ],
+  "all_existing_parts_unchanged": true,
+  "outline_reference_pixels": [
+    [
+      632,
+      264
+    ],
+    [
+      685,
+      235
+    ],
+    [
+      795,
+      245
+    ],
+    [
+      790,
+      263
+    ],
+    [
+      687,
+      331
+    ],
+    [
+      682,
+      270
+    ]
+  ],
+  "base_vertices": 12,
+  "base_faces": 14,
+  "mirrored": true,
+  "reference": "Packed Bulwark-turnaround.png on reference.top and reference.side"
+}

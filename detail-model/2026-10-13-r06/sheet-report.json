@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "67d7f875b6b6b8248a6eee410a837f6d75f740f362f146bbfd25a5e2146d2d14",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\back.png",
+    "turn000": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\turn315.png",
+    "sheet": "D:\\amind\\git\\agent-3\\results\\bulwark\\tail-fins\\refined\\sheet\\sheet.png"
+  },
+  "set": "sheet",
+  "verdict": "pass"
+}
