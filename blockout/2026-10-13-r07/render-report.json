@@ -1,0 +1,28 @@
+{
+  "source_sha256": "c8db1ba7cdd63e2ed0482c51db9f202ebfa701b56e284cbf7b5fad97cb2a0537",
+  "source_unchanged": true,
+  "visible_parts": [
+    "02 Upper hull.001",
+    "09 Side armor.001",
+    "01 Ram nose",
+    "02 Upper hull",
+    "03 Lower hull",
+    "04 Tail booms",
+    "05 Tail tips",
+    "06 Cockpit dome",
+    "07 Side insets",
+    "08 Nested engines",
+    "09 Side armor"
+  ],
+  "method": "ship_render review helpers with all visible authored meshes, including unassigned owner additions",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\back.png",
+    "scale32_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\scale32_top.png",
+    "scale48_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\scale48_top.png",
+    "scale64_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\scale64_top.png",
+    "scale96_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\engines-2026-10-13\\slimmer\\render-check\\scale96_top.png"
+  }
+}
