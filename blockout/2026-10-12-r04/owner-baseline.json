@@ -1,0 +1,12 @@
+{
+  "source_sha256": "ce15ea9b8813b7fbf95689082cb385dccb47db20a031af43af953d00ef8c6da5",
+  "parts": {
+    "01 Ram nose": "78b59347aee49c04997e15d3f1275aeec0c825c3abb465577cd90d54e58a81c2",
+    "02 Upper hull": "5b9bf46b33067cc6585150627640b72b27028f8d06be723e7c229e809919df5e",
+    "03 Lower hull": "320ae5f79329f770c184c5527ca1771f2230ba25a4bc873a8678aaad9670bf31",
+    "04 Tail booms": "dadb12766b2f93148ee3d6ec383af1ae724a788799b01e90dab3c0fe24f13d8d",
+    "05 Tail tips": "d31252e11bc71ef74e06a580de971ba80dcd4560aeaff31f4cc5dfbadb14deb3",
+    "06 Cockpit dome": "36b04240ca332755c37df704dd4ece64ce9c2220a7dacd595bc0b11037b72050",
+    "07 Side insets": "d0cf0f59ef02a9fb8d4c8d8bc4defcd93cfa70cd7304063d5782d0a764c278f8"
+  }
+}

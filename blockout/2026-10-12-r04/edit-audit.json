@@ -1,0 +1,14 @@
+{
+  "unchanged_owner_parts": {
+    "01 Ram nose": true,
+    "02 Upper hull": true,
+    "03 Lower hull": true,
+    "04 Tail booms": true,
+    "06 Cockpit dome": true,
+    "07 Side insets": true
+  },
+  "tip_vertices": 35,
+  "engine_vertices": 48,
+  "live_mirrors": 8,
+  "source_saved": false
+}
