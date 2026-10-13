@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
@@ -87,6 +88,7 @@ namespace Ships
         public float BoostCooldownPct => Movement ? Movement.BoostCooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
         public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
+        public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
 
         /// <summary>Collision radius derived from collider bounds in <see cref="Initialize"/>; 1 until then.</summary>
         public float ShipRadius => Stats?.shipRadius ?? 1f;

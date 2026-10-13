@@ -18,6 +18,7 @@ using UnityEngine;
 using Ships.Registry;
 using RL.Episodes;
 using RL.Runtime;
+using Combat.Targeting;
 
 namespace Tests.EditMode
 {
@@ -54,6 +55,7 @@ namespace Tests.EditMode
             public float BoostCooldownPct => 0f;
             public float MaxSpeed => RLAgentEditModeTests.MaxSpeed;
             public float MaxYawRate => 90f;
+            public IReadOnlyList<ITrackingMissile> TrackingMissiles => System.Array.Empty<ITrackingMissile>();
         }
 
         private sealed class RecordingMask : IDiscreteActionMask

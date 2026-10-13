@@ -10,7 +10,7 @@ using Substrate;
 namespace Combat.Projectiles
 {
     [RequireComponent(typeof(KinematicsPoller))]
-    public class Missile : Projectile<Missile>, IDamageable
+    public class Missile : Projectile<Missile>, IDamageable, ITrackingMissile
     {
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
@@ -33,6 +33,7 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float maxLifetime = 4f;
 
         internal Transform target;
+        private LockChannel targetChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
         private bool hasLos;
@@ -40,11 +41,15 @@ namespace Combat.Projectiles
 
         public bool IsTracking => target;
 
+        public Kinematics Kinematics => kinematicsPoller.Kinematics;
+
         public event Action TrackingChanged;
 
-        public void SetTarget(Transform tgt)
+        public void SetTarget(ITargetable tgt)
         {
-            target = tgt;
+            target = tgt.TargetPoint;
+            targetChannel = tgt.Lock;
+            targetChannel.AddTracker(this);
             TrackingChanged?.Invoke();
         }
 
@@ -124,6 +129,8 @@ namespace Combat.Projectiles
         private void LoseTrack()
         {
             target = null;
+            targetChannel.RemoveTracker(this);
+            targetChannel = null;
             TrackingChanged?.Invoke();
         }
 
@@ -217,6 +224,8 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
+            targetChannel?.RemoveTracker(this);
+            targetChannel = null;
             target = null;
             hasLos = false;
             aliveTime = 0f;
