@@ -73,11 +73,20 @@ jobs:
           git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf" --exclude=""
           du -sh .git/lfs
 
+      # game-ci's container mounts only the workspace, so the vendor tarball the committed manifest names is
+      # unreachable here: the suite compiles against the FMOD stub instead (doc/agents/audio-pipeline.md).
+      - name: FMOD stub
+        run: |
+          m=src/Asteroids3D/Packages/manifest.json
+          l=src/Asteroids3D/Packages/packages-lock.json
+          jq '.dependencies["com.fmod.fmod-for-unity.v204"] = "file:../../fmod-stub"' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+          jq 'del(.dependencies["com.fmod.fmod-for-unity.v204"])' "$l" > "$l.tmp" && mv "$l.tmp" "$l"
+
       # No restore-keys: a Library imported under other Packages/ProjectSettings must miss, not warm-start.
       - uses: actions/cache@v4
         with:
           path: src/Asteroids3D/Library
-          key: unity-library-${{ hashFiles('src/Asteroids3D/Packages/**', 'src/Asteroids3D/ProjectSettings/**') }}
+          key: unity-library-${{ hashFiles('src/Asteroids3D/Packages/**', 'src/Asteroids3D/ProjectSettings/**', 'src/fmod-stub/**') }}
 
       # customParameters reaches Unity verbatim: a quoted category matches nothing and an empty run exits green.
       # One mode per step: testMode all adds a third boot that only combines coverage.
