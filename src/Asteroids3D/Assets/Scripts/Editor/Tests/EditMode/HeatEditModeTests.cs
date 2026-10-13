@@ -177,6 +177,36 @@ namespace Tests.EditMode
             }
         }
 
+        [TestCase(25f, 50f, 0.5f, 0.2f, TestName = "ShotsToOverheat_NoCoolingBetweenShots_MatchesSimulation")]
+        [TestCase(10f, 30f, 0.2f, 0.3f, TestName = "ShotsToOverheat_CoolingBetweenShots_MatchesSimulation")]
+        [TestCase(10f, 200f, 0.1f, 0.3f, TestName = "ShotsToOverheat_CoolingKeepsPace_NeverOverheats")]
+        public void ShotsToOverheat_MatchesContinuousFire(float heatPerShot, float coolingRate, float coolDownDelay,
+            float secondsBetweenShots)
+        {
+            const float dt = 0.02f;
+            const int maxShots = 200;
+            var heat = new GameObject("HeatTest").AddComponent<Heat>();
+            try
+            {
+                heat.Configure(maxHeat: 100f, heatPerShot, coolingRate, coolDownDelay, overheatPenaltyTime: 0f);
+
+                int? simulated = null;
+                for (var shot = 1; shot <= maxShots && simulated == null; shot++)
+                {
+                    heat.ProcessFire();
+                    if (heat.Overheated) simulated = shot;
+                    for (var step = 0; step < Mathf.RoundToInt(secondsBetweenShots / dt); step++)
+                        heat.Tick(dt);
+                }
+
+                Assert.AreEqual(simulated, heat.ShotsToOverheat(secondsBetweenShots));
+            }
+            finally
+            {
+                if (heat) Object.DestroyImmediate(heat.gameObject);
+            }
+        }
+
         [Test]
         public void Cooldown_DoesNotStartUntilDelayElapses()
         {

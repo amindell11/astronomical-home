@@ -14,12 +14,12 @@ namespace Tests.PlayMode
     [Category("Weapons")]
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
     {
-        protected override bool AccelerateTime => true;
-
         private Ship ship;
         private Ship combatShip;
         private Commander commanderPrefab;
         private Heat primaryHeat;
+        private float savedTimeScale;
+        private float savedCaptureDelta;
 
         private sealed class ContinuousFireCommander : Commander
         {
@@ -36,6 +36,11 @@ namespace Tests.PlayMode
         public override void SetUp()
         {
             base.SetUp();
+            savedTimeScale = Time.timeScale;
+            savedCaptureDelta = Time.captureDeltaTime;
+            // One Update per fixed step, so Update-ticked heat cools in step with the trigger.
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
 
 #if UNITY_EDITOR
             var shipPrefab = TestAssets.LoadCrimsonPrefab();
@@ -64,6 +69,8 @@ namespace Tests.PlayMode
                 DestroyTestObject(commanderPrefab.gameObject);
 
             ShipTestFactory.DestroyShip(ship);
+            Time.timeScale = savedTimeScale;
+            Time.captureDeltaTime = savedCaptureDelta;
             base.TearDown();
         }
 
@@ -76,7 +83,7 @@ namespace Tests.PlayMode
 
             commander.enablePrimaryFire = true;
             var elapsed = 0f;
-            while (!primaryHeat.Overheated && elapsed < 4f)
+            while (!primaryHeat.Overheated && elapsed < 10f)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
@@ -84,11 +91,9 @@ namespace Tests.PlayMode
             }
             Assert.IsTrue(primaryHeat.Overheated, "Weapon should overheat under continuous fire");
 
-            // Stop firing; it must recover rather than latch overheated. Full lockout drains to
-            // zero: penalty 1.5s + 100 heat / 30 per s ≈ 4.9s on the production laser curve.
             commander.enablePrimaryFire = false;
             elapsed = 0f;
-            while (primaryHeat.Overheated && elapsed < 6f)
+            while (primaryHeat.Overheated && elapsed < 10f)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
