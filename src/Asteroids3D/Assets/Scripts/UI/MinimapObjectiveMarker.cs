@@ -5,7 +5,7 @@ using Substrate.Services.Objectives;
 
 namespace UI
 {
-    /// <summary>Positions a UI icon over the minimap RawImage to mark the spine objective's world position.</summary>
+    /// <summary>Positions a UI icon over the round minimap to mark the spine objective's world position, pinned to the rim when off-map.</summary>
     public class MinimapObjectiveMarker : MonoBehaviour
     {
         [SerializeField] private Image icon;
@@ -58,12 +58,9 @@ namespace UI
             }
 
             var vp = minimapCam.WorldToViewportPoint(effective.position);
-            vp.x = Mathf.Clamp01(vp.x);
-            vp.y = Mathf.Clamp01(vp.y);
+            var offset = Vector2.ClampMagnitude(new Vector2(vp.x - 0.5f, vp.y - 0.5f), 0.5f);
 
-            icon.rectTransform.anchoredPosition = new Vector2(
-                (vp.x - 0.5f) * minimapRect.rect.width,
-                (vp.y - 0.5f) * minimapRect.rect.height);
+            icon.rectTransform.anchoredPosition = Vector2.Scale(offset, minimapRect.rect.size);
 
             float t = Mathf.Sin(Time.time * pulseSpeed) * 0.5f + 0.5f;
             icon.color = Color.Lerp(baseColor, Color.white, t);

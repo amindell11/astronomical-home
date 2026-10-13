@@ -31,7 +31,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ColorMask: 15
-    - _EmissionIntensity: 4.3
+    - _EmissionIntensity: 0.6
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
@@ -39,7 +39,7 @@ Material:
     - _StencilWriteMask: 255
     - _UseUIAlphaClip: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 1.5215687, g: 0, b: 0.022125356, a: 1}
+    - _Color: {r: 1, g: 0.3529412, b: 0.27058825, a: 1}
+    - _EmissionColor: {r: 1, g: 0.04, b: 0.02, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -95,6 +95,12 @@ namespace Tests.EditMode
             Assert.AreEqual(50f, icon.rectTransform.anchoredPosition.y, 0.01f,
                 "the icon sits at the target's place on the minimap");
 
+            target.position = new Vector3(400f, 400f, 0f);
+            lateUpdate.Invoke(marker, null);
+
+            Assert.AreEqual(100f, icon.rectTransform.anchoredPosition.magnitude, 0.01f,
+                "an off-map target pins the icon to the round minimap's rim");
+
             handle.Target = null;
             lateUpdate.Invoke(marker, null);
 
