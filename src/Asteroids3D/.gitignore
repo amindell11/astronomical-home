@@ -104,3 +104,9 @@ crashlytics-build.properties
 
 # Visual Studio Tools for Unity regenerates this on every boot once VS Code is the external script editor
 /.vscode/
+
+# FMOD for Unity rebuilds its editor event cache from the banks on every editor start
+/[Aa]ssets/Resources/FMOD/FMODStudioCache.asset
+/[Aa]ssets/Resources/FMOD/FMODStudioCache.asset.meta
+# Wav Writer output lands in the Unity project folder
+/fmodoutput.wav
