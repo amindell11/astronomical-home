@@ -24,7 +24,7 @@ namespace Combat.Weapons.Arsenal
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
         public int? ShotsToOverheat =>
-            heat && heat.HeatPerShot > 0f ? Mathf.FloorToInt(heat.MaxHeat / heat.HeatPerShot) : (int?)null;
+            heat ? heat.ShotsToOverheat(cooldown ? cooldown.SecondsBetweenShots : 0f) : null;
 
         protected override void Awake()
         {

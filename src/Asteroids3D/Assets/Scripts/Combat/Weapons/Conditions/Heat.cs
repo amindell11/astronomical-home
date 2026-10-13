@@ -87,6 +87,15 @@ namespace Combat.Weapons.Conditions
             return WouldBeOverheated(CurrentHeat + heatPerShot + extraHeatMargin);
         }
 
+        /// <summary>Null when cooling between shots keeps pace, so continuous fire never overheats.</summary>
+        public int? ShotsToOverheat(float secondsBetweenShots)
+        {
+            if (heatPerShot >= maxHeat) return 1;
+            var netHeatPerShot = heatPerShot - coolingRate * Mathf.Max(0f, secondsBetweenShots - coolDownDelay);
+            if (netHeatPerShot <= 0f) return null;
+            return 1 + Mathf.CeilToInt((maxHeat - heatPerShot) / netHeatPerShot);
+        }
+
         public override void ProcessFire()
         {
             var previousHeat = CurrentHeat;
