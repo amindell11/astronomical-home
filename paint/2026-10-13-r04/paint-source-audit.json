@@ -1,0 +1,25 @@
+{
+  "source_sha256": "350363e5d79e771c95c519080aaa2cb6c474769a74a0690ada83b92fb8d2a6a1",
+  "baseline_uv_source_sha256": "2790e4dfce08191ccf35443e46b2bacfecf70b630b2babdf6ca7c44cbbfe9e54",
+  "previous_paint_source_sha256": "34aef2be48e17fc4e842826396981046bcbc101548af3c2289f7ce7fc2a9c78d",
+  "baseline_commit": "b4dfd2a3451506be84136aedcc0eb458785aeb26",
+  "geometry_unchanged": true,
+  "uvs_unchanged": true,
+  "geometry_fingerprint": "0aabdfc2c19bcc908687b9df63ad7bf3d0747a7a0c53a9c85a9b95cb57925f82",
+  "uv_fingerprint": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+  "materials_changed": true,
+  "packed_grayscale_images": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "BaseRegion"
+  ],
+  "separate_editable_base_colours": {
+    "Plum": "#66505C",
+    "Bone": "#D8CDB4",
+    "Structure": "#302E34",
+    "Glass": "#718591",
+    "Flap": "#66505C"
+  },
+  "approval": "UV approved; palette approved; revised masks pending review"
+}

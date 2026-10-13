@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "default": "plum-bone",
+  "palettes": {
+    "plum-bone": {
+      "Plum": "#66505C",
+      "Bone": "#D8CDB4",
+      "Structure": "#302E34",
+      "Glass": "#718591",
+      "Flap": "#66505C"
+    }
+  },
+  "alternate_base_regions": {
+    "Bone": "Bone nose coat crosses onto forward armor with angled rear boundary and plum chevron",
+    "Flap": "Diagonal bone outer fin panels over plum substrate"
+  }
+}
