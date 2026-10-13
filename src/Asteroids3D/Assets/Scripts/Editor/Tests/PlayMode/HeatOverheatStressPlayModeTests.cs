@@ -14,12 +14,12 @@ namespace Tests.PlayMode
     [Category("Weapons")]
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
     {
-        protected override bool AccelerateTime => true;
-
         private Ship ship;
         private Ship combatShip;
         private Commander commanderPrefab;
         private Heat primaryHeat;
+        private float savedTimeScale;
+        private float savedCaptureDelta;
 
         private sealed class ContinuousFireCommander : Commander
         {
@@ -36,6 +36,11 @@ namespace Tests.PlayMode
         public override void SetUp()
         {
             base.SetUp();
+            savedTimeScale = Time.timeScale;
+            savedCaptureDelta = Time.captureDeltaTime;
+            // One Update per fixed step, so Update-ticked heat cools in step with the trigger.
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
 
 #if UNITY_EDITOR
             var shipPrefab = TestAssets.LoadCrimsonPrefab();
@@ -64,6 +69,8 @@ namespace Tests.PlayMode
                 DestroyTestObject(commanderPrefab.gameObject);
 
             ShipTestFactory.DestroyShip(ship);
+            Time.timeScale = savedTimeScale;
+            Time.captureDeltaTime = savedCaptureDelta;
             base.TearDown();
         }
 
