@@ -4,15 +4,17 @@ Ship art for [issue #963](https://github.com/amindell11/astronomical-home/issues
 
 ## Current review
 
-[Round 4 — protected twin engines](blockout/2026-10-12-r04/README.md): thick armored tail housings with engines recessed inside, preserving the owner's saved proportions elsewhere. Still gray blockout; owner approval pending.
+[Round 6 — top and side together](blockout/2026-10-13-r06/README.md): tapered upper deck, tighter cockpit, broad side armor and a long lower slope into protected twin engines. Still gray blockout; proportions await owner approval.
 
-[Rear quarter](blockout/2026-10-12-r04/rear-quarter.png) · [Rear](blockout/2026-10-12-r04/rear.png) · [Review](blockout/2026-10-12-r04/index.html)
+[Top](blockout/2026-10-13-r06/top-aligned.png) · [Side](blockout/2026-10-13-r06/side-aligned.png) · [Review](blockout/2026-10-13-r06/index.html)
 
 ## Previous blockouts
 
-- [Round 3](blockout/2026-10-12-r03/README.md): gray freighter checkpoint before owner proportion edits and tail clarification. Studio views regenerated from its exact committed source.
+- [Round 5](blockout/2026-10-12-r05/README.md): superseded top-only correction.
+- [Round 4](blockout/2026-10-12-r04/README.md): protected twin engines.
+- [Round 3](blockout/2026-10-12-r03/README.md): gray freighter checkpoint.
 - [Round 2](blockout/2026-10-12-r02/README.md): editing groups and rounded canopy.
-- [Round 1](blockout/2026-10-11-r01/README.md): initial blockout.
+- [Round 1](blockout/2026-10-11-r01/README.md): initial proportions.
 
 ## Concept rounds
 

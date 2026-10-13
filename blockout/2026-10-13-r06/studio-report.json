@@ -1,0 +1,14 @@
+{
+  "source_sha256": "11f7bba2e0b0c30538daaa76538737fee15ae83fdab62828417e8390b4baf821",
+  "source_unchanged": true,
+  "views": [
+    "side-aligned",
+    "top-aligned",
+    "hero",
+    "rear-quarter",
+    "rear",
+    "side-studio",
+    "front-studio",
+    "top-studio"
+  ]
+}

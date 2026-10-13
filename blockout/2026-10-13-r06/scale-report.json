@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "11f7bba2e0b0c30538daaa76538737fee15ae83fdab62828417e8390b4baf821",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-3\\results\\bulwark\\paired-views-2026-10-13\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

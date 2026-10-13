@@ -1,0 +1,12 @@
+{
+  "source_sha256": "11f7bba2e0b0c30538daaa76538737fee15ae83fdab62828417e8390b4baf821",
+  "closed_volumes": {
+    "04 Tail booms": 8.9438,
+    "05 Tail tips": 2.0529,
+    "08 Nested engines": 0.1096,
+    "09 Side armor": 2.2008
+  },
+  "mesh_parts": 9,
+  "live_mirrors": 9,
+  "canopy_rim_seated": true
+}
