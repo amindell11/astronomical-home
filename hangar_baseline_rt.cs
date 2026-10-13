@@ -1,0 +1,10 @@
+var screen = UnityEngine.Object.FindFirstObjectByType<UI.Hangar.HangarScreen>();
+screen.enabled = true;
+var field = typeof(UI.Hangar.HangarScreen).GetField("previewImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+var image = (UnityEngine.UI.RawImage)field.GetValue(screen);
+image.rectTransform.localScale = UnityEngine.Vector3.one * 1.44f;
+image.raycastTarget = true;
+var stage = UnityEngine.Object.FindFirstObjectByType<UI.Hangar.HangarPreviewStage>();
+stage.Resize(2304);
+image.texture = stage.Texture;
+return "Restored shipped preview parameters";

@@ -1,0 +1,11 @@
+var screen = UnityEngine.Object.FindFirstObjectByType<UI.Hangar.HangarScreen>();
+screen.enabled = false;
+var stage = UnityEngine.Object.FindFirstObjectByType<UI.Hangar.HangarPreviewStage>();
+stage.Resize(768);
+var rt = (UnityEngine.RenderTexture)stage.Texture;
+rt.Release();
+rt.antiAliasing = 1;
+rt.Create();
+var field = typeof(UI.Hangar.HangarScreen).GetField("previewImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+((UnityEngine.UI.RawImage)field.GetValue(screen)).texture = rt;
+return new { width = rt.width, aa = rt.antiAliasing, allocatedBytes = UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(rt) };

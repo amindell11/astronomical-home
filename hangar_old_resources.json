@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_resource_snapshot.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "width": 768,
+        "height": 768,
+        "aa": 1,
+        "format": "R8G8B8A8_SRGB",
+        "bytes": 7078440,
+        "id": -4918,
+        "totalRenderTextures": 35,
+        "totalRenderTextureBytes": 661361860
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

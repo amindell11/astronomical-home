@@ -1,0 +1,165 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_render_cost.cs",
+      "entry": "HangarRenderCost.Main"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 68,
+      "executeMs": 12736,
+      "assemblyName": "PipelineRunScript_hangar_render_cost_ac923f8138184e0996ff31c3061c2f19",
+      "success": true,
+      "result": {
+        "note": "Preview camera Render plus synchronous one-pixel readback; same ship pose and frame. Timings include CPU and GPU wait, not standalone GPU duration.",
+        "rows": [
+          {
+            "width": 768,
+            "msaa": 1,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.110, 0.118, 0.133, 1.000)",
+            "bytes": 7078440,
+            "samplesMs": [
+              1.3494000000000002,
+              1.6271,
+              1.4057000000000002,
+              1.5231000000000001,
+              1.3098
+            ],
+            "medianMs": 1.4057000000000002
+          },
+          {
+            "width": 768,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.439, 0.427, 0.404, 1.000)",
+            "bytes": 58982952,
+            "samplesMs": [
+              1.8398,
+              1.7253,
+              1.6432,
+              1.7818,
+              1.5779
+            ],
+            "medianMs": 1.7253
+          },
+          {
+            "width": 1601,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.118, 0.118, 0.133, 1.000)",
+            "bytes": 256320652,
+            "samplesMs": [
+              13.472800000000001,
+              42.568200000000004,
+              24.1518,
+              2.9091,
+              2.8603
+            ],
+            "medianMs": 13.472800000000001
+          },
+          {
+            "width": 2304,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.118, 0.118, 0.133, 1.000)",
+            "bytes": 530842152,
+            "samplesMs": [
+              15.956700000000001,
+              4.6715,
+              4.2353000000000005,
+              3.6704000000000003,
+              3.8360000000000003
+            ],
+            "medianMs": 4.2353000000000005
+          },
+          {
+            "width": 2560,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.118, 0.118, 0.133, 1.000)",
+            "bytes": 655360552,
+            "samplesMs": [
+              517.6412,
+              529.7445,
+              529.4856,
+              542.8683,
+              551.6873
+            ],
+            "medianMs": 529.7445
+          },
+          {
+            "width": 2304,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.118, 0.118, 0.133, 1.000)",
+            "bytes": 530842152,
+            "samplesMs": [
+              13.5908,
+              13.139600000000002,
+              14.2354,
+              12.837900000000001,
+              13.9763
+            ],
+            "medianMs": 13.5908
+          },
+          {
+            "width": 1601,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.118, 0.118, 0.133, 1.000)",
+            "bytes": 256320652,
+            "samplesMs": [
+              12.5237,
+              13.1212,
+              13.2751,
+              13.6971,
+              14.2942
+            ],
+            "medianMs": 13.2751
+          },
+          {
+            "width": 768,
+            "msaa": 8,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.439, 0.427, 0.404, 1.000)",
+            "bytes": 58982952,
+            "samplesMs": [
+              13.289800000000001,
+              11.7482,
+              4.9447,
+              11.0196,
+              12.790700000000001
+            ],
+            "medianMs": 11.7482
+          },
+          {
+            "width": 768,
+            "msaa": 1,
+            "depth": "D32_SFloat_S8_UInt",
+            "centerPixel": "RGBA(0.110, 0.118, 0.133, 1.000)",
+            "bytes": 7078440,
+            "samplesMs": [
+              11.1144,
+              3.5328000000000004,
+              12.7863,
+              94.4025,
+              92.10520000000001
+            ],
+            "medianMs": 12.7863
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

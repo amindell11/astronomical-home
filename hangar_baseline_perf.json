@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_measure.cs",
+      "entry": "HangarMeasure.Main"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 572,
+      "executeMs": 3046,
+      "assemblyName": "PipelineRunScript_hangar_measure_c73e7b56519a484fb82a024516b73a19",
+      "success": true,
+      "result": {
+        "frames": 90,
+        "frameMsMedian": 33.5526,
+        "frameMsMean": 40.4478569,
+        "gpuMsMean": 29.467989333333332,
+        "gpuSamples": 3,
+        "textureInstances": 1,
+        "texture": "2304x2304 @ 8xMSAA",
+        "rtBytes": 530842632,
+        "quality": "Performant",
+        "vsync": 2,
+        "targetFps": -1,
+        "cameras": [
+          {
+            "name": "PreviewCamera",
+            "enabled": true,
+            "target": "HangarPreviewRT"
+          },
+          {
+            "name": "UI Cam(Clone)",
+            "enabled": true,
+            "target": "screen"
+          },
+          {
+            "name": "Minimap Cam(Clone)",
+            "enabled": true,
+            "target": "Minimap"
+          },
+          {
+            "name": "Main Camera(Clone)",
+            "enabled": true,
+            "target": "screen"
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

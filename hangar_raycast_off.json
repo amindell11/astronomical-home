@@ -1,0 +1,117 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_probe.cs",
+      "entry": "HangarProbe.Main"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 74,
+      "executeMs": 7,
+      "assemblyName": "PipelineRunScript_hangar_probe_0668536aaa334b1585d4b26212b01a3e",
+      "success": true,
+      "result": {
+        "verdict": "GREEN: button centers reachable",
+        "blocked": 0,
+        "screen": "2560x1408",
+        "canvasScale": 1.33333337,
+        "previewSize": "(1200.00, 1200.00)",
+        "previewScale": "(1.44, 1.44, 1.44)",
+        "worldMin": "(568.00, -407.83, 0.00)",
+        "worldMax": "(2872.00, 1896.17, 0.00)",
+        "raycastTarget": false,
+        "texture": "2304x2304 @ 8xMSAA",
+        "textureId": -4668,
+        "buttons": [
+          {
+            "path": "ShipRow/Previous",
+            "interactable": true,
+            "reached": true,
+            "hit": "Previous",
+            "position": "(698.67, 1111.00)"
+          },
+          {
+            "path": "ShipRow/Next",
+            "interactable": true,
+            "reached": true,
+            "hit": "Next",
+            "position": "(770.67, 1111.00)"
+          },
+          {
+            "path": "EngineRow/Previous",
+            "interactable": true,
+            "reached": true,
+            "hit": "Previous",
+            "position": "(698.67, 967.00)"
+          },
+          {
+            "path": "EngineRow/Next",
+            "interactable": true,
+            "reached": true,
+            "hit": "Next",
+            "position": "(770.67, 967.00)"
+          },
+          {
+            "path": "ShieldRow/Previous",
+            "interactable": true,
+            "reached": true,
+            "hit": "Previous",
+            "position": "(698.67, 849.67)"
+          },
+          {
+            "path": "ShieldRow/Next",
+            "interactable": true,
+            "reached": true,
+            "hit": "Next",
+            "position": "(770.67, 849.67)"
+          },
+          {
+            "path": "PrimaryWeaponRow/Previous",
+            "interactable": true,
+            "reached": true,
+            "hit": "Previous",
+            "position": "(698.67, 732.33)"
+          },
+          {
+            "path": "PrimaryWeaponRow/Next",
+            "interactable": true,
+            "reached": true,
+            "hit": "Next",
+            "position": "(770.67, 732.33)"
+          },
+          {
+            "path": "SecondaryWeaponRow/Previous",
+            "interactable": true,
+            "reached": true,
+            "hit": "Previous",
+            "position": "(698.67, 615.00)"
+          },
+          {
+            "path": "SecondaryWeaponRow/Next",
+            "interactable": true,
+            "reached": true,
+            "hit": "Next",
+            "position": "(770.67, 615.00)"
+          },
+          {
+            "path": "HangarScreen(Clone)/LaunchButton",
+            "interactable": true,
+            "reached": true,
+            "hit": "Label",
+            "position": "(2201.33, 162.67)"
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,3 @@
+var stage = UnityEngine.Object.FindFirstObjectByType<UI.Hangar.HangarPreviewStage>();
+var rt = (UnityEngine.RenderTexture)stage.Texture;
+return new { width = rt.width, height = rt.height, aa = rt.antiAliasing, format = rt.graphicsFormat.ToString(), bytes = UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(rt), id = rt.GetInstanceID(), totalRenderTextures = UnityEngine.Resources.FindObjectsOfTypeAll<UnityEngine.RenderTexture>().Length, totalRenderTextureBytes = System.Linq.Enumerable.Sum(UnityEngine.Resources.FindObjectsOfTypeAll<UnityEngine.RenderTexture>(), t => UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(t)) };
