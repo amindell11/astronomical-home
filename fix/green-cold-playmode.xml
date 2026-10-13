@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="20" result="Passed" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:36Z" duration="5.5396691">
+  <test-suite type="TestSuite" id="1353" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="264" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:36Z" duration="5.539669" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1335" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-2/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="260" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:36Z" duration="5.527179" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2980" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1336" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="260" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:36Z" duration="5.525638" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1337" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="260" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:36Z" duration="5.524604" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1071" name="HangarFlowPlayModeTests" fullname="Tests.PlayMode.HangarFlowPlayModeTests" classname="Tests.PlayMode.HangarFlowPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:33Z" duration="1.887375" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="UI" />
+            </properties>
+            <test-case id="1073" name="AlivePlayer_ParkedOutsideSector_LiveAfterHangarStep" fullname="Tests.PlayMode.HangarFlowPlayModeTests.AlivePlayer_ParkedOutsideSector_LiveAfterHangarStep" methodname="AlivePlayer_ParkedOutsideSector_LiveAfterHangarStep" classname="Tests.PlayMode.HangarFlowPlayModeTests" runstate="Runnable" seed="713675690" result="Passed" start-time="2026-10-13 10:27:31Z" end-time="2026-10-13 10:27:33Z" duration="1.863886" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1072" name="RunHangar_HeadlessOrNoPlayer_CompletesWithoutScreen" fullname="Tests.PlayMode.HangarFlowPlayModeTests.RunHangar_HeadlessOrNoPlayer_CompletesWithoutScreen" methodname="RunHangar_HeadlessOrNoPlayer_CompletesWithoutScreen" classname="Tests.PlayMode.HangarFlowPlayModeTests" runstate="Runnable" seed="867654555" result="Passed" start-time="2026-10-13 10:27:33Z" end-time="2026-10-13 10:27:33Z" duration="0.003751" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1074" name="HangarInputGatePlayModeTests" fullname="Tests.PlayMode.HangarInputGatePlayModeTests" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-13 10:27:33Z" end-time="2026-10-13 10:27:36Z" duration="2.942809" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="RequiresGraphics" />
+            </properties>
+            <test-case id="1076" name="Preview_StaysWithin224MiB_WhenRequestedAt4K" fullname="Tests.PlayMode.HangarInputGatePlayModeTests.Preview_StaysWithin224MiB_WhenRequestedAt4K" methodname="Preview_StaysWithin224MiB_WhenRequestedAt4K" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" seed="1067092787" result="Passed" start-time="2026-10-13 10:27:33Z" end-time="2026-10-13 10:27:33Z" duration="0.022854" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1075" name="RunHangar_GatesPlayerInput_UntilLaunch" fullname="Tests.PlayMode.HangarInputGatePlayModeTests.RunHangar_GatesPlayerInput_UntilLaunch" methodname="RunHangar_GatesPlayerInput_UntilLaunch" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" seed="1602081874" result="Passed" start-time="2026-10-13 10:27:33Z" end-time="2026-10-13 10:27:36Z" duration="2.917173" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1077" name="HangarOptionRowsPlayModeTests" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.035074" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="UI" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1089" name="Describe_ShowsEveryStatOfCatalogWeaponAsset" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.008605" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1083" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Lasers.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Rate [\\d.]+/s&quot;,&quot;Speed \\d+&quot;,&quot;Overheats after \\d+ shots&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Lasers.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Rate [\\d.]+/s&quot;,&quot;Speed \\d+&quot;,&quot;Overheats after \\d+ shots&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="1237517400" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.002965" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1084" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/ChargeLasers.prefab&quot;,&quot;Damage \\d+-\\d+&quot;,&quot;Full charge [\\d.]+s&quot;,&quot;Speed \\d+&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/ChargeLasers.prefab&quot;,&quot;Damage \\d+-\\d+&quot;,&quot;Full charge [\\d.]+s&quot;,&quot;Speed \\d+&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="1952353511" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.001763" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1085" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Railgun.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Range \\d+&quot;,&quot;Full charge [\\d.]+s&quot;,&quot;Hitscan&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Railgun.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Range \\d+&quot;,&quot;Full charge [\\d.]+s&quot;,&quot;Hitscan&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="349334333" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.000352" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1086" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Rippers.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Rate [\\d.]+/s&quot;,&quot;Mag \\d+ \\(reload [\\d.]+s\\)&quot;,&quot;Speed \\d+&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Rippers.prefab&quot;,&quot;Damage \\d+&quot;,&quot;Rate [\\d.]+/s&quot;,&quot;Mag \\d+ \\(reload [\\d.]+s\\)&quot;,&quot;Speed \\d+&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="1827007469" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.000636" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1087" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Missiles.prefab&quot;,&quot;Damage \\d+ \\+ \\d+ splash&quot;,&quot;\\d+ rounds \\(regen [\\d.]+s/round\\)&quot;,&quot;Lock-on homing&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Missiles.prefab&quot;,&quot;Damage \\d+ \\+ \\d+ splash&quot;,&quot;\\d+ rounds \\(regen [\\d.]+s/round\\)&quot;,&quot;Lock-on homing&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="218585167" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.000684" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1088" name="Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Grenades.prefab&quot;,&quot;Blast \\d+ to \\d+u, hits friend and foe&quot;,&quot;\\d+ charges \\(regen [\\d.]+s/round\\)&quot;,&quot;Range \\d+u&quot;)" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Describe_ShowsEveryStatOfCatalogWeaponAsset(&quot;Assets/Prefabs/Weapons/Grenades.prefab&quot;,&quot;Blast \\d+ to \\d+u, hits friend and foe&quot;,&quot;\\d+ charges \\(regen [\\d.]+s/round\\)&quot;,&quot;Range \\d+u&quot;)" methodname="Describe_ShowsEveryStatOfCatalogWeaponAsset" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="1866082746" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.000325" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1082" name="HoveredRowStats_FollowTheCycledPick" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.HoveredRowStats_FollowTheCycledPick" methodname="HoveredRowStats_FollowTheCycledPick" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="1246735460" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.007861" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1079" name="Previous_FromAnEmptyMount_EntersAtTheLastWeapon" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.Previous_FromAnEmptyMount_EntersAtTheLastWeapon" methodname="Previous_FromAnEmptyMount_EntersAtTheLastWeapon" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="100579742" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.003167" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1090" name="RealCatalog_EveryShipIsReachableByCycling" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.RealCatalog_EveryShipIsReachableByCycling" methodname="RealCatalog_EveryShipIsReachableByCycling" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="584694979" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.002995" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1081" name="ShipStep_ReseedsWeaponsToAuthoredKit" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.ShipStep_ReseedsWeaponsToAuthoredKit" methodname="ShipStep_ReseedsWeaponsToAuthoredKit" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="106536746" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.003622" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1078" name="WeaponRows_CycleThroughCatalogAndWrap_WithDisplayNames" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.WeaponRows_CycleThroughCatalogAndWrap_WithDisplayNames" methodname="WeaponRows_CycleThroughCatalogAndWrap_WithDisplayNames" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="167915130" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.002877" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1080" name="WeaponStep_WritesOnlyItsOwnSlot" fullname="Tests.PlayMode.HangarOptionRowsPlayModeTests.WeaponStep_WritesOnlyItsOwnSlot" methodname="WeaponStep_WritesOnlyItsOwnSlot" classname="Tests.PlayMode.HangarOptionRowsPlayModeTests" runstate="Runnable" seed="168757397" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.002532" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1091" name="HangarShipSwapPlayModeTests" fullname="Tests.PlayMode.HangarShipSwapPlayModeTests" classname="Tests.PlayMode.HangarShipSwapPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.039900" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="RequiresGraphics" />
+            </properties>
+            <test-case id="1093" name="SameShip_LaunchDoesNotRebuild" fullname="Tests.PlayMode.HangarShipSwapPlayModeTests.SameShip_LaunchDoesNotRebuild" methodname="SameShip_LaunchDoesNotRebuild" classname="Tests.PlayMode.HangarShipSwapPlayModeTests" runstate="Runnable" seed="829221932" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.007046" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1094" name="ShipChange_DeathCallbackFollowsNewShip" fullname="Tests.PlayMode.HangarShipSwapPlayModeTests.ShipChange_DeathCallbackFollowsNewShip" methodname="ShipChange_DeathCallbackFollowsNewShip" classname="Tests.PlayMode.HangarShipSwapPlayModeTests" runstate="Runnable" seed="855534997" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.014406" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1092" name="ShipChange_RebuildsPlayer_WithNewTemplateAndWiring" fullname="Tests.PlayMode.HangarShipSwapPlayModeTests.ShipChange_RebuildsPlayer_WithNewTemplateAndWiring" methodname="ShipChange_RebuildsPlayer_WithNewTemplateAndWiring" classname="Tests.PlayMode.HangarShipSwapPlayModeTests" runstate="Runnable" seed="1054870580" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.012576" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestSuite" id="1339" name="Presentation" fullname="Tests.PlayMode.Presentation" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.612807" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1340" name="Wings" fullname="Tests.PlayMode.Presentation.Wings" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.611543" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1315" name="WingVisualsPlayModeTests" fullname="Tests.PlayMode.Presentation.Wings.WingVisualsPlayModeTests" classname="Tests.PlayMode.Presentation.Wings.WingVisualsPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.610967" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                </properties>
+                <test-case id="1316" name="UnboundHangarRig_RemainsAtAuthoredIdle" fullname="Tests.PlayMode.Presentation.Wings.WingVisualsPlayModeTests.UnboundHangarRig_RemainsAtAuthoredIdle" methodname="UnboundHangarRig_RemainsAtAuthoredIdle" classname="Tests.PlayMode.Presentation.Wings.WingVisualsPlayModeTests" runstate="Runnable" seed="11484223" result="Passed" start-time="2026-10-13 10:27:36Z" end-time="2026-10-13 10:27:36Z" duration="0.609900" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

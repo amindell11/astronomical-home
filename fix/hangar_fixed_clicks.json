@@ -1,0 +1,91 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_pointer_clicks.cs",
+      "entry": "HangarPointerClicks.Main"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 36,
+      "executeMs": 146,
+      "assemblyName": "PipelineRunScript_hangar_pointer_clicks_4ccfb02302304b33858454593d119591",
+      "success": true,
+      "result": {
+        "verdict": "GREEN: all ten pointer clicks changed their selected option",
+        "count": 10,
+        "results": [
+          {
+            "row": "ShipRow",
+            "button": "Previous",
+            "before": "Crimson",
+            "after": "Vanguard"
+          },
+          {
+            "row": "ShipRow",
+            "button": "Next",
+            "before": "Vanguard",
+            "after": "Crimson"
+          },
+          {
+            "row": "EngineRow",
+            "button": "Previous",
+            "before": "Default_Engine",
+            "after": "Hauler_Engine"
+          },
+          {
+            "row": "EngineRow",
+            "button": "Next",
+            "before": "Hauler_Engine",
+            "after": "Default_Engine"
+          },
+          {
+            "row": "ShieldRow",
+            "button": "Previous",
+            "before": "Default_Shield",
+            "after": "Bulwark_Shield"
+          },
+          {
+            "row": "ShieldRow",
+            "button": "Next",
+            "before": "Bulwark_Shield",
+            "after": "Default_Shield"
+          },
+          {
+            "row": "PrimaryWeaponRow",
+            "button": "Previous",
+            "before": "Lasers",
+            "after": "CONCUSSION"
+          },
+          {
+            "row": "PrimaryWeaponRow",
+            "button": "Next",
+            "before": "CONCUSSION",
+            "after": "Lasers"
+          },
+          {
+            "row": "SecondaryWeaponRow",
+            "button": "Previous",
+            "before": "Missiles",
+            "after": "Lasers"
+          },
+          {
+            "row": "SecondaryWeaponRow",
+            "button": "Next",
+            "before": "Lasers",
+            "after": "Missiles"
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

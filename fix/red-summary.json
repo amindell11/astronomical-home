@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-10-13T03:17:31.9981301-07:00",
+  "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "PlayMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "HangarInputGate",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 0,
+    "durationSec": 1.47
+  },
+  "runs": [
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 2,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "durationSec": 1.47,
+      "failures": [
+        {
+          "name": "Preview_StaysWithin224MiB_WhenRequestedAt4K",
+          "fullName": "Tests.PlayMode.HangarInputGatePlayModeTests.Preview_StaysWithin224MiB_WhenRequestedAt4K",
+          "durationSec": 0.0346823,
+          "message": "preview target exceeds its GPU allocation budget Expected: less than or equal to 234881024 But was: 655361032",
+          "topStack": "at Tests.PlayMode.HangarInputGatePlayModeTests.Preview_StaysWithin224MiB_WhenRequestedAt4K () [0x0002d] in D:\\amind\\git\\agent-2\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\HangarInputGatePlayModeTests.cs:139"
+        },
+        {
+          "name": "RunHangar_GatesPlayerInput_UntilLaunch",
+          "fullName": "Tests.PlayMode.HangarInputGatePlayModeTests.RunHangar_GatesPlayerInput_UntilLaunch",
+          "durationSec": 1.3714528,
+          "message": "ShipRow/Previous is covered by ShipPreview Expected: True But was: False",
+          "topStack": "at Tests.PlayMode.HangarInputGatePlayModeTests+<RunHangar_GatesPlayerInput_UntilLaunch>d__10.MoveNext () [0x0037b] in D:\\amind\\git\\agent-2\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\HangarInputGatePlayModeTests.cs:114"
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "HangarInputGate",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 24.335,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 64556
+}

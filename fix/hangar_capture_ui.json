@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-2/results/hangar_capture_ui.cs",
+      "entry": "HangarCaptureUi.Main"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 1683,
+      "executeMs": 522,
+      "assemblyName": "PipelineRunScript_hangar_capture_ui_e6a1bf783f5041a288a6dfcb275a9a5a",
+      "success": true,
+      "result": {
+        "path": "D:/amind/git/agent-2/results/hangar_fixed_ui.png",
+        "bytes": 2914303
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-2\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
