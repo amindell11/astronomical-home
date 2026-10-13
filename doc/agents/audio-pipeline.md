@@ -20,6 +20,7 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 
 - Prefabs reference events through `EventReference` (an `event:/` path plus its GUID), so FMOD's picker works locally. `FmodWiringEditModeTests` checks every referenced path against `GUIDs.txt` on the hosted suite, where the stub cannot; a Studio rename therefore fails CI, not the game.
 - A 3D event started without `set3DAttributes` goes virtual: silent, with no error. `WeaponFireAudio` sets them at the fire point.
+- The camera's `StudioListener` attenuates from `ListenerPlaneAnchor`, the point on the game plane beneath the camera, and pans from the camera itself. The camera sits 50 units off the plane and FMOD's default event range is 1–20, so an event measured from the camera is silent; keep attenuation anchored on the plane and author event ranges in plane units.
 - Batch `-executeMethod` tooling runs before FMOD's editor startup: call `FMODUnity.EventManager.Startup()` before `EventReference.Find`.
 - Live Update is on in every editor run (port 9264) and cannot be switched off per run: FMOD fixes its init flags before the platform callback handler runs. A port collision restarts FMOD without it, harmlessly.
 - `BatchModeAudioOutput` (the Default platform's callback handler) selects `NOSOUND` in batch mode; `ASTRO_FMOD_OUTPUT=<FMOD.OUTPUTTYPE>` overrides it for one run.
@@ -37,4 +38,4 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 
 - **Batch evidence**, with the real package: `run-tests <slot> -Mode PlayMode -TestCategory Audio`. The evidence test logs `[FMOD] … output=NOSOUND`, one instance `PLAYING`, and the `Heat` parameter equal to the weapon's heat fraction.
 - **Audio evidence**: `ASTRO_FMOD_OUTPUT=WAVWRITER` writes `fmodoutput.wav` into the Unity project folder (gitignored; fixed name, so one run at a time). The writer mixes in realtime, so a test must keep the event alive for its length.
-- **By ear**: play in the editor and tune in Studio through Live Update. Live Update edits persist only after save, bank build and a play-mode restart.
+- **By ear**: play in the editor with the Game view's Mute Audio off (FMOD mutes its master bus while `EditorUtility.audioMasterMute` is set, batch runs included) and tune in Studio through Live Update. Live Update edits persist only after save, bank build and a play-mode restart.
