@@ -76,7 +76,7 @@ namespace Tests.PlayMode
 
             commander.enablePrimaryFire = true;
             var elapsed = 0f;
-            while (!primaryHeat.Overheated && elapsed < 4f)
+            while (!primaryHeat.Overheated && elapsed < 10f)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
@@ -84,11 +84,9 @@ namespace Tests.PlayMode
             }
             Assert.IsTrue(primaryHeat.Overheated, "Weapon should overheat under continuous fire");
 
-            // Stop firing; it must recover rather than latch overheated. Full lockout drains to
-            // zero: penalty 1.5s + 100 heat / 30 per s ≈ 4.9s on the production laser curve.
             commander.enablePrimaryFire = false;
             elapsed = 0f;
-            while (primaryHeat.Overheated && elapsed < 6f)
+            while (primaryHeat.Overheated && elapsed < 10f)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;

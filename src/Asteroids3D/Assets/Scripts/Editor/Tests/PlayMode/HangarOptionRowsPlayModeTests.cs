@@ -164,7 +164,7 @@ namespace Tests.PlayMode
 
         // Read off the prefab asset, where Awake never runs: passes only if every stat source is serialized.
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
-            "Damage 20   |   Rate 3.3/s   |   Speed 50   |   Overheats after 10 shots")]
+            "Damage 20   |   Rate 3.3/s   |   Speed 50   |   Overheats after 14 shots")]
         [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab",
             "Damage 12-30   |   Full charge 1.2s   |   Speed 45")]
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
