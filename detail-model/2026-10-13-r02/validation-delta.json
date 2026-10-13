@@ -1,0 +1,403 @@
+{
+  "parts": {
+    "02 Upper hull.001": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 78,
+      "faces": 87
+    },
+    "09 Side armor.001": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 117,
+      "faces": 120
+    },
+    "05 Tail tips.002": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 144,
+      "faces": 149
+    },
+    "09 Side armor.002": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 129,
+      "faces": 135
+    },
+    "05 Tail tips.003": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 136,
+      "faces": 150
+    },
+    "01 Ram nose": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 66,
+      "faces": 76
+    },
+    "02 Upper hull": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 81,
+      "faces": 83
+    },
+    "03 Lower hull": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 94,
+      "faces": 98
+    },
+    "04 Tail booms": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 132,
+      "faces": 139
+    },
+    "05 Tail tips": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 200,
+      "faces": 216
+    },
+    "06 Cockpit dome": {
+      "boundary_edges": 56,
+      "nonmanifold_edges": 56,
+      "verts": 1277,
+      "faces": 1248
+    },
+    "07 Side insets": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 202,
+      "faces": 202
+    },
+    "08 Nested engines": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 96,
+      "faces": 76
+    },
+    "09 Side armor": {
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "verts": 120,
+      "faces": 122
+    }
+  },
+  "findings_before": 58,
+  "findings_after": 51,
+  "new_findings": [],
+  "removed_findings": [
+    [
+      "ngon",
+      "02 Upper hull.001"
+    ],
+    [
+      "normals",
+      "07 Side insets"
+    ],
+    [
+      "visual_role",
+      "02 Upper hull.001"
+    ],
+    [
+      "visual_role",
+      "05 Tail tips.002"
+    ],
+    [
+      "visual_role",
+      "05 Tail tips.003"
+    ],
+    [
+      "visual_role",
+      "09 Side armor.001"
+    ],
+    [
+      "visual_role",
+      "09 Side armor.002"
+    ]
+  ],
+  "unchanged_parts": [
+    "05 Tail tips.001",
+    "06 Cockpit dome",
+    "08 Nested engines",
+    "08 Nested engines.001",
+    "Body",
+    "Body.001",
+    "Body.002",
+    "Body.003",
+    "Cockpit",
+    "Lower hull",
+    "Ram nose",
+    "Side armor",
+    "Side armor.001",
+    "Side armor.002",
+    "Side insets",
+    "SymmetryOrigin",
+    "SymmetryOrigin.001",
+    "SymmetryOrigin.002",
+    "SymmetryOrigin.003",
+    "SymmetryOrigin.004",
+    "SymmetryOrigin.005",
+    "SymmetryOrigin.006",
+    "Tail",
+    "Tail booms",
+    "Tail tips",
+    "Tail tips.001",
+    "Tail tips.002",
+    "Tail tips.003",
+    "Tail.001",
+    "Tail.002",
+    "Tail.003",
+    "Upper hull",
+    "Upper hull.001",
+    "reference.side",
+    "reference.top"
+  ],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "67e3943e9b17d2f630801c5b48f40039a9e2d7d1403c119269b14bb5585e6eb0",
+      "uv": "49db6356e479be1dc35348959f50ebaab84d50d2d23090a057e0003749f2ed51",
+      "materials": "77c642eedd7cd9239b8f65a843d75f8d4b1486253b485ac56f1aac52fc42e064"
+    },
+    "parts": {
+      "01 Ram nose": {
+        "geometry": "6cd6647d59665725e2ffedf86ea135362187e12612998566bff2f9c09b846cb2",
+        "uv": "11f32aad4bf626f4df05d5facdc34b8694fdd24a8c726a4d4d9472ab7a106e6b",
+        "materials": "77a2d3e55a718ddd67614430760deb6b584dd7252a0df890efaa5b776359604f"
+      },
+      "02 Upper hull": {
+        "geometry": "43d00d88c43ac585c684ba65817bd71c33f2ab4a0c95583c9ffa99896a49d129",
+        "uv": "70d9f1fb1225134cc7c71ae4159e0c482f510b7f2c5dd65130c622cadc4c6a76",
+        "materials": "0df2a82e771212a716fec4d1f2944942d8426fc7021a49acf60bb33a8c989dbb"
+      },
+      "02 Upper hull.001": {
+        "geometry": "20eac6146fc0df5b8b2c37c0ee1e386e3a4c3746bd1eb1196935c15c70a3214e",
+        "uv": "765a3003def0c7816754af44af6a449dc22806b7b8f88d89eb8ef8b257114d5e",
+        "materials": "557759fdd7a0285e87b3e2efcf117eb3c31fa958800ba0ab099ac8d0e11eafc9"
+      },
+      "03 Lower hull": {
+        "geometry": "04dac670de2d0397767b0f5bf8e61117fde2edd0a6c6e9b442a5e98bfcb59bcf",
+        "uv": "ecdd21000c23d62503ef28552795afb9c0ce204a8e2d255c929ed3fa808c82f9",
+        "materials": "641a5875b65a2dd8634439aa6485b1e382e0b83c499fa1728956ca47400e679a"
+      },
+      "04 Tail booms": {
+        "geometry": "d1ab764eaed5b1ace085dcf0a79ba1a89874853ec05228f911339920e8f97cfc",
+        "uv": "8112f7c3b0244fbef7207f6f1a01927edb7f4152a9640ebfa6c91b482dc3908a",
+        "materials": "a69f1411530eaed1af519cadbc731499a9569e9abc7d6934d0368db7ab376b4f"
+      },
+      "05 Tail tips": {
+        "geometry": "9f37288d23a01d20306cb38e5c88af32863ed48c14eef38aa38c7087f52c9274",
+        "uv": "700977aac815676ae955fd98476a3c3778287259ac294d6e0a1c95ec63825c3c",
+        "materials": "547e118ca5a7356401b5f75cfc8bd879077d0a7cb114b6aaea62afa4d18423b8"
+      },
+      "05 Tail tips.001": {
+        "geometry": "a652bf17fb396209dc7245f17680173dc15b53f3dc1246924ce695ea1e1ae0fe",
+        "uv": "5e3be1dfe716221c40977b6cb17751d05c0c1c04f8c6b2a01627170c450eb21d",
+        "materials": "be6cddd57d97a67f38f4f432a77c9787baffb601f03965243da126ceeb46a004"
+      },
+      "05 Tail tips.002": {
+        "geometry": "108daabad7810475e4d31d05e24a62428ef5bbf3366f605354b3f225edce6bb1",
+        "uv": "73e46d09ff3aa80199dfbaddefadce588a405b517d80a0e83cb24802407e10f3",
+        "materials": "ae9e74547f4e03f907c677d0c5b899b4825768bf196462a77c326e9198c40446"
+      },
+      "05 Tail tips.003": {
+        "geometry": "45c47a2d9f04dcfa08604f809afb14b9efb777431e35171bd226ed9ee57f0d6d",
+        "uv": "8112f7c3b0244fbef7207f6f1a01927edb7f4152a9640ebfa6c91b482dc3908a",
+        "materials": "4db0fb6bbe9b737ce16bdd80542e240db1f7082be64014730c6e668466d4eaf9"
+      },
+      "06 Cockpit dome": {
+        "geometry": "213f7014295ff176348738887942527dadc4f2da37519622b6405b4d9cdb565f",
+        "uv": "62f2f0379726f51f3729ea5239fdc010d8b4138f95e00a50c17bef4df2d3dcba",
+        "materials": "95bf08fc135d57588734b135dce04ea8213d14377c63e28711977e3f04d105b6"
+      },
+      "07 Side insets": {
+        "geometry": "862d6853e72fd64083953d6e20411adc392f7461eaaf9a1e1d3f0968afd54bc3",
+        "uv": "b61d91d67d1ab84b91af4287dcd319d92e5c67e53fc52420079c537f22931e58",
+        "materials": "102c0db3ccb0e7457b01a11a5ab92b12b2fc5f6da789dd87389f05176884a671"
+      },
+      "08 Nested engines": {
+        "geometry": "a02ce6b8b84bc221359ae964aef92d1fef9d0d634ba4cd5c063c7a96c42b9932",
+        "uv": "da1b80b5d96c4cc83fbb1ca622327165d9e5f35ae14425fd66f9db639c4d35f8",
+        "materials": "d61ac4ae432c32fbe13048f76e5a97cddc1fc251762a7433e33c10b4a2341bdb"
+      },
+      "08 Nested engines.001": {
+        "geometry": "3c37485a076b684131d94a2ca8d0f8eb36065297e5dca91a5096538cc1e24b78",
+        "uv": "da1b80b5d96c4cc83fbb1ca622327165d9e5f35ae14425fd66f9db639c4d35f8",
+        "materials": "42b0861ee577414bf303bd1c2091d5c62e22190ee6063f4e98c378a407809afd"
+      },
+      "09 Side armor": {
+        "geometry": "9e9b4439d01945fd2ee1622060cfb1ee5a9afc15350b694a659ffb84f9ff5250",
+        "uv": "fc8a9267686412bff968f661509ad67d3478cf46973479b89dd39faf49e54ffa",
+        "materials": "38f6d34951ee307dc4405b432521e7b2733b3e810d9175761ee32f66f9923b03"
+      },
+      "09 Side armor.001": {
+        "geometry": "15480101d09c0afbcda96766a49d93f4ec8cba6824a320f0ac47878c405134c0",
+        "uv": "a44613e7c03757ed8e5da59bac545ab2772196efc7ae594b5ee4345cf5739f34",
+        "materials": "73fe2edd5cdc0c1057d13f5073cfa99827e53e84ab91a78857d62408df1fb47d"
+      },
+      "09 Side armor.002": {
+        "geometry": "91a260f0717f6601fff7df3f23a10aa13d7f289f7f015114fc6db094d9380257",
+        "uv": "5f7f5baf408f3aebc3aa7777437b96202df47df0d2ee17e6b2059f7fad4f982c",
+        "materials": "46f1474cef0b1e7ef0bff698d097e2f8650999c50ba270097a9e2bf2b285c6e8"
+      },
+      "Body": {
+        "geometry": "c61e3f1ba7544a00a31eb767302742b95a5577b86ec15f66593f8c76c97b73dd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.001": {
+        "geometry": "123b7eb41730c8c9a7101a6c753e23cb8d05efc13555150b1dbba24eccfe0aae",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.002": {
+        "geometry": "c032ffe9d756d162607c78402cf0a02a4aefd23d537ccfd413ed71d2a24c0558",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Body.003": {
+        "geometry": "eb82ca435a5fba763325d7a0494cc099d11380bf0f5bc791a2bea1a737ab0553",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Cockpit": {
+        "geometry": "350b8ad842c7c20fdb44fd689e3ad7eb3792122a52953a11601c3d0056212c47",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Ram nose": {
+        "geometry": "8256dc1304d29556970fc052ab206de40a6210471b1ef962548b06b3ef1ee446",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor": {
+        "geometry": "c52db368dcde2b8b1f9d47e2d26e7587cf64d5100b476850edbfb1512add4eca",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor.001": {
+        "geometry": "88d9764e5a70d59da3afee6bd77c5cc06be7dc6e9d71833628ba1ada2839359f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side armor.002": {
+        "geometry": "d799260b08ba9e6adfd4ff2db4934398ecf6bc8320b8420d6dfe33ca7789371c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Side insets": {
+        "geometry": "b0fe44aed06e00ee3226d15b8c9b15f24279be1b2196836c0dd6aa023118dd72",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.001": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.002": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.003": {
+        "geometry": "e9f45ccb02c142679e0f12e92dea3ebc33d07c49eae3f5ab92b4d034116d6c7a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.004": {
+        "geometry": "40b05434774bc322a8c987778c3b31d2ae8a823fcf36469de41c48d7267aa4e9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.005": {
+        "geometry": "a63ddf8a4bc42788c72516f7c6952b9c0c33bd9e0a2170766b0d403624789872",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin.006": {
+        "geometry": "aff5ec7dcd880283dba87cb745a66e6ca446a48f63f0b3bd4f9db874d1cbeec4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail": {
+        "geometry": "f41f9f3cb881ba25cf25e117a815c545944b9ec96f87afae3a00c919a2ef3e8f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail booms": {
+        "geometry": "1738b12bf0abc4124f09ebd5fecf53792a781d24babbf70f326f0d284a1f70d6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips": {
+        "geometry": "a404d6d4169c0d816a931e281dea37d7e5dd599f8b571aec7294bef7d4b90ffc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.001": {
+        "geometry": "eb7c9b00fbe531e99596f6b9bd5c2061ca70fe17fecc2f336ce004c90ffb9ddf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.002": {
+        "geometry": "58db2696e73bb0dfe7784563bc8793daca8865cf4983430629f75a8c83b548d2",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail tips.003": {
+        "geometry": "3575a0931eb4800869c5365269847ca09ae0b01326e42b37adfa9f69c845bc55",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.001": {
+        "geometry": "42b889e0a33707ef4adba73cafaa29505ac0e308ce6b7c53ed88fc62e4fa1d75",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.002": {
+        "geometry": "7beea3517953c9c28e307195ff24131b31e93b33ac70c2aba843461f5dfc0761",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Tail.003": {
+        "geometry": "be12b3cdd91804b2e73ce8621a51c4f40a759c7b5a77b68326330187d71b3716",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper hull": {
+        "geometry": "b23dddeaeea0ba1fa770b031a72011771fcea7af7c6e65b8275c9836a6a1e4cf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper hull.001": {
+        "geometry": "d6a8702b989158e7da35fd17a54f7f123a2cd2ddd57895d9ae9edec49eef736d",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.side": {
+        "geometry": "fa90a37911bf963c6a818b0550667f213b55492a0ddd9caceb141336015e98cc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "016c9e92999841abc8a1eae8cfcbbe1b53f876dcf013925bd599cad343119c5c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  }
+}

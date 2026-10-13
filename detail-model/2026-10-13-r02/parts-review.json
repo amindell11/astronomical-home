@@ -1,0 +1,21 @@
+{
+  "source_sha256": "03d33653762550073eb62005af20ff3953487b9affb81b6373ac0730a5620915",
+  "source_unchanged": true,
+  "visible_parts": [
+    "02 Upper hull.001",
+    "09 Side armor.001",
+    "05 Tail tips.002",
+    "09 Side armor.002",
+    "05 Tail tips.003",
+    "01 Ram nose",
+    "02 Upper hull",
+    "03 Lower hull",
+    "04 Tail booms",
+    "05 Tail tips",
+    "06 Cockpit dome",
+    "07 Side insets",
+    "08 Nested engines",
+    "09 Side armor"
+  ],
+  "exploded_is_render_only": true
+}
