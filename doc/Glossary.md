@@ -962,6 +962,12 @@ Format: **term** — definition. *(authority)*
   Fixed at two registry values; never fix it by committing the define.
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
   logs (WinError 32). Taskkill by PID, never by image name.
+- **FMOD stub** — `src/fmod-stub/`: the package the hosted suite compiles
+  against in place of FMOD for Unity, which only the local vendor tarball
+  supplies. Only the FMOD types the game touches, every method a no-op; a
+  prefab-visible component keeps FMOD's real script GUID. It grows one member
+  at a time when the hosted suite fails to compile, never ahead of use.
+  *(doc/agents/audio-pipeline.md; #987 ruling 2)*
 
 ---
 
