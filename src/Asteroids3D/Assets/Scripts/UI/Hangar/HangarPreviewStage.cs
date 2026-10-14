@@ -195,7 +195,7 @@ namespace UI.Hangar
             stageCamera.transform.LookAt(focus);
         }
 
-        // Mesh-stored bounds placed at peak pop-in scale and canonical pose: no clone, spin-independent.
+        // Stored mesh bounds posed at peak pop-in scale and canonical pose, independent of spin phase.
         private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
         {
             var rig = rigTemplate.transform;
