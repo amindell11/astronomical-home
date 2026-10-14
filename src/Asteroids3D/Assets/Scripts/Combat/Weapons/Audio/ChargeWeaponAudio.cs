@@ -8,11 +8,9 @@ using STOP_MODE = FMOD.Studio.STOP_MODE;
 namespace Combat.Weapons.Audio
 {
     /// <summary>
-    /// A charge weapon's sustained sound: one instance of an event with a sustain point, started
-    /// when the charge-up rises from zero, fed the charge-up level through <c>Charge</c>, keyed off
-    /// into its release on the shot and faded out on any other return to zero. The instance rides
-    /// the weapon so it follows the ship. The sound announces nothing: <see cref="ChargeTime"/>
-    /// tells fire from drop by raising <see cref="ChargeTime.OnChargeSpent"/> before it zeroes.
+    /// A charge weapon's sustained sound. A shot differs from a drop by order alone: the shot's
+    /// <see cref="ChargeTime.OnChargeSpent"/> keys the instance off and forgets it before the
+    /// charge-up zeroes, so that zero stops only an unfired charge-up.
     /// </summary>
     [RequireComponent(typeof(ChargeTime))]
     public sealed class ChargeWeaponAudio : MonoBehaviour, IPresentationPart
@@ -65,7 +63,7 @@ namespace Combat.Weapons.Audio
             instance.start();
         }
 
-        // The parameter already holds the spent level; the attached release tail follows the ship until it ends.
+        // Charge already holds the spent level; left attached, the release tail follows the ship.
         private void KeyOff(float spent)
         {
             if (!instance.isValid()) return;

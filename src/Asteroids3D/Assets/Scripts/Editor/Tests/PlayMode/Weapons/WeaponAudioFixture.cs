@@ -41,7 +41,6 @@ namespace Tests.PlayMode.Weapons
             base.TearDown();
         }
 
-        /// <summary>The prefab's weapon mounted under a shooter root at the origin, nose along the plane's forward axis.</summary>
         protected T Mount<T>(string prefabPath) where T : WeaponComponent
         {
             var prefab = AssetDatabase.LoadAssetAtPath<T>(prefabPath);

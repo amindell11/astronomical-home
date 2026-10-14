@@ -10,11 +10,6 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Weapons
 {
-    /// <summary>
-    /// The sustained charge sound on both charge weapons: live while the trigger is held with
-    /// Charge on the gauge, playing on past the shot with Charge at the spent charge, and stopped
-    /// after a release below the minimum.
-    /// </summary>
     [Category("Audio")]
     public class ChargeWeaponAudioPlayModeTests : WeaponAudioFixture
     {

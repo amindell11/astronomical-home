@@ -33,7 +33,7 @@ namespace Combat.Weapons.Arsenal
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
 
-        /// <summary>Raised when the beam stops short of max range, with the hit point and what it struck (null when the collider takes no damage).</summary>
+        /// <summary>Per beam hit: the point and what it struck, null when the collider takes no damage.</summary>
         public event Action<Vector3, IDamageable> Hit;
 
         [Header("Conditions")]

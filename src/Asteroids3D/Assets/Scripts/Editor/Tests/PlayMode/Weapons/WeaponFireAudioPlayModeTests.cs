@@ -7,7 +7,6 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Weapons
 {
-    /// <summary>The fire one-shots of the families ported after the laser: one instance per shot, from the family's own event.</summary>
     [Category("Audio")]
     public class WeaponFireAudioPlayModeTests : WeaponAudioFixture
     {
@@ -27,7 +26,7 @@ namespace Tests.PlayMode.Weapons
             var laser = Fresh(LaserFire);
 
             Assert.IsNotNull(lasers.Fire(Ahead(lasers, 10f), Projectiles), "shot refused");
-            // The weapon cools from the next frame on; the parameter holds the heat as the shot left it.
+            // Read now: the weapon cools from the next frame; the parameter holds the shot's heat.
             var heatAfterShot = lasers.Heat.HeatPct;
             Assert.Greater(heatAfterShot, 0f, "a shot leaves heat behind");
             yield return Flush();

@@ -655,7 +655,7 @@ Format: **term** — definition. *(authority)*
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
 - **spent charge** — the charge-up fraction the last shot consumed, announced by
-  `ChargeTime` before its charge zeroes, so the shot's damage and the sound's
+  `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
   release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
   changes, feeds parameters and stops itself (the charge-up; engines next), as

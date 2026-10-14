@@ -8,7 +8,6 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Weapons
 {
-    /// <summary>The railgun beam's hit and the concussion charge's detonation: one one-shot each, played where it happened.</summary>
     [Category("Audio")]
     public class WeaponImpactAudioPlayModeTests : WeaponAudioFixture
     {

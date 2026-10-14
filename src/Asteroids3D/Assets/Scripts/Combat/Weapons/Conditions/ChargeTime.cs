@@ -39,12 +39,11 @@ namespace Combat.Weapons.Conditions
 
         public event Action<float> OnChargeChanged;
 
-        /// <summary>Raised with the charge the shot consumed, before the charge zeroes.</summary>
+        /// <summary>Raised with the spent charge, before the charge-up zeroes.</summary>
         public event Action<float> OnChargeSpent;
 
         public float ChargePct { get; private set; }
 
-        /// <summary>The charge-up fraction the last shot consumed.</summary>
         public float SpentCharge { get; private set; }
 
         public float FullChargeTime => chargeTime;
