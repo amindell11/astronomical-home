@@ -100,6 +100,31 @@ PrefabInstance:
       propertyPath: fireRate
       value: 0.075
       objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: fireEvent.Guid.Data1
+      value: 1321352135
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: fireEvent.Guid.Data2
+      value: 1321853144
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: fireEvent.Guid.Data3
+      value: -194698092
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: fireEvent.Guid.Data4
+      value: 1857970102
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: fireEvent.Path
+      value: event:/Weapons/TurboLaser/Fire
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 450251164351334703, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     m_RemovedGameObjects: []

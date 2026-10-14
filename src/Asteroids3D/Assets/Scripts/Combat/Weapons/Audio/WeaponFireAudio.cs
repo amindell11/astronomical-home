@@ -10,7 +10,7 @@ namespace Combat.Weapons.Audio
     /// is a sibling component that holds its own instance across state changes and stops it in
     /// <see cref="IPresentationPart.ApplyPresentation"/>.
     /// </summary>
-    public abstract class WeaponFireAudio : MonoBehaviour, IPresentationPart
+    public class WeaponFireAudio : MonoBehaviour, IPresentationPart
     {
         [Tooltip("FMOD event started at the fire point on every shot.")]
         [SerializeField] private EventReference fireEvent;
@@ -28,7 +28,7 @@ namespace Combat.Weapons.Audio
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        protected abstract void SetParameters(EventInstance instance);
+        protected virtual void SetParameters(EventInstance instance) { }
 
         private void PlayFire()
         {

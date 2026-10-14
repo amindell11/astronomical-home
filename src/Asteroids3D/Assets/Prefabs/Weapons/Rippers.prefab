@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8105349543242701031}
   - component: {fileID: 6448982411033854647}
   - component: {fileID: -8301958025146036882}
+  - component: {fileID: 3036594076463291748}
   m_Layer: 0
   m_Name: Rippers
   m_TagString: Untagged
@@ -80,3 +81,22 @@ MonoBehaviour:
   cooldown: {fileID: 8105349543242701031}
   fireDistance: 18
   fireAngleTolerance: 6
+--- !u!114 &3036594076463291748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0b8fa7f60ad28f0a8ac396b45fdcf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireEvent:
+    Guid:
+      Data1: -2135931636
+      Data2: 1105897540
+      Data3: -494978114
+      Data4: 360353945
+    Path: event:/Weapons/Ripper/Fire

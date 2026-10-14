@@ -1,5 +1,11 @@
 namespace FMOD.Studio
 {
+    public enum STOP_MODE : int
+    {
+        ALLOWFADEOUT,
+        IMMEDIATE,
+    }
+
     public struct System
     {
         public RESULT getCoreSystem(out FMOD.System coresystem)
@@ -18,5 +24,11 @@ namespace FMOD.Studio
         public RESULT start() => RESULT.OK;
 
         public RESULT release() => RESULT.OK;
+
+        public RESULT stop(STOP_MODE mode) => RESULT.OK;
+
+        public RESULT keyOff() => RESULT.OK;
+
+        public bool isValid() => false;
     }
 }
