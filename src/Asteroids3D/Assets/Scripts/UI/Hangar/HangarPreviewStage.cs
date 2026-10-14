@@ -67,10 +67,7 @@ namespace UI.Hangar
             {
                 var rigTemplate = ship.GetComponentInChildren<ShipVisualRig>(true);
                 if (!rigTemplate) continue;
-                var clone = Instantiate(rigTemplate, anchor, false);
-                StripNonHull(clone);
-                var bounds = MeasureFramedBounds(clone.transform, rigTemplate.transform.lossyScale);
-                DestroyImmediate(clone.gameObject);
+                var bounds = MeasureFramedBounds(rigTemplate);
                 largest = Mathf.Max(largest, SolveFraming(bounds, anchor.position, CameraFovDeg).distance);
             }
             return largest;
@@ -181,15 +178,15 @@ namespace UI.Hangar
             currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero;
 
-            FrameCamera(root);
+            FrameCamera(rigTemplate);
 
             current = root;
             popInT = 0f;
         }
 
-        private void FrameCamera(Transform rig)
+        private void FrameCamera(ShipVisualRig rigTemplate)
         {
-            var bounds = MeasureFramedBounds(rig, currentTargetScale);
+            var bounds = MeasureFramedBounds(rigTemplate);
             var (focus, ownDistance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
             // A ship outside the offer is never framed closer than its own fit.
             var distance = Mathf.Max(ownDistance, sharedCameraDistance);
@@ -198,19 +195,28 @@ namespace UI.Hangar
             stageCamera.transform.LookAt(focus);
         }
 
-        // Peak pop-in scale frames the overshoot; canonical pose keeps the AABB tight and spin-independent.
-        private Bounds MeasureFramedBounds(Transform rig, Vector3 targetScale)
+        // Mesh-stored bounds placed at peak pop-in scale and canonical pose: no clone, spin-independent.
+        private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
         {
-            var previousScale = rig.localScale;
-            var previousRotation = rig.localRotation;
-            rig.localScale = targetScale * PopInOvershoot;
-            rig.rotation = BaseOrientation;
+            var rig = rigTemplate.transform;
+            var peakPose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
+                Quaternion.Inverse(anchor.rotation) * BaseOrientation, rig.lossyScale * PopInOvershoot);
+            var templateToPeak = peakPose * rig.worldToLocalMatrix;
             var bounds = new Bounds(anchor.position, Vector3.one);
             foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
-                if (FramesBounds(r))
-                    bounds.Encapsulate(r.bounds);
-            rig.localScale = previousScale;
-            rig.localRotation = previousRotation;
+            {
+                if (!FramesBounds(r)) continue;
+                // A skinned mesh's stored bounds are relative to its root bone.
+                var (local, space) = r is SkinnedMeshRenderer skinned
+                    ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
+                    : (r.GetComponent<MeshFilter>().sharedMesh.bounds, r.transform);
+                var toPeak = templateToPeak * space.localToWorldMatrix;
+                for (var x = -1; x <= 1; x += 2)
+                for (var y = -1; y <= 1; y += 2)
+                for (var z = -1; z <= 1; z += 2)
+                    bounds.Encapsulate(toPeak.MultiplyPoint3x4(
+                        local.center + Vector3.Scale(local.extents, new Vector3(x, y, z))));
+            }
             return bounds;
         }
 
@@ -236,9 +242,9 @@ namespace UI.Hangar
             return (focus, distance);
         }
 
-        // Idle particle/trail renderers report bounds anchored at world origin, which would blow
-        // the framing by the stage's offset — frame on hull meshes only.
-        private static bool FramesBounds(Renderer r) => r is MeshRenderer || r is SkinnedMeshRenderer;
+        // Hull meshes only: the minimap marker is a MeshRenderer but not part of the silhouette.
+        private static bool FramesBounds(Renderer r) =>
+            (r is MeshRenderer || r is SkinnedMeshRenderer) && !r.GetComponentInParent<MinimapShipMarker>(true);
 
         private void Update()
         {
@@ -270,8 +276,6 @@ namespace UI.Hangar
         }
 
         // Thruster particles stay but are dormant — the preview never binds a ShipView.
-        // Immediate destroy: FrameCamera measures the clone's renderers this same frame, and a
-        // deferred Destroy would leave the minimap marker's MeshRenderer in the bounds pass.
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
