@@ -1,0 +1,26 @@
+{
+  "texture_size": 2048,
+  "uv_layer": "PaintUV",
+  "shadow": 0.9,
+  "light": 0.7,
+  "ink": 1.05,
+  "light_color": "#E3D8CB",
+  "ink_color": "#29222F",
+  "base_region_mask": "layers/BaseRegion.png",
+  "base_region_meaning": "Shaded bone coat opacity over plum substrate; retains edge chips and painted planes",
+  "unity_shader": "Astronomical/Drawn/Surface",
+  "base_region_shader_binding": "_EmissionMap with _PaintEmissionBlend=1 and emission strength 0; alternate bone coat supplied as linear color",
+  "shader_shadow_color": [
+    0.78,
+    0.74,
+    0.7
+  ],
+  "glass_shader_shadow_color": [
+    0.5,
+    0.6,
+    0.69
+  ],
+  "shader_shadow_threshold": 0.22,
+  "shader_shadow_softness": 0.16,
+  "status": "mask-review-pending"
+}
