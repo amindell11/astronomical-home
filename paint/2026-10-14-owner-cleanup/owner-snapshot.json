@@ -1,0 +1,28 @@
+{
+  "file": "D:\\amind\\git\\agent-3\\art\\ships\\bulwark\\Bulwark.blend",
+  "images": {
+    "Shadow": {
+      "name": "Bulwark Shadow.001",
+      "sha256": "4befda501f144208574c676601381f8bcfdbfa8ef6bd692641c9db1067186d22",
+      "dirty": false
+    },
+    "Light": {
+      "name": "Bulwark Light.001",
+      "sha256": "19dd2ae98736265f73cb99e2fba622abb00360730a0d18d1f0261a2ab115f783",
+      "dirty": false
+    },
+    "Ink": {
+      "name": "Bulwark Ink.001",
+      "sha256": "2a2a3ad4ff414e420b5ffbf86d581b25f31b1102b6e8b2f66b54faf70c3b98f8",
+      "dirty": false
+    },
+    "BaseRegion": {
+      "name": "Bulwark BaseRegion",
+      "sha256": "6d2ad50bbea1ff67f020c481d9821938033ea7a07333f827338b394adaa44c02",
+      "dirty": true
+    }
+  },
+  "parts": 20,
+  "canvas": "Bulwark BaseRegion",
+  "plum_bone_node": true
+}
