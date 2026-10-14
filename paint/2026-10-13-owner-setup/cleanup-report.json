@@ -1,0 +1,26 @@
+{
+  "layers": {
+    "Shadow": {
+      "changed_texels": 0,
+      "owner_edits_retained_as_delta": true,
+      "sha256": "1c64fdfe0dc40bea4c32d3bc9e30467eab027a422e78179e9e63687b53a5bf1d"
+    },
+    "Light": {
+      "changed_texels": 734426,
+      "owner_edits_retained_as_delta": true,
+      "sha256": "a4f313f75a713bcb2613a7462156e50609e03e12d2b48d39fea7d29acc60be17"
+    },
+    "Ink": {
+      "changed_texels": 686445,
+      "owner_edits_retained_as_delta": true,
+      "sha256": "0552339cf189dc2d10db5e6ed97c2535fff572c1c2cbfa10d04f2cb11945b88c"
+    },
+    "BaseRegion": {
+      "changed_texels": 432895,
+      "owner_edits_retained_as_delta": true,
+      "sha256": "586e52fc40e9218f3d4b74b572a7705868e98bdd2e16cb395e656f57f313e460"
+    }
+  },
+  "geometry_reference": "Original authored UV masks only; current geometry untouched",
+  "base_region": "Original bone-coat shading/chips removed without moving livery boundaries"
+}

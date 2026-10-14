@@ -1,0 +1,32 @@
+{
+  "geometry_before": "d3ebf4905127aed18fde3b192691931a4532bd7c91c0e3c374bdab2c17446a7b",
+  "geometry_after": "d3ebf4905127aed18fde3b192691931a4532bd7c91c0e3c374bdab2c17446a7b",
+  "uv_before": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+  "uv_after": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+  "shadow_unchanged": true,
+  "mode": "PAINT_TEXTURE",
+  "active": "02 Upper hull.001",
+  "canvas": "Bulwark BaseRegion",
+  "paint_mode": "IMAGE",
+  "brush": "Paint Hard",
+  "falloff": "CONSTANT",
+  "color": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "secondary_color": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "strength": 1.0,
+  "size": 40,
+  "filepath": "D:\\amind\\git\\agent-3\\art\\ships\\bulwark\\Bulwark.blend",
+  "image_hashes": {
+    "Shadow": "4befda501f144208574c676601381f8bcfdbfa8ef6bd692641c9db1067186d22",
+    "Light": "c17ba56cd84551a722bb173280af5300188fa600a0929f6434b9b5cea5c75293",
+    "Ink": "47efc4c51708c70cf4ebb5e0b2380c61906d44c3294fbdafc3afbd880183d254",
+    "BaseRegion": "3918bfb4bfa27dc0cbd4d32fad3b8a724d3828cc2f752e1361e98107fa7b786c"
+  }
+}
