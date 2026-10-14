@@ -1,8 +1,8 @@
 # Bulwark evidence
 
-[Current review — metal side canisters](paint/2026-10-13-r06/REVIEW.md) · [Editable painted Blender source](paint/2026-10-13-r06/Bulwark.blend). Neutral pewter metal side canisters, blue cockpit glazing, broader bone shoulder flashes and smaller side/rear armor accents, charcoal structure beneath plum armor, an angled bone coat crossing the nose seam, diagonal fin wedges and a charcoal aft bridge. The original concept appears beside native shader views and the actual current fleet. Geometry and approved UVs are unchanged. Revised paint awaits review; gameplay integration and flight check remain separate.
+[Current review — one wrapping rear stripe](paint/2026-10-13-r07/REVIEW.md) · [Editable painted Blender source](paint/2026-10-13-r07/Bulwark.blend). Neutral pewter metal side canisters, blue cockpit glazing, one coherent bone stripe wrapping across the rear top and side armor, charcoal structure beneath plum armor, an angled bone coat crossing the nose seam, diagonal fin wedges and a charcoal aft bridge. The original concept appears beside native shader views and the actual current fleet. Geometry and approved UVs are unchanged. Revised paint awaits review; gameplay integration and flight check remain separate.
 
-[Previous accent review](paint/2026-10-13-r05/REVIEW.md) · [Previous concept paint correction](paint/2026-10-13-r04/REVIEW.md) · [First paint mask pass](paint/2026-10-13-r02/REVIEW.md).
+[Previous metal review](paint/2026-10-13-r06/REVIEW.md) · [Previous accent review](paint/2026-10-13-r05/REVIEW.md) · [Previous concept paint correction](paint/2026-10-13-r04/REVIEW.md) · [First paint mask pass](paint/2026-10-13-r02/REVIEW.md).
 
 [Approved UV layout — cockpit seam beneath the rim](uv/2026-10-13-r02/REVIEW.md). The owner approved the corrected layout on 2026-10-13. UV density and geometry lock pass; the 60 inherited source-check findings remain unchanged.
 
