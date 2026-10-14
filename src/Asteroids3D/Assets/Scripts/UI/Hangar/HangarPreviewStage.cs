@@ -198,9 +198,7 @@ namespace UI.Hangar
             stageCamera.transform.LookAt(focus);
         }
 
-        // Measure at peak pop-in scale and canonical pose — a shown clone is still zero-scaled for
-        // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
-        // phase at click time.
+        // Peak pop-in scale frames the overshoot; canonical pose keeps the AABB tight and spin-independent.
         private Bounds MeasureFramedBounds(Transform rig, Vector3 targetScale)
         {
             var previousScale = rig.localScale;

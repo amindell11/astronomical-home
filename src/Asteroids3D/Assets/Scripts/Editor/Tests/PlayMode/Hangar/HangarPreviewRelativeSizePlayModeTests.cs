@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Hangar
 {
     // The stage camera renders into a RenderTexture: URP cannot create RTs under -nographics.
     [Category("UI")]
