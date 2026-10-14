@@ -207,7 +207,8 @@ namespace UI.Hangar
             {
                 if (!FramesBounds(r)) continue;
                 // A skinned mesh's stored bounds are relative to its root bone.
-                var (local, space) = r is SkinnedMeshRenderer skinned
+                var skinned = r as SkinnedMeshRenderer;
+                var (local, space) = skinned
                     ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
                     : (r.GetComponent<MeshFilter>().sharedMesh.bounds, r.transform);
                 var toPeak = templateToPeak * space.localToWorldMatrix;
@@ -244,7 +245,7 @@ namespace UI.Hangar
 
         // Hull meshes only: the minimap marker is a MeshRenderer but not part of the silhouette.
         private static bool FramesBounds(Renderer r) =>
-            (r is MeshRenderer || r is SkinnedMeshRenderer) && !r.GetComponentInParent<MinimapShipMarker>(true);
+            (r as MeshRenderer || r as SkinnedMeshRenderer) && !r.GetComponentInParent<MinimapShipMarker>(true);
 
         private void Update()
         {
