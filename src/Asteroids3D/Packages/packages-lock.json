@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.fmod.fmod-for-unity.v204": {
+      "version": "file:../../../../vendor/fmod/fmodstudio20400.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
     "com.unity.ai.inference": {
       "version": "2.6.1",
       "depth": 1,

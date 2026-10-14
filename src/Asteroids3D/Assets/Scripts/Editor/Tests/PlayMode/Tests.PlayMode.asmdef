@@ -16,7 +16,8 @@
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "GUID:0c752da273b17c547ae705acf0f2adf2"
     ],
     "includePlatforms": [
         "Editor",
@@ -32,6 +33,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.fmod.fmod-for-unity.v204",
+            "expression": "2.4.0",
+            "define": "ASTRO_FMOD"
+        }
+    ],
     "noEngineReferences": false
 }

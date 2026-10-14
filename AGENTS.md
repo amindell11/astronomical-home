@@ -18,6 +18,9 @@ the matching doc when its branch fires:
   geometry, tree hygiene).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
+- Audio: FMOD, anything under `audio/`, or code touching `FMODUnity` →
+  `doc/agents/audio-pipeline.md` (`fmodstudiocl` rules, bank refresh, the
+  Setup Wizard, the FMOD stub rules, how to verify sound).
 - Design/doc work, tracker writes → `doc/agents/design-docs.md` (design
   vault at `doc/design/`, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
