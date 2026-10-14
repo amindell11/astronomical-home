@@ -8,12 +8,14 @@
       "Structure": "#302E34",
       "Glass": "#718591",
       "Flap": "#66505C",
-      "Metal": "#999999"
+      "Metal": "#999999",
+      "EdgeCoat": "#302E34"
     }
   },
   "alternate_base_regions": {
-    "Bone": "Bone nose coat with angled rear boundary and plum chevron; paired mid-body shoulder flashes and smaller side/rear armor accents",
-    "Flap": "Diagonal bone outer fin panels over plum substrate"
+    "Bone": "Continuous angular rear armor band and angled nose coat over plum substrate",
+    "Flap": "Diagonal bone outer fin panels over plum substrate",
+    "EdgeCoat": "Same rear bone band over charcoal armor thickness edges"
   },
   "material_roles": {
     "Metal": "Side canisters: neutral metal hardware",
