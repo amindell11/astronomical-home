@@ -65,7 +65,7 @@ namespace UI.Hangar
             var largest = 0f;
             foreach (var ship in ships)
             {
-                var rigTemplate = ship.GetComponentInChildren<ShipVisualRig>(true);
+                var rigTemplate = ship.VisualRig;
                 if (!rigTemplate) continue;
                 var bounds = MeasureFramedBounds(rigTemplate);
                 largest = Mathf.Max(largest, SolveFraming(bounds, anchor.position, CameraFovDeg).distance);
@@ -157,7 +157,7 @@ namespace UI.Hangar
             current = null;
 
             var ship = loadout?.Ship;
-            var rigTemplate = ship ? ship.GetComponentInChildren<ShipVisualRig>(true) : null;
+            var rigTemplate = ship ? ship.VisualRig : null;
             if (!rigTemplate) return;
 
             var clone = Instantiate(rigTemplate, anchor, false);
@@ -203,14 +203,13 @@ namespace UI.Hangar
                 Quaternion.Inverse(anchor.rotation) * BaseOrientation, rig.lossyScale * PopInOvershoot);
             var templateToPeak = peakPose * rig.worldToLocalMatrix;
             var bounds = new Bounds(anchor.position, Vector3.one);
-            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+            foreach (var r in rigTemplate.Silhouette)
             {
-                if (!FramesBounds(r)) continue;
                 // A skinned mesh's stored bounds are relative to its root bone.
                 var skinned = r as SkinnedMeshRenderer;
                 var (local, space) = skinned
                     ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
-                    : (r.GetComponent<MeshFilter>().sharedMesh.bounds, r.transform);
+                    : (r.localBounds, r.transform);
                 var toPeak = templateToPeak * space.localToWorldMatrix;
                 for (var x = -1; x <= 1; x += 2)
                 for (var y = -1; y <= 1; y += 2)
@@ -242,10 +241,6 @@ namespace UI.Hangar
             var focus = new Vector3(anchorPosition.x, bounds.center.y, anchorPosition.z);
             return (focus, distance);
         }
-
-        // Hull meshes only: the minimap marker is a MeshRenderer but not part of the silhouette.
-        private static bool FramesBounds(Renderer r) =>
-            (r as MeshRenderer || r as SkinnedMeshRenderer) && !r.GetComponentInParent<MinimapShipMarker>(true);
 
         private void Update()
         {

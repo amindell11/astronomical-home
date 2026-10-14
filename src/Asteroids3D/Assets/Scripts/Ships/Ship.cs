@@ -9,6 +9,7 @@ using Utils;
 using Ships.Damage;
 using Ships.Loadout;
 using Ships.Movement;
+using Ships.Presentation;
 using Ships.Weapons;
 using Movement;
 using UnityEngine;
@@ -46,11 +47,19 @@ namespace Ships
                  "Null → the ship is unarmed.")]
         [Stat, SerializeField] private WeaponsController weapons;
 
+        [Header("Visuals")]
+        [Tooltip("The ship's visual rig, wired on the prefab so the prefab asset reaches its hull without a lookup. " +
+                 "Null → the ship has no visuals.")]
+        [SerializeField] private ShipVisualRig visualRig;
+
         /// <summary>Change via <see cref="Reequip"/>, not by writing the field.</summary>
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
         public ShieldModule Shield => shield;
+
+        /// <summary>Null if the ship has no visual rig.</summary>
+        public ShipVisualRig VisualRig => visualRig;
 
         public ResolvedShipStats Stats { get; private set; }
 
