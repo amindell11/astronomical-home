@@ -22,5 +22,17 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "mask-review-pending"
+  "status": "mask-review-pending",
+  "material_finishes": {
+    "Metal": {
+      "blender_metallic": 0.75,
+      "blender_roughness": 0.6,
+      "unity_specular_strength": 0.2,
+      "unity_shadow_color": [
+        0.74,
+        0.74,
+        0.74
+      ]
+    }
+  }
 }
