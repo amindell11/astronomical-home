@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "default": "plum-bone",
+  "palettes": {
+    "plum-bone": {
+      "Plum": "#66505C",
+      "Bone": "#D8CDB4",
+      "Structure": "#302E34",
+      "Glass": "#718591",
+      "Flap": "#66505C",
+      "Metal": "#999999"
+    }
+  },
+  "alternate_base_regions": {
+    "Bone": "Bone nose coat with angled rear boundary and plum chevron; paired mid-body shoulder flashes and smaller side/rear armor accents",
+    "Flap": "Diagonal bone outer fin panels over plum substrate"
+  },
+  "material_roles": {
+    "Metal": "Side canisters: neutral metal hardware",
+    "Glass": "Cockpit glazing only"
+  }
+}

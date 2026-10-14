@@ -1,0 +1,29 @@
+{
+  "source_sha256": "5465bbcdc30a3ca5102717f6ad2513feaa50d2dc55223d21325dd230bb659bb2",
+  "previous_paint_source_sha256": "057bc5e39d37d00c172aea4c52c35b7374f098b23b199d0b517f82b6b6bc1e45",
+  "baseline_commit": "c6768e32db3b8bd0cd89e92998d24012bdbcae7b",
+  "geometry_unchanged": true,
+  "uvs_unchanged": true,
+  "geometry_fingerprint": "0aabdfc2c19bcc908687b9df63ad7bf3d0747a7a0c53a9c85a9b95cb57925f82",
+  "uv_fingerprint": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+  "materials_changed": [
+    "07 Side insets: Glass -> Metal"
+  ],
+  "cockpit_material_unchanged": true,
+  "paint_masks_unchanged": true,
+  "mask_sha256": {
+    "Shadow": "45c3dcc4a24d4d285b3f51abc10f51e62b52754e3adcaaf6de8a1389edf70458",
+    "Light": "3b62e87c7ff09df8fd53a2ed8d1524f902c8820d04532f0d070c54dacc3eec2e",
+    "Ink": "cd3b4950fd5d3348e48f8a7c3e937bec3306eb8d92639c9de1752d4515a8c3bf",
+    "BaseRegion": "e00e68c05170d846d15fa1532e01cef6fcf3d3b70722feb4ed47f14d18c51157"
+  },
+  "separate_editable_base_colours": {
+    "Plum": "#66505C",
+    "Bone": "#D8CDB4",
+    "Structure": "#302E34",
+    "Glass": "#718591",
+    "Flap": "#66505C",
+    "Metal": "#999999"
+  },
+  "approval": "UV and plum direction approved; paint revision pending review"
+}
