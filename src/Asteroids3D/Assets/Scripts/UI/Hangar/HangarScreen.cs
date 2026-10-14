@@ -51,7 +51,8 @@ namespace UI.Hangar
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
-                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent, PreviewPixels());
+                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent, PreviewPixels(),
+                    offer ? offer.ships : Array.Empty<Ship>());
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);
             }

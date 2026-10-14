@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
 using Ships.Presentation;
@@ -8,7 +9,8 @@ namespace UI.Hangar
 {
     /// <summary>
     /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig onto a spinning
-    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer.
+    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer. Every offered
+    /// ship is framed from one camera distance — the largest ship's fit — so hull sizes compare.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -41,10 +43,12 @@ namespace UI.Hangar
         private Vector3 retiringStartScale;
         private float popInT = 1f;
         private float popOutT = 1f;
+        private float sharedCameraDistance;
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels)
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels,
+            IEnumerable<Ship> offeredShips)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
@@ -52,7 +56,24 @@ namespace UI.Hangar
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.continueSpinOnSwitch = continueSpinOnSwitch;
             stage.BuildStage(texturePixels);
+            stage.sharedCameraDistance = stage.LargestFramingDistance(offeredShips);
             return stage;
+        }
+
+        private float LargestFramingDistance(IEnumerable<Ship> ships)
+        {
+            var largest = 0f;
+            foreach (var ship in ships)
+            {
+                var rigTemplate = ship.GetComponentInChildren<ShipVisualRig>(true);
+                if (!rigTemplate) continue;
+                var clone = Instantiate(rigTemplate, anchor, false);
+                StripNonHull(clone);
+                var bounds = MeasureFramedBounds(clone.transform, rigTemplate.transform.lossyScale);
+                DestroyImmediate(clone.gameObject);
+                largest = Mathf.Max(largest, SolveFraming(bounds, anchor.position, CameraFovDeg).distance);
+            }
+            return largest;
         }
 
         private static int PreviewLayer()
@@ -168,25 +189,31 @@ namespace UI.Hangar
 
         private void FrameCamera(Transform rig)
         {
-            // Measure at peak pop-in scale and canonical pose — the clone is still zero-scaled for
-            // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
-            // phase at click time.
+            var bounds = MeasureFramedBounds(rig, currentTargetScale);
+            var (focus, ownDistance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
+            // A ship outside the offer is never framed closer than its own fit.
+            var distance = Mathf.Max(ownDistance, sharedCameraDistance);
+            var direction = new Vector3(0f, 0.55f, -1f).normalized;
+            stageCamera.transform.position = focus + direction * distance;
+            stageCamera.transform.LookAt(focus);
+        }
+
+        // Measure at peak pop-in scale and canonical pose — a shown clone is still zero-scaled for
+        // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
+        // phase at click time.
+        private Bounds MeasureFramedBounds(Transform rig, Vector3 targetScale)
+        {
             var previousScale = rig.localScale;
             var previousRotation = rig.localRotation;
-            rig.localScale = currentTargetScale * PopInOvershoot;
+            rig.localScale = targetScale * PopInOvershoot;
             rig.rotation = BaseOrientation;
             var bounds = new Bounds(anchor.position, Vector3.one);
-            var renderers = rig.GetComponentsInChildren<Renderer>(true);
-            foreach (var r in renderers)
+            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
                 if (FramesBounds(r))
                     bounds.Encapsulate(r.bounds);
             rig.localScale = previousScale;
             rig.localRotation = previousRotation;
-
-            var (focus, distance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
-            var direction = new Vector3(0f, 0.55f, -1f).normalized;
-            stageCamera.transform.position = focus + direction * distance;
-            stageCamera.transform.LookAt(focus);
+            return bounds;
         }
 
         // The turntable spins the hull about the anchor's vertical axis, so the camera must clear
