@@ -1,0 +1,30 @@
+{
+  "source_sha256": "4f6821a05da8c2e23895ef5b2b53085694170c34521ddedfc2691a9a18d184f1",
+  "side_canister_finish": "Neutral pewter metal, separate from cockpit glazing",
+  "shadow_light_ink_masks_unchanged": true,
+  "rear_stripe": "Shared continuous model-space band across armor tops and sides",
+  "geometry_unchanged_from_uv_approval": true,
+  "uvs_unchanged_from_uv_approval": true,
+  "inherited_source_findings": 60,
+  "added_findings": [],
+  "geometry_lock": "pass",
+  "uv_density": "pass",
+  "unity_scene_state_unchanged": true,
+  "unity_selection_unchanged": true,
+  "existing_materials_dirty": 0,
+  "roster": [
+    "Crimson",
+    "Vanguard",
+    "Nightshade",
+    "Valis",
+    "Bulwark"
+  ],
+  "cargo_excluded": true,
+  "native_shader": "Astronomical/Drawn/Surface",
+  "masks_grayscale_2048": true,
+  "base_colours_recolourable": true,
+  "capture_kind": "Temporary evaluated mesh and materials rendered by PreviewRenderUtility; current game prefab assets for other ships",
+  "gameplay_prefab_integration": false,
+  "flight_check_claimed": false,
+  "owner_approval": "UV and plum direction approved; paint masks awaiting review"
+}

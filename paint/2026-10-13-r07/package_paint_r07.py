@@ -1,0 +1,36 @@
+from pathlib import Path
+import json,hashlib,shutil
+from PIL import Image
+root=Path('D:/amind/git/agent-3');out=root/'results/bulwark/paint/2026-10-13-r07';source=root/'art/ships/bulwark/Bulwark.blend'
+sha=hashlib.sha256(source.read_bytes()).hexdigest()
+mesh=json.loads((out/'paint-mesh.json').read_text())
+for part in mesh['parts']:
+ assert set(part['regions'])==({5} if part['name']=='07 Side insets' else {3}) if part['name'] in ('07 Side insets','06 Cockpit dome') else set(part['regions']).issubset({0,1,2,3,4,6})
+for name in ('Shadow','Light','Ink'):
+ assert (out/'layers'/(name+'.png')).read_bytes()==(out.parent/'2026-10-13-r05'/'layers'/(name+'.png')).read_bytes()
+before=json.loads((root/'results/bulwark/paint/2026-10-13-r02/check-after/ship_check.json').read_text());after=json.loads((out/'check-after/ship_check.json').read_text())
+for key in ('geometry','uv'):assert before['fingerprint']['components'][key]==after['fingerprint']['components'][key]
+old={json.dumps(f,sort_keys=True) for f in before['findings']};new={json.dumps(f,sort_keys=True) for f in after['findings']};assert old==new
+for p in ('paint-source-audit.json','lock-after/ship_lock.json','uv-after/ship_uv.json','check-after/ship_check.json'):
+ assert json.loads((out/p).read_text())['source_sha256']==sha,p
+for p in (out/'layers').glob('*.png'):
+ image=Image.open(p);assert image.mode=='L' and image.size==(2048,2048),(p,image.mode,image.size)
+read=lambda p:json.loads((out/p).read_text(encoding='utf-8-sig'))
+pre=read('state-before.json');post=read('state-after.json');capture=read('capture.json')
+assert pre['success'] and post['success'] and capture['success'] and capture['data']['result']['success']
+assert pre['data']['result']['success'] and post['data']['result']['success']
+assert pre['data']['result']==post['data']['result']
+assert not any(m['dirty'] for m in post['data']['result']['result']['materials'])
+assert set(r['ship'] for r in capture['data']['result']['result']['roster'])=={'Crimson','Vanguard','Nightshade','Valis'}
+report={'source_sha256':sha,'side_canister_finish':'Neutral pewter metal, separate from cockpit glazing','shadow_light_ink_masks_unchanged':True,'rear_stripe':'Shared continuous model-space band across armor tops and sides','geometry_unchanged_from_uv_approval':True,'uvs_unchanged_from_uv_approval':True,
+ 'inherited_source_findings':len(new),'added_findings':[],'geometry_lock':'pass','uv_density':'pass',
+ 'unity_scene_state_unchanged':True,'unity_selection_unchanged':True,'existing_materials_dirty':0,
+ 'roster':['Crimson','Vanguard','Nightshade','Valis','Bulwark'],'cargo_excluded':True,
+ 'native_shader':'Astronomical/Drawn/Surface','masks_grayscale_2048':True,'base_colours_recolourable':True,
+ 'capture_kind':'Temporary evaluated mesh and materials rendered by PreviewRenderUtility; current game prefab assets for other ships',
+ 'gameplay_prefab_integration':False,'flight_check_claimed':False,'owner_approval':'UV and plum direction approved; paint masks awaiting review'}
+(out/'paint-validation.json').write_text(json.dumps(report,indent=2))
+for name in ('Bulwark.blend','ship.json','lock.json','README.md','palettes.json','paint-settings.json','UV-guide.png'):shutil.copyfile(source.parent/name,out/name)
+for name in ('export_paint_mesh_r07.py','paint_masks_r07.py','prepare_paint_preview_r07.py','apply_paint_source_r07.py','BulwarkPaintPreviewR07.cs','compose_paint_lineup_r07.py','package_paint_r07.py','paint_region_rules_r07.py'):
+ shutil.copyfile(Path(__file__).parent/name,out/name)
+print(json.dumps(report))

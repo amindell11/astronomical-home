@@ -1,0 +1,22 @@
+{
+  "mesh_source_sha256": "5465bbcdc30a3ca5102717f6ad2513feaa50d2dc55223d21325dd230bb659bb2",
+  "texture_size": 2048,
+  "method": "Single shared model-space rear band across armor tops, slopes and thickness sides",
+  "centerline": "Y=-0.70+0.65*min(abs(X),2.1)-0.45*max(abs(X)-2.1,0)",
+  "perpendicular_width": 0.38,
+  "edge_softness": 0.022,
+  "changed_parts": [
+    "02 Upper hull.001 rear only",
+    "05 Tail tips.002",
+    "09 Side armor.001"
+  ],
+  "unchanged_other_covered_texels": true,
+  "shadow_light_ink_unchanged": true,
+  "colour_baked": false,
+  "mask_sha256": {
+    "Shadow": "45c3dcc4a24d4d285b3f51abc10f51e62b52754e3adcaaf6de8a1389edf70458",
+    "Light": "3b62e87c7ff09df8fd53a2ed8d1524f902c8820d04532f0d070c54dacc3eec2e",
+    "Ink": "cd3b4950fd5d3348e48f8a7c3e937bec3306eb8d92639c9de1752d4515a8c3bf",
+    "BaseRegion": "58f7f2de26c1002757878ff4a07f134ed6cdf2a2102cf2d845d79fd07cc0f496"
+  }
+}

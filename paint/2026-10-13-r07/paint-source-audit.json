@@ -1,0 +1,33 @@
+{
+  "source_sha256": "4f6821a05da8c2e23895ef5b2b53085694170c34521ddedfc2691a9a18d184f1",
+  "previous_paint_source_sha256": "5465bbcdc30a3ca5102717f6ad2513feaa50d2dc55223d21325dd230bb659bb2",
+  "baseline_commit": "bf80138faf38d36d354b13cbfa6274ab76452df6",
+  "geometry_unchanged": true,
+  "uvs_unchanged": true,
+  "geometry_fingerprint": "0aabdfc2c19bcc908687b9df63ad7bf3d0747a7a0c53a9c85a9b95cb57925f82",
+  "uv_fingerprint": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+  "rear_band_parts": [
+    "02 Upper hull.001",
+    "05 Tail tips.002",
+    "09 Side armor.001"
+  ],
+  "charcoal_edge_faces_enabled_for_stripe": {
+    "02 Upper hull.001": 5,
+    "05 Tail tips.002": 6,
+    "09 Side armor.001": 5
+  },
+  "shadow_light_ink_unchanged": true,
+  "nose_and_fins_preserved": true,
+  "canisters_and_cockpit_preserved": true,
+  "recessed_frame_and_bridge_preserved": true,
+  "separate_editable_base_colours": {
+    "Plum": "#66505C",
+    "Bone": "#D8CDB4",
+    "Structure": "#302E34",
+    "Glass": "#718591",
+    "Flap": "#66505C",
+    "Metal": "#999999",
+    "EdgeCoat": "#302E34"
+  },
+  "approval": "UV and plum direction approved; continuous rear band pending review"
+}
