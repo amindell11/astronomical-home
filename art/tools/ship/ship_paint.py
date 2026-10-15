@@ -443,9 +443,8 @@ def main(argv):
                 graphs[key] = build_material(part, region, paint["regions"][region], paint, brush_image, colours[region][:3],
                                              emission_colours.get(region), accents.get(name, []))
             slot_materials.append(graphs[key][0])
-        mesh.materials.clear()
-        for material in slot_materials:
-            mesh.materials.append(material)
+        for index, material in enumerate(slot_materials):
+            mesh.materials[index] = material
         layer = mesh.uv_layers[contract.PAINT_UV]
         mesh.uv_layers.active = layer
         layer.active_render = True
