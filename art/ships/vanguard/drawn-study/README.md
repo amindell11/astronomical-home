@@ -53,7 +53,7 @@ The rendering brief and visual decisions live on
 
 ## Selected Vivid production paint
 
-`VanguardPainted.blend` is the selected editable source for the production rig.
+The selected editable source now lives at [`../Vanguard.blend`](../Vanguard.blend).
 It packs the 4096-pixel Vivid atlas and preserves every original scene's geometry,
 triangulation, corner normals, transforms, UV coordinates and symmetry modifiers.
 `VanguardStudy.blend` and `VanguardStructure.blend` remain the original baselines.
@@ -67,7 +67,8 @@ unchanged. The production FBX is unchanged.
 
 The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/3da0da5de39c07b98b49f203a13427ce2dbaf13d/pipeline/README.md)
 includes the recovered Crimson recipes, generation helpers and preservation
-checks. Use that pipeline for this source; the retired study export regenerated the older
+checks. It records the atlas provenance; new paint follows [ship tools](../../../tools/ship/README.md).
+The retired study export regenerated the older
 study overlays and is not the selected paint pipeline. The breakup work in
 [#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
 painted source and material, retain the separate canopy/cores, and leave the
@@ -77,6 +78,6 @@ meshes, and `Vanguard contour.asset` combines eleven silhouette meshes. The live
 rig keeps five art renderers: hull, contour, structural ink, canopy and cores.
 The saved meshes preserve triangle indices, painted UVs and transformed positions
 and normals without welding or recalculation. Original source parts remain
-separate in `VanguardPainted.blend` for breakup; the consolidated intact meshes
+separate in `../Vanguard.blend` for breakup; the consolidated intact meshes
 are runtime assets rather than the breakup authoring source. `Vanguard.prefab`
 carries the five renderers under its `Hull` slot.
