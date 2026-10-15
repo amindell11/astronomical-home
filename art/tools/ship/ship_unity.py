@@ -269,4 +269,10 @@ def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=N
                              "_EmissionColor": emission_colours.get(region, [0, 0, 0]),
                              **{key: lighting.get(key, MATERIAL_COLORS[key]) for key in contract.LIGHTING_COLORS}}
             bundle.material(f"Materials/{palette}/{region}.mat", material_yaml(region, shader, maps, floats, colour_values))
+    current = set(bundle.files)
+    for path in sorted(bundle.root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+        if path.is_file() and path.relative_to(bundle.root).as_posix() not in current:
+            path.unlink()
+        elif path.is_dir() and not any(path.iterdir()):
+            path.rmdir()
     return bundle.root, bundle.files

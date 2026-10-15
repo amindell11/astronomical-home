@@ -303,15 +303,9 @@ def build_material(part, region, flags, paint, brush_image, base, emission_colou
             ink = g.mix(inside, ink, accent["value"])
         else:
             emission = g.mix(inside, emission, accent["value"])
-    material_knobs = paint["material"]
-    albedo = g.vector("SCALE", base, scale=g.math("SUBTRACT", 1.0, g.math("MULTIPLY", shadow, material_knobs["shadow_strength"])))
-    light_colour = ship_unity.lift(base, material_knobs["light_lift"])
-    albedo = g.mix_colour(g.math("MINIMUM", g.math("MULTIPLY", light, material_knobs["light_strength"]), 1.0), albedo, light_colour)
-    albedo = g.mix_colour(g.math("MINIMUM", g.math("MULTIPLY", ink, material_knobs["ink_strength"]), 1.0), albedo,
-                          material_knobs["ink_color"])
-    if emission_colour is not None:
-        albedo = g.mix_colour(g.math("MULTIPLY", emission, material_knobs["emission_blend"]), albedo, emission_colour)
-    outputs = {"masks": g.colour(shadow, light, ink), "composite": albedo, "emission": g.colour(emission, 0.0, 0.0)}
+    outputs = {"masks": g.colour(shadow, light, ink), "base": g.combine(*base),
+               "emission_colour": g.combine(*(emission_colour or [0.0, 0.0, 0.0])),
+               "emission": g.colour(emission, 0.0, 0.0)}
     emitter = g.node("ShaderNodeEmission")
     out = g.node("ShaderNodeOutputMaterial")
     g.tree.links.new(emitter.outputs[0], out.inputs["Surface"])
@@ -320,7 +314,7 @@ def build_material(part, region, flags, paint, brush_image, base, emission_colou
     return material, (g, emitter, outputs)
 
 
-def bake(scene, surface, graphs, image, which, margin):
+def bake(scene, surface, graphs, image, which, margin, quantize=True):
     for material, (graph, emitter, outputs) in graphs.values():
         for link in list(emitter.inputs["Color"].links):
             graph.tree.links.remove(link)
@@ -337,7 +331,8 @@ def bake(scene, surface, graphs, image, which, margin):
     bpy.ops.object.bake(type="EMIT", use_clear=True, margin=margin)
     pixels = np.empty(len(image.pixels), np.float32)
     image.pixels.foreach_get(pixels)
-    return np.rint(pixels.reshape(image.size[1], image.size[0], 4)[..., :3] * 255).astype(np.uint8)
+    rgb = pixels.reshape(image.size[1], image.size[0], 4)[..., :3]
+    return np.rint(rgb * 255).astype(np.uint8) if quantize else rgb
 
 
 def main(argv):
@@ -348,15 +343,15 @@ def main(argv):
     ship, source = contract.load_ship(args.ship)
     folder = source.parent
     paint_path, palettes_path = folder / "paint.json", folder / "palettes.json"
-    paint = contract.load_settings(paint_path, contract.parse_paint) if paint_path.is_file() else None
-    palettes = contract.load_settings(palettes_path, contract.parse_palettes) if palettes_path.is_file() else None
-    brush_path = (folder / paint["brush"]["image"]).resolve() if paint else None
+    paint = contract.load_settings(paint_path, contract.parse_paint)
+    palettes = contract.load_settings(palettes_path, contract.parse_palettes)
+    brush_path = (folder / paint["brush"]["image"]).resolve()
     if args.unity and not Path(args.unity).is_dir():
         raise contract.UsageError(f"--unity: not a folder: {args.unity}")
     layers = folder / contract.LAYERS_DIR
     trailers = [("SHIP_MASKS", str(layers))]
     report = contract.Report("ship_paint", args.out, ship_source.blender_version(),
-                             [source, paint_path, palettes_path, *([brush_path] if brush_path else [])])
+                             [source, paint_path, palettes_path, brush_path])
     out = report.path.parent
     for path in (source, paint_path, palettes_path, brush_path):
         if not path.is_file():
@@ -410,13 +405,28 @@ def main(argv):
     masks = list(contract.MASKS) + ([contract.EMISSION] if emission_colours else [])
     baseline = layers / contract.BASELINE_DIR
     baseline_record = baseline / "baseline.json"
-    present = [mask for mask in masks if (layers / f"{mask}.png").is_file()]
-    if present and not baseline_record.is_file():
-        raise report.refuse(f"{', '.join(present)} exist under {layers} without a baseline; move them aside or delete them", trailers)
-    if baseline_record.is_file():
-        record = json.loads(baseline_record.read_text(encoding="utf-8"))
-        if record.get("uv") != fingerprint["components"]["uv"] or record.get("texture_size") != ship["texture_size"]:
-            raise report.refuse(f"Owner edits are stale: UVs or texture size changed since {baseline_record}; delete the baseline to regenerate from scratch", trailers)
+    expected = {"schema_version": contract.SCHEMA_VERSION, "recipe": contract.FINGERPRINT_RECIPE,
+                "texture_size": ship["texture_size"], "masks": masks,
+                "geometry": fingerprint["components"]["geometry"], "uv": fingerprint["components"]["uv"]}
+    edits = {}
+    reused = baseline_record.is_file()
+    try:
+        present = any((layers / f"{mask}.png").exists() for mask in (*contract.MASKS, contract.EMISSION))
+        if (present or (baseline.is_dir() and any(baseline.iterdir()))) and not reused:
+            raise ValueError("Masks exist without a baseline")
+        if reused:
+            record = json.loads(baseline_record.read_text(encoding="utf-8"))
+            if not isinstance(record, dict) or any(record.get(key) != value for key, value in expected.items()):
+                raise ValueError("Baseline is incompatible with geometry, UVs, settings version or mask set")
+            size = ship["texture_size"]
+            for mask in masks:
+                previous = read_gray(baseline / f"{mask}.png")
+                current = read_gray(layers / f"{mask}.png")
+                if previous.shape != (size, size) or current.shape != (size, size):
+                    raise ValueError(f"{mask}: baseline or mask size differs from texture_size")
+                edits[mask] = current.astype(np.int16) - previous.astype(np.int16)
+    except (ValueError, OSError, RuntimeError) as error:
+        raise report.refuse(f"Invalid mask baseline: {error}", trailers)
 
     brush_image = bpy.data.images.load(str(brush_path), check_existing=False)
     brush_image.colorspace_settings.name = "Non-Color"
@@ -459,34 +469,40 @@ def main(argv):
     generated = {mask: baked[..., index] for index, mask in enumerate(contract.MASKS)}
     if emission_colours:
         generated[contract.EMISSION] = bake(evaluation.scene, surface, graphs, mask_image, "emission", margin)[..., 0]
-    composite = bake(evaluation.scene, surface, graphs, composite_image, "composite", margin)
+    base = bake(evaluation.scene, surface, graphs, composite_image, "base", margin, quantize=False)
+    emission_base = (bake(evaluation.scene, surface, graphs, composite_image, "emission_colour", margin, quantize=False)
+                     if emission_colours else None)
 
     layers.mkdir(exist_ok=True)
     baseline.mkdir(exist_ok=True)
-    reused = baseline_record.is_file()
     edited = {}
+    final = {}
     written = {}
     for mask in masks:
         new = generated[mask]
-        if reused and (baseline / f"{mask}.png").is_file():
-            previous = read_gray(baseline / f"{mask}.png")
-            current_path = layers / f"{mask}.png"
-            current = read_gray(current_path) if current_path.is_file() else previous
-            if previous.shape != new.shape or current.shape != new.shape:
-                raise report.refuse(f"{mask}: baseline or mask size differs from the bake; delete the baseline", trailers)
-            edit = current.astype(np.int16) - previous.astype(np.int16)
-            edited[mask] = int(np.count_nonzero(edit))
+        edit = edits.get(mask)
+        edited[mask] = int(np.count_nonzero(edit)) if edit is not None else 0
+        if edit is not None:
             new = np.clip(new.astype(np.int16) + edit, 0, 255).astype(np.uint8)
-        else:
-            edited[mask] = 0
+        final[mask] = new
         write_png(layers / f"{mask}.png", new)
         write_png(baseline / f"{mask}.png", generated[mask])
         written[mask] = str(layers / f"{mask}.png")
-    baseline_record.write_text(json.dumps({
-        "schema_version": contract.SCHEMA_VERSION, "recipe": contract.FINGERPRINT_RECIPE,
-        "blender_version": ship_source.blender_version(), "texture_size": size, "masks": masks,
-        "geometry": fingerprint["components"]["geometry"], "uv": fingerprint["components"]["uv"]}, indent=2) + "\n",
-        encoding="utf-8")
+    baseline_record.write_text(json.dumps({**expected, "blender_version": ship_source.blender_version()}, indent=2) + "\n",
+                               encoding="utf-8")
+    material = paint["material"]
+    weights = {mask: final[mask][..., None].astype(np.float32) / 255 for mask in masks}
+    composite = base * (1 - weights["Shadow"] * material["shadow_strength"])
+    for mask, colour in (("Light", base + (1 - base) * material["light_lift"]),
+                         ("Ink", np.array(material["ink_color"]))):
+        weight = np.minimum(weights[mask] * material[f"{mask.lower()}_strength"], 1)
+        composite = composite * (1 - weight) + colour * weight
+    if emission_base is not None:
+        weight = weights[contract.EMISSION] * material["emission_blend"]
+        composite = composite * (1 - weight) + emission_base * weight
+    composite = np.clip(composite, 0, 1)
+    composite = np.where(composite <= 0.0031308, composite * 12.92, 1.055 * composite ** (1 / 2.4) - 0.055)
+    composite = np.rint(composite * 255).astype(np.uint8)
     preview = out / "preview"
     preview.mkdir(exist_ok=True)
     write_png(preview / "Composite.png", composite)

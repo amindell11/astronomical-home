@@ -117,7 +117,31 @@ for palette, regions in fixture_ship.PALETTES["palettes"].items():
         assert material.is_file() and material.with_suffix(".mat.meta").is_file(), material
         text = material.read_text()
         assert "_PAINT_LAYERS" in text and shadow_guid in text, material
+obsolete = bundle / "Materials/removed/Old.mat"
+obsolete.parent.mkdir()
+obsolete.write_text("obsolete")
 assert tool("paint", base)[1]["unity"]["files"] == paint["unity"]["files"]
+assert {p.relative_to(bundle).as_posix() for p in bundle.rglob("*") if p.is_file()} == set(paint["unity"]["files"])
+
+saved = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+record_path = layers / contract.BASELINE_DIR / "baseline.json"
+for broken in ("missing_baseline", "missing_mask", "size", "recipe", "geometry", "masks"):
+    if broken == "missing_baseline":
+        (layers / contract.BASELINE_DIR / "Light.png").unlink()
+    elif broken == "missing_mask":
+        (layers / "Light.png").unlink()
+    elif broken == "size":
+        ship_source.save_pixels(layers / "Light.png", np.ones((16, 16, 4), np.float32))
+    else:
+        record = json.loads(saved[record_path])
+        record[broken] = "incompatible"
+        record_path.write_text(json.dumps(record))
+    before_refusal = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+    assert "baseline" in tool("paint", base, expect=3)[1]["refusal"].lower()
+    assert {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()} == before_refusal, broken
+    for path, data in saved.items():
+        path.write_bytes(data)
+preview_before = ship_source.load_pixels(paint["preview"]).copy()
 stroke = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
 stroke[256:320, 256:320] = 200
 ship_source.save_pixels(layers / "Shadow.png", np.repeat((stroke / 255.0)[..., None].astype(np.float32), 4, axis=2))
@@ -126,6 +150,8 @@ assert rerun["baseline"] == "reused" and rerun["edited_texels"]["Shadow"] > 0, r
 after = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
 assert np.abs(after[256:320, 256:320] - 200).max() <= 1, int(np.abs(after[256:320, 256:320] - 200).max())
 results["paint_edited_texels"] = rerun["edited_texels"]["Shadow"]
+preview_after = ship_source.load_pixels(rerun["preview"])
+assert np.any(preview_before[256:320, 256:320, :3] != preview_after[256:320, 256:320, :3]), "Owner stroke missing from preview"
 
 # ship_render: every set writes its images; comparing against the copy changes nothing.
 for render_set in ("ortho", "turnaround", "sheet", "scale"):

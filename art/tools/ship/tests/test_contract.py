@@ -144,8 +144,9 @@ class PaintSettingsTests(unittest.TestCase):
             path.write_text(json.dumps(mutated(lambda v: v.update(wear=True), VALID_PAINT)), encoding="utf-8")
             with self.assertRaises(contract.UsageError):
                 contract.load_settings(path, contract.parse_paint)
-            with self.assertRaises(contract.UsageError):
-                contract.load_settings(Path(folder) / "missing.json", contract.parse_paint)
+            for name, parser in (("paint.json", contract.parse_paint), ("palettes.json", contract.parse_palettes)):
+                with self.subTest(required=name), self.assertRaises(contract.UsageError):
+                    contract.load_settings(Path(folder) / "missing" / name, parser)
 
 
 class RoleGrammarTests(unittest.TestCase):
