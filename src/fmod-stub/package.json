@@ -1,0 +1,7 @@
+{
+  "name": "com.fmod.fmod-for-unity.v204",
+  "version": "0.0.1",
+  "displayName": "FMOD stub",
+  "description": "Compile-only stand-in for FMOD for Unity on the hosted suite: only the FMOD types the game touches, every method a no-op. Rules: doc/agents/audio-pipeline.md.",
+  "unity": "2022.3"
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
 using Ships.Presentation;
@@ -8,7 +9,8 @@ namespace UI.Hangar
 {
     /// <summary>
     /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig onto a spinning
-    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer.
+    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer. Every offered
+    /// ship is framed from one camera distance — the largest ship's fit — so hull sizes compare.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -41,10 +43,12 @@ namespace UI.Hangar
         private Vector3 retiringStartScale;
         private float popInT = 1f;
         private float popOutT = 1f;
+        private float sharedCameraDistance;
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels)
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels,
+            IEnumerable<Ship> offeredShips)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
@@ -52,7 +56,21 @@ namespace UI.Hangar
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.continueSpinOnSwitch = continueSpinOnSwitch;
             stage.BuildStage(texturePixels);
+            stage.sharedCameraDistance = stage.LargestFramingDistance(offeredShips);
             return stage;
+        }
+
+        private float LargestFramingDistance(IEnumerable<Ship> ships)
+        {
+            var largest = 0f;
+            foreach (var ship in ships)
+            {
+                var rigTemplate = ship.VisualRig;
+                if (!rigTemplate) continue;
+                var bounds = MeasureFramedBounds(rigTemplate);
+                largest = Mathf.Max(largest, SolveFraming(bounds, anchor.position, CameraFovDeg).distance);
+            }
+            return largest;
         }
 
         private static int PreviewLayer()
@@ -139,7 +157,7 @@ namespace UI.Hangar
             current = null;
 
             var ship = loadout?.Ship;
-            var rigTemplate = ship ? ship.GetComponentInChildren<ShipVisualRig>(true) : null;
+            var rigTemplate = ship ? ship.VisualRig : null;
             if (!rigTemplate) return;
 
             var clone = Instantiate(rigTemplate, anchor, false);
@@ -160,33 +178,46 @@ namespace UI.Hangar
             currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero;
 
-            FrameCamera(root);
+            FrameCamera(rigTemplate);
 
             current = root;
             popInT = 0f;
         }
 
-        private void FrameCamera(Transform rig)
+        private void FrameCamera(ShipVisualRig rigTemplate)
         {
-            // Measure at peak pop-in scale and canonical pose — the clone is still zero-scaled for
-            // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
-            // phase at click time.
-            var previousScale = rig.localScale;
-            var previousRotation = rig.localRotation;
-            rig.localScale = currentTargetScale * PopInOvershoot;
-            rig.rotation = BaseOrientation;
-            var bounds = new Bounds(anchor.position, Vector3.one);
-            var renderers = rig.GetComponentsInChildren<Renderer>(true);
-            foreach (var r in renderers)
-                if (FramesBounds(r))
-                    bounds.Encapsulate(r.bounds);
-            rig.localScale = previousScale;
-            rig.localRotation = previousRotation;
-
-            var (focus, distance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
+            var bounds = MeasureFramedBounds(rigTemplate);
+            var (focus, ownDistance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
+            // A ship outside the offer is never framed closer than its own fit.
+            var distance = Mathf.Max(ownDistance, sharedCameraDistance);
             var direction = new Vector3(0f, 0.55f, -1f).normalized;
             stageCamera.transform.position = focus + direction * distance;
             stageCamera.transform.LookAt(focus);
+        }
+
+        // Stored mesh bounds posed at peak pop-in scale and canonical pose, independent of spin phase.
+        private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
+        {
+            var rig = rigTemplate.transform;
+            var peakPose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
+                Quaternion.Inverse(anchor.rotation) * BaseOrientation, rig.lossyScale * PopInOvershoot);
+            var templateToPeak = peakPose * rig.worldToLocalMatrix;
+            var bounds = new Bounds(anchor.position, Vector3.one);
+            foreach (var r in rigTemplate.Silhouette)
+            {
+                // A skinned mesh's stored bounds are relative to its root bone.
+                var skinned = r as SkinnedMeshRenderer;
+                var (local, space) = skinned
+                    ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
+                    : (r.localBounds, r.transform);
+                var toPeak = templateToPeak * space.localToWorldMatrix;
+                for (var x = -1; x <= 1; x += 2)
+                for (var y = -1; y <= 1; y += 2)
+                for (var z = -1; z <= 1; z += 2)
+                    bounds.Encapsulate(toPeak.MultiplyPoint3x4(
+                        local.center + Vector3.Scale(local.extents, new Vector3(x, y, z))));
+            }
+            return bounds;
         }
 
         // The turntable spins the hull about the anchor's vertical axis, so the camera must clear
@@ -210,10 +241,6 @@ namespace UI.Hangar
             var focus = new Vector3(anchorPosition.x, bounds.center.y, anchorPosition.z);
             return (focus, distance);
         }
-
-        // Idle particle/trail renderers report bounds anchored at world origin, which would blow
-        // the framing by the stage's offset — frame on hull meshes only.
-        private static bool FramesBounds(Renderer r) => r is MeshRenderer || r is SkinnedMeshRenderer;
 
         private void Update()
         {
@@ -245,8 +272,6 @@ namespace UI.Hangar
         }
 
         // Thruster particles stay but are dormant — the preview never binds a ShipView.
-        // Immediate destroy: FrameCamera measures the clone's renderers this same frame, and a
-        // deferred Destroy would leave the minimap marker's MeshRenderer in the bounds pass.
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
