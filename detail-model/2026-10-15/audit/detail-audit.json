@@ -1,0 +1,30 @@
+{
+  "existing_parts_unchanged": 15,
+  "inactive_parts_unchanged": 33,
+  "new_parts": [
+    {
+      "part": "Pod cooling hatch",
+      "host": "MVP wing_armor",
+      "vertices": 60,
+      "faces": 48,
+      "depth": 0.007,
+      "slats": 5
+    },
+    {
+      "part": "Cockpit cooling vent",
+      "host": "MVP Cockpit.001",
+      "vertices": 44,
+      "faces": 36,
+      "depth": 0.007,
+      "slats": 3
+    },
+    {
+      "part": "Wing service hatch",
+      "host": "MVP Wing",
+      "vertices": 28,
+      "faces": 24,
+      "depth": 0.007,
+      "slats": 0
+    }
+  ]
+}

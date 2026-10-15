@@ -22,3 +22,7 @@ resolving at the old paths.
 `art/ships/vanguard/experiments/` in the primary tree (pre-livery checkpoint, AI livery
 review variants, image-generation proof, texture concept and MVP, packed-texture
 snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are in this branch's history at `662b3cd4`).
+
+## Recolorable redo
+
+[2026-10-15 detail-model review](detail-model/2026-10-15/README.md): hybrid modeled details and later grayscale masks, scoped in #1016. Source validation passes; owner detail-model approval is pending.

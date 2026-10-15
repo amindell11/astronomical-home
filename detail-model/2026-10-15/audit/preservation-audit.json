@@ -1,0 +1,10 @@
+{
+  "original_meshes_checked": 44,
+  "changed_original_meshes": {},
+  "new_meshes": [
+    "Cockpit cooling vent",
+    "Pod cooling hatch",
+    "Wing service hatch"
+  ],
+  "comparison": "Exact positions, corner/triangle indices, corner normals, UVs, world transforms and modifier parameters"
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a173f3a2cc268cdcd95835358cf852963f551a10d2e62c5c31bd0312b117fbda",
+  "images": {
+    "scale": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\scale\\scale.png"
+  },
+  "set": "scale",
+  "verdict": "pass"
+}

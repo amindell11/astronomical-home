@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a173f3a2cc268cdcd95835358cf852963f551a10d2e62c5c31bd0312b117fbda",
+  "before_sha256": "be3a5e12d2b5070f792754bf1ade2c73547f976b9f00f76da0468cc9a8f5dcb9",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 8476,
+    "side": 3164
+  },
+  "verdict": "pass"
+}

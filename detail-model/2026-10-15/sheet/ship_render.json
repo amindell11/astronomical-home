@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a173f3a2cc268cdcd95835358cf852963f551a10d2e62c5c31bd0312b117fbda",
+  "images": {
+    "top": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\top.png",
+    "side": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\side.png",
+    "front": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\front.png",
+    "back": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\back.png",
+    "turn000": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\turn315.png",
+    "sheet": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\sheet\\sheet.png"
+  },
+  "set": "sheet",
+  "verdict": "pass"
+}
