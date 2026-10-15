@@ -101,6 +101,14 @@ assert tool("lock", base, "--mode", "reopen")[1]["invalidated"] == []
 results["uv_ratio"] = tool("uv", base)[1]["ratio"]
 
 # ship_paint: masks and the Unity bundle from the fixture's regions; a hand edit survives a re-run.
+for required in ("paint.json", "palettes.json"):
+    path = base.parent / required
+    contents = path.read_bytes()
+    path.unlink()
+    missing = blender(TOOLS / "ship_paint.py", "--ship", base, "--out", base.parent / "missing-settings")
+    assert missing.returncode == 1 and missing.stdout == "", (required, missing.returncode, missing.stdout)
+    assert f"Usage error: {required}:" in missing.stderr and "Traceback" not in missing.stderr, missing.stderr
+    path.write_bytes(contents)
 settings_path = base.parent / "paint.json"
 settings_text = settings_path.read_text()
 settings = json.loads(settings_text)

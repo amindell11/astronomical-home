@@ -113,14 +113,15 @@ parts) per palette, linear sRGB, every palette naming the same regions:
 (only when an accent emits), 8-bit grayscale at `texture_size`, and `layers/baseline/`, the
 tool's own last output with `baseline.json`. On a re-run the owner's edits (each mask minus
 its baseline) ride onto the new generation, so hand paint survives new knobs and palettes.
-The tool refuses masks that have no baseline (move hand-made masks aside first) and a baseline
-whose UVs or texture size no longer match (delete it to start over; edits are lost). Under
+The tool refuses incomplete baselines and baselines whose schema, recipe, geometry, UVs, mask
+set or texture size no longer match, before writing any mask. Preserve owner files before
+starting a new baseline. The preview composes the final edited masks in linear colour. Under
 `--out`: the report, `preview/Composite.png` (the flat colour composite, for a
 `ship_render --textured` look; review only, never imported) and `unity/<Name>/`: `Paint/`
 textures with `.meta` (linear, clamped, mipmapped) and `Materials/<palette>/<Region>.mat` with
 `.meta`, one drawn-surface material per palette per region binding the masks. GUIDs derive
 from the ship name and path; `--unity <visuals folder>` reuses the GUIDs of files already
-there. Copy the bundle over the visuals folder, `.meta` files only where none exist.
+there. Each generated bundle contains exactly its current reported file set. Copy the bundle over the visuals folder, `.meta` files only where none exist.
 
 ## Commands
 
