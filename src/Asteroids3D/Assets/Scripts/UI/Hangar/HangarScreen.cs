@@ -76,8 +76,8 @@ namespace UI.Hangar
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);
                 }, Describe);
-                BindRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
-                BindRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BindRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe, ModuleLabel);
+                BindRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe, ModuleLabel);
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
                 BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
@@ -163,7 +163,7 @@ namespace UI.Hangar
 
         private static string Describe(Ship ship) =>
             $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
-            $"Kit: {(ship.Engine ? ship.Engine.name : "no engine")} + {(ship.Shield ? ship.Shield.name : "no shield")}";
+            $"Kit: {(ship.Engine ? ship.Engine.DisplayName : "no engine")} + {(ship.Shield ? ship.Shield.DisplayName : "no shield")}";
 
         private static string Describe(EngineModule engine) =>
             $"Top speed {engine.maxSpeed:0}   |   Turn {engine.maxYawRate:0} deg/s   |   Thrust {engine.forwardForce:0}   |   " +
@@ -222,6 +222,8 @@ namespace UI.Hangar
             : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
+
+        private static string ModuleLabel(TunableModule module) => module.DisplayName;
 
         private void Refresh()
         {
