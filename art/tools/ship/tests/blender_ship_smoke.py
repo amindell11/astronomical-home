@@ -160,6 +160,17 @@ results["paint_edited_texels"] = rerun["edited_texels"]["Shadow"]
 preview_after = ship_source.load_pixels(rerun["preview"])
 assert np.any(preview_before[256:320, 256:320, :3] != preview_after[256:320, 256:320, :3]), "Owner stroke missing from preview"
 
+settings = json.loads(settings_text)
+for strength in ("shadow_strength", "light_strength", "ink_strength", "emission_blend"):
+    settings["material"][strength] = 0
+settings_path.write_text(json.dumps(settings))
+flat = ship_source.load_pixels(tool("paint", base)[1]["preview"])[..., :3]
+for colour in fixture_ship.PALETTES["palettes"]["zinc"].values():
+    linear = np.array(colour[:3])
+    expected = np.where(linear <= 0.0031308, linear * 12.92, 1.055 * linear ** (1 / 2.4) - 0.055)
+    assert np.any(np.max(np.abs(flat - expected), axis=2) <= 1 / 255), ("Preview colour space", colour)
+settings_path.write_text(settings_text)
+
 # ship_render: every set writes its images; comparing against the copy changes nothing.
 for render_set in ("ortho", "turnaround", "sheet", "scale"):
     images = tool("render", base, "--set", render_set, "--size", "128")[1]["images"]

@@ -466,8 +466,8 @@ def main(argv):
     margin = max(2, round(SEED_MARGIN * size / SEED_SIZE))
     mask_image = bpy.data.images.new("ship paint masks", size, size, alpha=False)
     mask_image.colorspace_settings.name = "Non-Color"
-    composite_image = bpy.data.images.new("ship paint composite", size, size, alpha=False)
-    composite_image.colorspace_settings.name = "sRGB"
+    composite_image = bpy.data.images.new("ship paint composite", size, size, alpha=False, float_buffer=True)
+    composite_image.colorspace_settings.name = "Non-Color"
     baked = bake(evaluation.scene, surface, graphs, mask_image, "masks", margin)
     generated = {mask: baked[..., index] for index, mask in enumerate(contract.MASKS)}
     if emission_colours:
