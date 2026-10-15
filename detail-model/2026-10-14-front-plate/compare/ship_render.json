@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "43c0b6334cfa64d53eea38482982d7596eed3190e4f507e301688df71b07f917",
+  "before_sha256": "24384f0a557378cb07abe8971f26b7fe5a104dce42e7cae9f27a0da620df067c",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 1328,
+    "side": 1121
+  },
+  "verdict": "pass"
+}

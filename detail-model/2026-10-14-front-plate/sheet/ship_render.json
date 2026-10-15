@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "43c0b6334cfa64d53eea38482982d7596eed3190e4f507e301688df71b07f917",
+  "images": {
+    "top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\top.png",
+    "side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\side.png",
+    "front": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\front.png",
+    "back": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\back.png",
+    "turn000": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn000.png",
+    "turn045": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn045.png",
+    "turn090": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn090.png",
+    "turn135": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn135.png",
+    "turn180": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn180.png",
+    "turn225": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn225.png",
+    "turn270": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn270.png",
+    "turn315": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\turn315.png",
+    "sheet": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-14-front-plate\\sheet\\sheet.png"
+  },
+  "set": "sheet",
+  "verdict": "pass"
+}
