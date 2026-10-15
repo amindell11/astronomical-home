@@ -1,7 +1,7 @@
 # Ship-paint evidence (#1014, PR #1015)
 
 Evidence only. Per-ship assignments, settings, masks and studies here are not production conversions.
-Round 2 uses tool commit `5a149876b`; the owner retained brush contrast 3.2 and shadow depth 0.39.
+Round 2 began at tool commit `5a149876b`; round 2b regenerates Nightshade at `8d48f4dbc`. The owner retained brush contrast 3.2 and shadow depth 0.39.
 
 ## Round 1
 
@@ -19,6 +19,8 @@ Top-down, noses up. The final lineup contains Crimson, Nightshade and unchanged 
 current prefabs above actual region-material candidates. Vanguard is deferred entirely.
 The current Crimson masks contain no owner proof stroke; that separate demonstration is in `owner-stroke.png`.
 Nightshade's base-coat study remains undecided; the decision belongs to its conversion PR.
+The Nightshade lineup row is depth-study variant (c): production material numbers, plate/sweep on Violet, Plum and Edge; coverage 0.33, depth 0.39, side-wall depth 1.0.
+Per-region painted-light colour is deferred to the Nightshade conversion PR; no parser change.
 
 Neutral captures use a white directional key, intensity 1, Euler (15,-20,0), and flat ambient
 (0.45,0.45,0.45). The game-light variant uses `Assets/Scenes/Lighting.prefab`, shadow maps off,
@@ -40,6 +42,7 @@ Each file below is relative to `paint/round2/`:
 - `brightness-grid-game-scale.png`: all nine brightness choices at native thumbnail resolution; current is top-left.
 - `nightshade-diagnosis.png`: controlled old, slots-only, slots-plus-caps and cockpit-excluded previews; dark strips return with slot identity.
 - `nightshade-study.png`: evidence-only PaperColor proposal under neutral light; no direction approved.
+- `nightshade-depth.png`, `nightshade-depth-game-scale.png`, `nightshade-depth-property-audit.json`: today and variants (a)-(e), native game-scale comparison, and accepted/rejected production material properties.
 - `crimson/paint.json`: strict current recipe; coverage 0.33, depth 0.39, side-wall depth 1.0, brush contrast 3.2.
 - `crimson/palettes.json`: Crimson's region palette in linear sRGB.
 - `crimson/Shadow.png`: generated Crimson Shadow mask, without owner edits.

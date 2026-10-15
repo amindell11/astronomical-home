@@ -1,0 +1,106 @@
+{
+  "accepted_lighting": {
+    "_AmbientStrength": 0.486,
+    "_CastShadowStrength": 0.213,
+    "_PaintSaturation": 1.25,
+    "_PaletteLighting": 0.954,
+    "_ShadowSoftness": 0.263,
+    "_ShadowThreshold": -0.063,
+    "_SpecularStrength": 0.0,
+    "_ShadowColor": [
+      0.9162735,
+      0.93574095,
+      0.9776915
+    ]
+  },
+  "not_accepted_as_lighting": {
+    "_BumpScale": "material.lighting._BumpScale: not a lighting property of the drawn surface shader",
+    "_DamageFlash": "material.lighting._DamageFlash: not a lighting property of the drawn surface shader",
+    "_DebrisVisibility": "material.lighting._DebrisVisibility: not a lighting property of the drawn surface shader",
+    "_DetailAlbedoMapScale": "material.lighting._DetailAlbedoMapScale: not a lighting property of the drawn surface shader",
+    "_EmissionStrength": "material.lighting._EmissionStrength: not a lighting property of the drawn surface shader",
+    "_LineSoftness": "material.lighting._LineSoftness: not a lighting property of the drawn surface shader",
+    "_LineStrength": "material.lighting._LineStrength: not a lighting property of the drawn surface shader",
+    "_LineThreshold": "material.lighting._LineThreshold: not a lighting property of the drawn surface shader",
+    "_PaintEmissionBlend": "material.lighting._PaintEmissionBlend: not a lighting property of the drawn surface shader",
+    "_PaintInkStrength": "material.lighting._PaintInkStrength: not a lighting property of the drawn surface shader",
+    "_PaintLayers": "material.lighting._PaintLayers: not a lighting property of the drawn surface shader",
+    "_PaintLightStrength": "material.lighting._PaintLightStrength: not a lighting property of the drawn surface shader",
+    "_PaintShadowStrength": "material.lighting._PaintShadowStrength: not a lighting property of the drawn surface shader",
+    "_PigmentPreservation": "material.lighting._PigmentPreservation: not a lighting property of the drawn surface shader",
+    "_SootStrength": "material.lighting._SootStrength: not a lighting property of the drawn surface shader",
+    "_TextureStrength": "material.lighting._TextureStrength: not a lighting property of the drawn surface shader",
+    "_UseRelief": "material.lighting._UseRelief: not a lighting property of the drawn surface shader",
+    "_WearStrength": "material.lighting._WearStrength: not a lighting property of the drawn surface shader",
+    "_BaseColor": "material.lighting._BaseColor: not a lighting property of the drawn surface shader",
+    "_EmissionColor": "material.lighting._EmissionColor: not a lighting property of the drawn surface shader",
+    "_OrangeGain": "material.lighting._OrangeGain: not a lighting property of the drawn surface shader",
+    "_PaintInkColor": "material.lighting._PaintInkColor: not a lighting property of the drawn surface shader",
+    "_PaintLightColor": "material.lighting._PaintLightColor: not a lighting property of the drawn surface shader",
+    "_PaperColor": "material.lighting._PaperColor: not a lighting property of the drawn surface shader"
+  },
+  "production_floats": {
+    "_AmbientStrength": 0.486,
+    "_BumpScale": 1.0,
+    "_CastShadowStrength": 0.213,
+    "_DamageFlash": 0.0,
+    "_DebrisVisibility": 1.0,
+    "_DetailAlbedoMapScale": 0.0,
+    "_EmissionStrength": 1.0,
+    "_LineSoftness": 0.027,
+    "_LineStrength": 0.0,
+    "_LineThreshold": 0.395,
+    "_PaintEmissionBlend": 1.0,
+    "_PaintInkStrength": 1.0,
+    "_PaintLayers": 1.0,
+    "_PaintLightStrength": 1.0,
+    "_PaintSaturation": 1.25,
+    "_PaintShadowStrength": 1.531,
+    "_PaletteLighting": 0.954,
+    "_PigmentPreservation": 0.0,
+    "_ShadowSoftness": 0.263,
+    "_ShadowThreshold": -0.063,
+    "_SootStrength": 0.0,
+    "_SpecularStrength": 0.0,
+    "_TextureStrength": 0.0,
+    "_UseRelief": 0.0,
+    "_WearStrength": 0.0
+  },
+  "production_colours": {
+    "_BaseColor": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "_EmissionColor": [
+      2.0235293,
+      2.9803917,
+      1.1294116
+    ],
+    "_OrangeGain": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "_PaintInkColor": [
+      0.015686275,
+      0.02745098,
+      0.06274508
+    ],
+    "_PaintLightColor": [
+      0.39607838,
+      0.47843134,
+      0.61176467
+    ],
+    "_PaperColor": [
+      0.6536583,
+      0.79639655,
+      1.0
+    ],
+    "_ShadowColor": [
+      0.9162735,
+      0.93574095,
+      0.9776915
+    ]
+  }
+}

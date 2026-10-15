@@ -44,17 +44,17 @@
     },
     "Nightshade Violet": {
       "plate": true,
-      "sweep": false,
+      "sweep": true,
       "ink_walls": true
     },
     "Nightshade Plum": {
-      "plate": false,
-      "sweep": false,
+      "plate": true,
+      "sweep": true,
       "ink_walls": false
     },
     "Nightshade Edge": {
-      "plate": false,
-      "sweep": false,
+      "plate": true,
+      "sweep": true,
       "ink_walls": false
     },
     "Nightshade Recess": {
@@ -87,7 +87,7 @@
     }
   ],
   "material": {
-    "shadow_strength": 1.0,
+    "shadow_strength": 1.531,
     "light_strength": 1.0,
     "ink_strength": 1.0,
     "light_lift": 0.25,
@@ -98,12 +98,18 @@
     ],
     "emission_blend": 1.0,
     "lighting": {
-      "_ShadowThreshold": 0.35,
-      "_ShadowSoftness": 0.1,
-      "_CastShadowStrength": 0.6,
-      "_AmbientStrength": 0.35,
-      "_PaletteLighting": 1,
-      "_SpecularStrength": 0
+      "_AmbientStrength": 0.486,
+      "_CastShadowStrength": 0.213,
+      "_PaintSaturation": 1.25,
+      "_PaletteLighting": 0.954,
+      "_ShadowSoftness": 0.263,
+      "_ShadowThreshold": -0.063,
+      "_SpecularStrength": 0.0,
+      "_ShadowColor": [
+        0.9162735,
+        0.93574095,
+        0.9776915
+      ]
     }
   },
   "canopy_glass": [
