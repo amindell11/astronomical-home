@@ -370,10 +370,13 @@ def main(argv):
     for name, part in parts.items():
         if part.mesh.uv_layers.get(contract.PAINT_UV) is None:
             raise report.refuse(f"{name} has no {contract.PAINT_UV} layer", trailers)
+        empty = [index for index, material in enumerate(part.materials) if material is None]
+        if empty:
+            raise report.refuse(f"{name} has empty material slots {empty}", trailers)
         used = np.unique(part.material_index)
-        if len(used) and (used.max() >= len(part.materials) or any(part.materials[i] is None for i in used)):
+        if len(used) and used.max() >= len(part.materials):
             raise report.refuse(f"{name} has faces without a material", trailers)
-    slots = {m.name for part in parts.values() for m in part.materials if m is not None}
+    slots = {m.name for part in parts.values() for m in part.materials}
     if slots != regions:
         raise report.refuse(f"Material slots {sorted(slots)} are not the palette regions {sorted(regions)}", trailers)
     if set(paint["regions"]) != regions:

@@ -297,6 +297,13 @@ for colours in palettes["palettes"].values():
     colours.pop("Glow")
 (unpainted.parent / "palettes.json").write_text(json.dumps(palettes), encoding="utf-8")
 assert "Glow" in tool("paint", unpainted, expect=3)[1]["refusal"]
+empty_slot = ship("empty_slot")
+shutil.copy(lock, empty_slot.parent / "lock.json")
+bpy.ops.wm.open_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+bpy.data.objects["Wing"].data.materials.append(None)
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+assert "Wing has empty material slots [1]" in tool("paint", empty_slot, expect=3)[1]["refusal"]
 assert ("modifier_order", "Wing") in rules(tool("check", ship("solidify_first", "solidify_first"), expect=3)[1])
 assert ("name", "Cube") in rules(tool("check", ship("cube_name", "cube_name"), expect=3)[1])
 assert ("uv_density", "Canopy") in rules(tool("uv", ship("scaled_uv", "scaled_uv"), expect=3)[1])
