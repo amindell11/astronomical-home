@@ -536,6 +536,36 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 4300000, guid: e785e7f9b86bc69499b33ef303615eb4, type: 2}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: silhouette.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'silhouette.Array.data[0]'
+      value: 
+      objectReference: {fileID: 32397290175142680}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'silhouette.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1964375421714476891}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'silhouette.Array.data[2]'
+      value: 
+      objectReference: {fileID: 3404845575493642289}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'silhouette.Array.data[3]'
+      value: 
+      objectReference: {fileID: 7297720937364438226}
+    - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: 'silhouette.Array.data[4]'
+      value: 
+      objectReference: {fileID: 5620517345947471404}
     - target: {fileID: 5495579178143933876, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_Mesh

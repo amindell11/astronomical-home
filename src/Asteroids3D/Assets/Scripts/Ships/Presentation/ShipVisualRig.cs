@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Substrate;
 using Substrate.Presentation;
@@ -14,7 +15,12 @@ namespace Ships.Presentation
     /// </summary>
     public sealed class ShipVisualRig : MonoBehaviour, IPresentationPart
     {
+        [Tooltip("Every hull renderer. The hangar preview frames the ship from their stored mesh bounds.")]
+        [SerializeField] private Renderer[] silhouette;
+
         private IShipVisual[] visuals;
+
+        public IReadOnlyList<Renderer> Silhouette => silhouette;
 
         private void Awake() => visuals = GetComponentsInChildren<IShipVisual>(true);
 

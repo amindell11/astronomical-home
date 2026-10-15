@@ -44,6 +44,7 @@ namespace Tests.EditMode
             (Rig, typeof(ShipBreakupVisual), "hull"),
             (Rig, typeof(ShipBreakupVisual), "debrisPrefab"),
             (Rig, typeof(ShipBreakupVisual), "poseSources"),
+            (Rig, typeof(ShipVisualRig), "silhouette"),
             (TwinExhaust, typeof(GameObject), "m_IsActive"),
         };
 
