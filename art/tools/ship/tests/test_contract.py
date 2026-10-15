@@ -21,7 +21,7 @@ VALID_PAINT = {
     "shadow_coverage": 0.33, "shadow_depth": 0.39, "side_wall_depth": 1.0,
     "brush": {"image": "brush.png", "scale": 1.3, "contrast": 3.2, "blend": 0.25},
     "ramp": [[0.1, 0.38], [0.55, 0.65], [0.92, 1.0]],
-    "sweep": {"weight_x": 0.65, "dark_below": 0.33, "light_above": 0.66, "jitter": 0.5, "dark": 0.61, "light": 1.0},
+    "sweep": {"weight_x": 0.65, "light_above": 0.66, "jitter": 0.5, "light": 1.0},
     "ink": {"inset": 0.003, "rim": 0.0065, "rim_light": 0.35, "wall_facing": 0.65},
     "plates": {"cap_facing": 0.9, "thin_wall": 0.12},
     "regions": {"Zinc": {"plate": True, "sweep": True, "ink_walls": False},
@@ -86,11 +86,12 @@ class PaintSettingsTests(unittest.TestCase):
         self.assertEqual(contract.parse_palettes(VALID_PALETTES), VALID_PALETTES)
         self.assertEqual(contract.parse_paint(VALID_PAINT), VALID_PAINT)
 
-    def test_shadow_defaults_preserve_existing_recipe(self):
-        legacy = copy.deepcopy(VALID_PAINT)
-        for key in ("shadow_coverage", "shadow_depth", "side_wall_depth"):
-            del legacy[key]
-        self.assertEqual(contract.parse_paint(legacy), VALID_PAINT)
+    def test_paint_controls_and_canopy_lists_are_required(self):
+        for key in ("shadow_coverage", "shadow_depth", "side_wall_depth", "canopy_glass", "canopy_frames"):
+            with self.subTest(key), self.assertRaises(ValueError):
+                contract.parse_paint(mutated(lambda v: v.pop(key), VALID_PAINT))
+        empty = mutated(lambda v: v.update(canopy_glass=[], canopy_frames=[]), VALID_PAINT)
+        self.assertEqual(contract.parse_paint(empty), empty)
 
     def test_palettes_rejections(self):
         cases = {
@@ -124,7 +125,8 @@ class PaintSettingsTests(unittest.TestCase):
             "ramp one stop": lambda v: v.update(ramp=[[0.5, 0.5]]),
             "ramp not increasing": lambda v: v.update(ramp=[[0.5, 0.5], [0.5, 1.0]]),
             "ramp value range": lambda v: v.update(ramp=[[0.1, 0.5], [0.9, 1.5]]),
-            "sweep thirds crossed": lambda v: v["sweep"].update(dark_below=0.7),
+            "duplicate coverage": lambda v: v["sweep"].update(dark_below=0.33),
+            "duplicate depth": lambda v: v["sweep"].update(dark=0.61),
             "sweep missing": lambda v: v["sweep"].pop("jitter"),
             "ink rim below inset": lambda v: v["ink"].update(rim=0.001),
             "ink wall facing zero": lambda v: v["ink"].update(wall_facing=0),

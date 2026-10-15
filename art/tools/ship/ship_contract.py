@@ -42,9 +42,10 @@ LAYERS_DIR = "layers"
 BASELINE_DIR = "baseline"
 PALETTE_COLOR_SPACE = "linear-sRGB"
 PALETTES_FIELDS = ("color_space", "default", "palettes")
-PAINT_FIELDS = ("schema_version", "brush", "ramp", "sweep", "ink", "plates", "regions", "accents", "material")
+PAINT_FIELDS = ("schema_version", "brush", "ramp", "sweep", "ink", "plates", "regions", "accents", "material",
+                "shadow_coverage", "shadow_depth", "side_wall_depth", "canopy_glass", "canopy_frames")
 BRUSH_FIELDS = ("image", "scale", "contrast", "blend")
-SWEEP_FIELDS = ("weight_x", "dark_below", "light_above", "jitter", "dark", "light")
+SWEEP_FIELDS = ("weight_x", "light_above", "jitter", "light")
 INK_FIELDS = ("inset", "rim", "rim_light", "wall_facing")
 PLATES_FIELDS = ("cap_facing", "thin_wall")
 REGION_FLAGS = ("plate", "sweep", "ink_walls")
@@ -171,12 +172,10 @@ def parse_palettes(value):
 
 def parse_paint(value):
     """Validate paint.json, the per-ship knobs of ship_paint; unknown fields and keys are rejected."""
-    optional = ("canopy_glass", "canopy_frames", "shadow_coverage", "shadow_depth", "side_wall_depth")
-    fields = PAINT_FIELDS + tuple(key for key in optional if isinstance(value, dict) and key in value)
-    _fields(value, fields, "paint.json")
+    _fields(value, PAINT_FIELDS, "paint.json")
     assigned = set()
     for key in ("canopy_glass", "canopy_frames"):
-        names = value.get(key, [])
+        names = value[key]
         if not isinstance(names, list):
             raise ValueError(f"{key}: expected a list of part names")
         for name in names:
@@ -208,12 +207,7 @@ def parse_paint(value):
     _fields(sweep, SWEEP_FIELDS, "sweep")
     for key in SWEEP_FIELDS:
         _number(sweep[key], f"sweep.{key}", 0, 1 if key != "jitter" else None)
-    if sweep["dark_below"] >= sweep["light_above"]:
-        raise ValueError("sweep: expected dark_below below light_above")
-    value = json.loads(json.dumps(value))
-    for key, default in (("shadow_coverage", sweep["dark_below"]), ("shadow_depth", 1 - sweep["dark"]),
-                         ("side_wall_depth", 1.0)):
-        value.setdefault(key, default)
+    for key in ("shadow_coverage", "shadow_depth", "side_wall_depth"):
         _number(value[key], key, 0, 1)
     if value["shadow_coverage"] >= sweep["light_above"]:
         raise ValueError("shadow_coverage: expected below sweep.light_above")
@@ -279,7 +273,7 @@ def parse_paint(value):
             _color(setting, f"material.lighting.{key}", 3)
         else:
             raise ValueError(f"material.lighting.{key}: not a lighting property of the drawn surface shader")
-    return json.loads(json.dumps(value))
+    return value
 
 
 def load_settings(path, parser):

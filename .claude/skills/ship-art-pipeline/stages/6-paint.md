@@ -19,7 +19,7 @@ the worked example of the storage (`art/ships/valis/README.md`); Crimson is the 
 1. `ship_lock --mode verify` passes.
 2. Regions: give every visual-role part its palette-region material in the source (a
    material edit, not a geometry edit; commit first). Write `palettes.json` and `paint.json`
-   beside the source and copy a brush tile in (Crimson's
+   beside the source with every field required by the README schema, and copy a brush tile in (Crimson's
    `textures/painted-brush-source.png` is the house tile).
 3. `ship_paint --ship art/ships/<name>/ship.json --out <dir> [--unity src/Asteroids3D/Assets/Visuals/Ships/<Name>]`
    writes `layers/` beside the source and, under `--out`, `preview/Composite.png` and the
@@ -38,7 +38,9 @@ the worked example of the storage (`art/ships/valis/README.md`); Crimson is the 
 - An inset ink line inside every plate boundary (Ink) with a bright rim just inside it
   (Light); thin walls fully inked.
 - A quiet world-space brush tile, mirrored across X, in Shadow and Light at low contrast.
-- A short list of accents placed by coordinates (a canopy band, indicator lights).
+- Named `canopy_glass` and `canopy_frames` parts keep only their palette colour;
+  reflections are owner mask edits, preserved across re-runs.
+- A short list of accents placed by coordinates for indicator lights and emission.
 - Strong flat region colours do the rest.
 
 ## Done
