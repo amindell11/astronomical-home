@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1100000000000000005}
   - component: {fileID: 1100000000000000006}
   - component: {fileID: 1100000000000000007}
+  - component: {fileID: 4296478870442968351}
   m_Layer: 6
   m_Name: GrenadeCharge
   m_TagString: Untagged
@@ -155,3 +156,22 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4296478870442968351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5b379886e004361821e2205340b06cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detonateEvent:
+    Guid:
+      Data1: 2080964515
+      Data2: 1308868412
+      Data3: -469746515
+      Data4: -1554198125
+    Path: event:/Weapons/Grenade/Detonate

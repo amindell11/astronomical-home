@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: -8301958025146036882}
   - component: {fileID: 1200000000000000001}
   - component: {fileID: 1200000000000000002}
+  - component: {fileID: 3893981710489989632}
+  - component: {fileID: 3001220098395657947}
   m_Layer: 0
   m_Name: Railgun
   m_TagString: Untagged
@@ -208,3 +210,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fadeTime: 0.15
+--- !u!114 &3893981710489989632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae782305c5f498c86bd767defee1da2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireEvent:
+    Guid:
+      Data1: 870349109
+      Data2: 1132490723
+      Data3: 1379108797
+      Data4: -53638664
+    Path: event:/Weapons/Railgun/Fire
+--- !u!114 &3001220098395657947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d812110ff5e494f9c2e899ef35a2625, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  impactEvent:
+    Guid:
+      Data1: -2063018195
+      Data2: 1116632646
+      Data3: 1133068449
+      Data4: 2081378045
+    Path: event:/Weapons/Railgun/Impact
