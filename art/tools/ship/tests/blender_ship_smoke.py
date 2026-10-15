@@ -17,8 +17,10 @@ import numpy as np
 
 TESTS = Path(__file__).resolve().parent
 TOOLS = TESTS.parent
-sys.path.insert(0, str(TOOLS))
+sys.path[:0] = [str(TOOLS), str(TESTS)]
 import ship_contract as contract
+import ship_source
+import fixture_ship
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--out", required=True)
@@ -98,10 +100,39 @@ assert tool("lock", base, "--mode", "reopen")[1]["invalidated"] == []
 # ship_uv passes within the ratio.
 results["uv_ratio"] = tool("uv", base)[1]["ratio"]
 
+# ship_paint: masks and the Unity bundle from the fixture's regions; a hand edit survives a re-run.
+trailers, paint = tool("paint", base)
+layers = Path(trailers["SHIP_MASKS"])
+assert layers == base.parent / contract.LAYERS_DIR and paint["baseline"] == "created", paint
+for mask in (*contract.MASKS, contract.EMISSION):
+    pixels = ship_source.load_pixels(layers / f"{mask}.png")[..., 0]
+    assert pixels.shape == (1024, 1024) and pixels.std() > 0.01, (mask, pixels.shape, float(pixels.std()))
+    assert (layers / contract.BASELINE_DIR / f"{mask}.png").is_file(), mask
+assert Path(paint["preview"]).is_file()
+bundle = Path(paint["unity"]["root"])
+shadow_guid = [line for line in (bundle / "Paint/Shadow.png.meta").read_text().splitlines() if line.startswith("guid: ")][0][6:]
+for palette, regions in fixture_ship.PALETTES["palettes"].items():
+    for region in regions:
+        material = bundle / f"Materials/{palette}/{region}.mat"
+        assert material.is_file() and material.with_suffix(".mat.meta").is_file(), material
+        text = material.read_text()
+        assert "_PAINT_LAYERS" in text and shadow_guid in text, material
+assert tool("paint", base)[1]["unity"]["files"] == paint["unity"]["files"]
+stroke = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+stroke[256:320, 256:320] = 200
+ship_source.save_pixels(layers / "Shadow.png", np.repeat((stroke / 255.0)[..., None].astype(np.float32), 4, axis=2))
+rerun = tool("paint", base)[1]
+assert rerun["baseline"] == "reused" and rerun["edited_texels"]["Shadow"] > 0, rerun
+after = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+assert np.abs(after[256:320, 256:320] - 200).max() <= 1, int(np.abs(after[256:320, 256:320] - 200).max())
+results["paint_edited_texels"] = rerun["edited_texels"]["Shadow"]
+
 # ship_render: every set writes its images; comparing against the copy changes nothing.
 for render_set in ("ortho", "turnaround", "sheet", "scale"):
     images = tool("render", base, "--set", render_set, "--size", "128")[1]["images"]
     assert images and all(Path(path).is_file() for path in images.values()), images
+textured = tool("render", base, "--set", "ortho", "--size", "128", "--textured")[1]
+assert textured["textured"] and Path(textured["images"]["top"]).is_file(), textured
 compare = tool("render", base, "--set", "compare", "--size", "128", "--before", copy.parent / "Fixture.blend")[1]
 assert compare["changed_pixels"] == {"top": 0, "side": 0}, compare["changed_pixels"]
 
@@ -207,6 +238,13 @@ tool("export", grouped, "--debris", expect=3)
 results["debris_painted_triangles"] = sum(intact_triangles.values())
 
 # One failure case per tool.
+unpainted = ship("missing_region")
+shutil.copy(lock, unpainted.parent / "lock.json")
+palettes = json.loads((unpainted.parent / "palettes.json").read_text(encoding="utf-8"))
+for colours in palettes["palettes"].values():
+    colours.pop("Glow")
+(unpainted.parent / "palettes.json").write_text(json.dumps(palettes), encoding="utf-8")
+assert "Glow" in tool("paint", unpainted, expect=3)[1]["refusal"]
 assert ("modifier_order", "Wing") in rules(tool("check", ship("solidify_first", "solidify_first"), expect=3)[1])
 assert ("name", "Cube") in rules(tool("check", ship("cube_name", "cube_name"), expect=3)[1])
 assert ("uv_density", "Canopy") in rules(tool("uv", ship("scaled_uv", "scaled_uv"), expect=3)[1])

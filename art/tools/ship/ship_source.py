@@ -252,8 +252,29 @@ DEFAULT_NAME = re.compile(r"(Cube|Plane|Sphere|Cylinder|Cone|Torus|Circle|Icosph
                           r"Empty|Mesh|Object|Text|Curve|BezierCurve|NurbsPath)(\.\d{3})?")
 
 
-def apply_review_preset(scene, size=1024):
-    """Flat review render preset: Workbench, flat material colours, black object outlines."""
+def load_pixels(path):
+    """Pixels of an image file as float32 (rows, columns, RGBA), rows bottom-up, bytes untransformed."""
+    image = bpy.data.images.load(str(path), check_existing=False)
+    image.colorspace_settings.name = "Non-Color"
+    pixels = np.empty(len(image.pixels), np.float32)
+    image.pixels.foreach_get(pixels)
+    shape = (image.size[1], image.size[0], 4)
+    bpy.data.images.remove(image)
+    return pixels.reshape(shape)
+
+
+def save_pixels(path, pixels):
+    image = bpy.data.images.new(Path(path).stem, pixels.shape[1], pixels.shape[0], alpha=True)
+    image.pixels.foreach_set(np.ascontiguousarray(pixels, np.float32).ravel())
+    image.filepath_raw = str(path)
+    image.file_format = "PNG"
+    image.save()
+    bpy.data.images.remove(image)
+
+
+def apply_review_preset(scene, size=1024, textured=False):
+    """Flat review render preset: Workbench, flat material colours (or each material's active image
+    texture when textured), black object outlines."""
     scene.render.engine = "BLENDER_WORKBENCH"
     scene.render.resolution_x = scene.render.resolution_y = size
     scene.render.resolution_percentage = 100
@@ -261,7 +282,7 @@ def apply_review_preset(scene, size=1024):
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
     scene.display.shading.light = "FLAT"
-    scene.display.shading.color_type = "MATERIAL"
+    scene.display.shading.color_type = "TEXTURE" if textured else "MATERIAL"
     scene.display.shading.show_object_outline = True
     scene.display.shading.object_outline_color = (0.0, 0.0, 0.0)
     scene.display.render_aa = "8"
