@@ -1,0 +1,731 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7d525f4afb230f8811286ac403eb2a9538224faff1f22a0b3a746dfe07f7e664",
+  "palette": "nightshade",
+  "regions": [
+    "Nightshade Edge",
+    "Nightshade Glass",
+    "Nightshade Midnight",
+    "Nightshade Plum",
+    "Nightshade Recess",
+    "Nightshade Violet"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-5\\art\\ships\\nightshade\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-5\\art\\ships\\nightshade\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-5\\art\\ships\\nightshade\\layers\\Ink.png",
+    "Emission": "D:\\amind\\git\\agent-5\\art\\ships\\nightshade\\layers\\Emission.png"
+  },
+  "baseline": "created",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0,
+    "Emission": 0
+  },
+  "parts": {
+    "Aft engine collar": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.04621081054210663,
+      "thin": true,
+      "cap": {
+        "faces": 8,
+        "area": 0.002855104,
+        "edges": 12
+      }
+    },
+    "Aft spine armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.05265443027019501,
+      "thin": true,
+      "cap": {
+        "faces": 28,
+        "area": 0.070032719,
+        "edges": 24
+      }
+    },
+    "Cockpit collar latch recess": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.00449429452419281,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.000447401,
+        "edges": 4
+      }
+    },
+    "Cockpit collar latch tongue": {
+      "regions": [
+        "Nightshade Edge"
+      ],
+      "thickness": 0.002201467752456665,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 7.2386e-05,
+        "edges": 4
+      }
+    },
+    "Cockpit forward latch": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.014069333672523499,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 2.1038e-05,
+        "edges": 6
+      }
+    },
+    "Cockpit inset secondary rail": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.16812707297503948,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 1.0988e-05,
+        "edges": 4
+      }
+    },
+    "Cockpit lower cradle plating": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.0175158753991127,
+      "thin": true,
+      "cap": {
+        "faces": 19,
+        "area": 0.000396746,
+        "edges": 40
+      }
+    },
+    "Cockpit lower glazing gasket": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.03131229430437088,
+      "thin": true,
+      "cap": {
+        "faces": 130,
+        "area": 0.003726189,
+        "edges": 262
+      }
+    },
+    "Cockpit lower retaining rail": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.027431532740592957,
+      "thin": true,
+      "cap": {
+        "faces": 16,
+        "area": 0.000970547,
+        "edges": 34
+      }
+    },
+    "Cockpit rear retaining collar": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.025899723172187805,
+      "thin": true,
+      "cap": {
+        "faces": 16,
+        "area": 0.01034374,
+        "edges": 16
+      }
+    },
+    "Cockpit shoulder latch": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.030340716242790222,
+      "thin": true,
+      "cap": null
+    },
+    "Cockpit upper cradle plating": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.03355516493320465,
+      "thin": true,
+      "cap": {
+        "faces": 17,
+        "area": 0.00019831,
+        "edges": 36
+      }
+    },
+    "Cockpit upper glazing gasket": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.11140330135822296,
+      "thin": true,
+      "cap": {
+        "faces": 122,
+        "area": 0.003128009,
+        "edges": 246
+      }
+    },
+    "Cockpit upper retaining rail": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.05899477005004883,
+      "thin": true,
+      "cap": {
+        "faces": 44,
+        "area": 0.000559426,
+        "edges": 90
+      }
+    },
+    "Dorsal bridge service cover": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.005590692162513733,
+      "thin": true,
+      "cap": {
+        "faces": 6,
+        "area": 0.002329923,
+        "edges": 7
+      }
+    },
+    "Dorsal central blade": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.09319288283586502,
+      "thin": true,
+      "cap": {
+        "faces": 42,
+        "area": 0.080555103,
+        "edges": 40
+      }
+    },
+    "Dorsal shield cap": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.02536238729953766,
+      "thin": true,
+      "cap": {
+        "faces": 38,
+        "area": 0.01920354,
+        "edges": 30
+      }
+    },
+    "Dorsal shield inset": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.00810985267162323,
+      "thin": true,
+      "cap": {
+        "faces": 14,
+        "area": 0.00390291,
+        "edges": 8
+      }
+    },
+    "Lower canopy glazing": {
+      "regions": [
+        "Nightshade Glass"
+      ],
+      "thickness": 0.13226724229753017,
+      "thin": false,
+      "cap": {
+        "faces": 2102,
+        "area": 0.077282453,
+        "edges": 198
+      }
+    },
+    "Lower fin armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.14377732761204243,
+      "thin": false,
+      "cap": {
+        "faces": 15,
+        "area": 0.018646801,
+        "edges": 18
+      }
+    },
+    "Lower fin joint beds": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.145626712590456,
+      "thin": false,
+      "cap": {
+        "faces": 6,
+        "area": 0.020216616,
+        "edges": 14
+      }
+    },
+    "Lower small swept fins": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.19430649280548096,
+      "thin": false,
+      "cap": {
+        "faces": 62,
+        "area": 0.065503914,
+        "edges": 52
+      }
+    },
+    "Main exhaust core": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.0,
+      "thin": true,
+      "cap": null
+    },
+    "Main exhaust throat": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.00981450080871582,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.000159692,
+        "edges": 6
+      }
+    },
+    "Main wing joint beds": {
+      "regions": [
+        "Nightshade Plum"
+      ],
+      "thickness": 0.12913117557764053,
+      "thin": false,
+      "cap": {
+        "faces": 10,
+        "area": 0.061319413,
+        "edges": 22
+      }
+    },
+    "Rear swept wing pair": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Glass",
+        "Nightshade Midnight",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.17014328390359879,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 1.956e-06,
+        "edges": 4
+      }
+    },
+    "Rebuilt main wing blades": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.23126790672540665,
+      "thin": false,
+      "cap": {
+        "faces": 135,
+        "area": 0.247367255,
+        "edges": 68
+      }
+    },
+    "Rebuilt pitched hull": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.2668943554162979,
+      "thin": false,
+      "cap": {
+        "faces": 120,
+        "area": 0.177380885,
+        "edges": 46
+      }
+    },
+    "Spine shoulder armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.0219210684299469,
+      "thin": true,
+      "cap": {
+        "faces": 11,
+        "area": 0.012367817,
+        "edges": 14
+      }
+    },
+    "Tail fork armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.07931779325008392,
+      "thin": true,
+      "cap": {
+        "faces": 14,
+        "area": 0.021409374,
+        "edges": 18
+      }
+    },
+    "Tail joint beds": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.08039960265159607,
+      "thin": true,
+      "cap": {
+        "faces": 5,
+        "area": 0.009744991,
+        "edges": 12
+      }
+    },
+    "Tail mount service panel": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.03627502918243408,
+      "thin": true,
+      "cap": {
+        "faces": 6,
+        "area": 0.003247452,
+        "edges": 7
+      }
+    },
+    "Tail root armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.03604348003864288,
+      "thin": true,
+      "cap": {
+        "faces": 12,
+        "area": 0.005680915,
+        "edges": 16
+      }
+    },
+    "Tail root mounting blocks": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.1087372750043869,
+      "thin": true,
+      "cap": {
+        "faces": 3,
+        "area": 0.022289468,
+        "edges": 8
+      }
+    },
+    "Tail tip armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.03263220191001892,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 2.528e-06,
+        "edges": 4
+      }
+    },
+    "Tail ventral armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.07569319754838943,
+      "thin": true,
+      "cap": {
+        "faces": 17,
+        "area": 0.021834027,
+        "edges": 20
+      }
+    },
+    "Upper canopy glazing": {
+      "regions": [
+        "Nightshade Glass"
+      ],
+      "thickness": 0.1930261254310608,
+      "thin": false,
+      "cap": {
+        "faces": 130,
+        "area": 0.004515975,
+        "edges": 82
+      }
+    },
+    "Upper fin armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.05752037465572357,
+      "thin": true,
+      "cap": {
+        "faces": 36,
+        "area": 0.03382533,
+        "edges": 34
+      }
+    },
+    "Upper fin joint beds": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.05828358232975006,
+      "thin": true,
+      "cap": {
+        "faces": 12,
+        "area": 0.035881256,
+        "edges": 26
+      }
+    },
+    "Upper small swept fins.001": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.09210599213838577,
+      "thin": true,
+      "cap": {
+        "faces": 64,
+        "area": 0.072998367,
+        "edges": 40
+      }
+    },
+    "Upper spine joint beds": {
+      "regions": [
+        "Nightshade Recess"
+      ],
+      "thickness": 0.0212864950299263,
+      "thin": true,
+      "cap": {
+        "faces": 6,
+        "area": 0.009601207,
+        "edges": 14
+      }
+    },
+    "Ventral central blade": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.11688082665205002,
+      "thin": true,
+      "cap": {
+        "faces": 48,
+        "area": 0.08524686,
+        "edges": 36
+      }
+    },
+    "Ventral shield cap": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.01297055184841156,
+      "thin": true,
+      "cap": {
+        "faces": 40,
+        "area": 0.019161832,
+        "edges": 30
+      }
+    },
+    "Ventral shield inset": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.004349008202552795,
+      "thin": true,
+      "cap": {
+        "faces": 14,
+        "area": 0.003879262,
+        "edges": 8
+      }
+    },
+    "Wing aft blade armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.08017747104167938,
+      "thin": true,
+      "cap": {
+        "faces": 20,
+        "area": 0.053534255,
+        "edges": 26
+      }
+    },
+    "Wing cooling louvers": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Recess"
+      ],
+      "thickness": 0.008875101804733276,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.000737781,
+        "edges": 4
+      }
+    },
+    "Wing forward armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.05879859812557697,
+      "thin": true,
+      "cap": {
+        "faces": 19,
+        "area": 0.036100945,
+        "edges": 24
+      }
+    },
+    "Wing outer armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Midnight"
+      ],
+      "thickness": 0.03842942207120359,
+      "thin": true,
+      "cap": {
+        "faces": 26,
+        "area": 0.013308367,
+        "edges": 26
+      }
+    },
+    "Wing shoulder armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.06886218348518014,
+      "thin": true,
+      "cap": {
+        "faces": 18,
+        "area": 0.030414001,
+        "edges": 22
+      }
+    },
+    "Wing ventral aft armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.06334870308637619,
+      "thin": true,
+      "cap": {
+        "faces": 21,
+        "area": 0.046567557,
+        "edges": 24
+      }
+    },
+    "Wing ventral armor": {
+      "regions": [
+        "Nightshade Edge",
+        "Nightshade Violet"
+      ],
+      "thickness": 0.12963253632187843,
+      "thin": false,
+      "cap": {
+        "faces": 39,
+        "area": 0.073454174,
+        "edges": 32
+      }
+    }
+  },
+  "accents": 2,
+  "preview": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\nightshade-paint\\preview\\Composite.png",
+  "unity": {
+    "root": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\nightshade-paint\\unity\\Nightshade",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Paint/Emission.png",
+      "Paint/Emission.png.meta",
+      "Materials.meta",
+      "Materials/nightshade.meta",
+      "Materials/nightshade/Nightshade Edge.mat",
+      "Materials/nightshade/Nightshade Edge.mat.meta",
+      "Materials/nightshade/Nightshade Glass.mat",
+      "Materials/nightshade/Nightshade Glass.mat.meta",
+      "Materials/nightshade/Nightshade Midnight.mat",
+      "Materials/nightshade/Nightshade Midnight.mat.meta",
+      "Materials/nightshade/Nightshade Plum.mat",
+      "Materials/nightshade/Nightshade Plum.mat.meta",
+      "Materials/nightshade/Nightshade Recess.mat",
+      "Materials/nightshade/Nightshade Recess.mat.meta",
+      "Materials/nightshade/Nightshade Violet.mat",
+      "Materials/nightshade/Nightshade Violet.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}

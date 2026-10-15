@@ -1,0 +1,16 @@
+00:15.015  blend            | Read blend: "C:\Users\amind\AppData\Local\Temp\claude\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\84fb56bb-88c9-4313-b27e-66f257db3f42\scratchpad\smoke\base\Fixture.blend"
+01:07.297  blend            | Read blend: "C:\Users\amind\AppData\Local\Temp\claude\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\84fb56bb-88c9-4313-b27e-66f257db3f42\scratchpad\smoke\base\Fixture.blend"
+01:14.172  blend            | Read blend: "C:\Users\amind\AppData\Local\Temp\claude\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\84fb56bb-88c9-4313-b27e-66f257db3f42\scratchpad\smoke\debris\Fixture.blend"
+Info: Saved copy as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+SHIP_SMOKE_PASS {"fingerprint": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8", "uv_ratio": 1.0865917330376405, "paint_edited_texels": 4096, "Canopy_triangles": 24, "Cores_triangles": 12, "Hull_triangles": 216, "debris_painted_triangles": 252}
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+FBX import of 'Fixture.fbx' took 8.63 ms
+FBX import of 'Fixture.fbx' took 0.92 ms
+FBX import of 'Fixture.fbx' took 1.13 ms
+FBX import of 'FixtureBreakup.fbx' took 2.26 ms
+
+Blender quit
+exit=0

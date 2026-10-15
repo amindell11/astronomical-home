@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1d12879835d4217b532f7cb8eb9c27c0a8535d6abf8420f250f7e61bfdedaa6f",
+  "palette": "vivid",
+  "regions": [
+    "Canopy",
+    "Dark",
+    "Ivory",
+    "Orange",
+    "Slate"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-5\\art\\ships\\vanguard\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-5\\art\\ships\\vanguard\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-5\\art\\ships\\vanguard\\layers\\Ink.png"
+  },
+  "baseline": "reused",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0
+  },
+  "parts": {
+    "MVP Canopy": {
+      "regions": [
+        "Canopy",
+        "Orange"
+      ],
+      "thickness": 0.15772487968206406,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 3.627e-06,
+        "edges": 3
+      }
+    },
+    "MVP Cockpit.001": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.26223716884851456,
+      "thin": false,
+      "cap": {
+        "faces": 32,
+        "area": 0.120480814,
+        "edges": 16
+      }
+    },
+    "MVP Fuselage": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.30498409271240234,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.004752223,
+        "edges": 3
+      }
+    },
+    "MVP Power Nacelle Housing": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.0869264304637909,
+      "thin": true,
+      "cap": {
+        "faces": 18,
+        "area": 0.000492974,
+        "edges": 20
+      }
+    },
+    "MVP Sparrow Tail": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.19359827041625977,
+      "thin": false,
+      "cap": {
+        "faces": 11,
+        "area": 0.106303739,
+        "edges": 13
+      }
+    },
+    "MVP Tail": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.08627986907958984,
+      "thin": true,
+      "cap": {
+        "faces": 10,
+        "area": 0.009870746,
+        "edges": 12
+      }
+    },
+    "MVP Wing": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.1865391880273819,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.048304182,
+        "edges": 3
+      }
+    },
+    "MVP wing_armature": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.15513262152671814,
+      "thin": false,
+      "cap": {
+        "faces": 4,
+        "area": 0.076467624,
+        "edges": 6
+      }
+    },
+    "MVP wing_armor": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.1526554860174656,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.008861808,
+        "edges": 3
+      }
+    },
+    "MVP wing_tail": {
+      "regions": [
+        "Dark",
+        "Ivory",
+        "Orange",
+        "Slate"
+      ],
+      "thickness": 0.117360919713974,
+      "thin": true,
+      "cap": {
+        "faces": 3,
+        "area": 0.038041525,
+        "edges": 5
+      }
+    }
+  },
+  "accents": 1,
+  "preview": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\vanguard-paint\\preview\\Composite.png",
+  "unity": {
+    "root": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\vanguard-paint\\unity\\Vanguard",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Materials.meta",
+      "Materials/vivid.meta",
+      "Materials/vivid/Canopy.mat",
+      "Materials/vivid/Canopy.mat.meta",
+      "Materials/vivid/Dark.mat",
+      "Materials/vivid/Dark.mat.meta",
+      "Materials/vivid/Ivory.mat",
+      "Materials/vivid/Ivory.mat.meta",
+      "Materials/vivid/Orange.mat",
+      "Materials/vivid/Orange.mat.meta",
+      "Materials/vivid/Slate.mat",
+      "Materials/vivid/Slate.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}

@@ -1,0 +1,49 @@
+Crimson today: hull renderers=1 extent=2.42 largest=Hull up=(0.00, 0.00, 1.00) fwd=(0.00, 1.00, 0.00)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden SmokeTrail (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    shown Hull (MeshRenderer, Astronomical/Drawn/Surface)
+    hidden MinimapMarker (MeshRenderer, Universal Render Pipeline/Lit)
+Nightshade today: hull renderers=3 extent=2.11 largest=Nightshade up=(0.00, 0.00, 1.00) fwd=(0.00, 1.00, 0.00)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden SmokeTrail (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    shown Nightshade (MeshRenderer, Astronomical/Drawn/Surface)
+    shown Canopy (MeshRenderer, Astronomical/Drawn/Surface)
+    shown Cores (MeshRenderer, Astronomical/Drawn/Surface)
+    hidden MinimapMarker (MeshRenderer, Universal Render Pipeline/Lit)
+Vanguard today: hull renderers=5 extent=2.70 largest=Vanguard painted hull up=(0.00, 1.00, 0.00) fwd=(0.00, 0.00, -1.00)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden SmokeTrail (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    shown MVP Canopy (MeshRenderer, Astronomical/Drawn/Canopy)
+    shown MVP Power Nacelle Core (MeshRenderer, Astronomical/Drawn/Surface)
+    shown Vanguard structural ink (MeshRenderer, Astronomical/Drawn/Surface)
+    shown Vanguard painted hull (MeshRenderer, Astronomical/Drawn/Surface)
+    shown Vanguard contour (MeshRenderer, Astronomical/Drawn/Contour)
+    hidden MinimapMarker (MeshRenderer, Universal Render Pipeline/Lit)
+Valis today: hull renderers=1 extent=3.35 largest=Valis up=(0.00, 1.00, 0.00) fwd=(0.00, 0.00, 1.00)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustMain (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden ThrustSmall (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    hidden SmokeTrail (ParticleSystemRenderer, Universal Render Pipeline/Particles/Unlit)
+    shown Valis (SkinnedMeshRenderer, Astronomical/Drawn/Surface)
+    hidden MinimapMarker (MeshRenderer, Universal Render Pipeline/Lit)
+  Crimson Hull[0] 'Hull paint' -> composite base map
+  Nightshade Nightshade[0] 'Nightshade Midnight' -> bundle material
+  Nightshade Nightshade[1] 'Nightshade Edge' -> bundle material
+  Nightshade Nightshade[2] 'Nightshade Recess' -> bundle material
+  Nightshade Nightshade[3] 'Nightshade Violet' -> bundle material
+  Nightshade Nightshade[4] 'Nightshade Plum' -> bundle material
+  Nightshade Nightshade[5] 'Nightshade Glass' -> bundle material
+  Nightshade Canopy[0] 'Nightshade Glass' -> bundle material
+  Nightshade Cores[0] 'Nightshade Recess' -> bundle material
+  Vanguard MVP Canopy[0] 'Canopy' -> bundle material
+  Vanguard Vanguard painted hull[0] 'Vanguard vivid paint' -> composite base map

@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "brush": {
+    "image": "textures/painted-brush-source.png",
+    "scale": 1.3,
+    "contrast": 3.2,
+    "blend": 0.25
+  },
+  "ramp": [
+    [
+      0.1,
+      0.38
+    ],
+    [
+      0.55,
+      0.64
+    ],
+    [
+      0.92,
+      1.0
+    ]
+  ],
+  "sweep": {
+    "weight_x": 0.65,
+    "dark_below": 0.33,
+    "light_above": 0.66,
+    "jitter": 0.5,
+    "dark": 0.61,
+    "light": 1.0
+  },
+  "ink": {
+    "inset": 0.003,
+    "rim": 0.0065,
+    "rim_light": 0.35,
+    "wall_facing": 0.65
+  },
+  "plates": {
+    "cap_facing": 0.9,
+    "thin_wall": 0.12
+  },
+  "regions": {
+    "Silver": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Red": {
+      "plate": true,
+      "sweep": false,
+      "ink_walls": true
+    },
+    "Charcoal": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Glass": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Rim": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    }
+  },
+  "accents": [
+    {
+      "part": "Canopy",
+      "target": "light",
+      "where": {
+        "x": [
+          0.025,
+          0.05
+        ]
+      },
+      "value": 1.0
+    },
+    {
+      "part": "Service channel floor",
+      "target": "emission",
+      "where": {
+        "x": [
+          0.068,
+          null
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.010022825574869039,
+        0.3931231302267222,
+        0.01532520332062848
+      ]
+    },
+    {
+      "part": "Rear cockpit yoke",
+      "target": "emission",
+      "where": {
+        "x": [
+          0.115,
+          0.142
+        ],
+        "y": [
+          -0.203,
+          -0.178
+        ]
+      },
+      "value": 1.0,
+      "color": [
+        0.027211780951381357,
+        0.47699978456654196,
+        0.01341174889765847
+      ]
+    },
+    {
+      "part": "Engine nozzle",
+      "target": "light",
+      "where": {
+        "y": [
+          -0.9612727489471435,
+          -0.9532727489471435
+        ]
+      },
+      "value": 1.0
+    },
+    {
+      "part": "Engine nozzle",
+      "target": "light",
+      "where": {
+        "y": [
+          -0.829000011920929,
+          -0.821000011920929
+        ]
+      },
+      "value": 1.0
+    }
+  ],
+  "material": {
+    "shadow_strength": 1.0,
+    "light_strength": 1.0,
+    "ink_strength": 1.0,
+    "light_lift": 0.25,
+    "ink_color": [
+      0.0014705882352941176,
+      0.0017801857585139319,
+      0.0022445820433436535
+    ],
+    "emission_blend": 1.0,
+    "lighting": {
+      "_ShadowThreshold": 0.55,
+      "_ShadowSoftness": 0.18,
+      "_CastShadowStrength": 0.96,
+      "_AmbientStrength": 0.35,
+      "_PaletteLighting": 1,
+      "_SpecularStrength": 0,
+      "_ShadowColor": [
+        0.35,
+        0.45,
+        0.8
+      ]
+    }
+  }
+}

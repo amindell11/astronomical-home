@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "brush": {
+    "image": "textures/painted-brush-source.png",
+    "scale": 1.3,
+    "contrast": 3.2,
+    "blend": 0.25
+  },
+  "ramp": [
+    [
+      0.1,
+      0.38
+    ],
+    [
+      0.55,
+      0.64
+    ],
+    [
+      0.92,
+      1.0
+    ]
+  ],
+  "sweep": {
+    "weight_x": 0.65,
+    "dark_below": 0.33,
+    "light_above": 0.66,
+    "jitter": 0.5,
+    "dark": 0.61,
+    "light": 1.0
+  },
+  "ink": {
+    "inset": 0.003,
+    "rim": 0.0065,
+    "rim_light": 0.35,
+    "wall_facing": 0.65
+  },
+  "plates": {
+    "cap_facing": 0.9,
+    "thin_wall": 0.12
+  },
+  "regions": {
+    "Ivory": {
+      "plate": true,
+      "sweep": true,
+      "ink_walls": false
+    },
+    "Orange": {
+      "plate": true,
+      "sweep": false,
+      "ink_walls": true
+    },
+    "Slate": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Dark": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    },
+    "Canopy": {
+      "plate": false,
+      "sweep": false,
+      "ink_walls": false
+    }
+  },
+  "accents": [
+    {
+      "part": "MVP Canopy",
+      "target": "light",
+      "where": {
+        "x": [
+          0.015,
+          0.035
+        ]
+      },
+      "value": 1.0
+    }
+  ],
+  "material": {
+    "shadow_strength": 1.0,
+    "light_strength": 1.0,
+    "ink_strength": 1.0,
+    "light_lift": 0.25,
+    "ink_color": [
+      0.019,
+      0.023,
+      0.029
+    ],
+    "emission_blend": 1.0,
+    "lighting": {
+      "_ShadowThreshold": 0.55,
+      "_ShadowSoftness": 0.18,
+      "_CastShadowStrength": 0.96,
+      "_AmbientStrength": 0.35,
+      "_PaletteLighting": 1,
+      "_SpecularStrength": 0
+    }
+  }
+}

@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "73b36464afb8f6e1c76b0f43db64cdb1d5f702ddf7a04ae019130d92b0c0b723",
+  "palette": "crimson",
+  "regions": [
+    "Charcoal",
+    "Glass",
+    "Red",
+    "Rim",
+    "Silver"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Ink.png",
+    "Emission": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Emission.png"
+  },
+  "baseline": "created",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0,
+    "Emission": 0
+  },
+  "parts": {
+    "Canopy": {
+      "regions": [
+        "Glass"
+      ],
+      "thickness": 0.164908432867378,
+      "thin": false,
+      "cap": {
+        "faces": 17,
+        "area": 0.025999827,
+        "edges": 32
+      }
+    },
+    "Canopy perimeter rim": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.18019874673336744,
+      "thin": false,
+      "cap": {
+        "faces": 40,
+        "area": 0.014595358,
+        "edges": 60
+      }
+    },
+    "Canopy transverse frame": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.009000003337860107,
+      "thin": true,
+      "cap": {
+        "faces": 12,
+        "area": 0.000683229,
+        "edges": 22
+      }
+    },
+    "Central hull": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.22517119720578194,
+      "thin": false,
+      "cap": {
+        "faces": 9,
+        "area": 0.268292454,
+        "edges": 30
+      }
+    },
+    "Cockpit surround": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.29788990318775177,
+      "thin": false,
+      "cap": {
+        "faces": 4,
+        "area": 0.019078281,
+        "edges": 8
+      }
+    },
+    "Cube": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.25924405455589294,
+      "thin": false,
+      "cap": {
+        "faces": 8,
+        "area": 0.416664258,
+        "edges": 12
+      }
+    },
+    "Dorsal service spine": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.08636363595724106,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.003554283,
+        "edges": 10
+      }
+    },
+    "Engine forward cowling": {
+      "regions": [
+        "Rim"
+      ],
+      "thickness": 0.17509502172470093,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.02270342,
+        "edges": 5
+      }
+    },
+    "Engine housing": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.19090907275676727,
+      "thin": false,
+      "cap": {
+        "faces": 16,
+        "area": 0.031903413,
+        "edges": 16
+      }
+    },
+    "Engine neck": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.09090906381607056,
+      "thin": true,
+      "cap": {
+        "faces": 6,
+        "area": 0.006682117,
+        "edges": 12
+      }
+    },
+    "Engine nozzle": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.1772727370262146,
+      "thin": false,
+      "cap": {
+        "faces": 10,
+        "area": 0.016861911,
+        "edges": 14
+      }
+    },
+    "Engine support frame": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.21152613684535027,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.063281313,
+        "edges": 9
+      }
+    },
+    "Engine throat": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.006818234920501709,
+      "thin": true,
+      "cap": null
+    },
+    "Lower Aft swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.03518496034666896,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.023190087,
+        "edges": 3
+      }
+    },
+    "Lower Forward fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.07940168678760529,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.018154552,
+        "edges": 4
+      }
+    },
+    "Lower Outer swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.08107738196849823,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.016893305,
+        "edges": 3
+      }
+    },
+    "Lower aft shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.14270942751318216,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.072528586,
+        "edges": 6
+      }
+    },
+    "Lower inner shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.12627960368990898,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.081123792,
+        "edges": 6
+      }
+    },
+    "Lower outer armor rail": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.09280355647206306,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.038709827,
+        "edges": 14
+      }
+    },
+    "Lower prow armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.06284063309431076,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.078469524,
+        "edges": 14
+      }
+    },
+    "Lower prow tip": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.028763048350811005,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.042804349,
+        "edges": 8
+      }
+    },
+    "Lower wing foundation": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.1780685856938362,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.004125454,
+        "edges": 3
+      }
+    },
+    "Outer rail mounting block": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.11938946321606636,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.017225925,
+        "edges": 4
+      }
+    },
+    "Rear cockpit yoke": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.09487565979361534,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.051363271,
+        "edges": 24
+      }
+    },
+    "Service channel floor": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.05216741003096104,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.036499649,
+        "edges": 12
+      }
+    },
+    "Service pod cap": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.041195936501026154,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.00339737,
+        "edges": 4
+      }
+    },
+    "Shoulder service pod": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.13271310925483704,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.023797534,
+        "edges": 6
+      }
+    },
+    "Shoulder underside link": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.07727272808551788,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.020711614,
+        "edges": 6
+      }
+    },
+    "Structural center web": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.14217733591794968,
+      "thin": false,
+      "cap": {
+        "faces": 36,
+        "area": 1.623916224,
+        "edges": 76
+      }
+    },
+    "Upper Aft swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.077027827501297,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.022719318,
+        "edges": 3
+      }
+    },
+    "Upper Forward fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.10482645779848099,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.017784454,
+        "edges": 4
+      }
+    },
+    "Upper Outer swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.10971050336956978,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.016654436,
+        "edges": 3
+      }
+    },
+    "Upper aft shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10791981220245361,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.068628348,
+        "edges": 6
+      }
+    },
+    "Upper inner shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10559722036123276,
+      "thin": true,
+      "cap": {
+        "faces": 1,
+        "area": 0.07863272,
+        "edges": 6
+      }
+    },
+    "Upper outer armor rail": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.15058891475200653,
+      "thin": false,
+      "cap": {
+        "faces": 1,
+        "area": 0.038520999,
+        "edges": 14
+      }
+    },
+    "Upper prow armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.11826747842133045,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.079575769,
+        "edges": 14
+      }
+    },
+    "Upper prow tip": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.05304638296365738,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.04263876,
+        "edges": 8
+      }
+    },
+    "Upper wing foundation": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.1578560769557953,
+      "thin": false,
+      "cap": {
+        "faces": 4,
+        "area": 0.429835514,
+        "edges": 22
+      }
+    },
+    "Wing root beam": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10201112926006317,
+      "thin": true,
+      "cap": {
+        "faces": 2,
+        "area": 0.056339249,
+        "edges": 7
+      }
+    }
+  },
+  "accents": 5,
+  "preview": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\crimson-paint\\preview\\Composite.png",
+  "unity": {
+    "root": "C:\\Users\\amind\\AppData\\Local\\Temp\\claude\\D--amind-git-astronomical-home--claude-worktrees-jovial-pasteur-cdb6ba\\84fb56bb-88c9-4313-b27e-66f257db3f42\\scratchpad\\crimson-paint\\unity\\Crimson",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Paint/Emission.png",
+      "Paint/Emission.png.meta",
+      "Materials.meta",
+      "Materials/crimson.meta",
+      "Materials/crimson/Charcoal.mat",
+      "Materials/crimson/Charcoal.mat.meta",
+      "Materials/crimson/Glass.mat",
+      "Materials/crimson/Glass.mat.meta",
+      "Materials/crimson/Red.mat",
+      "Materials/crimson/Red.mat.meta",
+      "Materials/crimson/Rim.mat",
+      "Materials/crimson/Rim.mat.meta",
+      "Materials/crimson/Silver.mat",
+      "Materials/crimson/Silver.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}
