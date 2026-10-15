@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "9e5e70c17dcab66863637c80f7389d5ccd5254ba88e120374cce4b5b2f374c24",
+  "before_sha256": "c8f37eba0ceafec1e86680fa9139bbc40bc1ac834c528753ffa9434163ea8368",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-3\\results\\bulwark\\detail-model\\2026-10-15-lower-fin-flip\\compare\\after_side.png"
+  },
+  "set": "compare",
+  "changed_pixels": {
+    "top": 6013,
+    "side": 5128
+  },
+  "verdict": "pass"
+}

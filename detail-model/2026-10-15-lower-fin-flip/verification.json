@@ -1,0 +1,90 @@
+{
+  "changed": {
+    "Lower flaps - Fins": [
+      "vertices",
+      "faces",
+      "uv",
+      "evaluated_world",
+      "evaluated_faces"
+    ]
+  },
+  "painted_face_indices": [
+    0,
+    8,
+    9,
+    10
+  ],
+  "painted_normal_z_after": [
+    -0.872180163860321,
+    -0.8841902017593384,
+    -0.8854067921638489,
+    -0.89054274559021
+  ],
+  "attachment_error": 2.9200193199910854e-07,
+  "shape_distance_error": 3.955922167619974e-07,
+  "uv_corner_association_preserved": true,
+  "paint_pixels_preserved": true,
+  "owner_edit_mesh_preserved": true,
+  "after_images": {
+    "Bulwark Armor BaseRegion": {
+      "pixels": "1a03ae8310fdc746f7635c00bc00c0f75054814354ab95eed087897ad7247965",
+      "packed": "7249bcf181d5061ee3a51cd52734e3132c4be84e8ea1e646e66cab7e86bcc9c5"
+    },
+    "Bulwark BaseRegion": {
+      "pixels": "976cb734c5a911efd5ea4005c6c83c02758d5cd215a227996346e595a033521d",
+      "packed": "a9636ef02e314f4c7b9535b2206a706037659fa0797b92f706feebaad319384b"
+    },
+    "Bulwark BaseRegion.001": {
+      "pixels": "f183577fcac27013dc7eb2232225c1e5ad31ab8e6c47e93f62fd8c2d9fb1c9d0",
+      "packed": "d4fe07b1488338dd08c887daa119730ca109d32d85b2e969e6fa5f45f19ba6de"
+    },
+    "Bulwark BaseRegion.002": {
+      "pixels": "f183577fcac27013dc7eb2232225c1e5ad31ab8e6c47e93f62fd8c2d9fb1c9d0",
+      "packed": "d4fe07b1488338dd08c887daa119730ca109d32d85b2e969e6fa5f45f19ba6de"
+    },
+    "Bulwark Ink.001": {
+      "pixels": "47efc4c51708c70cf4ebb5e0b2380c61906d44c3294fbdafc3afbd880183d254",
+      "packed": "0552339cf189dc2d10db5e6ed97c2535fff572c1c2cbfa10d04f2cb11945b88c"
+    },
+    "Bulwark Ink.002": {
+      "pixels": "47efc4c51708c70cf4ebb5e0b2380c61906d44c3294fbdafc3afbd880183d254",
+      "packed": "0552339cf189dc2d10db5e6ed97c2535fff572c1c2cbfa10d04f2cb11945b88c"
+    },
+    "Bulwark Ink.003": {
+      "pixels": "47efc4c51708c70cf4ebb5e0b2380c61906d44c3294fbdafc3afbd880183d254",
+      "packed": "0552339cf189dc2d10db5e6ed97c2535fff572c1c2cbfa10d04f2cb11945b88c"
+    },
+    "Bulwark Light.001": {
+      "pixels": "c17ba56cd84551a722bb173280af5300188fa600a0929f6434b9b5cea5c75293",
+      "packed": "a4f313f75a713bcb2613a7462156e50609e03e12d2b48d39fea7d29acc60be17"
+    },
+    "Bulwark Light.002": {
+      "pixels": "c17ba56cd84551a722bb173280af5300188fa600a0929f6434b9b5cea5c75293",
+      "packed": "a4f313f75a713bcb2613a7462156e50609e03e12d2b48d39fea7d29acc60be17"
+    },
+    "Bulwark Light.003": {
+      "pixels": "c17ba56cd84551a722bb173280af5300188fa600a0929f6434b9b5cea5c75293",
+      "packed": "a4f313f75a713bcb2613a7462156e50609e03e12d2b48d39fea7d29acc60be17"
+    },
+    "Bulwark Shadow.001": {
+      "pixels": "4befda501f144208574c676601381f8bcfdbfa8ef6bd692641c9db1067186d22",
+      "packed": "192e46731bf2e4332edebb056dfb6adc109828033f89c1b0cd9cc5185292dca3"
+    },
+    "Bulwark Shadow.002": {
+      "pixels": "4befda501f144208574c676601381f8bcfdbfa8ef6bd692641c9db1067186d22",
+      "packed": "192e46731bf2e4332edebb056dfb6adc109828033f89c1b0cd9cc5185292dca3"
+    },
+    "Bulwark Shadow.003": {
+      "pixels": "4befda501f144208574c676601381f8bcfdbfa8ef6bd692641c9db1067186d22",
+      "packed": "192e46731bf2e4332edebb056dfb6adc109828033f89c1b0cd9cc5185292dca3"
+    },
+    "Bulwark-turnaround.png": {
+      "pixels": "a540118a5d76056a4c504845ce05bdb8ec1e7d4278027b6b7e4a8e1f6a4cf003",
+      "packed": "3f4c75fd9d9ad0f17905d232525ff779758013f163cde94b2e38ae0f9aa64864"
+    },
+    "Bulwark-turnaround.png.001": {
+      "pixels": "a540118a5d76056a4c504845ce05bdb8ec1e7d4278027b6b7e4a8e1f6a4cf003",
+      "packed": "3f4c75fd9d9ad0f17905d232525ff779758013f163cde94b2e38ae0f9aa64864"
+    }
+  }
+}
