@@ -1,0 +1,89 @@
+{
+  "changed": {
+    "Armor - Upper shoulder guards": [
+      "materials",
+      "face_materials"
+    ],
+    "Armor - Lower skids": [
+      "materials",
+      "face_materials"
+    ]
+  },
+  "geometry_uv_paint_preserved": true,
+  "saved": false,
+  "original": {
+    "Armor - Upper shoulder guards": {
+      "materials": [
+        "Bulwark Plum",
+        "Bulwark Bone",
+        "Bulwark Structure",
+        "Bulwark Glass",
+        "Bulwark Flap",
+        "Bulwark Metal",
+        "Bulwark EdgeCoat",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum"
+      ],
+      "faces": [
+        2,
+        8,
+        8,
+        7,
+        8,
+        8,
+        2,
+        2,
+        8,
+        7,
+        8,
+        8,
+        2,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "Armor - Lower skids": {
+      "materials": [
+        "Bulwark Plum",
+        "Bulwark Bone",
+        "Bulwark Structure",
+        "Bulwark Glass",
+        "Bulwark Flap",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum"
+      ],
+      "faces": [
+        2,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        2,
+        5,
+        6,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        2,
+        5,
+        5,
+        5,
+        6,
+        5,
+        5,
+        5
+      ]
+    }
+  }
+}
