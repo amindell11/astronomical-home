@@ -6,6 +6,8 @@
 
 Texture Paint opens on `Bulwark BaseRegion` with an opaque hard white brush. White adds the existing bone-white coat; black reveals the underlying color. Press **X** to swap, **F** to resize, and **Alt+Q** over another part to transfer Texture Paint to it. Plum, Bone, Flap and EdgeCoat materials accept the white coat. Use the Image menu to save edited images, then save the `.blend` before handing the rough paint back for cleanup.
 
+The owner's asymmetric livery has cleaned panel borders and paired side stripes. The two additional plum nose bars wrap over the nose edge to the underside. Packed masks match the external PNGs, verified after a fresh Blender load.
+
 The side canisters use the neutral gray `Metal` material; `Glass` belongs to the cockpit glazing. Metal has its own finish settings in `paint-settings.json`.
 
-The plum palette and UV layout are approved. Paint is in owner editing; native Unity material previews live on `evidence/bulwark`. Gameplay prefab integration and flight check remain separate.
+The plum palette and UV layout are approved. The owner's paint cleanup is applied in the editable source; review images live on `evidence/bulwark`. Gameplay prefab integration and flight check remain separate.

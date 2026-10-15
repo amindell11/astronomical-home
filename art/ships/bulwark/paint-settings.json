@@ -22,7 +22,7 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "owner-paint-editing",
+  "status": "owner-cleanup-applied",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
