@@ -241,7 +241,7 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
     brush_light = g.math("MAXIMUM", g.math("SUBTRACT", factor, 1.0), 0.0)
     _, _, nz = g.separate(geometry.outputs["Normal"])
     facing = g.math("ABSOLUTE", nz)
-    shadow_ramp = g.math("SUBTRACT", 1.0, g.ramp(facing, paint["ramp"]))
+    shadow_ramp = g.math("MULTIPLY", g.math("SUBTRACT", 1.0, g.ramp(facing, paint["ramp"])), paint["side_wall_depth"])
     shadow_sweep, light_sweep = 0.0, 0.0
     if flags["sweep"] and cap:
         sweep = paint["sweep"]
@@ -251,7 +251,7 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
         sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
         s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
         s = g.math("MULTIPLY_ADD", g.math("SUBTRACT", brush, 0.65), sweep["jitter"], s)
-        shadow_sweep = g.math("MULTIPLY", g.math("LESS_THAN", s, sweep["dark_below"]), 1.0 - sweep["dark"])
+        shadow_sweep = g.math("MULTIPLY", g.math("LESS_THAN", s, paint["shadow_coverage"]), paint["shadow_depth"])
         light_sweep = g.math("MULTIPLY", g.math("GREATER_THAN", s, sweep["light_above"]), sweep["light"])
     kept = g.math("MULTIPLY", g.math("SUBTRACT", 1.0, shadow_ramp), g.math("SUBTRACT", 1.0, brush_dark))
     kept = g.math("MULTIPLY", kept, g.math("SUBTRACT", 1.0, shadow_sweep))

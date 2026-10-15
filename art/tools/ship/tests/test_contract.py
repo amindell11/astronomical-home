@@ -18,6 +18,7 @@ VALID_PALETTES = {"color_space": "linear-sRGB", "default": "test",
                                "alt": {"Zinc": [0.2, 0.5, 0.3, 1], "Glass": [0.03, 0.04, 0.06, 1]}}}
 VALID_PAINT = {
     "schema_version": 1,
+    "shadow_coverage": 0.33, "shadow_depth": 0.39, "side_wall_depth": 1.0,
     "brush": {"image": "brush.png", "scale": 1.3, "contrast": 3.2, "blend": 0.25},
     "ramp": [[0.1, 0.38], [0.55, 0.65], [0.92, 1.0]],
     "sweep": {"weight_x": 0.65, "dark_below": 0.33, "light_above": 0.66, "jitter": 0.5, "dark": 0.61, "light": 1.0},
@@ -85,6 +86,12 @@ class PaintSettingsTests(unittest.TestCase):
         self.assertEqual(contract.parse_palettes(VALID_PALETTES), VALID_PALETTES)
         self.assertEqual(contract.parse_paint(VALID_PAINT), VALID_PAINT)
 
+    def test_shadow_defaults_preserve_existing_recipe(self):
+        legacy = copy.deepcopy(VALID_PAINT)
+        for key in ("shadow_coverage", "shadow_depth", "side_wall_depth"):
+            del legacy[key]
+        self.assertEqual(contract.parse_paint(legacy), VALID_PAINT)
+
     def test_palettes_rejections(self):
         cases = {
             "unknown field": lambda v: v.update(notes="x"),
@@ -103,6 +110,9 @@ class PaintSettingsTests(unittest.TestCase):
     def test_paint_rejections(self):
         cases = {
             "unknown field": lambda v: v.update(wear=True),
+            "shadow depth": lambda v: v.update(shadow_depth=-1),
+            "shadow coverage": lambda v: v.update(shadow_coverage=0.7),
+            "side wall depth": lambda v: v.update(side_wall_depth=True),
             "canopy type": lambda v: v.update(canopy_glass="Canopy"),
             "canopy blank": lambda v: v.update(canopy_glass=[""]),
             "canopy duplicate": lambda v: v.update(canopy_frames=["Canopy"]),

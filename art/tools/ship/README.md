@@ -60,6 +60,7 @@ parts) per palette, linear sRGB, every palette naming the same regions:
 
 ```json
 {"schema_version": 1,
+ "shadow_coverage": 0.33, "shadow_depth": 0.39, "side_wall_depth": 1.0,
  "brush": {"image": "textures/painted-brush-source.png", "scale": 1.3, "contrast": 3.2, "blend": 0.25},
  "ramp": [[0.10, 0.38], [0.55, 0.64], [0.92, 1.0]],
  "sweep": {"weight_x": 0.65, "dark_below": 0.33, "light_above": 0.66, "jitter": 0.5, "dark": 0.61, "light": 1.0},
@@ -87,6 +88,11 @@ parts) per palette, linear sRGB, every palette naming the same regions:
   jitter*(brush - 0.65)`; `s < dark_below` adds Shadow `1 - dark`, and `s > light_above`
   sets Light `light`. `ink_walls` inks faces with |n*z| < `ink.wall_facing` on parts
   thinner than `plates.thin_wall` (each connected piece's smallest axis extent is below it).
+- **Shadow controls.** `shadow_coverage` defaults to `sweep.dark_below` (0.33),
+  `shadow_depth` to `1 - sweep.dark` (0.39), and `side_wall_depth` to 1.0.
+  The first two control sweep coverage and darkness; the third multiplies the ramp's
+  Shadow. All accept 0..1; coverage stays below `sweep.light_above`. Explicit values
+  override the legacy sweep fields. Omitting all three preserves the existing recipe.
 - **Ramp.** Shadow from facing: `1 − ramp(|n·z|)`, ease-interpolated through the stops.
 - **Brush.** The tile, box-projected at `scale` with `blend`, reads as `factor = 1 +
   contrast·(brush − 0.625)`: below 1 it adds Shadow, above 1 it adds Light.

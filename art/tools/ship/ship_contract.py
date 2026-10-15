@@ -171,11 +171,11 @@ def parse_palettes(value):
 
 def parse_paint(value):
     """Validate paint.json, the per-ship knobs of ship_paint; unknown fields and keys are rejected."""
-    optional = ("canopy_glass", "canopy_frames")
+    optional = ("canopy_glass", "canopy_frames", "shadow_coverage", "shadow_depth", "side_wall_depth")
     fields = PAINT_FIELDS + tuple(key for key in optional if isinstance(value, dict) and key in value)
     _fields(value, fields, "paint.json")
     assigned = set()
-    for key in optional:
+    for key in ("canopy_glass", "canopy_frames"):
         names = value.get(key, [])
         if not isinstance(names, list):
             raise ValueError(f"{key}: expected a list of part names")
@@ -210,6 +210,13 @@ def parse_paint(value):
         _number(sweep[key], f"sweep.{key}", 0, 1 if key != "jitter" else None)
     if sweep["dark_below"] >= sweep["light_above"]:
         raise ValueError("sweep: expected dark_below below light_above")
+    value = json.loads(json.dumps(value))
+    for key, default in (("shadow_coverage", sweep["dark_below"]), ("shadow_depth", 1 - sweep["dark"]),
+                         ("side_wall_depth", 1.0)):
+        value.setdefault(key, default)
+        _number(value[key], key, 0, 1)
+    if value["shadow_coverage"] >= sweep["light_above"]:
+        raise ValueError("shadow_coverage: expected below sweep.light_above")
     ink = value["ink"]
     _fields(ink, INK_FIELDS, "ink")
     _number(ink["inset"], "ink.inset", 0)
