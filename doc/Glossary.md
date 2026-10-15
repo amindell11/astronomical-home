@@ -913,9 +913,9 @@ Format: **term** — definition. *(authority)*
   image on `PaintUV` the drawn-surface shader applies over the region colour. Never
   "paint layer": *layer* is a collision word; `layers/` is only the folder and
   `_PaintLayers` only the shader toggle. *(ship_paint.py; DrawnSurface.shader)*
-- **plate** — a part's outward cap, the up-or-down-facing face group farthest from the
-  mid-plane; the unit the diagonal sweep and the inset ink line are drawn on.
-  *(ship_paint.Part)*
+- **plate** — one connected up-or-down-facing face group of a part (|n·z| ≥
+  `plates.cap_facing`), with its own boundary; the unit the diagonal sweep and the inset
+  ink line are drawn on. *(ship_paint.Part)*
 - **mask baseline** — `layers/baseline/`, the paint tool's own last output, kept so a
   re-run can separate the owner's edits (mask minus baseline) and carry them onto the
   new generation. *(ship_paint.py)*
