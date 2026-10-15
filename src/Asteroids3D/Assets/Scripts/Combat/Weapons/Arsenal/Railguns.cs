@@ -33,6 +33,9 @@ namespace Combat.Weapons.Arsenal
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
 
+        /// <summary>Per beam hit: the point and what it struck, null when the collider takes no damage.</summary>
+        public event Action<Vector3, IDamageable> Hit;
+
         [Header("Conditions")]
         [Stat, SerializeField] private ChargeTime charge;
         [Stat, SerializeField] private Cooldown cooldown;
@@ -104,20 +107,15 @@ namespace Combat.Weapons.Arsenal
 
             if (bestIndex >= 0)
             {
-                end = beamHits[bestIndex].point;
-                ApplyBeamDamage(beamHits[bestIndex]);
+                var hit = beamHits[bestIndex];
+                end = hit.point;
+                var damageable = hit.collider.GetComponentInParent<IDamageable>();
+                damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.Registry.ShipId.Invalid,
+                    impactMass, firePoint.up * impactSpeed, hit.point));
+                Hit?.Invoke(hit.point, damageable);
             }
 
             OnBeamFired?.Invoke(origin, end);
-        }
-
-        private void ApplyBeamDamage(in RaycastHit hit)
-        {
-            var damageable = hit.collider.GetComponentInParent<IDamageable>();
-            if (damageable == null) return;
-
-            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.Registry.ShipId.Invalid,
-                impactMass, firePoint.up * impactSpeed, hit.point));
         }
     }
 }

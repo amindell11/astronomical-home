@@ -18,8 +18,10 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 
 ## Runtime rules
 
-- Prefabs reference events through `EventReference` (an `event:/` path plus its GUID), so FMOD's picker works locally. `FmodWiringEditModeTests` checks every referenced path against `GUIDs.txt` on the hosted suite, where the stub cannot; a Studio rename therefore fails CI, not the game.
+- Prefabs reference events through `EventReference` (an `event:/` path plus its GUID), so FMOD's picker works locally; code names a parameter through a `const string …Parameter = "Name"`. `FmodWiringEditModeTests` checks every referenced event path, and every such constant as `parameter:/Name`, against `GUIDs.txt` on the hosted suite, where the stub cannot; a Studio rename of either therefore fails CI, not the game.
 - A 3D event started without `set3DAttributes` goes virtual: silent, with no error. `WeaponFireAudio` sets them at the fire point.
+- A sustained instance on a moving object is attached with `RuntimeManager.AttachInstanceToGameObject`, so FMOD moves it with the object every frame; `ChargeWeaponAudio` attaches to the weapon and detaches when it stops the instance.
+- A charge weapon's event is keyed off on the shot (`keyOff`), never stopped: the timeline runs on from its sustain point into the release. Any other return of the charge-up to zero stops it with fade-out.
 - The camera's `StudioListener` attenuates from `ListenerPlaneAnchor`, the point on the game plane beneath the camera, and pans from the camera itself. The camera sits 50 units off the plane and FMOD's default event range is 1–20, so an event measured from the camera is silent; keep attenuation anchored on the plane and author event ranges in plane units.
 - Batch `-executeMethod` tooling runs before FMOD's editor startup: call `FMODUnity.EventManager.Startup()` before `EventReference.Find`.
 - Live Update is on in every editor run (port 9264) and cannot be switched off per run: FMOD fixes its init flags before the platform callback handler runs. A port collision restarts FMOD without it, harmlessly.
@@ -32,7 +34,6 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 - **A new FMOD member the game uses → the same member in the stub**: same type, namespace and signature, no-op body, copied from the vendor package in `D:\amind\git\vendor\fmod\fmodstudio20400.tgz`. The compiler enforces it: the hosted suite fails to compile until the member exists.
 - **A new FMOD component placed on a prefab → its stub `.cs.meta` carries FMOD's real script GUID** (from the same tarball). `FmodWiringEditModeTests` fails on the missing script otherwise.
 - The stub grows when the hosted suite demands a member, never ahead of use.
-- A parameter rename in Studio is caught only by the local evidence test (`LaserFireAudioPlayModeTests`, compiled under `ASTRO_FMOD`): run it after renaming.
 
 ## Verifying sound
 
