@@ -76,4 +76,3 @@ assert originals=={o.name:ship_source.part_fingerprint(o) for s in bpy.data.scen
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
 Path(__file__).with_name('detail-audit.json').write_text(json.dumps({'existing_parts_unchanged':len(before),'inactive_parts_unchanged':len(originals),'new_parts':records},indent=2)+'\n')
-
