@@ -95,8 +95,8 @@ namespace UI.Hangar
             light.intensity = 1.6f;
         }
 
-        /// <summary>Re-renders at <paramref name="pixels"/> square (capped), so the UI never upscales the
-        /// preview. Replaces <see cref="Texture"/> when the size changes.</summary>
+        /// <summary>Re-renders at <paramref name="pixels"/> square, capped at <see cref="MaxTextureSize"/>; past the
+        /// cap the UI draws the preview upscaled. Replaces <see cref="Texture"/> when the size changes.</summary>
         public void Resize(int pixels)
         {
             var size = Mathf.Min(pixels, MaxTextureSize);
