@@ -1,29 +1,87 @@
-# ship-paint evidence (#1014, #868 slice 8)
+# Ship-paint evidence (#1014, PR #1015)
 
-`ship_paint` run on three ships in the build slot. Everything here is evidence only: none of the
-per-ship settings, region assignments or masks land with #1014 (conversions are later PRs).
+Evidence only. Per-ship assignments, settings, masks and studies here are not production conversions.
+Round 2 uses tool commit `5a149876b`; the owner retained brush contrast 3.2 and shadow depth 0.39.
 
-| Folder | What |
-|---|---|
-| `crimson/` | The benchmark. `compare-top.png` / `compare-side.png`: `ship_render --set compare --textured --size 1024`, main's atlas (left) beside the tool's composite (middle) with changed pixels (right). `painted-top.png`: the composite alone. Masks (`Shadow`, `Light`, `Ink`, `Emission`), the run's `ship_paint.json`, and the slot-local `paint.json`, `palettes.json`, `lock.json`. |
-| `nightshade/` | Re-derived against its current pale-blue palette with Crimson's rules; the old projected masks were set aside (the tool refuses masks without a baseline). `painted-top.png`, `painted-side.png`, masks, report, settings. |
-| `vanguard/` | Evidence-only migration onto the tool layout from the study's in-game scene (`vanguard_source.py`): regions classified per face from today's atlas (`regions-top.png`), then painted. `painted-top.png`, `painted-side.png`, masks, report, settings. |
-| `lineup/` | Unity capture (batch editor on the slot project, `PaintPreviewLineup.cs` + `paint_lineup.ps1`) under the game's `Lighting.prefab` with shadow maps off and a flat ambient: row 0 today's chassis prefabs, row 1 copies with the paint swapped in. Nightshade's real hull carries the region slots, so it binds the bundle's `_PaintLayers` materials (the in-engine proof of the bundle); Crimson's and Vanguard's single-slot meshes show the tool's composite as their base map on the same UVs. `lineup-large.png`, `lineup-game-scale.png`, `lineup.log`. |
-| `lineup-neutral/` | The same lineup under one camera-side key light and flat ambient, where the paint reads most clearly. |
-| `fixture/` | The smoke's fixture ship composite and the smoke log (`SHIP_SMOKE_PASS`). |
-| `*.py` | The evidence-only helper scripts (region assignment, preview material, tolerance measure). |
+## Round 1
 
-## Crimson tolerance (the brief's measure)
+- `crimson/`: original benchmark comparison against main's atlas, painted views, masks, settings and run report.
+- `nightshade/`: original pale-blue palette study, painted views, masks, settings and report.
+- `vanguard/`: **withdrawn: deferred to Vanguard's conversion (#1014 comment, 2026-10-15)**. Retained only as historical evidence; its face-majority atlas migration lost sub-face details and excluded the native cores.
+- `lineup/`: historical game-light capture and original launcher/renderer; saved prefab rotations were not corrected, and Crimson/Vanguard used composite substitution.
+- `lineup-neutral/`: historical camera-side key-light capture; superseded for pose and material binding by round 2.
+- `fixture/`: fixture composite and smoke log (`SHIP_SMOKE_PASS`).
+- `crimson_regions.py`, `vanguard_source.py`, `preview_material.py`, `tolerance.py`: original evidence helpers; `vanguard_source.py` is withdrawn with the Vanguard study.
 
-Fraction of silhouette pixels whose largest channel delta exceeds 16/255, Workbench textured
-compare at 1024, main's atlas vs the tool's composite:
+## Round 2
 
-| View | Silhouette px | Changed px | Fraction | Mean delta |
-|---|---|---|---|---|
-| top | 440194 | 83699 | 0.190 | 13.7/255 |
-| side | 108059 | 16523 | 0.153 | 13.2/255 |
+Top-down, noses up. The final lineup contains Crimson, Nightshade and unchanged Valis only;
+current prefabs above actual region-material candidates. Vanguard is deferred entirely.
+The current Crimson masks contain no owner proof stroke; that separate demonstration is in `owner-stroke.png`.
+Nightshade's base-coat study remains undecided; the decision belongs to its conversion PR.
 
-Known drifts, all predicted in the brief: painted shadow is achromatic in the shader (Crimson's cool
-side-wall tint is gone); fin tops gain an inset line and rim; three silver parts the seed skipped by
-name (Cockpit surround, Rear cockpit yoke, Engine support frame) gain the plate treatment; three
-small red parts gain inked walls (service pod cap, dorsal spine, canopy transverse frame).
+Neutral captures use a white directional key, intensity 1, Euler (15,-20,0), and flat ambient
+(0.45,0.45,0.45). The game-light variant uses `Assets/Scenes/Lighting.prefab`, shadow maps off,
+and flat ambient (0.42,0.44,0.48), matching round 1's lighting setup. Both retain identical poses.
+Removing Vanguard removes one column: spacing stays 4.5 world units, height stays 9 world units,
+and pixels per world unit stay unchanged (3000x2000 large; 480x320 game-scale).
+
+Each file below is relative to `paint/round2/`:
+
+- `fleet-final.png`: neutral Unity lineup, current prefabs above tool paint; Valis unchanged in both rows.
+- `fleet-game-scale.png`: the same neutral lineup at native game-scale resolution.
+- `fleet-game-light.png`: the same lineup under the game's Lighting prefab.
+- `crimson-compare-top.png`: main atlas, current tool composite and any-channel difference; 1024-pixel Workbench views.
+- `centreline.png`: old/new cap-boundary close-ups under neutral Unity light, with identical region binding.
+- `canopies.png`: Crimson and Nightshade before/after the palette-only cockpit ruling.
+- `owner-stroke.png`: an owner Light-mask stroke survives a re-run and appears in the composed preview and Unity.
+- `brightness.png`: Crimson base, sweep, side-wall ramp, brush and full recipe under identical neutral Unity light.
+- `brightness-grid.png`: brush contrasts 3.2/1.2/0.15 by shadow depths 0.39/0.18/0.02, plus today's atlas benchmark.
+- `brightness-grid-game-scale.png`: all nine brightness choices at native thumbnail resolution; current is top-left.
+- `nightshade-diagnosis.png`: controlled old, slots-only, slots-plus-caps and cockpit-excluded previews; dark strips return with slot identity.
+- `nightshade-study.png`: evidence-only PaperColor proposal under neutral light; no direction approved.
+- `crimson/paint.json`: strict current recipe; coverage 0.33, depth 0.39, side-wall depth 1.0, brush contrast 3.2.
+- `crimson/palettes.json`: Crimson's region palette in linear sRGB.
+- `crimson/Shadow.png`: generated Crimson Shadow mask, without owner edits.
+- `crimson/Light.png`: generated Crimson Light mask, without the proof stroke.
+- `crimson/Ink.png`: generated Crimson Ink mask.
+- `crimson/Emission.png`: generated Crimson indicator emission mask.
+- `nightshade/paint.json`: strict current Nightshade recipe with explicit glass/frame exclusions.
+- `nightshade/palettes.json`: current evidence palette; excludes the unapproved PaperColor proposal.
+- `nightshade/Shadow.png`: generated Nightshade Shadow mask.
+- `nightshade/Light.png`: generated Nightshade Light mask.
+- `nightshade/Ink.png`: generated Nightshade Ink mask.
+- `nightshade/Emission.png`: generated Nightshade louver emission mask.
+- `PaintPreviewLineup.cs`: corrected three-column Unity renderer, explicit pose and import scale, both lighting setups.
+- `paint_lineup.ps1`: batch launcher with explicit slot project, output, log and mask-root arguments.
+
+### Crimson tolerance
+
+`paint/tolerance.py` measures pixels whose maximum RGB delta exceeds 16/255 inside the union
+of both ship silhouettes; mean delta is the mean maximum-channel difference in that silhouette.
+Workbench textured compare, 1024 pixels per view; the round-2 main atlas blob is
+`b0ad6ef9e01fb6a7b94a00d8451b811957a738aa`. The red comparison panel marks any channel change;
+the numerical tolerance uses the 16/255 threshold. Owner cockpit reflections are intentionally
+absent from generated paint, so their loss contributes to the difference from the atlas.
+
+| View | Round | Silhouette px | Changed px | Fraction | Mean delta |
+|---|---|---:|---:|---:|---:|
+| top | 1 | 440194 | 83699 | 0.190 | 13.7/255 |
+| top | 2 | 440211 | 92643 | 0.2105 | 16.08/255 |
+| side | 1 | 108059 | 16523 | 0.153 | 13.2/255 |
+
+Round 2 does not remeasure the side view. It fixes cap boundaries and material-slot assignment,
+excludes glass and frames from generated treatments, composes previews from final masks, and
+requires one home per control. No brightness tuning was accepted. These numbers record the
+resulting drift; they do not claim a tolerance improvement.
+
+### Reproduce the final lineup
+
+Use the tool and sources in the PR's slot. Temporarily stage exported Crimson/Nightshade FBXs and
+their generated palette material bundles at `Assets/Visuals/Ships/_PaintPreview/{Crimson,Nightshade}`,
+and place `PaintPreviewLineup.cs` in the slot's `Assets/Editor/`. The published grayscale masks are
+loaded from `-MaskRoot`, not imported over production textures. Invoke the published launcher via
+`scripts/unity_access.ps1 -Action RunBatch`, with `-ProjectPath <slot>/src/Asteroids3D` and batch
+arguments `-ProjectPath <slot>/src/Asteroids3D -OutDir <scratch> -LogPath <scratch>/unity.log
+-MaskRoot <evidence-clone>/paint/round2`. Remove the temporary staged assets and release the lease.
+The PNG sheets add labels outside ship silhouettes; no colour correction is applied to captures.
