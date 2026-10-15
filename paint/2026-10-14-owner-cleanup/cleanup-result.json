@@ -1,0 +1,33 @@
+{
+  "before": {
+    "geometry": "d3ebf4905127aed18fde3b192691931a4532bd7c91c0e3c374bdab2c17446a7b",
+    "uv": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+    "materials": "2e5cb07f02179ea7ed50fd3184e74c34cc240e4dc05b0ad028f9b630e83f393b"
+  },
+  "after": {
+    "geometry": "d3ebf4905127aed18fde3b192691931a4532bd7c91c0e3c374bdab2c17446a7b",
+    "uv": "31bd63956362eeb59ece366072ebd5f4e1d917ee99c1253b4fff5c3fc948c580",
+    "materials": "2e5cb07f02179ea7ed50fd3184e74c34cc240e4dc05b0ad028f9b630e83f393b"
+  },
+  "shadow_unchanged": true,
+  "images": {
+    "BaseRegion": {
+      "file_sha256": "5382e69d06a23b1dc1d394466983c1ea8ffaeff670025329d53d9d8bbbb40aa3",
+      "pixel_sha256": "a8b5175054587ec0a85733572973a3154b8346fcae48281cab4b2a44698c2fff",
+      "packed_size": 92227
+    },
+    "Light": {
+      "file_sha256": "a4f313f75a713bcb2613a7462156e50609e03e12d2b48d39fea7d29acc60be17",
+      "pixel_sha256": "c17ba56cd84551a722bb173280af5300188fa600a0929f6434b9b5cea5c75293",
+      "packed_size": 55800
+    },
+    "Ink": {
+      "file_sha256": "0552339cf189dc2d10db5e6ed97c2535fff572c1c2cbfa10d04f2cb11945b88c",
+      "pixel_sha256": "47efc4c51708c70cf4ebb5e0b2380c61906d44c3294fbdafc3afbd880183d254",
+      "packed_size": 5235
+    }
+  },
+  "mode": "PAINT_TEXTURE",
+  "active": "02 Upper hull.001",
+  "source_sha256": "95e21d3cc9a61d947db3900e918b51f53f8bd08de86247fa60d727ed77cd2363"
+}
