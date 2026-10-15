@@ -4,8 +4,7 @@ CLI: blender -b --factory-startup --python-exit-code 1 -P ship_paint.py -- --shi
 [--palette NAME] [--unity DIR]
 Reads paint.json and palettes.json beside the source and needs a matching geometry lock. Regions
 are the material slots of the visual role parts; every palette must name exactly that set. The
-masks are baked (Cycles, emission) on temporary evaluated copies in symmetry-origin space with X
-folded: a jittered diagonal sweep over each plate into a dark and a light third, a side-wall ramp,
+masks are baked (Cycles, emission) on temporary evaluated copies in symmetry-origin space: a jittered diagonal sweep over each plate into a dark and a light third, a side-wall ramp,
 an inset ink line with a bright rim inside it, fully inked thin walls, a quiet world-space brush
 tile folded into Shadow and Light, and the accents paint.json lists. Written beside the source:
 layers/Shadow.png, Light.png, Ink.png (and Emission.png when an accent emits) plus
@@ -174,7 +173,7 @@ def _components(faces):
 
 
 class Part:
-    """One visual part evaluated into symmetry-origin space: its mesh, outward cap and thickness."""
+    """Evaluated paint surface retaining each connected cap's face membership and signed boundary."""
 
     def __init__(self, evaluation, name, paint):
         self.name = name
@@ -192,7 +191,7 @@ class Part:
         self.areas = ship_source.read_array(mesh.polygons, "area", np.float64)
         self.material_index = ship_source.read_array(mesh.polygons, "material_index", np.int32)
         self.thickness = self._thickness()
-        self.cap = self._cap(paint["plates"]["cap_facing"])
+        self.caps = self._caps(paint["plates"]["cap_facing"])
 
     def _thickness(self):
         thickest = 0.0
@@ -202,46 +201,34 @@ class Part:
             thickest = max(thickest, float(extent.min()))
         return thickest
 
-    def _cap(self, cap_facing):
-        """The outward cap: the up-or-down-facing face group farthest from the mid-plane.
-
-        Returns None without one, else {"bounds": folded (min, max) XY, "edges": folded boundary segments,
-        "faces": face count, "area": total area}.
-        """
+    def _caps(self, cap_facing):
+        caps = []
         candidates = [i for i in range(len(self.faces)) if abs(self.normals[i][2]) >= cap_facing]
-        if not candidates:
-            return None
         faces = [self.faces[i] for i in candidates]
-        best, best_key = None, None
         for group in _components(faces):
             indices = [candidates[g] for g in group]
-            area = self.areas[indices].sum()
+            area = float(self.areas[indices].sum())
             if area <= 0:
                 continue
-            centres = np.array([self.co[list(self.faces[i])].mean(axis=0) for i in indices])
-            height = float((np.abs(centres[:, 2]) * self.areas[indices]).sum() / area)
-            key = (round(height, 6), round(float(area), 9), float(centres[:, 0].mean() >= 0))
-            if best_key is None or key > best_key:
-                best, best_key = indices, key
-        if best is None:
-            return None
-        seen = {}
-        for index in best:
-            face = self.faces[index]
-            for a, b in zip(face, face[1:] + face[:1]):
-                key = (a, b) if a < b else (b, a)
-                seen[key] = seen.get(key, 0) + 1
-        fold = lambda v: (abs(float(self.co[v][0])), float(self.co[v][1]))
-        edges = [(fold(a), fold(b)) for (a, b), count in seen.items() if count == 1]
-        vertices = sorted({v for index in best for v in self.faces[index]})
-        folded = self.co[vertices][:, :2].copy()
-        folded[:, 0] = np.abs(folded[:, 0])
-        return {"bounds": (folded.min(axis=0), folded.max(axis=0)), "edges": edges,
-                "faces": len(best), "area": float(best_key[1])}
+            seen = {}
+            for index in indices:
+                face = self.faces[index]
+                for a, b in zip(face, face[1:] + face[:1]):
+                    key = tuple(sorted((a, b)))
+                    seen[key] = seen.get(key, 0) + 1
+            point = lambda v: tuple(float(c) for c in self.co[v, :2])
+            edges = [(point(a), point(b)) for (a, b), count in seen.items() if count == 1]
+            vertices = sorted({v for index in indices for v in self.faces[index]})
+            xy = self.co[vertices, :2]
+            low, high = xy.min(axis=0), xy.max(axis=0)
+            sweep_low = 0.0 if low[0] <= 0 <= high[0] else min(abs(low[0]), abs(high[0]))
+            caps.append({"bounds": (low, high), "edges": edges, "indices": indices,
+                         "sweep_x": (sweep_low, max(abs(low[0]), abs(high[0]))),
+                         "faces": len(indices), "area": area})
+        return caps
 
 
-def build_material(part, region, flags, paint, brush_image, base, emission_colour, accents):
-    """Node graph for one part's faces in one region; returns (material, (graph, emitter, {masks, composite, emission}))."""
+def build_material(part, cap, region, flags, paint, brush_image, base, emission_colour, accents):
     material = bpy.data.materials.new(f"paint:{part.name}:{region}")
     g = Graph(material)
     geometry = g.node("ShaderNodeNewGeometry")
@@ -256,9 +243,10 @@ def build_material(part, region, flags, paint, brush_image, base, emission_colou
     facing = g.math("ABSOLUTE", nz)
     shadow_ramp = g.math("SUBTRACT", 1.0, g.ramp(facing, paint["ramp"]))
     shadow_sweep, light_sweep = 0.0, 0.0
-    if flags["sweep"] and part.cap:
+    if flags["sweep"] and cap:
         sweep = paint["sweep"]
-        (minx, miny), (maxx, maxy) = part.cap["bounds"]
+        (_, miny), (_, maxy) = cap["bounds"]
+        minx, maxx = cap["sweep_x"]
         sx = g.math("DIVIDE", g.math("SUBTRACT", ax, float(minx)), max(float(maxx - minx), 1e-3))
         sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
         s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
@@ -270,10 +258,10 @@ def build_material(part, region, flags, paint, brush_image, base, emission_colou
     shadow = g.math("SUBTRACT", 1.0, kept)
     light = g.math("MAXIMUM", light_sweep, brush_light)
     ink = 0.0
-    if flags["plate"] and part.cap and part.cap["edges"]:
-        flat = g.combine(ax, y, 0.0)
+    if flags["plate"] and cap and cap["edges"]:
+        flat = g.combine(x, y, 0.0)
         distance = None
-        for (ax0, ay0), (bx0, by0) in part.cap["edges"]:
+        for (ax0, ay0), (bx0, by0) in cap["edges"]:
             length = float(np.hypot(bx0 - ax0, by0 - ay0))
             if length < 1e-6:
                 continue
@@ -435,16 +423,24 @@ def main(argv):
     graphs, objects = {}, []
     for name, part in parts.items():
         mesh = part.mesh
-        slot_materials = []
-        for material in part.materials:
-            region = material.name
-            key = (name, region)
+        cap_faces = {face: index for index, cap in enumerate(part.caps) for face in cap["indices"]}
+        slots = {}
+        for face, region_index in zip(mesh.polygons, part.material_index):
+            region = part.materials[region_index].name
+            cap_index = cap_faces.get(face.index)
+            key = (name, region, cap_index)
             if key not in graphs:
-                graphs[key] = build_material(part, region, paint["regions"][region], paint, brush_image, colours[region][:3],
-                                             emission_colours.get(region), accents.get(name, []))
-            slot_materials.append(graphs[key][0])
-        for index, material in enumerate(slot_materials):
-            mesh.materials[index] = material
+                cap = part.caps[cap_index] if cap_index is not None else None
+                graphs[key] = build_material(part, cap, region, paint["regions"][region], paint, brush_image,
+                                             colours[region][:3], emission_colours.get(region), accents.get(name, []))
+                if region_index not in slots.values():
+                    slot = int(region_index)
+                    mesh.materials[slot] = graphs[key][0]
+                else:
+                    slot = len(mesh.materials)
+                    mesh.materials.append(graphs[key][0])
+                slots[key] = slot
+            face.material_index = slots[key]
         layer = mesh.uv_layers[contract.PAINT_UV]
         mesh.uv_layers.active = layer
         layer.active_render = True
@@ -508,8 +504,8 @@ def main(argv):
     bundle_root, bundle_files = ship_unity.write_bundle(out, ship, written, palettes, paint, emission_colours, args.unity)
     part_records = {name: {"regions": sorted({m.name for m in part.materials}), "thickness": part.thickness,
                            "thin": part.thickness < paint["plates"]["thin_wall"],
-                           "cap": None if part.cap is None else {"faces": part.cap["faces"], "area": part.cap["area"],
-                                                                 "edges": len(part.cap["edges"])}}
+                           "caps": [{"faces": cap["faces"], "area": cap["area"], "edges": len(cap["edges"])}
+                                    for cap in part.caps]}
                     for name, part in parts.items()}
     return report.finish(True, trailers, palette=palette, regions=sorted(regions), masks=written,
                          baseline="reused" if reused else "created", edited_texels=edited, parts=part_records,

@@ -75,17 +75,16 @@ parts) per palette, linear sRGB, every palette naming the same regions:
               "lighting": {"_ShadowThreshold": 0.55}}}
 ```
 
-- **Geometry.** Everything is computed on the evaluated parts in symmetry-origin space with X
-  folded (|x|), so mirrored halves paint alike. Lengths are source units.
-- **Plate.** Per part, the outward cap: the up-or-down-facing face group (|n·z| ≥
-  `plates.cap_facing`) farthest from the mid-plane. On the faces of a region flagged `plate`,
-  every part with a cap gets the inset ink line (distance to the cap boundary below
-  `ink.inset` → Ink) and the rim just inside it (below `ink.rim` → Shadow 0, Light
-  `ink.rim_light`). `sweep` adds the diagonal thirds: `s = weight_x·sx + (1−weight_x)·sy +
-  jitter·(brush − 0.65)` over the cap's folded bounds; `s < dark_below` adds Shadow `1 − dark`,
-  `s > light_above` sets Light `light`. `ink_walls` inks faces with |n·z| < `ink.wall_facing`
-  on parts thinner than `plates.thin_wall` (every connected piece's smallest axis extent,
-  evaluated, is below it).
+- **Geometry.** Evaluated parts stay in signed symmetry-origin space. Boundary distances never
+  fold X; brush and sweep sampling use |x| so mirrored shared UVs receive the same paint.
+  Lengths are source units. The Cycles seed is fixed at zero.
+- **Plate.** Each connected group of faces with |n*z| >= `plates.cap_facing` has its own
+  boundary. Only those faces receive that boundary's inset ink (`ink.inset`) and inner rim
+  (`ink.rim`, Shadow 0, Light `ink.rim_light`) when their region enables `plate`.
+  `sweep` adds diagonal thirds on those cap faces: `s = weight_x*sx + (1-weight_x)*sy +
+  jitter*(brush - 0.65)`; `s < dark_below` adds Shadow `1 - dark`, and `s > light_above`
+  sets Light `light`. `ink_walls` inks faces with |n*z| < `ink.wall_facing` on parts
+  thinner than `plates.thin_wall` (each connected piece's smallest axis extent is below it).
 - **Ramp.** Shadow from facing: `1 − ramp(|n·z|)`, ease-interpolated through the stops.
 - **Brush.** The tile, box-projected at `scale` with `blend`, reads as `factor = 1 +
   contrast·(brush − 0.625)`: below 1 it adds Shadow, above 1 it adds Light.
