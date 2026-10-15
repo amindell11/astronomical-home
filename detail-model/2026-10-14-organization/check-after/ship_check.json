@@ -1,0 +1,636 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "344be5fcfe8eaf4715c5a6d93c2431e9b1407433d388499f97f8d4869e2672e6",
+  "findings": [
+    {
+      "rule": "scale",
+      "part": "Armor - Front plate",
+      "message": "Unapplied scale (1.11534, 1.046705, 0.645742)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Armor - Front plate",
+      "message": "1 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Armor - Lower skids",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Armor - Lower skids",
+      "message": "Unapplied scale (0.649002, 0.557101, 0.634156)"
+    },
+    {
+      "rule": "mirror",
+      "part": "Armor - Lower skids",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "origin",
+      "part": "Armor - Side plates",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Armor - Side plates",
+      "message": "Unapplied scale (1.115341, 1.046705, 0.645742)"
+    },
+    {
+      "rule": "origin",
+      "part": "Armor - Upper shoulder guards",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Armor - Upper shoulder guards",
+      "message": "Unapplied scale (0.718793, 0.765009, 0.659586)"
+    },
+    {
+      "rule": "mirror",
+      "part": "Armor - Upper shoulder guards",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "origin",
+      "part": "Assembly - Dorsal spine",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Assembly - Lower skids",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Assembly - Lower skids",
+      "message": "Unapplied scale (0.624987, 1.133155, 0.908228)"
+    },
+    {
+      "rule": "origin",
+      "part": "Assembly - Main deck",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Assembly - Shoulder guards",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Assembly - Shoulder guards",
+      "message": "Unapplied scale (0.624987, 1.133155, 0.908228)"
+    },
+    {
+      "rule": "origin",
+      "part": "Assembly - Side armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Canisters - Metal side modules",
+      "message": "Unapplied scale (0.887958, 0.88525, 0.73373)"
+    },
+    {
+      "rule": "scale",
+      "part": "Cockpit - Canopy",
+      "message": "Unapplied scale (1.0, 0.72303, 0.701778)"
+    },
+    {
+      "rule": "scale",
+      "part": "Engine - Recessed nozzles",
+      "message": "Unapplied scale (1.120201, 1.514497, 1.272288)"
+    },
+    {
+      "rule": "scale",
+      "part": "Engine - Shoulder booms",
+      "message": "Unapplied scale (0.950164, 1.116789, 0.351858)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Engine - Shoulder booms",
+      "message": "4 non-planar n-gon(s)"
+    },
+    {
+      "rule": "scale",
+      "part": "Engine - Shrouds",
+      "message": "Unapplied scale (0.748225, 0.588531, 0.537151)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Engine - Shrouds",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "scale",
+      "part": "Hull - Aft bridge",
+      "message": "Unapplied scale (0.313315, 0.99695, 0.826311)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Hull - Aft bridge",
+      "message": "4 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Hull - Dorsal spine",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Hull - Dorsal spine",
+      "message": "Unapplied scale (0.848541, 0.657615, 0.329921)"
+    },
+    {
+      "rule": "mirror",
+      "part": "Hull - Dorsal spine",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "scale",
+      "part": "Hull - Lower keel",
+      "message": "Unapplied scale (1.04602, 1.379389, 1.172308)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Hull - Lower keel",
+      "message": "1 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Hull - Main deck",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Hull - Main deck",
+      "message": "Unapplied scale (1.04602, 0.99695, 0.826311)"
+    },
+    {
+      "rule": "scale",
+      "part": "Hull - Ram nose",
+      "message": "Unapplied scale (1.0, 1.000815, 0.859777)"
+    },
+    {
+      "rule": "ngon",
+      "part": "Hull - Ram nose",
+      "message": "1 non-planar n-gon(s)"
+    },
+    {
+      "rule": "scale",
+      "part": "Lower flaps - Fins",
+      "message": "Unapplied scale (0.895618, 1.284738, 0.948676)"
+    },
+    {
+      "rule": "mirror",
+      "part": "Lower flaps - Fins",
+      "message": "Mirror 'Linked left / right' plane is not on the SymmetryOrigin plane"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Dorsal spine",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Lower flaps",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Lower skids",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Main deck",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Shoulder guards",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Mirror - Side armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Pivot - Dorsal spine",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Pivot - Lower skids",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Pivot - Main deck",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Pivot - Shoulder guards",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Pivot - Side armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "scale",
+      "part": "Upper flaps - Fins",
+      "message": "Unapplied scale (1.066224, 1.066224, 1.066224)"
+    },
+    {
+      "rule": "scale",
+      "part": "Upper flaps - Fixed brackets",
+      "message": "Unapplied scale (0.942325, 1.238964, 1.238964)"
+    },
+    {
+      "rule": "scale",
+      "part": "Upper flaps - Moving leaves",
+      "message": "Unapplied scale (0.942325, 1.238964, 1.238964)"
+    }
+  ],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "33ab69da4242e3b3020c359f15684ffe2c4c9d4a4baa97771b797e6eb80e43b9",
+      "uv": "7f5c30db9a81213e025fb6d9e73662cf8fa281570509c1ece5fc03e8cc78d6a0",
+      "materials": "d44ede44256829010d38dc97628eb31dac291e9cdfbe2eec18e75e353fad24c9"
+    },
+    "parts": {
+      "Armor - Front plate": {
+        "geometry": "459525c06153d00ba52699c7aa1db25c77200067e5d8cfff3a1f7c2dcc4f4df2",
+        "uv": "4f2e7c6a956b8ad82a5896efc9653774ee248f4a7a719e6a26a4b128751614a0",
+        "materials": "c109644a15069130eddc0930c0583358911951c91fa8e3d57c3c46cc64fa4130"
+      },
+      "Armor - Lower skids": {
+        "geometry": "d917488fd72b4572dd06f941a9e609f7dcdc6986a8e058916f8962ce68aaeeb3",
+        "uv": "0f19c4a7b8ccd474294e6a6383d6475166febc6dff107425faa850d71f9af6d1",
+        "materials": "f2a61dc94d29e77e03cec9bb48d865d776746ee23d50e995eb92c35063fa2fd3"
+      },
+      "Armor - Side plates": {
+        "geometry": "b09f6f33c619bd3dfbe91e1fb8abb851b3b26856eb205adadfc9dbb2bde59d5c",
+        "uv": "3d73c66e95f709306448d00969db52b04fc7a8f7884d8bdcdb31edeaf9a5028c",
+        "materials": "5ca904ad0903e1db3cad65c844205012a23a87cc2cc8732e4db7645f1d14101c"
+      },
+      "Armor - Upper shoulder guards": {
+        "geometry": "797a16c57024d51f6bbb8dc5ddbb78386fde3a4461bc832ab56a3e21c86d7a42",
+        "uv": "a354c6819057d9efaadb6ef44c281236834263189fb37d94c8bdce97fd394cd6",
+        "materials": "526fe9b3e73ca2f8b4c460855a78041211f3f77e3fd44bd6d3769e6c5d32f94c"
+      },
+      "Assembly - Dorsal spine": {
+        "geometry": "fdbeb2d958b8aa65aa093ada9d8b9b27f689bb652c5e60ac0e6a011d5f5566da",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Hull": {
+        "geometry": "c61e3f1ba7544a00a31eb767302742b95a5577b86ec15f66593f8c76c97b73dd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Lower skids": {
+        "geometry": "cfc5dab2e867af3c3bc949e078ac40b4eeb385e1e4e7d1c29457b5fdd1dac1e6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Main deck": {
+        "geometry": "6c1846664f373f1115f1ca53ef39cf2a2bacf45d025b2c523ebfb8f15dc28420",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Propulsion": {
+        "geometry": "f41f9f3cb881ba25cf25e117a815c545944b9ec96f87afae3a00c919a2ef3e8f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Shoulder guards": {
+        "geometry": "623efc5fa4352b45697339020f670a0fa1e3887e133f29b6d6b89484e901d89a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Assembly - Side armor": {
+        "geometry": "cbf28651ed1017e6d7adfdb751a853434fe4a04d8d57b293896156230b9c319f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Canisters - Metal side modules": {
+        "geometry": "9124a02457596ce868d39c1df28562a12a2b03df8c3b80205ba26fc259c156d8",
+        "uv": "6fa80f08767a83e6a0aa0b80f15be7a8a2fa517211f318d2ac95f28966e8738c",
+        "materials": "4eaf81257f67c28dd7aea2e6960f474cea7d6f94b3e0dffe0bb88e67ac99ee92"
+      },
+      "Cockpit - Canopy": {
+        "geometry": "454bcc95e7b37ad7c7754887dd7208addb6c3c376a18333d3807bf08587ee824",
+        "uv": "c4d103a66938e90d37427f1b2a53bc42b46c06c159a0fb50320f9b70befaa9a1",
+        "materials": "2c68da9fe241e027ba109ac5a6e881e25861db0e74de3431aac7cd96dc7b807e"
+      },
+      "Cockpit - Seating rim": {
+        "geometry": "63d0e347f2bfc09e817b6dd23244ba647893f09b21bcacc117cb40a29f7f2a8d",
+        "uv": "b27ca4b676e96aff6e7057e8e87b3ef3fdcd5deb93ae32e3ceb4a61b4e66fd1e",
+        "materials": "0f99d47596608eb7bbbe362bf5aaa718d59798c4da02db2c3a4127a1196fc896"
+      },
+      "Engine - Recessed nozzles": {
+        "geometry": "2bec3a0ea3c6b18fdd425da5c333dca4afe3cf5a0884a270c63dcdb0086b4647",
+        "uv": "078558b9d5b57a07cc65dac1f3e34cac8e970f41d12a8a7d7cd8590a7a5952f6",
+        "materials": "7ca6ed95d398b163e46c23fc5e7dfb9cfa75d4be6bc3aab7d24ccbe43f5b0ee4"
+      },
+      "Engine - Shoulder booms": {
+        "geometry": "b5319e596e0afe10d43a541dbe5480df1e7d8ac797d025145b539ce103412853",
+        "uv": "7102b327f9d1ec768762369d77ffa0d00698f72d75255e1da73ed1b9fe5b51aa",
+        "materials": "72ba72ef46b9611d3e24cffc7a131ebb74ee37a1088bb990dc5045b17614cbec"
+      },
+      "Engine - Shrouds": {
+        "geometry": "691af0507269fba18390ac00ce8e9ebd8481714f5f4488733c2cd2f9f3195af7",
+        "uv": "0911ee9afc8513c8000418d9ac481d842c25145d88e2a309b517ef7696ac873e",
+        "materials": "16c4579c6205ef0f5aec7af07608b8c07469487d82861d80551aafeffc3eed1c"
+      },
+      "Hull - Aft bridge": {
+        "geometry": "6d49467f0937811c98cfed322a63aee3615870cd6a0588e18f0e564e6da3a68b",
+        "uv": "0facc08ca4c58a4d9c287f2a35fff1aafc0e233dacd71d73860fe87bed9a7212",
+        "materials": "88aa0846bbdddb76ca6b25520a368d2a848629d4e954dde09d8c794fc2159bdf"
+      },
+      "Hull - Dorsal spine": {
+        "geometry": "b12bb1a5146d21d4ea2e9fadb34f2b53a266fcd9046d3ccc47c9ed91716cad5a",
+        "uv": "c92b5bcc26d777992911f461f054e796b642eed403b4f55086052949fe87d1f9",
+        "materials": "e18aa79b82f8407993da1d4c1f3cc90501461be62ece21993536c4fe3aec6bf7"
+      },
+      "Hull - Lower keel": {
+        "geometry": "a2348d62681f1b17b741a15f14acc5341e948b4cfb111b79ee8b432057802bdf",
+        "uv": "3a948d7aa5901d80bfbae24c8654f2e763c7ee1f0e7a7dbf170bf4e3c76de82a",
+        "materials": "cf8a5f8cb368d03c342d3b59f5c5593859139095f31d49aa45691bfe486d4de8"
+      },
+      "Hull - Main deck": {
+        "geometry": "3229386735047ca4abedeb8df19646648d76e4dc8f5a48462323f4b38e28a792",
+        "uv": "5ebac91392d34f6914b14e021febc31aef952df880858c29528a267e952d13dc",
+        "materials": "85cc05fc1a3b724071525ea6489d652152a98404f89b93b0d6c7a2c6d61bdf7c"
+      },
+      "Hull - Ram nose": {
+        "geometry": "cdbe81dc3faa77d8b3d5b2fc790c5905a55ff6e7842329ea825e4a23020a0307",
+        "uv": "a5b1e85a1795ccbdd768bc729816b7456ff4b976ee3015a625432d9b715c3f2f",
+        "materials": "e2821f7398c1d48bc72e494a662f1ef2c4a0fcc7b15dd52dc569708afac7b7eb"
+      },
+      "Lower flaps - DEPLOY control": {
+        "geometry": "d80800412a69dd50f6d5c1fbd58d0c95ceb117de09937175c027eb53d212e0e9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower flaps - Fins": {
+        "geometry": "641421bc0980c2aed086739cb056db77dd5b8c5e21a8cced63d848775931eadd",
+        "uv": "0096b8c9fbfa6aaf930210c1e29b95ef6f6dc051dd000140ed53ffbbb21998d8",
+        "materials": "9850acdedcccd69c71b0b6dda39658cda0da69fc9c885b1c2ad294571cf2534d"
+      },
+      "Lower flaps - Fixed brackets": {
+        "geometry": "1a4150ab242be09dc9066ea2389d541fe148d5ce77f27b7232a63d6a83369c8d",
+        "uv": "b43817e5999140aa564ec6bc3de14e345f7a8c24745677485e435328d0ce4b1c",
+        "materials": "d9907e6761d54ea03c58c796c1a69bca8b891414fd6c7c6ec8d615f4a3c0c666"
+      },
+      "Lower flaps - Hinge axis": {
+        "geometry": "342790dc12420d8af82d6000f24ffaab9f20eac399e36844c06bfc90db578ef3",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Lower flaps - Moving leaves": {
+        "geometry": "7bd23ef68a90299c362ba9c75a4f56fdc322d51ff4064f1b13d418bddf9d7894",
+        "uv": "33010902c5021c8ba436871aaeaceec87bbc106fb082521659322552e732b9b5",
+        "materials": "bbd391fc9d64fd06aefe95c68ea16d2de5a3fc9e270098ac60acdeb6b46a8f24"
+      },
+      "Mirror - Dorsal spine": {
+        "geometry": "e9f45ccb02c142679e0f12e92dea3ebc33d07c49eae3f5ab92b4d034116d6c7a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Mirror - Lower flaps": {
+        "geometry": "24caba69bedee25fae18bbc2f26469cb4faf9dbf8c26dda3701846b8d011c8c8",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Mirror - Lower skids": {
+        "geometry": "aff5ec7dcd880283dba87cb745a66e6ca446a48f63f0b3bd4f9db874d1cbeec4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Mirror - Main deck": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Mirror - Shoulder guards": {
+        "geometry": "40b05434774bc322a8c987778c3b31d2ae8a823fcf36469de41c48d7267aa4e9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Mirror - Side armor": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Aft bridge": {
+        "geometry": "6f9c7b5a5821680b56ff9934507ea2662d95971609e6d359bd116951d7c2caf4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Cockpit": {
+        "geometry": "350b8ad842c7c20fdb44fd689e3ad7eb3792122a52953a11601c3d0056212c47",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Dorsal spine": {
+        "geometry": "6bf0e603a6f55e5f8b49adf3bb3922ef30110af8e5a7e4b87d69c7285bb0b3e9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Engine shoulders": {
+        "geometry": "ab48971d3b133a5ec5e66a3c1d616bf824af061d3814a83642549444f1239bd7",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Engine shrouds": {
+        "geometry": "f353cd9e0acb2a6cbfa5b6f75e2f81b62b18c03296cca541c0a60111377710c6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Front armor": {
+        "geometry": "5d2d809e32ff87571c8192742e0f53645f95105cb85ae58045a6f7e85a8914ce",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Lower keel": {
+        "geometry": "6f9c7b5a5821680b56ff9934507ea2662d95971609e6d359bd116951d7c2caf4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Lower skids": {
+        "geometry": "6c265a2583665f4f91d66900fc335fc3fad2fadd5526a1fbf78b4a1ae5c201ab",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Main deck": {
+        "geometry": "7e9f3433b8dfb11f552d95fd5cece85c7602b4b92646b2e774f0ddaf9efd7008",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Metal canisters": {
+        "geometry": "b0fe44aed06e00ee3226d15b8c9b15f24279be1b2196836c0dd6aa023118dd72",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Ram nose": {
+        "geometry": "5901eda87439e316813fb8e9540841d19ee533cb37db2e007da563043500beaf",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Shoulder guards": {
+        "geometry": "f2f9cfb1d4b9addb6cc4ef13d2ad1631945e1be72df4cc7c4d559bc89bd715c5",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Pivot - Side armor": {
+        "geometry": "e09b5dfc284c64caa38af71bd665a814559919bdebd5f44c1dbf91c47b53a78c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - 05 Tail tips.001": {
+        "geometry": "49debba641af0857cb7bb788877f5f17149cb4c0424d4d462aefc9ffb4c781a2",
+        "uv": "5e3be1dfe716221c40977b6cb17751d05c0c1c04f8c6b2a01627170c450eb21d",
+        "materials": "be6cddd57d97a67f38f4f432a77c9787baffb601f03965243da126ceeb46a004"
+      },
+      "Unused - 08 Nested engines.001": {
+        "geometry": "04b51522180180d77a35659f0fbb1191be02f8f0ded0d715fb3be8c1aa601cf9",
+        "uv": "da1b80b5d96c4cc83fbb1ca622327165d9e5f35ae14425fd66f9db639c4d35f8",
+        "materials": "42b0861ee577414bf303bd1c2091d5c62e22190ee6063f4e98c378a407809afd"
+      },
+      "Unused - Body.003": {
+        "geometry": "bcf25732f2694e760477cc6ea7572a5e1a383bee071d1519d20bdbfd5d724934",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Body.004": {
+        "geometry": "d5a5d0221fc8c914047e67bbef79a23fad3d9b126d0da598a83469e5f7b87673",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Cockpit.001": {
+        "geometry": "3c144e24073439d36e067e762375c102f87873ab8ab86baf1df24cb7a644f6d5",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Flap mounts": {
+        "geometry": "b31c794c02fc8cd2f18701611a59e5193c6a024c2fee46db8ae34e5bc9916ca4",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Side armor.002": {
+        "geometry": "af49609f8df5b7826625412e44333cc3c27beed929f6b0f31c2fb83f2b5e9b65",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Side armor.003": {
+        "geometry": "953daa698031ef5d6de08e9d496b9e0654054512c82aee2bb98eb28c58beb82f",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Side insets.001": {
+        "geometry": "4f55aa954b1f21f15a8fc82561fbad5f5237d062c988f759e5e97c064ab11cc9",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - SymmetryOrigin.001": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - SymmetryOrigin.005": {
+        "geometry": "a63ddf8a4bc42788c72516f7c6952b9c0c33bd9e0a2170766b0d403624789872",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - SymmetryOrigin.007": {
+        "geometry": "a63ddf8a4bc42788c72516f7c6952b9c0c33bd9e0a2170766b0d403624789872",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - SymmetryOrigin.009": {
+        "geometry": "5960f0e5630c126c65e2442200ec50de336b782918a8b1bc351e0ea2bb43da83",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - SymmetryOrigin.011": {
+        "geometry": "df98140c762e1d9490e2b4f582754a4fc137ee4d08adb26d5feb913dfbf6f370",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Tail fins": {
+        "geometry": "c4a63c47b7cd36f1d1408bc1ea9af8a40d32f042b092036369375fc834450f4a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Tail fins.001": {
+        "geometry": "6c9faafc7ecff6342af1cfe09a3a883af2e91ea65f9167470a394350f04d6edd",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Tail tips.001": {
+        "geometry": "2a928c99afb5182b74203fd6609924180005cf9b1bae001fef76d5a7148a5826",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Unused - Tail.001": {
+        "geometry": "52e9e16fa9877d13ed42a955da678d1d7b6478b3b8878ee6547e37736feac3fb",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper flaps - DEPLOY control": {
+        "geometry": "247f5ea61b48844f4f9f66f4115d5b269f37da6f56bc312f581e871c26ec76f2",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper flaps - Fins": {
+        "geometry": "766e68057c7bd1fa0f03e0ec7aa5fe7bcce729f7196190ef4f882043c53ee676",
+        "uv": "491e6904723ce1c5bcfe419730d27e11c821ee9d25d7d1ae0b174175aa5a81d4",
+        "materials": "db186a6527cfa26eeee1a153f91d95d6a2cce0a110decd094dab7f71e5e128f2"
+      },
+      "Upper flaps - Fixed brackets": {
+        "geometry": "758f22bc17da08afabccc787ad6a72f353876cff6652adba19dc6db010156593",
+        "uv": "cf85876b90a8945a0574fb723cae654bd66403a91b29a883b985822a4a094e35",
+        "materials": "d9907e6761d54ea03c58c796c1a69bca8b891414fd6c7c6ec8d615f4a3c0c666"
+      },
+      "Upper flaps - Hinge axis": {
+        "geometry": "487eebdc60fe69037b00c8a8f97cd59c994d226fd1211ed00687e0763c22748a",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper flaps - Moving leaves": {
+        "geometry": "4b7f9f85b00413f6e86330c34b73d0e10bcdc93b7e8cea4f0a94c3193ecaa235",
+        "uv": "cc0f57dbac9fd765ba321effff321ab797f529dda5e36355cca719086babcacf",
+        "materials": "bbd391fc9d64fd06aefe95c68ea16d2de5a3fc9e270098ac60acdeb6b46a8f24"
+      },
+      "reference.side": {
+        "geometry": "fa90a37911bf963c6a818b0550667f213b55492a0ddd9caceb141336015e98cc",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reference.top": {
+        "geometry": "016c9e92999841abc8a1eae8cfcbbe1b53f876dcf013925bd599cad343119c5c",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "verdict": "fail"
+}
