@@ -291,6 +291,8 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
             ink = g.mix(inside, ink, accent["value"])
         else:
             emission = g.mix(inside, emission, accent["value"])
+    if part.name in paint.get("canopy_glass", []) or part.name in paint.get("canopy_frames", []):
+        shadow, light, ink, emission = 0.0, 0.0, 0.0, 0.0
     outputs = {"masks": g.colour(shadow, light, ink), "base": g.combine(*base),
                "emission_colour": g.combine(*(emission_colour or [0.0, 0.0, 0.0])),
                "emission": g.colour(emission, 0.0, 0.0)}
@@ -376,8 +378,14 @@ def main(argv):
         raise report.refuse(f"Material slots {sorted(slots)} are not the palette regions {sorted(regions)}", trailers)
     if set(paint["regions"]) != regions:
         raise report.refuse(f"paint.json regions {sorted(paint['regions'])} are not the palette regions {sorted(regions)}", trailers)
+    canopy_parts = set(paint.get("canopy_glass", [])) | set(paint.get("canopy_frames", []))
+    unknown = canopy_parts - set(parts)
+    if unknown:
+        raise report.refuse(f"Canopy exceptions name unknown visual parts: {sorted(unknown)}", trailers)
     accents = {}
     for accent in paint["accents"]:
+        if accent["part"] in canopy_parts:
+            raise report.refuse(f"Canopy part {accent['part']} cannot receive generated accents", trailers)
         if accent["part"] not in parts:
             raise report.refuse(f"accents: {accent['part']} is not a visual part", trailers)
         accents.setdefault(accent["part"], []).append(accent)

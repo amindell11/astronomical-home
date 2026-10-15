@@ -67,7 +67,9 @@ parts) per palette, linear sRGB, every palette naming the same regions:
  "plates": {"cap_facing": 0.9, "thin_wall": 0.12},
  "regions": {"Silver": {"plate": true, "sweep": true, "ink_walls": false},
              "Red": {"plate": true, "sweep": false, "ink_walls": true}},
- "accents": [{"part": "Canopy", "target": "light", "where": {"x": [0.025, 0.05]}, "value": 1.0},
+ "canopy_glass": ["Canopy"],
+ "canopy_frames": ["Canopy perimeter rim", "Canopy transverse frame"],
+ "accents": [
              {"part": "Service channel floor", "target": "emission", "where": {"x": [0.068, null]},
               "value": 1.0, "color": [0.01, 0.393, 0.0153]}],
  "material": {"shadow_strength": 1.0, "light_strength": 1.0, "ink_strength": 1.0, "light_lift": 0.25,
@@ -88,6 +90,9 @@ parts) per palette, linear sRGB, every palette naming the same regions:
 - **Ramp.** Shadow from facing: `1 − ramp(|n·z|)`, ease-interpolated through the stops.
 - **Brush.** The tile, box-projected at `scale` with `blend`, reads as `factor = 1 +
   contrast·(brush − 0.625)`: below 1 it adds Shadow, above 1 it adds Light.
+- **Cockpit.** Optional `canopy_glass` and `canopy_frames` lists name visual parts that keep
+  their palette colour, with no generated Shadow, Light, Ink or Emission. Unknown names
+  and accents on these parts are refused (exit 3). Owner mask edits still survive re-runs.
 - **Accents.** `where` bounds (folded x, y, z; `null` is open) on one part. `light` and `ink`
   set that mask to `value`; `emission` writes `Emission.png` and gives the part's regions the
   accent's linear `color` as painted indicators (`_PaintEmissionBlend` =

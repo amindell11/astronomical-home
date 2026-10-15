@@ -171,7 +171,19 @@ def parse_palettes(value):
 
 def parse_paint(value):
     """Validate paint.json, the per-ship knobs of ship_paint; unknown fields and keys are rejected."""
-    _fields(value, PAINT_FIELDS, "paint.json")
+    optional = ("canopy_glass", "canopy_frames")
+    fields = PAINT_FIELDS + tuple(key for key in optional if isinstance(value, dict) and key in value)
+    _fields(value, fields, "paint.json")
+    assigned = set()
+    for key in optional:
+        names = value.get(key, [])
+        if not isinstance(names, list):
+            raise ValueError(f"{key}: expected a list of part names")
+        for name in names:
+            _text(name, key)
+            if name in assigned:
+                raise ValueError(f"{key}: duplicate canopy part {name}")
+            assigned.add(name)
     if type(value["schema_version"]) is not int or value["schema_version"] != SCHEMA_VERSION:
         raise ValueError(f"paint.json: unsupported schema_version; expected {SCHEMA_VERSION}")
     brush = value["brush"]

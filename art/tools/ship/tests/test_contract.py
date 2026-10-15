@@ -25,7 +25,8 @@ VALID_PAINT = {
     "plates": {"cap_facing": 0.9, "thin_wall": 0.12},
     "regions": {"Zinc": {"plate": True, "sweep": True, "ink_walls": False},
                 "Glass": {"plate": False, "sweep": False, "ink_walls": False}},
-    "accents": [{"part": "Canopy", "target": "light", "where": {"x": [0.025, 0.05]}, "value": 1.0},
+    "canopy_glass": ["Canopy"], "canopy_frames": [],
+    "accents": [{"part": "Core", "target": "light", "where": {"x": [0.025, 0.05]}, "value": 1.0},
                 {"part": "Core", "target": "emission", "where": {"y": [None, -0.9]}, "value": 1.0, "color": [0.1, 0.66, 0.13]}],
     "material": {"shadow_strength": 1.0, "light_strength": 1.0, "ink_strength": 1.0, "light_lift": 0.25,
                  "ink_color": [0.019, 0.023, 0.029], "emission_blend": 1.0,
@@ -102,6 +103,9 @@ class PaintSettingsTests(unittest.TestCase):
     def test_paint_rejections(self):
         cases = {
             "unknown field": lambda v: v.update(wear=True),
+            "canopy type": lambda v: v.update(canopy_glass="Canopy"),
+            "canopy blank": lambda v: v.update(canopy_glass=[""]),
+            "canopy duplicate": lambda v: v.update(canopy_frames=["Canopy"]),
             "missing field": lambda v: v.pop("accents"),
             "schema version": lambda v: v.update(schema_version=2),
             "brush extra": lambda v: v["brush"].update(rotate=1),

@@ -101,6 +101,13 @@ assert tool("lock", base, "--mode", "reopen")[1]["invalidated"] == []
 results["uv_ratio"] = tool("uv", base)[1]["ratio"]
 
 # ship_paint: masks and the Unity bundle from the fixture's regions; a hand edit survives a re-run.
+settings_path = base.parent / "paint.json"
+settings_text = settings_path.read_text()
+settings = json.loads(settings_text)
+settings["canopy_glass"] = ["Unknown canopy"]
+settings_path.write_text(json.dumps(settings))
+assert "Unknown canopy" in tool("paint", base, expect=3)[1]["refusal"]
+settings_path.write_text(settings_text)
 trailers, paint = tool("paint", base)
 layers = Path(trailers["SHIP_MASKS"])
 assert layers == base.parent / contract.LAYERS_DIR and paint["baseline"] == "created", paint
