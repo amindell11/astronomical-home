@@ -103,6 +103,9 @@ class PaintSettingsTests(unittest.TestCase):
             "colour length": lambda v: v["palettes"]["test"].update(Zinc=[1, 1, 1]),
             "colour range": lambda v: v["palettes"]["test"].update(Zinc=[1, 1, 1, 2]),
             "colour bool": lambda v: v["palettes"]["test"].update(Zinc=[True, 1, 1, 1]),
+            "palette path": lambda v: v["palettes"].update({"../x": v["palettes"]["alt"]}),
+            "region slash": lambda v: [c.update({"a/b": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "region dot-dot": lambda v: [c.update({"..": [1, 1, 1, 1]}) for c in v["palettes"].values()],
         }
         for label, change in cases.items():
             with self.subTest(label), self.assertRaises(ValueError):

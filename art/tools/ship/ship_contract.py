@@ -81,6 +81,13 @@ def _text(value, path):
         raise ValueError(f"{path}: expected a non-empty string")
 
 
+def _component(value, path):
+    """A name that becomes one bundle path component, so it cannot climb out of the bundle."""
+    _text(value, path)
+    if value in (".", "..") or any(c in "/\\:" or ord(c) < 32 or ord(c) == 127 for c in value):
+        raise ValueError(f"{path}: {value!r} is not a single path component")
+
+
 def parse_ship(value):
     _fields(value, SHIP_FIELDS, "ship.json")
     if type(value["schema_version"]) is not int or value["schema_version"] != SCHEMA_VERSION:
@@ -155,11 +162,11 @@ def parse_palettes(value):
         raise ValueError("palettes: expected at least one palette")
     regions = None
     for name, colours in palettes.items():
-        _text(name, "palettes")
+        _component(name, "palettes")
         if not isinstance(colours, dict) or not colours:
             raise ValueError(f"palettes.{name}: expected region colours")
         for region, colour in colours.items():
-            _text(region, f"palettes.{name}")
+            _component(region, f"palettes.{name}")
             _color(colour, f"palettes.{name}.{region}", 4)
         if regions is None:
             regions = set(colours)
