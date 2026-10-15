@@ -23,8 +23,8 @@ namespace UI.Hangar
         private const float PopOutSeconds = 0.12f;
         private const float PopInSeconds = 0.25f;
         private const float CameraFovDeg = 30f;
-        private const int MaxTextureSize = 2560;
-        private const int TextureMsaa = 8;
+        private const int MaxTextureSize = 2048;
+        private const int TextureMsaa = 4;
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
@@ -113,8 +113,8 @@ namespace UI.Hangar
             light.intensity = 1.6f;
         }
 
-        /// <summary>Re-renders at <paramref name="pixels"/> square (capped), so the UI never upscales the
-        /// preview. Replaces <see cref="Texture"/> when the size changes.</summary>
+        /// <summary>Re-renders at <paramref name="pixels"/> square, capped at <see cref="MaxTextureSize"/>; past the
+        /// cap the UI draws the preview upscaled. Replaces <see cref="Texture"/> when the size changes.</summary>
         public void Resize(int pixels)
         {
             var size = Mathf.Min(pixels, MaxTextureSize);

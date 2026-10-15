@@ -45,6 +45,12 @@ namespace UI.Hangar
         private readonly Vector3[] previewCorners = new Vector3[4];
         private Func<string> hoveredStats;
 
+        private void OnValidate()
+        {
+            if (previewImage && previewImage.raycastTarget)
+                throw new InvalidOperationException("HangarScreen previewImage must ignore pointer hits.");
+        }
+
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
         public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
         {
