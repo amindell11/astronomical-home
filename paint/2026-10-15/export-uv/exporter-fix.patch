@@ -1,0 +1,53 @@
+diff --git a/art/tools/ship/README.md b/art/tools/ship/README.md
+index ae65b7844..b499f71d2 100644
+--- a/art/tools/ship/README.md
++++ b/art/tools/ship/README.md
+@@ -11,7 +11,7 @@ fails loudly if it changed.
+ - Nose toward +Y, Z up, mirrored across X. One root empty named `SymmetryOrigin` at the
+   centre; parts sit under it (nested editing empties are fine) and Mirror modifiers mirror
+   across its X plane. Modifiers stay live; Mirror comes before Solidify.
+-- The paint UV layer is named `PaintUV`.
++- The paint UV layer is named `PaintUV`; it exports as UV0, the drawn shader's channel.
+ - Parts are grouped for export by **role collections** in the ship scene (the file's active
+   scene). A part may also sit in any number of editing collections.
+ 
+diff --git a/art/tools/ship/ship_export.py b/art/tools/ship/ship_export.py
+index 5fbc4aaa4..68bc00e27 100644
+--- a/art/tools/ship/ship_export.py
++++ b/art/tools/ship/ship_export.py
+@@ -108,7 +108,8 @@ def select_triangles(piece, selected):
+ 
+ 
+ def export_role(evaluation, report, role, names, contour_names=(), side=None):
+-    uv_names = sorted({layer.name for name in names for layer in evaluation.copies[name].data.uv_layers})
++    uv_names = sorted({layer.name for name in names for layer in evaluation.copies[name].data.uv_layers},
++                      key=lambda name: (name != contract.PAINT_UV, name))
+     parts = {name: Part(evaluation, name, uv_names) for name in names}
+     slots = sorted({m.name for part in parts.values() for m in part.materials if m is not None})
+     for name, part in parts.items():
+diff --git a/art/tools/ship/tests/blender_ship_smoke.py b/art/tools/ship/tests/blender_ship_smoke.py
+index 5a1dd4217..909a7caff 100644
+--- a/art/tools/ship/tests/blender_ship_smoke.py
++++ b/art/tools/ship/tests/blender_ship_smoke.py
+@@ -123,6 +123,8 @@ for name in sorted(meshes):
+     if name == "Collider":
+         continue
+     role = sidecar["roles"][name]
++    assert [layer.name for layer in mesh.uv_layers] == [contract.PAINT_UV, "LegacyUV"], name
++    assert role["uv_layers"] == [contract.PAINT_UV, "LegacyUV"], name
+     assert [material.name for material in mesh.materials] == role["material_slots"], name
+     co = np.array([v.co for v in mesh.vertices], np.float64)
+     corners = np.array([loop.vertex_index for loop in mesh.loops])
+diff --git a/art/tools/ship/tests/fixture_ship.py b/art/tools/ship/tests/fixture_ship.py
+index 3931634b7..58e0b3842 100644
+--- a/art/tools/ship/tests/fixture_ship.py
++++ b/art/tools/ship/tests/fixture_ship.py
+@@ -58,6 +58,8 @@ def part(name, geometry, parent, collections, materials=(), face_materials=None,
+         mesh.polygons.foreach_set("material_index", face_materials)
+     if uv:
+         planar_uv(mesh)
++        mesh.uv_layers.new(name="LegacyUV").uv.foreach_set("vector", [0.0] * (len(mesh.loops) * 2))
++        mesh.uv_layers[contract.PAINT_UV].active_render = True
+     obj = bpy.data.objects.new(name, mesh)
+     obj.parent = parent
+     for collection in collections:

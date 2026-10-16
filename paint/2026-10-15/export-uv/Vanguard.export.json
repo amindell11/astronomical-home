@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1b6e3526a90b1502ba6397e5adceebfc6032e58dc61d3bbde8c325f16393dd64",
+  "name": "Vanguard",
+  "set": "intact",
+  "fbx": "Vanguard.fbx",
+  "fbx_sha256": "c33dd19b1786fd0dce3d482a54f68a47c09d54690fdfef1b61801df5089e5848",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Cockpit cooling vent",
+        "MVP Cockpit.001",
+        "MVP Fuselage",
+        "MVP Power Nacelle Housing",
+        "MVP Sparrow Tail",
+        "MVP Tail",
+        "MVP Wing",
+        "MVP wing_armature",
+        "MVP wing_armor",
+        "MVP wing_tail",
+        "Pod cooling hatch",
+        "Wing service hatch"
+      ],
+      "material_slots": [
+        "HullAccent",
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "Cockpit cooling vent": [
+          0,
+          88,
+          0,
+          144
+        ],
+        "MVP Cockpit.001": [
+          88,
+          158,
+          144,
+          312
+        ],
+        "MVP Fuselage": [
+          246,
+          99,
+          456,
+          194
+        ],
+        "MVP Power Nacelle Housing": [
+          345,
+          896,
+          650,
+          1784
+        ],
+        "MVP Sparrow Tail": [
+          1241,
+          52,
+          2434,
+          96
+        ],
+        "MVP Tail": [
+          1293,
+          24,
+          2530,
+          40
+        ],
+        "MVP Wing": [
+          1317,
+          28,
+          2570,
+          48
+        ],
+        "MVP wing_armature": [
+          1345,
+          32,
+          2618,
+          56
+        ],
+        "MVP wing_armor": [
+          1377,
+          28,
+          2674,
+          48
+        ],
+        "MVP wing_tail": [
+          1405,
+          12,
+          2722,
+          16
+        ],
+        "Pod cooling hatch": [
+          1417,
+          120,
+          2738,
+          192
+        ],
+        "Wing service hatch": [
+          1537,
+          56,
+          2930,
+          96
+        ]
+      },
+      "contour": {
+        "Cockpit cooling vent": [
+          1593,
+          88,
+          3026,
+          144
+        ],
+        "MVP Cockpit.001": [
+          1681,
+          158,
+          3170,
+          312
+        ],
+        "MVP Fuselage": [
+          1839,
+          99,
+          3482,
+          194
+        ],
+        "MVP Power Nacelle Housing": [
+          1938,
+          896,
+          3676,
+          1784
+        ],
+        "MVP Sparrow Tail": [
+          2834,
+          52,
+          5460,
+          96
+        ],
+        "MVP Tail": [
+          2886,
+          24,
+          5556,
+          40
+        ],
+        "MVP Wing": [
+          2910,
+          28,
+          5596,
+          48
+        ],
+        "MVP wing_armature": [
+          2938,
+          32,
+          5644,
+          56
+        ],
+        "MVP wing_armor": [
+          2970,
+          28,
+          5700,
+          48
+        ],
+        "MVP wing_tail": [
+          2998,
+          12,
+          5748,
+          16
+        ],
+        "Pod cooling hatch": [
+          3010,
+          120,
+          5764,
+          192
+        ],
+        "Wing service hatch": [
+          3130,
+          56,
+          5956,
+          96
+        ]
+      }
+    },
+    "Canopy": {
+      "parts": [
+        "MVP Canopy"
+      ],
+      "material_slots": [
+        "CanopyGlass",
+        "HullAccent"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LiveryUV_Work",
+        "UVMap"
+      ],
+      "surface": {
+        "MVP Canopy": [
+          0,
+          21762,
+          0,
+          43520
+        ]
+      },
+      "contour": {}
+    },
+    "Cores": {
+      "parts": [
+        "MVP Power Nacelle Core"
+      ],
+      "material_slots": [
+        "CoreGlow"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "MVP Power Nacelle Core": [
+          0,
+          384,
+          0,
+          760
+        ]
+      },
+      "contour": {}
+    },
+    "Ink": {
+      "parts": [
+        "Vanguard structural ink"
+      ],
+      "material_slots": [
+        "Linework"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Vanguard structural ink": [
+          0,
+          2732,
+          0,
+          2704
+        ]
+      },
+      "contour": {}
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+    "uv": "05e9be4b70eebd87176eb8f521b288979da22076b95b40aea78e17981b74bb15",
+    "materials": "93dfb0fb8a562175def44f8eb33d19cd4cd76b75cc665f3ed11b9a4cedc7a3f5"
+  }
+}

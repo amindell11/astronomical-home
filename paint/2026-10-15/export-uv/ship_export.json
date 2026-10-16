@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_export",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1b6e3526a90b1502ba6397e5adceebfc6032e58dc61d3bbde8c325f16393dd64",
+  "fbx": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\export-preflight\\Vanguard.fbx",
+  "sidecar": "D:\\amind\\git\\agent-2\\results\\vanguard-redo\\export-preflight\\Vanguard.export.json",
+  "verdict": "pass"
+}

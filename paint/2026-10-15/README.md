@@ -25,3 +25,5 @@ The corrected saved-source audit samples 1,521 positions on each of the three as
 ## Sources and next step
 
 `source/` holds the corrected source and lock, ship.json, and the proposed palettes. Scratch authoring producers are archived for provenance, not installed as shared tools. The old atlas and UVs remain recoverable. The owner approval now needed is for the color-region placement and palette(s); masks follow that approval through the canonical ship_paint tool. Final paint is judged in the Unity lineup.
+
+[Export UV-channel preflight](export-uv/README.md): the retained legacy layouts exposed an exporter ordering bug. The narrow correction and round-trip regression now pass; PaintUV is UV0 on every visual role.
