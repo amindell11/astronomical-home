@@ -106,6 +106,9 @@ class PaintSettingsTests(unittest.TestCase):
             "palette path": lambda v: v["palettes"].update({"../x": v["palettes"]["alt"]}),
             "region slash": lambda v: [c.update({"a/b": [1, 1, 1, 1]}) for c in v["palettes"].values()],
             "region dot-dot": lambda v: [c.update({"..": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "region wildcard": lambda v: [c.update({"a?b": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "region trailing dot": lambda v: [c.update({"trail.": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "palette device name": lambda v: v["palettes"].update(con=v["palettes"]["alt"]),
         }
         for label, change in cases.items():
             with self.subTest(label), self.assertRaises(ValueError):

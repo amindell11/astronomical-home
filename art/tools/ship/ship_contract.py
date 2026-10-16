@@ -81,10 +81,14 @@ def _text(value, path):
         raise ValueError(f"{path}: expected a non-empty string")
 
 
+WINDOWS_DEVICES = frozenset({"CON", "PRN", "AUX", "NUL", *(f"{d}{n}" for d in ("COM", "LPT") for n in range(1, 10))})
+
+
 def _component(value, path):
-    """A name that becomes one bundle path component, so it cannot climb out of the bundle."""
+    """A name that becomes one bundle path component: it cannot climb out of the bundle and Windows accepts it."""
     _text(value, path)
-    if value in (".", "..") or any(c in "/\\:" or ord(c) < 32 or ord(c) == 127 for c in value):
+    if (value in (".", "..") or value[-1] in ". " or value.split(".")[0].upper() in WINDOWS_DEVICES
+            or any(c in '/\\:*?"<>|' or ord(c) < 32 or ord(c) == 127 for c in value)):
         raise ValueError(f"{path}: {value!r} is not a single path component")
 
 
