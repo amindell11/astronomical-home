@@ -11,7 +11,7 @@ fails loudly if it changed.
 - Nose toward +Y, Z up, mirrored across X. One root empty named `SymmetryOrigin` at the
   centre; parts sit under it (nested editing empties are fine) and Mirror modifiers mirror
   across its X plane. Modifiers stay live; Mirror comes before Solidify.
-- The paint UV layer is named `PaintUV`.
+- The paint UV layer is named `PaintUV`; it exports as UV0, the drawn shader's channel.
 - Parts are grouped for export by **role collections** in the ship scene (the file's active
   scene). A part may also sit in any number of editing collections.
 

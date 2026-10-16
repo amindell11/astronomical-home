@@ -123,6 +123,8 @@ for name in sorted(meshes):
     if name == "Collider":
         continue
     role = sidecar["roles"][name]
+    assert [layer.name for layer in mesh.uv_layers] == [contract.PAINT_UV, "LegacyUV"], name
+    assert role["uv_layers"] == [contract.PAINT_UV, "LegacyUV"], name
     assert [material.name for material in mesh.materials] == role["material_slots"], name
     co = np.array([v.co for v in mesh.vertices], np.float64)
     corners = np.array([loop.vertex_index for loop in mesh.loops])

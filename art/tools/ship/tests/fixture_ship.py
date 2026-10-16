@@ -58,6 +58,8 @@ def part(name, geometry, parent, collections, materials=(), face_materials=None,
         mesh.polygons.foreach_set("material_index", face_materials)
     if uv:
         planar_uv(mesh)
+        mesh.uv_layers.new(name="LegacyUV").uv.foreach_set("vector", [0.0] * (len(mesh.loops) * 2))
+        mesh.uv_layers[contract.PAINT_UV].active_render = True
     obj = bpy.data.objects.new(name, mesh)
     obj.parent = parent
     for collection in collections:
