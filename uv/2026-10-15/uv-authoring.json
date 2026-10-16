@@ -1,0 +1,25 @@
+{
+  "parts": [
+    "Cockpit cooling vent",
+    "MVP Canopy",
+    "MVP Cockpit.001",
+    "MVP Fuselage",
+    "MVP Power Nacelle Core",
+    "MVP Power Nacelle Housing",
+    "MVP Sparrow Tail",
+    "MVP Tail",
+    "MVP Wing",
+    "MVP wing_armature",
+    "MVP wing_armor",
+    "MVP wing_tail",
+    "Pod cooling hatch",
+    "Vanguard structural ink",
+    "Wing service hatch"
+  ],
+  "charts": 300,
+  "padding_pixels": 8,
+  "texture_size": 4096,
+  "geometry_unchanged": true,
+  "atlas": "negative-X lower half; positive-X upper half",
+  "scale": 0.21137521639466286
+}

@@ -26,3 +26,5 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 ## Recolorable redo
 
 [2026-10-15 detail-model review](detail-model/2026-10-15/README.md): hybrid modeled details and later grayscale masks, scoped in #1016. Source validation passes; owner detail-model approval is pending.
+
+[2026-10-15 paint UV layout](uv/2026-10-15/README.md): approved detail model, owner-waived flight check, geometry lock verified, density ratio 1.000002. Layout approval pending.

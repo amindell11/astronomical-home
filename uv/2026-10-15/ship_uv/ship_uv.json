@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "tool": "ship_uv",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "b56324634665ae0a0a729faaea7fb4512e40c87d4ede7348d31bd823cf43491b",
+  "densities": {
+    "Cockpit cooling vent": 865.7922722582678,
+    "MVP Canopy": 865.7928926381381,
+    "MVP Cockpit.001": 865.7929326026999,
+    "MVP Fuselage": 865.7928845242702,
+    "MVP Power Nacelle Core": 865.7928578553231,
+    "MVP Power Nacelle Housing": 865.7928670048248,
+    "MVP Sparrow Tail": 865.7929124368528,
+    "MVP Tail": 865.7929049622998,
+    "MVP Wing": 865.7928783642666,
+    "MVP wing_armature": 865.79293739241,
+    "MVP wing_armor": 865.7929358678792,
+    "MVP wing_tail": 865.792831430856,
+    "Pod cooling hatch": 865.792522026636,
+    "Vanguard structural ink": 865.7930847378443,
+    "Wing service hatch": 865.7915873988364
+  },
+  "ratio": 1.0000017294450878,
+  "max_ratio": 2.0,
+  "findings": [],
+  "exempted": [],
+  "verdict": "pass"
+}
