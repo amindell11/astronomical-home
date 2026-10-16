@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "tool": "ship_lock",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1b6e3526a90b1502ba6397e5adceebfc6032e58dc61d3bbde8c325f16393dd64",
+  "mode": "reopen",
+  "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+  "previous": "9361716870ed5ffc3f74db05c65b22ff161c1de5aecc095612bb7cf4823dac8c",
+  "invalidated": [
+    "uv",
+    "masks",
+    "breakup"
+  ],
+  "added": [],
+  "removed": [],
+  "changed": [
+    "Cockpit cooling vent",
+    "Pod cooling hatch"
+  ],
+  "verdict": "pass"
+}

@@ -1,0 +1,32 @@
+{
+  "saved_source_unchanged": true,
+  "geometry_lock_untouched": true,
+  "parts": {
+    "Pod cooling hatch": {
+      "lift": 0.004,
+      "before": {
+        "samples": 1521,
+        "below_hull": 504,
+        "minimum_clearance": -0.0016231536865234375
+      },
+      "after": {
+        "samples": 1521,
+        "below_hull": 0,
+        "minimum_clearance": 0.00110626220703125
+      }
+    },
+    "Cockpit cooling vent": {
+      "lift": 0.0004,
+      "before": {
+        "samples": 1521,
+        "below_hull": 5,
+        "minimum_clearance": -5.14984130859375e-05
+      },
+      "after": {
+        "samples": 1521,
+        "below_hull": 0,
+        "minimum_clearance": 0.00034809112548828125
+      }
+    }
+  }
+}

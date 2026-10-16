@@ -1,0 +1,73 @@
+{
+  "parts": {
+    "MVP Fuselage": [
+      "HullPrimary"
+    ],
+    "MVP Cockpit.001": [
+      "HullPrimary"
+    ],
+    "MVP Sparrow Tail": [
+      "HullPrimary"
+    ],
+    "MVP Wing": [
+      "HullPrimary"
+    ],
+    "MVP Tail": [
+      "HullAccent"
+    ],
+    "MVP wing_armature": [
+      "Structure"
+    ],
+    "MVP wing_armor": [
+      "HullAccent"
+    ],
+    "MVP wing_tail": [
+      "HullAccent"
+    ],
+    "MVP Power Nacelle Housing": [
+      "Structure"
+    ],
+    "MVP Power Nacelle Core": [
+      "CoreGlow"
+    ],
+    "MVP Canopy": [
+      "CanopyGlass",
+      "HullAccent"
+    ],
+    "Vanguard structural ink": [
+      "Linework"
+    ],
+    "Cockpit cooling vent": [
+      "HullPrimary",
+      "Structure"
+    ],
+    "Pod cooling hatch": [
+      "HullPrimary",
+      "Structure"
+    ],
+    "Wing service hatch": [
+      "HullPrimary",
+      "Structure"
+    ]
+  },
+  "sRGB_hex": {
+    "vanguard": {
+      "HullPrimary": "EDE2C8",
+      "HullAccent": "FF6514",
+      "Structure": "33424F",
+      "CanopyGlass": "111D36",
+      "CoreGlow": "159CFF",
+      "Linework": "070D15"
+    },
+    "mint_plum": {
+      "HullPrimary": "B7DDD4",
+      "HullAccent": "8D5BC7",
+      "Structure": "283D44",
+      "CanopyGlass": "112438",
+      "CoreGlow": "159CFF",
+      "Linework": "070D15"
+    }
+  },
+  "geometry_unchanged": true,
+  "uv_unchanged": true
+}

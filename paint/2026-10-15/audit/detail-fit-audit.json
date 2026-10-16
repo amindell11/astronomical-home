@@ -1,0 +1,17 @@
+{
+  "Pod cooling hatch": {
+    "samples": 1521,
+    "below_hull": 0,
+    "minimum_clearance": 0.00110626220703125
+  },
+  "Cockpit cooling vent": {
+    "samples": 1521,
+    "below_hull": 0,
+    "minimum_clearance": 0.00034809112548828125
+  },
+  "Wing service hatch": {
+    "samples": 1521,
+    "below_hull": 0,
+    "minimum_clearance": 0.0015230178833007812
+  }
+}

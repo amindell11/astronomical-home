@@ -1,0 +1,13 @@
+{
+  "source_sha256": "1b6e3526a90b1502ba6397e5adceebfc6032e58dc61d3bbde8c325f16393dd64",
+  "palettes": [
+    "vanguard",
+    "mint_plum"
+  ],
+  "views": [
+    "top",
+    "three-quarter"
+  ],
+  "source_unchanged": true,
+  "mask_generation": false
+}

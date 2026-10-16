@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "purpose": "Palette and color-region review only",
+  "image": "concept/paint-concept.png",
+  "reference_layout_sha256": "a73caa4d6ca040df5e74105a02e3189b854b2786b7e72e651e1b8801600f0da0",
+  "style_reference": "art/ships/crimson/reference/approved-texture-concept.png",
+  "style_reference_sha256": "a82526015c925ef42b5fb1e9afb96207b8bb36bacf12f47b7b2b19f30ddb64d7",
+  "prompt_brief": "Retain the exact four-view layout, geometry and color regions; cream/orange left, mint/plum right; Crimson only as a restrained drawn shading/linework reference; no redesign, decals, wear, damage or grunge.",
+  "geometry_source": "Vanguard",
+  "mask_generator": "Not generated; awaits palette/region approval"
+}

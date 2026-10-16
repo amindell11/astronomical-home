@@ -1,0 +1,13 @@
+{
+  "owner_approved": true,
+  "changed_parts": [
+    "Cockpit cooling vent",
+    "Pod cooling hatch"
+  ],
+  "lifts": {
+    "Pod cooling hatch": 0.004,
+    "Cockpit cooling vent": 0.0004
+  },
+  "other_geometry_unchanged": true,
+  "uv_coordinates_unchanged": true
+}
