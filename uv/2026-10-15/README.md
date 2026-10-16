@@ -11,3 +11,4 @@ Negative-X charts occupy the lower half; positive-X charts occupy the upper half
 `source/` holds the source, ship.json and geometry lock. The scratch UV authoring producer is archived under `producers/`; it projects temporary meshes and transfers only UV coordinates, preserving the source geometry. No new shared ship tool was added.
 
 The next stage needs the owner's layout approval, then a palette/region concept approved before the canonical painter generates masks. See [#1016](https://github.com/amindell11/astronomical-home/issues/1016).
+The evaluated-mesh audit in uv-overlap-audit.json rasterizes all parts at 2048 pixels and finds zero overlapping interior pixels between different parts, including the canopy and hull. UV bounds also remain inside the atlas.
