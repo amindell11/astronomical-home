@@ -109,10 +109,22 @@ class PaintSettingsTests(unittest.TestCase):
             "region wildcard": lambda v: [c.update({"a?b": [1, 1, 1, 1]}) for c in v["palettes"].values()],
             "region trailing dot": lambda v: [c.update({"trail.": [1, 1, 1, 1]}) for c in v["palettes"].values()],
             "palette device name": lambda v: v["palettes"].update(con=v["palettes"]["alt"]),
+            "palette meta suffix": lambda v: v["palettes"].update({"foo.meta": v["palettes"]["alt"]}),
+            "region yaml flow": lambda v: [c.update({"[Red": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "region yaml comment": lambda v: [c.update({"Red # Hull": [1, 1, 1, 1]}) for c in v["palettes"].values()],
+            "palettes fold together": lambda v: v["palettes"].update(Red=v["palettes"]["alt"], red=v["palettes"]["alt"]),
+            "regions fold together": lambda v: [c.update(Hull=[1, 1, 1, 1], hull=[1, 1, 1, 1]) for c in v["palettes"].values()],
+            "name too long": lambda v: v["palettes"].update({"a" * 65: v["palettes"]["alt"]}),
         }
         for label, change in cases.items():
             with self.subTest(label), self.assertRaises(ValueError):
                 contract.parse_palettes(mutated(change, VALID_PALETTES))
+
+    def test_plain_names_parse(self):
+        colours = {region: [1, 1, 1, 1] for region in ("Nightshade Midnight", "jade-iris", "A", "Rim_2")}
+        palettes = {"color_space": "linear-sRGB", "default": "jade-iris",
+                    "palettes": {"Nightshade Midnight": colours, "jade-iris": colours, "A": colours, "Rim_2": colours}}
+        self.assertEqual(contract.parse_palettes(palettes), palettes)
 
     def test_paint_rejections(self):
         cases = {

@@ -82,14 +82,19 @@ def _text(value, path):
 
 
 WINDOWS_DEVICES = frozenset({"CON", "PRN", "AUX", "NUL", *(f"{d}{n}" for d in ("COM", "LPT") for n in range(1, 10))})
+COMPONENT = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9 _-]{0,62}[A-Za-z0-9_-])?")
 
 
 def _component(value, path):
-    """A name that becomes one bundle path component: it cannot climb out of the bundle and Windows accepts it."""
-    _text(value, path)
-    if (value in (".", "..") or value[-1] in ". " or value.split(".")[0].upper() in WINDOWS_DEVICES
-            or any(c in '/\\:*?"<>|' or ord(c) < 32 or ord(c) == 127 for c in value)):
-        raise ValueError(f"{path}: {value!r} is not a single path component")
+    """A name that becomes a bundle file name and an unquoted YAML scalar, so only a dot-free plain charset."""
+    if not isinstance(value, str) or not COMPONENT.fullmatch(value) or value.upper() in WINDOWS_DEVICES:
+        raise ValueError(f"{path}: {value!r} is not 1-64 letters, digits, spaces, '_' or '-', "
+                         "starting alphanumeric, without a trailing space, and not a Windows device name")
+
+
+def _distinct_folded(names, path):
+    if len({name.lower() for name in names}) != len(names):
+        raise ValueError(f"{path}: names collide ignoring case")
 
 
 def parse_ship(value):
@@ -164,11 +169,13 @@ def parse_palettes(value):
     palettes = value["palettes"]
     if not isinstance(palettes, dict) or not palettes:
         raise ValueError("palettes: expected at least one palette")
+    _distinct_folded(palettes, "palettes")
     regions = None
     for name, colours in palettes.items():
         _component(name, "palettes")
         if not isinstance(colours, dict) or not colours:
             raise ValueError(f"palettes.{name}: expected region colours")
+        _distinct_folded(colours, f"palettes.{name}")
         for region, colour in colours.items():
             _component(region, f"palettes.{name}")
             _color(colour, f"palettes.{name}.{region}", 4)
