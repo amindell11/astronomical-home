@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "shadow_coverage": 0.33,
+  "shadow_depth": 0.39,
+  "side_wall_depth": 1.0,
+  "brush": {"image": "textures/painted-brush-source.png", "scale": 1.3, "contrast": 3.2, "blend": 0.25},
+  "ramp": [[0.1, 0.38], [0.55, 0.64], [0.92, 1.0]],
+  "sweep": {"weight_x": 0.65, "light_above": 0.66, "jitter": 0.5, "light": 1.0},
+  "ink": {"inset": 0.003, "rim": 0.0065, "rim_light": 0.35, "wall_facing": 0.65},
+  "plates": {"cap_facing": 0.9, "thin_wall": 0.12},
+  "regions": {
+    "Nightshade Midnight": {"plate": true, "sweep": true, "ink_walls": false},
+    "Nightshade Violet": {"plate": true, "sweep": true, "ink_walls": true},
+    "Nightshade Plum": {"plate": true, "sweep": true, "ink_walls": false},
+    "Nightshade Edge": {"plate": true, "sweep": true, "ink_walls": false},
+    "Nightshade Recess": {"plate": false, "sweep": false, "ink_walls": false},
+    "Nightshade Glass": {"plate": false, "sweep": false, "ink_walls": false}
+  },
+  "canopy_glass": ["Upper canopy glazing", "Lower canopy glazing"],
+  "canopy_frames": [
+    "Cockpit upper retaining rail", "Cockpit lower retaining rail", "Cockpit inset secondary rail",
+    "Cockpit rear retaining collar", "Cockpit upper glazing gasket", "Cockpit lower glazing gasket"
+  ],
+  "accents": [
+    {"part": "Wing cooling louvers", "target": "emission", "where": {"y": [0.02, 0.1]}, "value": 1.0,
+     "color": [0.21952620148658752, 0.5149176716804504, 0.06480326503515244]}
+  ],
+  "material": {
+    "shadow_strength": 1.0, "light_strength": 1.0, "ink_strength": 1.0, "light_lift": 0.25,
+    "ink_color": [0.0157, 0.0275, 0.0627], "emission_blend": 1.0,
+    "lighting": {}
+  }
+}
