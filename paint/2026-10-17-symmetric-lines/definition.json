@@ -1,0 +1,9 @@
+{
+  "hood_center_y": 2.6,
+  "hood_corner_x": 1.4125,
+  "hood_side_slope": 1.1,
+  "gap": 0.35,
+  "stripe_width": 0.45,
+  "mirror_offset_pixels": 1024,
+  "symmetry_exact": true
+}
