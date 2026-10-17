@@ -73,3 +73,5 @@ settles that distinction. They remain here as historical evidence.
 ## Breakup color correction
 
 [2026-10-09 round 2](breakup/2026-10-09-r02/README.md) retains the approved painted colors through the breakup; motion review pending.
+
+- [Paint: projected masks retired 2026-10-17](paint/2026-10-17-projected-masks/README.md): the masks, `.ora` and settings main carried before the `ship_paint` conversion; nothing here feeds the recipe.
