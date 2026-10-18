@@ -3,11 +3,11 @@
 CLI: blender -b --factory-startup --python-exit-code 1 -P ship_paint.py -- --ship SHIP_JSON --out DIR
 [--palette NAME] [--unity DIR]
 Reads paint.json and palettes.json beside the source and needs a matching geometry lock. Regions
-are the material slots of the visual role parts; every palette must name exactly that set. The
+start in visual-role material slots; optional authored_regions adds coverage across faces. The
 masks are baked (Cycles, emission) on temporary evaluated copies in symmetry-origin space: a jittered diagonal sweep over each plate into a dark and a light third, a side-wall ramp,
 an inset ink line with a bright rim inside it, fully inked thin walls, a quiet world-space brush
 tile folded into Shadow and Light, and the accents paint.json lists. Written beside the source:
-layers/Shadow.png, Light.png, Ink.png (and Emission.png when an accent emits) plus
+layers/Shadow.png, Light.png, Ink.png (and Emission.png when an accent emits), optional Region_*.png, plus
 layers/baseline/, the tool's own last output; on a re-run the owner's edits (mask minus
 baseline) ride onto the new generation. Refuses masks that have no baseline and a baseline whose
 UVs or texture size no longer match. --out gets the report, preview/Composite.png (review only;
