@@ -1,23 +1,58 @@
-"""Generate the small fixture ship: ship_new, then parts added with bmesh, saved at ship.json's source.
+"""Generate the small fixture ship: ship_new, then parts added with bmesh, saved at ship.json's source,
+with palettes.json, paint.json and a brush tile beside it so ship_paint runs on it.
 
 Run: blender -b --factory-startup --python-exit-code 1 -P fixture_ship.py -- --ship SHIP_JSON
 [--variant solidify_first|cube_name|scaled_uv|moved_hidden_vertex]
 """
 
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import sys
 
 import bmesh
 import bpy
+import numpy as np
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 import ship_contract as contract
+import ship_source
 
-UV_SCALE = 0.25
+UV_SCALE = 0.15
 VARIANTS = ("solidify_first", "cube_name", "scaled_uv", "moved_hidden_vertex", "repainted_weight")
+PALETTES = {"color_space": "linear-sRGB", "default": "zinc",
+            "palettes": {"zinc": {"Zinc": [0.7, 0.7, 0.72, 1], "Amber": [0.8, 0.45, 0.1, 1],
+                                  "Glass": [0.03, 0.04, 0.06, 1], "Glow": [0.2, 0.8, 0.3, 1]},
+                         "jade": {"Zinc": [0.03, 0.35, 0.28, 1], "Amber": [0.43, 0.3, 0.67, 1],
+                                  "Glass": [0.03, 0.04, 0.06, 1], "Glow": [0.2, 0.8, 0.3, 1]}}}
+PAINT = {
+    "schema_version": 1,
+    "brush": {"image": "brush.png", "scale": 1.3, "contrast": 3.2, "blend": 0.25},
+    "ramp": [[0.1, 0.38], [0.55, 0.65], [0.92, 1.0]],
+    "shadow_coverage": 0.33, "shadow_depth": 0.39, "side_wall_depth": 1.0,
+    "sweep": {"weight_x": 0.65, "light_above": 0.66, "jitter": 0.5, "light": 1.0},
+    "ink": {"inset": 0.01, "rim": 0.02, "rim_light": 0.35, "wall_facing": 0.65},
+    "plates": {"cap_facing": 0.9, "thin_wall": 0.06},
+    "regions": {"Zinc": {"plate": True, "sweep": True, "ink_walls": False},
+                "Amber": {"plate": True, "sweep": False, "ink_walls": True},
+                "Glass": {"plate": False, "sweep": False, "ink_walls": False},
+                "Glow": {"plate": False, "sweep": False, "ink_walls": False}},
+    "canopy_glass": ["Canopy"], "canopy_frames": [],
+    "accents": [{"part": "Core", "target": "light", "where": {"x": [0.0, 0.05]}, "value": 1.0},
+                {"part": "Core", "target": "emission", "where": {"y": [None, -0.9]}, "value": 1.0, "color": [0.2, 0.8, 0.2]}],
+    "material": {"shadow_strength": 1.0, "light_strength": 1.0, "ink_strength": 1.0, "light_lift": 0.25,
+                 "ink_color": [0.019, 0.023, 0.029], "emission_blend": 1.0, "lighting": {"_ShadowThreshold": 0.35}},
+}
+
+
+def write_paint_settings(folder):
+    """palettes.json, paint.json and a deterministic 64x64 brush tile beside the source."""
+    (folder / "palettes.json").write_text(json.dumps(PALETTES, indent=2), encoding="utf-8")
+    (folder / "paint.json").write_text(json.dumps(PAINT, indent=2), encoding="utf-8")
+    noise = np.random.default_rng(0).uniform(0.55, 0.75, (64, 64, 1)).astype(np.float32)
+    ship_source.save_pixels(folder / "brush.png", np.concatenate([noise, noise, noise, np.ones_like(noise)], axis=2))
 
 
 def box(low, high, skip=()):
@@ -30,19 +65,21 @@ def box(low, high, skip=()):
     return verts, [face for key, face in faces.items() if key not in skip]
 
 
-def planar_uv(mesh):
-    """Project each face onto its own plane so every face has the same texel density."""
+def planar_uv(mesh, tile):
+    """Project each face onto its own plane at one texel density, centred in the part's atlas tile
+    (a 3 by 2 grid) so parts never overwrite each other's texels when baked."""
     work = bmesh.new()
     work.from_mesh(mesh)
     work.normal_update()
     layer = work.loops.layers.uv.new(contract.PAINT_UV)
+    centre_u, centre_v = (tile % 3 + 0.5) / 3, (tile // 3 + 0.5) / 2
     for face in work.faces:
         origin = face.verts[0].co
         u_axis = (face.verts[1].co - origin).normalized()
         v_axis = face.normal.cross(u_axis)
         for loop in face.loops:
             offset = loop.vert.co - origin
-            loop[layer].uv = (offset.dot(u_axis) * UV_SCALE + 0.5, offset.dot(v_axis) * UV_SCALE + 0.5)
+            loop[layer].uv = (offset.dot(u_axis) * UV_SCALE + centre_u, offset.dot(v_axis) * UV_SCALE + centre_v)
     work.to_mesh(mesh)
     work.free()
 
@@ -57,7 +94,7 @@ def part(name, geometry, parent, collections, materials=(), face_materials=None,
     if face_materials:
         mesh.polygons.foreach_set("material_index", face_materials)
     if uv:
-        planar_uv(mesh)
+        planar_uv(mesh, len([o for o in bpy.data.objects if o.type == "MESH" and o.data.uv_layers]))
         mesh.uv_layers.new(name="LegacyUV").uv.foreach_set("vector", [0.0] * (len(mesh.loops) * 2))
         mesh.uv_layers[contract.PAINT_UV].active_render = True
     obj = bpy.data.objects.new(name, mesh)
@@ -149,6 +186,7 @@ def main():
         apply_variant(args.variant)
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(source), check_existing=False)
+    write_paint_settings(source.parent)
 
 
 if __name__ == "__main__":

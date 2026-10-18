@@ -1,13 +1,14 @@
 """Render review images of a ship's visual role parts with the flat review preset.
 
 CLI: blender -b --factory-startup --python-exit-code 1 -P ship_render.py -- --ship SHIP_JSON --out DIR
---set ortho|turnaround|sheet|scale|compare [--size N] [--before BLEND]
+--set ortho|turnaround|sheet|scale|compare [--size N] [--before BLEND] [--textured]
   ortho       top, side, front and back orthographic views
   turnaround  eight views around Z at 20 degrees elevation
   sheet       ortho and turnaround tiles composed into sheet.png
   scale       the top view at game scales, upscaled nearest-neighbour into scale.png
   compare     top and side of --before beside the source with a difference tile; the report
               counts changed pixels per view. Framing covers both ships.
+--textured shows each material's active image texture instead of its flat colour.
 Report <out>/ship_render.json lists the images. Refuses a source with no visual role parts.
 """
 
@@ -59,9 +60,9 @@ def camera_matrix(direction, up, center, distance):
         (right, back.cross(right), back)).transposed().to_4x4()
 
 
-def render(evaluation, framing, views, size, out, prefix=""):
+def render(evaluation, framing, views, size, out, prefix="", textured=False):
     scene = evaluation.scene
-    ship_source.apply_review_preset(scene, size)
+    ship_source.apply_review_preset(scene, size, textured)
     low, high = framing
     center = (low + high) / 2
     radius = float(np.linalg.norm(high - low)) / 2 + 1e-3
@@ -85,24 +86,6 @@ def render(evaluation, framing, views, size, out, prefix=""):
     return written
 
 
-def load_pixels(path):
-    image = bpy.data.images.load(str(path), check_existing=False)
-    pixels = np.empty(len(image.pixels), np.float32)
-    image.pixels.foreach_get(pixels)
-    shape = (image.size[1], image.size[0], 4)
-    bpy.data.images.remove(image)
-    return pixels.reshape(shape)
-
-
-def save_pixels(path, pixels):
-    image = bpy.data.images.new(Path(path).stem, pixels.shape[1], pixels.shape[0], alpha=True)
-    image.pixels.foreach_set(np.ascontiguousarray(pixels, np.float32).ravel())
-    image.filepath_raw = str(path)
-    image.file_format = "PNG"
-    image.save()
-    bpy.data.images.remove(image)
-
-
 def grid(tiles, columns):
     """Compose equally sized tiles top-left first; Blender pixel rows run bottom-up."""
     height, width = tiles[0].shape[:2]
@@ -121,6 +104,7 @@ def main(argv):
     parser.add_argument("--set", required=True, choices=("ortho", "turnaround", "sheet", "scale", "compare"))
     parser.add_argument("--size", type=int, default=512)
     parser.add_argument("--before", help="Earlier .blend for --set compare")
+    parser.add_argument("--textured", action="store_true", help="Show each material's active image texture")
     args = parser.parse_args(argv)
     if (args.set == "compare") != (args.before is not None):
         raise contract.UsageError("--before is required with, and only with, --set compare")
@@ -134,7 +118,8 @@ def main(argv):
     for path in [source] + ([before] if before else []):
         if not path.is_file():
             raise report.refuse(f"Source not found: {path}")
-    images, fields = {}, {"set": args.set}
+    images, fields = {}, {"set": args.set, "textured": args.textured}
+    textured = args.textured
     if args.set == "compare":
         report.data["before_sha256"] = contract.sha256_file(before)
         _, before_bounds = prepare(before)
@@ -143,18 +128,18 @@ def main(argv):
             raise report.refuse("No visual role parts")
         framing = (np.minimum(before_bounds[0], after_bounds[0]), np.maximum(before_bounds[1], after_bounds[1]))
         views = {name: ORTHO[name] for name in ("top", "side")}
-        after = render(evaluation, framing, views, args.size, out, "after_")
+        after = render(evaluation, framing, views, args.size, out, "after_", textured)
         evaluation, _ = prepare(before)
-        earlier = render(evaluation, framing, views, args.size, out, "before_")
+        earlier = render(evaluation, framing, views, args.size, out, "before_", textured)
         fields["changed_pixels"] = {}
         for name in views:
-            old, new = load_pixels(earlier[name]), load_pixels(after[name])
+            old, new = ship_source.load_pixels(earlier[name]), ship_source.load_pixels(after[name])
             changed = np.any(old != new, axis=2)
             difference = np.zeros_like(new)
             difference[..., 3] = 1
             difference[changed, 0] = 1
             images[f"compare_{name}"] = out / f"compare_{name}.png"
-            save_pixels(images[f"compare_{name}"], grid([old, new, difference], 3))
+            ship_source.save_pixels(images[f"compare_{name}"], grid([old, new, difference], 3))
             fields["changed_pixels"][name] = int(changed.sum())
             images.update({f"before_{name}": earlier[name], f"after_{name}": after[name]})
     else:
@@ -162,20 +147,20 @@ def main(argv):
         if evaluation is None:
             raise report.refuse("No visual role parts")
         if args.set in ("ortho", "sheet"):
-            images.update(render(evaluation, framing, ORTHO, args.size, out))
+            images.update(render(evaluation, framing, ORTHO, args.size, out, "", textured))
         if args.set in ("turnaround", "sheet"):
-            images.update(render(evaluation, framing, TURNAROUND, args.size, out))
+            images.update(render(evaluation, framing, TURNAROUND, args.size, out, "", textured))
         if args.set == "sheet":
             images["sheet"] = out / "sheet.png"
-            save_pixels(images["sheet"], grid([load_pixels(images[n]) for n in [*ORTHO, *TURNAROUND]], 4))
+            ship_source.save_pixels(images["sheet"], grid([ship_source.load_pixels(images[n]) for n in [*ORTHO, *TURNAROUND]], 4))
         if args.set == "scale":
             tiles = []
             for size in GAME_SCALES:
-                small = load_pixels(render(evaluation, framing, {"top": ORTHO["top"]}, size, out, f"scale{size}_")["top"])
+                small = ship_source.load_pixels(render(evaluation, framing, {"top": ORTHO["top"]}, size, out, f"scale{size}_", textured)["top"])
                 factor = STRIP_HEIGHT // size
                 tiles.append(small.repeat(factor, axis=0).repeat(factor, axis=1))
             images["scale"] = out / "scale.png"
-            save_pixels(images["scale"], np.concatenate(tiles, axis=1))
+            ship_source.save_pixels(images["scale"], np.concatenate(tiles, axis=1))
     return report.finish(True, images={name: str(path) for name, path in images.items()}, **fields)
 
 

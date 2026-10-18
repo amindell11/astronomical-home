@@ -9,8 +9,9 @@ owner's final approval.
 
 ## Commands
 
-None yet. The lineup sheet arrives with the arc's second-cut tools (#868, slice 8), which
-add the command here.
+None yet. A lineup sheet tool is unscheduled: it left #868 slice 8 when that slice became
+the paint tool (#1014). Today's lineup is a Unity capture of every ship at one scale,
+lighting and camera (`game-capture` skill → Asset stills).
 
 ## Done
 

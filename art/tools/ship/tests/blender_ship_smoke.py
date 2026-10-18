@@ -17,8 +17,10 @@ import numpy as np
 
 TESTS = Path(__file__).resolve().parent
 TOOLS = TESTS.parent
-sys.path.insert(0, str(TOOLS))
+sys.path[:0] = [str(TOOLS), str(TESTS)]
 import ship_contract as contract
+import ship_source
+import fixture_ship
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--out", required=True)
@@ -98,10 +100,91 @@ assert tool("lock", base, "--mode", "reopen")[1]["invalidated"] == []
 # ship_uv passes within the ratio.
 results["uv_ratio"] = tool("uv", base)[1]["ratio"]
 
+# ship_paint: masks and the Unity bundle from the fixture's regions; a hand edit survives a re-run.
+for required in ("paint.json", "palettes.json"):
+    path = base.parent / required
+    contents = path.read_bytes()
+    path.unlink()
+    missing = blender(TOOLS / "ship_paint.py", "--ship", base, "--out", base.parent / "missing-settings")
+    assert missing.returncode == 1 and missing.stdout == "", (required, missing.returncode, missing.stdout)
+    assert f"Usage error: {required}:" in missing.stderr and "Traceback" not in missing.stderr, missing.stderr
+    path.write_bytes(contents)
+settings_path = base.parent / "paint.json"
+settings_text = settings_path.read_text()
+settings = json.loads(settings_text)
+settings["canopy_glass"] = ["Unknown canopy"]
+settings_path.write_text(json.dumps(settings))
+assert "Unknown canopy" in tool("paint", base, expect=3)[1]["refusal"]
+settings_path.write_text(settings_text)
+trailers, paint = tool("paint", base)
+layers = Path(trailers["SHIP_MASKS"])
+assert layers == base.parent / contract.LAYERS_DIR and paint["baseline"] == "created", paint
+for mask in (*contract.MASKS, contract.EMISSION):
+    pixels = ship_source.load_pixels(layers / f"{mask}.png")[..., 0]
+    assert pixels.shape == (1024, 1024) and pixels.std() > 0.01, (mask, pixels.shape, float(pixels.std()))
+    assert (layers / contract.BASELINE_DIR / f"{mask}.png").is_file(), mask
+assert Path(paint["preview"]).is_file()
+bundle = Path(paint["unity"]["root"])
+shadow_guid = [line for line in (bundle / "Paint/Shadow.png.meta").read_text().splitlines() if line.startswith("guid: ")][0][6:]
+for palette, regions in fixture_ship.PALETTES["palettes"].items():
+    for region in regions:
+        material = bundle / f"Materials/{palette}/{region}.mat"
+        assert material.is_file() and material.with_suffix(".mat.meta").is_file(), material
+        text = material.read_text()
+        assert "_PAINT_LAYERS" in text and shadow_guid in text, material
+obsolete = bundle / "Materials/removed/Old.mat"
+obsolete.parent.mkdir()
+obsolete.write_text("obsolete")
+assert tool("paint", base)[1]["unity"]["files"] == paint["unity"]["files"]
+assert {p.relative_to(bundle).as_posix() for p in bundle.rglob("*") if p.is_file()} == set(paint["unity"]["files"])
+
+saved = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+record_path = layers / contract.BASELINE_DIR / "baseline.json"
+for broken in ("missing_baseline", "missing_mask", "size", "recipe", "geometry", "masks"):
+    if broken == "missing_baseline":
+        (layers / contract.BASELINE_DIR / "Light.png").unlink()
+    elif broken == "missing_mask":
+        (layers / "Light.png").unlink()
+    elif broken == "size":
+        ship_source.save_pixels(layers / "Light.png", np.ones((16, 16, 4), np.float32))
+    else:
+        record = json.loads(saved[record_path])
+        record[broken] = "incompatible"
+        record_path.write_text(json.dumps(record))
+    before_refusal = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+    assert "baseline" in tool("paint", base, expect=3)[1]["refusal"].lower()
+    assert {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()} == before_refusal, broken
+    for path, data in saved.items():
+        path.write_bytes(data)
+preview_before = ship_source.load_pixels(paint["preview"]).copy()
+stroke = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+stroke[256:320, 256:320] = 200
+ship_source.save_pixels(layers / "Shadow.png", np.repeat((stroke / 255.0)[..., None].astype(np.float32), 4, axis=2))
+rerun = tool("paint", base)[1]
+assert rerun["baseline"] == "reused" and rerun["edited_texels"]["Shadow"] > 0, rerun
+after = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+assert np.abs(after[256:320, 256:320] - 200).max() <= 1, int(np.abs(after[256:320, 256:320] - 200).max())
+results["paint_edited_texels"] = rerun["edited_texels"]["Shadow"]
+preview_after = ship_source.load_pixels(rerun["preview"])
+assert np.any(preview_before[256:320, 256:320, :3] != preview_after[256:320, 256:320, :3]), "Owner stroke missing from preview"
+
+settings = json.loads(settings_text)
+for strength in ("shadow_strength", "light_strength", "ink_strength", "emission_blend"):
+    settings["material"][strength] = 0
+settings_path.write_text(json.dumps(settings))
+flat = ship_source.load_pixels(tool("paint", base)[1]["preview"])[..., :3]
+for colour in fixture_ship.PALETTES["palettes"]["zinc"].values():
+    linear = np.array(colour[:3])
+    expected = np.where(linear <= 0.0031308, linear * 12.92, 1.055 * linear ** (1 / 2.4) - 0.055)
+    assert np.any(np.max(np.abs(flat - expected), axis=2) <= 1 / 255), ("Preview colour space", colour)
+settings_path.write_text(settings_text)
+
 # ship_render: every set writes its images; comparing against the copy changes nothing.
 for render_set in ("ortho", "turnaround", "sheet", "scale"):
     images = tool("render", base, "--set", render_set, "--size", "128")[1]["images"]
     assert images and all(Path(path).is_file() for path in images.values()), images
+textured = tool("render", base, "--set", "ortho", "--size", "128", "--textured")[1]
+assert textured["textured"] and Path(textured["images"]["top"]).is_file(), textured
 compare = tool("render", base, "--set", "compare", "--size", "128", "--before", copy.parent / "Fixture.blend")[1]
 assert compare["changed_pixels"] == {"top": 0, "side": 0}, compare["changed_pixels"]
 
@@ -209,6 +292,20 @@ tool("export", grouped, "--debris", expect=3)
 results["debris_painted_triangles"] = sum(intact_triangles.values())
 
 # One failure case per tool.
+unpainted = ship("missing_region")
+shutil.copy(lock, unpainted.parent / "lock.json")
+palettes = json.loads((unpainted.parent / "palettes.json").read_text(encoding="utf-8"))
+for colours in palettes["palettes"].values():
+    colours.pop("Glow")
+(unpainted.parent / "palettes.json").write_text(json.dumps(palettes), encoding="utf-8")
+assert "Glow" in tool("paint", unpainted, expect=3)[1]["refusal"]
+empty_slot = ship("empty_slot")
+shutil.copy(lock, empty_slot.parent / "lock.json")
+bpy.ops.wm.open_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+bpy.data.objects["Wing"].data.materials.append(None)
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+assert "Wing has empty material slots [1]" in tool("paint", empty_slot, expect=3)[1]["refusal"]
 assert ("modifier_order", "Wing") in rules(tool("check", ship("solidify_first", "solidify_first"), expect=3)[1])
 assert ("name", "Cube") in rules(tool("check", ship("cube_name", "cube_name"), expect=3)[1])
 assert ("uv_density", "Canopy") in rules(tool("uv", ship("scaled_uv", "scaled_uv"), expect=3)[1])

@@ -15,7 +15,8 @@ and `--out` paths. Group ownership and paired mirrored sections follow
 `art/tools/ship/README.md` → Debris export. Import the emitted FBX under the ship's
 `Breakup/` folder. Generate the legacy motion clip and prefab through the Editor from
 `art/ships/<name>/breakup.json`; preserve the build script with the capture evidence.
-The shared motion/prefab builder remains deferred to #868, slice 8.
+A shared motion/prefab builder is unscheduled: it left #868 slice 8 when that slice became
+the paint tool (#1014).
 
 ## Done
 
