@@ -1,0 +1,810 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "palette": "vanguard",
+  "regions": [
+    "AmberIndex",
+    "CanopyFrame",
+    "CanopyGlass",
+    "Contour",
+    "CoreGlow",
+    "HatchFrame",
+    "HullAccent",
+    "HullInset",
+    "HullPrimary",
+    "Indicator",
+    "Linework",
+    "PanelEdge",
+    "PanelGray",
+    "Structure",
+    "Underside",
+    "WarningMark"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Ink.png",
+    "Emission": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Emission.png",
+    "Region_AmberIndex": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_AmberIndex.png",
+    "Region_CanopyFrame": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_CanopyFrame.png",
+    "Region_CanopyGlass": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_CanopyGlass.png",
+    "Region_Contour": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_Contour.png",
+    "Region_CoreGlow": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_CoreGlow.png",
+    "Region_HatchFrame": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_HatchFrame.png",
+    "Region_HullAccent": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_HullAccent.png",
+    "Region_HullInset": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_HullInset.png",
+    "Region_HullPrimary": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_HullPrimary.png",
+    "Region_Indicator": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_Indicator.png",
+    "Region_Linework": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_Linework.png",
+    "Region_PanelEdge": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_PanelEdge.png",
+    "Region_PanelGray": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_PanelGray.png",
+    "Region_Structure": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_Structure.png",
+    "Region_Underside": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_Underside.png",
+    "Region_WarningMark": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\layers\\Region_WarningMark.png"
+  },
+  "baseline": "reused",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0,
+    "Emission": 0,
+    "Region_AmberIndex": 0,
+    "Region_CanopyFrame": 0,
+    "Region_CanopyGlass": 0,
+    "Region_Contour": 0,
+    "Region_CoreGlow": 0,
+    "Region_HatchFrame": 0,
+    "Region_HullAccent": 0,
+    "Region_HullInset": 0,
+    "Region_HullPrimary": 0,
+    "Region_Indicator": 0,
+    "Region_Linework": 0,
+    "Region_PanelEdge": 0,
+    "Region_PanelGray": 0,
+    "Region_Structure": 0,
+    "Region_Underside": 0,
+    "Region_WarningMark": 0
+  },
+  "parts": {
+    "Cockpit cooling vent": {
+      "regions": [
+        "HullPrimary",
+        "Structure"
+      ],
+      "thickness": 0.03420260548591614,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.0019730215426534414,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0001138191728387028,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0019730220083147287,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0001138191728387028,
+          "edges": 4
+        }
+      ]
+    },
+    "MVP Canopy": {
+      "regions": [
+        "CanopyFrame",
+        "CanopyGlass"
+      ],
+      "thickness": 0.15772487968206406,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 6146,
+          "area": 0.016335026791523433,
+          "edges": 296
+        },
+        {
+          "faces": 1,
+          "area": 3.6269314023229526e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 3.706548113768804e-06,
+          "edges": 3
+        },
+        {
+          "faces": 7184,
+          "area": 0.039552364155042596,
+          "edges": 340
+        },
+        {
+          "faces": 1,
+          "area": 1.1496706520119915e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 1.3250179335955181e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 1.2876538448836072e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 3.626931174949277e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 3.706494226207724e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 1.1496829301904654e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 1.3250727306513e-06,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 1.287712734665547e-06,
+          "edges": 3
+        }
+      ]
+    },
+    "MVP Cockpit.001": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.26223716884851456,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 50,
+          "area": 0.07795199331303593,
+          "edges": 28
+        },
+        {
+          "faces": 2,
+          "area": 0.002911480492912233,
+          "edges": 4
+        },
+        {
+          "faces": 6,
+          "area": 0.010366815578890964,
+          "edges": 8
+        },
+        {
+          "faces": 32,
+          "area": 0.12048081401735544,
+          "edges": 16
+        },
+        {
+          "faces": 1,
+          "area": 0.001973425969481468,
+          "edges": 3
+        },
+        {
+          "faces": 4,
+          "area": 0.010051905643194914,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.0026486353017389774,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.005836138501763344,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.002658604644238949,
+          "edges": 3
+        },
+        {
+          "faces": 2,
+          "area": 0.002911480492912233,
+          "edges": 4
+        },
+        {
+          "faces": 6,
+          "area": 0.010366815229644999,
+          "edges": 8
+        },
+        {
+          "faces": 1,
+          "area": 0.0019734257366508245,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.0026486353017389774,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.005836138501763344,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.002658604411408305,
+          "edges": 3
+        }
+      ]
+    },
+    "MVP Fuselage": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.30498409271240234,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.015723789110779762,
+          "edges": 4
+        },
+        {
+          "faces": 36,
+          "area": 0.13853405718691647,
+          "edges": 26
+        },
+        {
+          "faces": 20,
+          "area": 0.0877119314391166,
+          "edges": 14
+        },
+        {
+          "faces": 8,
+          "area": 0.05575988534837961,
+          "edges": 8
+        },
+        {
+          "faces": 1,
+          "area": 0.004752222448587418,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.01088858675211668,
+          "edges": 3
+        },
+        {
+          "faces": 2,
+          "area": 0.015723788179457188,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.004752222914248705,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.010888587683439255,
+          "edges": 3
+        }
+      ]
+    },
+    "MVP Power Nacelle Core": {
+      "regions": [
+        "CoreGlow"
+      ],
+      "thickness": 0.05963900685310364,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 36,
+          "area": 0.00035318341633683303,
+          "edges": 38
+        },
+        {
+          "faces": 36,
+          "area": 0.0003531825732352445,
+          "edges": 38
+        }
+      ]
+    },
+    "MVP Power Nacelle Housing": {
+      "regions": [
+        "Structure"
+      ],
+      "thickness": 0.0869264304637909,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 18,
+          "area": 0.0004929739625367802,
+          "edges": 20
+        },
+        {
+          "faces": 26,
+          "area": 0.00043274615018162876,
+          "edges": 28
+        },
+        {
+          "faces": 18,
+          "area": 0.0004929741426167311,
+          "edges": 20
+        },
+        {
+          "faces": 26,
+          "area": 0.0004327475453465013,
+          "edges": 28
+        }
+      ]
+    },
+    "MVP Sparrow Tail": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.19359827041625977,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 11,
+          "area": 0.10674728592857718,
+          "edges": 13
+        },
+        {
+          "faces": 11,
+          "area": 0.10674730758182704,
+          "edges": 13
+        },
+        {
+          "faces": 11,
+          "area": 0.10630368790589273,
+          "edges": 13
+        },
+        {
+          "faces": 11,
+          "area": 0.10630373866297305,
+          "edges": 13
+        }
+      ]
+    },
+    "MVP Tail": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.08627986907958984,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 10,
+          "area": 0.009870745976513717,
+          "edges": 12
+        },
+        {
+          "faces": 10,
+          "area": 0.009870743524516001,
+          "edges": 12
+        }
+      ]
+    },
+    "MVP Wing": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.1865391880273819,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 4,
+          "area": 0.19959094747900963,
+          "edges": 6
+        },
+        {
+          "faces": 3,
+          "area": 0.17388403415679932,
+          "edges": 5
+        },
+        {
+          "faces": 1,
+          "area": 0.017215507104992867,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.048304181545972824,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.025997821241617203,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.04830416291952133,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.017537469044327736,
+          "edges": 3
+        }
+      ]
+    },
+    "MVP wing_armature": {
+      "regions": [
+        "Structure"
+      ],
+      "thickness": 0.15513262152671814,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.02150249294936657,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.011675181798636913,
+          "edges": 3
+        },
+        {
+          "faces": 4,
+          "area": 0.07646761927753687,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.01167517900466919,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.021502496674656868,
+          "edges": 3
+        },
+        {
+          "faces": 4,
+          "area": 0.07646762393414974,
+          "edges": 6
+        }
+      ]
+    },
+    "MVP wing_armor": {
+      "regions": [
+        "HullPrimary"
+      ],
+      "thickness": 0.1526554860174656,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 5,
+          "area": 0.11406465526670218,
+          "edges": 7
+        },
+        {
+          "faces": 4,
+          "area": 0.10522687062621117,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.008861808106303215,
+          "edges": 3
+        }
+      ]
+    },
+    "MVP wing_tail": {
+      "regions": [
+        "HullAccent"
+      ],
+      "thickness": 0.117360919713974,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 3,
+          "area": 0.03804149851202965,
+          "edges": 5
+        },
+        {
+          "faces": 3,
+          "area": 0.03804152458906174,
+          "edges": 5
+        }
+      ]
+    },
+    "Pod cooling hatch": {
+      "regions": [
+        "HullPrimary",
+        "Structure"
+      ],
+      "thickness": 0.08050811849534512,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.00044098508078604937,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0004409851098898798,
+          "edges": 4
+        }
+      ]
+    },
+    "Vanguard structural ink": {
+      "regions": [
+        "Contour"
+      ],
+      "thickness": 0.12239226326346397,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 9.981017683458049e-06,
+          "edges": 3
+        },
+        {
+          "faces": 110,
+          "area": 0.001491822644311469,
+          "edges": 112
+        },
+        {
+          "faces": 2,
+          "area": 2.2781613552069757e-05,
+          "edges": 4
+        },
+        {
+          "faces": 36,
+          "area": 0.00025725845148372173,
+          "edges": 38
+        },
+        {
+          "faces": 6,
+          "area": 6.885563379910309e-05,
+          "edges": 8
+        },
+        {
+          "faces": 29,
+          "area": 0.0003342434022215457,
+          "edges": 31
+        },
+        {
+          "faces": 33,
+          "area": 0.00037919844726275187,
+          "edges": 35
+        },
+        {
+          "faces": 36,
+          "area": 0.0002571550954826307,
+          "edges": 38
+        },
+        {
+          "faces": 6,
+          "area": 6.888286043249536e-05,
+          "edges": 8
+        },
+        {
+          "faces": 29,
+          "area": 0.00033426400977987214,
+          "edges": 31
+        },
+        {
+          "faces": 33,
+          "area": 0.00037930903818050865,
+          "edges": 35
+        },
+        {
+          "faces": 288,
+          "area": 0.002563910544211012,
+          "edges": 290
+        },
+        {
+          "faces": 203,
+          "area": 0.0017882025984476968,
+          "edges": 205
+        },
+        {
+          "faces": 288,
+          "area": 0.002563914757161001,
+          "edges": 290
+        },
+        {
+          "faces": 203,
+          "area": 0.0017732893861648336,
+          "edges": 205
+        },
+        {
+          "faces": 120,
+          "area": 0.0007927178685633862,
+          "edges": 122
+        },
+        {
+          "faces": 3,
+          "area": 1.8266266579303192e-06,
+          "edges": 5
+        },
+        {
+          "faces": 119,
+          "area": 0.0007860779067812018,
+          "edges": 121
+        },
+        {
+          "faces": 1,
+          "area": 6.6133070504292846e-06,
+          "edges": 3
+        },
+        {
+          "faces": 3,
+          "area": 1.8140112274522835e-06,
+          "edges": 5
+        }
+      ]
+    },
+    "Wing service hatch": {
+      "regions": [
+        "HullPrimary",
+        "Structure"
+      ],
+      "thickness": 0.04900002479553223,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.00011392308078939095,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00023660055012442172,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00011392313172109425,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0002366005355725065,
+          "edges": 4
+        }
+      ]
+    }
+  },
+  "accents": 1,
+  "preview": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\preview\\Composite.png",
+  "authored_regions": {
+    "names": [
+      "AmberIndex",
+      "CanopyFrame",
+      "CanopyGlass",
+      "Contour",
+      "CoreGlow",
+      "HatchFrame",
+      "HullAccent",
+      "HullInset",
+      "HullPrimary",
+      "Indicator",
+      "Linework",
+      "PanelEdge",
+      "PanelGray",
+      "Structure",
+      "Underside",
+      "WarningMark"
+    ],
+    "paths": {
+      "RegionWeights0": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\region-weights\\RegionWeights0.png",
+      "RegionWeights1": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\region-weights\\RegionWeights1.png",
+      "RegionWeights2": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\region-weights\\RegionWeights2.png",
+      "RegionWeights3": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\region-weights\\RegionWeights3.png"
+    }
+  },
+  "unity": {
+    "root": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\painted-layers\\paint\\unity\\Vanguard",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Paint/Emission.png",
+      "Paint/Emission.png.meta",
+      "Paint/RegionWeights0.png",
+      "Paint/RegionWeights0.png.meta",
+      "Paint/RegionWeights1.png",
+      "Paint/RegionWeights1.png.meta",
+      "Paint/RegionWeights2.png",
+      "Paint/RegionWeights2.png.meta",
+      "Paint/RegionWeights3.png",
+      "Paint/RegionWeights3.png.meta",
+      "Materials.meta",
+      "Materials/vanguard.meta",
+      "Materials/vanguard/AmberIndex.mat",
+      "Materials/vanguard/AmberIndex.mat.meta",
+      "Materials/vanguard/CanopyFrame.mat",
+      "Materials/vanguard/CanopyFrame.mat.meta",
+      "Materials/vanguard/CanopyGlass.mat",
+      "Materials/vanguard/CanopyGlass.mat.meta",
+      "Materials/vanguard/Contour.mat",
+      "Materials/vanguard/Contour.mat.meta",
+      "Materials/vanguard/CoreGlow.mat",
+      "Materials/vanguard/CoreGlow.mat.meta",
+      "Materials/vanguard/HatchFrame.mat",
+      "Materials/vanguard/HatchFrame.mat.meta",
+      "Materials/vanguard/HullAccent.mat",
+      "Materials/vanguard/HullAccent.mat.meta",
+      "Materials/vanguard/HullInset.mat",
+      "Materials/vanguard/HullInset.mat.meta",
+      "Materials/vanguard/HullPrimary.mat",
+      "Materials/vanguard/HullPrimary.mat.meta",
+      "Materials/vanguard/Indicator.mat",
+      "Materials/vanguard/Indicator.mat.meta",
+      "Materials/vanguard/Linework.mat",
+      "Materials/vanguard/Linework.mat.meta",
+      "Materials/vanguard/PanelEdge.mat",
+      "Materials/vanguard/PanelEdge.mat.meta",
+      "Materials/vanguard/PanelGray.mat",
+      "Materials/vanguard/PanelGray.mat.meta",
+      "Materials/vanguard/Structure.mat",
+      "Materials/vanguard/Structure.mat.meta",
+      "Materials/vanguard/Underside.mat",
+      "Materials/vanguard/Underside.mat.meta",
+      "Materials/vanguard/WarningMark.mat",
+      "Materials/vanguard/WarningMark.mat.meta",
+      "Materials/mint_plum.meta",
+      "Materials/mint_plum/AmberIndex.mat",
+      "Materials/mint_plum/AmberIndex.mat.meta",
+      "Materials/mint_plum/CanopyFrame.mat",
+      "Materials/mint_plum/CanopyFrame.mat.meta",
+      "Materials/mint_plum/CanopyGlass.mat",
+      "Materials/mint_plum/CanopyGlass.mat.meta",
+      "Materials/mint_plum/Contour.mat",
+      "Materials/mint_plum/Contour.mat.meta",
+      "Materials/mint_plum/CoreGlow.mat",
+      "Materials/mint_plum/CoreGlow.mat.meta",
+      "Materials/mint_plum/HatchFrame.mat",
+      "Materials/mint_plum/HatchFrame.mat.meta",
+      "Materials/mint_plum/HullAccent.mat",
+      "Materials/mint_plum/HullAccent.mat.meta",
+      "Materials/mint_plum/HullInset.mat",
+      "Materials/mint_plum/HullInset.mat.meta",
+      "Materials/mint_plum/HullPrimary.mat",
+      "Materials/mint_plum/HullPrimary.mat.meta",
+      "Materials/mint_plum/Indicator.mat",
+      "Materials/mint_plum/Indicator.mat.meta",
+      "Materials/mint_plum/Linework.mat",
+      "Materials/mint_plum/Linework.mat.meta",
+      "Materials/mint_plum/PanelEdge.mat",
+      "Materials/mint_plum/PanelEdge.mat.meta",
+      "Materials/mint_plum/PanelGray.mat",
+      "Materials/mint_plum/PanelGray.mat.meta",
+      "Materials/mint_plum/Structure.mat",
+      "Materials/mint_plum/Structure.mat.meta",
+      "Materials/mint_plum/Underside.mat",
+      "Materials/mint_plum/Underside.mat.meta",
+      "Materials/mint_plum/WarningMark.mat",
+      "Materials/mint_plum/WarningMark.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}

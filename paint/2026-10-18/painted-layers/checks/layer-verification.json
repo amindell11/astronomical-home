@@ -1,0 +1,63 @@
+{
+  "verdict": "pass",
+  "unchanged_files": [
+    "Vanguard.blend",
+    "lock.json",
+    "ship.json",
+    "palettes.json",
+    "regions.json",
+    "layers\\Emission.png",
+    "layers\\Ink.png",
+    "layers\\Region_AmberIndex.png",
+    "layers\\Region_CanopyFrame.png",
+    "layers\\Region_CanopyGlass.png",
+    "layers\\Region_Contour.png",
+    "layers\\Region_CoreGlow.png",
+    "layers\\Region_HatchFrame.png",
+    "layers\\Region_HullAccent.png",
+    "layers\\Region_HullInset.png",
+    "layers\\Region_HullPrimary.png",
+    "layers\\Region_Indicator.png",
+    "layers\\Region_Linework.png",
+    "layers\\Region_PanelEdge.png",
+    "layers\\Region_PanelGray.png",
+    "layers\\Region_Structure.png",
+    "layers\\Region_Underside.png",
+    "layers\\Region_WarningMark.png",
+    "layers\\baseline\\Emission.png",
+    "layers\\baseline\\Ink.png",
+    "layers\\baseline\\Region_AmberIndex.png",
+    "layers\\baseline\\Region_CanopyFrame.png",
+    "layers\\baseline\\Region_CanopyGlass.png",
+    "layers\\baseline\\Region_Contour.png",
+    "layers\\baseline\\Region_CoreGlow.png",
+    "layers\\baseline\\Region_HatchFrame.png",
+    "layers\\baseline\\Region_HullAccent.png",
+    "layers\\baseline\\Region_HullInset.png",
+    "layers\\baseline\\Region_HullPrimary.png",
+    "layers\\baseline\\Region_Indicator.png",
+    "layers\\baseline\\Region_Linework.png",
+    "layers\\baseline\\Region_PanelEdge.png",
+    "layers\\baseline\\Region_PanelGray.png",
+    "layers\\baseline\\Region_Structure.png",
+    "layers\\baseline\\Region_Underside.png",
+    "layers\\baseline\\Region_WarningMark.png"
+  ],
+  "mask_changes": {
+    "Shadow": {
+      "changed_texels": 4502769,
+      "unique_levels": 193,
+      "min": 0,
+      "max": 192
+    },
+    "Light": {
+      "changed_texels": 711335,
+      "unique_levels": 256,
+      "min": 0,
+      "max": 255
+    }
+  },
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "baseline": "reused",
+  "unity_review": "deferred by owner"
+}

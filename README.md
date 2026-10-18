@@ -36,3 +36,5 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 - [Production artwork preservation](paint/2026-10-18/preservation/README.md): original detail retained, baked broad lighting removed, and canonical brush treatment shown separately; replaces the rejected region redraw.
 
 - [Authored neutral region masks and selected line treatment](paint/2026-10-18/authored-regions/README.md): recovered artwork, source correction for extra hatch outlines, canonical bakes and export; Unity review deferred by owner.
+
+- [Painted light and shadow restoration](paint/2026-10-18/painted-layers/README.md): restores the procedure's brushing and light/shadow layers after the owner approved the softer lines; Unity review remains deferred.
