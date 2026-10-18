@@ -33,10 +33,25 @@ public static class PaintPreviewLineup
         var forward = GamePlane.Forward;
         var right = GamePlane.Right;
 
-        // The game's lights (shadow maps off, since no shadow pass runs here) plus a flat ambient.
-        var lighting = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scenes/Lighting.prefab");
-        var lights = (GameObject)PrefabUtility.InstantiatePrefab(lighting);
-        foreach (var light in lights.GetComponentsInChildren<Light>(true)) light.shadows = LightShadows.None;
+        // -paintPreviewLight game: the game's lights (shadow maps off, since no shadow pass runs here);
+        // neutral: one white key light from the camera's side. Both with a flat ambient.
+        var neutral = false;
+        for (var i = 0; i < args.Length - 1; i++) if (args[i] == "-paintPreviewLight") neutral = args[i + 1] == "neutral";
+        if (neutral)
+        {
+            var key = new GameObject("lineup light").AddComponent<Light>();
+            key.type = LightType.Directional;
+            key.intensity = 1.2f;
+            key.color = Color.white;
+            key.transform.rotation = Quaternion.LookRotation((normal + right * 0.35f + forward * 0.25f).normalized, forward);
+            key.shadows = LightShadows.None;
+        }
+        else
+        {
+            var lighting = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scenes/Lighting.prefab");
+            var lights = (GameObject)PrefabUtility.InstantiatePrefab(lighting);
+            foreach (var light in lights.GetComponentsInChildren<Light>(true)) light.shadows = LightShadows.None;
+        }
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = new Color(0.42f, 0.44f, 0.48f);
 
@@ -49,6 +64,8 @@ public static class PaintPreviewLineup
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Ships/{Ships[i]}.prefab");
             today[i] = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             today[i].name = Ships[i] + " today";
+            // The spawner poses a chassis root on the game plane; a prefab's stored root rotation is not the flight pose.
+            today[i].transform.SetPositionAndRotation(Vector3.zero, GamePlane.Rotation);
             today[i].SetActive(true);
             foreach (var t in today[i].GetComponentsInChildren<Transform>(true)) t.gameObject.SetActive(true);
             foreach (var r in today[i].GetComponentsInChildren<Renderer>(true)) r.enabled = IsHull(r);

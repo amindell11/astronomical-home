@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$ProjectPath,
     [Parameter(Mandatory = $true)][string]$OutDir,
-    [Parameter(Mandatory = $true)][string]$LogPath
+    [Parameter(Mandatory = $true)][string]$LogPath,
+    [string]$Light = "game"
 )
 # Evidence-only: renders the #1014 paint lineup through PaintPreviewLineup.Render in a batch editor.
 # Run under the coordinator: unity_access.ps1 -Action RunBatch -BatchScript <this> -BatchArguments @(...)
@@ -17,6 +18,7 @@ $arguments = @(
     "-projectPath", $ProjectPath,
     "-executeMethod", "PaintPreviewLineup.Render",
     "-paintPreviewOut", $OutDir,
+    "-paintPreviewLight", $Light,
     "-logFile", $LogPath,
     "-quit"
 )
