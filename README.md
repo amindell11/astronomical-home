@@ -32,3 +32,5 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 [2026-10-15 palette/region concept and vent-clearance correction](paint/2026-10-15/README.md): geometry/UV approvals recorded on #1016; owner-approved fit correction applied and rechecked. Palette/region approval pending.
 
 - [Recovered livery regions](paint/2026-10-15/region-correction/README.md): original production placement beside the corrected flat-region proposal; supersedes the rejected whole-part assignments.
+
+- [Production artwork preservation](paint/2026-10-18/preservation/README.md): original detail retained, baked broad lighting removed, and canonical brush treatment shown separately; replaces the rejected region redraw.

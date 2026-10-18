@@ -1,0 +1,30 @@
+{
+  "source": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\drawn-study\\VanguardPainted.blend",
+  "source_sha256": "9cf401f99b3c820d094409d512686a290770d5c9ac999de84d4a8dc8512a74ec",
+  "source_unchanged": true,
+  "source_saved": false,
+  "original_artwork": "Recovered production generate_base.py, base_palette.py, legacy-paint-layout.json and service-panels.json; original structural ink meshes retained",
+  "authored_shapes_kept": 37,
+  "service_patches_kept": 37,
+  "palette_change": "Only restore the selected Vivid orange (#FF5C11) in the recovered clean base",
+  "removed": "Old paint_vanguard.py diagonal dark/light sweep and normal ramp are absent from the clean base",
+  "added": "Canonical ship_paint.py brush Shadow/Light calculation; no regenerated boundaries, no new plate lines, no sweep",
+  "canonical_tool_commit": "6b2f743613851747d38e5c08e925c90240e894b9 (ship_paint.py unchanged from df12417 snapshot)",
+  "brush_sha256": "d17bebf965a771c386ab3534006cb4ca97ed263495e573b5b4c46f935582a76c",
+  "brush_settings": {
+    "scale": 1.3,
+    "contrast": 3.2,
+    "blend": 0.25
+  },
+  "brush_mid": 0.625,
+  "geometry_edited": false,
+  "uv_edited": false,
+  "texture_masks_written": false,
+  "runtime_assets_changed": false,
+  "review_only": true,
+  "variants": [
+    "original",
+    "preserved-flat",
+    "preserved-brush"
+  ]
+}
