@@ -131,7 +131,7 @@ class Graph:
 
 
 def write_png(path, array):
-    """8-bit PNG, grayscale (rows, columns) or RGB (rows, columns, 3); rows are bottom-up as Blender's."""
+    """PNG rows reverse Blender's bottom-up pixel order."""
     rows = np.ascontiguousarray(array[::-1], np.uint8)
     height, width = rows.shape[:2]
     colour_type = 0 if rows.ndim == 2 else (6 if rows.shape[2] == 4 else 2)
