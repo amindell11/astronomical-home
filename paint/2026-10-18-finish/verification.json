@@ -1,0 +1,18 @@
+{
+  "objects_geometry_uv_assignments_unchanged": true,
+  "all_original_image_pixels_and_packed_bytes_unchanged": true,
+  "fresh_reload_matches": true,
+  "base_region": {
+    "pixels": "ef2cec3d4b04a27d02ac74c82fc6edb6a25d2c42829e43c56af8348eba5a3656",
+    "packed": "c590c8f244d3380dfd57a19d1c3318ac8b695b53fbf1adb25779bccbbd90a911"
+  },
+  "new_images": [
+    "Bulwark FinishLight",
+    "Bulwark FinishShadow"
+  ],
+  "deferred": [
+    "flight geometry lock",
+    "UV density",
+    "in-game review"
+  ]
+}
