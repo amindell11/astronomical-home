@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "tool": "ship_uv",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1335d2ba9f72bfcd222b1e203c54fe70ffd500e86227e388f9233a4886e6f129",
+  "densities": {
+    "Armor - Front plate": 162.49380962743177,
+    "Armor - Lower skids": 82.51356556569144,
+    "Armor - Side plates": 82.51398635331014,
+    "Armor - Upper shoulder guards": 82.51396353257132,
+    "Canisters - Metal side modules": 87.93757772459884,
+    "Cockpit - Canopy": 82.51394525843084,
+    "Cockpit - Seating rim": 82.51397932053318,
+    "Engine - Recessed nozzles": 86.23842608770055,
+    "Engine - Shoulder booms": 85.11283870020057,
+    "Engine - Shrouds": 82.51398858871514,
+    "Hull - Aft bridge": 89.0132663265976,
+    "Hull - Dorsal spine": 82.51561872965551,
+    "Hull - Lower keel": 82.44869778928387,
+    "Hull - Main deck": 82.51397535086787,
+    "Hull - Ram nose": 82.11272810973772,
+    "Lower flaps - Fins": 82.5298853788395,
+    "Lower flaps - Fixed brackets": 82.51392386596228,
+    "Lower flaps - Moving leaves": 82.51398610086315,
+    "Upper flaps - Fins": 82.51396511576287,
+    "Upper flaps - Fixed brackets": 70.83463318089515,
+    "Upper flaps - Moving leaves": 72.15723782476645
+  },
+  "ratio": 2.293988157070856,
+  "max_ratio": 2.0,
+  "findings": [
+    {
+      "rule": "uv_density",
+      "part": "Armor - Front plate",
+      "message": "Density ratio 2.294 exceeds 2.0"
+    },
+    {
+      "rule": "uv_density",
+      "part": "Upper flaps - Fixed brackets",
+      "message": "Density ratio 2.294 exceeds 2.0"
+    }
+  ],
+  "exempted": [],
+  "verdict": "fail"
+}
