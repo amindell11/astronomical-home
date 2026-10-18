@@ -1,8 +1,8 @@
 {
   "texture_size": 2048,
   "uv_layer": "PaintUV",
-  "shadow": 0.9,
-  "light": 0.7,
+  "shadow": 0.75,
+  "light": 0.35,
   "ink": 1.05,
   "light_color": "#E3D8CB",
   "ink_color": "#29222F",
@@ -22,19 +22,50 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "owner-cleanup-applied",
+  "status": "blender-finish-review",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
     "Metal": {
-      "blender_metallic": 0.75,
-      "blender_roughness": 0.6,
+      "blender_metallic": 0.85,
+      "blender_roughness": 0.38,
       "unity_specular_strength": 0.2,
       "unity_shadow_color": [
         0.74,
         0.74,
         0.74
-      ]
+      ],
+      "blender_anisotropic": 0.25
+    },
+    "Glass": {
+      "blender_roughness": 0.36,
+      "blender_coat_weight": 0.25,
+      "blender_coat_roughness": 0.28,
+      "masks": "Original canopy Shadow, Light and Ink retained"
+    },
+    "Paint": {
+      "blender_roughness": 0.66,
+      "blender_coat_weight": 0.12,
+      "blender_coat_roughness": 0.32
+    },
+    "Charcoal": {
+      "blender_roughness": 0.72,
+      "blender_coat_weight": 0.12,
+      "blender_coat_roughness": 0.32
     }
-  }
+  },
+  "shadow_mask": "layers/FinishShadow.png",
+  "light_mask": "layers/FinishLight.png",
+  "blender_layer_order": [
+    "base colors and BaseRegion",
+    "shadow",
+    "light",
+    "ink"
+  ],
+  "deferred_checks": [
+    "renewed flight approval and geometry lock",
+    "UV density correction",
+    "in-game paint review"
+  ],
+  "constant_material_shadow_strength": 0.65
 }
