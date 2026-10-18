@@ -190,7 +190,9 @@ def parse_palettes(value):
 
 def parse_paint(value):
     """Validate paint.json, the per-ship knobs of ship_paint; unknown fields and keys are rejected."""
-    _fields(value, PAINT_FIELDS, "paint.json")
+    _fields(value, PAINT_FIELDS + (("authored_regions",) if "authored_regions" in value else ()), "paint.json")
+    if "authored_regions" in value:
+        _text(value["authored_regions"], "authored_regions")
     assigned = set()
     for key in ("canopy_glass", "canopy_frames"):
         names = value[key]
