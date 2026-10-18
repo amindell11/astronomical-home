@@ -1,0 +1,27 @@
+{
+  "geometry_unchanged": true,
+  "uv_unchanged": true,
+  "regions": [
+    "HullPrimary",
+    "HullAccent",
+    "Structure",
+    "Underside",
+    "Linework",
+    "WarningMark",
+    "Indicator",
+    "CanopyGlass",
+    "CanopyFrame",
+    "CoreGlow",
+    "Contour",
+    "HatchFrame",
+    "PanelGray",
+    "PanelEdge",
+    "HullInset",
+    "AmberIndex"
+  ],
+  "source_marks": 37,
+  "service_patches": 37,
+  "authored_marks": 89,
+  "original_source_sha256": "9cf401f99b3c820d094409d512686a290770d5c9ac999de84d4a8dc8512a74ec",
+  "source_sha256": "7daa26e083aa12c59acdeff072c1db06c0f1aded67c061edbd7cd69889ea85fe"
+}

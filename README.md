@@ -34,3 +34,5 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 - [Recovered livery regions](paint/2026-10-15/region-correction/README.md): original production placement beside the corrected flat-region proposal; supersedes the rejected whole-part assignments.
 
 - [Production artwork preservation](paint/2026-10-18/preservation/README.md): original detail retained, baked broad lighting removed, and canonical brush treatment shown separately; replaces the rejected region redraw.
+
+- [Authored neutral region masks and selected line treatment](paint/2026-10-18/authored-regions/README.md): recovered artwork, source correction for extra hatch outlines, canonical bakes and export; Unity review deferred by owner.

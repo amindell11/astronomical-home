@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "palettes": [
+    "vanguard",
+    "mint_plum"
+  ],
+  "runtime_masks_byte_identical": {
+    "Emission.png": true,
+    "Ink.png": true,
+    "Light.png": true,
+    "RegionWeights0.png": true,
+    "RegionWeights1.png": true,
+    "RegionWeights2.png": true,
+    "RegionWeights3.png": true,
+    "Shadow.png": true
+  }
+}

@@ -1,0 +1,275 @@
+[
+  {
+    "path": "D:/amind/git/astronomical-home/art/ships/vanguard/drawn-study/VanguardPainted.blend",
+    "records": [
+      {
+        "name": "MVP Fuselage",
+        "vertices": 99,
+        "world_sha": "5e13c9452b0c5783e412414ec9ca43676291aa2b1949db0a67d42ed7829d684c",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Cockpit.001",
+        "vertices": 158,
+        "world_sha": "1f22eeab4506d26bf0387e0e0ad6d361fba0f9aaf1f25edf9a6e61ea3fcd2ed0",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Sparrow Tail",
+        "vertices": 52,
+        "world_sha": "8a9a10a36f9a4dea3654f9145f39af957797adc025376b93c8a1a06b773418f0",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Wing",
+        "vertices": 28,
+        "world_sha": "a5b4d926dd59167129ccf22601d57509914cbb70e2e48fa6fd4bdcdca755ac9c",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Tail",
+        "vertices": 24,
+        "world_sha": "9f7b60eda85af94b483fa6d5bc83771d50d59723596709934092c635d7060dd2",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_armature",
+        "vertices": 32,
+        "world_sha": "2dec82dc6cc72eb118039313712673a2ca1beb1f219936a64732a431342bce19",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_armor",
+        "vertices": 28,
+        "world_sha": "ff5744d177530c69039f87bce3a571661d2dfe00a263178c0aed23ec5fc9582e",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_tail",
+        "vertices": 12,
+        "world_sha": "b7852ba71d7a877248a87e5f6102191bb4bd5db4bc03f6df52acf170b8b90586",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Canopy",
+        "vertices": 21762,
+        "world_sha": "9009d6012491f229b1bbe757407e757313cb6b6bd520d26485a82844730fd8a1",
+        "materials": [
+          "Vanguard | Canopy navy",
+          "Vanguard | Canopy orange surround"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Power Nacelle Housing",
+        "vertices": 896,
+        "world_sha": "51de9e29c75bb2a901b891ff2ca6b6730fa4d05ad2de7d90c531447c3f6aed8c",
+        "materials": [
+          "Preview atlas"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Power Nacelle Core",
+        "vertices": 384,
+        "world_sha": "fbc6454d910763427e14b39041e043d3521da71c409db0b6a95048df440a6a03",
+        "materials": [
+          "Vanguard | Blue core emission - bloom separate"
+        ],
+        "mods": []
+      },
+      {
+        "name": "Vanguard structural ink",
+        "vertices": 2732,
+        "world_sha": "6f4e4cd04eced55ab81a626089e9453ac2faf19f49e9d20ea1ecb73e8a67ef94",
+        "materials": [
+          "Preview ink"
+        ],
+        "mods": []
+      }
+    ]
+  },
+  {
+    "path": "D:/amind/git/agent-4/art/ships/vanguard/Vanguard.blend",
+    "records": [
+      {
+        "name": "MVP Fuselage",
+        "vertices": 99,
+        "world_sha": "5e13c9452b0c5783e412414ec9ca43676291aa2b1949db0a67d42ed7829d684c",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Cockpit.001",
+        "vertices": 158,
+        "world_sha": "1f22eeab4506d26bf0387e0e0ad6d361fba0f9aaf1f25edf9a6e61ea3fcd2ed0",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Sparrow Tail",
+        "vertices": 52,
+        "world_sha": "8a9a10a36f9a4dea3654f9145f39af957797adc025376b93c8a1a06b773418f0",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Wing",
+        "vertices": 28,
+        "world_sha": "a5b4d926dd59167129ccf22601d57509914cbb70e2e48fa6fd4bdcdca755ac9c",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Tail",
+        "vertices": 24,
+        "world_sha": "9f7b60eda85af94b483fa6d5bc83771d50d59723596709934092c635d7060dd2",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_armature",
+        "vertices": 32,
+        "world_sha": "2dec82dc6cc72eb118039313712673a2ca1beb1f219936a64732a431342bce19",
+        "materials": [
+          "Structure"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_armor",
+        "vertices": 28,
+        "world_sha": "ff5744d177530c69039f87bce3a571661d2dfe00a263178c0aed23ec5fc9582e",
+        "materials": [
+          "HullPrimary"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP wing_tail",
+        "vertices": 12,
+        "world_sha": "b7852ba71d7a877248a87e5f6102191bb4bd5db4bc03f6df52acf170b8b90586",
+        "materials": [
+          "HullAccent"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Canopy",
+        "vertices": 21762,
+        "world_sha": "9009d6012491f229b1bbe757407e757313cb6b6bd520d26485a82844730fd8a1",
+        "materials": [
+          "CanopyGlass",
+          "CanopyFrame"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Power Nacelle Housing",
+        "vertices": 896,
+        "world_sha": "51de9e29c75bb2a901b891ff2ca6b6730fa4d05ad2de7d90c531447c3f6aed8c",
+        "materials": [
+          "Structure"
+        ],
+        "mods": []
+      },
+      {
+        "name": "MVP Power Nacelle Core",
+        "vertices": 384,
+        "world_sha": "fbc6454d910763427e14b39041e043d3521da71c409db0b6a95048df440a6a03",
+        "materials": [
+          "CoreGlow"
+        ],
+        "mods": []
+      },
+      {
+        "name": "Vanguard structural ink",
+        "vertices": 2732,
+        "world_sha": "6f4e4cd04eced55ab81a626089e9453ac2faf19f49e9d20ea1ecb73e8a67ef94",
+        "materials": [
+          "Contour"
+        ],
+        "mods": []
+      },
+      {
+        "name": "Pod cooling hatch",
+        "vertices": 120,
+        "world_sha": "e6d0a789bae3d15b48432c5de8f781090dc4be64a63cf7e51c44dc5488f97902",
+        "materials": [
+          "HullPrimary",
+          "Structure"
+        ],
+        "mods": [
+          [
+            "Bilateral detail",
+            "MIRROR"
+          ]
+        ]
+      },
+      {
+        "name": "Cockpit cooling vent",
+        "vertices": 88,
+        "world_sha": "3afe466d20b74b8f80aba7ac3721803bc6e78f54cceb0f433afd00b00d155e6b",
+        "materials": [
+          "HullPrimary",
+          "Structure"
+        ],
+        "mods": [
+          [
+            "Bilateral detail",
+            "MIRROR"
+          ]
+        ]
+      },
+      {
+        "name": "Wing service hatch",
+        "vertices": 56,
+        "world_sha": "affe8155b277569afe977993225b7c5de3c73c87bf069d57ccef3d8ea99f2dba",
+        "materials": [
+          "HullPrimary",
+          "Structure"
+        ],
+        "mods": [
+          [
+            "Bilateral detail",
+            "MIRROR"
+          ]
+        ]
+      }
+    ]
+  }
+]

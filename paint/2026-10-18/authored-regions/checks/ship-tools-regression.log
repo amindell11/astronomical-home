@@ -1,0 +1,17 @@
+00:17.016  blend            | Read blend: "D:\amind\git\agent-4\results\vanguard-redo\ship-tools-regression\base\Fixture.blend"
+02:00.937  blend            | Read blend: "D:\amind\git\agent-4\results\vanguard-redo\ship-tools-regression\base\Fixture.blend"
+02:09.297  blend            | Read blend: "D:\amind\git\agent-4\results\vanguard-redo\ship-tools-regression\debris\Fixture.blend"
+02:29.906  blend            | Read blend: "D:\amind\git\agent-4\results\vanguard-redo\ship-tools-regression\empty_slot\Fixture.blend"
+Info: Saved copy as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+Info: Saved as "Fixture.blend"
+SHIP_SMOKE_PASS {"fingerprint": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8", "uv_ratio": 1.0865917330376405, "paint_edited_texels": 4096, "Canopy_triangles": 24, "Cores_triangles": 12, "Hull_triangles": 216, "debris_painted_triangles": 252}
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+FBX import of 'Fixture.fbx' took 1.45 ms
+FBX import of 'Fixture.fbx' took 3.99 ms
+FBX import of 'Fixture.fbx' took 1.74 ms
+FBX import of 'FixtureBreakup.fbx' took 1.81 ms
+
+Blender quit

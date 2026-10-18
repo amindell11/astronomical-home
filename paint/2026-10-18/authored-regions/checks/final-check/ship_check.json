@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "findings": [],
+  "exempted": [],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+      "uv": "05e9be4b70eebd87176eb8f521b288979da22076b95b40aea78e17981b74bb15",
+      "materials": "39658088f7bc5d3f697c4da51ba48aa79e71003a67a287f28195f45e80afc4aa"
+    },
+    "parts": {
+      "Cockpit cooling vent": {
+        "geometry": "33c45300cd26b64270042f108458d1f5c0c9af7abf99802d5458ed61151583d8",
+        "uv": "d6b6a88bba1dd9f346cda60894122df163f9c1ed8c133b71ee25f3a41cc2e086",
+        "materials": "1c9036361e7d18da7fc7994e36abcce4c9f2951825e7f7702bce094831133d5d"
+      },
+      "MVP Canopy": {
+        "geometry": "5ca50f90da89f6dd9fe3ed41ef368b063767ce8c390b813e9ea2e7c4caab7df0",
+        "uv": "95655147d56d99202a7cb57908bb1a723542041b00a3abe9e39b65de6e7cb97f",
+        "materials": "39579b3df376ee1ab7285e2259b7a4bc415969133dfeb3751d7ddd36c2de0063"
+      },
+      "MVP Cockpit.001": {
+        "geometry": "a1d9d34386cdc9e30c3aaf0bd83047adf8cc6fbfc7a9d5f810cb1122b39c4754",
+        "uv": "40ae5e21c9ac0255f261271bec17c930cac4e8ff1a966838ff1d5a627030cb55",
+        "materials": "57cb460a50f76b785582f8e20968fe58b6ace3dc3f66a9ea9ccc5b43569ed63c"
+      },
+      "MVP Fuselage": {
+        "geometry": "501eca1165e4a6086a85cc6d057387628fcf508ad2e8a618ac082493e325c643",
+        "uv": "1305a045db13d735d7b6d83e14be6d5e057df3edb6a8a4e9867b362ec73f1e3e",
+        "materials": "3e8885bb5bc7e0c4d2c255b7ac371ae893a058f4fae220450697d106aef24db7"
+      },
+      "MVP Power Nacelle Core": {
+        "geometry": "8d88df8f3eae1f61c9fd3cdc79f2410c3eb8f054e8c46a2aba8a9965ff1c8d4d",
+        "uv": "a579eaa018e95bc9b3fad0e84d1a2143540604e7d88d195c9665780a7212960a",
+        "materials": "23e4cae8df691938a990c797eb622ec3316656014e714b04a1f228d9ca27d2b0"
+      },
+      "MVP Power Nacelle Housing": {
+        "geometry": "d0c5bdb754ebcc1d7cc4df83e1bd05798fe52f166fce61c00852c9f773ad0d05",
+        "uv": "3e93fdc694eb3584dce6e86942ad6c8fc49ae791744c1a72f5c13624a9b2ba69",
+        "materials": "6a391ab1c7c4d5af862292e2a51abbe11358663c0c380ea0deb0a35e913740a2"
+      },
+      "MVP Sparrow Tail": {
+        "geometry": "9ca600c7bc9e0ba562aaab0edeb48f105281603b61f13386d3257e405b336478",
+        "uv": "cf838777632b36e5ec6ec02841544d9666d1361fe4bf787a0a9da610d03e36b2",
+        "materials": "b394e9d004f737dfabc9244171800e621f19766484a168a1cf1795fac661089e"
+      },
+      "MVP Tail": {
+        "geometry": "caeaa042e1bd36b2b406d722f9450678006ef7a92ac376186136b316265e6c18",
+        "uv": "dc52204ee5f8d23efa23ae247af30d4e486de17c73fc8fda4fb4c024ffaaeee1",
+        "materials": "6401269fa7688e21a7400413b8744f08d5d7804b26cc3ca78ce52fddba3e8689"
+      },
+      "MVP Wing": {
+        "geometry": "27b4267b121791aeeb4d97003dbb949295783a6c39f6721b09166e831cbb4a2f",
+        "uv": "4c9749c19e5e9ff65f59d9f5f36c9b61ff0775dffffa924b2a436a62042b006f",
+        "materials": "a1886b9d4a8c8867b22cebc48290ee8b65508fee515fdab8293bf83a612c47f9"
+      },
+      "MVP wing_armature": {
+        "geometry": "54516189c71e15a67dba28503768ae80d8c7ee4c8091ccafdd555b6a3f3d5496",
+        "uv": "5256cb1c08c2ef666f35155138e5e5068438a4d282465587e9737d9a07811ecb",
+        "materials": "b8c82f3e1a18c7a195491ac76ed467678c51e36a5718df466df6ff7a506507fb"
+      },
+      "MVP wing_armor": {
+        "geometry": "7d85b6e88761bb16653ce7e3c609e3b46a34b7ed9d0789548fbcf92cbaa00aca",
+        "uv": "e1a327fe758101eb1a00c802c5f6a4055e85d87b352b51066c57618cfa67989b",
+        "materials": "a1886b9d4a8c8867b22cebc48290ee8b65508fee515fdab8293bf83a612c47f9"
+      },
+      "MVP wing_tail": {
+        "geometry": "b76224b5e31eeb769ac6645aca8315a65303f18a7e7c659db3cff4bf60bbc0cf",
+        "uv": "4d8ed0a71b1d4df5f35da8be9dcb10a7b6d4a4287f14d1bc2e9226ac2469ed3d",
+        "materials": "1f44859849e5888a0856a95a6ab82efff77bc1a845fdcebcf11207d92145d778"
+      },
+      "Pod cooling hatch": {
+        "geometry": "6f865eb3382dccab1e988578f53da9c71dbe6dc06eaebaf17a1a2fffa720ff5c",
+        "uv": "42e8f1727ca5553fc22ec03588c7732339a46f392b77b504b563b77f8fa2ab0a",
+        "materials": "2c759532a2f51b3ace8a0f9e257d127da7a6139b624cb711cc931d860ae5ee74"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Vanguard service panels": {
+        "geometry": "df214ff1525eafb9b769e3c51061341c8637124b729e17a03a68aebc4b90a29b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "08df4252b130f2c6c673f3c9ad9a241ed1e945fc1a6bd56536c5ea2b058cf759"
+      },
+      "Vanguard structural ink": {
+        "geometry": "b5042679b0eb2b428d88c27e36bc3739dcaafb2b56481be2c05bd82568ff54c2",
+        "uv": "048af1ffce8ab9675e1a79e2d38d0be10aab59d7454d84aa9ce3c4ea40b9c827",
+        "materials": "581f8ab4c88dd6de20957c51f3b1cbb692490d6bc27ebcb1f6d945397a0b6135"
+      },
+      "Vanguard surface wear": {
+        "geometry": "9a12d5df113f3ebfc3b89a7846b5ec0cffc3358cb64cb2fb848bca183851f075",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "012a3cbbdf2e078a7924716ecd33f2e7ef8b901d9a6b37e1b0c8e157c42646e1"
+      },
+      "Wing service hatch": {
+        "geometry": "0caae3ea1e2a4f99bd9360776b6a4fece51e378261a75d64d29600b7a6b5a17b",
+        "uv": "6e0f6f98427d0bdbeccfbba3eca33a5a8018da6808ddfc6ca17c2f4f6b645658",
+        "materials": "4f2771f027be1239767ecec282e97e8db693d468de0eb4e0639676db712976c7"
+      }
+    }
+  },
+  "verdict": "pass"
+}

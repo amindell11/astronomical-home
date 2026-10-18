@@ -1,0 +1,324 @@
+"""End-to-end smoke of every ship tool on the generated fixture; prints SHIP_SMOKE_PASS.
+
+Run: blender -b --factory-startup --python-exit-code 1 -P blender_ship_smoke.py -- --out DIR
+"""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+import bpy
+import numpy as np
+
+TESTS = Path(__file__).resolve().parent
+TOOLS = TESTS.parent
+sys.path[:0] = [str(TOOLS), str(TESTS)]
+import ship_contract as contract
+import ship_source
+import fixture_ship
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--out", required=True)
+out = Path(parser.parse_args(sys.argv[sys.argv.index("--") + 1:]).out).resolve()
+shutil.rmtree(out, ignore_errors=True)
+out.mkdir(parents=True)
+results = {}
+
+
+CHILD_ENV = {key: value for key, value in os.environ.items() if key != "OCIO"}
+
+
+def blender(script, *args):
+    """Child Blender without the OCIO variable this Blender exports, which it would log on stdout."""
+    return subprocess.run([bpy.app.binary_path, "-b", "--factory-startup", "--python-exit-code", "1",
+                           "-P", str(script), "--", *map(str, args)], capture_output=True, text=True, env=CHILD_ENV)
+
+
+def ship(name, variant=None, **overrides):
+    folder = out / name
+    folder.mkdir()
+    spec = {"schema_version": 1, "name": "Fixture", "source": "Fixture.blend", "texture_size": 1024,
+            "uv_density_max_ratio": 2.0, "contour_roles": ["hull", "canopy"], "exemptions": [], **overrides}
+    path = folder / "ship.json"
+    path.write_text(json.dumps(spec), encoding="utf-8")
+    if variant is not False:
+        result = blender(TESTS / "fixture_ship.py", "--ship", path, *(["--variant", variant] if variant else []))
+        assert result.returncode == 0, result.stderr[-3000:]
+    return path
+
+
+def tool(name, ship_json, *args, expect=0):
+    """Run a tool; assert its exit code and that stdout holds only trailers. Returns (trailers, report)."""
+    result = blender(TOOLS / f"ship_{name}.py", "--ship", ship_json, "--out", ship_json.parent / f"out_{name}", *args)
+    assert result.returncode == expect, (name, args, result.returncode, result.stdout, result.stderr[-3000:])
+    lines = result.stdout.splitlines()
+    assert all(re.fullmatch(r"SHIP_[A-Z]+=.+", line) for line in lines), (name, result.stdout)
+    trailers = dict(line.split("=", 1) for line in lines)
+    assert trailers["SHIP_VERDICT"] == ("pass" if expect == 0 else "fail"), trailers
+    report = json.loads(Path(trailers["SHIP_REPORT"]).read_text(encoding="utf-8"))
+    for key in ("schema_version", "recipe", "blender_version", "source_sha256"):
+        assert key in report, (name, key)
+    return trailers, report
+
+
+def rules(report):
+    return {(finding["rule"], finding["part"]) for finding in report["findings"]}
+
+
+base = ship("base")
+source = base.parent / "Fixture.blend"
+source_sha = contract.sha256_file(source)
+
+# ship_new refuses an existing source.
+tool("new", base, expect=3)
+
+# ship_check passes; the fingerprint is stable across runs and a save-as copy.
+first = tool("check", base)[1]
+second = tool("check", base)[1]
+assert first["findings"] == [], first["findings"]
+assert first["fingerprint"] == second["fingerprint"]
+copy = ship("copy", variant=False)
+bpy.ops.wm.open_mainfile(filepath=str(source))
+bpy.ops.wm.save_as_mainfile(filepath=str(copy.parent / "Fixture.blend"), copy=True)
+bpy.ops.wm.read_factory_settings(use_empty=True)
+assert tool("check", copy)[1]["fingerprint"] == first["fingerprint"]
+assert {"Fin", "Scratch", "Spine"} <= set(first["fingerprint"]["parts"])
+results["fingerprint"] = first["fingerprint"]["components"]["geometry"]
+
+# ship_lock: lock, verify, then reopen reports nothing invalidated.
+trailers, _ = tool("lock", base, "--mode", "lock")
+lock = Path(trailers["SHIP_LOCK"])
+assert lock.is_file() and lock.parent == base.parent
+tool("lock", base, "--mode", "verify")
+assert tool("lock", base, "--mode", "reopen")[1]["invalidated"] == []
+
+# ship_uv passes within the ratio.
+results["uv_ratio"] = tool("uv", base)[1]["ratio"]
+
+# ship_paint: masks and the Unity bundle from the fixture's regions; a hand edit survives a re-run.
+for required in ("paint.json", "palettes.json"):
+    path = base.parent / required
+    contents = path.read_bytes()
+    path.unlink()
+    missing = blender(TOOLS / "ship_paint.py", "--ship", base, "--out", base.parent / "missing-settings")
+    assert missing.returncode == 1 and missing.stdout == "", (required, missing.returncode, missing.stdout)
+    assert f"Usage error: {required}:" in missing.stderr and "Traceback" not in missing.stderr, missing.stderr
+    path.write_bytes(contents)
+settings_path = base.parent / "paint.json"
+settings_text = settings_path.read_text()
+settings = json.loads(settings_text)
+settings["canopy_glass"] = ["Unknown canopy"]
+settings_path.write_text(json.dumps(settings))
+assert "Unknown canopy" in tool("paint", base, expect=3)[1]["refusal"]
+settings_path.write_text(settings_text)
+trailers, paint = tool("paint", base)
+layers = Path(trailers["SHIP_MASKS"])
+assert layers == base.parent / contract.LAYERS_DIR and paint["baseline"] == "created", paint
+for mask in (*contract.MASKS, contract.EMISSION):
+    pixels = ship_source.load_pixels(layers / f"{mask}.png")[..., 0]
+    assert pixels.shape == (1024, 1024) and pixels.std() > 0.01, (mask, pixels.shape, float(pixels.std()))
+    assert (layers / contract.BASELINE_DIR / f"{mask}.png").is_file(), mask
+assert Path(paint["preview"]).is_file()
+bundle = Path(paint["unity"]["root"])
+shadow_guid = [line for line in (bundle / "Paint/Shadow.png.meta").read_text().splitlines() if line.startswith("guid: ")][0][6:]
+for palette, regions in fixture_ship.PALETTES["palettes"].items():
+    for region in regions:
+        material = bundle / f"Materials/{palette}/{region}.mat"
+        assert material.is_file() and material.with_suffix(".mat.meta").is_file(), material
+        text = material.read_text()
+        assert "_PAINT_LAYERS" in text and shadow_guid in text, material
+obsolete = bundle / "Materials/removed/Old.mat"
+obsolete.parent.mkdir()
+obsolete.write_text("obsolete")
+assert tool("paint", base)[1]["unity"]["files"] == paint["unity"]["files"]
+assert {p.relative_to(bundle).as_posix() for p in bundle.rglob("*") if p.is_file()} == set(paint["unity"]["files"])
+
+saved = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+record_path = layers / contract.BASELINE_DIR / "baseline.json"
+for broken in ("missing_baseline", "missing_mask", "size", "recipe", "geometry", "masks"):
+    if broken == "missing_baseline":
+        (layers / contract.BASELINE_DIR / "Light.png").unlink()
+    elif broken == "missing_mask":
+        (layers / "Light.png").unlink()
+    elif broken == "size":
+        ship_source.save_pixels(layers / "Light.png", np.ones((16, 16, 4), np.float32))
+    else:
+        record = json.loads(saved[record_path])
+        record[broken] = "incompatible"
+        record_path.write_text(json.dumps(record))
+    before_refusal = {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()}
+    assert "baseline" in tool("paint", base, expect=3)[1]["refusal"].lower()
+    assert {p: p.read_bytes() for p in layers.rglob("*") if p.is_file()} == before_refusal, broken
+    for path, data in saved.items():
+        path.write_bytes(data)
+preview_before = ship_source.load_pixels(paint["preview"]).copy()
+stroke = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+stroke[256:320, 256:320] = 200
+ship_source.save_pixels(layers / "Shadow.png", np.repeat((stroke / 255.0)[..., None].astype(np.float32), 4, axis=2))
+rerun = tool("paint", base)[1]
+assert rerun["baseline"] == "reused" and rerun["edited_texels"]["Shadow"] > 0, rerun
+after = np.rint(ship_source.load_pixels(layers / "Shadow.png")[..., 0] * 255).astype(np.int16)
+assert np.abs(after[256:320, 256:320] - 200).max() <= 1, int(np.abs(after[256:320, 256:320] - 200).max())
+results["paint_edited_texels"] = rerun["edited_texels"]["Shadow"]
+preview_after = ship_source.load_pixels(rerun["preview"])
+assert np.any(preview_before[256:320, 256:320, :3] != preview_after[256:320, 256:320, :3]), "Owner stroke missing from preview"
+
+settings = json.loads(settings_text)
+for strength in ("shadow_strength", "light_strength", "ink_strength", "emission_blend"):
+    settings["material"][strength] = 0
+settings_path.write_text(json.dumps(settings))
+flat = ship_source.load_pixels(tool("paint", base)[1]["preview"])[..., :3]
+for colour in fixture_ship.PALETTES["palettes"]["zinc"].values():
+    linear = np.array(colour[:3])
+    expected = np.where(linear <= 0.0031308, linear * 12.92, 1.055 * linear ** (1 / 2.4) - 0.055)
+    assert np.any(np.max(np.abs(flat - expected), axis=2) <= 1 / 255), ("Preview colour space", colour)
+settings_path.write_text(settings_text)
+
+# ship_render: every set writes its images; comparing against the copy changes nothing.
+for render_set in ("ortho", "turnaround", "sheet", "scale"):
+    images = tool("render", base, "--set", render_set, "--size", "128")[1]["images"]
+    assert images and all(Path(path).is_file() for path in images.values()), images
+textured = tool("render", base, "--set", "ortho", "--size", "128", "--textured")[1]
+assert textured["textured"] and Path(textured["images"]["top"]).is_file(), textured
+compare = tool("render", base, "--set", "compare", "--size", "128", "--before", copy.parent / "Fixture.blend")[1]
+assert compare["changed_pixels"] == {"top": 0, "side": 0}, compare["changed_pixels"]
+
+# ship_export, then re-import the FBX.
+trailers, export = tool("export", base)
+sidecar = json.loads(Path(export["sidecar"]).read_text(encoding="utf-8"))
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.wm.fbx_import(filepath=trailers["SHIP_FBX"])
+objects = {obj.name: obj for obj in bpy.context.scene.objects}
+meshes = {name for name, obj in objects.items() if obj.type == "MESH"}
+assert meshes == {"Hull", "Canopy", "Cores", "Collider"}, meshes
+assert set(objects) == meshes | {"Fixture", "Sockets", "engine.L", "engine.R"}, set(objects)
+for name, matrix in sidecar["sockets"].items():
+    expected = np.array(matrix)[:3, 3]
+    assert np.abs(np.array(objects[name].matrix_world.translation) - expected).max() < 1e-5, name
+for name in sorted(meshes):
+    mesh = objects[name].data
+    assert all(polygon.loop_total == 3 for polygon in mesh.polygons), name
+    if name == "Collider":
+        continue
+    role = sidecar["roles"][name]
+    assert [layer.name for layer in mesh.uv_layers] == [contract.PAINT_UV, "LegacyUV"], name
+    assert role["uv_layers"] == [contract.PAINT_UV, "LegacyUV"], name
+    assert [material.name for material in mesh.materials] == role["material_slots"], name
+    co = np.array([v.co for v in mesh.vertices], np.float64)
+    corners = np.array([loop.vertex_index for loop in mesh.loops])
+    normals = np.array([n.vector for n in mesh.corner_normals], np.float64)
+    a, b, c = (co[corners[i::3]] for i in range(3))
+    face = np.cross(b - a, c - a)
+    face /= np.linalg.norm(face, axis=1, keepdims=True)
+    slot = np.array([polygon.material_index for polygon in mesh.polygons])
+    contour = slot == len(role["material_slots"]) - 1 if role["contour"] else np.zeros(len(slot), bool)
+    surface = np.repeat(~contour, 3)
+    assert np.abs(normals[surface] - np.repeat(face, 3, axis=0)[surface]).max() < 1e-4, name
+    if role["contour"]:
+        assert contour.sum() == (~contour).sum() > 0, (name, contour.sum(), (~contour).sum())
+        joined = {}
+        for vertex, normal in zip(corners[~surface], normals[~surface]):
+            joined.setdefault(tuple(co[vertex]), []).append(normal)
+        spread = max(np.abs(np.array(group) - group[0]).max() for group in joined.values())
+        assert spread < 1e-4, (name, spread)
+        assert np.abs(normals[~surface] - np.repeat(face, 3, axis=0)[~surface]).max() > 0.1, name
+    results[f"{name}_triangles"] = len(mesh.polygons)
+hull = np.array([v.co for v in objects["Hull"].data.vertices])
+assert abs(hull[:, 2].max() - 0.5) < 1e-5, "hidden Fin missing from Hull"
+everything = np.concatenate([[v.co for v in objects[n].data.vertices] for n in meshes])
+assert "Scratch" not in objects and everything[:, 0].max() < 4, "ignored Scratch exported"
+
+def painted_triangles(path):
+    from collections import Counter
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.wm.fbx_import(filepath=path)
+    triangles = Counter()
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.name == "Collider":
+            continue
+        mesh = obj.data
+        for face in mesh.polygons:
+            corners = []
+            for index in face.loop_indices:
+                position = obj.matrix_world @ mesh.vertices[mesh.loops[index].vertex_index].co
+                normal = obj.matrix_world.to_3x3().inverted().transposed() @ mesh.corner_normals[index].vector
+                normal.normalize()
+                uv = mesh.uv_layers[contract.PAINT_UV].uv[index].vector
+                corners.append(tuple(round(float(v), 4) for v in (*position, *normal, *uv)))
+            triangles[(mesh.materials[face.material_index].name, tuple(sorted(corners)))] += 1
+    return triangles
+
+
+intact_triangles = painted_triangles(trailers["SHIP_FBX"])
+grouped = ship("debris", variant=False)
+bpy.ops.wm.open_mainfile(filepath=str(source))
+for ident, names in {"Wing.L": ["Wing"], "Wing.R": ["Wing"],
+                     "Body": ["Fuselage", "Canopy", "Core", "Fin", "Spine"]}.items():
+    collection = bpy.data.collections.new("role.debris." + ident)
+    bpy.context.scene.collection.children.link(collection)
+    for name in names:
+        collection.objects.link(bpy.data.objects[name])
+grouped_source = grouped.parent / "Fixture.blend"
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+shutil.copy(lock, grouped.parent / "lock.json")
+grouped_sha = contract.sha256_file(grouped_source)
+assert painted_triangles(tool("export", grouped)[0]["SHIP_FBX"]) == intact_triangles
+fragments, fragment_report = tool("export", grouped, "--debris")
+assert painted_triangles(fragments["SHIP_FBX"]) == intact_triangles
+fragment_sidecar = json.loads(Path(fragment_report["sidecar"]).read_text(encoding="utf-8"))
+assert fragment_sidecar["set"] == "debris"
+assert set(fragment_sidecar["roles"]) == {"Wing.L", "Wing.R", "Body"}
+assert contract.sha256_file(grouped_source) == grouped_sha
+(grouped.parent / "lock.json").unlink()
+tool("export", grouped, "--debris", expect=3)
+shutil.copy(lock, grouped.parent / "lock.json")
+bpy.ops.wm.open_mainfile(filepath=str(grouped_source))
+bpy.data.collections.remove(bpy.data.collections["role.debris.Wing.R"])
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+tool("export", grouped, "--debris", expect=3)
+for ident in ("Wing.R", "Duplicate"):
+    collection = bpy.data.collections.new("role.debris." + ident)
+    bpy.context.scene.collection.children.link(collection)
+    collection.objects.link(bpy.data.objects["Wing"])
+bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
+tool("export", grouped, "--debris", expect=3)
+results["debris_painted_triangles"] = sum(intact_triangles.values())
+
+# One failure case per tool.
+unpainted = ship("missing_region")
+shutil.copy(lock, unpainted.parent / "lock.json")
+palettes = json.loads((unpainted.parent / "palettes.json").read_text(encoding="utf-8"))
+for colours in palettes["palettes"].values():
+    colours.pop("Glow")
+(unpainted.parent / "palettes.json").write_text(json.dumps(palettes), encoding="utf-8")
+assert "Glow" in tool("paint", unpainted, expect=3)[1]["refusal"]
+empty_slot = ship("empty_slot")
+shutil.copy(lock, empty_slot.parent / "lock.json")
+bpy.ops.wm.open_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+bpy.data.objects["Wing"].data.materials.append(None)
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_as_mainfile(filepath=str(empty_slot.parent / "Fixture.blend"))
+assert "Wing has empty material slots [1]" in tool("paint", empty_slot, expect=3)[1]["refusal"]
+assert ("modifier_order", "Wing") in rules(tool("check", ship("solidify_first", "solidify_first"), expect=3)[1])
+assert ("name", "Cube") in rules(tool("check", ship("cube_name", "cube_name"), expect=3)[1])
+assert ("uv_density", "Canopy") in rules(tool("uv", ship("scaled_uv", "scaled_uv"), expect=3)[1])
+moved = ship("moved_hidden_vertex", "moved_hidden_vertex")
+shutil.copy(lock, moved.parent / "lock.json")
+assert tool("lock", moved, "--mode", "verify", expect=3)[1]["changed"] == ["Fin"]
+reopened = tool("lock", moved, "--mode", "reopen")[1]
+assert reopened["changed"] == ["Fin"] and reopened["invalidated"] == list(contract.INVALIDATED_BY_GEOMETRY)
+tool("lock", moved, "--mode", "verify")
+repainted = ship("repainted_weight", "repainted_weight")
+shutil.copy(lock, repainted.parent / "lock.json")
+assert tool("lock", repainted, "--mode", "verify", expect=3)[1]["changed"] == ["Wing"]
+
+assert contract.sha256_file(source) == source_sha, "a tool changed the fixture source"
+assert not list(out.rglob("*.blend1")), list(out.rglob("*.blend1"))
+print("SHIP_SMOKE_PASS", json.dumps(results))

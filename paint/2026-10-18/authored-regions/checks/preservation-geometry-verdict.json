@@ -1,0 +1,10 @@
+{
+  "verdict": "pass",
+  "old_meshes": 12,
+  "original_evaluated_world_vertices_unchanged": true,
+  "new_parts": [
+    "Cockpit cooling vent",
+    "Pod cooling hatch",
+    "Wing service hatch"
+  ]
+}

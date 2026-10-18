@@ -1,0 +1,16 @@
+{
+  "root_cause": "Inherited Freestyle line set selected crease edges on new detail assemblies",
+  "correction": "Exclude the three approved detail assemblies from the supplemental Freestyle line pass",
+  "geometry_uv_materials_unchanged": true,
+  "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+  "source_before": "7daa26e083aa12c59acdeff072c1db06c0f1aded67c061edbd7cd69889ea85fe",
+  "source_after": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "excluded_parts": [
+    "Pod cooling hatch",
+    "Cockpit cooling vent",
+    "Wing service hatch"
+  ],
+  "owner_reference": "codex-clipboard-97d4058b-9f45-4ca8-8965-8d31cc0a8833.png",
+  "reference_matches": "paint/2026-10-18/preservation/review/preserved-brush_top.png",
+  "unity_review": "deferred by owner; no Unity launch or runtime binding"
+}
