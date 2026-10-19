@@ -44,3 +44,7 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 - [Clean canopy rim](paint/2026-10-18/clean-canopy-rim/README.md): removes painted Shadow and Light from the orange canopy band at the owner's request; surrounding hull paint is unchanged. Unity review remains deferred.
 
 - [Runtime substitution](integration/2026-10-19/README.md): approved paint on the canonical intact model and all fourteen breakup pieces; geometry/texture preservation checks and passing Unity tests. Flight check waived; interactive review deferred.
+
+## Canopy reflections (#1017)
+
+[Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).

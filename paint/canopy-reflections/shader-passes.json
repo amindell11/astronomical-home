@@ -1,0 +1,6 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": "{\"pipeline\":\"URP-Performant\",\"passes\":[\"Crimson/Canopy/Canopy.mat DrawnCanopy: True\",\"Crimson/Canopy/Canopy.mat ShadowCaster: True\",\"Crimson/Canopy/Canopy.mat DepthNormals: True\",\"Crimson/Canopy/Canopy.mat DepthOnly: True\",\"Nightshade/Canopy/Canopy.mat DrawnCanopy: True\",\"Nightshade/Canopy/Canopy.mat ShadowCaster: True\",\"Nightshade/Canopy/Canopy.mat DepthNormals: True\",\"Nightshade/Canopy/Canopy.mat DepthOnly: True\",\"Valis/Canopy/jade-iris.mat DrawnCanopy: True\",\"Valis/Canopy/jade-iris.mat ShadowCaster: True\",\"Valis/Canopy/jade-iris.mat DepthNormals: True\",\"Valis/Canopy/jade-iris.mat DepthOnly: True\",\"Vanguard/Materials/Canopy.mat DrawnCanopy: True\",\"Vanguard/Materials/Canopy.mat ShadowCaster: True\",\"Vanguard/Materials/Canopy.mat DepthNormals: True\",\"Vanguard/Materials/Canopy.mat DepthOnly: True\"],\"messages\":[]}"
+}
