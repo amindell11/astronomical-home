@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="12" result="Passed" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.5937894">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="832" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.593789" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1994" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="832" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.583723" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47996" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1995" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="832" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.581779" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1996" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="832" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.580016" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1207" name="EventDrivenRefactorEditModeTests" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.155252" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="UI" />
+            </properties>
+            <test-case id="1212" name="AmmoCounterUI_CounterAndReloadFillFollowRoundsEvents" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.AmmoCounterUI_CounterAndReloadFillFollowRoundsEvents" methodname="AmmoCounterUI_CounterAndReloadFillFollowRoundsEvents" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="1908436694" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.026109" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1209" name="Heat_ProcessFireAndReset_EmitHeatChanged" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.Heat_ProcessFireAndReset_EmitHeatChanged" methodname="Heat_ProcessFireAndReset_EmitHeatChanged" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="1686030033" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.002447" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1213" name="HeatGaugeUI_UpdatesFillFromHeatChangedEvent" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.HeatGaugeUI_UpdatesFillFromHeatChangedEvent" methodname="HeatGaugeUI_UpdatesFillFromHeatChangedEvent" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="747318369" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.001181" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1208" name="LockController_EmitsStateChangedTransitions" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.LockController_EmitsStateChangedTransitions" methodname="LockController_EmitsStateChangedTransitions" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="595616623" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.070892" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1211" name="LockReadoutUI_SpinnerFollowsLockStateEvents" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.LockReadoutUI_SpinnerFollowsLockStateEvents" methodname="LockReadoutUI_SpinnerFollowsLockStateEvents" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="1107810328" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.002090" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1210" name="UILockOnAudio_RespondsToLockStateEventsWithoutPolling" fullname="Tests.EditMode.EventDrivenRefactorEditModeTests.UILockOnAudio_RespondsToLockStateEventsWithoutPolling" methodname="UILockOnAudio_RespondsToLockStateEventsWithoutPolling" classname="Tests.EditMode.EventDrivenRefactorEditModeTests" runstate="Runnable" seed="1861301523" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.037023" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestSuite" id="2002" name="Hangar" fullname="Tests.EditMode.Hangar" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.407583" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1976" name="HangarPreviewFramingEditModeTests" fullname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" classname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.404642" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+              </properties>
+              <test-case id="1980" name="ElongatedHull_FillsAReasonableShareOfTheFrame" fullname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests.ElongatedHull_FillsAReasonableShareOfTheFrame" methodname="ElongatedHull_FillsAReasonableShareOfTheFrame" classname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" runstate="Runnable" seed="763930253" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.025702" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1977" name="ElongatedHull_StaysInFrustum_WhileBanking" fullname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests.ElongatedHull_StaysInFrustum_WhileBanking" methodname="ElongatedHull_StaysInFrustum_WhileBanking" classname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" runstate="Runnable" seed="297362520" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.087000" asserts="0">
+                <properties>
+                  <property name="Category" value="Smoke" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1978" name="OffAxisHull_AtStageOffset_StaysInFrustum_WhileBanking" fullname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests.OffAxisHull_AtStageOffset_StaysInFrustum_WhileBanking" methodname="OffAxisHull_AtStageOffset_StaysInFrustum_WhileBanking" classname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" runstate="Runnable" seed="29502743" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.197941" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1979" name="TinyHull_StaysInFrustum_WhileBanking" fullname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests.TinyHull_StaysInFrustum_WhileBanking" methodname="TinyHull_StaysInFrustum_WhileBanking" classname="Tests.EditMode.Hangar.HangarPreviewFramingEditModeTests" runstate="Runnable" seed="644695762" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.091856" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1244" name="MinimapShipMarkerEditModeTests" fullname="Tests.EditMode.MinimapShipMarkerEditModeTests" classname="Tests.EditMode.MinimapShipMarkerEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.006987" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="UI" />
+            </properties>
+            <test-case id="1245" name="Bind_NonPlayer_SwitchesToEnemyLayer" fullname="Tests.EditMode.MinimapShipMarkerEditModeTests.Bind_NonPlayer_SwitchesToEnemyLayer" methodname="Bind_NonPlayer_SwitchesToEnemyLayer" classname="Tests.EditMode.MinimapShipMarkerEditModeTests" runstate="Runnable" seed="1697495718" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.003870" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1246" name="Bind_Player_LeavesLayerUntouched" fullname="Tests.EditMode.MinimapShipMarkerEditModeTests.Bind_Player_LeavesLayerUntouched" methodname="Bind_Player_LeavesLayerUntouched" classname="Tests.EditMode.MinimapShipMarkerEditModeTests" runstate="Runnable" seed="1380275395" result="Passed" start-time="2026-10-19 07:57:03Z" end-time="2026-10-19 07:57:03Z" duration="0.000383" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

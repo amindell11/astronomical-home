@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-19T00:55:21.3166537-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-8\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "HangarPreviewFlightPlayModeTests|HangarPreviewRelativeSizePlayModeTests|HangarInputGatePlayModeTests|HangarViewPlayModeTests|HangarMotionPreviewCapture",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  8,
+                   "passed":  8,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  27.215
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005333-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005333-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  8,
+                     "passed":  8,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  27.2150306,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "HangarPreviewFlightPlayModeTests|HangarPreviewRelativeSizePlayModeTests|HangarInputGatePlayModeTests|HangarViewPlayModeTests|HangarMotionPreviewCapture",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-19 07:54:44Z",
+                     "finishedAt":  "2026-10-19 07:55:12Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  108.137,
+                       "startupToFirstTestSec":  67.598,
+                       "executionSec":  28,
+                       "remainingSec":  12.539,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  4724,
+                                         "rootPeakPrivateGB":  5.935,
+                                         "rootPeakWorkingSetGB":  4.016,
+                                         "treePeakSampledPrivateGB":  6.445,
+                                         "treePeakSampledWorkingSetGB":  4.778,
+                                         "treeSumOfPeaksPrivateGB":  8.144,
+                                         "commitHeadroomAtLaunchGB":  38.54,
+                                         "commitHeadroomMinGB":  32.09,
+                                         "availablePhysicalAtLaunchGB":  11.18,
+                                         "availablePhysicalMinGB":  6.24,
+                                         "bootLaneReleasedAtSec":  6.8,
+                                         "treePeakAtSec":  98.974,
+                                         "samples":  17,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

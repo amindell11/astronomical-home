@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.2150306">
+  <test-suite type="TestSuite" id="1380" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="281" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.215031" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1361" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="277" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.202048" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="4724" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1362" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="277" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.200320" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1363" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="277" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.198720" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1368" name="Hangar" fullname="Tests.PlayMode.Hangar" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:55:12Z" duration="27.129886" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1342" name="HangarMotionPreviewCapture" fullname="Tests.PlayMode.Hangar.HangarMotionPreviewCapture" classname="Tests.PlayMode.Hangar.HangarMotionPreviewCapture" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-19 07:54:44Z" end-time="2026-10-19 07:54:59Z" duration="14.207038" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1343" name="FilmMotionForReview" fullname="Tests.PlayMode.Hangar.HangarMotionPreviewCapture.FilmMotionForReview" methodname="FilmMotionForReview" classname="Tests.PlayMode.Hangar.HangarMotionPreviewCapture" runstate="Runnable" seed="1561383028" result="Passed" start-time="2026-10-19 07:54:45Z" end-time="2026-10-19 07:54:59Z" duration="14.187512" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1344" name="HangarPreviewFlightPlayModeTests" fullname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests" classname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:54:59Z" end-time="2026-10-19 07:55:06Z" duration="7.590408" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1345" name="Arrival_FacesViewer_AndUsesValisWingSweep" fullname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests.Arrival_FacesViewer_AndUsesValisWingSweep" methodname="Arrival_FacesViewer_AndUsesValisWingSweep" classname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests" runstate="Runnable" seed="1671169272" result="Passed" start-time="2026-10-19 07:54:59Z" end-time="2026-10-19 07:55:01Z" duration="2.517707" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1347" name="RapidSelections_KeepOnlyLatestPair_AndSettleOnLastShip" fullname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests.RapidSelections_KeepOnlyLatestPair_AndSettleOnLastShip" methodname="RapidSelections_KeepOnlyLatestPair_AndSettleOnLastShip" classname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests" runstate="Runnable" seed="1814006278" result="Passed" start-time="2026-10-19 07:55:01Z" end-time="2026-10-19 07:55:03Z" duration="1.912302" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1346" name="Switch_PeelsLeft_AndJoinsFromRight_WithoutMovingCamera" fullname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests.Switch_PeelsLeft_AndJoinsFromRight_WithoutMovingCamera" methodname="Switch_PeelsLeft_AndJoinsFromRight_WithoutMovingCamera" classname="Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests" runstate="Runnable" seed="1662516990" result="Passed" start-time="2026-10-19 07:55:03Z" end-time="2026-10-19 07:55:06Z" duration="3.156341" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1348" name="HangarPreviewRelativeSizePlayModeTests" fullname="Tests.PlayMode.Hangar.HangarPreviewRelativeSizePlayModeTests" classname="Tests.PlayMode.Hangar.HangarPreviewRelativeSizePlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-19 07:55:06Z" end-time="2026-10-19 07:55:09Z" duration="2.405105" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1349" name="DoublingAuthoredScale_DoublesOnScreenSize" fullname="Tests.PlayMode.Hangar.HangarPreviewRelativeSizePlayModeTests.DoublingAuthoredScale_DoublesOnScreenSize" methodname="DoublingAuthoredScale_DoublesOnScreenSize" classname="Tests.PlayMode.Hangar.HangarPreviewRelativeSizePlayModeTests" runstate="Runnable" seed="392351223" result="Passed" start-time="2026-10-19 07:55:06Z" end-time="2026-10-19 07:55:09Z" duration="2.403830" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1350" name="HangarViewPlayModeTests" fullname="Tests.PlayMode.Hangar.HangarViewPlayModeTests" classname="Tests.PlayMode.Hangar.HangarViewPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-19 07:55:09Z" end-time="2026-10-19 07:55:12Z" duration="2.925012" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1351" name="Hangar_ShowsTheDriftingHangarCamera_InPlaceOfTheObserver_UntilLaunch" fullname="Tests.PlayMode.Hangar.HangarViewPlayModeTests.Hangar_ShowsTheDriftingHangarCamera_InPlaceOfTheObserver_UntilLaunch" methodname="Hangar_ShowsTheDriftingHangarCamera_InPlaceOfTheObserver_UntilLaunch" classname="Tests.PlayMode.Hangar.HangarViewPlayModeTests" runstate="Runnable" seed="1464233592" result="Passed" start-time="2026-10-19 07:55:09Z" end-time="2026-10-19 07:55:12Z" duration="2.923868" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Timeout" value="180000" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1074" name="HangarInputGatePlayModeTests" fullname="Tests.PlayMode.HangarInputGatePlayModeTests" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-19 07:55:12Z" end-time="2026-10-19 07:55:12Z" duration="0.058977" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="RequiresGraphics" />
+            </properties>
+            <test-case id="1076" name="Preview_StaysWithin224MiB_WhenRequestedAt4K" fullname="Tests.PlayMode.HangarInputGatePlayModeTests.Preview_StaysWithin224MiB_WhenRequestedAt4K" methodname="Preview_StaysWithin224MiB_WhenRequestedAt4K" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" seed="1303421864" result="Passed" start-time="2026-10-19 07:55:12Z" end-time="2026-10-19 07:55:12Z" duration="0.008391" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1075" name="RunHangar_GatesPlayerInput_UntilLaunch" fullname="Tests.PlayMode.HangarInputGatePlayModeTests.RunHangar_GatesPlayerInput_UntilLaunch" methodname="RunHangar_GatesPlayerInput_UntilLaunch" classname="Tests.PlayMode.HangarInputGatePlayModeTests" runstate="Runnable" seed="897816661" result="Passed" start-time="2026-10-19 07:55:12Z" end-time="2026-10-19 07:55:12Z" duration="0.048929" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

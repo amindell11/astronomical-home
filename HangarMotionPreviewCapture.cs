@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
@@ -22,7 +23,7 @@ namespace Tests.PlayMode.Hangar
             var camera = stage.GetComponentInChildren<Camera>();
             camera.backgroundColor = new Color(.035f, .052f, .09f, 1f);
             var pixels = new Texture2D(640, 640, TextureFormat.RGB24, false);
-            var output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/hangar-flight/v2-frames"));
+            var output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/hangar-flight/final-frames"));
             Directory.CreateDirectory(output);
             var captureDelta = Time.captureDeltaTime;
             Time.captureDeltaTime = 1f / 30f;
@@ -40,6 +41,11 @@ namespace Tests.PlayMode.Hangar
                     RenderTexture.active = (RenderTexture)stage.Texture;
                     pixels.ReadPixels(new Rect(0, 0, 640, 640), 0, 0);
                     pixels.Apply();
+                    if (frame == 90)
+                    {
+                        var colors = pixels.GetPixels();
+                        Assert.That(colors.Max(c => c.r) - colors.Min(c => c.r), Is.GreaterThan(.1f));
+                    }
                     RenderTexture.active = previous;
                     File.WriteAllBytes(Path.Combine(output, $"frame-{frame:D4}.png"), pixels.EncodeToPNG());
                 }
@@ -53,4 +59,5 @@ namespace Tests.PlayMode.Hangar
         }
     }
 }
+
 

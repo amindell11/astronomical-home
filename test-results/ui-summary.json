@@ -1,0 +1,130 @@
+{
+    "generatedAt":  "2026-10-19T00:57:14.6973128-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-8\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "",
+                      "testCategory":  "UI",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "UI;!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  32,
+                   "passed":  32,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  1.571
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005557-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005557-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  12,
+                     "passed":  12,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0.5937894,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "UI",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "UI;!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-19 07:57:03Z",
+                     "finishedAt":  "2026-10-19 07:57:03Z"
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005557-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-005557-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  20,
+                     "passed":  20,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0.9770742,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "UI",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "UI;!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-19 07:57:10Z",
+                     "finishedAt":  "2026-10-19 07:57:11Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  77.314,
+                       "startupToFirstTestSec":  62.915,
+                       "executionSec":  1,
+                       "remainingSec":  13.399,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "testCategory set"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  47996,
+                                         "rootPeakPrivateGB":  2.596,
+                                         "rootPeakWorkingSetGB":  2.396,
+                                         "treePeakSampledPrivateGB":  2.782,
+                                         "treePeakSampledWorkingSetGB":  2.65,
+                                         "treeSumOfPeaksPrivateGB":  3.54,
+                                         "commitHeadroomAtLaunchGB":  38.88,
+                                         "commitHeadroomMinGB":  35.8,
+                                         "availablePhysicalAtLaunchGB":  11.49,
+                                         "availablePhysicalMinGB":  8.52,
+                                         "bootLaneReleasedAtSec":  5.861,
+                                         "treePeakAtSec":  68.103,
+                                         "samples":  12,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
