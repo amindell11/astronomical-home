@@ -34,3 +34,13 @@ The final MP4 decodes to 540 frames, 18 seconds at 30 fps. The captured surface 
 Observed limitation: sustained 10 Hz switching removes the older departure and interrupts each incoming hull before it reaches the visible frame, leaving the preview empty until tapping stops. At 0.3-second spacing the interrupted ships stay near the right edge and visibly cut short. This clip deliberately preserves the current behavior for the user's decision; no runtime changes were made.
 
 The capture passed its settled-frame visibility checks, at-most-two live previews after each frame, and final-selection assertion. Those assertions do not promise continuous visibility during spam; the empty interval is a visible limitation. MP4 decode: 420 frames, 14 seconds, 30 fps. The scratch capture fixture is included for repeatability.
+
+## Direction-aware handoff
+
+`hangar-directional.gif/mp4` captures the actual HangarScreen arrow handlers and preview runtime at feature commit 482f3f5bb3f40f9c4c63b90ba369ad4fffedc3d6. Next brings the incoming ship from the right and sends the old one left; Previous mirrors the path, yaw and bank. Direction follows the pressed arrow, including list wrap. The opening depth swoop, frontal idle and gameplay Valis wing driver are unchanged.
+
+The 17-second clip shows opening Valis (0–2 s), Next at 2 s, Previous at 4 s, alternating arrows every 0.3 seconds (6–9 s), pause (9–11 s), alternating arrows every 0.1 seconds (11–14 s), then final settling (14–17 s). The capture uses the real HangarScreen with Valis and Nightshade adjacent in its in-memory offer. Only the header is added during encoding; the preview texture is the actual Unity render.
+
+The sustained 10 Hz burst still exposes an empty interval while arrivals are repeatedly interrupted offscreen. This follow-up fixes direction only and preserves that separate visibility limitation for feedback. The test asserts bounded live previews and correct final selection, not continuous visibility during spam.
+
+The actual Next/Previous button regression failed on the old runtime because Previous entered from the right, then passed after the direction change; both list-wrap directions are covered. Focused graphics PlayMode checks passed 9/9, including the temporary capture. Machine-readable before/after results and NUnit XML are in test-results/. The MP4 decodes to 510 frames, 17 seconds at 30 fps. The source fixture is included for repeatability and is excluded from the feature PR. These renders do not show the surrounding menu or establish performance.

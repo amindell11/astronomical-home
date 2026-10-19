@@ -1,0 +1,103 @@
+{
+    "generatedAt":  "2026-10-19T09:35:58.6291896-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-8\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "ArrowButtons_MirrorTheHandoff_IncludingListWrap",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  0,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  4.645
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-093520-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-8\\results\\unity-tests-agent\\20261019-093520-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  4.645498,
+                     "failures":  [
+                                      {
+                                          "name":  "ArrowButtons_MirrorTheHandoff_IncludingListWrap",
+                                          "fullName":  "Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests.ArrowButtons_MirrorTheHandoff_IncludingListWrap",
+                                          "durationSec":  4.615088,
+                                          "message":  "Previous enters from the left Expected: greater than 0.0f But was: -9.39763641f",
+                                          "topStack":  "at Tests.PlayMode.Hangar.HangarPreviewFlightPlayModeTests+\u003cArrowButtons_MirrorTheHandoff_IncludingListWrap\u003ed__7.MoveNext () [0x001ca] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Hangar\\HangarPreviewFlightPla..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "ArrowButtons_MirrorTheHandoff_IncludingListWrap",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-19 16:35:49Z",
+                     "finishedAt":  "2026-10-19 16:35:54Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  38.488,
+                       "startupToFirstTestSec":  25.041,
+                       "executionSec":  5,
+                       "remainingSec":  8.447,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  37812,
+                                         "rootPeakPrivateGB":  4.36,
+                                         "rootPeakWorkingSetGB":  3.456,
+                                         "treePeakSampledPrivateGB":  4.271,
+                                         "treePeakSampledWorkingSetGB":  3.481,
+                                         "treeSumOfPeaksPrivateGB":  4.774,
+                                         "commitHeadroomAtLaunchGB":  37.78,
+                                         "commitHeadroomMinGB":  34.73,
+                                         "availablePhysicalAtLaunchGB":  9.93,
+                                         "availablePhysicalMinGB":  7.14,
+                                         "bootLaneReleasedAtSec":  4.644,
+                                         "treePeakAtSec":  31.696,
+                                         "samples":  6,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
