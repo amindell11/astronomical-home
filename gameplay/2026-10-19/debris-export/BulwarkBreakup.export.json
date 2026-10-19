@@ -1,0 +1,633 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "ce83cf23a4d15108fd556db5dd2ae20a324c4c07c952361d77fdb80e997788fb",
+  "name": "Bulwark",
+  "set": "debris",
+  "fbx": "BulwarkBreakup.fbx",
+  "fbx_sha256": "3cb343b743ef008726a447395f38eca740e84b374862525f8ca0e2e33cc86ea5",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Armor.L": {
+      "parts": [
+        "Armor - Front plate",
+        "Armor - Lower skids",
+        "Armor - Side plates",
+        "Armor - Upper shoulder guards",
+        "Canisters - Metal side modules"
+      ],
+      "material_slots": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark Bone Secondary",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Flap Secondary",
+        "Bulwark Glass",
+        "Bulwark Glass Secondary",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Plum Secondary",
+        "Bulwark Structure",
+        "Bulwark Structure Secondary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Armor - Front plate": [
+          0,
+          64,
+          0,
+          114
+        ],
+        "Armor - Lower skids": [
+          64,
+          64,
+          114,
+          124
+        ],
+        "Armor - Side plates": [
+          128,
+          60,
+          238,
+          116
+        ],
+        "Armor - Upper shoulder guards": [
+          188,
+          70,
+          354,
+          136
+        ],
+        "Canisters - Metal side modules": [
+          258,
+          541,
+          490,
+          1078
+        ]
+      },
+      "contour": {
+        "Armor - Front plate": [
+          799,
+          64,
+          1568,
+          114
+        ],
+        "Armor - Lower skids": [
+          863,
+          64,
+          1682,
+          124
+        ],
+        "Armor - Side plates": [
+          927,
+          60,
+          1806,
+          116
+        ],
+        "Armor - Upper shoulder guards": [
+          987,
+          70,
+          1922,
+          136
+        ],
+        "Canisters - Metal side modules": [
+          1057,
+          541,
+          2058,
+          1078
+        ]
+      }
+    },
+    "Armor.R": {
+      "parts": [
+        "Armor - Front plate",
+        "Armor - Lower skids",
+        "Armor - Side plates",
+        "Armor - Upper shoulder guards",
+        "Canisters - Metal side modules"
+      ],
+      "material_slots": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark Bone Secondary",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Flap Secondary",
+        "Bulwark Glass",
+        "Bulwark Glass Secondary",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Plum Secondary",
+        "Bulwark Structure",
+        "Bulwark Structure Secondary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Armor - Front plate": [
+          0,
+          64,
+          0,
+          124
+        ],
+        "Armor - Lower skids": [
+          64,
+          72,
+          124,
+          140
+        ],
+        "Armor - Side plates": [
+          136,
+          60,
+          264,
+          116
+        ],
+        "Armor - Upper shoulder guards": [
+          196,
+          74,
+          380,
+          144
+        ],
+        "Canisters - Metal side modules": [
+          270,
+          541,
+          524,
+          1078
+        ]
+      },
+      "contour": {
+        "Armor - Front plate": [
+          811,
+          64,
+          1602,
+          124
+        ],
+        "Armor - Lower skids": [
+          875,
+          72,
+          1726,
+          140
+        ],
+        "Armor - Side plates": [
+          947,
+          60,
+          1866,
+          116
+        ],
+        "Armor - Upper shoulder guards": [
+          1007,
+          74,
+          1982,
+          144
+        ],
+        "Canisters - Metal side modules": [
+          1081,
+          541,
+          2126,
+          1078
+        ]
+      }
+    },
+    "Central_hull": {
+      "parts": [
+        "Hull - Aft bridge",
+        "Hull - Dorsal spine",
+        "Hull - Lower keel",
+        "Hull - Main deck",
+        "Hull - Ram nose"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Hull - Aft bridge": [
+          0,
+          81,
+          0,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          81,
+          110,
+          158,
+          212
+        ],
+        "Hull - Lower keel": [
+          191,
+          94,
+          370,
+          184
+        ],
+        "Hull - Main deck": [
+          285,
+          78,
+          554,
+          152
+        ],
+        "Hull - Ram nose": [
+          363,
+          70,
+          706,
+          136
+        ]
+      },
+      "contour": {
+        "Hull - Aft bridge": [
+          433,
+          81,
+          842,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          514,
+          110,
+          1000,
+          212
+        ],
+        "Hull - Lower keel": [
+          624,
+          94,
+          1212,
+          184
+        ],
+        "Hull - Main deck": [
+          718,
+          78,
+          1396,
+          152
+        ],
+        "Hull - Ram nose": [
+          796,
+          70,
+          1548,
+          136
+        ]
+      }
+    },
+    "Cockpit": {
+      "parts": [
+        "Cockpit - Canopy",
+        "Cockpit - Seating rim"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit - Canopy": [
+          0,
+          1277,
+          0,
+          2496
+        ],
+        "Cockpit - Seating rim": [
+          1277,
+          458,
+          2496,
+          916
+        ]
+      },
+      "contour": {
+        "Cockpit - Seating rim": [
+          1735,
+          458,
+          3412,
+          916
+        ]
+      }
+    },
+    "Engine.L": {
+      "parts": [
+        "Engine - Recessed nozzles",
+        "Engine - Shoulder booms",
+        "Engine - Shrouds"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Engine - Recessed nozzles": [
+          0,
+          48,
+          0,
+          92
+        ],
+        "Engine - Shoulder booms": [
+          48,
+          64,
+          92,
+          124
+        ],
+        "Engine - Shrouds": [
+          112,
+          100,
+          216,
+          196
+        ]
+      },
+      "contour": {
+        "Engine - Shoulder booms": [
+          212,
+          64,
+          412,
+          124
+        ],
+        "Engine - Shrouds": [
+          276,
+          100,
+          536,
+          196
+        ]
+      }
+    },
+    "Engine.R": {
+      "parts": [
+        "Engine - Recessed nozzles",
+        "Engine - Shoulder booms",
+        "Engine - Shrouds"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Engine - Recessed nozzles": [
+          0,
+          48,
+          0,
+          92
+        ],
+        "Engine - Shoulder booms": [
+          48,
+          66,
+          92,
+          128
+        ],
+        "Engine - Shrouds": [
+          114,
+          100,
+          220,
+          196
+        ]
+      },
+      "contour": {
+        "Engine - Shoulder booms": [
+          214,
+          66,
+          416,
+          128
+        ],
+        "Engine - Shrouds": [
+          280,
+          100,
+          544,
+          196
+        ]
+      }
+    },
+    "Tail.L": {
+      "parts": [
+        "Lower flaps - Fins",
+        "Lower flaps - Fixed brackets",
+        "Lower flaps - Moving leaves",
+        "Upper flaps - Fins",
+        "Upper flaps - Fixed brackets",
+        "Upper flaps - Moving leaves"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Lower flaps - Fins": [
+          0,
+          32,
+          0,
+          60
+        ],
+        "Lower flaps - Fixed brackets": [
+          32,
+          280,
+          60,
+          536
+        ],
+        "Lower flaps - Moving leaves": [
+          312,
+          246,
+          596,
+          468
+        ],
+        "Upper flaps - Fins": [
+          558,
+          40,
+          1064,
+          76
+        ],
+        "Upper flaps - Fixed brackets": [
+          598,
+          288,
+          1140,
+          552
+        ],
+        "Upper flaps - Moving leaves": [
+          886,
+          252,
+          1692,
+          480
+        ]
+      },
+      "contour": {
+        "Lower flaps - Fins": [
+          1138,
+          32,
+          2172,
+          60
+        ],
+        "Lower flaps - Fixed brackets": [
+          1170,
+          280,
+          2232,
+          536
+        ],
+        "Lower flaps - Moving leaves": [
+          1450,
+          246,
+          2768,
+          468
+        ],
+        "Upper flaps - Fins": [
+          1696,
+          40,
+          3236,
+          76
+        ],
+        "Upper flaps - Fixed brackets": [
+          1736,
+          288,
+          3312,
+          552
+        ],
+        "Upper flaps - Moving leaves": [
+          2024,
+          252,
+          3864,
+          480
+        ]
+      }
+    },
+    "Tail.R": {
+      "parts": [
+        "Lower flaps - Fins",
+        "Lower flaps - Fixed brackets",
+        "Lower flaps - Moving leaves",
+        "Upper flaps - Fins",
+        "Upper flaps - Fixed brackets",
+        "Upper flaps - Moving leaves"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Lower flaps - Fins": [
+          0,
+          34,
+          0,
+          64
+        ],
+        "Lower flaps - Fixed brackets": [
+          34,
+          256,
+          64,
+          488
+        ],
+        "Lower flaps - Moving leaves": [
+          290,
+          216,
+          552,
+          408
+        ],
+        "Upper flaps - Fins": [
+          506,
+          40,
+          960,
+          76
+        ],
+        "Upper flaps - Fixed brackets": [
+          546,
+          256,
+          1036,
+          488
+        ],
+        "Upper flaps - Moving leaves": [
+          802,
+          216,
+          1524,
+          408
+        ]
+      },
+      "contour": {
+        "Lower flaps - Fins": [
+          1018,
+          34,
+          1932,
+          64
+        ],
+        "Lower flaps - Fixed brackets": [
+          1052,
+          256,
+          1996,
+          488
+        ],
+        "Lower flaps - Moving leaves": [
+          1308,
+          216,
+          2484,
+          408
+        ],
+        "Upper flaps - Fins": [
+          1524,
+          40,
+          2892,
+          76
+        ],
+        "Upper flaps - Fixed brackets": [
+          1564,
+          256,
+          2968,
+          488
+        ],
+        "Upper flaps - Moving leaves": [
+          1820,
+          216,
+          3456,
+          408
+        ]
+      }
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "5ce0c6d94fa14c896f26e734b67f59cce355e0921d042c91b82b48e3db8b0b54",
+    "uv": "90ec0573bde4e66984f83cccdf263fa0d8339eec7a16b60b5781df45876ad59e",
+    "materials": "342e2d3d0fdba0f4674084cf76e4401c79b0a37ecfc94537e84c4ef5e94e06f2"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "tool": "ship_lock",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "71b5ceb46a3c1f651e5fc76c46a9399309c024ced0593649da4f6fe6ef5c0f0e",
+  "mode": "reopen",
+  "geometry": "f6cf80a02124e42a6264512482b30b07afc12da6370ec1330a94ed35a0991796",
+  "previous": "5ce0c6d94fa14c896f26e734b67f59cce355e0921d042c91b82b48e3db8b0b54",
+  "invalidated": [
+    "uv",
+    "masks",
+    "breakup"
+  ],
+  "added": [],
+  "removed": [],
+  "changed": [
+    "Physics - Collision hull"
+  ],
+  "verdict": "pass"
+}

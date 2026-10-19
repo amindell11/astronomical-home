@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_export",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "71b5ceb46a3c1f651e5fc76c46a9399309c024ced0593649da4f6fe6ef5c0f0e",
+  "fbx": "D:\\amind\\git\\agent-3\\results\\bulwark\\gameplay\\2026-10-19\\export\\Bulwark.fbx",
+  "sidecar": "D:\\amind\\git\\agent-3\\results\\bulwark\\gameplay\\2026-10-19\\export\\Bulwark.export.json",
+  "verdict": "pass"
+}

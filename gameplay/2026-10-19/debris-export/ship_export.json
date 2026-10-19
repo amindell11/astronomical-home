@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_export",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "ce83cf23a4d15108fd556db5dd2ae20a324c4c07c952361d77fdb80e997788fb",
+  "fbx": "D:\\amind\\git\\agent-3\\results\\bulwark\\gameplay\\2026-10-19\\debris-export\\BulwarkBreakup.fbx",
+  "sidecar": "D:\\amind\\git\\agent-3\\results\\bulwark\\gameplay\\2026-10-19\\debris-export\\BulwarkBreakup.export.json",
+  "verdict": "pass"
+}
