@@ -207,8 +207,14 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(pieces, Has.Length.EqualTo(14));
             var after = pieces.SelectMany(p => p.sharedMesh.vertices.Select(p.transform.TransformPoint)).ToArray();
             AssertGeometry(before, after);
+            var fuselageMaterials = (Material[])materials.Clone();
+            var canopy = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat");
+            Assert.That(canopy.parent, Is.EqualTo(materials[5]));
+            fuselageMaterials[5] = canopy;
             foreach (var piece in pieces)
-                Assert.That(piece.GetComponent<Renderer>().sharedMaterials, Is.EqualTo(materials));
+                Assert.That(piece.GetComponent<Renderer>().sharedMaterials,
+                    Is.EqualTo(piece.name == "Fuselage and canopy" ? fuselageMaterials : materials));
             var sourceUv = hull.sharedMesh.uv.OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             var debrisUv = pieces.SelectMany(p => p.sharedMesh.uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             Assert.That(debrisUv, Is.EqualTo(sourceUv));
