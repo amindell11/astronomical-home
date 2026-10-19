@@ -11,7 +11,7 @@ fails loudly if it changed.
 - Nose toward +Y, Z up, mirrored across X. One root empty named `SymmetryOrigin` at the
   centre; parts sit under it (nested editing empties are fine) and Mirror modifiers mirror
   across its X plane. Modifiers stay live; Mirror comes before Solidify.
-- The paint UV layer is named `PaintUV`.
+- The paint UV layer is named `PaintUV`; it exports as UV0, the drawn shader's channel.
 - Parts are grouped for export by **role collections** in the ship scene (the file's active
   scene). A part may also sit in any number of editing collections.
 
@@ -48,8 +48,8 @@ Rules: `roles`, `origin`, `mirror`, `modifier_order`, `modifier_type`, `scale`, 
 `ship_paint` reads two strict files beside the source (every field required, unknown fields
 rejected) and the brush tile they name.
 
-`palettes.json`: one colour per **palette region** (a material slot name on the visual role
-parts) per palette, linear sRGB, every palette naming the same regions:
+`palettes.json`: one colour per **palette region** per palette, linear sRGB, every palette
+naming the same regions. Regions come from material slots and optional authored marks:
 
 ```json
 {"color_space": "linear-sRGB", "default": "crimson",
@@ -79,12 +79,20 @@ parts) per palette, linear sRGB, every palette naming the same regions:
 ```
 
 - **Geometry.** Evaluated parts stay in signed symmetry-origin space. Boundary distances never
-  fold X; brush and sweep sampling use |x| so mirrored shared UVs receive the same paint.
+  fold X. Optional `paint_space` selects `folded` (the default) or `signed` brush/sweep coordinates.
+  Folded sampling uses |x| so shared mirrored UVs receive the same paint.
   Lengths are source units. The Cycles seed is fixed at zero.
+- **Independent paint.** `paint_space: "signed"` samples the brush continuously across X and
+  replaces `sweep.weight_x` with `sweep.angle_deg` (-180..180, measured from +Y toward +X).
+  Each cap's sweep is centered on its area centroid along that direction and normalized by
+  its furthest projected vertex. Thresholds describe position, not a guaranteed fraction of area.
+  Signed mode refuses texel centers shared by triangle interiors on opposite sides before writing masks;
+  it needs independent UV space for left and right paint. Facing shadows and accents keep
+  their existing rules. The folded mode's settings and generation remain unchanged.
 - **Plate.** Each connected group of faces with |n*z| >= `plates.cap_facing` has its own
   boundary. Only those faces receive that boundary's inset ink (`ink.inset`) and inner rim
   (`ink.rim`, Shadow 0, Light `ink.rim_light`) when their region enables `plate`.
-  `sweep` adds diagonal thirds on those cap faces: `s = weight_x*sx + (1-weight_x)*sy +
+  In folded mode, `sweep` adds diagonal bands on those cap faces: `s = weight_x*sx + (1-weight_x)*sy +
   jitter*(brush - 0.65)`; `s < shadow_coverage` adds Shadow `shadow_depth`, and `s > light_above`
   sets Light `light`. `ink_walls` inks faces with |n*z| < `ink.wall_facing` on parts
   thinner than `plates.thin_wall` (each connected piece's smallest axis extent is below it).
@@ -121,6 +129,45 @@ textures with `.meta` (linear, clamped, mipmapped) and `Materials/<palette>/<Reg
 `.meta`, one drawn-surface material per palette per region binding the masks. GUIDs derive
 from the ship name and path; `--unity <visuals folder>` reuses the GUIDs of files already
 there. Each generated bundle contains exactly its current reported file set. Copy the bundle over the visuals folder, `.meta` files only where none exist.
+
+### Authored palette regions
+
+For livery that crosses faces, add the optional `"authored_regions": "regions.json"` to
+`paint.json`. Material slots still supply the starting region on each face. Marks overwrite
+that coverage in order; they never cut geometry or read colours from a painted atlas.
+The descriptor resolves beside the source:
+
+```json
+{"schema_version": 1, "marks": [
+  {"parts": ["Fuselage"], "region": "Accent", "mirror_x": true,
+   "where": {"y": [-0.67, -0.25], "nz": [0.28, null]},
+   "shape": {"kind": "box"}, "opacity": 1}
+]}
+```
+
+All shown fields are required. `parts` names visual parts and `region` names a palette
+region. Up to 16 regions are supported. `mirror_x` folds X for this mark only; coordinates
+otherwise stay signed in symmetry-origin space. `where` accepts bounds on `x`, `y`, `z`
+and face-normal Z (`nz`); an empty object covers the whole part. Bounds are open; either
+end may be `null`, but both cannot. Shape fields are exactly:
+
+- `{"kind":"box"}` uses the bounds alone.
+- `{"kind":"polygon","points":[[x,y],...]}` fills a polygon with at least three vertices.
+- `{"kind":"path","points":[[x,y],...],"width":0.01,"closed":false}` strokes a path;
+  width is the full stroke width. Do not repeat the closing point on a closed path.
+- `{"kind":"circle","center":[x,y],"radius":0.02}` fills a circle.
+
+The canonical painter rasterises these shapes onto `PaintUV`, writes editable grayscale
+`layers/Region_<name>.png` masks, and preserves owner edits through their baselines just
+like Shadow/Light/Ink. Changing palette colours reuses the same coverage. The composite
+uses the final edited coverage and palette; it remains review-only.
+
+For Unity, the tool packs four coverage masks per linear RGBA `RegionWeights<N>.png` under
+the reported `authored_regions.paths`. The bundle binds those textures and the named
+palette colours to Drawn Surface. Filtered coverage is normalized before applying the
+independent Shadow/Light/Ink treatment; highlights lift each pixel's palette colour.
+Existing material-slot-only paint keeps its original path. Generated geometry treatment
+still follows the starting material slot's flags; marks change colour coverage only.
 
 ## Commands
 

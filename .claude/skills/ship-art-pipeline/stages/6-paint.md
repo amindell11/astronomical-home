@@ -1,6 +1,7 @@
 # Ship art stage 6: paint
 
-One recipe, one tool. Palette regions are material slots on the role parts; three grayscale
+One recipe, one tool. Palette regions start in material slots, with optional authored coverage
+on `PaintUV` for livery crossing faces. Three grayscale
 paint masks (Shadow, Light, Ink) on `PaintUV` are generated from the locked geometry by
 Crimson's rules; one `_PaintLayers` material per palette per region, so palettes stay
 swappable (#823). The rules and knobs: `art/tools/ship/README.md` → Paint settings. Valis is
@@ -10,15 +11,17 @@ the worked example of the storage (`art/ships/valis/README.md`); Crimson is the 
 
 - The source under the geometry lock, with passing UVs.
 - The approved concept picture, and from it the palette (`palettes.json`: one linear-sRGB
-  colour per region) and the region assignment (which part carries which material slot).
+  colour per region) and the region assignment (starting slots and authored coverage).
   Concepts use `art/tools/imagegen/README.md` over the flat render; they decide colours and
   regions and nothing else.
 
 ## Commands
 
 1. `ship_lock --mode verify` passes.
-2. Regions: give every visual-role part its palette-region material in the source (a
-   material edit, not a geometry edit; commit first). Write `palettes.json` and `paint.json`
+2. Regions: give every visual-role part its starting palette-region material in the source
+   (a material edit, not a geometry edit; commit first). For livery crossing faces, use
+   `paint.json`'s optional `authored_regions` descriptor; see the README schema.
+   Write `palettes.json` and `paint.json`
    beside the source with every field required by the README schema, and copy a brush tile in (Crimson's
    `textures/painted-brush-source.png` is the house tile).
 3. `ship_paint --ship art/ships/<name>/ship.json --out <dir> [--unity src/Asteroids3D/Assets/Visuals/Ships/<Name>]`
@@ -37,7 +40,8 @@ the worked example of the storage (`art/ships/valis/README.md`); Crimson is the 
   side walls darken by their facing (Shadow).
 - An inset ink line inside every plate boundary (Ink) with a bright rim just inside it
   (Light); thin walls fully inked.
-- A quiet world-space brush tile, mirrored across X, in Shadow and Light at low contrast.
+- A quiet world-space brush tile in Shadow and Light. Use signed paint coordinates for
+  independent UV charts; folded coordinates preserve shared-UV ships. See the paint settings.
 - Named `canopy_glass` and `canopy_frames` parts keep only their palette colour;
   reflections are owner mask edits, preserved across re-runs.
 - A short list of accents placed by coordinates for indicator lights and emission.

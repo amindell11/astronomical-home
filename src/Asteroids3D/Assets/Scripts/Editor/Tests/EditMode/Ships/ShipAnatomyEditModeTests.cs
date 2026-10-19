@@ -12,7 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.Ships
 {
     /// <summary>
     /// The anatomy law, enforced on every chassis the catalog lists except the legacy
@@ -180,13 +180,20 @@ namespace Tests.EditMode
         public void Chassis_HullKeepsTheContourAsASeparateVertexRange(string path)
         {
             var root = Load(path);
+            var contourShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/Visuals/Shaders/DrawnContour.shader");
             var contoured = root.transform.Find(HullSlot).GetComponentsInChildren<MeshFilter>(true)
-                .Select(f => f.sharedMesh).Where(m => m.subMeshCount >= 2).ToArray();
-            Assert.That(contoured, Is.Not.Empty, "The hull carries its contour as a second submesh.");
-            foreach (var mesh in contoured)
+                .Where(f => f.GetComponent<Renderer>().sharedMaterials.Any(m => m.shader == contourShader)).ToArray();
+            Assert.That(contoured, Is.Not.Empty, "The hull carries a contour submesh.");
+            foreach (var filter in contoured)
             {
-                Assert.That(mesh.GetIndexCount(1), Is.EqualTo(mesh.GetIndexCount(0)), $"{mesh.name}: the contour copies every surface triangle.");
-                Assert.That(mesh.GetIndices(0).Intersect(mesh.GetIndices(1)), Is.Empty,
+                var mesh = filter.sharedMesh;
+                var materials = filter.GetComponent<Renderer>().sharedMaterials;
+                Assert.That(materials, Has.Length.EqualTo(mesh.subMeshCount), mesh.name);
+                var contour = System.Array.FindIndex(materials, m => m.shader == contourShader);
+                var surfaceIndices = Enumerable.Range(0, mesh.subMeshCount).Where(i => i != contour)
+                    .SelectMany(i => mesh.GetIndices(i)).ToArray();
+                Assert.That(mesh.GetIndexCount(contour), Is.EqualTo(surfaceIndices.Length), $"{mesh.name}: the contour copies every surface triangle.");
+                Assert.That(surfaceIndices.Intersect(mesh.GetIndices(contour)), Is.Empty,
                     $"{mesh.name}: contour normals need their own vertex range; vertex welding on import merges them away.");
             }
         }

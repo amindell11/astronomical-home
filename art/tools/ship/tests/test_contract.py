@@ -82,6 +82,20 @@ class ShipJsonTests(unittest.TestCase):
 
 
 class PaintSettingsTests(unittest.TestCase):
+    def test_signed_space_requires_its_own_direction(self):
+        signed = copy.deepcopy(VALID_PAINT)
+        signed["paint_space"] = "signed"
+        with self.assertRaises(ValueError):
+            contract.parse_paint(signed)
+        signed["sweep"].pop("weight_x")
+        signed["sweep"]["angle_deg"] = 30
+        self.assertEqual(contract.parse_paint(signed), signed)
+        for change in (lambda v: v["sweep"].update(angle_deg=float("nan")),
+                       lambda v: v.update(paint_space="automatic"),
+                       lambda v: v.pop("paint_space")):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                contract.parse_paint(mutated(change, signed))
+
     def test_valid_settings_parse(self):
         self.assertEqual(contract.parse_palettes(VALID_PALETTES), VALID_PALETTES)
         self.assertEqual(contract.parse_paint(VALID_PAINT), VALID_PAINT)
