@@ -12,7 +12,7 @@ The active Blender materials show a flat drawn composite. Dark cockpit glass has
 
 Earlier shading images remain packed for preservation but are disconnected from the active output. `FinishShadow.png` and `FinishLight.png` belong to that superseded Blender preview. Current strengths and status are in `paint-settings.json`.
 
-`reference/detail-concept.png` is the approved structural-detail direction. The clean nose keeps two fasteners; rear fins retain a single cross-panel seam. Side armor and engine shrouds carry small vent banks. These are authored edits in `Ink.png` and `Light.png`, preserved against the existing generation baseline. The base coat, asymmetric shadow mask, cockpit, geometry and UVs remain unchanged.
+`reference/detail-concept.png` is the approved structural-detail direction. The clean nose keeps two fasteners; rear body plates and upper tail fins carry paired stepped panel seams. Side armor and engine shrouds carry small vent banks. These are authored edits in `Ink.png` and `Light.png`, preserved against the existing generation baseline. The base coat, asymmetric shadow mask, cockpit, geometry and UVs remain unchanged.
 
 `layers/DetailEmission.png` is the independent light-coverage mask, packed as `Bulwark Detail Emission`. Segmented lilac rings surround metal canister centers; shoulder guards and lower skids have matching three-segment inserts. The `Detail emissive color` node controls their color and `Detail emission energy` supplies a modest 1.15 preview strength. This mask is owner-authored and separate from the painter's generated mask set: retain it and its material nodes when regenerating. It requires an emission binding alongside the pending Unity base-coat integration; it must not replace BaseRegion.
 
