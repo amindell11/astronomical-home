@@ -1,0 +1,22 @@
+Use case: precise-object-edit.
+Asset type: Bulwark full hand-drawn ship concept turnaround, round 4.
+Input image 1 is the sole EDIT TARGET / SHAPE / STYLE / PALETTE reference: the selected E plum-and-bone Bulwark light-detail drawing, with side view above top view. Develop this exact design into a four-view concept sheet. The existing side and top drawings are authoritative. Preserve them faithfully and derive the new views from them.
+
+Primary request: a full turnaround showing exactly FOUR labeled drawings of THE SAME ship: TOP, SIDE, FRONT, and THREE-QUARTER. Create a spacious landscape cream-paper sheet, about 3:2 aspect, with 'BULWARK' as a modest hand-lettered title and 'Plum / bone' below it. Use a balanced 2 by 2 layout: TOP upper left, SIDE lower left, FRONT upper right, THREE-QUARTER lower right. Show each drawing large enough to understand its shape, with clear whitespace between drawings. The front view may be smaller than the other views, leaving more space for the three-quarter drawing. No callouts, dimensions, or decorative frames.
+
+STYLE: match the reference's loose graphite/charcoal linework, slightly irregular hand-drawn edges, flat muted color pencil/gouache fills, warm paper, very sparse panel seams and small vents. Same light level of detail. New drawings must look like they were sketched by the same artist. No increase in realism, detail density, material finish, or presentation gloss. Only flat colors with a very small number of broad tonal separations to show overlapping forms. This is a 2D artist's turnaround, not a 3D render.
+
+SHAPE INVARIANTS from the reference:
+- Heavy tank / ramming spacecraft: broad faceted front body, flat blunt impact nose, broad shoulders, narrower aft body ending in TWO separated long rear prongs with a clear open central gap. No wings or new appendages.
+- Preserve the reference top-view outline exactly: short flat front edge at LEFT, chamfered/broad diagonal bone-trimmed shoulders, large plum central hull, tapered sides into the rear fork, bone rear tips.
+- Preserve the reference side-view outline exactly: deep blunt nose at LEFT, low gently raised top/shoulder profile, thick belly around the large circular blue-grey side inset, long narrowing aft body and raised aft fin profile at RIGHT.
+- Preserve the existing panel seams, sparse vents, plum/bone color blocking and bone chevron on both existing views.
+- TOP and SIDE face LEFT (nose left, tails right), exactly as in the supplied reference.
+- Top canopy is a low blue-grey TEARDROP inset. Its large ROUND BULB points FORWARD toward the nose at LEFT; its narrow POINT tapers AFT toward the tails at RIGHT. Never reverse this. Keep the canopy position, shape and proportion.
+- Preserve the plain blue-grey circular side inset with simple drawn rim. It is not a wheel, fan, turbine or new weapon.
+
+NEW FRONT VIEW: a direct orthographic view looking straight into the broad blunt ram nose. Derive width and height from the authoritative top and side views. Broad, low faceted heavy wedge hull, a flat bone impact lip and plum shoulders rising behind; a small low blue-grey canopy above the centerline as visible from this angle. Keep the same hull thickness. No nose spike, fighter-aircraft nose, grill full of hardware, eyes, headlights, landing gear or unexplained additions. The forward lip is one broad impact edge, NOT two forward prongs. The split prongs belong ONLY at the REAR.
+
+NEW THREE-QUARTER VIEW: elevated front-left three-quarter hand drawing, nose aiming toward lower LEFT and tail toward upper RIGHT. Show the broad blunt ram edge in foreground, top canopy, one circular side inset, and the two rear prongs with open space between them. Make this clearly the same compact heavy ship, with the exact top footprint and side profile reconciled. The canopy rounded bulb must be toward the near nose, with its sharp taper extending away aft. Do not turn it into a pointed fighter jet.
+
+Avoid photorealism, rendered/CAD aesthetics, shiny metal, reflective glass highlights, dramatic lighting, cast shadows, dense greebles, weathering, rivet fields, guns, turrets, new engines, extra antennae, generic sci-fi redesign, extra views, arbitrary perspective distortion or mirroring. Preserve the owner's recognizable silhouette over decorative detail.
