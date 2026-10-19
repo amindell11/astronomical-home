@@ -1,0 +1,7 @@
+Bulwark side-mounted weapons, commit 229bacc0.
+Primary is on the left flank; secondary is on the right. Unity positions are (+/-1.023, 1.419, -0.561).
+Blender sockets match the chassis after its axis conversion. Only Primary and Secondary fingerprints changed; all mesh, UV, material assignments and paint files preserved.
+Source lock verifies. Unity anatomy: 21/21 passed. Gameplay capture: 1/1 passed with primary and secondary firing.
+The initial capture attempt preceded script import and failed to find the temporary scenario; import fixed before the passing run.
+No production C# changes. Small asset-only follow-up checked directly; quality subagent skipped.
+Video and GIF play at real speed. Isolated inspection scene; balance and flight approval remain separate.
