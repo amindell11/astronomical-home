@@ -26,3 +26,11 @@ The user selected A on issue #1021. `hangar-flight-final.gif/mp4` is an 18-secon
 Graphics checks: 8/8 passed, including the capture's non-uniform pixel assertion, real wing sweep/return, view direction, authored scale, left-out/right-in handoff, bounded rapid switching, relative sizing, render budget, input gating, and launch camera restoration. UI regressions: 32/32 passed. Machine-readable summaries and NUnit results are in test-results/.
 
 The final MP4 decodes to 540 frames, 18 seconds at 30 fps. The captured surface is the production hangar preview texture with a dark backdrop for review; it does not show the surrounding menu or claim performance results. Temporary capture source is included for repeatability and is excluded from the feature PR.
+
+## Back-and-forth stress preview
+
+`hangar-back-and-forth.gif/mp4` captures the unchanged runtime at 9379a1286f82a78e1bf7a5b671a9aba4b3391466, alternating Valis and Nightshade. The 14-second clip shows initial arrival (0–2 s), ten switches spaced 0.3 seconds apart (2–5 s), a pause (5–7 s), thirty switches spaced 0.1 seconds apart (7–10 s), then the final ship settling (10–14 s). The top strip is an encoding-time caption; the ship texture is the actual Unity render.
+
+Observed limitation: sustained 10 Hz switching removes the older departure and interrupts each incoming hull before it reaches the visible frame, leaving the preview empty until tapping stops. At 0.3-second spacing the interrupted ships stay near the right edge and visibly cut short. This clip deliberately preserves the current behavior for the user's decision; no runtime changes were made.
+
+The capture passed its settled-frame visibility checks, at-most-two live previews after each frame, and final-selection assertion. Those assertions do not promise continuous visibility during spam; the empty interval is a visible limitation. MP4 decode: 420 frames, 14 seconds, 30 fps. The scratch capture fixture is included for repeatability.
