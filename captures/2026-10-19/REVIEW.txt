@@ -1,0 +1,6 @@
+Bulwark gameplay captures from 14183b9d249abef528f6a608546d411f4ed4afe2, PR989.
+Flight: 7.98 seconds, real time, thrust/turn/strafe and primary laser firing.
+Breakup: 3.38 seconds, real time; GIF replays at half speed.
+Recorded in Unity Game View with production chassis, movement, weapons, explosion and breakup assets; isolated inspection scene, tracking camera, no gameplay balance changes.
+Both capture scenario runs passed. Mid-flight and breakup frames visually inspected.
+Temporary scenario scripts removed from Assets and coordinator editor closed; tracked tree clean.
