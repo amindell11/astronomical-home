@@ -15,11 +15,8 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Hangar
 {
-    /// <summary>
-    /// The booted host shows the hangar through its drifting hangar camera with the observer camera
-    /// off, and Launch hands the view back to the observer before the sector loads.
-    /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
+    [Category("UI")]
     [Category("RequiresGraphics")]
     public class HangarViewPlayModeTests
     {
@@ -45,7 +42,7 @@ namespace Tests.PlayMode.Hangar
             AudioListener.pause = true;
         }
 
-        // The sector load applies its locale; a failed run must not leave it active for later fixtures.
+        // The host dies mid-sector without unloading its locale scene, which later fixtures would inherit.
         [UnityTearDown]
         public IEnumerator TearDown()
         {
