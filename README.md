@@ -75,3 +75,7 @@ settles that distinction. They remain here as historical evidence.
 [2026-10-09 round 2](breakup/2026-10-09-r02/README.md) retains the approved painted colors through the breakup; motion review pending.
 
 - [Paint: projected masks retired 2026-10-17](paint/2026-10-17-projected-masks/README.md): the masks, `.ora` and settings main carried before the `ship_paint` conversion; nothing here feeds the recipe.
+
+## Canopy reflections (#1017)
+
+[Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).

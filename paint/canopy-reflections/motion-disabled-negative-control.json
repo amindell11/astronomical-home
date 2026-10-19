@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-10-19T11:18:03.7133101-07:00",
+  "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "EditMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "Reflection_MovesAcrossGlassWhenLightTurns",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 7,
+    "passed": 0,
+    "failed": 7,
+    "skipped": 0,
+    "durationSec": 0.42
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 7,
+      "passed": 0,
+      "failed": 7,
+      "skipped": 0,
+      "durationSec": 0.42,
+      "failures": [
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Crimson/Canopy/Canopy.mat\",False)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Crimson/Canopy/Canopy.mat\",False)",
+          "durationSec": 0.2174186,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Crimson/Canopy/Canopy.mat\",True)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Crimson/Canopy/Canopy.mat\",True)",
+          "durationSec": 0.0124494,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Nightshade/Canopy/Canopy.mat\",False)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Nightshade/Canopy/Canopy.mat\",False)",
+          "durationSec": 0.0154705,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Nightshade/Canopy/Canopy.mat\",True)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Nightshade/Canopy/Canopy.mat\",True)",
+          "durationSec": 0.0128402,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Valis/Canopy/jade-iris.mat\",False)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Valis/Canopy/jade-iris.mat\",False)",
+          "durationSec": 0.0145769,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Valis/Canopy/jade-iris.mat\",True)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Valis/Canopy/jade-iris.mat\",True)",
+          "durationSec": 0.0102629,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        },
+        {
+          "name": "Reflection_MovesAcrossGlassWhenLightTurns(\"Vanguard/Materials/Canopy.mat\",False)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(\"Vanguard/Materials/Canopy.mat\",False)",
+          "durationSec": 0.1298267,
+          "message": "The drawing must move, not only brighten. Expected: greater than 0.0599999987f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x00118] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "Reflection_MovesAcrossGlassWhenLightTurns",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 10.32,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 39152
+}
