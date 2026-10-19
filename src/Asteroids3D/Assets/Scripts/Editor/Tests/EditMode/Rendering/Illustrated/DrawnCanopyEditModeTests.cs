@@ -123,18 +123,35 @@ namespace Tests.EditMode.Rendering.Illustrated
             Assert.That(glass.GetVector("_ReflectionLayerStrengths"), Is.EqualTo(new Vector4(1.02f, .2f, 1.5f, 0)));
         }
 
-        [Test]
-        public void Nightshade_PaintedGlassRemainsFixedWithoutReflections()
+        [TestCase("Nightshade/Canopy/Canopy.mat")]
+        [TestCase("Valis/Canopy/jade-iris.mat")]
+        [TestCase("Valis/Canopy/jade-gray.mat")]
+        [TestCase("Valis/Canopy/ivory-lavender.mat")]
+        public void PaintedGlass_RemainsFixedWithoutReflections(string path)
         {
-            UseMaterial("Nightshade/Canopy/Canopy.mat");
+            UseMaterial(path);
             material.SetFloat("_DrawnReflectionStrength", 0);
             key.transform.rotation = Quaternion.Euler(0, -20, 0);
             var glass = Read();
             key.transform.rotation = Quaternion.Euler(0, 20, 0);
             Assert.That(Read(), Is.EqualTo(glass));
             var centerRow = glass.Skip(64 * 128 + 32).Take(64).Select(c => c.b).ToArray();
-            Assert.That(centerRow.Max(), Is.GreaterThan(.3f), "The purple glass must remain without its glints.");
-            Assert.That(centerRow.Max() - centerRow.Min(), Is.GreaterThan(.1f), "The fixed glass must retain its painted shading.");
+            Assert.That(centerRow.Max(), Is.GreaterThan(material.GetColor("_ReflectionColor").b * .7f),
+                "The authored glass color must remain without its glints.");
+            Assert.That(centerRow.Max() - centerRow.Min(), Is.GreaterThan(material.GetColor("_ReflectionColor").b * .25f),
+                "The fixed glass must retain its painted shading.");
+        }
+
+        [TestCase(-60)]
+        [TestCase(60)]
+        public void Crimson_StripesContinuePastGlassAtExtremePitch(float pitch)
+        {
+            UseMaterial("Crimson/Canopy/Canopy.mat");
+            key.transform.rotation = Quaternion.Euler(pitch, 0, 0);
+            var pixels = ReadReflection();
+            foreach (int row in new[] { 12, 115 })
+                Assert.That(pixels.Skip(row * 128 + 32).Take(64).Max(c => c.grayscale), Is.GreaterThan(.03f),
+                    "The painted stripes must continue through both ends of the glass.");
         }
 
         [TestCase("Crimson/Canopy/Canopy.mat", false)]
@@ -142,25 +159,41 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Nightshade/Canopy/Canopy.mat", false)]
         [TestCase("Nightshade/Canopy/Canopy.mat", true)]
         [TestCase("Valis/Canopy/jade-iris.mat", false)]
-        [TestCase("Valis/Canopy/jade-iris.mat", true)]
         [TestCase("Vanguard/Materials/Canopy.mat", false)]
         public void Reflection_MovesAcrossGlassWhenLightTurns(string path, bool underside)
         {
-            UseMaterial(path);
-            if (underside)
-            {
-                var filter = subject.GetComponent<MeshFilter>();
-                surfaceMesh = Object.Instantiate(filter.sharedMesh);
-                surfaceMesh.normals = surfaceMesh.normals.Select(n => -n).ToArray();
-                surfaceMesh.triangles = surfaceMesh.triangles.Reverse().ToArray();
-                filter.sharedMesh = surfaceMesh;
-                subject.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            }
+            UseMaterial(path, underside);
             key.transform.rotation = Quaternion.Euler(0, -20, 0);
             float left = LuminanceCentroid(ReadReflection());
             key.transform.rotation = Quaternion.Euler(0, 20, 0);
             float right = LuminanceCentroid(ReadReflection());
             Assert.That(left - right, Is.GreaterThan(.06f), "The drawing must move, not only brighten.");
+        }
+
+        [Test]
+        public void Valis_UnpaintedSideKeepsGlassWithoutInventedReflections()
+        {
+            UseMaterial("Valis/Canopy/jade-iris.mat", true);
+            var glass = Read();
+            material.SetFloat("_DrawnReflectionStrength", 0);
+            Assert.That(Read(), Is.EqualTo(glass));
+            Assert.That(glass.Max(c => c.b), Is.GreaterThan(.1f));
+        }
+
+        [TestCase(-55)]
+        [TestCase(55)]
+        public void Nightshade_SecondaryGlintsEnterDuringRoll(float roll)
+        {
+            UseMaterial("Nightshade/Canopy/Canopy.mat");
+            camera.transform.position = Quaternion.Euler(0, roll, 0) * new Vector3(0, 0, -2);
+            camera.transform.LookAt(Vector3.zero);
+            key.transform.rotation = camera.transform.rotation;
+            var withAccents = Read();
+            material.SetVector("_SecondaryGlintLeft", new Vector4(.5f, .5f, 1, 0));
+            material.SetVector("_SecondaryGlintRight", new Vector4(.5f, .5f, 1, 0));
+            var withoutAccents = Read();
+            Assert.That(withAccents.Where((color, i) => color.grayscale - withoutAccents[i].grayscale > .01f).Count(),
+                Is.GreaterThan(16), "A roll must bring smaller painted glints into view.");
         }
 
         [TestCase("Crimson/Canopy/Canopy.mat")]
@@ -208,11 +241,20 @@ namespace Tests.EditMode.Rendering.Illustrated
             Assert.That(Read().Max(c => c.maxColorComponent), Is.EqualTo(0));
         }
 
-        private void UseMaterial(string path)
+        private void UseMaterial(string path, bool underside = false)
         {
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>("Assets/Visuals/Ships/" + path));
             material.SetVector("_ReflectionBounds", new Vector4(0, 0, 1, 1));
             subject.sharedMaterial = material;
+            if (underside)
+            {
+                var filter = subject.GetComponent<MeshFilter>();
+                surfaceMesh = Object.Instantiate(filter.sharedMesh);
+                surfaceMesh.normals = surfaceMesh.normals.Select(n => -n).ToArray();
+                surfaceMesh.triangles = surfaceMesh.triangles.Reverse().ToArray();
+                filter.sharedMesh = surfaceMesh;
+                subject.transform.localRotation = Quaternion.Euler(0, 180, 0);
+            }
         }
 
         private Color[] Read()

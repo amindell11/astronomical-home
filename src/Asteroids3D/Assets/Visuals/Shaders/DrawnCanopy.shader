@@ -10,7 +10,10 @@ Shader "Astronomical/Drawn/Canopy"
         _ReflectionEdgeColor ("Glint Color", Color) = (0.56,0.64,0.67,1)
         [Toggle(_AUTHORED_REFLECTION)] _AuthoredReflection ("Authored Reflection", Float) = 0
         [NoScaleOffset] _ReflectionMap ("Reflection Drawing (+Z / -Z)", 2D) = "black" {}
-        [Enum(Color Drawing,0,Painted Reflection,1,Painted Glass,2)] _ReflectionArtwork ("Reflection Artwork", Float) = 0
+        [Enum(Color Drawing,0,Painted Glass,1)] _ReflectionArtwork ("Reflection Artwork", Float) = 0
+        _ReflectionVerticalRange ("Stripe Sampling Height Range", Vector) = (0,1,0,0)
+        _SecondaryGlintLeft ("Left Glint Center / Scale / Strength", Vector) = (0.5,0.5,1,0)
+        _SecondaryGlintRight ("Right Glint Center / Scale / Strength", Vector) = (0.5,0.5,1,0)
         _ReflectionInkColor ("Reflection Ink Color", Color) = (0,0,0,1)
         _ReflectionLayerStrengths ("Shadow / Light / Ink Strength", Vector) = (1,1,1,0)
         _ReflectionSaturation ("Reflection Saturation", Float) = 1
@@ -31,6 +34,7 @@ Shader "Astronomical/Drawn/Canopy"
         CBUFFER_START(UnityPerMaterial)
             half4 _BaseColor, _GlassColor, _ReflectionColor, _ReflectionEdgeColor, _ReflectionInkColor, _ShadowColor;
             float4 _ReflectionBounds, _ReflectionMap_TexelSize, _ReflectionLayerStrengths;
+            float4 _ReflectionVerticalRange, _SecondaryGlintLeft, _SecondaryGlintRight;
             half _DrawnReflectionStrength, _ReflectionArtwork, _ReflectionSaturation;
             half _ShadowThreshold, _ShadowSoftness, _CastShadowStrength, _AmbientStrength;
             half _DamageFlash, _DebrisVisibility;
@@ -91,6 +95,22 @@ Shader "Astronomical/Drawn/Canopy"
             }
             return color;
         }
+        half SampleGlints(float2 uv, half localFacing)
+        {
+            half4 drawing = SampleReflection(uv, localFacing);
+            half glints = drawing.g * drawing.a;
+            if (_SecondaryGlintLeft.w > 0)
+            {
+                drawing = SampleReflection((uv - _SecondaryGlintLeft.xy) / _SecondaryGlintLeft.z + 0.5, localFacing);
+                glints = max(glints, drawing.g * drawing.a * _SecondaryGlintLeft.w);
+            }
+            if (_SecondaryGlintRight.w > 0)
+            {
+                drawing = SampleReflection((uv - _SecondaryGlintRight.xy) / _SecondaryGlintRight.z + 0.5, localFacing);
+                glints = max(glints, drawing.g * drawing.a * _SecondaryGlintRight.w);
+            }
+            return glints;
+        }
         ENDHLSL
         Pass
         {
@@ -125,7 +145,7 @@ Shader "Astronomical/Drawn/Canopy"
                 half3 glass = _GlassColor.rgb;
                 half3 fixedLayers = 0;
                 #if defined(_AUTHORED_REFLECTION)
-                    if (_ReflectionArtwork > 1.5)
+                    if (_ReflectionArtwork > 0.5)
                     {
                         fixedLayers = SampleReflection(input.reflectionUV, input.localFacing).rgb;
                         glass = ReflectionPalette(half3(fixedLayers.r, 0, fixedLayers.b), glass);
@@ -150,15 +170,19 @@ Shader "Astronomical/Drawn/Canopy"
                 half response = smoothstep(0.35, 0.88, lightFacing);
                 response *= facing * _DrawnReflectionStrength * lerp(0.15, 1, light.shadowAttenuation);
                 #if defined(_AUTHORED_REFLECTION)
-                    half4 drawing = SampleReflection(uv, input.localFacing);
-                    half3 reflection = drawing.rgb;
-                    if (_ReflectionArtwork > 1.5)
+                    half3 reflection;
+                    if (_ReflectionArtwork > 0.5)
                     {
-                        reflection = ReflectionPalette(half3(fixedLayers.r, drawing.g, fixedLayers.b), _GlassColor.rgb);
+                        half glints = SampleGlints(uv, input.localFacing);
+                        reflection = ReflectionPalette(half3(fixedLayers.r, glints, fixedLayers.b), _GlassColor.rgb) - glass;
                     }
-                    else if (_ReflectionArtwork > 0.5)
-                        reflection = ReflectionPalette(drawing.rgb, _ReflectionColor.rgb);
-                    color = lerp(color, reflection * diffuse * illumination, drawing.a * response);
+                    else
+                    {
+                        uv.y = clamp(uv.y, _ReflectionVerticalRange.x, _ReflectionVerticalRange.y);
+                        half4 drawing = SampleReflection(uv, input.localFacing);
+                        reflection = max(drawing.rgb - glass, 0) * drawing.a;
+                    }
+                    color += reflection * diffuse * illumination * response;
                 #else
                     float pressure = pow(saturate(sin(t * PI)), 0.7);
                     float center = 0.46 + 0.09 * t - 0.05 * t * t;

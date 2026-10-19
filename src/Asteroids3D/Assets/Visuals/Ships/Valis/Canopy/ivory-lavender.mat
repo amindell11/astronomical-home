@@ -42,7 +42,7 @@ Material:
     - _ShadowThreshold: 0.35
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _GlassColor: {r: 0.039283812, g: 0.04360419, b: 0.052013487, a: 1}
+    - _GlassColor: {r: 0.19641906, g: 0.21802095, b: 0.26006743, a: 1}
     - _ReflectionBounds: {r: 0.000000014901161, g: 0.8727733, b: 2.036666, a: 1.5545381}
     - _ReflectionColor: {r: 0.19641906, g: 0.21802095, b: 0.26006743, a: 1}
     - _ReflectionEdgeColor: {r: 0.9162735, g: 0.9685765, b: 0.9452768, a: 1}
