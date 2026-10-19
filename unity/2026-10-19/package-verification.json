@@ -1,0 +1,13 @@
+{
+  "base_coat_green_channel_exact": true,
+  "weights_sum_255": true,
+  "source_mask_sha256": {
+    "BaseRegion": "c590c8f244d3380dfd57a19d1c3318ac8b695b53fbf1adb25779bccbbd90a911",
+    "Shadow": "0b464ad9343a6be0d16f20430e9852cf96ca091c3525d72c95f8e278d0b97aa7",
+    "Light": "4236be80d4619ca783194e9d15ce2ca2803fd2ca1fac30c43e22cc6e1557b8a5",
+    "Ink": "ea42aca663349192b558442f4c70abda4640c0fd11a39e2ebc0dbbbef21724ec",
+    "DetailEmission": "16d31e02a8bf03495e67756bc305a00b6d606c20fe4bfe91834de480c6f63e66"
+  },
+  "material_count": 15,
+  "shader_revision": "22fbd8e1ad68a7f8a2171e29d3d0ec43c2e48e87"
+}

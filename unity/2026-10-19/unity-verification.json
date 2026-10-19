@@ -1,0 +1,109 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-3/results/bulwark/unity/2026-10-19/verify.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "materials": [
+          {
+            "renderer": "Canopy",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Glass.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Cores",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat",
+            "shader": "Astronomical/Drawn/Surface"
+          },
+          {
+            "renderer": "Hull",
+            "material": "Assets/Visuals/Ships/Bulwark/Materials/Contour.mat",
+            "shader": "Astronomical/Drawn/Contour"
+          }
+        ],
+        "textures": [
+          {
+            "name": "Shadow",
+            "linear": true,
+            "compression": "Uncompressed",
+            "mipmaps": true
+          },
+          {
+            "name": "Light",
+            "linear": true,
+            "compression": "Uncompressed",
+            "mipmaps": true
+          },
+          {
+            "name": "Ink",
+            "linear": true,
+            "compression": "Uncompressed",
+            "mipmaps": true
+          },
+          {
+            "name": "DetailEmission",
+            "linear": true,
+            "compression": "Uncompressed",
+            "mipmaps": true
+          },
+          {
+            "name": "RegionWeights0",
+            "linear": true,
+            "compression": "Uncompressed",
+            "mipmaps": true
+          }
+        ],
+        "shaderErrors": 0
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-3\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

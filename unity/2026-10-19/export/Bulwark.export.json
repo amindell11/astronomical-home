@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "da29ea5065a477352fc86b87fbac464ad524de94343f8d1b2af7a39d66031ab3",
+  "name": "Bulwark",
+  "set": "intact",
+  "fbx": "Bulwark.fbx",
+  "fbx_sha256": "b0d7d19243461ee71fdeb7faf778bbabbf0eb0003f255f36cc9e6614baa321e8",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Armor - Front plate",
+        "Armor - Lower skids",
+        "Armor - Side plates",
+        "Armor - Upper shoulder guards",
+        "Canisters - Metal side modules",
+        "Cockpit - Seating rim",
+        "Engine - Shoulder booms",
+        "Engine - Shrouds",
+        "Hull - Aft bridge",
+        "Hull - Dorsal spine",
+        "Hull - Lower keel",
+        "Hull - Main deck",
+        "Hull - Ram nose",
+        "Lower flaps - Fins",
+        "Lower flaps - Fixed brackets",
+        "Lower flaps - Moving leaves",
+        "Upper flaps - Fins",
+        "Upper flaps - Fixed brackets",
+        "Upper flaps - Moving leaves"
+      ],
+      "material_slots": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark Bone Secondary",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Flap Secondary",
+        "Bulwark Glass",
+        "Bulwark Glass Secondary",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Plum Secondary",
+        "Bulwark Structure",
+        "Bulwark Structure Secondary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Armor - Front plate": [
+          0,
+          116,
+          0,
+          238
+        ],
+        "Armor - Lower skids": [
+          116,
+          136,
+          238,
+          264
+        ],
+        "Armor - Side plates": [
+          252,
+          120,
+          502,
+          232
+        ],
+        "Armor - Upper shoulder guards": [
+          372,
+          144,
+          734,
+          280
+        ],
+        "Canisters - Metal side modules": [
+          516,
+          1082,
+          1014,
+          2156
+        ],
+        "Cockpit - Seating rim": [
+          1598,
+          458,
+          3170,
+          916
+        ],
+        "Engine - Shoulder booms": [
+          2056,
+          130,
+          4086,
+          252
+        ],
+        "Engine - Shrouds": [
+          2186,
+          200,
+          4338,
+          392
+        ],
+        "Hull - Aft bridge": [
+          2386,
+          81,
+          4730,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          2467,
+          110,
+          4888,
+          212
+        ],
+        "Hull - Lower keel": [
+          2577,
+          94,
+          5100,
+          184
+        ],
+        "Hull - Main deck": [
+          2671,
+          78,
+          5284,
+          152
+        ],
+        "Hull - Ram nose": [
+          2749,
+          70,
+          5436,
+          136
+        ],
+        "Lower flaps - Fins": [
+          2819,
+          66,
+          5572,
+          124
+        ],
+        "Lower flaps - Fixed brackets": [
+          2885,
+          536,
+          5696,
+          1024
+        ],
+        "Lower flaps - Moving leaves": [
+          3421,
+          462,
+          6720,
+          876
+        ],
+        "Upper flaps - Fins": [
+          3883,
+          80,
+          7596,
+          152
+        ],
+        "Upper flaps - Fixed brackets": [
+          3963,
+          544,
+          7748,
+          1040
+        ],
+        "Upper flaps - Moving leaves": [
+          4507,
+          468,
+          8788,
+          888
+        ]
+      },
+      "contour": {
+        "Armor - Front plate": [
+          4975,
+          116,
+          9676,
+          238
+        ],
+        "Armor - Lower skids": [
+          5091,
+          136,
+          9914,
+          264
+        ],
+        "Armor - Side plates": [
+          5227,
+          120,
+          10178,
+          232
+        ],
+        "Armor - Upper shoulder guards": [
+          5347,
+          144,
+          10410,
+          280
+        ],
+        "Canisters - Metal side modules": [
+          5491,
+          1082,
+          10690,
+          2156
+        ],
+        "Cockpit - Seating rim": [
+          6573,
+          458,
+          12846,
+          916
+        ],
+        "Engine - Shoulder booms": [
+          7031,
+          130,
+          13762,
+          252
+        ],
+        "Engine - Shrouds": [
+          7161,
+          200,
+          14014,
+          392
+        ],
+        "Hull - Aft bridge": [
+          7361,
+          81,
+          14406,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          7442,
+          110,
+          14564,
+          212
+        ],
+        "Hull - Lower keel": [
+          7552,
+          94,
+          14776,
+          184
+        ],
+        "Hull - Main deck": [
+          7646,
+          78,
+          14960,
+          152
+        ],
+        "Hull - Ram nose": [
+          7724,
+          70,
+          15112,
+          136
+        ],
+        "Lower flaps - Fins": [
+          7794,
+          66,
+          15248,
+          124
+        ],
+        "Lower flaps - Fixed brackets": [
+          7860,
+          536,
+          15372,
+          1024
+        ],
+        "Lower flaps - Moving leaves": [
+          8396,
+          462,
+          16396,
+          876
+        ],
+        "Upper flaps - Fins": [
+          8858,
+          80,
+          17272,
+          152
+        ],
+        "Upper flaps - Fixed brackets": [
+          8938,
+          544,
+          17424,
+          1040
+        ],
+        "Upper flaps - Moving leaves": [
+          9482,
+          468,
+          18464,
+          888
+        ]
+      }
+    },
+    "Canopy": {
+      "parts": [
+        "Cockpit - Canopy"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit - Canopy": [
+          0,
+          1277,
+          0,
+          2496
+        ]
+      },
+      "contour": {}
+    },
+    "Cores": {
+      "parts": [
+        "Engine - Recessed nozzles"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Engine - Recessed nozzles": [
+          0,
+          96,
+          0,
+          184
+        ]
+      },
+      "contour": {}
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "aa504149a14cde4fd403a9a2d01078e2f0a6e9351665b432776cb432624a82b1",
+    "uv": "95b23e87e608168ee33407b4c114d6e6a20b392742241b4c9376d98d6631ccac",
+    "materials": "27db3e949646ab3a86b94fc8bc7a24d57a04b65782f9b6c8f4ce36bddbc568b9"
+  }
+}
