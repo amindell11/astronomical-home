@@ -37,9 +37,6 @@ namespace UI.Hangar
         [Tooltip("Displays the preview stage's render texture. Null → no 3D preview.")]
         [SerializeField] private RawImage previewImage;
 
-        [Tooltip("Continue the turntable mid-rotation when switching ships; off = each ship enters at the canonical pose (nose screen-right).")]
-        [SerializeField] private bool continueSpinOnSwitch;
-
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
         private readonly Vector3[] previewCorners = new Vector3[4];
@@ -57,7 +54,7 @@ namespace UI.Hangar
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
-                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch, transform.parent, PreviewPixels(),
+                previewStage = HangarPreviewStage.Create(transform.parent, PreviewPixels(),
                     offer ? offer.ships : Array.Empty<Ship>());
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);

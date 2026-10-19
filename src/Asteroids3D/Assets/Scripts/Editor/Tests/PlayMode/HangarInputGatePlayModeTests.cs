@@ -131,7 +131,7 @@ namespace Tests.PlayMode
         [Test]
         public void Preview_StaysWithin224MiB_WhenRequestedAt4K()
         {
-            var stage = HangarPreviewStage.Create(false, null, 4096, Enumerable.Empty<Ships.Ship>());
+            var stage = HangarPreviewStage.Create(null, 4096, Enumerable.Empty<Ships.Ship>());
             try
             {
                 var texture = (RenderTexture)stage.Texture;

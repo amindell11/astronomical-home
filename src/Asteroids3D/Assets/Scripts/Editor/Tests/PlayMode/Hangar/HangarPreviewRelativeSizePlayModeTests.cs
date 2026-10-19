@@ -16,7 +16,7 @@ namespace Tests.PlayMode.Hangar
     public class HangarPreviewRelativeSizePlayModeTests
     {
         private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
-        private const float SettleSeconds = 0.5f;
+        private const float SettleSeconds = 1.2f;
 
         private HangarPreviewStage stage;
         private GameObject holder;
@@ -40,7 +40,7 @@ namespace Tests.PlayMode.Hangar
             doubled.transform.localScale = valis.transform.localScale * 2f;
 
             var ships = new[] { valis, doubled };
-            stage = HangarPreviewStage.Create(false, null, 256, ships);
+            stage = HangarPreviewStage.Create(null, 256, ships);
             var camera = stage.GetComponentInChildren<Camera>();
 
             var onScreen = new float[ships.Length];
