@@ -128,6 +128,8 @@ namespace Cameras
         }
         public void ClearSecondarySubjects() => secondarySubjects.Clear();
 
+        public void SetVisible(bool visible) => Cam.enabled = visible;
+
         public void SetManualCenter(Vector2? center) => manualCenter = center;
         public void SetManualZoom(float? zoom) => manualZoom = zoom;
 
