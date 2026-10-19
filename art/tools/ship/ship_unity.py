@@ -236,7 +236,7 @@ class Bundle:
         self._write(f"{relative}.meta", MATERIAL_META.format(guid=self.guid(relative)))
 
 
-def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=None):
+def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=None, authored_regions=None):
     """Write the bundle; masks maps mask name to its PNG (Emission included when present).
 
     emission_colours maps a region to the linear colour of its painted indicators.
@@ -246,6 +246,9 @@ def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=N
     shader = shader_guid()
     bundle.folder("Paint")
     guids = {mask: bundle.texture(f"Paint/{mask}.png", path, ship["texture_size"]) for mask, path in masks.items()}
+    if authored_regions is not None:
+        for name, path in authored_regions["paths"].items():
+            guids[name] = bundle.texture(f"Paint/{name}.png", path, ship["texture_size"])
     material = paint["material"]
     lighting = material["lighting"]
     maps = {key: None for key in UNBOUND_MAPS}
@@ -257,6 +260,11 @@ def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=N
                    "_PaintInkStrength": material["ink_strength"],
                    "_PaintEmissionBlend": material["emission_blend"] if contract.EMISSION in guids else 0})
     floats.update({key: lighting[key] for key in contract.LIGHTING_FLOATS if key in lighting})
+    if authored_regions is not None:
+        floats["_PaintRegionCount"] = len(authored_regions["names"])
+        floats["_PaintRegionLightLift"] = material["light_lift"]
+        maps.update({f"_PaintRegionMask{index}": guids[f"RegionWeights{index}"]
+                     for index in range(len(authored_regions["paths"]))})
     bundle.folder("Materials")
     for palette, colours in palettes["palettes"].items():
         bundle.folder(f"Materials/{palette}")
@@ -268,6 +276,9 @@ def write_bundle(out, ship, masks, palettes, paint, emission_colours, existing=N
                              "_PaintInkColor": srgb(material["ink_color"]),
                              "_EmissionColor": emission_colours.get(region, [0, 0, 0]),
                              **{key: lighting.get(key, MATERIAL_COLORS[key]) for key in contract.LIGHTING_COLORS}}
+            if authored_regions is not None:
+                colour_values.update({f"_PaintRegionColor{index}": srgb(colours[name])
+                                      for index, name in enumerate(authored_regions["names"])})
             bundle.material(f"Materials/{palette}/{region}.mat", material_yaml(region, shader, maps, floats, colour_values))
     current = set(bundle.files)
     for path in sorted(bundle.root.rglob("*"), key=lambda p: len(p.parts), reverse=True):

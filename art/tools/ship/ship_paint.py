@@ -3,11 +3,11 @@
 CLI: blender -b --factory-startup --python-exit-code 1 -P ship_paint.py -- --ship SHIP_JSON --out DIR
 [--palette NAME] [--unity DIR]
 Reads paint.json and palettes.json beside the source and needs a matching geometry lock. Regions
-are the material slots of the visual role parts; every palette must name exactly that set. The
+start in visual-role material slots; optional authored_regions adds coverage across faces. The
 masks are baked (Cycles, emission) on temporary evaluated copies in symmetry-origin space: a jittered diagonal sweep over each plate into a dark and a light third, a side-wall ramp,
 an inset ink line with a bright rim inside it, fully inked thin walls, a quiet world-space brush
 tile folded into Shadow and Light, and the accents paint.json lists. Written beside the source:
-layers/Shadow.png, Light.png, Ink.png (and Emission.png when an accent emits) plus
+layers/Shadow.png, Light.png, Ink.png (and Emission.png when an accent emits), optional Region_*.png, plus
 layers/baseline/, the tool's own last output; on a re-run the owner's edits (mask minus
 baseline) ride onto the new generation. Refuses masks that have no baseline and a baseline whose
 UVs or texture size no longer match. --out gets the report, preview/Composite.png (review only;
@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ship_contract as contract
 import ship_source
 import ship_unity
+import ship_regions
 
 BRUSH_MID = 0.625
 SEED_MARGIN, SEED_SIZE = 12, 4096
@@ -130,10 +131,10 @@ class Graph:
 
 
 def write_png(path, array):
-    """8-bit PNG, grayscale (rows, columns) or RGB (rows, columns, 3); rows are bottom-up as Blender's."""
+    """PNG rows reverse Blender's bottom-up pixel order."""
     rows = np.ascontiguousarray(array[::-1], np.uint8)
     height, width = rows.shape[:2]
-    colour_type = 0 if rows.ndim == 2 else 2
+    colour_type = 0 if rows.ndim == 2 else (6 if rows.shape[2] == 4 else 2)
     raw = b"".join(b"\x00" + row.tobytes() for row in rows)
 
     def chunk(tag, body):
@@ -191,7 +192,8 @@ class Part:
         self.areas = ship_source.read_array(mesh.polygons, "area", np.float64)
         self.material_index = ship_source.read_array(mesh.polygons, "material_index", np.int32)
         self.thickness = self._thickness()
-        self.caps = self._caps(paint["plates"]["cap_facing"])
+        angle = np.deg2rad(paint["sweep"]["angle_deg"]) if paint.get("paint_space") == "signed" else None
+        self.caps = self._caps(paint["plates"]["cap_facing"], angle)
 
     def _thickness(self):
         thickest = 0.0
@@ -201,7 +203,7 @@ class Part:
             thickest = max(thickest, float(extent.min()))
         return thickest
 
-    def _caps(self, cap_facing):
+    def _caps(self, cap_facing, angle):
         caps = []
         candidates = [i for i in range(len(self.faces)) if abs(self.normals[i][2]) >= cap_facing]
         faces = [self.faces[i] for i in candidates]
@@ -225,6 +227,16 @@ class Part:
             caps.append({"bounds": (low, high), "edges": edges, "indices": indices,
                          "sweep_x": (sweep_low, max(abs(low[0]), abs(high[0]))),
                          "faces": len(indices), "area": area})
+            if angle is not None:
+                self.mesh.calc_loop_triangles()
+                members = set(indices)
+                triangles = [t for t in self.mesh.loop_triangles if t.polygon_index in members]
+                centers = np.array([self.co[list(t.vertices), :2].mean(axis=0) for t in triangles])
+                centroid = np.average(centers, axis=0, weights=[t.area for t in triangles])
+                direction = np.array([np.sin(angle), np.cos(angle)])
+                center = float(centroid @ direction)
+                radius = float(np.max(np.abs(xy @ direction - center)))
+                caps[-1]["sweep_projection"] = (center, radius)
         return caps
 
 
@@ -234,8 +246,9 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
     geometry = g.node("ShaderNodeNewGeometry")
     x, y, z = g.separate(geometry.outputs["Position"])
     ax = g.math("ABSOLUTE", x)
-    folded = g.combine(ax, y, z)
-    brush = g.brush(brush_image, folded, paint["brush"]["scale"], paint["brush"]["blend"])
+    signed = paint.get("paint_space") == "signed"
+    coordinates = g.combine(x if signed else ax, y, z)
+    brush = g.brush(brush_image, coordinates, paint["brush"]["scale"], paint["brush"]["blend"])
     factor = g.math("MULTIPLY_ADD", g.math("SUBTRACT", brush, BRUSH_MID), paint["brush"]["contrast"], 1.0)
     brush_dark = g.math("MAXIMUM", g.math("SUBTRACT", 1.0, factor), 0.0)
     brush_light = g.math("MAXIMUM", g.math("SUBTRACT", factor, 1.0), 0.0)
@@ -245,11 +258,17 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
     shadow_sweep, light_sweep = 0.0, 0.0
     if flags["sweep"] and cap:
         sweep = paint["sweep"]
-        (_, miny), (_, maxy) = cap["bounds"]
-        minx, maxx = cap["sweep_x"]
-        sx = g.math("DIVIDE", g.math("SUBTRACT", ax, float(minx)), max(float(maxx - minx), 1e-3))
-        sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
-        s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
+        if signed:
+            angle = np.deg2rad(sweep["angle_deg"])
+            center, radius = cap["sweep_projection"]
+            projection = g.vector("DOT_PRODUCT", coordinates, (float(np.sin(angle)), float(np.cos(angle)), 0.0))
+            s = g.math("ADD", 0.5, g.math("DIVIDE", g.math("SUBTRACT", projection, center), 2 * radius))
+        else:
+            (_, miny), (_, maxy) = cap["bounds"]
+            minx, maxx = cap["sweep_x"]
+            sx = g.math("DIVIDE", g.math("SUBTRACT", ax, float(minx)), max(float(maxx - minx), 1e-3))
+            sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
+            s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
         s = g.math("MULTIPLY_ADD", g.math("SUBTRACT", brush, 0.65), sweep["jitter"], s)
         shadow_sweep = g.math("MULTIPLY", g.math("LESS_THAN", s, paint["shadow_coverage"]), paint["shadow_depth"])
         light_sweep = g.math("MULTIPLY", g.math("GREATER_THAN", s, sweep["light_above"]), sweep["light"])
@@ -342,6 +361,14 @@ def main(argv):
     trailers = [("SHIP_MASKS", str(layers))]
     report = contract.Report("ship_paint", args.out, ship_source.blender_version(),
                              [source, paint_path, palettes_path, brush_path])
+    authored_path = (folder / paint["authored_regions"]).resolve() if "authored_regions" in paint else None
+    authored = None
+    if authored_path is not None:
+        try:
+            authored = ship_regions.load(authored_path)
+        except (ValueError, OSError) as error:
+            raise contract.UsageError(f"authored_regions: {error}")
+        report.sources[authored_path] = contract.sha256_file(authored_path)
     out = report.path.parent
     for path in (source, paint_path, palettes_path, brush_path):
         if not path.is_file():
@@ -377,8 +404,14 @@ def main(argv):
         if len(used) and used.max() >= len(part.materials):
             raise report.refuse(f"{name} has faces without a material", trailers)
     slots = {m.name for part in parts.values() for m in part.materials}
-    if slots != regions:
+    if (slots != regions if authored is None else not slots <= regions):
         raise report.refuse(f"Material slots {sorted(slots)} are not the palette regions {sorted(regions)}", trailers)
+    if authored is not None:
+        if len(regions) > ship_regions.MAX_REGIONS:
+            raise report.refuse(f"Authored regions support at most {ship_regions.MAX_REGIONS} palette regions", trailers)
+        for mark in authored["marks"]:
+            if mark["region"] not in regions or not set(mark["parts"]) <= set(parts):
+                raise report.refuse(f"Authored mark names an unknown region or visual part: {mark}", trailers)
     if set(paint["regions"]) != regions:
         raise report.refuse(f"paint.json regions {sorted(paint['regions'])} are not the palette regions {sorted(regions)}", trailers)
     canopy_parts = set(paint["canopy_glass"]) | set(paint["canopy_frames"])
@@ -402,6 +435,8 @@ def main(argv):
                 if previous != accent["color"]:
                     raise report.refuse(f"accents: region {material.name} has two emission colours", trailers)
     masks = list(contract.MASKS) + ([contract.EMISSION] if emission_colours else [])
+    region_names = sorted(regions) if authored is not None else []
+    masks += [ship_regions.PREFIX + name for name in region_names]
     baseline = layers / contract.BASELINE_DIR
     baseline_record = baseline / "baseline.json"
     expected = {"schema_version": contract.SCHEMA_VERSION, "recipe": contract.FINGERPRINT_RECIPE,
@@ -410,7 +445,7 @@ def main(argv):
     edits = {}
     reused = baseline_record.is_file()
     try:
-        present = any((layers / f"{mask}.png").exists() for mask in (*contract.MASKS, contract.EMISSION))
+        present = any(layers.glob("*.png")) if layers.is_dir() else False
         if (present or (baseline.is_dir() and any(baseline.iterdir()))) and not reused:
             raise ValueError("Masks exist without a baseline")
         if reused:
@@ -431,6 +466,14 @@ def main(argv):
     brush_image.colorspace_settings.name = "Non-Color"
     size = ship["texture_size"]
     colours = palettes["palettes"][palette]
+    margin = max(2, round(SEED_MARGIN * size / SEED_SIZE))
+    if paint.get("paint_space") == "signed":
+        try:
+            ship_regions.require_independent_sides(parts, size, contract.PAINT_UV)
+        except ValueError as error:
+            raise report.refuse(str(error), trailers)
+    authored_masks = (ship_regions.rasterize(parts, authored["marks"], region_names, size, margin, contract.PAINT_UV)
+                      if authored is not None else {})
     graphs, objects = {}, []
     for name, part in parts.items():
         mesh = part.mesh
@@ -466,13 +509,13 @@ def main(argv):
     layer = surface.data.uv_layers[contract.PAINT_UV]
     surface.data.uv_layers.active = layer
     layer.active_render = True
-    margin = max(2, round(SEED_MARGIN * size / SEED_SIZE))
     mask_image = bpy.data.images.new("ship paint masks", size, size, alpha=False)
     mask_image.colorspace_settings.name = "Non-Color"
     composite_image = bpy.data.images.new("ship paint composite", size, size, alpha=False, float_buffer=True)
     composite_image.colorspace_settings.name = "Non-Color"
     baked = bake(evaluation.scene, surface, graphs, mask_image, "masks", margin)
     generated = {mask: baked[..., index] for index, mask in enumerate(contract.MASKS)}
+    generated.update(authored_masks)
     if emission_colours:
         generated[contract.EMISSION] = bake(evaluation.scene, surface, graphs, mask_image, "emission", margin)[..., 0]
     base = bake(evaluation.scene, surface, graphs, composite_image, "base", margin, quantize=False)
@@ -497,7 +540,20 @@ def main(argv):
     baseline_record.write_text(json.dumps({**expected, "blender_version": ship_source.blender_version()}, indent=2) + "\n",
                                encoding="utf-8")
     material = paint["material"]
-    weights = {mask: final[mask][..., None].astype(np.float32) / 255 for mask in masks}
+    region_bundle = None
+    if region_names:
+        packed_dir = out / "region-weights"
+        packed_dir.mkdir(exist_ok=True)
+        packed_paths = {}
+        for index, pixels in enumerate(ship_regions.pack(final, region_names)):
+            name = f"RegionWeights{index}"
+            path = packed_dir / f"{name}.png"
+            write_png(path, pixels)
+            packed_paths[name] = str(path)
+        region_bundle = {"names": region_names, "paths": packed_paths}
+        base = ship_regions.compose(final, region_names, colours)
+    weights = {mask: final[mask][..., None].astype(np.float32) / 255
+               for mask in (*contract.MASKS, contract.EMISSION) if mask in final}
     composite = base * (1 - weights["Shadow"] * material["shadow_strength"])
     for mask, colour in (("Light", base + (1 - base) * material["light_lift"]),
                          ("Ink", np.array(material["ink_color"]))):
@@ -512,7 +568,9 @@ def main(argv):
     preview = out / "preview"
     preview.mkdir(exist_ok=True)
     write_png(preview / "Composite.png", composite)
-    bundle_root, bundle_files = ship_unity.write_bundle(out, ship, written, palettes, paint, emission_colours, args.unity)
+    runtime_masks = {mask: path for mask, path in written.items() if mask in (*contract.MASKS, contract.EMISSION)}
+    bundle_root, bundle_files = ship_unity.write_bundle(out, ship, runtime_masks, palettes, paint, emission_colours,
+                                                       args.unity, region_bundle)
     part_records = {name: {"regions": sorted({m.name for m in part.materials}), "thickness": part.thickness,
                            "thin": part.thickness < paint["plates"]["thin_wall"],
                            "caps": [{"faces": cap["faces"], "area": cap["area"], "edges": len(cap["edges"])}
@@ -521,7 +579,7 @@ def main(argv):
     return report.finish(True, trailers, palette=palette, regions=sorted(regions), masks=written,
                          baseline="reused" if reused else "created", edited_texels=edited, parts=part_records,
                          accents=len(paint["accents"]), preview=str(preview / "Composite.png"),
-                         unity={"root": str(bundle_root), "files": bundle_files})
+                         authored_regions=region_bundle, unity={"root": str(bundle_root), "files": bundle_files})
 
 
 if __name__ == "__main__":
