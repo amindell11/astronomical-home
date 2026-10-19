@@ -1,0 +1,16 @@
+{
+  "verdict": "pass",
+  "normal_rebake_preserves_edit": true,
+  "rim_light_and_shadow_zero": true,
+  "outside_rim_unchanged": true,
+  "baseline_unchanged": true,
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "edited_texels": {
+    "Shadow": 35474,
+    "Light": 11902
+  },
+  "changed_texels_this_pass": {
+    "Shadow": 32749,
+    "Light": 11902
+  }
+}

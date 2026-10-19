@@ -38,3 +38,7 @@ snapshots, `vanguard_uv_work.blend`), without their `.blend1` backups (those are
 - [Authored neutral region masks and selected line treatment](paint/2026-10-18/authored-regions/README.md): recovered artwork, source correction for extra hatch outlines, canonical bakes and export; Unity review deferred by owner.
 
 - [Painted light and shadow restoration](paint/2026-10-18/painted-layers/README.md): restores the procedure's brushing and light/shadow layers after the owner approved the softer lines; Unity review remains deferred.
+
+- [Independent paint and nose cleanup](paint/2026-10-18/asymmetric/README.md): Valis-referenced asymmetry accepted by the owner, with the small nose shadow corrected.
+
+- [Clean canopy rim](paint/2026-10-18/clean-canopy-rim/README.md): removes painted Shadow and Light from the orange canopy band at the owner's request; surrounding hull paint is unchanged. Unity review remains deferred.
