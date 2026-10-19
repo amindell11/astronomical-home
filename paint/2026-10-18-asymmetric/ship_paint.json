@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1f8a3e5514746cd1ec4ac89da96ed06e1e1279433d684b8749040d8a8875b838",
+  "refusal": "paint_space signed requires independent sides: Armor - Front plate face 95 shares UVs",
+  "verdict": "fail"
+}

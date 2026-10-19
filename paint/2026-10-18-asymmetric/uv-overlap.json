@@ -1,0 +1,2944 @@
+[
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 429,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        573,
+        797
+      ],
+      [
+        574,
+        797
+      ],
+      [
+        572,
+        798
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 237,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        658,
+        783
+      ],
+      [
+        656,
+        784
+      ],
+      [
+        653,
+        785
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 10,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        661,
+        794
+      ],
+      [
+        662,
+        803
+      ],
+      [
+        663,
+        812
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 2066,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        556,
+        813
+      ],
+      [
+        556,
+        814
+      ],
+      [
+        556,
+        815
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 3498,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        659,
+        783
+      ],
+      [
+        657,
+        784
+      ],
+      [
+        658,
+        784
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 95,
+    "texels": 615,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        668,
+        1037
+      ],
+      [
+        662,
+        1038
+      ],
+      [
+        663,
+        1038
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 96,
+    "texels": 94,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        683,
+        1033
+      ],
+      [
+        684,
+        1033
+      ],
+      [
+        678,
+        1034
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 0,
+    "texels": 1,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        598,
+        906
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 2,
+    "texels": 2,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        636,
+        902
+      ],
+      [
+        635,
+        903
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 3,
+    "texels": 1,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        619,
+        903
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 4,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        568,
+        857
+      ],
+      [
+        568,
+        858
+      ],
+      [
+        569,
+        858
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 4,
+    "texels": 2,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        569,
+        857
+      ],
+      [
+        570,
+        859
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 7,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        647,
+        857
+      ],
+      [
+        648,
+        857
+      ],
+      [
+        647,
+        858
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 16,
+    "texels": 2,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1593,
+        857
+      ],
+      [
+        1594,
+        859
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 16,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1592,
+        857
+      ],
+      [
+        1592,
+        858
+      ],
+      [
+        1593,
+        858
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 19,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1671,
+        857
+      ],
+      [
+        1672,
+        857
+      ],
+      [
+        1671,
+        858
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 24,
+    "texels": 44,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        569,
+        860
+      ],
+      [
+        570,
+        860
+      ],
+      [
+        570,
+        861
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 24,
+    "texels": 51,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        573,
+        864
+      ],
+      [
+        574,
+        866
+      ],
+      [
+        576,
+        869
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 25,
+    "texels": 10,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        582,
+        904
+      ],
+      [
+        583,
+        904
+      ],
+      [
+        583,
+        905
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 25,
+    "texels": 13,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        584,
+        904
+      ],
+      [
+        585,
+        904
+      ],
+      [
+        586,
+        904
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 26,
+    "texels": 49,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        552,
+        859
+      ],
+      [
+        553,
+        859
+      ],
+      [
+        553,
+        860
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 26,
+    "texels": 50,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        555,
+        861
+      ],
+      [
+        558,
+        866
+      ],
+      [
+        559,
+        868
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 27,
+    "texels": 22,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        553,
+        856
+      ],
+      [
+        554,
+        856
+      ],
+      [
+        555,
+        856
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 27,
+    "texels": 25,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        553,
+        855
+      ],
+      [
+        556,
+        856
+      ],
+      [
+        557,
+        856
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 28,
+    "texels": 7,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        266,
+        1738
+      ],
+      [
+        267,
+        1738
+      ],
+      [
+        266,
+        1739
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 28,
+    "texels": 10,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        268,
+        1739
+      ],
+      [
+        269,
+        1739
+      ],
+      [
+        267,
+        1740
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 29,
+    "texels": 7,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        161,
+        1233
+      ],
+      [
+        162,
+        1233
+      ],
+      [
+        163,
+        1233
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 29,
+    "texels": 6,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        161,
+        1232
+      ],
+      [
+        162,
+        1232
+      ],
+      [
+        163,
+        1232
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 30,
+    "texels": 37,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        56,
+        1273
+      ],
+      [
+        57,
+        1273
+      ],
+      [
+        58,
+        1273
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 30,
+    "texels": 53,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        85,
+        1273
+      ],
+      [
+        86,
+        1273
+      ],
+      [
+        87,
+        1273
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 31,
+    "texels": 167,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        35,
+        1232
+      ],
+      [
+        36,
+        1232
+      ],
+      [
+        37,
+        1232
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 31,
+    "texels": 199,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        54,
+        1232
+      ],
+      [
+        55,
+        1232
+      ],
+      [
+        56,
+        1232
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 32,
+    "texels": 9,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        265,
+        1650
+      ],
+      [
+        266,
+        1650
+      ],
+      [
+        264,
+        1651
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 32,
+    "texels": 11,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        267,
+        1651
+      ],
+      [
+        267,
+        1652
+      ],
+      [
+        268,
+        1652
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 33,
+    "texels": 45,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        665,
+        857
+      ],
+      [
+        664,
+        858
+      ],
+      [
+        665,
+        858
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 33,
+    "texels": 43,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        663,
+        862
+      ],
+      [
+        661,
+        865
+      ],
+      [
+        659,
+        868
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 34,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        30,
+        1232
+      ],
+      [
+        31,
+        1232
+      ],
+      [
+        31,
+        1233
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 34,
+    "texels": 8,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        30,
+        1231
+      ],
+      [
+        32,
+        1232
+      ],
+      [
+        33,
+        1232
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 35,
+    "texels": 18,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        620,
+        903
+      ],
+      [
+        621,
+        903
+      ],
+      [
+        622,
+        903
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 35,
+    "texels": 11,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        627,
+        902
+      ],
+      [
+        628,
+        902
+      ],
+      [
+        629,
+        902
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 36,
+    "texels": 32,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        648,
+        858
+      ],
+      [
+        647,
+        859
+      ],
+      [
+        646,
+        860
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 36,
+    "texels": 43,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        645,
+        863
+      ],
+      [
+        643,
+        866
+      ],
+      [
+        641,
+        869
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 37,
+    "texels": 57,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        611,
+        1159
+      ],
+      [
+        612,
+        1159
+      ],
+      [
+        613,
+        1159
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 37,
+    "texels": 48,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        585,
+        1159
+      ],
+      [
+        586,
+        1159
+      ],
+      [
+        587,
+        1159
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 38,
+    "texels": 204,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        638,
+        1118
+      ],
+      [
+        639,
+        1118
+      ],
+      [
+        640,
+        1118
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 38,
+    "texels": 223,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        561,
+        1119
+      ],
+      [
+        562,
+        1119
+      ],
+      [
+        563,
+        1119
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 39,
+    "texels": 32,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        573,
+        794
+      ],
+      [
+        573,
+        795
+      ],
+      [
+        573,
+        796
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 39,
+    "texels": 94,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        574,
+        795
+      ],
+      [
+        574,
+        796
+      ],
+      [
+        574,
+        797
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 40,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        556,
+        801
+      ],
+      [
+        555,
+        807
+      ],
+      [
+        555,
+        808
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 42,
+    "texels": 56,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        641,
+        774
+      ],
+      [
+        641,
+        775
+      ],
+      [
+        641,
+        776
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 42,
+    "texels": 118,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        642,
+        774
+      ],
+      [
+        642,
+        775
+      ],
+      [
+        642,
+        776
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 53,
+    "texels": 52,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1593,
+        860
+      ],
+      [
+        1594,
+        860
+      ],
+      [
+        1594,
+        861
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 53,
+    "texels": 41,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1597,
+        867
+      ],
+      [
+        1599,
+        870
+      ],
+      [
+        1601,
+        873
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 56,
+    "texels": 22,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1577,
+        855
+      ],
+      [
+        1577,
+        856
+      ],
+      [
+        1578,
+        856
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 56,
+    "texels": 25,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1586,
+        857
+      ],
+      [
+        1587,
+        857
+      ],
+      [
+        1588,
+        857
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 57,
+    "texels": 10,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1291,
+        1737
+      ],
+      [
+        1292,
+        1737
+      ],
+      [
+        1293,
+        1737
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 57,
+    "texels": 12,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1290,
+        1738
+      ],
+      [
+        1289,
+        1739
+      ],
+      [
+        1290,
+        1739
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 58,
+    "texels": 5,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1325,
+        1762
+      ],
+      [
+        1324,
+        1763
+      ],
+      [
+        1325,
+        1763
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 58,
+    "texels": 5,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1323,
+        1764
+      ],
+      [
+        1322,
+        1765
+      ],
+      [
+        1321,
+        1766
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 59,
+    "texels": 81,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1292,
+        1656
+      ],
+      [
+        1293,
+        1656
+      ],
+      [
+        1292,
+        1657
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 59,
+    "texels": 81,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1292,
+        1682
+      ],
+      [
+        1292,
+        1683
+      ],
+      [
+        1292,
+        1684
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 60,
+    "texels": 230,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1061,
+        1232
+      ],
+      [
+        1062,
+        1232
+      ],
+      [
+        1063,
+        1232
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 60,
+    "texels": 199,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1141,
+        1233
+      ],
+      [
+        1142,
+        1233
+      ],
+      [
+        1143,
+        1233
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 61,
+    "texels": 10,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1289,
+        1650
+      ],
+      [
+        1290,
+        1650
+      ],
+      [
+        1289,
+        1651
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 61,
+    "texels": 9,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1288,
+        1651
+      ],
+      [
+        1289,
+        1652
+      ],
+      [
+        1290,
+        1653
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 63,
+    "texels": 6,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1321,
+        1630
+      ],
+      [
+        1322,
+        1630
+      ],
+      [
+        1322,
+        1631
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 63,
+    "texels": 4,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1323,
+        1633
+      ],
+      [
+        1324,
+        1634
+      ],
+      [
+        1325,
+        1634
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 65,
+    "texels": 44,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1672,
+        858
+      ],
+      [
+        1671,
+        859
+      ],
+      [
+        1670,
+        860
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 65,
+    "texels": 31,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1660,
+        875
+      ],
+      [
+        1658,
+        878
+      ],
+      [
+        1657,
+        880
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 66,
+    "texels": 90,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1269,
+        1655
+      ],
+      [
+        1269,
+        1656
+      ],
+      [
+        1269,
+        1657
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 66,
+    "texels": 68,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1268,
+        1685
+      ],
+      [
+        1268,
+        1686
+      ],
+      [
+        1268,
+        1687
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 67,
+    "texels": 219,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1705,
+        1118
+      ],
+      [
+        1706,
+        1118
+      ],
+      [
+        1707,
+        1118
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 67,
+    "texels": 210,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1660,
+        1118
+      ],
+      [
+        1661,
+        1118
+      ],
+      [
+        1662,
+        1118
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 68,
+    "texels": 32,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1598,
+        794
+      ],
+      [
+        1598,
+        795
+      ],
+      [
+        1598,
+        796
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 68,
+    "texels": 97,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1597,
+        794
+      ],
+      [
+        1597,
+        795
+      ],
+      [
+        1597,
+        796
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 69,
+    "texels": 35,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1580,
+        790
+      ],
+      [
+        1580,
+        791
+      ],
+      [
+        1580,
+        792
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 69,
+    "texels": 98,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1579,
+        790
+      ],
+      [
+        1579,
+        791
+      ],
+      [
+        1579,
+        792
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 71,
+    "texels": 58,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1665,
+        774
+      ],
+      [
+        1666,
+        774
+      ],
+      [
+        1666,
+        775
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 71,
+    "texels": 113,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1665,
+        775
+      ],
+      [
+        1665,
+        776
+      ],
+      [
+        1665,
+        777
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 82,
+    "texels": 1551,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        561,
+        1122
+      ],
+      [
+        562,
+        1123
+      ],
+      [
+        563,
+        1123
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 82,
+    "texels": 2316,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        562,
+        1122
+      ],
+      [
+        563,
+        1122
+      ],
+      [
+        564,
+        1122
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 83,
+    "texels": 320,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        554,
+        859
+      ],
+      [
+        556,
+        862
+      ],
+      [
+        557,
+        863
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 83,
+    "texels": 322,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        555,
+        859
+      ],
+      [
+        556,
+        859
+      ],
+      [
+        557,
+        859
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 84,
+    "texels": 659,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        262,
+        1651
+      ],
+      [
+        263,
+        1651
+      ],
+      [
+        257,
+        1652
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 84,
+    "texels": 113,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        264,
+        1652
+      ],
+      [
+        264,
+        1653
+      ],
+      [
+        265,
+        1653
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 84,
+    "texels": 51,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        263,
+        1737
+      ],
+      [
+        264,
+        1737
+      ],
+      [
+        265,
+        1737
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 84,
+    "texels": 935,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        263,
+        1652
+      ],
+      [
+        263,
+        1653
+      ],
+      [
+        263,
+        1654
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 85,
+    "texels": 73,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        269,
+        1740
+      ],
+      [
+        270,
+        1740
+      ],
+      [
+        268,
+        1741
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 85,
+    "texels": 111,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        269,
+        1745
+      ],
+      [
+        271,
+        1746
+      ],
+      [
+        272,
+        1747
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 86,
+    "texels": 1543,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        36,
+        1235
+      ],
+      [
+        37,
+        1235
+      ],
+      [
+        37,
+        1236
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 86,
+    "texels": 2378,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        38,
+        1235
+      ],
+      [
+        39,
+        1235
+      ],
+      [
+        40,
+        1235
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 87,
+    "texels": 111,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        294,
+        1632
+      ],
+      [
+        293,
+        1633
+      ],
+      [
+        291,
+        1634
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 87,
+    "texels": 121,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        296,
+        1631
+      ],
+      [
+        297,
+        1631
+      ],
+      [
+        295,
+        1632
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 88,
+    "texels": 347,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        648,
+        859
+      ],
+      [
+        648,
+        860
+      ],
+      [
+        647,
+        861
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 88,
+    "texels": 347,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        664,
+        856
+      ],
+      [
+        665,
+        856
+      ],
+      [
+        652,
+        857
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 89,
+    "texels": 6438,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        612,
+        1045
+      ],
+      [
+        613,
+        1045
+      ],
+      [
+        607,
+        1046
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 89,
+    "texels": 3104,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        683,
+        1033
+      ],
+      [
+        684,
+        1033
+      ],
+      [
+        685,
+        1033
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 90,
+    "texels": 729,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        558,
+        790
+      ],
+      [
+        558,
+        791
+      ],
+      [
+        559,
+        791
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 90,
+    "texels": 254,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        565,
+        792
+      ],
+      [
+        566,
+        792
+      ],
+      [
+        565,
+        793
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 91,
+    "texels": 286,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        163,
+        1163
+      ],
+      [
+        164,
+        1163
+      ],
+      [
+        162,
+        1164
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 91,
+    "texels": 105,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        165,
+        1164
+      ],
+      [
+        166,
+        1164
+      ],
+      [
+        167,
+        1164
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 92,
+    "texels": 7289,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        58,
+        1127
+      ],
+      [
+        59,
+        1127
+      ],
+      [
+        56,
+        1128
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 92,
+    "texels": 2826,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        80,
+        1115
+      ],
+      [
+        77,
+        1117
+      ],
+      [
+        75,
+        1118
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 93,
+    "texels": 310,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        30,
+        1142
+      ],
+      [
+        31,
+        1142
+      ],
+      [
+        30,
+        1143
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 93,
+    "texels": 143,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        34,
+        1140
+      ],
+      [
+        32,
+        1141
+      ],
+      [
+        33,
+        1141
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 94,
+    "texels": 924,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        646,
+        772
+      ],
+      [
+        647,
+        772
+      ],
+      [
+        643,
+        773
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 94,
+    "texels": 477,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        656,
+        769
+      ],
+      [
+        657,
+        769
+      ],
+      [
+        658,
+        769
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 102,
+    "texels": 2315,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1586,
+        1122
+      ],
+      [
+        1587,
+        1122
+      ],
+      [
+        1588,
+        1122
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 102,
+    "texels": 1546,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1585,
+        1122
+      ],
+      [
+        1586,
+        1123
+      ],
+      [
+        1587,
+        1123
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 103,
+    "texels": 324,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1579,
+        859
+      ],
+      [
+        1580,
+        859
+      ],
+      [
+        1581,
+        859
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 103,
+    "texels": 314,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1578,
+        859
+      ],
+      [
+        1579,
+        861
+      ],
+      [
+        1580,
+        862
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 104,
+    "texels": 748,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1285,
+        1651
+      ],
+      [
+        1286,
+        1651
+      ],
+      [
+        1287,
+        1651
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 104,
+    "texels": 55,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1286,
+        1737
+      ],
+      [
+        1287,
+        1737
+      ],
+      [
+        1288,
+        1737
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 104,
+    "texels": 190,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1288,
+        1652
+      ],
+      [
+        1288,
+        1653
+      ],
+      [
+        1289,
+        1653
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 104,
+    "texels": 935,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1287,
+        1652
+      ],
+      [
+        1287,
+        1653
+      ],
+      [
+        1287,
+        1654
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 105,
+    "texels": 141,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1291,
+        1744
+      ],
+      [
+        1293,
+        1745
+      ],
+      [
+        1294,
+        1746
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 105,
+    "texels": 139,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1294,
+        1738
+      ],
+      [
+        1293,
+        1739
+      ],
+      [
+        1294,
+        1739
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 106,
+    "texels": 2273,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1061,
+        1235
+      ],
+      [
+        1062,
+        1235
+      ],
+      [
+        1063,
+        1235
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 106,
+    "texels": 1525,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1060,
+        1235
+      ],
+      [
+        1061,
+        1236
+      ],
+      [
+        1062,
+        1236
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 107,
+    "texels": 123,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1320,
+        1631
+      ],
+      [
+        1321,
+        1631
+      ],
+      [
+        1319,
+        1632
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 107,
+    "texels": 127,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1319,
+        1631
+      ],
+      [
+        1318,
+        1632
+      ],
+      [
+        1316,
+        1633
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 108,
+    "texels": 296,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1676,
+        857
+      ],
+      [
+        1677,
+        857
+      ],
+      [
+        1678,
+        857
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 108,
+    "texels": 344,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1672,
+        859
+      ],
+      [
+        1672,
+        860
+      ],
+      [
+        1671,
+        861
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 109,
+    "texels": 3015,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1705,
+        1035
+      ],
+      [
+        1706,
+        1035
+      ],
+      [
+        1707,
+        1035
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 109,
+    "texels": 6417,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1635,
+        1046
+      ],
+      [
+        1636,
+        1046
+      ],
+      [
+        1637,
+        1046
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 110,
+    "texels": 253,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1589,
+        792
+      ],
+      [
+        1590,
+        792
+      ],
+      [
+        1589,
+        793
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 110,
+    "texels": 760,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1581,
+        790
+      ],
+      [
+        1582,
+        790
+      ],
+      [
+        1581,
+        791
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 111,
+    "texels": 90,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1189,
+        1164
+      ],
+      [
+        1190,
+        1164
+      ],
+      [
+        1191,
+        1164
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 111,
+    "texels": 275,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1187,
+        1163
+      ],
+      [
+        1188,
+        1163
+      ],
+      [
+        1186,
+        1164
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 112,
+    "texels": 2799,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1107,
+        1151
+      ],
+      [
+        1108,
+        1151
+      ],
+      [
+        1109,
+        1151
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 112,
+    "texels": 7195,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1059,
+        1143
+      ],
+      [
+        1059,
+        1144
+      ],
+      [
+        1060,
+        1144
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 113,
+    "texels": 136,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1056,
+        1143
+      ],
+      [
+        1057,
+        1143
+      ],
+      [
+        1058,
+        1143
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 113,
+    "texels": 299,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1054,
+        1143
+      ],
+      [
+        1055,
+        1143
+      ],
+      [
+        1054,
+        1144
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 114,
+    "texels": 388,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1680,
+        769
+      ],
+      [
+        1681,
+        769
+      ],
+      [
+        1677,
+        770
+      ]
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 114,
+    "texels": 922,
+    "previous_parts": [
+      "Armor - Front plate"
+    ],
+    "example_uv": [
+      [
+        1670,
+        772
+      ],
+      [
+        1671,
+        772
+      ],
+      [
+        1667,
+        773
+      ]
+    ]
+  }
+]
