@@ -10,7 +10,7 @@ Shader "Astronomical/Drawn/Canopy"
         _ReflectionEdgeColor ("Glint Color", Color) = (0.56,0.64,0.67,1)
         [Toggle(_AUTHORED_REFLECTION)] _AuthoredReflection ("Authored Reflection", Float) = 0
         [NoScaleOffset] _ReflectionMap ("Reflection Drawing (+Z / -Z)", 2D) = "black" {}
-        [ToggleUI] _ReflectionPalette ("Use Reflection Palette", Float) = 0
+        [Enum(Color Drawing,0,Painted Reflection,1,Painted Glass,2)] _ReflectionArtwork ("Reflection Artwork", Float) = 0
         _ReflectionInkColor ("Reflection Ink Color", Color) = (0,0,0,1)
         _ReflectionLayerStrengths ("Shadow / Light / Ink Strength", Vector) = (1,1,1,0)
         _ReflectionSaturation ("Reflection Saturation", Float) = 1
@@ -31,7 +31,7 @@ Shader "Astronomical/Drawn/Canopy"
         CBUFFER_START(UnityPerMaterial)
             half4 _BaseColor, _GlassColor, _ReflectionColor, _ReflectionEdgeColor, _ReflectionInkColor, _ShadowColor;
             float4 _ReflectionBounds, _ReflectionMap_TexelSize, _ReflectionLayerStrengths;
-            half _DrawnReflectionStrength, _ReflectionPalette, _ReflectionSaturation;
+            half _DrawnReflectionStrength, _ReflectionArtwork, _ReflectionSaturation;
             half _ShadowThreshold, _ShadowSoftness, _CastShadowStrength, _AmbientStrength;
             half _DamageFlash, _DebrisVisibility;
         CBUFFER_END
@@ -67,6 +67,30 @@ Shader "Astronomical/Drawn/Canopy"
         {
             clip(_DebrisVisibility - InterleavedGradientNoise(positionCS.xy, 0) - 0.0001);
         }
+        half4 SampleReflection(float2 uv, half localFacing)
+        {
+            half inside = all(uv >= 0) && all(uv <= 1);
+            float2 inset = _ReflectionMap_TexelSize.xy * float2(1, 0.5);
+            uv = clamp(uv, inset, 1 - inset);
+            uv.x = (uv.x + step(localFacing, 0)) * 0.5;
+            half4 drawing = SAMPLE_TEXTURE2D(_ReflectionMap, sampler_ReflectionMap, uv);
+            drawing.a *= inside;
+            return drawing;
+        }
+        half3 ReflectionPalette(half3 layers, half3 glass)
+        {
+            half3 masks = layers * _ReflectionLayerStrengths.xyz;
+            half3 color = glass * (1 - masks.r);
+            color = lerp(color, _ReflectionEdgeColor.rgb, saturate(masks.g));
+            color = lerp(color, _ReflectionInkColor.rgb, saturate(masks.b));
+            if (_ReflectionSaturation != 1)
+            {
+                half3 hsv = RgbToHsv(color);
+                hsv.y = saturate(hsv.y * _ReflectionSaturation);
+                color = HsvToRgb(hsv);
+            }
+            return color;
+        }
         ENDHLSL
         Pass
         {
@@ -77,6 +101,7 @@ Shader "Astronomical/Drawn/Canopy"
             #pragma vertex CanopyVertex
             #pragma fragment CanopyFragment
             #pragma shader_feature_local_fragment _AUTHORED_REFLECTION
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
@@ -97,7 +122,16 @@ Shader "Astronomical/Drawn/Canopy"
                 diffuse *= lerp(1, light.shadowAttenuation, _CastShadowStrength);
                 half3 illumination = light.color * light.distanceAttenuation + max(SampleSH(normal), 0) * _AmbientStrength;
                 illumination /= max(1, max(illumination.r, max(illumination.g, illumination.b)));
-                half3 color = _GlassColor.rgb * diffuse * illumination;
+                half3 glass = _GlassColor.rgb;
+                half3 fixedLayers = 0;
+                #if defined(_AUTHORED_REFLECTION)
+                    if (_ReflectionArtwork > 1.5)
+                    {
+                        fixedLayers = SampleReflection(input.reflectionUV, input.localFacing).rgb;
+                        glass = ReflectionPalette(half3(fixedLayers.r, 0, fixedLayers.b), glass);
+                    }
+                #endif
+                half3 color = glass * diffuse * illumination;
                 half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 half3 halfway = SafeNormalize(light.direction + view);
                 float3 halfwayOS = normalize(TransformWorldToObjectDir(halfway));
@@ -115,23 +149,15 @@ Shader "Astronomical/Drawn/Canopy"
                 response *= facing * _DrawnReflectionStrength * lerp(0.15, 1, light.shadowAttenuation);
                 #if defined(_AUTHORED_REFLECTION)
                     uv.x = (uv.x - 0.5 - shear) * (0.13 / breadth) + 0.5;
-                    half inside = all(uv >= 0) && all(uv <= 1);
-                    float2 inset = _ReflectionMap_TexelSize.xy * float2(1, 0.5);
-                    uv = clamp(uv, inset, 1 - inset);
-                    uv.x = (uv.x + step(input.localFacing, 0)) * 0.5;
-                    half4 drawing = SAMPLE_TEXTURE2D(_ReflectionMap, sampler_ReflectionMap, uv);
-                    half3 masks = drawing.rgb * _ReflectionLayerStrengths.xyz;
-                    half3 palette = _ReflectionColor.rgb * (1 - masks.r);
-                    palette = lerp(palette, _ReflectionEdgeColor.rgb, saturate(masks.g));
-                    palette = lerp(palette, _ReflectionInkColor.rgb, saturate(masks.b));
-                    half3 reflection = lerp(drawing.rgb, palette, _ReflectionPalette);
-                    if (_ReflectionSaturation != 1)
+                    half4 drawing = SampleReflection(uv, input.localFacing);
+                    half3 reflection = drawing.rgb;
+                    if (_ReflectionArtwork > 1.5)
                     {
-                        half3 hsv = RgbToHsv(reflection);
-                        hsv.y = saturate(hsv.y * _ReflectionSaturation);
-                        reflection = HsvToRgb(hsv);
+                        reflection = ReflectionPalette(half3(fixedLayers.r, drawing.g, fixedLayers.b), _GlassColor.rgb);
                     }
-                    color = lerp(color, reflection * diffuse * illumination, drawing.a * inside * response);
+                    else if (_ReflectionArtwork > 0.5)
+                        reflection = ReflectionPalette(drawing.rgb, _ReflectionColor.rgb);
+                    color = lerp(color, reflection * diffuse * illumination, drawing.a * response);
                 #else
                     float pressure = pow(saturate(sin(t * PI)), 0.7);
                     float center = 0.46 + 0.09 * t - 0.05 * t * t + shear;

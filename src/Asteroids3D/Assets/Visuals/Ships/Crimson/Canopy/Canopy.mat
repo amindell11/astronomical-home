@@ -36,7 +36,7 @@ Material:
     - _DamageFlash: 0
     - _DebrisVisibility: 1
     - _DrawnReflectionStrength: 1
-    - _ReflectionPalette: 0
+    - _ReflectionArtwork: 0
     - _ReflectionSaturation: 1
     - _ShadowSoftness: 0.18
     - _ShadowThreshold: 0.55

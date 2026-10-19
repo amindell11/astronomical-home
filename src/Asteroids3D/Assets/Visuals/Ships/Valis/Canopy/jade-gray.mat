@@ -36,7 +36,7 @@ Material:
     - _DamageFlash: 0
     - _DebrisVisibility: 1
     - _DrawnReflectionStrength: 1
-    - _ReflectionPalette: 1
+    - _ReflectionArtwork: 1
     - _ReflectionSaturation: 1
     - _ShadowSoftness: 0.1
     - _ShadowThreshold: 0.35
@@ -47,7 +47,7 @@ Material:
     - _ReflectionColor: {r: 0.19641906, g: 0.21802095, b: 0.26006743, a: 1}
     - _ReflectionEdgeColor: {r: 0.9162735, g: 0.9685765, b: 0.9452768, a: 1}
     - _ReflectionInkColor: {r: 0.07016473, g: 0.11207489, b: 0.14282563, a: 1}
-    - _ReflectionLayerStrengths: {r: 1, g: 1, b: 1, a: 0}
+    - _ReflectionLayerStrengths: {r: 1.02, g: 0.2, b: 1.5, a: 0}
     - _ShadowColor: {r: 0.5, g: 0.6, b: 0.72, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -114,6 +114,29 @@ namespace Tests.EditMode.Rendering.Illustrated
             }
         }
 
+        [TestCase("jade-iris")]
+        [TestCase("jade-gray")]
+        [TestCase("ivory-lavender")]
+        public void Valis_RetainsAuthoredMaskStrengths(string palette)
+        {
+            var glass = AssetDatabase.LoadAssetAtPath<Material>("Assets/Visuals/Ships/Valis/Canopy/" + palette + ".mat");
+            Assert.That(glass.GetVector("_ReflectionLayerStrengths"), Is.EqualTo(new Vector4(1.02f, .2f, 1.5f, 0)));
+        }
+
+        [Test]
+        public void Nightshade_PaintedGlassRemainsFixedWithoutReflections()
+        {
+            UseMaterial("Nightshade/Canopy/Canopy.mat");
+            material.SetFloat("_DrawnReflectionStrength", 0);
+            key.transform.rotation = Quaternion.Euler(0, -20, 0);
+            var glass = Read();
+            key.transform.rotation = Quaternion.Euler(0, 20, 0);
+            Assert.That(Read(), Is.EqualTo(glass));
+            var centerRow = glass.Skip(64 * 128 + 32).Take(64).Select(c => c.b).ToArray();
+            Assert.That(centerRow.Max(), Is.GreaterThan(.3f), "The purple glass must remain without its glints.");
+            Assert.That(centerRow.Max() - centerRow.Min(), Is.GreaterThan(.1f), "The fixed glass must retain its painted shading.");
+        }
+
         [TestCase("Crimson/Canopy/Canopy.mat", false)]
         [TestCase("Crimson/Canopy/Canopy.mat", true)]
         [TestCase("Nightshade/Canopy/Canopy.mat", false)]
@@ -134,9 +157,9 @@ namespace Tests.EditMode.Rendering.Illustrated
                 subject.transform.localRotation = Quaternion.Euler(0, 180, 0);
             }
             key.transform.rotation = Quaternion.Euler(0, -20, 0);
-            float left = LuminanceCentroid(Read());
+            float left = LuminanceCentroid(ReadReflection());
             key.transform.rotation = Quaternion.Euler(0, 20, 0);
-            float right = LuminanceCentroid(Read());
+            float right = LuminanceCentroid(ReadReflection());
             Assert.That(left - right, Is.GreaterThan(.06f), "The drawing must move, not only brighten.");
         }
 
@@ -179,6 +202,17 @@ namespace Tests.EditMode.Rendering.Illustrated
             image.ReadPixels(new Rect(0, 0, 128, 128), 0, 0);
             image.Apply();
             return image.GetPixels();
+        }
+
+        private Color[] ReadReflection()
+        {
+            float strength = material.GetFloat("_DrawnReflectionStrength");
+            material.SetFloat("_DrawnReflectionStrength", 0);
+            var glass = Read();
+            material.SetFloat("_DrawnReflectionStrength", strength);
+            var reflected = Read();
+            return reflected.Select((color, i) => new Color(Mathf.Max(0, color.r - glass[i].r),
+                Mathf.Max(0, color.g - glass[i].g), Mathf.Max(0, color.b - glass[i].b))).ToArray();
         }
 
         private static float LuminanceCentroid(Color[] pixels)

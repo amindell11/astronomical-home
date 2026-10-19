@@ -67,7 +67,7 @@ Material:
     - _LineThreshold: 0.12
     - _PaletteLighting: 1
     - _PigmentPreservation: 0
-    - _ReflectionPalette: 0
+    - _ReflectionArtwork: 0
     - _ReflectionSaturation: 1
     - _ShadowSoftness: 0.18
     - _ShadowThreshold: 0.55

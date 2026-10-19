@@ -36,13 +36,13 @@ Material:
     - _DamageFlash: 0
     - _DebrisVisibility: 1
     - _DrawnReflectionStrength: 1
-    - _ReflectionPalette: 1
+    - _ReflectionArtwork: 2
     - _ReflectionSaturation: 1.25
     - _ShadowSoftness: 0.25
     - _ShadowThreshold: 0.1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _GlassColor: {r: 0.021685667, g: 0.030459423, b: 0.0855175, a: 1}
+    - _GlassColor: {r: 0.10842834, g: 0.15229711, b: 0.4275875, a: 1}
     - _ReflectionBounds: {r: 0, g: 0.005845452, b: 310.37805, a: 216.12027}
     - _ReflectionColor: {r: 0.10842834, g: 0.15229711, b: 0.4275875, a: 1}
     - _ReflectionEdgeColor: {r: 0.78823525, g: 0.74509794, b: 1, a: 1}
