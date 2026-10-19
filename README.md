@@ -38,3 +38,7 @@ Files from the primary tree's gitignored `results/valis-wing-motion/` that were 
 branch: `archive_valis.py` and `v02/publish_evidence.py` (the archive and evidence
 publishers), the Unity brief, PR and issue drafts, test summaries, and two prefab
 snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
+
+## Canopy reflections (#1017)
+
+[Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).
