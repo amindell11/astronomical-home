@@ -1,0 +1,9 @@
+{
+  "retained_edit_checks": {
+    "Shadow": true,
+    "Light": true,
+    "Ink": true
+  },
+  "whole_mask_identical": false,
+  "note": "Authored edits compared against regenerated baseline; original whole-mask hash check did not match."
+}

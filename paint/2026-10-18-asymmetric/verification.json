@@ -1,0 +1,22 @@
+{
+  "geometry_unchanged": true,
+  "material_assignments_unchanged": true,
+  "changed_uv_parts": [
+    "Armor - Front plate",
+    "Armor - Side plates"
+  ],
+  "all_base_coat_pixels_unchanged": true,
+  "base_hashes": {
+    "Bulwark Armor BaseRegion": "1a03ae8310fdc746f7635c00bc00c0f75054814354ab95eed087897ad7247965",
+    "Bulwark BaseRegion": "ef2cec3d4b04a27d02ac74c82fc6edb6a25d2c42829e43c56af8348eba5a3656",
+    "Bulwark BaseRegion.001": "f183577fcac27013dc7eb2232225c1e5ad31ab8e6c47e93f62fd8c2d9fb1c9d0",
+    "Bulwark BaseRegion.002": "f183577fcac27013dc7eb2232225c1e5ad31ab8e6c47e93f62fd8c2d9fb1c9d0"
+  },
+  "mask_hashes": {
+    "Shadow": "33793b3f7ad005a810c655c1077c11f19a9d4838cb0592997862b2a505875690",
+    "Light": "d2f03c69b90038ec707fb4df0447e9211dc0d0061e451aebcf141699eed826d5",
+    "Ink": "c369b2e4958898aae77b2687c6fc4441fe949d634183370c96df0a5ed0b3667e"
+  },
+  "fresh_reload_matches": true,
+  "geometry_fingerprint": "aa504149a14cde4fd403a9a2d01078e2f0a6e9351665b432776cb432624a82b1"
+}

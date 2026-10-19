@@ -1,0 +1,14 @@
+{
+  "Shadow": {
+    "edited_texels": 16420,
+    "changes": 2148891
+  },
+  "Light": {
+    "edited_texels": 2477,
+    "changes": 258513
+  },
+  "Ink": {
+    "edited_texels": 361,
+    "changes": 12222
+  }
+}

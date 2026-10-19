@@ -1,0 +1,402 @@
+[
+  {
+    "part": "Armor - Side plates",
+    "face": 11,
+    "rect": [
+      548,
+      649,
+      135,
+      134
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 8,
+    "rect": [
+      534,
+      783,
+      108,
+      104
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 13,
+    "rect": [
+      8,
+      8,
+      95,
+      60
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 5,
+    "rect": [
+      819,
+      143,
+      101,
+      53
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 2,
+    "rect": [
+      869,
+      274,
+      98,
+      53
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 16,
+    "rect": [
+      821,
+      372,
+      100,
+      52
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 19,
+    "rect": [
+      103,
+      409,
+      103,
+      50
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 9,
+    "rect": [
+      704,
+      399,
+      85,
+      54
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 7,
+    "rect": [
+      8,
+      68,
+      74,
+      57
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 5,
+    "rect": [
+      147,
+      459,
+      80,
+      48
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 16,
+    "rect": [
+      176,
+      781,
+      78,
+      48
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 2,
+    "rect": [
+      711,
+      881,
+      77,
+      48
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 12,
+    "rect": [
+      701,
+      637,
+      101,
+      33
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 10,
+    "rect": [
+      534,
+      887,
+      103,
+      30
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 6,
+    "rect": [
+      520,
+      917,
+      103,
+      30
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 13,
+    "rect": [
+      556,
+      237,
+      77,
+      33
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 12,
+    "rect": [
+      247,
+      399,
+      80,
+      28
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 6,
+    "rect": [
+      870,
+      209,
+      76,
+      28
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 4,
+    "rect": [
+      103,
+      8,
+      64,
+      29
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 0,
+    "rect": [
+      484,
+      8,
+      64,
+      29
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 14,
+    "rect": [
+      642,
+      8,
+      54,
+      31
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 18,
+    "rect": [
+      876,
+      8,
+      55,
+      30
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 7,
+    "rect": [
+      704,
+      8,
+      103,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 9,
+    "rect": [
+      327,
+      399,
+      103,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 14,
+    "rect": [
+      342,
+      143,
+      66,
+      26
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 15,
+    "rect": [
+      335,
+      169,
+      67,
+      25
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 8,
+    "rect": [
+      952,
+      8,
+      56,
+      25
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 0,
+    "rect": [
+      581,
+      8,
+      51,
+      26
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 4,
+    "rect": [
+      589,
+      51,
+      52,
+      25
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 18,
+    "rect": [
+      876,
+      38,
+      48,
+      25
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 1,
+    "rect": [
+      412,
+      8,
+      56,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 10,
+    "rect": [
+      816,
+      8,
+      56,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 3,
+    "rect": [
+      601,
+      113,
+      55,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 17,
+    "rect": [
+      594,
+      76,
+      52,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 15,
+    "rect": [
+      876,
+      93,
+      51,
+      22
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 11,
+    "rect": [
+      167,
+      8,
+      57,
+      21
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 17,
+    "rect": [
+      224,
+      8,
+      49,
+      21
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 3,
+    "rect": [
+      273,
+      8,
+      49,
+      21
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 1,
+    "rect": [
+      322,
+      8,
+      48,
+      21
+    ]
+  },
+  {
+    "part": "Armor - Front plate",
+    "face": 19,
+    "rect": [
+      423,
+      30,
+      30,
+      26
+    ]
+  }
+]
