@@ -1,0 +1,8 @@
+{
+  "mask_pixels_equal_expected_authored_result": {
+    "Shadow": true,
+    "Light": true,
+    "Ink": true
+  },
+  "note": "PNG byte hashes differ between PIL and the ship_paint encoder; decoded pixels are compared."
+}

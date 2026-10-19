@@ -1,0 +1,19 @@
+{
+  "geometry_uv_transforms_modifiers_face_assignments_unchanged": true,
+  "material_name_changes_only": {
+    "Bulwark Blockout Gray.001": "Bulwark Blockout Gray Secondary",
+    "Bulwark Bone.001": "Bulwark Bone Secondary",
+    "Bulwark Flap.001": "Bulwark Flap Secondary",
+    "Bulwark Glass.001": "Bulwark Glass Secondary",
+    "Bulwark Plum.001": "Bulwark Plum Secondary",
+    "Bulwark Structure.001": "Bulwark Structure Secondary"
+  },
+  "all_original_image_pixels_and_packed_bytes_unchanged": true,
+  "base_region": {
+    "pixels": "ef2cec3d4b04a27d02ac74c82fc6edb6a25d2c42829e43c56af8348eba5a3656",
+    "packed": "c590c8f244d3380dfd57a19d1c3318ac8b695b53fbf1adb25779bccbbd90a911"
+  },
+  "fresh_reload_matches": true,
+  "flight_approval_pending": true,
+  "uv_density_pending": true
+}

@@ -1,0 +1,8 @@
+{
+  "changed_texels": {
+    "Shadow": 16420,
+    "Light": 2477,
+    "Ink": 361
+  },
+  "method": "Painted symmetric reflection bands and lower dark wedge in canopy UV chart; six pixel padding; generated baseline retained"
+}

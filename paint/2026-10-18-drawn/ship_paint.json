@@ -1,0 +1,1208 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1ed2a7538b06ce6dbc14017a8b3d5a156d4cbfaf6eb493728dd92446830233a9",
+  "palette": "plum-bone",
+  "regions": [
+    "Bulwark Armor Charcoal",
+    "Bulwark Bone",
+    "Bulwark Bone Secondary",
+    "Bulwark EdgeCoat",
+    "Bulwark Flap",
+    "Bulwark Flap Secondary",
+    "Bulwark Glass",
+    "Bulwark Glass Secondary",
+    "Bulwark Guard Bone",
+    "Bulwark Guard Plum",
+    "Bulwark Metal",
+    "Bulwark Plum",
+    "Bulwark Plum Secondary",
+    "Bulwark Structure",
+    "Bulwark Structure Secondary"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-3\\results\\bulwark\\paint\\2026-10-18-drawn\\generation\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-3\\results\\bulwark\\paint\\2026-10-18-drawn\\generation\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-3\\results\\bulwark\\paint\\2026-10-18-drawn\\generation\\layers\\Ink.png"
+  },
+  "baseline": "created",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0
+  },
+  "parts": {
+    "Armor - Front plate": {
+      "regions": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.9326634407043457,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 10,
+          "area": 0.20588688144925982,
+          "edges": 22
+        },
+        {
+          "faces": 16,
+          "area": 0.4491218706825748,
+          "edges": 20
+        }
+      ]
+    },
+    "Armor - Lower skids": {
+      "regions": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.8359413146972656,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.0017611700477573322,
+          "edges": 5
+        },
+        {
+          "faces": 9,
+          "area": 0.0984264465432716,
+          "edges": 12
+        },
+        {
+          "faces": 2,
+          "area": 0.00016249324835371226,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.00020492743828981475,
+          "edges": 5
+        },
+        {
+          "faces": 7,
+          "area": 0.09752093639690429,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.0014774444280192256,
+          "edges": 4
+        }
+      ]
+    },
+    "Armor - Side plates": {
+      "regions": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone Secondary",
+        "Bulwark Flap Secondary",
+        "Bulwark Glass Secondary",
+        "Bulwark Plum Secondary",
+        "Bulwark Structure Secondary"
+      ],
+      "thickness": 0.9663857221603394,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 7,
+          "area": 0.5686706834239885,
+          "edges": 12
+        },
+        {
+          "faces": 5,
+          "area": 0.4785555015259888,
+          "edges": 9
+        },
+        {
+          "faces": 7,
+          "area": 0.5681572653120384,
+          "edges": 12
+        },
+        {
+          "faces": 5,
+          "area": 0.4798440765880514,
+          "edges": 9
+        }
+      ]
+    },
+    "Armor - Upper shoulder guards": {
+      "regions": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.913729190826416,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 3,
+          "area": 0.01783863723903778,
+          "edges": 7
+        },
+        {
+          "faces": 3,
+          "area": 0.018439934039633954,
+          "edges": 7
+        },
+        {
+          "faces": 6,
+          "area": 0.23809149954468012,
+          "edges": 9
+        },
+        {
+          "faces": 6,
+          "area": 0.24036848079413176,
+          "edges": 9
+        }
+      ]
+    },
+    "Canisters - Metal side modules": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.5304899215698242,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 22,
+          "area": 0.17702268913853914,
+          "edges": 24
+        },
+        {
+          "faces": 22,
+          "area": 0.1772000648197718,
+          "edges": 24
+        },
+        {
+          "faces": 22,
+          "area": 0.17701671971008182,
+          "edges": 24
+        },
+        {
+          "faces": 22,
+          "area": 0.17722128343302757,
+          "edges": 24
+        }
+      ]
+    },
+    "Cockpit - Canopy": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.562779426574707,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 416,
+          "area": 0.9044420073187212,
+          "edges": 66
+        },
+        {
+          "faces": 1,
+          "area": 0.0005016316426917911,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0005016376962885261,
+          "edges": 4
+        }
+      ]
+    },
+    "Cockpit - Seating rim": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.6155252456665039,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 5.773476732429117e-05,
+          "edges": 3
+        },
+        {
+          "faces": 6,
+          "area": 0.0019803372561000288,
+          "edges": 14
+        },
+        {
+          "faces": 29,
+          "area": 0.16340653953375295,
+          "edges": 60
+        },
+        {
+          "faces": 56,
+          "area": 0.25592922046780586,
+          "edges": 112
+        }
+      ]
+    },
+    "Engine - Recessed nozzles": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.5865106582641602,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.32741379737854004,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.32766205072402954,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.08556689694523811,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0860176533460617,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.32741400599479675,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.3276618421077728,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.085566945374012,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0860176831483841,
+          "edges": 6
+        }
+      ]
+    },
+    "Engine - Shoulder booms": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 1.6644099354743958,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 14,
+          "area": 1.9520610429608496,
+          "edges": 14
+        },
+        {
+          "faces": 3,
+          "area": 0.01606138324132189,
+          "edges": 7
+        },
+        {
+          "faces": 3,
+          "area": 0.016625490694423206,
+          "edges": 7
+        },
+        {
+          "faces": 13,
+          "area": 1.9486844493512763,
+          "edges": 15
+        },
+        {
+          "faces": 3,
+          "area": 0.9892816543579102,
+          "edges": 9
+        },
+        {
+          "faces": 2,
+          "area": 0.9820036236196756,
+          "edges": 7
+        }
+      ]
+    },
+    "Engine - Shrouds": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.9645955562591553,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 6,
+          "area": 1.5418057534843683,
+          "edges": 10
+        },
+        {
+          "faces": 7,
+          "area": 1.3824268598109484,
+          "edges": 12
+        },
+        {
+          "faces": 4,
+          "area": 0.908580400981009,
+          "edges": 10
+        },
+        {
+          "faces": 4,
+          "area": 0.839495088905096,
+          "edges": 10
+        },
+        {
+          "faces": 6,
+          "area": 1.5411128159612417,
+          "edges": 10
+        },
+        {
+          "faces": 7,
+          "area": 1.380020265467465,
+          "edges": 12
+        },
+        {
+          "faces": 4,
+          "area": 0.9082324234768748,
+          "edges": 10
+        },
+        {
+          "faces": 4,
+          "area": 0.8365491330623627,
+          "edges": 10
+        }
+      ]
+    },
+    "Hull - Aft bridge": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 1.1929749250411987,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 6,
+          "area": 2.805070564163006,
+          "edges": 12
+        },
+        {
+          "faces": 4,
+          "area": 1.559667944908142,
+          "edges": 8
+        }
+      ]
+    },
+    "Hull - Dorsal spine": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.5656507015228271,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.8064969778060913,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.8238381445407867,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.8191367387771606,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.7908006608486176,
+          "edges": 6
+        }
+      ]
+    },
+    "Hull - Lower keel": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 1.874886393547058,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 6,
+          "area": 12.204888939857483,
+          "edges": 12
+        },
+        {
+          "faces": 8,
+          "area": 16.494473338127136,
+          "edges": 16
+        }
+      ]
+    },
+    "Hull - Main deck": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 1.4502860307693481,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 14,
+          "area": 9.013611979782581,
+          "edges": 18
+        },
+        {
+          "faces": 6,
+          "area": 12.512635350227356,
+          "edges": 10
+        }
+      ]
+    },
+    "Hull - Ram nose": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 2.1755013465881348,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.0005205270135775208,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.000520525558385998,
+          "edges": 3
+        },
+        {
+          "faces": 6,
+          "area": 6.967423263937235,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 6.353788137435913,
+          "edges": 6
+        }
+      ]
+    },
+    "Lower flaps - Fins": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.45326459407806396,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 5,
+          "area": 1.8161837067455053,
+          "edges": 8
+        },
+        {
+          "faces": 4,
+          "area": 1.8029869943857193,
+          "edges": 6
+        },
+        {
+          "faces": 4,
+          "area": 1.8029868751764297,
+          "edges": 6
+        },
+        {
+          "faces": 4,
+          "area": 1.7992061227560043,
+          "edges": 6
+        }
+      ]
+    },
+    "Lower flaps - Fixed brackets": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.264715313911438,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 4,
+          "area": 0.02262233405781444,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.003158162347972393,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.003283183141320478,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.0032832054494065233,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.0031581947914673947,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.01617555133998394,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.022656592540442944,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.022656609304249287,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.01617557927966118,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.016175560653209686,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.022656599059700966,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.022656618617475033,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.016175562515854836,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.003136138431727886,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0031361283035948873,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0031361160799860954,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.003136121085844934,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.01617557741701603,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.022656619548797607,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.016175588592886925,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.01617562770843506,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.022656594403088093,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.022656584158539772,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.016175610944628716,
+          "edges": 4
+        }
+      ]
+    },
+    "Lower flaps - Moving leaves": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.2414109706878662,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 4,
+          "area": 0.020258187672880013,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.019306697286083363,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.020258211108739488,
+          "edges": 9
+        },
+        {
+          "faces": 4,
+          "area": 0.019306662823510123,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456417946144938,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.001345628290437162,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456364395096898,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00134562561288476,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.001345647731795907,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00134562561288476,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456590240821242,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456461019814014,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.001345647731795907,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00134562561288476,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456292217597365,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0013456527376547456,
+          "edges": 4
+        },
+        {
+          "faces": 2,
+          "area": 0.020292429253458977,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.020292439498007298,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.020292424596846104,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.02029242366552353,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.02029242552816868,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.020292440429329872,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.019340965896844864,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.02029246836900711,
+          "edges": 6
+        }
+      ]
+    },
+    "Upper flaps - Fins": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 1.1409878730773926,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.21227639634162188,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.6011619232594967,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.6011619865894318,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.2122761677019298,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.6011624708771706,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.6011618301272392,
+          "edges": 5
+        },
+        {
+          "faces": 1,
+          "area": 0.20778055489063263,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.2077804058790207,
+          "edges": 3
+        }
+      ]
+    },
+    "Upper flaps - Fixed brackets": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.2117147445678711,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.0020396861364133656,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0020396812760736793,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.002039685961790383,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.002039671438978985,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.009303781320340931,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.00930377806071192,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.009303774102590978,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.009303763043135405,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0019305388268548995,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0019305467722006142,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0019305493624415249,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0019305484602227807,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.012674114666879177,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.008732430636882782,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.008732414804399014,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.012674085795879364,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.008732415735721588,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.008732430636882782,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.012681493535637856,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.01268152054399252,
+          "edges": 4
+        }
+      ]
+    },
+    "Upper flaps - Moving leaves": {
+      "regions": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "thickness": 0.20821034908294678,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.008402122766710818,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.008402110077440739,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.0084021216025576,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.008402113453485072,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.008402101462706923,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 0.008402126375585794,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.030805645510554314,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.007821250706911087,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.007821234874427319,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.03080570325255394,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0308056753128767,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.007821232080459595,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.00782123114913702,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030805695801973343,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0308056753128767,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.007821249775588512,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.007821249775588512,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.03080570511519909,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030572321265935898,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030572397634387016,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.03057231567800045,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030572397634387016,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030572397634387016,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.030572352930903435,
+          "edges": 4
+        }
+      ]
+    }
+  },
+  "accents": 0,
+  "preview": "D:\\amind\\git\\agent-3\\results\\bulwark\\paint\\2026-10-18-drawn\\bake\\preview\\Composite.png",
+  "unity": {
+    "root": "D:\\amind\\git\\agent-3\\results\\bulwark\\paint\\2026-10-18-drawn\\bake\\unity\\Bulwark",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Materials.meta",
+      "Materials/plum-bone.meta",
+      "Materials/plum-bone/Bulwark Armor Charcoal.mat",
+      "Materials/plum-bone/Bulwark Armor Charcoal.mat.meta",
+      "Materials/plum-bone/Bulwark Bone.mat",
+      "Materials/plum-bone/Bulwark Bone.mat.meta",
+      "Materials/plum-bone/Bulwark Bone Secondary.mat",
+      "Materials/plum-bone/Bulwark Bone Secondary.mat.meta",
+      "Materials/plum-bone/Bulwark EdgeCoat.mat",
+      "Materials/plum-bone/Bulwark EdgeCoat.mat.meta",
+      "Materials/plum-bone/Bulwark Flap.mat",
+      "Materials/plum-bone/Bulwark Flap.mat.meta",
+      "Materials/plum-bone/Bulwark Flap Secondary.mat",
+      "Materials/plum-bone/Bulwark Flap Secondary.mat.meta",
+      "Materials/plum-bone/Bulwark Glass.mat",
+      "Materials/plum-bone/Bulwark Glass.mat.meta",
+      "Materials/plum-bone/Bulwark Glass Secondary.mat",
+      "Materials/plum-bone/Bulwark Glass Secondary.mat.meta",
+      "Materials/plum-bone/Bulwark Guard Bone.mat",
+      "Materials/plum-bone/Bulwark Guard Bone.mat.meta",
+      "Materials/plum-bone/Bulwark Guard Plum.mat",
+      "Materials/plum-bone/Bulwark Guard Plum.mat.meta",
+      "Materials/plum-bone/Bulwark Metal.mat",
+      "Materials/plum-bone/Bulwark Metal.mat.meta",
+      "Materials/plum-bone/Bulwark Plum.mat",
+      "Materials/plum-bone/Bulwark Plum.mat.meta",
+      "Materials/plum-bone/Bulwark Plum Secondary.mat",
+      "Materials/plum-bone/Bulwark Plum Secondary.mat.meta",
+      "Materials/plum-bone/Bulwark Structure.mat",
+      "Materials/plum-bone/Bulwark Structure.mat.meta",
+      "Materials/plum-bone/Bulwark Structure Secondary.mat",
+      "Materials/plum-bone/Bulwark Structure Secondary.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}
