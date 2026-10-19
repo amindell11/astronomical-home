@@ -17,7 +17,7 @@ using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Hangar
 {
     /// <summary>
     /// While the hangar screen is open the player's commander must be inactive — primary fire shares

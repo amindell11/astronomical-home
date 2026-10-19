@@ -159,7 +159,7 @@ namespace UI.Hangar
             current = root.gameObject.AddComponent<HangarPreviewFlight>();
             var radius = Vector3.Distance(stageCamera.transform.position, anchor.position)
                 * Mathf.Sin(CameraFovDeg * .5f * Mathf.Deg2Rad) / FramingMargin;
-            current.Initialize(radius, BaseOrientation);
+            current.Initialize(radius, BaseOrientation, retiring);
         }
 
         private void FrameCamera(ShipVisualRig rigTemplate)
@@ -176,9 +176,9 @@ namespace UI.Hangar
         private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
         {
             var rig = rigTemplate.transform;
-            var peakPose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
+            var pose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
                 BaseOrientation, rig.lossyScale);
-            var templateToPeak = peakPose * rig.worldToLocalMatrix;
+            var templateToPose = pose * rig.worldToLocalMatrix;
             var bounds = new Bounds(anchor.position, Vector3.one);
             foreach (var r in rigTemplate.Silhouette)
             {
@@ -187,11 +187,11 @@ namespace UI.Hangar
                 var (local, space) = skinned
                     ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
                     : (r.localBounds, r.transform);
-                var toPeak = templateToPeak * space.localToWorldMatrix;
+                var toPose = templateToPose * space.localToWorldMatrix;
                 for (var x = -1; x <= 1; x += 2)
                 for (var y = -1; y <= 1; y += 2)
                 for (var z = -1; z <= 1; z += 2)
-                    bounds.Encapsulate(toPeak.MultiplyPoint3x4(
+                    bounds.Encapsulate(toPose.MultiplyPoint3x4(
                         local.center + Vector3.Scale(local.extents, new Vector3(x, y, z))));
             }
             return bounds;
@@ -201,17 +201,17 @@ namespace UI.Hangar
         internal static (Vector3 focus, float distance) SolveFraming(
             Bounds bounds, Vector3 anchorPosition, float fovDeg)
         {
-            var spinRadiusSq = 0f;
+            var planarRadiusSq = 0f;
             for (var x = -1; x <= 1; x += 2)
             for (var z = -1; z <= 1; z += 2)
             {
                 var corner = new Vector2(
                     bounds.center.x - anchorPosition.x + x * bounds.extents.x,
                     bounds.center.z - anchorPosition.z + z * bounds.extents.z);
-                spinRadiusSq = Mathf.Max(spinRadiusSq, corner.sqrMagnitude);
+                planarRadiusSq = Mathf.Max(planarRadiusSq, corner.sqrMagnitude);
             }
             var radius = Mathf.Max(
-                Mathf.Sqrt(spinRadiusSq + Mathf.Pow(Mathf.Abs(bounds.center.y - anchorPosition.y) + bounds.extents.y, 2f)),
+                Mathf.Sqrt(planarRadiusSq + Mathf.Pow(Mathf.Abs(bounds.center.y - anchorPosition.y) + bounds.extents.y, 2f)),
                 MinFramedRadius);
             var distance = radius * FramingMargin / Mathf.Sin(fovDeg * 0.5f * Mathf.Deg2Rad);
             return (anchorPosition, distance);
