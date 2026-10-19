@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-10-19T12:04:43.9152974-07:00",
+  "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "EditMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 4,
+    "passed": 0,
+    "failed": 4,
+    "skipped": 0,
+    "durationSec": 0.28
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "skipped": 0,
+      "durationSec": 0.28,
+      "failures": [
+        {
+          "name": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Crimson/Canopy/Canopy.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Crimson/Canopy/Canopy.mat\")",
+          "durationSec": 0.1558484,
+          "message": "Equal lighting on opposite slopes must still displace the reflected drawing. Expected: greater than 0.0399999991f But was: -8.88705254E-05f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting (System.String path) [0x00121] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ren..."
+        },
+        {
+          "name": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Nightshade/Canopy/Canopy.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Nightshade/Canopy/Canopy.mat\")",
+          "durationSec": 0.0395503,
+          "message": "Equal lighting on opposite slopes must still displace the reflected drawing. Expected: greater than 0.0399999991f But was: 3.58223915E-05f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting (System.String path) [0x00121] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ren..."
+        },
+        {
+          "name": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Valis/Canopy/jade-iris.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Valis/Canopy/jade-iris.mat\")",
+          "durationSec": 0.0248976,
+          "message": "Equal lighting on opposite slopes must still displace the reflected drawing. Expected: greater than 0.0399999991f But was: -0.000275909901f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting (System.String path) [0x00121] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ren..."
+        },
+        {
+          "name": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Vanguard/Materials/Canopy.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(\"Vanguard/Materials/Canopy.mat\")",
+          "durationSec": 0.0273982,
+          "message": "Equal lighting on opposite slopes must still displace the reflected drawing. Expected: greater than 0.0399999991f But was: -1.89840794E-05f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting (System.String path) [0x00121] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Ren..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 8.926,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 21496
+}
