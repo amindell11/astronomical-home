@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-10-19T11:22:57.8474532-07:00",
+  "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "EditMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "DrawnCanopyEditModeTests|DrawnSurfaceEditModeTests|ShipAnatomyEditModeTests",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "passed",
+  "totals": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "durationSec": 1.82
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 34,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 1.82,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "DrawnCanopyEditModeTests|DrawnSurfaceEditModeTests|ShipAnatomyEditModeTests",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 13.222,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 39152
+}

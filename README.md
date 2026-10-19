@@ -33,3 +33,7 @@ on no branch.
 
 Blender-side Python from Codex's local artifact archive (`crimson-*` folders), scripts
 only. Hard-coded local paths; reference, not runnable tools.
+
+## Canopy reflections (#1017)
+
+[Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).
