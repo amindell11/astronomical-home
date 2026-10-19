@@ -1,0 +1,15 @@
+00:01.921  blend            | Read blend: "D:\amind\git\agent-4\art\ships\vanguard\Vanguard.blend"
+D:\amind\git\agent-4\art\tools\ship\ship_paint.py:40: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: No active and selected image texture node found in material "CanopyFrame" (7) for object "paint surface Cockpit cooling vent"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: No active and selected image texture node found in material "CanopyFrame" (7) for object "paint surface Cockpit cooling vent"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: No active and selected image texture node found in material "CanopyFrame" (7) for object "paint surface Cockpit cooling vent"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: No active and selected image texture node found in material "CanopyFrame" (7) for object "paint surface Cockpit cooling vent"
+Info: Baking map saved to internal image, save it externally or pack it
+SHIP_VERDICT=pass
+SHIP_REPORT=D:\amind\git\agent-4\results\vanguard-redo\asymmetric\final-paint\ship_paint.json
+SHIP_MASKS=D:\amind\git\agent-4\art\ships\vanguard\layers
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)

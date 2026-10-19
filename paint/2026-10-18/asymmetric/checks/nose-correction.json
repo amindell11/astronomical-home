@@ -1,0 +1,31 @@
+{
+  "verdict": "pass",
+  "changed_mask": "Shadow",
+  "changed_texels": 2725,
+  "unchanged_masks": [
+    "Emission.png",
+    "Ink.png",
+    "Light.png",
+    "Region_AmberIndex.png",
+    "Region_CanopyFrame.png",
+    "Region_CanopyGlass.png",
+    "Region_Contour.png",
+    "Region_CoreGlow.png",
+    "Region_HatchFrame.png",
+    "Region_HullAccent.png",
+    "Region_HullInset.png",
+    "Region_HullPrimary.png",
+    "Region_Indicator.png",
+    "Region_Linework.png",
+    "Region_PanelEdge.png",
+    "Region_PanelGray.png",
+    "Region_Structure.png",
+    "Region_Underside.png",
+    "Region_WarningMark.png"
+  ],
+  "baseline_shadow_sha256": "2e18c0f20cd1a58bb1da82bd736e39c6a58f2fa6d956af01077b9d4bc4bdf493",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "before_shadow_sha256": "2e18c0f20cd1a58bb1da82bd736e39c6a58f2fa6d956af01077b9d4bc4bdf493",
+  "corrected_shadow_sha256": "5725b38b6408e9e465837f77b17c56cc45fcb6f1d761a1f9201851ed088dae39",
+  "correction": "Remove only the local nose-cap shadow sweep; preserve brush, facing shading and light."
+}

@@ -1,0 +1,39 @@
+{
+  "verdict": "pass",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "unchanged_runtime_masks": {
+    "Ink.png": "1065e6abcc770f3c71aa9a23fa1a2cf6966695ca287d369554a1bec69d28f58c",
+    "Emission.png": "4ea791b501caef3b79b165cdc803c4f9960a518dc560ce7644a5506d38adaf33",
+    "RegionWeights0.png": "98940535fd2ad3eb98d9f491a0ec1991c903921a8d6d4c01e17a696d2d6ff4bb",
+    "RegionWeights1.png": "6f86ee34cb5be446cad0da2610b0d2490d282d63493cae2dabc2e3883cbc053f",
+    "RegionWeights2.png": "25b35934dd2b535433ea3bfb7bd0f5877aac817784a2781abc5b2a1aacdd1387",
+    "RegionWeights3.png": "a13d40225ce8cad4c73e3808a2ad78e43db73bd8981fbb21a00c8caf159c3980"
+  },
+  "changed_runtime_masks": [
+    "Light",
+    "Shadow"
+  ],
+  "owner_edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0,
+    "Emission": 0,
+    "Region_AmberIndex": 0,
+    "Region_CanopyFrame": 0,
+    "Region_CanopyGlass": 0,
+    "Region_Contour": 0,
+    "Region_CoreGlow": 0,
+    "Region_HatchFrame": 0,
+    "Region_HullAccent": 0,
+    "Region_HullInset": 0,
+    "Region_HullPrimary": 0,
+    "Region_Indicator": 0,
+    "Region_Linework": 0,
+    "Region_PanelEdge": 0,
+    "Region_PanelGray": 0,
+    "Region_Structure": 0,
+    "Region_Underside": 0,
+    "Region_WarningMark": 0
+  },
+  "baseline": "reused"
+}
