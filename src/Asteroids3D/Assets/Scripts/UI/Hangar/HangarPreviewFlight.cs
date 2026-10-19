@@ -45,9 +45,9 @@ namespace UI.Hangar
             if (departing)
             {
                 var t = Mathf.Clamp01(age / DepartureSeconds);
-                transform.localPosition = departurePosition + radius * new Vector3(4f * t * t, .65f * t * t, 0f);
+                transform.localPosition = departurePosition + radius * new Vector3(4f * t * t, .65f * t * t, -2f * t * t);
                 transform.localRotation = Quaternion.Slerp(departureRotation,
-                    Quaternion.Euler(-30f, -18f, 12f) * orientation, t * t);
+                    FlightRotation(-30f, -18f, 12f), t * t);
                 if (t >= 1f) Destroy(gameObject);
                 return;
             }
@@ -61,16 +61,20 @@ namespace UI.Hangar
             var turn = Mathf.Sin(cruise * .85f);
             var position = radius * new Vector3(.018f * Mathf.Sin(cruise * .53f),
                 .022f * Mathf.Sin(cruise * 1.1f), 0f);
-            var rotation = Quaternion.Euler(8f + 10f * turn, -12f + 9f * turn,
-                3f * Mathf.Sin(cruise * .67f)) * orientation;
+            var rotation = FlightRotation(14f + 8f * turn, 5f * turn,
+                -6f + 2f * Mathf.Sin(cruise * .67f));
             var t = Mathf.Clamp01(age / ArrivalSeconds);
             var remaining = 1f - t;
             transform.localPosition = position + radius * new Vector3(
                 -3.4f * remaining * remaining * remaining,
-                -.65f * remaining * remaining + .22f * Mathf.Sin(t * Mathf.PI), 0f);
-            transform.localRotation = Quaternion.Slerp(Quaternion.Euler(-32f, 22f, 18f) * orientation,
+                -.65f * remaining * remaining * remaining + .9f * t * remaining * remaining,
+                5f * remaining * remaining * remaining);
+            transform.localRotation = Quaternion.Slerp(FlightRotation(-32f, 22f, 18f),
                 rotation, 1f - remaining * remaining);
             command.thrust = age < .7f || Mathf.Sin(cruise * .85f) > .92f ? 1f : 0f;
         }
+
+        private Quaternion FlightRotation(float roll, float yaw, float pitch) =>
+            orientation * Quaternion.Euler(pitch, roll, yaw);
     }
 }

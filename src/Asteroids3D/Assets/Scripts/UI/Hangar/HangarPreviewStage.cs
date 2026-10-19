@@ -15,7 +15,7 @@ namespace UI.Hangar
     public sealed class HangarPreviewStage : MonoBehaviour
     {
         private static readonly Quaternion BaseOrientation =
-            Substrate.GamePlane.PlanePose(Vector3.down, Vector3.right);
+            Substrate.GamePlane.PlanePose(Vector3.down, new Vector3(-.32f, 0f, -1f));
 
         private const float CameraFovDeg = 30f;
         private const int MaxTextureSize = 2048;
