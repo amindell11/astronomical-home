@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "tool": "ship_uv",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "a514e4336e8a37927af3d082d9af8eb5bf5a5606410b787825e417942497b46d",
+  "densities": {
+    "Canopy": 30.719984153103688,
+    "Core": 153.6000120050471,
+    "Fin": 153.6001002863625,
+    "Fuselage": 150.82840154046414,
+    "Spine": 142.58020460597348,
+    "Wing": 141.35953331520668
+  },
+  "ratio": 5.000005843780491,
+  "max_ratio": 2.0,
+  "findings": [
+    {
+      "rule": "uv_density",
+      "part": "Fin",
+      "message": "Density ratio 5.000 exceeds 2.0"
+    },
+    {
+      "rule": "uv_density",
+      "part": "Canopy",
+      "message": "Density ratio 5.000 exceeds 2.0"
+    }
+  ],
+  "exempted": [],
+  "verdict": "fail"
+}

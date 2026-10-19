@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "tool": "ship_render",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "08a70c45b940671cead046a0a536348431e88f7123669d0e0576c78015d1ddd2",
+  "before_sha256": "d9420c7577c892218e4ca9052b302f41991ea0b881868734fa9640f46d5af938",
+  "images": {
+    "compare_top": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\compare_top.png",
+    "before_top": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\before_top.png",
+    "after_top": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\after_top.png",
+    "compare_side": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\compare_side.png",
+    "before_side": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\before_side.png",
+    "after_side": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_render\\after_side.png"
+  },
+  "set": "compare",
+  "textured": false,
+  "changed_pixels": {
+    "top": 0,
+    "side": 0
+  },
+  "verdict": "pass"
+}

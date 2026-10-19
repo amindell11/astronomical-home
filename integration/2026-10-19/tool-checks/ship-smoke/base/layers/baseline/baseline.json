@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "texture_size": 1024,
+  "masks": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "Emission"
+  ],
+  "geometry": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8",
+  "uv": "32308c6e66c4ef5fa25e917e90db081353ca905f10d61bc58a321f28b197e758",
+  "blender_version": "5.1.2"
+}

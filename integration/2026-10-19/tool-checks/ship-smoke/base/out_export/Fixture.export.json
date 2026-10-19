@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "08a70c45b940671cead046a0a536348431e88f7123669d0e0576c78015d1ddd2",
+  "name": "Fixture",
+  "set": "intact",
+  "fbx": "Fixture.fbx",
+  "fbx_sha256": "88ecc73b455409af6a12faed4de21aac65294d357ce6b2616b09709fbedfb449",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Fin",
+        "Fuselage",
+        "Spine",
+        "Wing"
+      ],
+      "material_slots": [
+        "Amber",
+        "Zinc",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Fin": [
+          0,
+          8,
+          0,
+          12
+        ],
+        "Fuselage": [
+          8,
+          32,
+          12,
+          60
+        ],
+        "Spine": [
+          40,
+          8,
+          72,
+          12
+        ],
+        "Wing": [
+          48,
+          16,
+          84,
+          24
+        ]
+      },
+      "contour": {
+        "Fin": [
+          64,
+          8,
+          108,
+          12
+        ],
+        "Fuselage": [
+          72,
+          32,
+          120,
+          60
+        ],
+        "Spine": [
+          104,
+          8,
+          180,
+          12
+        ],
+        "Wing": [
+          112,
+          16,
+          192,
+          24
+        ]
+      }
+    },
+    "Canopy": {
+      "parts": [
+        "Canopy"
+      ],
+      "material_slots": [
+        "Glass",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Canopy": [
+          0,
+          8,
+          0,
+          12
+        ]
+      },
+      "contour": {
+        "Canopy": [
+          8,
+          8,
+          12,
+          12
+        ]
+      }
+    },
+    "Cores": {
+      "parts": [
+        "Core"
+      ],
+      "material_slots": [
+        "Glow"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Core": [
+          0,
+          8,
+          0,
+          12
+        ]
+      },
+      "contour": {}
+    },
+    "Collider": {
+      "parts": [
+        "Hitbox"
+      ],
+      "triangles": 12
+    }
+  },
+  "sockets": {
+    "engine.L": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -0.20000000298023224
+      ],
+      [
+        0.0,
+        7.549790126404332e-08,
+        -1.0,
+        -1.0
+      ],
+      [
+        0.0,
+        1.0,
+        7.549790126404332e-08,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "engine.R": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.20000000298023224
+      ],
+      [
+        0.0,
+        7.549790126404332e-08,
+        -1.0,
+        -1.0
+      ],
+      [
+        0.0,
+        1.0,
+        7.549790126404332e-08,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "fingerprint": {
+    "geometry": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8",
+    "uv": "32308c6e66c4ef5fa25e917e90db081353ca905f10d61bc58a321f28b197e758",
+    "materials": "e8326714cba6b8ea67057c1605bcaba095a07bdfb6c415c450054a92af9f4764"
+  }
+}

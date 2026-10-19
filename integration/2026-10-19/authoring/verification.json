@@ -1,0 +1,12 @@
+{
+  "intact_preserved_transforms": 30,
+  "breakup_preserved_transforms": 15,
+  "breakup_bounds_max_delta": 1.1920928955078125e-06,
+  "Canopy_bounds_delta": 0.0,
+  "Cores_bounds_delta": 0.0,
+  "Hull_bounds_delta": 2.384185791015625e-07,
+  "approved_textures_identical": 8,
+  "approved_source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "non_visual_prefab_overrides_identical": true,
+  "breakup_animation_identical": true
+}

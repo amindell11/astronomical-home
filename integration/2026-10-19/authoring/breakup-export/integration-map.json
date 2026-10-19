@@ -1,0 +1,185 @@
+{
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "source_unchanged": true,
+  "fingerprints": {
+    "before": {
+      "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+      "uv": "05e9be4b70eebd87176eb8f521b288979da22076b95b40aea78e17981b74bb15",
+      "materials": "39658088f7bc5d3f697c4da51ba48aa79e71003a67a287f28195f45e80afc4aa"
+    },
+    "with_temporary_groups": {
+      "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+      "uv": "05e9be4b70eebd87176eb8f521b288979da22076b95b40aea78e17981b74bb15",
+      "materials": "39658088f7bc5d3f697c4da51ba48aa79e71003a67a287f28195f45e80afc4aa"
+    }
+  },
+  "piece_groups": {
+    "Wing.L": {
+      "existing_piece": "Wing left",
+      "parts": [
+        "MVP Wing",
+        "Wing service hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "Wing.R": {
+      "existing_piece": "Wing right",
+      "parts": [
+        "MVP Wing",
+        "Wing service hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "WingRoot.L": {
+      "existing_piece": "Wing root left",
+      "parts": [
+        "MVP wing_armature"
+      ],
+      "material_slots": [
+        "Structure",
+        "Contour"
+      ]
+    },
+    "WingRoot.R": {
+      "existing_piece": "Wing root right",
+      "parts": [
+        "MVP wing_armature"
+      ],
+      "material_slots": [
+        "Structure",
+        "Contour"
+      ]
+    },
+    "Armor.L": {
+      "existing_piece": "Armor left",
+      "parts": [
+        "MVP wing_armor",
+        "Pod cooling hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "Armor.R": {
+      "existing_piece": "Armor right",
+      "parts": [
+        "MVP wing_armor",
+        "Pod cooling hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "Nacelle.L": {
+      "existing_piece": "Nacelle left",
+      "parts": [
+        "MVP Power Nacelle Housing",
+        "MVP Power Nacelle Core"
+      ],
+      "material_slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "Nacelle.R": {
+      "existing_piece": "Nacelle right",
+      "parts": [
+        "MVP Power Nacelle Housing",
+        "MVP Power Nacelle Core"
+      ],
+      "material_slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ]
+    },
+    "SparrowTail.L": {
+      "existing_piece": "Sparrow tail left",
+      "parts": [
+        "MVP Sparrow Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    "SparrowTail.R": {
+      "existing_piece": "Sparrow tail right",
+      "parts": [
+        "MVP Sparrow Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    "TailFin.L": {
+      "existing_piece": "Tail fin left",
+      "parts": [
+        "MVP Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    "TailFin.R": {
+      "existing_piece": "Tail fin right",
+      "parts": [
+        "MVP Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    "WingFin.L": {
+      "existing_piece": "Wing fin left",
+      "parts": [
+        "MVP wing_tail"
+      ],
+      "material_slots": [
+        "HullAccent",
+        "Contour"
+      ]
+    },
+    "WingFin.R": {
+      "existing_piece": "Wing fin right",
+      "parts": [
+        "MVP wing_tail"
+      ],
+      "material_slots": [
+        "HullAccent",
+        "Contour"
+      ]
+    }
+  },
+  "helper_groups": {
+    "Central": "Do not instantiate: the existing explosion intentionally omits the central hull and canopy.",
+    "Ink": "Do not instantiate when retaining legacy piece submesh 1: it already contains the exact per-piece ink ownership and uses a flat, untextured material."
+  },
+  "integration": [
+    "Preserve all 14 existing GameObject names, local pivots, animation curves, piece lifetimes and root transform.",
+    "Transform each exported mesh from its model root into the same legacy hull space as the intact substitution; then subtract the existing piece pivot.",
+    "L/R here means source symmetry-space X, not a promise about the final left/right coordinate after the hull transform. Match the existing pieces by position.",
+    "Replace each saved mesh in place to retain its GUID. Bind all exported material slots from the approved palette, with debris visibility and existing soot treatment.",
+    "Retain source PaintUV as UV0; canonical export already puts it first. Do not bind new masks to the old atlas UVs.",
+    "Append existing piece submesh 1 unchanged in piece-local coordinates and retain its flat Debris ink material; it contains no baked paint or atlas dependency.",
+    "For painted material clones retain debris render queue 3100, soot strength 0.9, and disable core emission; contours retain queue 3101.",
+    "To preserve old soot vertex coloring, evaluate its existing formula from transformed hull-space positions and normals before subtracting each pivot.",
+    "No source save, debris annotation persistence, geometry change or lock reopen occurred; this scratch producer must be retained with evidence."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_new",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": null,
+  "source": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\Fixture.blend",
+  "refusal": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\Fixture.blend already exists; ship_new never overwrites a source",
+  "verdict": "fail"
+}

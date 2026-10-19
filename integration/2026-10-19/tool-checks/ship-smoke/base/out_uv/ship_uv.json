@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "tool": "ship_uv",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "08a70c45b940671cead046a0a536348431e88f7123669d0e0576c78015d1ddd2",
+  "densities": {
+    "Canopy": 153.59998881418866,
+    "Core": 153.6000120050471,
+    "Fin": 153.6001002863625,
+    "Fuselage": 150.82840154046414,
+    "Spine": 142.58020460597348,
+    "Wing": 141.35953331520668
+  },
+  "ratio": 1.0865917330376405,
+  "max_ratio": 2.0,
+  "findings": [],
+  "exempted": [],
+  "verdict": "pass"
+}

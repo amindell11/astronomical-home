@@ -1,0 +1,587 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "name": "Vanguard",
+  "set": "debris",
+  "fbx": "VanguardBreakup.fbx",
+  "fbx_sha256": "991a2c12991fd4528c4d0fc8a2a675d102df5b42bf7011b05293a64cfaa503f9",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Armor.L": {
+      "parts": [
+        "MVP wing_armor",
+        "Pod cooling hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_armor": [
+          0,
+          14,
+          0,
+          24
+        ],
+        "Pod cooling hatch": [
+          14,
+          60,
+          24,
+          96
+        ]
+      },
+      "contour": {
+        "MVP wing_armor": [
+          74,
+          14,
+          120,
+          24
+        ],
+        "Pod cooling hatch": [
+          88,
+          60,
+          144,
+          96
+        ]
+      }
+    },
+    "Armor.R": {
+      "parts": [
+        "MVP wing_armor",
+        "Pod cooling hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_armor": [
+          0,
+          14,
+          0,
+          24
+        ],
+        "Pod cooling hatch": [
+          14,
+          60,
+          24,
+          96
+        ]
+      },
+      "contour": {
+        "MVP wing_armor": [
+          74,
+          14,
+          120,
+          24
+        ],
+        "Pod cooling hatch": [
+          88,
+          60,
+          144,
+          96
+        ]
+      }
+    },
+    "Central": {
+      "parts": [
+        "Cockpit cooling vent",
+        "MVP Canopy",
+        "MVP Cockpit.001",
+        "MVP Fuselage"
+      ],
+      "material_slots": [
+        "CanopyFrame",
+        "CanopyGlass",
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LiveryUV_Work",
+        "MVP_Atlas",
+        "UVMap"
+      ],
+      "surface": {
+        "Cockpit cooling vent": [
+          0,
+          88,
+          0,
+          144
+        ],
+        "MVP Canopy": [
+          88,
+          21762,
+          144,
+          43520
+        ],
+        "MVP Cockpit.001": [
+          21850,
+          158,
+          43664,
+          312
+        ],
+        "MVP Fuselage": [
+          22008,
+          99,
+          43976,
+          194
+        ]
+      },
+      "contour": {
+        "Cockpit cooling vent": [
+          22107,
+          88,
+          44170,
+          144
+        ],
+        "MVP Cockpit.001": [
+          22195,
+          158,
+          44314,
+          312
+        ],
+        "MVP Fuselage": [
+          22353,
+          99,
+          44626,
+          194
+        ]
+      }
+    },
+    "Ink": {
+      "parts": [
+        "Vanguard structural ink"
+      ],
+      "material_slots": [
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Vanguard structural ink": [
+          0,
+          2732,
+          0,
+          2704
+        ]
+      },
+      "contour": {}
+    },
+    "Nacelle.L": {
+      "parts": [
+        "MVP Power Nacelle Core",
+        "MVP Power Nacelle Housing"
+      ],
+      "material_slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Power Nacelle Core": [
+          0,
+          192,
+          0,
+          380
+        ],
+        "MVP Power Nacelle Housing": [
+          192,
+          448,
+          380,
+          892
+        ]
+      },
+      "contour": {
+        "MVP Power Nacelle Housing": [
+          640,
+          448,
+          1272,
+          892
+        ]
+      }
+    },
+    "Nacelle.R": {
+      "parts": [
+        "MVP Power Nacelle Core",
+        "MVP Power Nacelle Housing"
+      ],
+      "material_slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Power Nacelle Core": [
+          0,
+          192,
+          0,
+          380
+        ],
+        "MVP Power Nacelle Housing": [
+          192,
+          448,
+          380,
+          892
+        ]
+      },
+      "contour": {
+        "MVP Power Nacelle Housing": [
+          640,
+          448,
+          1272,
+          892
+        ]
+      }
+    },
+    "SparrowTail.L": {
+      "parts": [
+        "MVP Sparrow Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Sparrow Tail": [
+          0,
+          26,
+          0,
+          48
+        ]
+      },
+      "contour": {
+        "MVP Sparrow Tail": [
+          26,
+          26,
+          48,
+          48
+        ]
+      }
+    },
+    "SparrowTail.R": {
+      "parts": [
+        "MVP Sparrow Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Sparrow Tail": [
+          0,
+          26,
+          0,
+          48
+        ]
+      },
+      "contour": {
+        "MVP Sparrow Tail": [
+          26,
+          26,
+          48,
+          48
+        ]
+      }
+    },
+    "TailFin.L": {
+      "parts": [
+        "MVP Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Tail": [
+          0,
+          12,
+          0,
+          20
+        ]
+      },
+      "contour": {
+        "MVP Tail": [
+          12,
+          12,
+          20,
+          20
+        ]
+      }
+    },
+    "TailFin.R": {
+      "parts": [
+        "MVP Tail"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Tail": [
+          0,
+          12,
+          0,
+          20
+        ]
+      },
+      "contour": {
+        "MVP Tail": [
+          12,
+          12,
+          20,
+          20
+        ]
+      }
+    },
+    "Wing.L": {
+      "parts": [
+        "MVP Wing",
+        "Wing service hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Wing": [
+          0,
+          14,
+          0,
+          24
+        ],
+        "Wing service hatch": [
+          14,
+          28,
+          24,
+          48
+        ]
+      },
+      "contour": {
+        "MVP Wing": [
+          42,
+          14,
+          72,
+          24
+        ],
+        "Wing service hatch": [
+          56,
+          28,
+          96,
+          48
+        ]
+      }
+    },
+    "Wing.R": {
+      "parts": [
+        "MVP Wing",
+        "Wing service hatch"
+      ],
+      "material_slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP Wing": [
+          0,
+          14,
+          0,
+          24
+        ],
+        "Wing service hatch": [
+          14,
+          28,
+          24,
+          48
+        ]
+      },
+      "contour": {
+        "MVP Wing": [
+          42,
+          14,
+          72,
+          24
+        ],
+        "Wing service hatch": [
+          56,
+          28,
+          96,
+          48
+        ]
+      }
+    },
+    "WingFin.L": {
+      "parts": [
+        "MVP wing_tail"
+      ],
+      "material_slots": [
+        "HullAccent",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_tail": [
+          0,
+          6,
+          0,
+          8
+        ]
+      },
+      "contour": {
+        "MVP wing_tail": [
+          6,
+          6,
+          8,
+          8
+        ]
+      }
+    },
+    "WingFin.R": {
+      "parts": [
+        "MVP wing_tail"
+      ],
+      "material_slots": [
+        "HullAccent",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_tail": [
+          0,
+          6,
+          0,
+          8
+        ]
+      },
+      "contour": {
+        "MVP wing_tail": [
+          6,
+          6,
+          8,
+          8
+        ]
+      }
+    },
+    "WingRoot.L": {
+      "parts": [
+        "MVP wing_armature"
+      ],
+      "material_slots": [
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_armature": [
+          0,
+          16,
+          0,
+          28
+        ]
+      },
+      "contour": {
+        "MVP wing_armature": [
+          16,
+          16,
+          28,
+          28
+        ]
+      }
+    },
+    "WingRoot.R": {
+      "parts": [
+        "MVP wing_armature"
+      ],
+      "material_slots": [
+        "Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "MVP_Atlas"
+      ],
+      "surface": {
+        "MVP wing_armature": [
+          0,
+          16,
+          0,
+          28
+        ]
+      },
+      "contour": {
+        "MVP wing_armature": [
+          16,
+          16,
+          28,
+          28
+        ]
+      }
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+    "uv": "05e9be4b70eebd87176eb8f521b288979da22076b95b40aea78e17981b74bb15",
+    "materials": "39658088f7bc5d3f697c4da51ba48aa79e71003a67a287f28195f45e80afc4aa"
+  }
+}

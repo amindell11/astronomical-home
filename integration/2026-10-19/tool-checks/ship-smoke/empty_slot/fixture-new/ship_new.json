@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tool": "ship_new",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "7176f80623b6d7435d8e187e8b0c50d32c7faec322bbd7cc658bba8b703e2972",
+  "source": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\empty_slot\\Fixture.blend",
+  "created": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\empty_slot\\Fixture.blend",
+  "verdict": "pass"
+}

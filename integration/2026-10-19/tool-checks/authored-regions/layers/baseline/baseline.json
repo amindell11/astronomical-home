@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "texture_size": 256,
+  "masks": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "Region_Amber",
+    "Region_Glass",
+    "Region_Glow",
+    "Region_Signal",
+    "Region_Zinc"
+  ],
+  "geometry": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8",
+  "uv": "32308c6e66c4ef5fa25e917e90db081353ca905f10d61bc58a321f28b197e758",
+  "blender_version": "5.1.2"
+}

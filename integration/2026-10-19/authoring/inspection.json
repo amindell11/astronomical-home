@@ -1,0 +1,2342 @@
+{
+    "current": [
+        {
+            "path": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.350000023841858,
+                "y": 1.350000023841858,
+                "z": 1.350000023841858
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "Mesh",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "Hardpoints",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "Hardpoints/Primary",
+            "position": {
+                "x": 0.4000000059604645,
+                "y": 0.6000000238418579,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.5400000214576721,
+                "y": -1.1920928955078126e-7,
+                "z": 0.8100001811981201
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "Hardpoints/Secondary",
+            "position": {
+                "x": -0.4000000059604645,
+                "y": 0.6000000238418579,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -0.5400000214576721,
+                "y": -1.1920928955078126e-7,
+                "z": 0.8100001811981201
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBody",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.5,
+                "y": 1.499999761581421,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.0250000953674318,
+                "y": 2.0250000953674318,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaust",
+            "position": {
+                "x": -0.20000003278255464,
+                "y": -0.4000002443790436,
+                "z": -0.04999999701976776
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.0250000953674318,
+                "y": 2.0250000953674318,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaust/ThrustMain",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 270.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 0.4300000071525574,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.02500057220459,
+                "y": 0.8707503080368042,
+                "z": 1.3500005006790162
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": [
+                "ThrusFlame_Blue"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaust/ThrustSmall",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 270.0
+            },
+            "scale": {
+                "x": 0.5600000023841858,
+                "y": 0.8399999737739563,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.134000301361084,
+                "y": 1.7010005712509156,
+                "z": 1.3500005006790162
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": [
+                "ThrusFlame_Blue"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaust/ThrustLight",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 78.30001068115235,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.666666567325592,
+                "y": 1.0,
+                "z": 0.6666666269302368
+            },
+            "worldPosition": {
+                "x": -0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 101.69998931884766
+            },
+            "worldScale": {
+                "x": 0.9185053110122681,
+                "y": 1.997243046760559,
+                "z": 1.3500006198883057
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaustTwin",
+            "position": {
+                "x": 0.20000003278255464,
+                "y": -0.4000002443790436,
+                "z": -0.04999999701976776
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.0250000953674318,
+                "y": 2.0250000953674318,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaustTwin/ThrustMain",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 270.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 0.4300000071525574,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.02500057220459,
+                "y": 0.8707503080368042,
+                "z": 1.3500005006790162
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": [
+                "ThrusFlame_Blue"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Thruster/EngineExhaustTwin/ThrustSmall",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 270.0
+            },
+            "scale": {
+                "x": 0.5600000023841858,
+                "y": 0.8399999737739563,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.40500006079673769,
+                "y": 0.06750011444091797,
+                "z": -0.810000479221344
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 90.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.134000301361084,
+                "y": 1.7010005712509156,
+                "z": 1.3500005006790162
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": [
+                "ThrusFlame_Blue"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Thruster/ThrustAudio",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.0250000953674318,
+                "y": 2.0250000953674318,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Thruster/StrafeAudio",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.0250000953674318,
+                "y": 2.0250000953674318,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/SmokeTrail",
+            "position": {
+                "x": 0.44999998807907107,
+                "y": -0.3100000023841858,
+                "z": 0.09099999815225601
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.6075000166893005,
+                "y": -0.12284994125366211,
+                "z": -0.41850006580352785
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 180.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500008583068848,
+                "z": 1.3500008583068848
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": [
+                "SmokeDark"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Hull",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.350000262260437,
+                "z": 1.350000262260437
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard",
+            "position": {
+                "x": -7.947286206899662e-8,
+                "y": 0.0,
+                "z": -1.9868215517249156e-8
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 180.0
+            },
+            "scale": {
+                "x": 0.3333333432674408,
+                "y": 0.3333333432674408,
+                "z": 0.3333333432674408
+            },
+            "worldPosition": {
+                "x": -1.0728836485895954e-7,
+                "y": 2.6822094767453565e-8,
+                "z": 3.552713678800501e-15
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 0.450000137090683,
+                "y": 0.4500001072883606,
+                "z": 0.4500001072883606
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh",
+            "position": {
+                "x": 1.1920928955078126e-7,
+                "y": -0.0019102096557617188,
+                "z": 0.288557231426239
+            },
+            "rotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.999610185623169,
+                "y": 2.999610185623169,
+                "z": 2.999610185623169
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.349825143814087,
+                "y": 1.3498249053955079,
+                "z": 1.3498255014419556
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Canopy",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 134.9824981689453,
+                "y": 134.9824981689453,
+                "z": 134.9824981689453
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx",
+            "boundsCenter": {
+                "x": -0.000010760268196463585,
+                "y": 0.006227375939488411,
+                "z": 0.00003463213215582073
+            },
+            "boundsSize": {
+                "x": 0.0015818419633433223,
+                "y": 0.004630547482520342,
+                "z": 0.0015772487968206406
+            },
+            "worldBoundsCenter": {
+                "x": 0.001452213036827743,
+                "y": -0.1251762956380844,
+                "z": 0.8414462208747864
+            },
+            "worldBoundsSize": {
+                "x": 0.21352098882198335,
+                "y": 0.21290117502212525,
+                "z": 0.6250428557395935
+            },
+            "vertices": 37318,
+            "triangles": [
+                43520
+            ],
+            "materials": [
+                "Canopy"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh/MVP Power Nacelle Core",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 134.9824981689453,
+                "y": 134.9824981689453,
+                "z": 134.9824981689453
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx",
+            "boundsCenter": {
+                "x": -2.3283064365386965e-10,
+                "y": -0.0004539107612799853,
+                "z": -0.00016993863391689956
+            },
+            "boundsSize": {
+                "x": 0.00852690078318119,
+                "y": 0.0011352312285453082,
+                "z": 0.0005963902221992612
+            },
+            "worldBoundsCenter": {
+                "x": -1.242232485765271e-7,
+                "y": -0.15278944373130799,
+                "z": -0.060410432517528537
+            },
+            "worldBoundsSize": {
+                "x": 1.150982141494751,
+                "y": 0.08050228655338288,
+                "z": 0.15323646366596223
+            },
+            "vertices": 640,
+            "triangles": [
+                760
+            ],
+            "materials": [
+                "Engine glow"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard structural ink",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 134.9824981689453,
+                "y": 134.9824981689453,
+                "z": 134.9824981689453
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/VanguardStructure.fbx",
+            "boundsCenter": {
+                "x": 2.3655593395233155e-7,
+                "y": 0.0007865098305046558,
+                "z": 0.0004273146332707256
+            },
+            "boundsSize": {
+                "x": 0.006155953276902437,
+                "y": 0.017415370792150499,
+                "z": 0.0022042326163500549
+            },
+            "worldBoundsCenter": {
+                "x": -0.00003210119029972702,
+                "y": -0.07217077910900116,
+                "z": 0.1070246547460556
+            },
+            "worldBoundsSize": {
+                "x": 0.8309459686279297,
+                "y": 0.29753363132476809,
+                "z": 2.3507699966430666
+            },
+            "vertices": 2903,
+            "triangles": [
+                2676
+            ],
+            "materials": [
+                "Structural ink"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard painted hull",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.349825143814087,
+                "y": 1.3498249053955079,
+                "z": 1.3498255014419556
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Meshes/Vanguard painted hull.asset",
+            "boundsCenter": {
+                "x": -5.960464477539063e-8,
+                "y": 0.09619828313589096,
+                "z": 0.0006368756294250488
+            },
+            "boundsSize": {
+                "x": 1.2980490922927857,
+                "y": 0.47368985414505007,
+                "z": 2.0002598762512209
+            },
+            "worldBoundsCenter": {
+                "x": -8.047672395150585e-8,
+                "y": 1.043081283569336e-7,
+                "z": -6.065238267183304e-8
+            },
+            "worldBoundsSize": {
+                "x": 1.7521387338638306,
+                "y": 0.639398992061615,
+                "z": 2.700000762939453
+            },
+            "vertices": 3239,
+            "triangles": [
+                2578
+            ],
+            "materials": [
+                "Vanguard vivid paint"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Hull/Vanguard/Authored mesh/Vanguard contour",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": -1.6100769073545963e-7,
+                "y": -0.12985074520111085,
+                "z": 0.000859573483467102
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.349825143814087,
+                "y": 1.3498249053955079,
+                "z": 1.3498255014419556
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Meshes/Vanguard contour.asset",
+            "boundsCenter": {
+                "x": -5.960464477539063e-8,
+                "y": 0.09619828313589096,
+                "z": 0.0006368756294250488
+            },
+            "boundsSize": {
+                "x": 1.2980490922927857,
+                "y": 0.47368985414505007,
+                "z": 2.0002598762512209
+            },
+            "worldBoundsCenter": {
+                "x": -8.047672395150585e-8,
+                "y": 1.043081283569336e-7,
+                "z": -6.065238267183304e-8
+            },
+            "worldBoundsSize": {
+                "x": 1.7521387338638306,
+                "y": 0.639398992061615,
+                "z": 2.700000762939453
+            },
+            "vertices": 41197,
+            "triangles": [
+                46858
+            ],
+            "materials": [
+                "Ship contour"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/MinimapMarker",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 2.700000047683716,
+                "y": 2.700000524520874,
+                "z": 2.700000524520874
+            },
+            "mesh": "Assets/Visuals/Ships/_Shared/Illustrated/Ship_1 collider.asset",
+            "boundsCenter": {
+                "x": 2.9802322387695315e-8,
+                "y": -5.960464477539063e-8,
+                "z": -2.9802322387695315e-8
+            },
+            "boundsSize": {
+                "x": 1.2978804111480713,
+                "y": 1.9999998807907105,
+                "z": 0.47362837195396426
+            },
+            "worldBoundsCenter": {
+                "x": 8.046627186786282e-8,
+                "y": 8.046630028957225e-8,
+                "z": -1.6093254373572564e-7
+            },
+            "worldBoundsSize": {
+                "x": 3.504277229309082,
+                "y": 1.2787973880767823,
+                "z": 5.400000095367432
+            },
+            "vertices": 22,
+            "triangles": [
+                40
+            ],
+            "materials": [
+                "ShipMaterial Variant"
+            ]
+        },
+        {
+            "path": "ShipBaseRig/Shield",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 0.0,
+                "y": 180.0,
+                "z": 180.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500008583068848,
+                "z": 1.3500008583068848
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/ShieldBar",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.05000000074505806
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500009775161744,
+                "z": 1.3500009775161744
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/ShieldBar/Fill",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500009775161744,
+                "z": 1.3500009775161744
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/ShieldBar/Value",
+            "position": {
+                "x": 1.649999976158142,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "worldPosition": {
+                "x": 2.2274999618530275,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 0.013500000350177288,
+                "y": 0.01350000873208046,
+                "z": 0.01350000873208046
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/HealthBar",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.05000000074505806
+            },
+            "rotation": {
+                "x": 90.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500009775161744,
+                "z": 1.3500009775161744
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/HealthBar/Fill",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 1.350000023841858,
+                "y": 1.3500009775161744,
+                "z": 1.3500009775161744
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/Shield/HealthBar/Value",
+            "position": {
+                "x": 1.649999976158142,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.009999999776482582,
+                "y": 0.009999999776482582,
+                "z": 0.009999999776482582
+            },
+            "worldPosition": {
+                "x": 2.2274999618530275,
+                "y": 1.4901161193847657e-8,
+                "z": -0.06750001758337021
+            },
+            "worldRotation": {
+                "x": 270.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 0.013500000350177288,
+                "y": 0.01350000873208046,
+                "z": 0.01350000873208046
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "ShipBaseRig/UILockOnIndicator",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 44.999996185302737
+            },
+            "scale": {
+                "x": 0.47999998927116396,
+                "y": 0.47999998927116396,
+                "z": 0.47999998927116396
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 90.0,
+                "y": 315.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 0.6480000615119934,
+                "y": 0.6480001211166382,
+                "z": 0.6480002403259277
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        }
+    ],
+    "exported": [
+        {
+            "path": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 100.0,
+                "y": 99.99998474121094,
+                "z": 99.99998474121094
+            },
+            "mesh": "",
+            "boundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "boundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsCenter": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldBoundsSize": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "vertices": 0,
+            "triangles": [],
+            "materials": []
+        },
+        {
+            "path": "Canopy",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 100.0,
+                "y": 99.99998474121094,
+                "z": 99.99998474121094
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Vanguard.fbx",
+            "boundsCenter": {
+                "x": -0.000010760268196463585,
+                "y": 0.006227375939488411,
+                "z": 0.00003463213215582073
+            },
+            "boundsSize": {
+                "x": 0.0015818419633433223,
+                "y": 0.004630547482520342,
+                "z": 0.0015772487968206406
+            },
+            "worldBoundsCenter": {
+                "x": -0.0010760268196463585,
+                "y": 0.0034631385933607818,
+                "z": -0.6227375268936157
+            },
+            "worldBoundsSize": {
+                "x": 0.1581842005252838,
+                "y": 0.15772493183612824,
+                "z": 0.46305474638938906
+            },
+            "vertices": 34462,
+            "triangles": [
+                43520
+            ],
+            "materials": [
+                "Lit"
+            ]
+        },
+        {
+            "path": "Cores",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 100.0,
+                "y": 99.99998474121094,
+                "z": 99.99998474121094
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Vanguard.fbx",
+            "boundsCenter": {
+                "x": -2.3283064365386965e-10,
+                "y": -0.0004539107612799853,
+                "z": -0.00016993863391689956
+            },
+            "boundsSize": {
+                "x": 0.00852690078318119,
+                "y": 0.0011352312285453082,
+                "z": 0.0005963902221992612
+            },
+            "worldBoundsCenter": {
+                "x": -2.3283064365386964e-8,
+                "y": -0.01699385605752468,
+                "z": 0.04539107531309128
+            },
+            "worldBoundsSize": {
+                "x": 0.8526901006698608,
+                "y": 0.05963903293013573,
+                "z": 0.11352311819791794
+            },
+            "vertices": 788,
+            "triangles": [
+                760
+            ],
+            "materials": [
+                "Lit"
+            ]
+        },
+        {
+            "path": "Hull",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 100.0,
+                "y": 99.99998474121094,
+                "z": 99.99998474121094
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Vanguard.fbx",
+            "boundsCenter": {
+                "x": -4.656612873077393e-10,
+                "y": -0.00000636884942650795,
+                "z": 0.0009619826450943947
+            },
+            "boundsSize": {
+                "x": 0.012980489991605282,
+                "y": 0.020002596080303193,
+                "z": 0.004736896138638258
+            },
+            "worldBoundsCenter": {
+                "x": -4.6566128730773929e-8,
+                "y": 0.09619826078414917,
+                "z": 0.0006368734175339341
+            },
+            "worldBoundsSize": {
+                "x": 1.298048973083496,
+                "y": 0.47368982434272768,
+                "z": 2.0002593994140627
+            },
+            "vertices": 7749,
+            "triangles": [
+                1074,
+                1936,
+                16,
+                3026
+            ],
+            "materials": [
+                "Lit",
+                "Lit",
+                "Lit",
+                "Lit"
+            ]
+        },
+        {
+            "path": "Ink",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "worldPosition": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldRotation": {
+                "x": 270.019775390625,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "worldScale": {
+                "x": 100.0,
+                "y": 99.99998474121094,
+                "z": 99.99998474121094
+            },
+            "mesh": "Assets/Visuals/Ships/Vanguard/Vanguard.fbx",
+            "boundsCenter": {
+                "x": 2.3655593395233155e-7,
+                "y": 0.0007865098305046558,
+                "z": 0.0004273146332707256
+            },
+            "boundsSize": {
+                "x": 0.006155953276902437,
+                "y": 0.017415370792150499,
+                "z": 0.0022042326163500549
+            },
+            "worldBoundsCenter": {
+                "x": 0.000023655593395233154,
+                "y": 0.042731449007987979,
+                "z": -0.07865098118782044
+            },
+            "worldBoundsSize": {
+                "x": 0.6155953407287598,
+                "y": 0.22042346000671388,
+                "z": 1.7415369749069214
+            },
+            "vertices": 2987,
+            "triangles": [
+                2704
+            ],
+            "materials": [
+                "Lit"
+            ]
+        }
+    ]
+}

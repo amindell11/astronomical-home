@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "41b04bb8a10c863b3e74d16877f5ec3c0ccae65249ba2e5fe92073043d66e553",
+  "refusal": "Authored mark names an unknown region or visual part: {'parts': ['Absent hull'], 'region': 'Signal', 'mirror_x': True, 'where': {'y': [-0.25, 0.25], 'nz': [0.8, None]}, 'shape': {'kind': 'box'}, 'opacity': 1}",
+  "verdict": "fail"
+}

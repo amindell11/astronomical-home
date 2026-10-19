@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="55" result="Passed" total="55" passed="55" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:30Z" duration="6.2965757">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="833" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:30Z" duration="6.296576" total="55" passed="55" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1995" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-4/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="833" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:30Z" duration="6.286015" total="55" passed="55" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23444" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1996" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="833" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:30Z" duration="6.282925" total="55" passed="55" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1997" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="833" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:30Z" duration="6.278604" total="55" passed="55" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1759" name="ItemCatalogEditModeTests" fullname="Tests.EditMode.ItemCatalogEditModeTests" classname="Tests.EditMode.ItemCatalogEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:25Z" duration="0.783355" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-case id="1760" name="Chassis_ListEveryPrefabWithARootShip" fullname="Tests.EditMode.ItemCatalogEditModeTests.Chassis_ListEveryPrefabWithARootShip" methodname="Chassis_ListEveryPrefabWithARootShip" classname="Tests.EditMode.ItemCatalogEditModeTests" runstate="Runnable" seed="1504987507" result="Passed" start-time="2026-10-19 07:22:24Z" end-time="2026-10-19 07:22:25Z" duration="0.754883" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1761" name="Engines_ListEveryEngineModuleAsset" fullname="Tests.EditMode.ItemCatalogEditModeTests.Engines_ListEveryEngineModuleAsset" methodname="Engines_ListEveryEngineModuleAsset" classname="Tests.EditMode.ItemCatalogEditModeTests" runstate="Runnable" seed="1337678109" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:25Z" duration="0.003721" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1762" name="Shields_ListEveryShieldModuleAsset" fullname="Tests.EditMode.ItemCatalogEditModeTests.Shields_ListEveryShieldModuleAsset" methodname="Shields_ListEveryShieldModuleAsset" classname="Tests.EditMode.ItemCatalogEditModeTests" runstate="Runnable" seed="1982313156" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:25Z" duration="0.003148" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1763" name="Weapons_ListEveryPrefabWithARootWeaponComponent" fullname="Tests.EditMode.ItemCatalogEditModeTests.Weapons_ListEveryPrefabWithARootWeaponComponent" methodname="Weapons_ListEveryPrefabWithARootWeaponComponent" classname="Tests.EditMode.ItemCatalogEditModeTests" runstate="Runnable" seed="450582954" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:25Z" duration="0.004458" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestSuite" id="2000" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="69" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:29Z" duration="4.685202" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2001" name="Illustrated" fullname="Tests.EditMode.Rendering.Illustrated" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:29Z" duration="4.681228" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1975" name="IllustratedShipPrefabEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:29Z" duration="4.680550" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                </properties>
+                <test-case id="1977" name="Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback" methodname="Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" seed="264116851" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:25Z" duration="0.336813" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1981" name="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:29Z" duration="4.335672" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1978" name="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Vanguard.prefab&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Vanguard.prefab&quot;)" methodname="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" seed="2066022895" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:25Z" duration="0.448501" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1979" name="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Crimson.prefab&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Crimson.prefab&quot;)" methodname="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" seed="966705131" result="Passed" start-time="2026-10-19 07:22:25Z" end-time="2026-10-19 07:22:26Z" duration="0.740092" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1980" name="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Nightshade.prefab&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(&quot;Assets/Prefabs/Ships/Nightshade.prefab&quot;)" methodname="ShipColliderBounds_EncloseThePaintedHullInShipCoordinates" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" seed="757221442" result="Passed" start-time="2026-10-19 07:22:26Z" end-time="2026-10-19 07:22:29Z" duration="3.143646" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1976" name="Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours" fullname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests.Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours" methodname="Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours" classname="Tests.EditMode.Rendering.Illustrated.IllustratedShipPrefabEditModeTests" runstate="Runnable" seed="398267137" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:29Z" duration="0.006226" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1764" name="ShipAnatomyEditModeTests" fullname="Tests.EditMode.ShipAnatomyEditModeTests" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:30Z" duration="0.484534" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1774" name="Chassis_FillsOnlyDeclaredSlots" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:30Z" duration="0.301285" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1771" name="Chassis_FillsOnlyDeclaredSlots(Vanguard)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Vanguard)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="654014155" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:29Z" duration="0.177394" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1772" name="Chassis_FillsOnlyDeclaredSlots(Crimson)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Crimson)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="1421490569" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:29Z" duration="0.039652" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1773" name="Chassis_FillsOnlyDeclaredSlots(Valis)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Valis)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="1598671961" result="Passed" start-time="2026-10-19 07:22:29Z" end-time="2026-10-19 07:22:30Z" duration="0.082423" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1785" name="Chassis_HullKeepsTheContourAsASeparateVertexRange" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.016874" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1783" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Vanguard)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Vanguard)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="188621672" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.012580" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1784" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Crimson)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Crimson)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="679300544" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.002452" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1782" name="Chassis_HullSlotHoldsItsOwnRoleMeshes" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.059628" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1779" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Vanguard)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Vanguard)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="44623910" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.009388" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1780" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Crimson)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Crimson)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="2031643458" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.001060" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1781" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Valis)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Valis)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="953044635" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.046885" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1770" name="Chassis_IsADepthOneVariantOfShipBase" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.007464" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1767" name="Chassis_IsADepthOneVariantOfShipBase(Vanguard)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Vanguard)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="1809587606" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.004980" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1768" name="Chassis_IsADepthOneVariantOfShipBase(Crimson)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Crimson)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="942367918" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000429" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1769" name="Chassis_IsADepthOneVariantOfShipBase(Valis)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Valis)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="108527287" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000330" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1778" name="Chassis_PlacesEverySocket" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.014966" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1775" name="Chassis_PlacesEverySocket(Vanguard)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Vanguard)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="1664745588" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.012144" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1776" name="Chassis_PlacesEverySocket(Crimson)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Crimson)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="521036622" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000829" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1777" name="Chassis_PlacesEverySocket(Valis)" fullname="Tests.EditMode.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Valis)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="61689449" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000532" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1765" name="LegacyList_NamesOnlyCatalogChassis" fullname="Tests.EditMode.ShipAnatomyEditModeTests.LegacyList_NamesOnlyCatalogChassis" methodname="LegacyList_NamesOnlyCatalogChassis" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="1079649803" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.027321" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1766" name="ShipBase_IsNeutralAndNotAVariant" fullname="Tests.EditMode.ShipAnatomyEditModeTests.ShipBase_IsNeutralAndNotAVariant" methodname="ShipBase_IsNeutralAndNotAVariant" classname="Tests.EditMode.ShipAnatomyEditModeTests" runstate="Runnable" seed="691682929" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.011181" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1786" name="ShipObjectiveColliderWiringEditModeTests" fullname="Tests.EditMode.ShipObjectiveColliderWiringEditModeTests" classname="Tests.EditMode.ShipObjectiveColliderWiringEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.070512" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-case id="1787" name="CrimsonPrefab_HasObjectiveCompatibleCollider" fullname="Tests.EditMode.ShipObjectiveColliderWiringEditModeTests.CrimsonPrefab_HasObjectiveCompatibleCollider" methodname="CrimsonPrefab_HasObjectiveCompatibleCollider" classname="Tests.EditMode.ShipObjectiveColliderWiringEditModeTests" runstate="Runnable" seed="1046140044" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.068446" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1749" name="ShipReadoutEditModeTests" fullname="Tests.EditMode.ShipReadoutEditModeTests" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.018275" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1758" name="Row_RejectsTextPastItsReservation" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.012875" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1750" name="Row_RejectsTextPastItsReservation(Speed,1)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Speed,1)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="1701999496" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.007167" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1751" name="Row_RejectsTextPastItsReservation(Controls,3)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Controls,3)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="1214786117" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000406" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1752" name="Row_RejectsTextPastItsReservation(Shield,1)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Shield,1)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="2146134624" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000262" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1753" name="Row_RejectsTextPastItsReservation(Health,1)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Health,1)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="96996609" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000246" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1754" name="Row_RejectsTextPastItsReservation(Heat,1)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Heat,1)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="735648558" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000239" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1755" name="Row_RejectsTextPastItsReservation(Missiles,2)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Missiles,2)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="1397118130" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000260" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1756" name="Row_RejectsTextPastItsReservation(LockOn,3)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(LockOn,3)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="679395822" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000224" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1757" name="Row_RejectsTextPastItsReservation(Policy,4)" fullname="Tests.EditMode.ShipReadoutEditModeTests.Row_RejectsTextPastItsReservation(Policy,4)" methodname="Row_RejectsTextPastItsReservation" classname="Tests.EditMode.ShipReadoutEditModeTests" runstate="Runnable" seed="268689482" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000194" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1788" name="ShipRoleNamesEditModeTests" fullname="Tests.EditMode.ShipRoleNamesEditModeTests" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.019036" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1791" name="TryGetShipName_AcceptsOnlyTheMirroredHullPath" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_AcceptsOnlyTheMirroredHullPath" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.002421" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1789" name="TryGetShipName_AcceptsOnlyTheMirroredHullPath(&quot;Assets/Visuals/Ships/Crimson/Crimson.fbx&quot;,&quot;Crimson&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_AcceptsOnlyTheMirroredHullPath(&quot;Assets/Visuals/Ships/Crimson/Crimson.fbx&quot;,&quot;Crimson&quot;)" methodname="TryGetShipName_AcceptsOnlyTheMirroredHullPath" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1952572734" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.001187" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1790" name="TryGetShipName_AcceptsOnlyTheMirroredHullPath(&quot;Assets/Visuals/Ships/Nightshade/Nightshade.fbx&quot;,&quot;Nightshade&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_AcceptsOnlyTheMirroredHullPath(&quot;Assets/Visuals/Ships/Nightshade/Nightshade.fbx&quot;,&quot;Nightshade&quot;)" methodname="TryGetShipName_AcceptsOnlyTheMirroredHullPath" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="586512050" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000197" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedMethod" id="1796" name="TryGetShipName_RejectsEverythingElse" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.002902" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1792" name="TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Crimson/Other.fbx&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Crimson/Other.fbx&quot;)" methodname="TryGetShipName_RejectsEverythingElse" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1049745643" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000441" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1793" name="TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Ship3/Study/Ship3.fbx&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Ship3/Study/Ship3.fbx&quot;)" methodname="TryGetShipName_RejectsEverythingElse" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1117196756" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000187" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1794" name="TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Studies/Crimson/Crimson.fbx&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Studies/Crimson/Crimson.fbx&quot;)" methodname="TryGetShipName_RejectsEverythingElse" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1363501601" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000148" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1795" name="TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Crimson/Crimson.blend&quot;)" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.TryGetShipName_RejectsEverythingElse(&quot;Assets/Visuals/Ships/Crimson/Crimson.blend&quot;)" methodname="TryGetShipName_RejectsEverythingElse" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1096096993" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000164" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1797" name="Validate_PassesTheExporterGrammar" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.Validate_PassesTheExporterGrammar" methodname="Validate_PassesTheExporterGrammar" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="1700017261" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.003609" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1798" name="Validate_ReportsMissingUnknownAndDuplicateRoles" fullname="Tests.EditMode.ShipRoleNamesEditModeTests.Validate_ReportsMissingUnknownAndDuplicateRoles" methodname="Validate_ReportsMissingUnknownAndDuplicateRoles" classname="Tests.EditMode.ShipRoleNamesEditModeTests" runstate="Runnable" seed="582310798" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.007848" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1799" name="ShipSilhouetteEditModeTests" fullname="Tests.EditMode.ShipSilhouetteEditModeTests" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.011923" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1804" name="Chassis_WiresItsRigAndEveryHullRenderer" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.009880" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1800" name="Chassis_WiresItsRigAndEveryHullRenderer(Vanguard)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Vanguard)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="1906081588" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.006108" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1801" name="Chassis_WiresItsRigAndEveryHullRenderer(Crimson)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Crimson)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="94621459" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000471" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1802" name="Chassis_WiresItsRigAndEveryHullRenderer(Nightshade)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Nightshade)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="568315335" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000368" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1803" name="Chassis_WiresItsRigAndEveryHullRenderer(Valis)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Valis)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="299892715" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.000431" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1815" name="StatHashEditModeTests" fullname="Tests.EditMode.StatHashEditModeTests" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.188668" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-case id="1818" name="Of_HashesOneItemsOwnSubtree_AndNothingElse" fullname="Tests.EditMode.StatHashEditModeTests.Of_HashesOneItemsOwnSubtree_AndNothingElse" methodname="Of_HashesOneItemsOwnSubtree_AndNothingElse" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="1538848881" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.047134" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1824" name="OfLoadout_DoesNotDependOnTheMachinesCulture" fullname="Tests.EditMode.StatHashEditModeTests.OfLoadout_DoesNotDependOnTheMachinesCulture" methodname="OfLoadout_DoesNotDependOnTheMachinesCulture" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="1711760151" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.007195" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1817" name="OfLoadout_EveryHangarWeapon_ReachesEachConditionOnItsPrefab" fullname="Tests.EditMode.StatHashEditModeTests.OfLoadout_EveryHangarWeapon_ReachesEachConditionOnItsPrefab" methodname="OfLoadout_EveryHangarWeapon_ReachesEachConditionOnItsPrefab" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="2070800786" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.009660" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1819" name="OfLoadout_MovesWithMarkedFields_AndIgnoresUnmarkedOnes" fullname="Tests.EditMode.StatHashEditModeTests.OfLoadout_MovesWithMarkedFields_AndIgnoresUnmarkedOnes" methodname="OfLoadout_MovesWithMarkedFields_AndIgnoresUnmarkedOnes" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="379505607" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.012261" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1816" name="OfLoadout_PrefabAssetAndInstance_HashAlike_ForEveryHangarHull" fullname="Tests.EditMode.StatHashEditModeTests.OfLoadout_PrefabAssetAndInstance_HashAlike_ForEveryHangarHull" methodname="OfLoadout_PrefabAssetAndInstance_HashAlike_ForEveryHangarHull" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="726235048" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.024480" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1823" name="OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool" fullname="Tests.EditMode.StatHashEditModeTests.OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool" methodname="OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="233418597" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.045913" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1820" name="OfSetting_IgnoresListOrder" fullname="Tests.EditMode.StatHashEditModeTests.OfSetting_IgnoresListOrder" methodname="OfSetting_IgnoresListOrder" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="1618719040" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.018218" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1821" name="OfSetting_MovesWhenTwoRosterEntriesSwapPilots" fullname="Tests.EditMode.StatHashEditModeTests.OfSetting_MovesWhenTwoRosterEntriesSwapPilots" methodname="OfSetting_MovesWhenTwoRosterEntriesSwapPilots" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="288451517" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.008402" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1822" name="OfSetting_MovesWithPacingAndKillRefill" fullname="Tests.EditMode.StatHashEditModeTests.OfSetting_MovesWithPacingAndKillRefill" methodname="OfSetting_MovesWithPacingAndKillRefill" classname="Tests.EditMode.StatHashEditModeTests" runstate="Runnable" seed="1414683021" result="Passed" start-time="2026-10-19 07:22:30Z" end-time="2026-10-19 07:22:30Z" duration="0.008358" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

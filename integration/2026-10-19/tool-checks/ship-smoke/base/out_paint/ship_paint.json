@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "08a70c45b940671cead046a0a536348431e88f7123669d0e0576c78015d1ddd2",
+  "palette": "zinc",
+  "regions": [
+    "Amber",
+    "Glass",
+    "Glow",
+    "Zinc"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\layers\\Ink.png",
+    "Emission": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\layers\\Emission.png"
+  },
+  "baseline": "reused",
+  "edited_texels": {
+    "Shadow": 4096,
+    "Light": 0,
+    "Ink": 0,
+    "Emission": 0
+  },
+  "parts": {
+    "Canopy": {
+      "regions": [
+        "Glass"
+      ],
+      "thickness": 0.15000000596046448,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.09600000083446503,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.09600000083446503,
+          "edges": 4
+        }
+      ]
+    },
+    "Core": {
+      "regions": [
+        "Glow"
+      ],
+      "thickness": 0.09999996423721313,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.019999980926513672,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.019999980926513672,
+          "edges": 4
+        }
+      ]
+    },
+    "Fin": {
+      "regions": [
+        "Amber"
+      ],
+      "thickness": 0.03999999910593033,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.019999999552965164,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.019999999552965164,
+          "edges": 4
+        }
+      ]
+    },
+    "Fuselage": {
+      "regions": [
+        "Amber",
+        "Zinc"
+      ],
+      "thickness": 0.30000001192092896,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 1.0476000308990479,
+          "edges": 6
+        },
+        {
+          "faces": 2,
+          "area": 1.0476000308990479,
+          "edges": 6
+        }
+      ]
+    },
+    "Spine": {
+      "regions": [
+        "Zinc"
+      ],
+      "thickness": 0.0949999988079071,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.06000000610947609,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.06000000610947609,
+          "edges": 4
+        }
+      ]
+    },
+    "Wing": {
+      "regions": [
+        "Zinc"
+      ],
+      "thickness": 0.03999999910593033,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.2449999749660492,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.2449999749660492,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.2449999749660492,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.2449999749660492,
+          "edges": 4
+        }
+      ]
+    }
+  },
+  "accents": 2,
+  "preview": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_paint\\preview\\Composite.png",
+  "authored_regions": null,
+  "unity": {
+    "root": "D:\\amind\\git\\agent-4\\results\\vanguard-redo\\merge-tools\\ship-smoke\\base\\out_paint\\unity\\Fixture",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Paint/Emission.png",
+      "Paint/Emission.png.meta",
+      "Materials.meta",
+      "Materials/zinc.meta",
+      "Materials/zinc/Amber.mat",
+      "Materials/zinc/Amber.mat.meta",
+      "Materials/zinc/Glass.mat",
+      "Materials/zinc/Glass.mat.meta",
+      "Materials/zinc/Glow.mat",
+      "Materials/zinc/Glow.mat.meta",
+      "Materials/zinc/Zinc.mat",
+      "Materials/zinc/Zinc.mat.meta",
+      "Materials/jade.meta",
+      "Materials/jade/Amber.mat",
+      "Materials/jade/Amber.mat.meta",
+      "Materials/jade/Glass.mat",
+      "Materials/jade/Glass.mat.meta",
+      "Materials/jade/Glow.mat",
+      "Materials/jade/Glow.mat.meta",
+      "Materials/jade/Zinc.mat",
+      "Materials/jade/Zinc.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}

@@ -1,0 +1,1 @@
+{"schema_version": 1, "marks": [{"parts": ["Absent hull"], "region": "Signal", "mirror_x": true, "where": {"y": [-0.25, 0.25], "nz": [0.8, null]}, "shape": {"kind": "box"}, "opacity": 1}]}

@@ -1,0 +1,122 @@
+{
+  "groups": [
+    {
+      "role": "Wing.L",
+      "family": "Wing",
+      "slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "Wing.R",
+      "family": "Wing",
+      "slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "WingRoot.L",
+      "family": "Wing root",
+      "slots": [
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "WingRoot.R",
+      "family": "Wing root",
+      "slots": [
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "Armor.L",
+      "family": "Armor",
+      "slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "Armor.R",
+      "family": "Armor",
+      "slots": [
+        "HullPrimary",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "Nacelle.L",
+      "family": "Nacelle",
+      "slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "Nacelle.R",
+      "family": "Nacelle",
+      "slots": [
+        "CoreGlow",
+        "Structure",
+        "Contour"
+      ]
+    },
+    {
+      "role": "SparrowTail.L",
+      "family": "Sparrow tail",
+      "slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    {
+      "role": "SparrowTail.R",
+      "family": "Sparrow tail",
+      "slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    {
+      "role": "TailFin.L",
+      "family": "Tail fin",
+      "slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    {
+      "role": "TailFin.R",
+      "family": "Tail fin",
+      "slots": [
+        "HullPrimary",
+        "Contour"
+      ]
+    },
+    {
+      "role": "WingFin.L",
+      "family": "Wing fin",
+      "slots": [
+        "HullAccent",
+        "Contour"
+      ]
+    },
+    {
+      "role": "WingFin.R",
+      "family": "Wing fin",
+      "slots": [
+        "HullAccent",
+        "Contour"
+      ]
+    }
+  ]
+}

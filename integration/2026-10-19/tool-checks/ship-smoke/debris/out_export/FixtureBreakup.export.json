@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "21f4556786156e2df37e715196ae70c9c036875b37010241bdd0d6cb7dfd50e6",
+  "name": "Fixture",
+  "set": "debris",
+  "fbx": "FixtureBreakup.fbx",
+  "fbx_sha256": "0a524e79bdeead0868a16e999f0cc61f4bad763fa30d8e3c651b95c5012284f5",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Body": {
+      "parts": [
+        "Canopy",
+        "Core",
+        "Fin",
+        "Fuselage",
+        "Spine"
+      ],
+      "material_slots": [
+        "Amber",
+        "Glass",
+        "Glow",
+        "Zinc",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Canopy": [
+          0,
+          8,
+          0,
+          12
+        ],
+        "Core": [
+          8,
+          8,
+          12,
+          12
+        ],
+        "Fin": [
+          16,
+          8,
+          24,
+          12
+        ],
+        "Fuselage": [
+          24,
+          32,
+          36,
+          60
+        ],
+        "Spine": [
+          56,
+          8,
+          96,
+          12
+        ]
+      },
+      "contour": {
+        "Canopy": [
+          64,
+          8,
+          108,
+          12
+        ],
+        "Fin": [
+          72,
+          8,
+          120,
+          12
+        ],
+        "Fuselage": [
+          80,
+          32,
+          132,
+          60
+        ],
+        "Spine": [
+          112,
+          8,
+          192,
+          12
+        ]
+      }
+    },
+    "Wing.L": {
+      "parts": [
+        "Wing"
+      ],
+      "material_slots": [
+        "Zinc",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Wing": [
+          0,
+          8,
+          0,
+          12
+        ]
+      },
+      "contour": {
+        "Wing": [
+          8,
+          8,
+          12,
+          12
+        ]
+      }
+    },
+    "Wing.R": {
+      "parts": [
+        "Wing"
+      ],
+      "material_slots": [
+        "Zinc",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV",
+        "LegacyUV"
+      ],
+      "surface": {
+        "Wing": [
+          0,
+          8,
+          0,
+          12
+        ]
+      },
+      "contour": {
+        "Wing": [
+          8,
+          8,
+          12,
+          12
+        ]
+      }
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "7980e78f811680fac26bff5ec55ee7d22cb7dc622276fdade08877632cf78ab8",
+    "uv": "32308c6e66c4ef5fa25e917e90db081353ca905f10d61bc58a321f28b197e758",
+    "materials": "e8326714cba6b8ea67057c1605bcaba095a07bdfb6c415c450054a92af9f4764"
+  }
+}

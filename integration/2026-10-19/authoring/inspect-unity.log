@@ -1,0 +1,596 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-amind" at "2026-10-19T07:04:34.3847774Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 33868, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              aa6f6c494e324972a4ce22044ceaeceb
+  Correlation Id:          b89f0d0f61ca9a422c9cd18e3a6fe910
+  External correlation Id: 5887260968654191961
+  Machine Id:              V9+mLXnp3reVDdboj2LuTfxScEc=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-amind" (connect: 0.00s, validation: 0.05s, handshake: 0.20s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-amind-notifications" at "2026-10-19T07:04:34.6379875Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Serial number assigned to: "1375767455228-UnityPersXXXX"
+[Licensing::Client] Successfully updated license, isAync: True, time: 0.06
+Built from '6000.1/staging' branch; Version is '6000.1.8f1 (2a5b1522e5ab) revision 2775829'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) 64bit Professional' Language: 'en' Physical Memory: 32265 MB
+[Licensing::Client] Successfully resolved entitlement details
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+Date: 2026-10-19T07:04:35Z
+
+COMMAND LINE ARGUMENTS:
+D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+D:\amind\git\agent-4\src\Asteroids3D
+-executeMethod
+Ships.VanguardIntegration.Inspect
+-logFile
+D:\amind\git\agent-4\results\vanguard-redo\integration\unity.log
+Successfully changed project path to: D:\amind\git\agent-4\src\Asteroids3D
+D:/amind/git/agent-4/src/Asteroids3D
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [34652]  Target information:
+
+Player connection [34652]  * "[IP] 192.168.1.68 [Port] 55506 [Flags] 2 [Guid] 2065615586 [EditorId] 2065615586 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34652]  * "[IP] 172.30.16.1 [Port] 55506 [Flags] 2 [Guid] 2065615586 [EditorId] 2065615586 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34652]  * "[IP] 100.123.209.37 [Port] 55506 [Flags] 2 [Guid] 2065615586 [EditorId] 2065615586 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34652] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [34652] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-44176" after 0.0 seconds.
+Library Redirect Path: Library/
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 66 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.burst@1.8.21 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.burst@59eb6f11d242)
+    com.unity.dedicated-server@1.5.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.dedicated-server@dca6cdc970c8)
+    com.unity.ide.rider@3.0.36 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ide.rider@4d374c7eb6db)
+    com.unity.ide.visualstudio@2.0.23 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ide.visualstudio@198cdf337d13)
+    com.unity.ide.vscode@1.2.5 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ide.vscode@82e68656b7bd)
+    com.unity.inputsystem@1.14.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.inputsystem@7fe8299111a7)
+    com.unity.mathematics@1.3.2 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.mathematics@8017b507cc74)
+    com.unity.memoryprofiler@1.1.6 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.memoryprofiler@a81a96b9c9bd)
+    com.unity.ml-agents@4.0.3 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ml-agents@f1016d3568fd)
+    com.unity.postprocessing@3.4.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.postprocessing@026b2a0827a4)
+    com.unity.recorder@5.1.2 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.recorder@979a3db2a781)
+    com.unity.timeline@1.8.7 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.timeline@c58b4ee65782)
+    com.unity.pipeline@0.7.0-exp.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74)
+    com.unity.nuget.mono-cecil@1.11.6 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.nuget.newtonsoft-json@3.2.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.nuget.newtonsoft-json@74deb55db2a0)
+    com.unity.searcher@4.9.3 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.searcher@1e17ce91558d)
+    com.unity.collections@2.5.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.collections@56bff8827a7e)
+    com.unity.bindings.openimageio@1.0.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.bindings.openimageio@3229d2aa5c76)
+    com.unity.ai.inference@2.6.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ai.inference@9a123aee5df7)
+    com.unity.profiling.core@1.0.2 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.profiling.core@aac7b93912bc)
+    com.unity.editorcoroutines@1.0.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.editorcoroutines@7d48783e7b8c)
+    com.unity.test-framework.performance@3.1.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.test-framework.performance@92d1d09a72ed)
+    com.unity.dt.app-ui@1.3.6 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.dt.app-ui@3bbd9e4c5c92)
+  Built-in packages:
+    com.unity.ext.nunit@2.0.5 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ext.nunit@031a54704bff)
+    com.unity.render-pipelines.core@17.1.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.core@71b4bdac1964)
+    com.unity.render-pipelines.universal@17.1.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.universal@a19b2562c494)
+    com.unity.shadergraph@17.1.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.shadergraph@e5d3455aa133)
+    com.unity.test-framework@1.5.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.test-framework@7056e7f856e9)
+    com.unity.ugui@2.0.0 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.ugui@57cef44123c7)
+    com.unity.modules.accessibility@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.accessibility)
+    com.unity.modules.ai@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.screencapture)
+    com.unity.modules.subsystems@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.subsystems)
+    com.unity.modules.terrain@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.xr)
+    com.unity.modules.hierarchycore@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.hierarchycore)
+    com.unity.render-pipelines.universal-config@17.0.3 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.universal-config@8dc1aab4af1d)
+    com.unity.rendering.light-transport@1.0.1 (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.unity.rendering.light-transport@e647573c7d2a)
+  Local Tarball packages:
+    com.fmod.fmod-for-unity.v204@file:D:\amind\git\vendor\fmod\fmodstudio20400.tgz (location: D:\amind\git\agent-4\src\Asteroids3D\Library\PackageCache\com.fmod.fmod-for-unity.v204@0266b99900e5)
+[Package Manager] com.unity.ide.vscode is deprecated: Visual Studio Code package is not supported anymore. You can continue to use it, but we won't provide any update anymore.
+Unable to parse file ProjectSettings/TagManager.asset: [Parser Failure at line 52: Expect ':' between key and value within mapping]
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+[Subsystems] No new subsystems found in resolved package list.
+Package Manager log level set to [2]
+[Package Manager] Done registering packages in 0.49 seconds
+Artifact Garbage Collection - Removed 1 unused hashed content files
+Refreshing native plugins compatible for Editor in 2845.74 ms, found 9 plugins.
+Preloading 1 native plugins for Editor in 2.18 ms.
+Initialize engine version: 6000.1.8f1 (2a5b1522e5ab)
+[Subsystems] Discovering subsystems at path D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/amind/git/agent-4/src/Asteroids3D/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+[Licensing::Client] Successfully resolved entitlement details
+Initialize mono
+Mono path[0] = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/Managed'
+Mono path[1] = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56176
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.006270 seconds.
+- Loaded All Assemblies, in  1.278 seconds
+Native extension for WindowsStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.167 seconds
+Domain Reload Profiling: 2440ms
+	BeginReloadAssembly (480ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (2ms)
+	RebuildCommonClasses (132ms)
+	RebuildNativeTypeToScriptingClass (27ms)
+	initialDomainReloadingComplete (134ms)
+	LoadAllAssembliesAndSetupDomain (498ms)
+		LoadAssemblies (473ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (490ms)
+			TypeCache.Refresh (485ms)
+				TypeCache.ScanAssembly (449ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (1168ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1036ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (166ms)
+			SetLoadedEditorAssemblies (11ms)
+			BeforeProcessingInitializeOnLoad (194ms)
+			ProcessInitializeOnLoadAttributes (417ms)
+			ProcessInitializeOnLoadMethodAttributes (248ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+A meta data file (.meta) exists but its folder 'Assets/Prefabs/World' can't be found, and has been created. Empty directories cannot be stored in version control, so it's assumed that the meta data file is for an empty directory in version control. When moving or deleting folders outside of Unity, please ensure that the corresponding .meta file is moved or deleted along with it.
+A meta data file (.meta) exists but its folder 'Assets/Scripts/Editor/Tools' can't be found, and has been created. Empty directories cannot be stored in version control, so it's assumed that the meta data file is for an empty directory in version control. When moving or deleting folders outside of Unity, please ensure that the corresponding .meta file is moved or deleted along with it.
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Starting: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: D:/amind/git/agent-4/src/Asteroids3D
+DisplayProgressbar: Compiling Scripts
+ExitCode: 4 Duration: 1s133ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+*** Tundra requires additional run (1.00 seconds), 0 items updated, 8 evaluated
+Starting: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Tools\netcorerun\netcorerun.exe "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: D:/amind/git/agent-4/src/Asteroids3D
+ExitCode: 0 Duration: 3s284ms
+Starting: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: D:/amind/git/agent-4/src/Asteroids3D
+ExitCode: 0 Duration: 29s
+Finished compiling graph: 1192 nodes, 21186 flattened edges (17286 ToBuild, 202 ToUse), maximum node priority 1296
+[ 391/1188  0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Core.rsp
+[ 568/1188  0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Core.Editor.rsp
+[ 630/1188  0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Tests.PlayMode.rsp
+[ 899/1188  4s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1152/1188  6s] Csc Library/Bee/artifacts/1900b0aE.dag/Core.dll (+2 others)
+[1153/1188  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Capture.dll (+2 others)
+[1154/1188  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Tests.Common.dll (+2 others)
+[1155/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Tests.Common.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Tests.Common.dll, with 129 defines and 254 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1156/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.Common.pdb
+[1157/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.Common.dll
+[1158/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Capture.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Capture.dll, with 129 defines and 256 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1159/1188  0s] CopyFiles Library/ScriptAssemblies/Capture.pdb
+[1160/1188  0s] CopyFiles Library/ScriptAssemblies/Capture.dll
+[1161/1188  2s] Csc Library/Bee/artifacts/1900b0aE.dag/RL.Runtime.dll (+2 others)
+[1162/1188  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Core.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Core.dll, with 129 defines and 260 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1163/1188  0s] CopyFiles Library/ScriptAssemblies/Core.pdb
+[1164/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/RL.Runtime.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/RL.Runtime.dll, with 129 defines and 258 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1165/1188  0s] CopyFiles Library/ScriptAssemblies/RL.Runtime.pdb
+[1166/1188  0s] CopyFiles Library/ScriptAssemblies/RL.Runtime.dll
+[1167/1188  0s] CopyFiles Library/ScriptAssemblies/Core.dll
+[1168/1188  1s] Csc Library/Bee/artifacts/1900b0aE.dag/RL.dll (+2 others)
+[1169/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/RL.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/RL.dll, with 129 defines and 261 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1170/1188  0s] CopyFiles Library/ScriptAssemblies/RL.pdb
+[1171/1188  0s] CopyFiles Library/ScriptAssemblies/RL.dll
+[1172/1188  8s] Csc Library/Bee/artifacts/1900b0aE.dag/Tests.PlayMode.dll (+2 others)
+[1173/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Tests.PlayMode.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Tests.PlayMode.dll, with 130 defines and 256 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1174/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.PlayMode.pdb
+[1175/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.PlayMode.dll
+[1176/1188 15s] Csc Library/Bee/artifacts/1900b0aE.dag/Core.Editor.dll (+2 others)
+[1177/1188  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Capture.GameView.Editor.dll (+2 others)
+[1178/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Capture.GameView.Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Capture.GameView.Editor.dll, with 127 defines and 269 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1179/1188  0s] CopyFiles Library/ScriptAssemblies/Capture.GameView.Editor.pdb
+[1180/1188  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Core.Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Core.Editor.dll, with 127 defines and 267 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1181/1188  0s] CopyFiles Library/ScriptAssemblies/Core.Editor.pdb
+[1182/1188  0s] CopyFiles Library/ScriptAssemblies/Capture.GameView.Editor.dll
+[1183/1188  0s] CopyFiles Library/ScriptAssemblies/Core.Editor.dll
+[1184/1188  4s] Csc Library/Bee/artifacts/1900b0aE.dag/Tests.EditMode.dll (+2 others)
+[1185/1188  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Tests.EditMode.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Tests.EditMode.dll, with 127 defines and 263 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Pipeline.CodeGen.CodeReloadInPlaceILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1186/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.EditMode.pdb
+[1187/1188  0s] CopyFiles Library/ScriptAssemblies/Tests.EditMode.dll
+*** Tundra build success (29.44 seconds), 40 items updated, 1188 evaluated
+AssetDatabase: script compilation time: 35.779107s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in 42.031 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint using Guid(b8e5fdebccd65382ba84d4edd543a6ee) (DefaultImporter) -> (artifact id: '98a357d7b7318806abc33203ea1a70b8') in 0.0355863 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum using Guid(327f08e64ad45b6dacd49f570889e335) (DefaultImporter) -> (artifact id: 'de333a3494a9ac7408a08c7a09dceba9') in 0.0029481 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard using Guid(aeb7adca051f5c6db3185a066935e046) (DefaultImporter) -> (artifact id: 'ee393c369bb71307c302e58bfef7abaa') in 0.0022801 seconds
+Refreshing native plugins compatible for Editor in 80.94 ms, found 9 plugins.
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 28.17 ms, found 9 plugins.
+[Licensing::Client] Successfully resolved entitlement details
+Start HTTP server: port:7802
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in 12.036 seconds
+Domain Reload Profiling: 54052ms
+	BeginReloadAssembly (677ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (42ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (213ms)
+	RebuildCommonClasses (172ms)
+	RebuildNativeTypeToScriptingClass (28ms)
+	initialDomainReloadingComplete (204ms)
+	LoadAllAssembliesAndSetupDomain (40934ms)
+		LoadAssemblies (40727ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (549ms)
+			TypeCache.Refresh (410ms)
+				TypeCache.ScanAssembly (387ms)
+			BuildScriptInfoCaches (110ms)
+			ResolveRequiredComponents (22ms)
+	FinalizeReload (12037ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (9997ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (34ms)
+			SetLoadedEditorAssemblies (9ms)
+			BeforeProcessingInitializeOnLoad (347ms)
+			ProcessInitializeOnLoadAttributes (9124ms)
+			ProcessInitializeOnLoadMethodAttributes (461ms)
+			AfterProcessingInitializeOnLoad (22ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (180ms)
+Start importing Assets/Scenes/InitScene.unity using Guid(5141a19f7b78aa64ca6f1a14f38f8022) (DefaultImporter) -> (artifact id: 'f04185cc47ad387d9e0f7c87dd7f0208') in 0.0208971 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/Ink.png using Guid(a2a7d2258746585e908a045fdea1e6d3) (TextureImporter) -> (artifact id: 'c166c5e3fa7fd7503b3c0c312e0b9dc0') in 0.4759873 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/Emission.png using Guid(2642bb369a6a5b0da08ad3c7332f7a03) (TextureImporter) -> (artifact id: '620216d662b4e41a2280b7c857a33f1e') in 0.4111812 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/RegionWeights3.png using Guid(d7731fcd5e3154859f97b22806963b75) (TextureImporter) -> (artifact id: '683984e999d79492c181e6bfafaf61ca') in 0.5343563 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/Shadow.png using Guid(58e3103dc19e5ae5ab7ddf1f78cd9030) (TextureImporter) -> (artifact id: '105abd837d57dc4c6e67d8cbe7169b89') in 0.5170813 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/Light.png using Guid(4a6d30da944f5c41a7579a9416cdbe23) (TextureImporter) -> (artifact id: '49205a419445e9f9f98e54feec28bb23') in 0.5522021 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/RegionWeights1.png using Guid(6a8275f699f4571ca262b97ada05dbeb) (TextureImporter) -> (artifact id: 'd8bd11e3b7ba62023032793933f63b88') in 0.5408 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/RegionWeights2.png using Guid(eac20d3777315140b665b3498cc21388) (TextureImporter) -> (artifact id: 'a0e8641efc82998ee08792196e87cf3b') in 1.3160926 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Paint/RegionWeights0.png using Guid(fe6f4a7c3db350e2bc080d503fcb9ec0) (TextureImporter) -> (artifact id: '7b2a4bfe66f01aba7dade0f4beaccb72') in 0.4279345 seconds
+Start importing Assets/Visuals/Shaders/DrawnSurface.shader using Guid(d6e7df444cf744afba34adb40bc36875) (ShaderImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.03 seconds
+ -> (artifact id: '27ab1f5df3e849c7f73374d74470e385') in 1.0155407 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/Underside.mat using Guid(3049ccc5f56f5e2cb134e26889a91571) (NativeFormatImporter) -> (artifact id: '14f2b928fcca1ca07b592178d49eef5c') in 0.034195 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/Structure.mat using Guid(b044c197f75c56c984c544ff393f488b) (NativeFormatImporter) -> (artifact id: '5597f7733960984cc16cb10f1e482c33') in 0.0352403 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/Contour.mat using Guid(f09cf6f5367f55f09dd94b364bb8dba2) (NativeFormatImporter) -> (artifact id: 'd209485a42f763f694b01e186956ba34') in 0.0247598 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/Structure.mat using Guid(f2b6fb7034fc5a67a5fc1dddb32f0355) (NativeFormatImporter) -> (artifact id: 'e03d88656df37e52493ee6aca0f89eab') in 0.0377224 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/PanelGray.mat using Guid(0385ba520d7f5c5c96bb44bbf0c92d8e) (NativeFormatImporter) -> (artifact id: 'b4f3cf67be5576afa0804b87655dcbb5') in 0.0772682 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/HullPrimary.mat using Guid(f3a7c87d8e775e1ea331fc134080ffe6) (NativeFormatImporter) -> (artifact id: 'bfe5c6483573d9bbaec2bd3ad64d5b89') in 0.0282451 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/WarningMark.mat using Guid(446e43b2f9d251f7bb508c35c45fbcfb) (NativeFormatImporter) -> (artifact id: 'b41a32d57afb86f9a43479a5e386caa7') in 0.0435327 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/Contour.mat using Guid(c4aacea3439756e7ae0132b22830c690) (NativeFormatImporter) -> (artifact id: '9a9e5ec44e1e1a4fe9130aef89014f3e') in 0.0362844 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/CoreGlow.mat using Guid(f44663556aa7576bb59ba7c42b71d964) (NativeFormatImporter) -> (artifact id: '132f8dfc968158ee1451b73637c5f9a3') in 0.0425904 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/HatchFrame.mat using Guid(a5b0a97ac3a554939f8272855d40c0cf) (NativeFormatImporter) -> (artifact id: '70a7631e74e10a06cd4e7f58e094521f') in 0.0207749 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/HullAccent.mat using Guid(b503ad80386d588f9645f4d9cca99f94) (NativeFormatImporter) -> (artifact id: '30b4d9e6452add73769a70e87e7436bd') in 0.032965 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/AmberIndex.mat using Guid(e5497ac2b6d3547f984c73767f271c39) (NativeFormatImporter) -> (artifact id: '03bcb371fc5903b88e48d0291b4801f2') in 0.0323424 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/HullPrimary.mat using Guid(06a67e7bfb97593ca86133fdfe619868) (NativeFormatImporter) -> (artifact id: '88124b76834ed8ea5d9e9713bcdafe24') in 0.0187478 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/HullInset.mat using Guid(f686ddd9ac4255938b19c33f7d7964db) (NativeFormatImporter) -> (artifact id: '714534bb580ffb38b144048580b1da2b') in 0.0294367 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/Linework.mat using Guid(c727495c37e6551db1d30d028aaa7aa1) (NativeFormatImporter) -> (artifact id: 'e7cd00b3a46c18c6fe4a895c24178ace') in 0.0188643 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/CanopyGlass.mat using Guid(d8e599cb2135560d871323f76adc3caa) (NativeFormatImporter) -> (artifact id: 'a48df14788752845ce8f57ae61901f35') in 0.0612035 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/CanopyGlass.mat using Guid(e890cb38c7cc5042aae0d634d26c0439) (NativeFormatImporter) -> (artifact id: 'e6aca14c1c79843ceea28891b0d94d1c') in 0.0238486 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/Underside.mat using Guid(49e701e8e4055e44883c65978f715795) (NativeFormatImporter) -> (artifact id: '4f3003dfa7cc260ec85b877fa3cbd353') in 0.0318373 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/CanopyFrame.mat using Guid(79f3e71da20857d8b19d548ceff5e5c9) (NativeFormatImporter) -> (artifact id: '9eadb40d7c09c87b5a5289e62d0c9d87') in 0.0088647 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/Indicator.mat using Guid(e9c7ca4f9f35598a9005aabf4b4c89b0) (NativeFormatImporter) -> (artifact id: 'c18ada504ad0005edcec19d6b12b8fb4') in 0.0312627 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/HullAccent.mat using Guid(8a4194e2cff6599f8393a3af9b2a4c6e) (NativeFormatImporter) -> (artifact id: 'f960b0fdfe9271cce01dd0fe6db5fe46') in 0.0191602 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/PanelGray.mat using Guid(fb4eeffe07ff5066b5530327baee1579) (NativeFormatImporter) -> (artifact id: '8af04f009d14ffc966dafb4ae1e1dd64') in 0.035202 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/PanelEdge.mat using Guid(3c0de7dee42953c6940c9fde8f104587) (NativeFormatImporter) -> (artifact id: '760792b8b9b12d1b8ec3d069258ca462') in 0.0190873 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/Indicator.mat using Guid(8d6542f028fc5a5591e5c0da1a3a4a91) (NativeFormatImporter) -> (artifact id: 'cd15e80520204913e915265ce8687eb7') in 0.0356652 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/CoreGlow.mat using Guid(ad7ac5df7798563cb84965a3396dead2) (NativeFormatImporter) -> (artifact id: '4eb9fe4a26726258a19ae58b7dc40195') in 0.0286435 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/HullInset.mat using Guid(adae7f0973f1500e99155c1d2880e13b) (NativeFormatImporter) -> (artifact id: 'a0c24f66a6945d8450c29421585cc376') in 0.0198512 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/AmberIndex.mat using Guid(2eb503fa054059f4bcb9fcc06a9f4055) (NativeFormatImporter) -> (artifact id: '8fc7f18e9933621e796dd0d707f8f8ca') in 0.0079325 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/CanopyFrame.mat using Guid(9ea00fe9c4d55d9c91bd1d262ced22cb) (NativeFormatImporter) -> (artifact id: '358f67f753737ccb70b493f68c50dfbf') in 0.0280778 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/mint_plum/HatchFrame.mat using Guid(0f2442eac5a25d5db78851851d32a686) (NativeFormatImporter) -> (artifact id: '5a90e8bdc4d32b6752e477240e991273') in 0.0296366 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/Linework.mat using Guid(3feee507a4c056258631d6968fcb06f6) (NativeFormatImporter) -> (artifact id: '6c36c7b3e502ca5e9d87cfd8bc6cd3ef') in 0.0189421 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/WarningMark.mat using Guid(5f09ef2a364556df96db42b0d585734c) (NativeFormatImporter) -> (artifact id: 'e9942c4b3d98969b766f7ffb1f09fe9e') in 0.0277033 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Materials/vanguard/PanelEdge.mat using Guid(8f6d8765a5225349b23df42046744698) (NativeFormatImporter) -> (artifact id: 'df5677fb1b2380a797533e54e275325c') in 0.0342044 seconds
+Start importing Assets/Visuals/Ships/Vanguard/Vanguard.fbx using Guid(a97f4354d90aeb5409b0d48c29ba2ea6) (FBXImporter) -> (artifact id: '09e94d276968458de290d80a112b72cf') in 1.2463631 seconds
+Start importing Assets/Settings/Rendering/Build Profiles/Main.asset using Guid(eca6f6082078c01438e9db7d1ca64c96) (NativeFormatImporter) -> (artifact id: '8d7625e5daff82408b300ef2ed6a36eb') in 0.0196394 seconds
+Start importing Assets/Prefabs/Weapons/TurboLasers.prefab using Guid(b0f5486eb29ea024da3b9a9978de5236) (PrefabImporter) -> (artifact id: '9d4e136e1cac524ba4511952ce70ce61') in 0.1954528 seconds
+Start importing Assets/Prefabs/Weapons/Projectiles/GrenadeCharge.prefab using Guid(219de1e2c5fa437b915e10f477114d2c) (PrefabImporter) -> (artifact id: '53407142f010f745202d66755ab958d4') in 0.0588578 seconds
+Start importing Assets/Prefabs/UI/HangarScreen.prefab using Guid(d115d32348e1b3342a7379b8b1c74681) (PrefabImporter) -> (artifact id: '31af4553b321065e49cefff71d9dd699') in 0.0701975 seconds
+Start importing Assets/Prefabs/Weapons/ChargeLasers.prefab using Guid(b36045842c1f4f6aba419e430689acb3) (PrefabImporter) -> (artifact id: 'dae65554c4d83c7005d27cafbcc35799') in 0.0258872 seconds
+Start importing Assets/Prefabs/Weapons/Rippers.prefab using Guid(a8d8040d4d414a15a9db015021e2bed2) (PrefabImporter) -> (artifact id: 'b7b23c01780c937220d20b3874099ff9') in 0.0391901 seconds
+Start importing Assets/Prefabs/Cameras/Hangar Camera.prefab using Guid(6921a06a3ac74e6dac3d7c4325ce02d9) (PrefabImporter) -> (artifact id: 'eb1a046f9b58b0d74e5bfb0a8e884960') in 0.0277343 seconds
+Start importing Assets/Prefabs/Weapons/Grenades.prefab using Guid(4c9a03fda4724848a895b5640634048a) (PrefabImporter) -> (artifact id: '284343fc9be172e477dafd11fa3f5f14') in 0.0111329 seconds
+Start importing Assets/Prefabs/Weapons/Railgun.prefab using Guid(3fc089f1b126427bbc347956f599714b) (PrefabImporter) -> (artifact id: '39921690750b65ce192cbac2b349c97c') in 0.0248886 seconds
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.04 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+Refreshing native plugins compatible for Editor in 63.46 ms, found 9 plugins.
+Preloading 1 native plugins for Editor in 0.23 ms.
+Asset Pipeline Refresh (id=861dca6f8a62c8946b3b7c8b6273e936): Total: 111.729 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=55 (actual=55, local cache=0, cache server=0)
+		Asset DB Process Time: managed=98 ms, native=31012 ms
+		Asset DB Callback time: managed=1944 ms, native=742 ms
+		Scripting: domain reloads=1, domain reload time=42032 ms, compile time=35782 ms, other=116 ms
+		Project Asset Count: scripts=1705, non-scripts=3379
+		Asset File Changes: new=55, changed=77, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.004ms
+	InvokePackagesCallback: 509.113ms
+	ApplyChangesToAssetFolders: 1.696ms
+	Scan: 2239.361ms
+	OnSourceAssetsModified: 6.106ms
+	CategorizeAssetsWithTransientArtifact: 5312.791ms
+	ProcessAssetsWithTransientArtifactChanges: 161.519ms
+	CategorizeAssets: 304.599ms
+	ImportOutOfDateAssets: 21085.274ms (-23621.400ms without children)
+		ImportManagerImport: 8825.398ms (124.698ms without children)
+			ImportInProcess: 8699.193ms
+			UpdateCategorizedAssets: 1.506ms
+		CompileScripts: 35782.088ms
+		ReloadNativeAssets: 81.320ms
+		UnloadImportedAssets: 3.282ms
+		ReloadImportedAssets: 7.976ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 3.479ms
+		InitializingProgressBar: 0.014ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.003ms
+		OnDemandSchedulerStart: 3.115ms
+	PostProcessAllAssets: 2652.687ms
+	Hotreload: 69.260ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.425ms
+	UnloadStreamsBegin: 9.038ms
+	PersistCurrentRevisions: 1.046ms
+	UnloadStreamsEnd: 0.005ms
+	GenerateScriptTypeHashes: 11.556ms
+	Untracked: 79376.498ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 11.592ms
+Initializing Unity extensions:
+[Licensing::Client] Successfully resolved entitlement details
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Astronomical
+Unloading 180 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7399 unused Assets / (2.8 MB). Loaded Objects now: 7901.
+Memory consumption went from 239.2 MB to 236.4 MB.
+Total: 18.314400 ms (FindLiveObjects: 0.821000 ms CreateObjectMapping: 0.713300 ms MarkObjects: 12.437400 ms  DeleteObjects: 4.340100 ms)
+
+Asset Pipeline Refresh (id=13e6d8944c1f26e44a42b183eeb57eb2): Total: 0.097 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/Visuals/Ships/Vanguard/Vanguard.fbx using Guid(a97f4354d90aeb5409b0d48c29ba2ea6) (FBXImporter) -> (artifact id: '738ef439c16806de8db92513988538ec') in 0.1871846 seconds
+Refreshing native plugins compatible for Editor in 33.65 ms, found 9 plugins.
+Preloading 1 native plugins for Editor in 0.12 ms.
+Asset Pipeline Refresh (id=29cad92474afb584aa10439922f98e17): Total: 0.570 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=297 ms
+		Asset DB Callback time: managed=196 ms, native=76 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=1705, non-scripts=3379
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 5
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 0.002ms
+	ApplyChangesToAssetFolders: 0.398ms
+	Scan: 44.505ms
+	OnSourceAssetsModified: 0.102ms
+	CategorizeAssetsWithTransientArtifact: 0.034ms
+	ProcessAssetsWithTransientArtifactChanges: 0.252ms
+	CategorizeAssets: 32.271ms
+	ImportOutOfDateAssets: 208.867ms (-17.017ms without children)
+		ImportManagerImport: 206.108ms (18.092ms without children)
+			ImportInProcess: 187.952ms
+			UpdateCategorizedAssets: 0.063ms
+		ReloadNativeAssets: 0.051ms
+		UnloadImportedAssets: 0.429ms
+		ReloadImportedAssets: 17.568ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.041ms
+		InitializingProgressBar: 0.011ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.002ms
+		OnDemandSchedulerStart: 0.674ms
+	PostProcessAllAssets: 235.835ms
+	Hotreload: 36.577ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.409ms
+	UnloadStreamsBegin: 0.116ms
+	PersistCurrentRevisions: 0.644ms
+	UnloadStreamsEnd: 0.002ms
+	Untracked: 10.425ms
+
+VANGUARD_INSPECTION_PASS
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Ships.VanguardIntegration:Inspect () (at Assets/Scripts/Editor/Ships/VanguardIntegration.cs:59)
+
+(Filename: Assets/Scripts/Editor/Ships/VanguardIntegration.cs Line: 59)
+
+Batchmode quit successfully invoked - shutting down!
+Pipeline Server stopped
+[Physics::Module] Cleanup current backned.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-amind-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-amind channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+00:06:56.324 |V| RiderPlugin                    | :1                             | AppDomain.CurrentDomain.DomainUnload lifetimeDefinition.Terminate
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

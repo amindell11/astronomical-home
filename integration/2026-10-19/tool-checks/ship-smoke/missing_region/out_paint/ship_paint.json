@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "4a68bc29ffbb8f7d4600c86f8ca081786065a42eb2e7928806ce3e2df114d82f",
+  "refusal": "Material slots ['Amber', 'Glass', 'Glow', 'Zinc'] are not the palette regions ['Amber', 'Glass', 'Zinc']",
+  "verdict": "fail"
+}
