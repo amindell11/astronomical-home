@@ -1,9 +1,9 @@
 {
   "texture_size": 2048,
   "uv_layer": "PaintUV",
-  "shadow": 0.75,
-  "light": 0.35,
-  "ink": 1.05,
+  "shadow": 0.85,
+  "light": 0.65,
+  "ink": 0.75,
   "light_color": "#E3D8CB",
   "ink_color": "#29222F",
   "base_region_mask": "layers/BaseRegion.png",
@@ -22,40 +22,22 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "blender-finish-review",
+  "status": "drawn-blender-review",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
-    "Metal": {
-      "blender_metallic": 0.85,
-      "blender_roughness": 0.38,
-      "unity_specular_strength": 0.2,
-      "unity_shadow_color": [
-        0.74,
-        0.74,
-        0.74
-      ],
-      "blender_anisotropic": 0.25
+    "preview": {
+      "method": "Flat drawn mask composite; no physical specular, coat or metallic reflections"
     },
     "Glass": {
-      "blender_roughness": 0.36,
-      "blender_coat_weight": 0.25,
-      "blender_coat_roughness": 0.28,
-      "masks": "Original canopy Shadow, Light and Ink retained"
+      "method": "Authored dark wedge and paired reflection strokes in Shadow/Light/Ink; preserved relative to generated baseline"
     },
-    "Paint": {
-      "blender_roughness": 0.66,
-      "blender_coat_weight": 0.12,
-      "blender_coat_roughness": 0.32
-    },
-    "Charcoal": {
-      "blender_roughness": 0.72,
-      "blender_coat_weight": 0.12,
-      "blender_coat_roughness": 0.32
+    "Metal": {
+      "method": "Neutral palette gray with generated facing shading"
     }
   },
-  "shadow_mask": "layers/FinishShadow.png",
-  "light_mask": "layers/FinishLight.png",
+  "shadow_mask": "layers/Shadow.png",
+  "light_mask": "layers/Light.png",
   "blender_layer_order": [
     "base colors and BaseRegion",
     "shadow",
@@ -63,9 +45,16 @@
     "ink"
   ],
   "deferred_checks": [
-    "renewed flight approval and geometry lock",
+    "flight approval",
     "UV density correction",
+    "Unity BaseRegion binding",
     "in-game paint review"
   ],
-  "constant_material_shadow_strength": 0.65
+  "constant_material_shadow_strength": 0.65,
+  "ink_mask": "layers/Ink.png",
+  "generator": "ship_paint",
+  "generator_settings": "paint.json",
+  "baseline": "layers/baseline",
+  "geometry_lock_status": "Owner-authorized texture fingerprint; flight approval pending",
+  "unity_bundle_status": "Generated bundle is not production-ready: it lacks the existing BaseRegion coat binding. Do not replace gameplay materials with it."
 }
