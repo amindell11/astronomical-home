@@ -1,0 +1,68 @@
+[
+  {
+    "prefab": "Assets/Prefabs/Ships/Nightshade.prefab",
+    "renderer": "ShipBaseRig/Hull/Nightshade",
+    "submesh": 5,
+    "material": "Assets/Visuals/Ships/Nightshade/Materials/Nightshade Glass.mat",
+    "center": "(0.000000000, -0.001939301, 0.001309672)",
+    "size": "(0.004696161, 0.008930759, 0.001488970)",
+    "position": "(10.000000000, 0.000000000, 20.000000000)",
+    "rotation": "(270.000000000, 180.000000000, 0.000000000)",
+    "scale": "(135.000000000, 135.000000000, 135.000000000)"
+  },
+  {
+    "prefab": "Assets/Prefabs/Ships/Nightshade.prefab",
+    "renderer": "ShipBaseRig/Hull/Canopy",
+    "submesh": 0,
+    "material": "Assets/Visuals/Ships/Nightshade/Canopy/Canopy.mat",
+    "center": "(0.000000000, 0.005845452, -0.000146335)",
+    "size": "(0.003221877, 0.004627054, 0.002749701)",
+    "position": "(10.000000000, 0.000000000, 20.000000000)",
+    "rotation": "(270.000000000, 180.000000000, 0.000000000)",
+    "scale": "(135.000000000, 135.000000000, 135.000000000)"
+  },
+  {
+    "prefab": "Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.prefab",
+    "renderer": "Cockpit/Surface",
+    "submesh": 3,
+    "material": "Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Glass.mat",
+    "center": "(0.000000000, 0.005845452, -0.000146335)",
+    "size": "(0.003221877, 0.004627054, 0.002749701)",
+    "position": "(0.000000000, 0.000000000, 0.000000000)",
+    "rotation": "(0.000000000, 180.000000000, 0.000000000)",
+    "scale": "(100.000000000, 100.000000000, 100.000000000)"
+  },
+  {
+    "prefab": "Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.prefab",
+    "renderer": "Tail.L/Surface",
+    "submesh": 1,
+    "material": "Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Glass.mat",
+    "center": "(0.001696123, -0.001939301, 0.001309672)",
+    "size": "(0.001303915, 0.008930759, 0.001488970)",
+    "position": "(0.000000000, 0.000000000, 0.000000000)",
+    "rotation": "(0.000000000, 180.000000000, 0.000000000)",
+    "scale": "(100.000000000, 100.000000000, 100.000000000)"
+  },
+  {
+    "prefab": "Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.prefab",
+    "renderer": "Tail.R/Surface",
+    "submesh": 1,
+    "material": "Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Glass.mat",
+    "center": "(-0.001696123, -0.001939301, 0.001309672)",
+    "size": "(0.001303915, 0.008930758, 0.001488970)",
+    "position": "(0.000000000, 0.000000000, 0.000000000)",
+    "rotation": "(0.000000000, 180.000000000, 0.000000000)",
+    "scale": "(100.000000000, 100.000000000, 100.000000000)"
+  },
+  {
+    "prefab": "Assets/Visuals/Ships/Valis/Breakup/ValisBreakup.prefab",
+    "renderer": "Fuselage and canopy",
+    "submesh": 5,
+    "material": "Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat",
+    "center": "(-0.000053123, 0.303981800, -0.031465140)",
+    "size": "(0.363702600, 0.476502100, 0.178093600)",
+    "position": "(0.000053125, 0.342516900, -0.052548770)",
+    "rotation": "(0.000000000, 0.000000000, 0.000000000)",
+    "scale": "(1.000000000, 1.000000000, 1.000000000)"
+  }
+]
