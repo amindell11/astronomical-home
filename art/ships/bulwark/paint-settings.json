@@ -9,7 +9,7 @@
   "base_region_mask": "layers/BaseRegion.png",
   "base_region_meaning": "Solid bone coat opacity over the underlying plum or charcoal; white adds bone, black reveals substrate",
   "unity_shader": "Astronomical/Drawn/Surface",
-  "base_region_shader_binding": "_EmissionMap with _PaintEmissionBlend=1 and emission strength 0; alternate bone coat supplied as linear color",
+  "base_region_shader_binding": "_PaintRegionMask0 RG = substrate complement, original BaseRegion; region colors blend beneath shadow/light/ink",
   "shader_shadow_color": [
     0.78,
     0.74,
@@ -22,7 +22,7 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "detail-blender-review",
+  "status": "unity-visual-review",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
@@ -47,8 +47,9 @@
   ],
   "deferred_checks": [
     "flight approval",
-    "Unity BaseRegion binding",
-    "in-game paint review"
+    "gameplay chassis integration",
+    "in-game bloom and scale review",
+    "breakup"
   ],
   "constant_material_shadow_strength": 0.65,
   "ink_mask": "layers/Ink.png",
@@ -56,7 +57,7 @@
   "generator_settings": "paint.json",
   "baseline": "layers/baseline",
   "geometry_lock_status": "Owner-authorized texture fingerprint; flight approval pending",
-  "unity_bundle_status": "Generated bundle is not production-ready: it lacks the existing BaseRegion coat binding. Do not replace gameplay materials with it.",
+  "unity_bundle_status": "Unity visual prefab bound and rendered; retain packed coat weights and independent DetailEmission when regenerating",
   "paint_space": "signed",
   "generator_revision": "a21a67317",
   "uv_changes": [
@@ -71,6 +72,6 @@
     "color_srgb": "#E2B9FA",
     "preview_strength": 1.15,
     "method": "Independent owner-authored coverage, outside the generated mask set; keep its image and material binding across regeneration",
-    "unity_status": "Emission binding pending together with BaseRegion integration"
+    "unity_status": "DetailEmission bound independently to _EmissionMap; painted lilac indicators, final bloom tuning pending"
   }
 }
