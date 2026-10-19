@@ -192,7 +192,8 @@ class Part:
         self.areas = ship_source.read_array(mesh.polygons, "area", np.float64)
         self.material_index = ship_source.read_array(mesh.polygons, "material_index", np.int32)
         self.thickness = self._thickness()
-        self.caps = self._caps(paint["plates"]["cap_facing"])
+        angle = np.deg2rad(paint["sweep"]["angle_deg"]) if paint.get("paint_space") == "signed" else None
+        self.caps = self._caps(paint["plates"]["cap_facing"], angle)
 
     def _thickness(self):
         thickest = 0.0
@@ -202,7 +203,7 @@ class Part:
             thickest = max(thickest, float(extent.min()))
         return thickest
 
-    def _caps(self, cap_facing):
+    def _caps(self, cap_facing, angle):
         caps = []
         candidates = [i for i in range(len(self.faces)) if abs(self.normals[i][2]) >= cap_facing]
         faces = [self.faces[i] for i in candidates]
@@ -226,6 +227,16 @@ class Part:
             caps.append({"bounds": (low, high), "edges": edges, "indices": indices,
                          "sweep_x": (sweep_low, max(abs(low[0]), abs(high[0]))),
                          "faces": len(indices), "area": area})
+            if angle is not None:
+                self.mesh.calc_loop_triangles()
+                members = set(indices)
+                triangles = [t for t in self.mesh.loop_triangles if t.polygon_index in members]
+                centers = np.array([self.co[list(t.vertices), :2].mean(axis=0) for t in triangles])
+                centroid = np.average(centers, axis=0, weights=[t.area for t in triangles])
+                direction = np.array([np.sin(angle), np.cos(angle)])
+                center = float(centroid @ direction)
+                radius = float(np.max(np.abs(xy @ direction - center)))
+                caps[-1]["sweep_projection"] = (center, radius)
         return caps
 
 
@@ -235,8 +246,9 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
     geometry = g.node("ShaderNodeNewGeometry")
     x, y, z = g.separate(geometry.outputs["Position"])
     ax = g.math("ABSOLUTE", x)
-    folded = g.combine(ax, y, z)
-    brush = g.brush(brush_image, folded, paint["brush"]["scale"], paint["brush"]["blend"])
+    signed = paint.get("paint_space") == "signed"
+    coordinates = g.combine(x if signed else ax, y, z)
+    brush = g.brush(brush_image, coordinates, paint["brush"]["scale"], paint["brush"]["blend"])
     factor = g.math("MULTIPLY_ADD", g.math("SUBTRACT", brush, BRUSH_MID), paint["brush"]["contrast"], 1.0)
     brush_dark = g.math("MAXIMUM", g.math("SUBTRACT", 1.0, factor), 0.0)
     brush_light = g.math("MAXIMUM", g.math("SUBTRACT", factor, 1.0), 0.0)
@@ -246,11 +258,17 @@ def build_material(part, cap, region, flags, paint, brush_image, base, emission_
     shadow_sweep, light_sweep = 0.0, 0.0
     if flags["sweep"] and cap:
         sweep = paint["sweep"]
-        (_, miny), (_, maxy) = cap["bounds"]
-        minx, maxx = cap["sweep_x"]
-        sx = g.math("DIVIDE", g.math("SUBTRACT", ax, float(minx)), max(float(maxx - minx), 1e-3))
-        sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
-        s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
+        if signed:
+            angle = np.deg2rad(sweep["angle_deg"])
+            center, radius = cap["sweep_projection"]
+            projection = g.vector("DOT_PRODUCT", coordinates, (float(np.sin(angle)), float(np.cos(angle)), 0.0))
+            s = g.math("ADD", 0.5, g.math("DIVIDE", g.math("SUBTRACT", projection, center), 2 * radius))
+        else:
+            (_, miny), (_, maxy) = cap["bounds"]
+            minx, maxx = cap["sweep_x"]
+            sx = g.math("DIVIDE", g.math("SUBTRACT", ax, float(minx)), max(float(maxx - minx), 1e-3))
+            sy = g.math("DIVIDE", g.math("SUBTRACT", y, float(miny)), max(float(maxy - miny), 1e-3))
+            s = g.math("MULTIPLY_ADD", sx, sweep["weight_x"], g.math("MULTIPLY", sy, 1.0 - sweep["weight_x"]))
         s = g.math("MULTIPLY_ADD", g.math("SUBTRACT", brush, 0.65), sweep["jitter"], s)
         shadow_sweep = g.math("MULTIPLY", g.math("LESS_THAN", s, paint["shadow_coverage"]), paint["shadow_depth"])
         light_sweep = g.math("MULTIPLY", g.math("GREATER_THAN", s, sweep["light_above"]), sweep["light"])
@@ -449,6 +467,11 @@ def main(argv):
     size = ship["texture_size"]
     colours = palettes["palettes"][palette]
     margin = max(2, round(SEED_MARGIN * size / SEED_SIZE))
+    if paint.get("paint_space") == "signed":
+        try:
+            ship_regions.require_independent_sides(parts, size, contract.PAINT_UV)
+        except ValueError as error:
+            raise report.refuse(str(error), trailers)
     authored_masks = (ship_regions.rasterize(parts, authored["marks"], region_names, size, margin, contract.PAINT_UV)
                       if authored is not None else {})
     graphs, objects = {}, []

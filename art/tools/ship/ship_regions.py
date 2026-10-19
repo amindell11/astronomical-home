@@ -129,32 +129,48 @@ def coverage(mark, points, normal_z):
     return hit
 
 
+def surface_samples(part, size, uv_name, tolerance=-1e-6):
+    mesh = part.mesh
+    mesh.calc_loop_triangles()
+    uv = mesh.uv_layers[uv_name].uv
+    for triangle in mesh.loop_triangles:
+        coords = np.array([uv[i].vector[:] for i in triangle.loops]) * size
+        low = np.maximum(np.floor(coords.min(axis=0)).astype(int), 0)
+        high = np.minimum(np.ceil(coords.max(axis=0)).astype(int), size - 1)
+        if np.any(high < low):
+            continue
+        gx, gy = np.meshgrid(np.arange(low[0], high[0] + 1) + .5, np.arange(low[1], high[1] + 1) + .5)
+        a, b, c = coords
+        den = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
+        if abs(den) < 1e-12:
+            continue
+        u = ((b[1] - c[1]) * (gx - c[0]) + (c[0] - b[0]) * (gy - c[1])) / den
+        v = ((c[1] - a[1]) * (gx - c[0]) + (a[0] - c[0]) * (gy - c[1])) / den
+        inside = (u >= tolerance) & (v >= tolerance) & (1 - u - v >= tolerance)
+        if not inside.any():
+            continue
+        points = np.column_stack([u[inside], v[inside], (1 - u - v)[inside]]) @ part.co[list(triangle.vertices)]
+        yield triangle, gx[inside].astype(int), gy[inside].astype(int), points
+
+
+def require_independent_sides(parts, size, uv_name):
+    occupied = np.zeros((size, size), np.uint8)
+    for name, part in parts.items():
+        for triangle, xs, ys, points in surface_samples(part, size, uv_name, tolerance=1e-6):
+            sides = (points[:, 0] < 0).astype(np.uint8) + 2 * (points[:, 0] > 0).astype(np.uint8)
+            combined = occupied[ys, xs] | sides
+            if (combined == 3).any():
+                raise ValueError(f"paint_space signed requires independent sides: {name} face {triangle.polygon_index} shares UVs")
+            occupied[ys, xs] = combined
+
+
 def rasterize(parts, marks, names, size, margin, uv_name):
     indices = {name: index for index, name in enumerate(names)}
     packed = [np.zeros((size, size, 4), np.uint8) for _ in range((len(names) + 3) // 4)]
     filled = np.zeros((size, size), bool)
     for name, part in parts.items():
-        mesh = part.mesh
-        mesh.calc_loop_triangles()
-        uv = mesh.uv_layers[uv_name].uv
         authored = [mark for mark in marks if name in mark["parts"]]
-        for triangle in mesh.loop_triangles:
-            coords = np.array([uv[i].vector[:] for i in triangle.loops]) * size
-            low = np.maximum(np.floor(coords.min(axis=0)).astype(int), 0)
-            high = np.minimum(np.ceil(coords.max(axis=0)).astype(int), size - 1)
-            if np.any(high < low):
-                continue
-            gx, gy = np.meshgrid(np.arange(low[0], high[0] + 1) + .5, np.arange(low[1], high[1] + 1) + .5)
-            a, b, c = coords
-            den = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
-            if abs(den) < 1e-12:
-                continue
-            u = ((b[1] - c[1]) * (gx - c[0]) + (c[0] - b[0]) * (gy - c[1])) / den
-            v = ((c[1] - a[1]) * (gx - c[0]) + (a[0] - c[0]) * (gy - c[1])) / den
-            inside = (u >= -1e-6) & (v >= -1e-6) & (1 - u - v >= -1e-6)
-            if not inside.any():
-                continue
-            points = np.column_stack([u[inside], v[inside], (1 - u - v)[inside]]) @ part.co[list(triangle.vertices)]
+        for triangle, xs, ys, points in surface_samples(part, size, uv_name):
             weights = np.zeros((len(points), len(names)), np.float32)
             region = part.materials[int(part.material_index[triangle.polygon_index])].name
             weights[:, indices[region]] = 1
@@ -163,7 +179,6 @@ def rasterize(parts, marks, names, size, margin, uv_name):
                 hit = coverage(mark, points, normal_z)
                 weights[hit] *= 1 - mark["opacity"]
                 weights[hit, indices[mark["region"]]] += mark["opacity"]
-            xs, ys = gx[inside].astype(int), gy[inside].astype(int)
             quantized = np.rint(weights * 255).astype(np.uint8)
             for index in range(len(names)):
                 packed[index // 4][ys, xs, index % 4] = quantized[:, index]

@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "paint_space": "signed",
   "authored_regions": "regions.json",
   "brush": {
     "image": "../crimson/textures/painted-brush-source.png",
@@ -25,7 +26,7 @@
   "shadow_depth": 0.39,
   "side_wall_depth": 1.0,
   "sweep": {
-    "weight_x": 0.65,
+    "angle_deg": 30,
     "light_above": 0.66,
     "jitter": 0.5,
     "light": 1.0

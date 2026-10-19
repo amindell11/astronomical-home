@@ -40,7 +40,8 @@ the worked example of the storage (`art/ships/valis/README.md`); Crimson is the 
   side walls darken by their facing (Shadow).
 - An inset ink line inside every plate boundary (Ink) with a bright rim just inside it
   (Light); thin walls fully inked.
-- A quiet world-space brush tile, mirrored across X, in Shadow and Light at low contrast.
+- A quiet world-space brush tile in Shadow and Light. Use signed paint coordinates for
+  independent UV charts; folded coordinates preserve shared-UV ships. See the paint settings.
 - Named `canopy_glass` and `canopy_frames` parts keep only their palette colour;
   reflections are owner mask edits, preserved across re-runs.
 - A short list of accents placed by coordinates for indicator lights and emission.

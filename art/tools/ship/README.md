@@ -79,12 +79,20 @@ naming the same regions. Regions come from material slots and optional authored 
 ```
 
 - **Geometry.** Evaluated parts stay in signed symmetry-origin space. Boundary distances never
-  fold X; brush and sweep sampling use |x| so mirrored shared UVs receive the same paint.
+  fold X. Optional `paint_space` selects `folded` (the default) or `signed` brush/sweep coordinates.
+  Folded sampling uses |x| so shared mirrored UVs receive the same paint.
   Lengths are source units. The Cycles seed is fixed at zero.
+- **Independent paint.** `paint_space: "signed"` samples the brush continuously across X and
+  replaces `sweep.weight_x` with `sweep.angle_deg` (-180..180, measured from +Y toward +X).
+  Each cap's sweep is centered on its area centroid along that direction and normalized by
+  its furthest projected vertex. Thresholds describe position, not a guaranteed fraction of area.
+  Signed mode refuses texel centers shared by triangle interiors on opposite sides before writing masks;
+  it needs independent UV space for left and right paint. Facing shadows and accents keep
+  their existing rules. The folded mode's settings and generation remain unchanged.
 - **Plate.** Each connected group of faces with |n*z| >= `plates.cap_facing` has its own
   boundary. Only those faces receive that boundary's inset ink (`ink.inset`) and inner rim
   (`ink.rim`, Shadow 0, Light `ink.rim_light`) when their region enables `plate`.
-  `sweep` adds diagonal thirds on those cap faces: `s = weight_x*sx + (1-weight_x)*sy +
+  In folded mode, `sweep` adds diagonal bands on those cap faces: `s = weight_x*sx + (1-weight_x)*sy +
   jitter*(brush - 0.65)`; `s < shadow_coverage` adds Shadow `shadow_depth`, and `s > light_above`
   sets Light `light`. `ink_walls` inks faces with |n*z| < `ink.wall_facing` on parts
   thinner than `plates.thin_wall` (each connected piece's smallest axis extent is below it).

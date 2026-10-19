@@ -190,7 +190,11 @@ def parse_palettes(value):
 
 def parse_paint(value):
     """Validate paint.json, the per-ship knobs of ship_paint; unknown fields and keys are rejected."""
-    _fields(value, PAINT_FIELDS + (("authored_regions",) if "authored_regions" in value else ()), "paint.json")
+    optional = tuple(key for key in ("authored_regions", "paint_space") if key in value)
+    _fields(value, PAINT_FIELDS + optional, "paint.json")
+    space = value.get("paint_space", "folded")
+    if space not in ("folded", "signed"):
+        raise ValueError("paint_space: expected folded or signed")
     if "authored_regions" in value:
         _text(value["authored_regions"], "authored_regions")
     assigned = set()
@@ -224,8 +228,11 @@ def parse_paint(value):
             raise ValueError("ramp: expected strictly increasing facings")
         previous = facing
     sweep = value["sweep"]
-    _fields(sweep, SWEEP_FIELDS, "sweep")
-    for key in SWEEP_FIELDS:
+    direction = "angle_deg" if space == "signed" else "weight_x"
+    _fields(sweep, (direction, "light_above", "jitter", "light"), "sweep")
+    _number(sweep[direction], f"sweep.{direction}", -180 if space == "signed" else 0,
+            180 if space == "signed" else 1)
+    for key in ("light_above", "jitter", "light"):
         _number(sweep[key], f"sweep.{key}", 0, 1 if key != "jitter" else None)
     for key in ("shadow_coverage", "shadow_depth", "side_wall_depth"):
         _number(value[key], key, 0, 1)

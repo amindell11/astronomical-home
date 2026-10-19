@@ -2,6 +2,7 @@ import copy
 from pathlib import Path
 import sys
 import unittest
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -15,6 +16,27 @@ def mark(shape, **changes):
 
 
 class AuthoredRegionTests(unittest.TestCase):
+    def test_independent_sides_detects_shared_uvs_in_center_crossing_faces(self):
+        def panel(xs, offset=0):
+            coords = [(offset, 0), (offset + .4, 0), (offset + .4, .4), (offset, .4)]
+            uv = SimpleNamespace(uv=[SimpleNamespace(vector=p) for p in coords])
+            triangles = [SimpleNamespace(loops=t, vertices=t, polygon_index=0)
+                         for t in ((0, 1, 2), (0, 2, 3))]
+            mesh = SimpleNamespace(uv_layers={"PaintUV": uv}, loop_triangles=triangles,
+                                   calc_loop_triangles=lambda: None)
+            return SimpleNamespace(mesh=mesh, co=np.array([(x, y, 0) for x, y in zip(xs, (0, 0, 1, 1))]))
+
+        center = panel([-1, 1, 1, -1])
+        regions.require_independent_sides({"Center": center}, 64, "PaintUV")
+        mirrored = panel([1, -1, -1, 1])
+        with self.assertRaisesRegex(ValueError, "independent sides"):
+            regions.require_independent_sides({"Center": center, "Mirror": mirrored}, 64, "PaintUV")
+        left, right = panel([-2, -1, -1, -2]), panel([1, 2, 2, 1], .5)
+        regions.require_independent_sides({"Left": left, "Right": right}, 64, "PaintUV")
+        with self.assertRaisesRegex(ValueError, "independent sides"):
+            regions.require_independent_sides({"Left": left, "Right": panel([1, 2, 2, 1])}, 64, "PaintUV")
+        regions.require_independent_sides({"Left": left, "Same side": left}, 64, "PaintUV")
+
     def test_shapes_keep_signed_and_mirrored_placement(self):
         points = np.array([[-.5, 0, 0], [.5, 0, 0], [.5, .5, 0], [1.5, 0, 0]])
         rectangle = {"kind": "polygon", "points": [[.2, -.2], [.8, -.2], [.8, .2], [.2, .2]]}
