@@ -24,11 +24,11 @@ namespace Game
     /// <summary>
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
-    /// observer camera) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
+    /// observer and hangar cameras) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
     /// sector, play until the sector ends or the player dies, run record, death recap, unload. It owns the
     /// clock, splash, hangar, run record, recap, restart, kill refill and the one EventSystem; the session only composes,
-    /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer
-    /// camera), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
+    /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer and
+    /// hangar cameras), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
     /// The hangar, recap and restart stand in for Home Base, multi-sector runs and player progress;
     /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
@@ -63,6 +63,11 @@ namespace Game
                  "applied silently).")]
         [SerializeField] internal HangarScreen hangarScreenPrefab;
 
+        [Tooltip("Camera that shows the sky behind the hangar in place of the observer camera, drifting " +
+                 "so its layers parallax. Null → the hangar shows the observer camera's view. Skipped " +
+                 "when presentation is off.")]
+        [SerializeField] internal DriftCam hangarCameraPrefab;
+
         [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
                  "prefab-authored modules).")]
         [SerializeField] internal ItemSubset hangarOffer;
@@ -95,6 +100,7 @@ namespace Game
 
         private Session session;
         private ObserverCam observer;
+        private DriftCam hangarCamera;
         private PlayerRig rigInstance;
         private LoadingSplash splash;
 
@@ -135,6 +141,11 @@ namespace Game
 
             yield return session.Compose();
             observer = BuildObserver(session.Units, presentation, viewport);
+            if (hangarCameraPrefab && presentation)
+            {
+                hangarCamera = Instantiate(hangarCameraPrefab, viewport);
+                SetHangarViewVisible(false);
+            }
             if (playerRig)
             {
                 // An asset gets no lifecycle, and state parked on it would outlive the session.
@@ -148,7 +159,11 @@ namespace Game
             {
                 SetSplashVisible(false);
                 if (rigInstance)
+                {
+                    SetHangarViewVisible(true);
                     yield return RunHangar(rigInstance, presentation, ui);
+                    SetHangarViewVisible(false);
+                }
 
                 SetSplashVisible(true);
                 playerDied = false;
@@ -191,6 +206,13 @@ namespace Game
         private void SetSplashVisible(bool visible)
         {
             if (splash) splash.SetVisible(visible);
+        }
+
+        private void SetHangarViewVisible(bool visible)
+        {
+            if (!hangarCamera) return;
+            hangarCamera.gameObject.SetActive(visible);
+            observer.SetVisible(!visible);
         }
 
         /// <summary>Stays callable without a session so the presentation gate can be driven directly.</summary>

@@ -89,7 +89,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
-| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
 | **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
@@ -537,7 +537,8 @@ Format: **term** — definition. *(authority)*
   composes the same per-ship services through `ShipServices.Compose`.
 - **host** — the scene entry point that owns pacing and lifecycle for one
   client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
-  observer camera, with the starfield backdrop and reverb zone riding it) and
+  observer camera, with the starfield backdrop and reverb zone riding it, and
+  the hangar camera that stands in for it behind the hangar) and
   the optional *player rig*, and owns the clock, hangar, death recap and reset
   policy over one `Session`; the *harness host* (`HarnessHost`) sequences
   compositions and episode blocks for a lane client; the *training host*
