@@ -8,20 +8,15 @@ using UnityEngine;
 namespace UI.Hangar
 {
     /// <summary>
-    /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig onto a spinning
-    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer. Every offered
+    /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig for flight motion
+    /// and renders it to a RenderTexture on the isolated ShipPreview layer. Every offered
     /// ship is framed from one camera distance — the largest ship's fit — so hull sizes compare.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
-        // Same plane-dweller convention as the arena (GamePlane.PlanePose): normal away from the
-        // viewer (world-down), nose screen-right — world-Y anchor spin is then true in-plane yaw.
         private static readonly Quaternion BaseOrientation =
-            Substrate.GamePlane.PlanePose(Vector3.down, Vector3.right);
+            Substrate.GamePlane.PlanePose(Vector3.down, new Vector3(-.32f, 0f, -1f));
 
-        private const float IdleSpinDegPerSec = 20f;
-        private const float PopOutSeconds = 0.12f;
-        private const float PopInSeconds = 0.25f;
         private const float CameraFovDeg = 30f;
         private const int MaxTextureSize = 2048;
         private const int TextureMsaa = 4;
@@ -30,31 +25,22 @@ namespace UI.Hangar
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
-        // EaseOutBack (k = 1.70158) peaks ~10% past target scale mid-pop-in.
-        internal const float PopInOvershoot = 1.101f;
-
-        private bool continueSpinOnSwitch;
         private Camera stageCamera;
         private Transform anchor;
         private RenderTexture texture;
-        private Transform current;
-        private Transform retiring;
-        private Vector3 currentTargetScale;
-        private Vector3 retiringStartScale;
-        private float popInT = 1f;
-        private float popOutT = 1f;
+        private HangarPreviewFlight current;
+        private HangarPreviewFlight retiring;
         private float sharedCameraDistance;
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(bool continueSpinOnSwitch, Transform parent, int texturePixels,
+        public static HangarPreviewStage Create(Transform parent, int texturePixels,
             IEnumerable<Ship> offeredShips)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
-            stage.continueSpinOnSwitch = continueSpinOnSwitch;
             stage.BuildStage(texturePixels);
             stage.sharedCameraDistance = stage.LargestFramingDistance(offeredShips);
             return stage;
@@ -129,7 +115,7 @@ namespace UI.Hangar
         }
 
         // Contour width is in render-target pixels; scaling with the texture holds on-screen ink weight.
-        private void ScaleInk(Transform rig)
+        private void ScaleInk(Component rig)
         {
             if (!rig) return;
             var scale = texture.width / InkReferenceTextureSize;
@@ -147,13 +133,11 @@ namespace UI.Hangar
             }
         }
 
-        /// <summary>Swap the preview to the loadout's ship. A null ship (or rigless ship) clears the stage.</summary>
-        public void Show(ShipLoadout loadout)
+        public void Show(ShipLoadout loadout, bool backwards)
         {
             if (retiring) Destroy(retiring.gameObject);
             retiring = current;
-            retiringStartScale = retiring ? retiring.localScale : Vector3.zero;
-            popOutT = retiring ? 0f : 1f;
+            if (retiring) retiring.Depart(backwards);
             current = null;
 
             var ship = loadout?.Ship;
@@ -167,21 +151,15 @@ namespace UI.Hangar
             SetLayerRecursive(root, gameObject.layer);
             ScaleInk(root);
 
-            // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
-            // full in-prefab scale. Under the spinning anchor, BaseOrientation as LOCAL rotation
-            // inherits the current spin phase (turntable continues through a switch); countering the
-            // anchor makes the ship enter at the canonical pose instead.
-            root.localPosition = Vector3.zero;
-            root.localRotation = continueSpinOnSwitch
-                ? BaseOrientation
-                : Quaternion.Inverse(anchor.rotation) * BaseOrientation;
-            currentTargetScale = rigTemplate.transform.lossyScale;
-            root.localScale = Vector3.zero;
+            // Include the prefab root's scale, which the visual-only clone leaves behind.
+            root.localScale = rigTemplate.transform.lossyScale;
 
             FrameCamera(rigTemplate);
 
-            current = root;
-            popInT = 0f;
+            current = root.gameObject.AddComponent<HangarPreviewFlight>();
+            var radius = Vector3.Distance(stageCamera.transform.position, anchor.position)
+                * Mathf.Sin(CameraFovDeg * .5f * Mathf.Deg2Rad) / FramingMargin;
+            current.Initialize(radius, BaseOrientation, retiring, backwards);
         }
 
         private void FrameCamera(ShipVisualRig rigTemplate)
@@ -195,13 +173,12 @@ namespace UI.Hangar
             stageCamera.transform.LookAt(focus);
         }
 
-        // Stored mesh bounds posed at peak pop-in scale and canonical pose, independent of spin phase.
         private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
         {
             var rig = rigTemplate.transform;
-            var peakPose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
-                Quaternion.Inverse(anchor.rotation) * BaseOrientation, rig.lossyScale * PopInOvershoot);
-            var templateToPeak = peakPose * rig.worldToLocalMatrix;
+            var pose = anchor.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero,
+                BaseOrientation, rig.lossyScale);
+            var templateToPose = pose * rig.worldToLocalMatrix;
             var bounds = new Bounds(anchor.position, Vector3.one);
             foreach (var r in rigTemplate.Silhouette)
             {
@@ -210,68 +187,37 @@ namespace UI.Hangar
                 var (local, space) = skinned
                     ? (skinned.localBounds, skinned.rootBone ? skinned.rootBone : skinned.transform)
                     : (r.localBounds, r.transform);
-                var toPeak = templateToPeak * space.localToWorldMatrix;
+                var toPose = templateToPose * space.localToWorldMatrix;
                 for (var x = -1; x <= 1; x += 2)
                 for (var y = -1; y <= 1; y += 2)
                 for (var z = -1; z <= 1; z += 2)
-                    bounds.Encapsulate(toPeak.MultiplyPoint3x4(
+                    bounds.Encapsulate(toPose.MultiplyPoint3x4(
                         local.center + Vector3.Scale(local.extents, new Vector3(x, y, z))));
             }
             return bounds;
         }
 
-        // The turntable spins the hull about the anchor's vertical axis, so the camera must clear
-        // the volume swept over a full revolution — the enclosing sphere of every corner's spin
-        // circle — fit with sin (a tan fit clips whatever pokes nearer than the focus plane).
+        // An anchor-centered sphere covers banking too; the margin leaves room for idle drift.
         internal static (Vector3 focus, float distance) SolveFraming(
             Bounds bounds, Vector3 anchorPosition, float fovDeg)
         {
-            var spinRadiusSq = 0f;
+            var planarRadiusSq = 0f;
             for (var x = -1; x <= 1; x += 2)
             for (var z = -1; z <= 1; z += 2)
             {
                 var corner = new Vector2(
                     bounds.center.x - anchorPosition.x + x * bounds.extents.x,
                     bounds.center.z - anchorPosition.z + z * bounds.extents.z);
-                spinRadiusSq = Mathf.Max(spinRadiusSq, corner.sqrMagnitude);
+                planarRadiusSq = Mathf.Max(planarRadiusSq, corner.sqrMagnitude);
             }
             var radius = Mathf.Max(
-                Mathf.Sqrt(spinRadiusSq + bounds.extents.y * bounds.extents.y), MinFramedRadius);
+                Mathf.Sqrt(planarRadiusSq + Mathf.Pow(Mathf.Abs(bounds.center.y - anchorPosition.y) + bounds.extents.y, 2f)),
+                MinFramedRadius);
             var distance = radius * FramingMargin / Mathf.Sin(fovDeg * 0.5f * Mathf.Deg2Rad);
-            var focus = new Vector3(anchorPosition.x, bounds.center.y, anchorPosition.z);
-            return (focus, distance);
+            return (anchorPosition, distance);
         }
 
-        private void Update()
-        {
-            anchor.Rotate(0f, IdleSpinDegPerSec * Time.deltaTime, 0f, Space.World);
-
-            if (popOutT < 1f && retiring)
-            {
-                popOutT = Mathf.Min(1f, popOutT + Time.deltaTime / PopOutSeconds);
-                retiring.localScale = Vector3.Lerp(retiringStartScale, Vector3.zero, popOutT);
-                if (popOutT >= 1f)
-                {
-                    Destroy(retiring.gameObject);
-                    retiring = null;
-                }
-            }
-
-            if (popInT < 1f && current)
-            {
-                popInT = Mathf.Min(1f, popInT + Time.deltaTime / PopInSeconds);
-                current.localScale = currentTargetScale * EaseOutBack(popInT);
-            }
-        }
-
-        internal static float EaseOutBack(float t)
-        {
-            const float k = 1.70158f;
-            t -= 1f;
-            return 1f + t * t * ((k + 1f) * t + k);
-        }
-
-        // Thruster particles stay but are dormant — the preview never binds a ShipView.
+        // Thrusters remain dormant; only wings receive preview flight input.
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
