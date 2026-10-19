@@ -57,13 +57,13 @@ namespace UI.Hangar
                 previewStage = HangarPreviewStage.Create(transform.parent, PreviewPixels(),
                     offer ? offer.ships : Array.Empty<Ship>());
                 previewImage.texture = previewStage.Texture;
-                previewStage.Show(loadout);
+                previewStage.Show(loadout, backwards: false);
             }
 
             if (offer)
             {
                 // Picking a ship reseeds the module slots to that ship's authored kit.
-                BindRow(shipRow, offer.ships, () => loadout.Ship, s =>
+                BindRow(shipRow, offer.ships, () => loadout.Ship, (s, step) =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
@@ -71,14 +71,14 @@ namespace UI.Hangar
                     var mounts = s.Weapons;
                     loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
-                    if (previewStage) previewStage.Show(loadout);
+                    if (previewStage) previewStage.Show(loadout, backwards: step < 0);
                 }, Describe);
-                BindRow(engineRow, offer.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
-                BindRow(shieldRow, offer.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BindRow(engineRow, offer.engines, () => loadout.Engine, (m, _) => loadout.Engine = m, Describe);
+                BindRow(shieldRow, offer.shields, () => loadout.Shield, (m, _) => loadout.Shield = m, Describe);
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
-                    w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
+                    (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
                 BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
-                    w => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
+                    (w, _) => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
             Refresh();
@@ -106,7 +106,7 @@ namespace UI.Hangar
             return Mathf.CeilToInt(Mathf.Max(size.x, size.y));
         }
 
-        private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T> setCurrent,
+        private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T, int> setCurrent,
             Func<T, string> describe, Func<T, string> label = null)
             where T : UnityEngine.Object
         {
@@ -122,7 +122,7 @@ namespace UI.Hangar
                     var i = options.IndexOf(getCurrent());
                     // A pick from outside the offer enters the cycle at whichever end the step points to.
                     if (i < 0 && step < 0) i = options.Count;
-                    setCurrent(options[(i + step + options.Count) % options.Count]);
+                    setCurrent(options[(i + step + options.Count) % options.Count], step);
                     Refresh();
                 };
 

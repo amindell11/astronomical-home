@@ -133,11 +133,11 @@ namespace UI.Hangar
             }
         }
 
-        public void Show(ShipLoadout loadout)
+        public void Show(ShipLoadout loadout, bool backwards)
         {
             if (retiring) Destroy(retiring.gameObject);
             retiring = current;
-            if (retiring) retiring.Depart();
+            if (retiring) retiring.Depart(backwards);
             current = null;
 
             var ship = loadout?.Ship;
@@ -159,7 +159,7 @@ namespace UI.Hangar
             current = root.gameObject.AddComponent<HangarPreviewFlight>();
             var radius = Vector3.Distance(stageCamera.transform.position, anchor.position)
                 * Mathf.Sin(CameraFovDeg * .5f * Mathf.Deg2Rad) / FramingMargin;
-            current.Initialize(radius, BaseOrientation, retiring);
+            current.Initialize(radius, BaseOrientation, retiring, backwards);
         }
 
         private void FrameCamera(ShipVisualRig rigTemplate)

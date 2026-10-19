@@ -17,6 +17,8 @@ namespace Tests.PlayMode.Hangar
         private HangarPreviewStage stage;
         private Ship valis;
         private Ship nightshade;
+        private GameObject screenRoot;
+        private ItemSubset offer;
 
         [SetUp]
         public void SetUp()
@@ -27,7 +29,44 @@ namespace Tests.PlayMode.Hangar
         }
 
         [TearDown]
-        public void TearDown() => Object.Destroy(stage.gameObject);
+        public void TearDown()
+        {
+            if (stage) Object.Destroy(stage.gameObject);
+            if (screenRoot) Object.Destroy(screenRoot);
+            if (offer) Object.Destroy(offer);
+        }
+
+        [UnityTest]
+        public IEnumerator ArrowButtons_MirrorTheHandoff_IncludingListWrap()
+        {
+            Object.DestroyImmediate(stage.gameObject);
+            screenRoot = new GameObject("ScreenRoot");
+            var prefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
+            var screen = Object.Instantiate(prefab, screenRoot.transform);
+            offer = ScriptableObject.CreateInstance<ItemSubset>();
+            offer.ships = new[] { valis, nightshade };
+            var loadout = new ShipLoadout(valis, null, null, null, null);
+            screen.Show(offer, loadout, null);
+            stage = screenRoot.GetComponentInChildren<HangarPreviewStage>();
+            yield return new WaitForSeconds(1.4f);
+
+            foreach (var backwards in new[] { false, false, true, true })
+            {
+                var outgoing = stage.GetComponentInChildren<HangarPreviewFlight>().transform;
+                var start = outgoing.localPosition;
+                var button = backwards ? screen.shipRow.previousButton : screen.shipRow.nextButton;
+                button.onClick.Invoke();
+                var incoming = stage.GetComponentsInChildren<HangarPreviewFlight>().Single(f => f.transform != outgoing);
+                var direction = backwards ? -1f : 1f;
+                Assert.That(incoming.transform.localPosition.x * direction, Is.GreaterThan(0f),
+                    backwards ? "Previous enters from the left" : "Next enters from the right");
+                Assert.That(incoming.name, Is.EqualTo(loadout.Ship.name + "_Preview"));
+                Assert.That(outgoing.localPosition, Is.EqualTo(start));
+                yield return new WaitForSeconds(.3f);
+                Assert.That((outgoing.localPosition.x - start.x) * direction, Is.LessThan(0f));
+                yield return new WaitForSeconds(.8f);
+            }
+        }
 
         [UnityTest]
         public IEnumerator Arrival_FacesViewer_AndUsesValisWingSweep()
@@ -79,7 +118,7 @@ namespace Tests.PlayMode.Hangar
         {
             foreach (var ship in new[] { valis, nightshade, valis, nightshade, valis })
             {
-                Show(ship);
+                Show(ship, backwards: ship == valis);
                 yield return new WaitForSeconds(.1f);
                 Assert.That(stage.GetComponentsInChildren<HangarPreviewFlight>().Length, Is.LessThanOrEqualTo(2));
             }
@@ -93,7 +132,8 @@ namespace Tests.PlayMode.Hangar
             Assert.That(center.y, Is.InRange(.45f, .55f));
         }
 
-        private void Show(Ship ship) => stage.Show(new ShipLoadout(ship, null, null, null, null));
+        private void Show(Ship ship, bool backwards = false) =>
+            stage.Show(new ShipLoadout(ship, null, null, null, null), backwards);
     }
 }
 #endif
