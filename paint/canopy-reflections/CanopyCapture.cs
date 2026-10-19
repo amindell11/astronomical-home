@@ -94,8 +94,26 @@ public static class CanopyCapture
 
     public static string FirstMotion() { return Motion(0, 60); }
     public static string LastMotion() { return Motion(60, 60); }
+    public static string FirstExtreme() { return Motion(0, 80, true); }
+    public static string LastExtreme() { return Motion(80, 80, true); }
+    public static string GlintsOff()
+    {
+        Setup();
+        var canopy = GameObject.Find("Nightshade").GetComponentsInChildren<Renderer>().First(r => r.name == "Canopy");
+        var original = canopy.sharedMaterial;
+        var without = new Material(original);
+        without.SetVector("_SecondaryGlintLeft", new Vector4(.5f, .5f, 1, 0));
+        without.SetVector("_SecondaryGlintRight", new Vector4(.5f, .5f, 1, 0));
+        canopy.sharedMaterial = without;
+        try { return Motion(0, 80, true, "accents-off"); }
+        finally
+        {
+            canopy.sharedMaterial = original;
+            UnityEngine.Object.DestroyImmediate(without);
+        }
+    }
 
-    public static string Motion(int first, int count)
+    public static string Motion(int first, int count, bool extreme = false, string outputFolder = null)
     {
         string[] names = { "Crimson", "Nightshade", "Valis", "Vanguard" };
         var ships = names.Select(GameObject.Find).ToArray();
@@ -105,13 +123,16 @@ public static class CanopyCapture
         var sheet = new Texture2D(2048, 640, TextureFormat.RGB24, false);
         camera.orthographicSize = .48f;
         camera.targetTexture = rt;
-        Directory.CreateDirectory(Output + "motion");
+        string folder = outputFolder ?? (extreme ? "extreme" : "motion");
+        Directory.CreateDirectory(Output + folder);
         for (int frame = first; frame < first + count; frame++)
         {
-            float phase = 2 * Mathf.PI * frame / 120;
+            float phase = 2 * Mathf.PI * (extreme ? frame % 80 / 80f : frame / 120f);
             for (int ship = 0; ship < ships.Length; ship++)
             {
-                ships[ship].transform.rotation = Quaternion.Euler(0, Mathf.Sin(phase) * 40, Mathf.Sin(phase * 2) * 35);
+                ships[ship].transform.rotation = extreme
+                    ? Quaternion.Euler(frame >= 80 ? Mathf.Sin(phase) * 65 : 0, frame < 80 ? Mathf.Sin(phase) * 75 : 0, 15)
+                    : Quaternion.Euler(0, Mathf.Sin(phase) * 40, Mathf.Sin(phase * 2) * 35);
                 var renderer = ships[ship].GetComponentsInChildren<Renderer>().First(r =>
                     ship == 0 ? r.name == "Hull" : ship == 2 ? r.name == "Valis" : r.name == "Canopy");
                 var mesh = renderer is SkinnedMeshRenderer skin ? skin.sharedMesh : renderer.GetComponent<MeshFilter>().sharedMesh;
@@ -124,7 +145,7 @@ public static class CanopyCapture
                 sheet.SetPixels(ship * 512, 0, 512, 640, tile.GetPixels());
             }
             sheet.Apply();
-            File.WriteAllBytes(Output + "motion/" + frame.ToString("D3") + ".png", sheet.EncodeToPNG());
+            File.WriteAllBytes(Output + folder + "/" + frame.ToString("D3") + ".png", sheet.EncodeToPNG());
         }
         camera.targetTexture = null;
         RenderTexture.active = null;

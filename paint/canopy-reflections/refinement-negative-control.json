@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-10-19T12:46:31.9036541-07:00",
+  "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "EditMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "PaintedGlass_RemainsFixedWithoutReflections|Crimson_StripesContinuePastGlassAtExtremePitch|Nightshade_SecondaryGlintsEnterDuringRoll|Valis_UnpaintedSideKeepsGlassWithoutInventedReflections",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 9,
+    "passed": 1,
+    "failed": 8,
+    "skipped": 0,
+    "durationSec": 0.49
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 9,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "durationSec": 0.49,
+      "failures": [
+        {
+          "name": "PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/jade-iris.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/jade-iris.mat\")",
+          "durationSec": 0.0756737,
+          "message": "The authored glass color must remain without its glints. Expected: greater than 0.134509757f But was: 0.0392156877f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections (System.String path) [0x000b9] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\D..."
+        },
+        {
+          "name": "PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/jade-gray.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/jade-gray.mat\")",
+          "durationSec": 0.0740687,
+          "message": "The authored glass color must remain without its glints. Expected: greater than 0.182047173f But was: 0.0509803966f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections (System.String path) [0x000b9] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\D..."
+        },
+        {
+          "name": "PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/ivory-lavender.mat\")",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(\"Valis/Canopy/ivory-lavender.mat\")",
+          "durationSec": 0.0685262,
+          "message": "The authored glass color must remain without its glints. Expected: greater than 0.182047173f But was: 0.0509803966f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections (System.String path) [0x000b9] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\D..."
+        },
+        {
+          "name": "Crimson_StripesContinuePastGlassAtExtremePitch(-60)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch(-60)",
+          "durationSec": 0.0381295,
+          "message": "The painted stripes must continue through both ends of the glass. Expected: greater than 0.0299999993f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch (System.Single pitch) [0x0004c] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrat..."
+        },
+        {
+          "name": "Crimson_StripesContinuePastGlassAtExtremePitch(60)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch(60)",
+          "durationSec": 0.0137539,
+          "message": "The painted stripes must continue through both ends of the glass. Expected: greater than 0.0299999993f But was: 0.0f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch (System.Single pitch) [0x0004c] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrat..."
+        },
+        {
+          "name": "Nightshade_SecondaryGlintsEnterDuringRoll(-55)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll(-55)",
+          "durationSec": 0.0335341,
+          "message": "A roll must bring smaller painted glints into view. Expected: greater than 16 But was: 0",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll (System.Single roll) [0x000e4] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\Dra..."
+        },
+        {
+          "name": "Nightshade_SecondaryGlintsEnterDuringRoll(55)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll(55)",
+          "durationSec": 0.0170208,
+          "message": "A roll must bring smaller painted glints into view. Expected: greater than 16 But was: 0",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll (System.Single roll) [0x000e4] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\Dra..."
+        },
+        {
+          "name": "Valis_UnpaintedSideKeepsGlassWithoutInventedReflections",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_UnpaintedSideKeepsGlassWithoutInventedReflections",
+          "durationSec": 0.0411495,
+          "message": "Expected and actual are both <UnityEngine.Color[16384]> Values differ at index [1426] Expected: RGBA(0.031, 0.067, 0.094, 1.000) But was: RGBA(0.016, 0.027, 0.039, 1.000)",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_UnpaintedSideKeepsGlassWithoutInventedReflections () [0x00028] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Rendering\\Illustrated\\DrawnCa..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "PaintedGlass_RemainsFixedWithoutReflections|Crimson_StripesContinuePastGlassAtExtremePitch|Nightshade_SecondaryGlintsEnterDuringRoll|Valis_UnpaintedSideKeepsGlassWithoutInventedReflections",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 21.415,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 42356
+}
