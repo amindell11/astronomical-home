@@ -8,6 +8,7 @@ Unity editor renders of Crimson, Nightshade, Valis and Vanguard, in that order, 
 - [Before / after, bank](comparison-bank.png)
 - [Undersides](underside.png)
 - [42 passing graphics/anatomy checks](tests-passed.json)
+- [8 passing breakup PlayMode checks](breakup-passed.json)
 - [Negative control: the previous planar shader fails all 4 surface-direction checks](planar-negative-control.json)
 - [Earlier motion negative control: disabling translation/shear failed all 7 movement checks before the curvature refinement](motion-disabled-negative-control.json)
 - [Negative control: treating Nightshade glass as a reflection fails the fixed-glass check](moving-glass-negative-control.json)
@@ -26,6 +27,8 @@ Crimson's only source edit is the Canopy material assignment. Its source geometr
 The curvature refinement replaces global translation, shear and width scaling with the change in reflected view direction at each surface normal, relative to its authored local-Z pose. The same bounded mapping drives the recovered artwork and Vanguard's procedural stroke construction. It preserves the drawings at the reference pose while allowing the existing curved/faceted normals to deform their movement. It is stylized reflection mapping, not a scene reflection or ray tracing. Vanguard's mapping intentionally changes in this refinement; the earlier two-pose pixel-equality result no longer describes the current shader.
 
 The old/new comparison uses shader 374b0ef for the top row and 94da014a for the bottom row, with identical ship transforms, camera and lights. No geometry, palette, texture or material data changed in this refinement. Hull-shadow work remains deferred in #1027.
+
+The subsequent integration check caught Nightshade's cockpit debris still using the old static glass. The cockpit surface has exactly the same local canopy bounds, so its material binding now shares the live canopy material; tail glass is unchanged. Valis's breakup continuity test now verifies its required fuselage canopy variant inherits the live material, while retaining exact identity checks for every other slot. All eight breakup PlayMode checks pass, including paint/geometry continuity, three Valis poses, fade/cleanup and revive. [Pre-fix local-coordinate inspection](debris-inspection.json) records why Nightshade can share its material while Valis requires a projection variant.
 
 The targeted tests use URP-HighFidelity. They cover reflection motion on both authored sides, fixed Nightshade glass, Valis material strengths, prefab and debris projection bounds, damage flash/restoration and debris visibility. The new surface-direction test uses two symmetric shading normals with equal light/view response to isolate displacement from brightness. All four cases fail with near-zero displacement on the previous planar shader and pass on the new mapping. Movement is measured from reflection-on minus reflection-off images. These routed tests are local graphics proof, not the full merge suite.
 
