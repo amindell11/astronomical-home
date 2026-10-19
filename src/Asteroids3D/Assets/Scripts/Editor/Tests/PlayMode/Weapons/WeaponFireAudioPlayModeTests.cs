@@ -1,6 +1,8 @@
 #if UNITY_EDITOR && ASTRO_FMOD
 using System.Collections;
+using System.Collections.Generic;
 using Combat.Weapons.Arsenal;
+using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -54,6 +56,60 @@ namespace Tests.PlayMode.Weapons
             Debug.Log($"[FMOD] {RipperFire} instances={instances.Length}");
             Assert.AreEqual(1, instances.Length, "ripper fire instances after one shot");
             AssertPlaying(instances[0], "the shot still sounds a frame later");
+        }
+
+        [UnityTest]
+        public IEnumerator RipperShots_SendFirstShot_OnlyAfterAFiringGap()
+        {
+            var savedCaptureDelta = Time.captureDeltaTime;
+            // One fixed step per frame, so a flushed frame never skips past the cooldown.
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+            try
+            {
+                var rippers = Mount<Rippers>(RippersPrefabPath);
+                var interval = rippers.GetComponent<Cooldown>().SecondsBetweenShots;
+                var times = new List<float>();
+                var firstShots = new List<float>();
+
+                yield return new WaitForFixedUpdate();
+                yield return RipperShot(rippers, times, firstShots);
+                yield return UntilFirable(rippers);
+                yield return RipperShot(rippers, times, firstShots);
+                yield return UntilFirable(rippers);
+                yield return new WaitForFixedUpdate();
+                yield return RipperShot(rippers, times, firstShots);
+
+                Debug.Log($"[FMOD] {RipperFire} shots at {string.Join(", ", times)} FirstShot={string.Join(", ", firstShots)}");
+                var halfStep = Time.fixedDeltaTime * 0.5f;
+                Assert.AreEqual(interval, times[1] - times[0], halfStep, "the second shot is held fire");
+                Assert.AreEqual(interval + Time.fixedDeltaTime, times[2] - times[1], halfStep, "the third shot is one step late");
+                Assert.That(firstShots, Is.EqualTo(new[] { 1f, 0f, 1f }), "opening shot, held fire, shot after a gap");
+            }
+            finally
+            {
+                Time.captureDeltaTime = savedCaptureDelta;
+            }
+        }
+
+        // Fires on the current fixed step and records the step and the shot's FirstShot value.
+        private IEnumerator RipperShot(Rippers rippers, List<float> times, List<float> firstShots)
+        {
+            var fire = Fresh(RipperFire);
+            Assert.IsNotNull(rippers.Fire(Ahead(rippers, 10f), Projectiles), "shot refused");
+            times.Add(Time.fixedTime);
+            yield return Flush();
+
+            var instances = Instances(fire);
+            Assert.AreEqual(1, instances.Length, "ripper fire instances after one shot");
+            firstShots.Add(Parameter(instances[0], "FirstShot"));
+        }
+
+        private static IEnumerator UntilFirable(Rippers rippers)
+        {
+            do
+            {
+                yield return new WaitForFixedUpdate();
+            } while (!rippers.CanFire());
         }
 
         [UnityTest]

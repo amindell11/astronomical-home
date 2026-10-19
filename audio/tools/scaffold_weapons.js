@@ -1,12 +1,13 @@
 // Pre-creates the weapon-audio contract the game code consumes, all in bank:/Weapons:
-//   event:/Weapons/TurboLaser/Fire   (Heat)    one-shot
-//   event:/Weapons/ChargeLaser/Fire  (Charge)  sustain point, keyed off on the shot
-//   event:/Weapons/Railgun/Fire      (Charge)  sustain point, keyed off on the shot
-//   event:/Weapons/Railgun/Impact              one-shot
-//   event:/Weapons/Ripper/Fire                 one-shot
-//   event:/Weapons/Grenade/Fire                one-shot
-//   event:/Weapons/Grenade/Detonate            one-shot
+//   event:/Weapons/TurboLaser/Fire   (Heat)       one-shot
+//   event:/Weapons/ChargeLaser/Fire  (Charge)     sustain point, keyed off on the shot
+//   event:/Weapons/Railgun/Fire      (Charge)     sustain point, keyed off on the shot
+//   event:/Weapons/Railgun/Impact                 one-shot
+//   event:/Weapons/Ripper/Fire       (FirstShot)  one-shot
+//   event:/Weapons/Grenade/Fire                   one-shot
+//   event:/Weapons/Grenade/Detonate               one-shot
 // Heat is the existing preset; Charge is one preset in [0, 1] shared by both charge events.
+// FirstShot is discrete in [0, 1]: the game sends 1 on the first shot after any firing gap.
 // Every event gets a placeholder instrument from the tracked Unity clips, because an empty event
 // stops on its first update. Idempotent: anything already present is left as the designer has it.
 //
@@ -65,7 +66,7 @@ function ensureBank(event, bank) {
 }
 
 // Reuses the project-wide preset so GUIDs.txt never lists a second parameter of the same name.
-function ensureParameter(event, name) {
+function ensureParameter(event, name, type) {
     var present = event.getParameterPresets().some(function (parameter) {
         return parameter.presetOwner.name === name;
     });
@@ -76,7 +77,7 @@ function ensureParameter(event, name) {
         console.log("added existing parameter " + name + " to " + event.getPath());
         return;
     }
-    event.addGameParameter({ name: name, type: project.parameterType.User, min: 0, max: 1 });
+    event.addGameParameter({ name: name, type: type, min: 0, max: 1 });
     console.log("created parameter " + name + " on " + event.getPath());
 }
 
@@ -120,21 +121,22 @@ var weaponsFolder = childFolder(workspace.masterEventFolder, "Weapons");
 var weaponsBank = bank("Weapons");
 
 var turboLaser = event(childFolder(weaponsFolder, "TurboLaser"), "TurboLaser", "Fire");
-ensureParameter(turboLaser, "Heat");
+ensureParameter(turboLaser, "Heat", project.parameterType.User);
 ensureOneShotPlaceholder(turboLaser, "laserBolt.wav");
 
 var chargeLaser = event(childFolder(weaponsFolder, "ChargeLaser"), "ChargeLaser", "Fire");
-ensureParameter(chargeLaser, "Charge");
+ensureParameter(chargeLaser, "Charge", project.parameterType.User);
 ensureChargePlaceholder(chargeLaser);
 
 var railgunFolder = childFolder(weaponsFolder, "Railgun");
 var railgun = event(railgunFolder, "Railgun", "Fire");
-ensureParameter(railgun, "Charge");
+ensureParameter(railgun, "Charge", project.parameterType.User);
 ensureChargePlaceholder(railgun);
 var railgunImpact = event(railgunFolder, "Railgun", "Impact");
 ensureOneShotPlaceholder(railgunImpact, "laserImpact1.wav");
 
 var ripper = event(childFolder(weaponsFolder, "Ripper"), "Ripper", "Fire");
+ensureParameter(ripper, "FirstShot", project.parameterType.UserDiscrete);
 ensureOneShotPlaceholder(ripper, "laserBolt.wav");
 
 var grenadeFolder = childFolder(weaponsFolder, "Grenade");
