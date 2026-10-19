@@ -13,7 +13,7 @@ namespace Tests.EditMode
     [Category("AI")]
     public class AsteroidReferentEditModeTests
     {
-        private static readonly Ships.Registry.ShipId AnchorId = new(7);
+        private static readonly global::Ships.Registry.ShipId AnchorId = new(7);
 
         private AsteroidController rockA;
         private AsteroidController rockB;

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "1b6e3526a90b1502ba6397e5adceebfc6032e58dc61d3bbde8c325f16393dd64",
+  "name": "Vanguard",
+  "geometry": "6df7ac0fda85d267a2a032b220d0278cc0b6c6bb9d1615397313202f2d7a17fe",
+  "parts": {
+    "Cockpit cooling vent": "33c45300cd26b64270042f108458d1f5c0c9af7abf99802d5458ed61151583d8",
+    "MVP Canopy": "5ca50f90da89f6dd9fe3ed41ef368b063767ce8c390b813e9ea2e7c4caab7df0",
+    "MVP Cockpit.001": "a1d9d34386cdc9e30c3aaf0bd83047adf8cc6fbfc7a9d5f810cb1122b39c4754",
+    "MVP Fuselage": "501eca1165e4a6086a85cc6d057387628fcf508ad2e8a618ac082493e325c643",
+    "MVP Power Nacelle Core": "8d88df8f3eae1f61c9fd3cdc79f2410c3eb8f054e8c46a2aba8a9965ff1c8d4d",
+    "MVP Power Nacelle Housing": "d0c5bdb754ebcc1d7cc4df83e1bd05798fe52f166fce61c00852c9f773ad0d05",
+    "MVP Sparrow Tail": "9ca600c7bc9e0ba562aaab0edeb48f105281603b61f13386d3257e405b336478",
+    "MVP Tail": "caeaa042e1bd36b2b406d722f9450678006ef7a92ac376186136b316265e6c18",
+    "MVP Wing": "27b4267b121791aeeb4d97003dbb949295783a6c39f6721b09166e831cbb4a2f",
+    "MVP wing_armature": "54516189c71e15a67dba28503768ae80d8c7ee4c8091ccafdd555b6a3f3d5496",
+    "MVP wing_armor": "7d85b6e88761bb16653ce7e3c609e3b46a34b7ed9d0789548fbcf92cbaa00aca",
+    "MVP wing_tail": "b76224b5e31eeb769ac6645aca8315a65303f18a7e7c659db3cff4bf60bbc0cf",
+    "Pod cooling hatch": "6f865eb3382dccab1e988578f53da9c71dbe6dc06eaebaf17a1a2fffa720ff5c",
+    "SymmetryOrigin": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+    "Vanguard service panels": "df214ff1525eafb9b769e3c51061341c8637124b729e17a03a68aebc4b90a29b",
+    "Vanguard structural ink": "b5042679b0eb2b428d88c27e36bc3739dcaafb2b56481be2c05bd82568ff54c2",
+    "Vanguard surface wear": "9a12d5df113f3ebfc3b89a7846b5ec0cffc3358cb64cb2fb848bca183851f075",
+    "Wing service hatch": "0caae3ea1e2a4f99bd9360776b6a4fece51e378261a75d64d29600b7a6b5a17b"
+  }
+}

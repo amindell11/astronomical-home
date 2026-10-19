@@ -14,6 +14,28 @@ Shader "Astronomical/Drawn/Surface"
         _PaintEmissionBlend ("Painted Indicator Blend", Range(0,1)) = 0
         _PaintLightColor ("Painted Light Color", Color) = (0.82,0.93,0.88,1)
         _PaintInkColor ("Panel Ink Color", Color) = (0.006,0.012,0.018,1)
+        [HideInInspector] _PaintRegionCount ("Authored Palette Regions", Float) = 0
+        [HideInInspector] _PaintRegionLightLift ("Region Highlight Lift", Float) = 0.25
+        [HideInInspector] _PaintRegionMask0 ("Region Coverage 0", 2D) = "black" {}
+        [HideInInspector] _PaintRegionMask1 ("Region Coverage 1", 2D) = "black" {}
+        [HideInInspector] _PaintRegionMask2 ("Region Coverage 2", 2D) = "black" {}
+        [HideInInspector] _PaintRegionMask3 ("Region Coverage 3", 2D) = "black" {}
+        [HideInInspector] _PaintRegionColor0 ("Region 0", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor1 ("Region 1", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor2 ("Region 2", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor3 ("Region 3", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor4 ("Region 4", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor5 ("Region 5", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor6 ("Region 6", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor7 ("Region 7", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor8 ("Region 8", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor9 ("Region 9", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor10 ("Region 10", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor11 ("Region 11", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor12 ("Region 12", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor13 ("Region 13", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor14 ("Region 14", Color) = (0,0,0,1)
+        [HideInInspector] _PaintRegionColor15 ("Region 15", Color) = (0,0,0,1)
         _DamageFlash ("Damage Flash", Range(0,1)) = 0
         _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
         _SootStrength ("Destruction Soot", Range(0,1)) = 0
@@ -55,6 +77,11 @@ Shader "Astronomical/Drawn/Surface"
             half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
             half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
             half _PaintSaturation, _PaintEmissionBlend;
+            half _PaintRegionCount, _PaintRegionLightLift;
+            half4 _PaintRegionColor0, _PaintRegionColor1, _PaintRegionColor2, _PaintRegionColor3;
+            half4 _PaintRegionColor4, _PaintRegionColor5, _PaintRegionColor6, _PaintRegionColor7;
+            half4 _PaintRegionColor8, _PaintRegionColor9, _PaintRegionColor10, _PaintRegionColor11;
+            half4 _PaintRegionColor12, _PaintRegionColor13, _PaintRegionColor14, _PaintRegionColor15;
             half _TextureStrength, _PigmentPreservation, _LineStrength, _LineThreshold, _LineSoftness, _WearStrength;
             half _PaletteLighting, _AmbientStrength;
             half _DetailAlbedoMapScale, _ShadowThreshold, _ShadowSoftness;
@@ -91,6 +118,10 @@ Shader "Astronomical/Drawn/Surface"
             TEXTURE2D(_PaintShadowMap); SAMPLER(sampler_PaintShadowMap);
             TEXTURE2D(_PaintLightMap); SAMPLER(sampler_PaintLightMap);
             TEXTURE2D(_PaintInkMap); SAMPLER(sampler_PaintInkMap);
+            TEXTURE2D(_PaintRegionMask0); SAMPLER(sampler_PaintRegionMask0);
+            TEXTURE2D(_PaintRegionMask1);
+            TEXTURE2D(_PaintRegionMask2);
+            TEXTURE2D(_PaintRegionMask3);
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
             TEXTURE2D(_WearMap); SAMPLER(sampler_WearMap);
             TEXTURE2D(_DetailAlbedoMap); SAMPLER(sampler_DetailAlbedoMap);
@@ -145,8 +176,31 @@ Shader "Astronomical/Drawn/Surface"
                     half shadow = SAMPLE_TEXTURE2D(_PaintShadowMap, sampler_PaintShadowMap, input.uv).r * _PaintShadowStrength;
                     half paintedLight = SAMPLE_TEXTURE2D(_PaintLightMap, sampler_PaintLightMap, input.uv).r * _PaintLightStrength;
                     half ink = SAMPLE_TEXTURE2D(_PaintInkMap, sampler_PaintInkMap, input.uv).r * _PaintInkStrength;
-                    albedo = _PaperColor.rgb * (1 - shadow);
-                    albedo = lerp(albedo, _PaintLightColor.rgb, saturate(paintedLight));
+                    half3 basePalette = _PaperColor.rgb;
+                    half3 lightPalette = _PaintLightColor.rgb;
+                    if (_PaintRegionCount > 0)
+                    {
+                        half4 w0 = SAMPLE_TEXTURE2D(_PaintRegionMask0, sampler_PaintRegionMask0, input.uv);
+                        half4 w1 = 0, w2 = 0, w3 = 0;
+                        if (_PaintRegionCount > 4)
+                            w1 = SAMPLE_TEXTURE2D(_PaintRegionMask1, sampler_PaintRegionMask0, input.uv);
+                        if (_PaintRegionCount > 8)
+                            w2 = SAMPLE_TEXTURE2D(_PaintRegionMask2, sampler_PaintRegionMask0, input.uv);
+                        if (_PaintRegionCount > 12)
+                            w3 = SAMPLE_TEXTURE2D(_PaintRegionMask3, sampler_PaintRegionMask0, input.uv);
+                        basePalette = w0.x * _PaintRegionColor0.rgb + w0.y * _PaintRegionColor1.rgb
+                                    + w0.z * _PaintRegionColor2.rgb + w0.w * _PaintRegionColor3.rgb
+                                    + w1.x * _PaintRegionColor4.rgb + w1.y * _PaintRegionColor5.rgb
+                                    + w1.z * _PaintRegionColor6.rgb + w1.w * _PaintRegionColor7.rgb
+                                    + w2.x * _PaintRegionColor8.rgb + w2.y * _PaintRegionColor9.rgb
+                                    + w2.z * _PaintRegionColor10.rgb + w2.w * _PaintRegionColor11.rgb
+                                    + w3.x * _PaintRegionColor12.rgb + w3.y * _PaintRegionColor13.rgb
+                                    + w3.z * _PaintRegionColor14.rgb + w3.w * _PaintRegionColor15.rgb;
+                        basePalette /= max(dot(w0 + w1 + w2 + w3, half4(1, 1, 1, 1)), 0.0001h);
+                        lightPalette = lerp(basePalette, 1, _PaintRegionLightLift);
+                    }
+                    albedo = basePalette * (1 - shadow);
+                    albedo = lerp(albedo, lightPalette, saturate(paintedLight));
                     albedo = lerp(albedo, _PaintInkColor.rgb, saturate(ink));
                     half indicator = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).r;
                     albedo = lerp(albedo, _EmissionColor.rgb, saturate(indicator * _PaintEmissionBlend));
