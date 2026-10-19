@@ -12,6 +12,10 @@ The active Blender materials show a flat drawn composite. Dark cockpit glass has
 
 Earlier shading images remain packed for preservation but are disconnected from the active output. `FinishShadow.png` and `FinishLight.png` belong to that superseded Blender preview. Current strengths and status are in `paint-settings.json`.
 
+`reference/detail-concept.png` is the approved structural-detail direction. The clean nose keeps two fasteners; rear fins retain a single cross-panel seam. Side armor and engine shrouds carry small vent banks. These are authored edits in `Ink.png` and `Light.png`, preserved against the existing generation baseline. The base coat, asymmetric shadow mask, cockpit, geometry and UVs remain unchanged.
+
+`layers/DetailEmission.png` is the independent light-coverage mask, packed as `Bulwark Detail Emission`. Segmented lilac rings surround metal canister centers; shoulder guards and lower skids have matching three-segment inserts. The `Detail emissive color` node controls their color and `Detail emission energy` supplies a modest 1.15 preview strength. This mask is owner-authored and separate from the painter's generated mask set: retain it and its material nodes when regenerating. It requires an emission binding alongside the pending Unity base-coat integration; it must not replace BaseRegion.
+
 This is a Blender texture review, not Unity approval. The tool-generated Unity bundle still needs the approved BaseRegion coat binding before import: the generic bundle only knows flat material regions, and the old emission-channel workaround puts bone over the shading. Do not ship that incomplete bundle. The next integration must preserve the coat beneath shadow/light/ink, then obtain a fresh in-game lineup review. Flight, gameplay integration and breakup remain pending.
 
 The signed-space generator is pinned to Vanguard implementation `a21a67317` (`held/vanguard-redo`); regeneration requires that version or its successor with `paint_space: signed` support. The earlier folded-only painter cannot read these settings.

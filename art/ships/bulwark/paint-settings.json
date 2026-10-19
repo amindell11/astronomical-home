@@ -22,7 +22,7 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "asymmetric-blender-review",
+  "status": "detail-blender-review",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
@@ -42,7 +42,8 @@
     "base colors and BaseRegion",
     "shadow",
     "light",
-    "ink"
+    "ink",
+    "detail emission"
   ],
   "deferred_checks": [
     "flight approval",
@@ -63,5 +64,13 @@
     "Armor - Side plates"
   ],
   "uv_density_ratio": 1.6263360906130022,
-  "uv_density_status": "pass"
+  "uv_density_status": "pass",
+  "detail_concept": "reference/detail-concept.png",
+  "detail_emission": {
+    "mask": "layers/DetailEmission.png",
+    "color_srgb": "#E2B9FA",
+    "preview_strength": 1.15,
+    "method": "Independent owner-authored coverage, outside the generated mask set; keep its image and material binding across regeneration",
+    "unity_status": "Emission binding pending together with BaseRegion integration"
+  }
 }
