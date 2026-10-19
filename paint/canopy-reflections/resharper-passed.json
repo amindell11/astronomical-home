@@ -1,7 +1,7 @@
 {
     "status":  "passed",
     "baseRef":  "origin/main",
-    "changedFiles":  1,
+    "changedFiles":  2,
     "unityFindings":  572,
     "touchedFileFindings":  12,
     "blockingFindings":  0,
