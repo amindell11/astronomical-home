@@ -134,21 +134,22 @@ Shader "Astronomical/Drawn/Canopy"
                 half3 color = glass * diffuse * illumination;
                 half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 half3 halfway = SafeNormalize(light.direction + view);
-                float3 halfwayOS = normalize(TransformWorldToObjectDir(halfway));
                 half ndv = saturate(dot(normal, view));
                 half grazing = pow(1 - ndv, 3);
                 color = lerp(color, _ReflectionColor.rgb * illumination, grazing * 0.16);
+                float3 referenceView = TransformObjectToWorldDir(float3(0, 0, input.localFacing >= 0 ? 1 : -1));
+                float3 reflected = TransformWorldToObjectDir(reflect(-view, normal));
+                float3 referenceReflection = TransformWorldToObjectDir(reflect(-referenceView, normal));
+                float3 lightOS = TransformWorldToObjectDir(light.direction);
+                // Subtract the authored pose so curvature changes motion without replacing the drawing.
                 float2 uv = input.reflectionUV;
-                uv -= float2(halfwayOS.x * 0.62, halfwayOS.y * 0.20);
+                uv += (reflected.xy - referenceReflection.xy - lightOS.xy) * float2(0.31, 0.10);
                 float t = saturate((uv.y - 0.16) / 0.66);
-                float shear = halfwayOS.x * (t - 0.5) * 0.18;
-                float breadth = lerp(0.055, 0.13, ndv);
                 half facing = smoothstep(0.03, 0.35, ndv);
                 half lightFacing = saturate(dot(normal, halfway));
                 half response = smoothstep(0.35, 0.88, lightFacing);
                 response *= facing * _DrawnReflectionStrength * lerp(0.15, 1, light.shadowAttenuation);
                 #if defined(_AUTHORED_REFLECTION)
-                    uv.x = (uv.x - 0.5 - shear) * (0.13 / breadth) + 0.5;
                     half4 drawing = SampleReflection(uv, input.localFacing);
                     half3 reflection = drawing.rgb;
                     if (_ReflectionArtwork > 1.5)
@@ -160,10 +161,10 @@ Shader "Astronomical/Drawn/Canopy"
                     color = lerp(color, reflection * diffuse * illumination, drawing.a * response);
                 #else
                     float pressure = pow(saturate(sin(t * PI)), 0.7);
-                    float center = 0.46 + 0.09 * t - 0.05 * t * t + shear;
+                    float center = 0.46 + 0.09 * t - 0.05 * t * t;
                     float edge = 0.003 * sin(uv.y * 63) + 0.0015 * sin(uv.y * 127);
                     float aa = max(fwidth(uv.x), 0.001);
-                    float width = breadth * pressure;
+                    float width = 0.13 * pressure;
                     float reflection = 1 - smoothstep(width - aa * 1.5, width + aa * 1.5,
                         abs(uv.x - center + edge));
                     reflection *= smoothstep(0.16, 0.19, uv.y) * (1 - smoothstep(0.79, 0.82, uv.y));

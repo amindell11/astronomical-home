@@ -14,7 +14,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         private Camera camera;
         private Light key;
         private Material material;
-        private Mesh undersideMesh;
+        private Mesh surfaceMesh;
         private RenderTexture target;
         private Texture2D image;
         private RenderPipelineAsset priorPipeline;
@@ -67,7 +67,7 @@ namespace Tests.EditMode.Rendering.Illustrated
             ShaderUtil.allowAsyncCompilation = priorAsync;
             Object.DestroyImmediate(root);
             Object.DestroyImmediate(material);
-            Object.DestroyImmediate(undersideMesh);
+            Object.DestroyImmediate(surfaceMesh);
             Object.DestroyImmediate(target);
             Object.DestroyImmediate(image);
         }
@@ -150,10 +150,10 @@ namespace Tests.EditMode.Rendering.Illustrated
             if (underside)
             {
                 var filter = subject.GetComponent<MeshFilter>();
-                undersideMesh = Object.Instantiate(filter.sharedMesh);
-                undersideMesh.normals = undersideMesh.normals.Select(n => -n).ToArray();
-                undersideMesh.triangles = undersideMesh.triangles.Reverse().ToArray();
-                filter.sharedMesh = undersideMesh;
+                surfaceMesh = Object.Instantiate(filter.sharedMesh);
+                surfaceMesh.normals = surfaceMesh.normals.Select(n => -n).ToArray();
+                surfaceMesh.triangles = surfaceMesh.triangles.Reverse().ToArray();
+                filter.sharedMesh = surfaceMesh;
                 subject.transform.localRotation = Quaternion.Euler(0, 180, 0);
             }
             key.transform.rotation = Quaternion.Euler(0, -20, 0);
@@ -161,6 +161,27 @@ namespace Tests.EditMode.Rendering.Illustrated
             key.transform.rotation = Quaternion.Euler(0, 20, 0);
             float right = LuminanceCentroid(ReadReflection());
             Assert.That(left - right, Is.GreaterThan(.06f), "The drawing must move, not only brighten.");
+        }
+
+        [TestCase("Crimson/Canopy/Canopy.mat")]
+        [TestCase("Nightshade/Canopy/Canopy.mat")]
+        [TestCase("Valis/Canopy/jade-iris.mat")]
+        [TestCase("Vanguard/Materials/Canopy.mat")]
+        public void Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(string path)
+        {
+            UseMaterial(path);
+            var filter = subject.GetComponent<MeshFilter>();
+            surfaceMesh = Object.Instantiate(filter.sharedMesh);
+            filter.sharedMesh = surfaceMesh;
+            camera.transform.position = Quaternion.Euler(50, 0, 0) * new Vector3(0, 0, -2);
+            camera.transform.LookAt(Vector3.zero);
+            key.transform.rotation = camera.transform.rotation;
+            surfaceMesh.normals = Enumerable.Repeat(new Vector3(.6f, 0, -.8f), surfaceMesh.vertexCount).ToArray();
+            float right = LuminanceCentroid(ReadReflection());
+            surfaceMesh.normals = Enumerable.Repeat(new Vector3(-.6f, 0, -.8f), surfaceMesh.vertexCount).ToArray();
+            float left = LuminanceCentroid(ReadReflection());
+            Assert.That(right - left, Is.GreaterThan(.04f),
+                "Equal lighting on opposite slopes must still displace the reflected drawing.");
         }
 
         [TestCase("Crimson/Canopy/Canopy.mat")]
