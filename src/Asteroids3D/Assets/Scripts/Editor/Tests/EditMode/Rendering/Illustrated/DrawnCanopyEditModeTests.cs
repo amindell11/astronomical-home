@@ -89,7 +89,8 @@ namespace Tests.EditMode.Rendering.Illustrated
                 var glass = renderer.sharedMaterials[index];
                 Assert.That(glass.shader.name, Is.EqualTo("Astronomical/Drawn/Canopy"));
                 Mesh mesh;
-                if (renderer is SkinnedMeshRenderer skin)
+                var skin = renderer as SkinnedMeshRenderer;
+                if (skin)
                 {
                     baked = new Mesh();
                     skin.BakeMesh(baked);
