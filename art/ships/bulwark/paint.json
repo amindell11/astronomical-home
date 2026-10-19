@@ -6,7 +6,7 @@
   "brush": {
     "image": "textures/painted-brush-source.png",
     "scale": 0.13,
-    "contrast": 0,
+    "contrast": 3.2,
     "blend": 0.25
   },
   "ramp": [
@@ -24,10 +24,10 @@
     ]
   ],
   "sweep": {
-    "weight_x": 0.65,
     "light_above": 0.66,
-    "jitter": 0.18,
-    "light": 0.55
+    "jitter": 0.5,
+    "light": 0.55,
+    "angle_deg": 30
   },
   "ink": {
     "inset": 0.025,
@@ -138,5 +138,6 @@
       "_SpecularStrength": 0,
       "_PaletteLighting": 1
     }
-  }
+  },
+  "paint_space": "signed"
 }

@@ -22,7 +22,7 @@
   ],
   "shader_shadow_threshold": 0.22,
   "shader_shadow_softness": 0.16,
-  "status": "drawn-blender-review",
+  "status": "asymmetric-blender-review",
   "automatic_edge_wear": false,
   "paint_canvas": "Bulwark BaseRegion",
   "material_finishes": {
@@ -46,7 +46,6 @@
   ],
   "deferred_checks": [
     "flight approval",
-    "UV density correction",
     "Unity BaseRegion binding",
     "in-game paint review"
   ],
@@ -56,5 +55,13 @@
   "generator_settings": "paint.json",
   "baseline": "layers/baseline",
   "geometry_lock_status": "Owner-authorized texture fingerprint; flight approval pending",
-  "unity_bundle_status": "Generated bundle is not production-ready: it lacks the existing BaseRegion coat binding. Do not replace gameplay materials with it."
+  "unity_bundle_status": "Generated bundle is not production-ready: it lacks the existing BaseRegion coat binding. Do not replace gameplay materials with it.",
+  "paint_space": "signed",
+  "generator_revision": "a21a67317",
+  "uv_changes": [
+    "Armor - Front plate",
+    "Armor - Side plates"
+  ],
+  "uv_density_ratio": 1.6263360906130022,
+  "uv_density_status": "pass"
 }
