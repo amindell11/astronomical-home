@@ -37,7 +37,7 @@ source_hash = hashlib.sha256((root / 'art/ships/vanguard/Vanguard.blend').read_b
 assert source_hash == 'e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031'
 checks['approved_source_sha256'] = source_hash
 prefab = 'src/Asteroids3D/Assets/Prefabs/Ships/Vanguard.prefab'
-old_text = subprocess.check_output(['git', 'show', 'HEAD:' + prefab], cwd=root).decode()
+old_text = subprocess.check_output(['git', 'show', '0a8d3dd6391393918a5fc056a68d2f69113ad505:' + prefab], cwd=root).decode()
 new_text = (root / prefab).read_text()
 def modifications(text):
     chunks = re.findall(r'    - target:.*?(?=    - target:|    m_RemovedComponents:)', text, re.S)
@@ -45,7 +45,7 @@ def modifications(text):
 assert modifications(old_text) == modifications(new_text)
 checks['non_visual_prefab_overrides_identical'] = True
 animation = 'src/Asteroids3D/Assets/Visuals/Ships/Vanguard/Breakup/Vanguard burst.anim'
-assert subprocess.check_output(['git', 'show', 'HEAD:' + animation], cwd=root).replace(b'\r\n', b'\n') == (root / animation).read_bytes().replace(b'\r\n', b'\n')
+assert subprocess.check_output(['git', 'show', '0a8d3dd6391393918a5fc056a68d2f69113ad505:' + animation], cwd=root).replace(b'\r\n', b'\n') == (root / animation).read_bytes().replace(b'\r\n', b'\n')
 checks['breakup_animation_identical'] = True
 (folder / 'verification.json').write_text(json.dumps(checks, indent=2) + '\n')
 print(json.dumps(checks, indent=2))
