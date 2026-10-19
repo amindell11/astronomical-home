@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-19T11:22:57.8474532-07:00",
+  "generatedAt": "2026-10-19T11:45:09.2267139-07:00",
   "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
   "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
   "mode": "EditMode",
@@ -20,11 +20,11 @@
   },
   "status": "passed",
   "totals": {
-    "total": 34,
-    "passed": 34,
+    "total": 38,
+    "passed": 38,
     "failed": 0,
     "skipped": 0,
-    "durationSec": 1.82
+    "durationSec": 1.68
   },
   "runs": [
     {
@@ -33,11 +33,11 @@
       "logPath": "",
       "unityExitCode": 0,
       "status": "passed",
-      "total": 34,
-      "passed": 34,
+      "total": 38,
+      "passed": 38,
       "failed": 0,
       "skipped": 0,
-      "durationSec": 1.82,
+      "durationSec": 1.68,
       "failures": [],
       "truncatedFailures": 0,
       "selection": {
@@ -58,7 +58,7 @@
     }
   ],
   "wallTiming": {
-    "elapsedSec": 13.222,
+    "elapsedSec": 18.692,
     "startupToFirstTestSec": null,
     "executionSec": null,
     "remainingSec": null,
@@ -73,5 +73,5 @@
     "unavailableReason": "resident-editor transport launches no process to sample"
   },
   "transport": "routed",
-  "editorPid": 39152
+  "editorPid": 40840
 }
