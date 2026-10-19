@@ -44,3 +44,5 @@ The 17-second clip shows opening Valis (0–2 s), Next at 2 s, Previous at 4 s, 
 The sustained 10 Hz burst still exposes an empty interval while arrivals are repeatedly interrupted offscreen. This follow-up fixes direction only and preserves that separate visibility limitation for feedback. The test asserts bounded live previews and correct final selection, not continuous visibility during spam.
 
 The actual Next/Previous button regression failed on the old runtime because Previous entered from the right, then passed after the direction change; both list-wrap directions are covered. Focused graphics PlayMode checks passed 9/9, including the temporary capture. Machine-readable before/after results and NUnit XML are in test-results/. The MP4 decodes to 510 frames, 17 seconds at 30 fps. The source fixture is included for repeatability and is excluded from the feature PR. These renders do not show the surrounding menu or establish performance.
+
+Headless UI regressions after the direction change also passed: 32/32 across EditMode and PlayMode. Results are in `test-results/directional-ui-*`.
