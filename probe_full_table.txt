@@ -1,0 +1,163 @@
+HEADER {'header': True, 'editor': False, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'ftmEnabled': True, 'gpuRecorder': True, 'hdrAvailable': True, 'hdrActive': False, 'refreshHz': 120, 'desktop': '3840x2160'}
+
+=== Performant @ 1920x1080  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu  10.97 (p90  11.02)  main   3.50  cpuFrame  16.66  presentWait  13.09  dt  16.66  rs 1.252 msaa 2 rt 1200x1200x4
+  base                                                           gpu  11.04 (p90  11.09)  main  11.03  cpuFrame  11.06  presentWait   0.00  dt  11.08  rs 1.252 msaa 2 rt 1200x1200x4
+  passes: FrameTime.GPU=11.053ms x1 ; ExecuteRenderGraph=11.010ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=10.619ms x1 ; DrawTransparentObjects=9.230ms x3 ; DrawMotionVectors=0.271ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=0.260ms x1 ; Bloom=0.237ms x1 ; RG_MotionBlur=0.231ms x1 ; CopyDepth=0.224ms x4 ; RG_UberPost=0.169ms x1 ; DrawScreenSpaceUI=0.162ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.131ms x1 ; BlitFinalToBackBuffer=0.122ms x2 ; RG_BloomPrefilter=0.106ms x1 ; DrawOpaqueObjects=0.073ms x3 ; RG_StopNaNs=0.071ms x1 ; PaniniProjection=0.069ms x1 ; RG_BloomUpsample=0.066ms x1 ; RG_BloomDownsample=0.063ms x1 ; Blit Color LUT=0.008ms x1 ; ColorGradingLUT=0.007ms x1 ; Setup Camera Properties=0.005ms x3 ; Setup Debug Properties=0.001ms x3 ; Setup Forward Lights=0.000ms x3 ; CompileRenderGraph=
+  no_sky                                                         gpu   1.82 (p90   1.88)  main   4.08  cpuFrame   4.14  presentWait   0.00  dt   4.16  rs 1.252 msaa 2 rt 1200x1200x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu  10.96 (p90  10.99)  main  10.93  cpuFrame  10.99  presentWait   0.00  dt  10.98  rs 1.252 msaa 2 rt 1200x1200x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu  10.08 (p90  10.12)  main  10.04  cpuFrame  10.12  presentWait   0.00  dt  10.11  rs 1.252 msaa 2 rt 1200x1200x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu   5.52 (p90   5.59)  main   6.99  cpuFrame   7.05  presentWait   0.00  dt   7.09  rs 1.252 msaa 2 rt 1200x1200x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu  10.48 (p90  10.55)  main  10.42  cpuFrame  10.50  presentWait   0.00  dt  10.49  rs 1.252 msaa 2 rt 1200x1200x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu   8.88 (p90   8.89)  main   8.81  cpuFrame   8.86  presentWait   0.00  dt   8.87  rs 1.252 msaa 2 rt 1200x1200x4
+  base_again                                                     gpu  11.02 (p90  11.09)  main  10.96  cpuFrame  11.04  presentWait   0.00  dt  11.03  rs 1.252 msaa 2 rt 1200x1200x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   1.95 (p90   1.96)  main   4.36  cpuFrame   4.43  presentWait   0.00  dt   4.42  rs 1.252 msaa 2 rt 1200x1200x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   2.80 (p90   2.82)  main   5.12  cpuFrame   5.17  presentWait   0.00  dt   5.17  rs 1.252 msaa 2 rt 1200x1200x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu   7.37 (p90   7.39)  main   7.51  cpuFrame   7.57  presentWait   0.00  dt   7.56  rs 1.252 msaa 2 rt 1200x1200x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   2.43 (p90   2.44)  main   4.50  cpuFrame   4.55  presentWait   0.00  dt   4.57  rs 1.252 msaa 2 rt 1200x1200x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu   3.98 (p90   3.99)  main   5.50  cpuFrame   5.55  presentWait   0.00  dt   5.57  rs 1.252 msaa 2 rt 1200x1200x4
+  no_preview                                                     gpu  10.74 (p90  10.81)  main  10.74  cpuFrame  10.80  presentWait   0.00  dt  10.80  rs 1.252 msaa 2 rt 1200x1200x4
+  no_hangar_ui                                                   gpu  10.97 (p90  11.00)  main  10.91  cpuFrame  10.98  presentWait   0.00  dt  11.00  rs 1.252 msaa 2 rt 1200x1200x4
+  no_any_ui                                                      gpu  10.88 (p90  10.95)  main  10.84  cpuFrame  10.93  presentWait   0.00  dt  10.91  rs 1.252 msaa 2 rt 1200x1200x4
+  no_post                                                        gpu   9.99 (p90  10.04)  main   9.98  cpuFrame  10.03  presentWait   0.00  dt  10.02  rs 1.252 msaa 2 rt 1200x1200x4
+  renderScale_1                                                  gpu   7.35 (p90   7.41)  main   7.50  cpuFrame   7.52  presentWait   0.00  dt   7.50  rs 1 msaa 2 rt 1200x1200x4
+  renderScale_0.5                                                gpu   2.30 (p90   2.31)  main   4.47  cpuFrame   4.60  presentWait   0.00  dt   4.67  rs 0.5 msaa 2 rt 1200x1200x4
+  msaa_1                                                         gpu  10.88 (p90  10.93)  main  10.89  cpuFrame  10.91  presentWait   0.00  dt  10.92  rs 1.252 msaa 1 rt 1200x1200x4
+  floor_all_off                                                  gpu   0.28 (p90   0.28)  main   2.70  cpuFrame   2.71  presentWait   0.00  dt   2.71  rs 1.252 msaa 2 rt 1200x1200x4
+  sky_only_no_post                                               gpu   9.53 (p90   9.58)  main   9.52  cpuFrame   9.55  presentWait   0.00  dt   9.54  rs 1.252 msaa 2 rt 1200x1200x4
+  sky_only_with_post                                             gpu  10.62 (p90  10.64)  main  10.61  cpuFrame  10.64  presentWait   0.00  dt  10.64  rs 1.252 msaa 2 rt 1200x1200x4
+  base_end                                                       gpu  11.05 (p90  11.07)  main  11.05  cpuFrame  11.08  presentWait   0.00  dt  11.09  rs 1.252 msaa 2 rt 1200x1200x4
+
+=== Balanced @ 1920x1080  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu   7.59 (p90   7.65)  main   4.45  cpuFrame   8.33  presentWait   3.88  dt   8.34  rs 1 msaa 1 rt 1200x1200x4
+  base                                                           gpu   7.59 (p90   7.61)  main   7.78  cpuFrame   7.80  presentWait   0.00  dt   7.82  rs 1 msaa 1 rt 1200x1200x4
+  passes: FrameTime.GPU=7.595ms x1 ; ExecuteRenderGraph=7.552ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=7.109ms x1 ; DrawTransparentObjects=5.868ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=0.324ms x1 ; SSAO=0.316ms x2 ; RG_UberPost=0.221ms x1 ; Bloom=0.194ms x1 ; DrawScreenSpaceUI=0.176ms x2 ; DrawMotionVectors=0.168ms x1 ; RG_MotionBlur=0.147ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.125ms x1 ; BlitFinalToBackBuffer=0.113ms x2 ; RG_StopNaNs=0.085ms x1 ; DrawOpaqueObjects=0.073ms x3 ; RG_BloomPrefilter=0.071ms x1 ; RG_BloomDownsample=0.068ms x1 ; CopyDepth=0.067ms x2 ; RG_BloomUpsample=0.055ms x1 ; PaniniProjection=0.047ms x1 ; Draw Depth Only=0.019ms x2 ; DepthPrepass=0.019ms x2 ; Setup Forward Lights=0.007ms x3 ; CompileRenderGraph=0.005ms x3 ; Draw Main Light Shadowmap=0.002ms x3 ; MainLigh
+  no_sky                                                         gpu   1.71 (p90   1.72)  main   4.45  cpuFrame   4.51  presentWait   0.00  dt   4.48  rs 1 msaa 1 rt 1200x1200x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu   7.56 (p90   7.59)  main   8.25  cpuFrame   8.32  presentWait   0.00  dt   8.32  rs 1 msaa 1 rt 1200x1200x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu   7.00 (p90   7.05)  main   7.56  cpuFrame   7.62  presentWait   0.00  dt   7.48  rs 1 msaa 1 rt 1200x1200x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu   4.13 (p90   4.19)  main   6.01  cpuFrame   6.06  presentWait   0.00  dt   6.06  rs 1 msaa 1 rt 1200x1200x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu   7.33 (p90   7.37)  main   7.43  cpuFrame   7.47  presentWait   0.00  dt   7.46  rs 1 msaa 1 rt 1200x1200x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu   6.22 (p90   6.26)  main   6.50  cpuFrame   6.55  presentWait   0.00  dt   6.57  rs 1 msaa 1 rt 1200x1200x4
+  base_again                                                     gpu   7.60 (p90   7.62)  main   7.73  cpuFrame   7.79  presentWait   0.00  dt   7.77  rs 1 msaa 1 rt 1200x1200x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   1.76 (p90   1.77)  main   4.31  cpuFrame   4.37  presentWait   0.00  dt   4.37  rs 1 msaa 1 rt 1200x1200x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   2.33 (p90   2.34)  main   4.79  cpuFrame   4.85  presentWait   0.00  dt   4.83  rs 1 msaa 1 rt 1200x1200x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu   5.25 (p90   5.29)  main   6.89  cpuFrame   6.96  presentWait   0.00  dt   6.96  rs 1 msaa 1 rt 1200x1200x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   2.10 (p90   2.10)  main   4.99  cpuFrame   5.04  presentWait   0.00  dt   5.04  rs 1 msaa 1 rt 1200x1200x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu   3.16 (p90   3.19)  main   5.82  cpuFrame   5.93  presentWait   0.00  dt   5.94  rs 1 msaa 1 rt 1200x1200x4
+  no_preview                                                     gpu   7.28 (p90   7.31)  main   7.38  cpuFrame   7.43  presentWait   0.00  dt   7.37  rs 1 msaa 1 rt 1200x1200x4
+  no_hangar_ui                                                   gpu   7.46 (p90   7.50)  main   8.26  cpuFrame   8.32  presentWait   0.00  dt   8.33  rs 1 msaa 1 rt 1200x1200x4
+  no_any_ui                                                      gpu   7.47 (p90   7.53)  main   8.24  cpuFrame   8.31  presentWait   0.00  dt   8.32  rs 1 msaa 1 rt 1200x1200x4
+  no_post                                                        gpu   6.81 (p90   6.83)  main   7.09  cpuFrame   7.18  presentWait   0.00  dt   7.15  rs 1 msaa 1 rt 1200x1200x4
+  renderScale_0.5                                                gpu   2.38 (p90   2.38)  main   5.39  cpuFrame   5.45  presentWait   0.00  dt   5.45  rs 0.5 msaa 1 rt 1200x1200x4
+  floor_all_off                                                  gpu   0.38 (p90   0.38)  main   2.81  cpuFrame   2.87  presentWait   0.00  dt   2.85  rs 1 msaa 1 rt 1200x1200x4
+  sky_only_no_post                                               gpu   6.24 (p90   6.28)  main   6.35  cpuFrame   6.42  presentWait   0.00  dt   6.40  rs 1 msaa 1 rt 1200x1200x4
+  sky_only_with_post                                             gpu   7.12 (p90   7.17)  main   7.21  cpuFrame   7.27  presentWait   0.00  dt   7.25  rs 1 msaa 1 rt 1200x1200x4
+  base_end                                                       gpu   7.62 (p90   7.64)  main   8.19  cpuFrame   8.28  presentWait   0.00  dt   8.31  rs 1 msaa 1 rt 1200x1200x4
+
+=== High Fidelity @ 1920x1080  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu   3.94 (p90   4.03)  main   4.07  cpuFrame   4.09  presentWait   0.00  dt   4.10  rs 1 msaa 4 rt 1200x1200x4
+  base                                                           gpu   4.81 (p90   6.49)  main   5.64  cpuFrame   5.66  presentWait   0.00  dt   5.72  rs 1 msaa 4 rt 1200x1200x4
+  passes: FrameTime.GPU=7.346ms x1 ; ExecuteRenderGraph=7.307ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=6.631ms x1 ; DrawTransparentObjects=5.491ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=0.567ms x1 ; SSAO=0.310ms x2 ; Bloom=0.174ms x1 ; RG_UberPost=0.154ms x1 ; DrawMotionVectors=0.153ms x1 ; DrawScreenSpaceUI=0.145ms x2 ; RG_MotionBlur=0.136ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.109ms x1 ; BlitFinalToBackBuffer=0.108ms x2 ; Draw Main Light Shadowmap=0.093ms x3 ; MainLightShadow=0.093ms x1 ; DrawOpaqueObjects=0.085ms x3 ; RG_BloomPrefilter=0.068ms x1 ; CopyColor=0.066ms x4 ; CopyDepth=0.063ms x2 ; RG_BloomDownsample=0.058ms x1 ; RG_StopNaNs=0.050ms x1 ; RG_BloomUpsample=0.048ms x1 ; PaniniProjection=0.045ms x1 ; DrawDepthNormalPrepass=0.019ms x2 ; Blit Color LUT=0.008ms x1 ; ColorGradingL
+  no_sky                                                         gpu   0.89 (p90   0.90)  main   2.48  cpuFrame   2.51  presentWait   0.00  dt   2.52  rs 1 msaa 4 rt 1200x1200x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu   4.00 (p90   4.11)  main   4.19  cpuFrame   4.24  presentWait   0.00  dt   4.26  rs 1 msaa 4 rt 1200x1200x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu   3.88 (p90   4.84)  main   5.05  cpuFrame   5.12  presentWait   0.00  dt   5.22  rs 1 msaa 4 rt 1200x1200x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu   4.43 (p90   4.52)  main   5.50  cpuFrame   5.55  presentWait   0.00  dt   5.55  rs 1 msaa 4 rt 1200x1200x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu   7.72 (p90   7.76)  main   8.26  cpuFrame   8.32  presentWait   0.00  dt   8.33  rs 1 msaa 4 rt 1200x1200x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu   6.74 (p90   6.79)  main   8.25  cpuFrame   8.32  presentWait   0.00  dt   8.33  rs 1 msaa 4 rt 1200x1200x4
+  base_again                                                     gpu   8.09 (p90   8.14)  main   8.23  cpuFrame   8.29  presentWait   0.00  dt   8.30  rs 1 msaa 4 rt 1200x1200x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   2.15 (p90   2.17)  main   4.78  cpuFrame   4.82  presentWait   0.00  dt   4.85  rs 1 msaa 4 rt 1200x1200x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   2.71 (p90   2.72)  main   5.57  cpuFrame   5.62  presentWait   0.00  dt   5.61  rs 1 msaa 4 rt 1200x1200x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu   5.66 (p90   5.67)  main   7.33  cpuFrame   7.38  presentWait   0.00  dt   7.35  rs 1 msaa 4 rt 1200x1200x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   2.48 (p90   2.49)  main   5.50  cpuFrame   5.55  presentWait   0.00  dt   5.55  rs 1 msaa 4 rt 1200x1200x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu   3.51 (p90   3.53)  main   5.65  cpuFrame   5.72  presentWait   0.00  dt   5.77  rs 1 msaa 4 rt 1200x1200x4
+  no_preview                                                     gpu   7.39 (p90   7.43)  main   7.49  cpuFrame   7.54  presentWait   0.00  dt   7.54  rs 1 msaa 4 rt 1200x1200x4
+  no_hangar_ui                                                   gpu   7.84 (p90   7.86)  main   8.21  cpuFrame   8.29  presentWait   0.00  dt   8.29  rs 1 msaa 4 rt 1200x1200x4
+  no_any_ui                                                      gpu   7.84 (p90   7.89)  main   8.27  cpuFrame   8.33  presentWait   0.00  dt   8.33  rs 1 msaa 4 rt 1200x1200x4
+  no_post                                                        gpu   7.30 (p90   7.34)  main   7.67  cpuFrame   7.73  presentWait   0.00  dt   7.76  rs 1 msaa 4 rt 1200x1200x4
+  renderScale_0.5                                                gpu   2.66 (p90   2.68)  main   5.60  cpuFrame   5.65  presentWait   0.00  dt   5.67  rs 0.5 msaa 4 rt 1200x1200x4
+  msaa_1                                                         gpu   7.78 (p90   7.82)  main   8.27  cpuFrame   8.33  presentWait   0.00  dt   8.34  rs 1 msaa 1 rt 1200x1200x4
+  floor_all_off                                                  gpu   0.49 (p90   0.49)  main   3.14  cpuFrame   3.21  presentWait   0.00  dt   3.21  rs 1 msaa 4 rt 1200x1200x4
+  sky_only_no_post                                               gpu   6.43 (p90   6.47)  main   6.65  cpuFrame   6.72  presentWait   0.00  dt   6.65  rs 1 msaa 4 rt 1200x1200x4
+  sky_only_with_post                                             gpu   7.22 (p90   7.24)  main   7.28  cpuFrame   7.36  presentWait   0.00  dt   7.34  rs 1 msaa 4 rt 1200x1200x4
+  base_end                                                       gpu   8.04 (p90   8.08)  main   8.19  cpuFrame   8.26  presentWait   0.00  dt   8.24  rs 1 msaa 4 rt 1200x1200x4
+
+=== Performant @ 3840x2160  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu  42.74 (p90  42.91)  main  42.72  cpuFrame  42.82  presentWait   0.00  dt  42.78  rs 1.252 msaa 2 rt 2048x2048x4
+  base                                                           gpu  42.82 (p90  42.96)  main  42.77  cpuFrame  42.85  presentWait   0.00  dt  42.85  rs 1.252 msaa 2 rt 2048x2048x4
+  passes: FrameTime.GPU=42.655ms x1 ; ExecuteRenderGraph=42.498ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=41.697ms x1 ; DrawTransparentObjects=36.195ms x3 ; DrawMotionVectors=1.012ms x1 ; RG_MotionBlur=0.905ms x1 ; Bloom=0.891ms x1 ; DrawScreenSpaceUI=0.680ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=0.669ms x1 ; RG_UberPost=0.660ms x1 ; CopyDepth=0.604ms x4 ; RG_BloomPrefilter=0.419ms x1 ; PaniniProjection=0.335ms x1 ; RG_StopNaNs=0.307ms x1 ; RG_BloomUpsample=0.234ms x1 ; RG_BloomDownsample=0.232ms x1 ; DrawOpaqueObjects=0.178ms x3 ; BlitFinalToBackBuffer=0.173ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.133ms x1 ; Setup Camera Properties=0.016ms x3 ; Blit Color LUT=0.009ms x1 ; ColorGradingLUT=0.009ms x1 ; Setup Forward Lights=0.000ms x3 ; LightCookies=0.000ms x3 ; Initialize Frame=0.000ms x3 
+  no_sky                                                         gpu   6.22 (p90   6.34)  main   8.96  cpuFrame   9.03  presentWait   0.00  dt   8.95  rs 1.252 msaa 2 rt 2048x2048x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu  42.57 (p90  42.72)  main  42.52  cpuFrame  42.59  presentWait   0.00  dt  42.60  rs 1.252 msaa 2 rt 2048x2048x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu  39.17 (p90  39.50)  main  39.20  cpuFrame  39.31  presentWait   0.00  dt  39.28  rs 1.252 msaa 2 rt 2048x2048x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu  20.77 (p90  21.02)  main  20.76  cpuFrame  20.83  presentWait   0.00  dt  20.83  rs 1.252 msaa 2 rt 2048x2048x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu  66.44 (p90  89.88)  main  66.59  cpuFrame  66.67  presentWait   0.00  dt  66.67  rs 1.252 msaa 2 rt 2048x2048x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu  34.52 (p90  34.58)  main  34.49  cpuFrame  34.59  presentWait   0.00  dt  34.58  rs 1.252 msaa 2 rt 2048x2048x4
+  base_again                                                     gpu  42.72 (p90  42.98)  main  42.69  cpuFrame  42.79  presentWait   0.00  dt  42.77  rs 1.252 msaa 2 rt 2048x2048x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   6.76 (p90   6.90)  main   9.64  cpuFrame   9.71  presentWait   0.00  dt   9.71  rs 1.252 msaa 2 rt 2048x2048x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   9.99 (p90  10.04)  main  11.31  cpuFrame  11.40  presentWait   0.00  dt  11.40  rs 1.252 msaa 2 rt 2048x2048x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu  28.51 (p90  28.56)  main  28.48  cpuFrame  28.59  presentWait   0.00  dt  28.59  rs 1.252 msaa 2 rt 2048x2048x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   8.46 (p90   8.57)  main  10.92  cpuFrame  11.02  presentWait   0.01  dt  11.14  rs 1.252 msaa 2 rt 2048x2048x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu  14.75 (p90  14.90)  main  14.73  cpuFrame  14.81  presentWait   0.00  dt  14.82  rs 1.252 msaa 2 rt 2048x2048x4
+  no_preview                                                     gpu  42.08 (p90  61.25)  main  42.21  cpuFrame  42.34  presentWait   0.01  dt  42.29  rs 1.252 msaa 2 rt 2048x2048x4
+  no_hangar_ui                                                   gpu  42.38 (p90  42.91)  main  42.35  cpuFrame  42.45  presentWait   0.00  dt  42.50  rs 1.252 msaa 2 rt 2048x2048x4
+  no_any_ui                                                      gpu  42.02 (p90  42.08)  main  41.99  cpuFrame  42.07  presentWait   0.00  dt  42.09  rs 1.252 msaa 2 rt 2048x2048x4
+  no_post                                                        gpu  38.31 (p90  38.84)  main  38.31  cpuFrame  38.41  presentWait   0.00  dt  38.42  rs 1.252 msaa 2 rt 2048x2048x4
+  renderScale_1                                                  gpu  27.96 (p90  28.11)  main  27.94  cpuFrame  28.05  presentWait   0.00  dt  28.04  rs 1 msaa 2 rt 2048x2048x4
+  renderScale_0.5                                                gpu   8.25 (p90   8.31)  main  10.45  cpuFrame  10.53  presentWait   0.00  dt  10.55  rs 0.5 msaa 2 rt 2048x2048x4
+  msaa_1                                                         gpu  42.28 (p90  42.34)  main  42.17  cpuFrame  42.30  presentWait   0.00  dt  42.29  rs 1.252 msaa 1 rt 2048x2048x4
+  floor_all_off                                                  gpu   0.71 (p90   0.72)  main   5.63  cpuFrame   5.71  presentWait   0.00  dt   5.68  rs 1.252 msaa 2 rt 2048x2048x4
+  sky_only_no_post                                               gpu  36.97 (p90  37.46)  main  36.97  cpuFrame  37.06  presentWait   0.00  dt  37.13  rs 1.252 msaa 2 rt 2048x2048x4
+  sky_only_with_post                                             gpu  41.36 (p90  41.87)  main  41.48  cpuFrame  41.56  presentWait   0.00  dt  41.49  rs 1.252 msaa 2 rt 2048x2048x4
+  base_end                                                       gpu  42.80 (p90  43.15)  main  42.78  cpuFrame  42.87  presentWait   0.00  dt  42.90  rs 1.252 msaa 2 rt 2048x2048x4
+
+=== Balanced @ 3840x2160  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu  28.92 (p90  29.17)  main  28.94  cpuFrame  29.04  presentWait   0.00  dt  29.01  rs 1 msaa 1 rt 2048x2048x4
+  base                                                           gpu  28.98 (p90  29.07)  main  28.93  cpuFrame  29.04  presentWait   0.00  dt  29.03  rs 1 msaa 1 rt 2048x2048x4
+  passes: FrameTime.GPU=29.190ms x1 ; ExecuteRenderGraph=29.024ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=28.063ms x1 ; DrawTransparentObjects=23.339ms x3 ; SSAO=1.129ms x2 ; RG_UberPost=0.888ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=0.845ms x1 ; DrawScreenSpaceUI=0.723ms x2 ; DrawMotionVectors=0.665ms x1 ; Bloom=0.585ms x1 ; RG_MotionBlur=0.583ms x1 ; RG_BloomPrefilter=0.272ms x1 ; PaniniProjection=0.230ms x1 ; RG_StopNaNs=0.201ms x1 ; DrawOpaqueObjects=0.170ms x3 ; BlitFinalToBackBuffer=0.166ms x2 ; RG_BloomUpsample=0.161ms x1 ; RG_BloomDownsample=0.152ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.122ms x1 ; CopyDepth=0.056ms x2 ; Draw Depth Only=0.034ms x2 ; DepthPrepass=0.034ms x2 ; Setup Camera Properties=0.010ms x6 ; CompileRenderGraph=0.006ms x3 ; Setup Forward Lights=0.005ms x3 ; ColorG
+  no_sky                                                         gpu   5.64 (p90   5.79)  main   8.97  cpuFrame   9.04  presentWait   0.00  dt   8.94  rs 1 msaa 1 rt 2048x2048x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu  28.77 (p90  29.93)  main  28.77  cpuFrame  28.87  presentWait   0.00  dt  28.86  rs 1 msaa 1 rt 2048x2048x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu  26.59 (p90  26.77)  main  26.59  cpuFrame  26.66  presentWait   0.00  dt  26.66  rs 1 msaa 1 rt 2048x2048x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu  14.83 (p90  15.06)  main  14.89  cpuFrame  14.97  presentWait   0.00  dt  14.96  rs 1 msaa 1 rt 2048x2048x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu  27.59 (p90  27.70)  main  27.62  cpuFrame  27.70  presentWait   0.00  dt  27.70  rs 1 msaa 1 rt 2048x2048x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu  23.65 (p90  23.69)  main  23.62  cpuFrame  23.70  presentWait   0.00  dt  23.69  rs 1 msaa 1 rt 2048x2048x4
+  base_again                                                     gpu  28.91 (p90  29.47)  main  28.99  cpuFrame  29.07  presentWait   0.00  dt  29.04  rs 1 msaa 1 rt 2048x2048x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   5.81 (p90   5.92)  main   8.28  cpuFrame   8.37  presentWait   0.00  dt   8.34  rs 1 msaa 1 rt 2048x2048x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   7.97 (p90   8.09)  main   9.83  cpuFrame   9.87  presentWait   0.00  dt   9.87  rs 1 msaa 1 rt 2048x2048x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu  19.82 (p90  19.87)  main  19.81  cpuFrame  19.88  presentWait   0.00  dt  19.88  rs 1 msaa 1 rt 2048x2048x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   7.02 (p90   7.17)  main   9.17  cpuFrame   9.36  presentWait   0.00  dt   9.20  rs 1 msaa 1 rt 2048x2048x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu  11.01 (p90  11.07)  main  11.05  cpuFrame  11.11  presentWait   0.00  dt  11.11  rs 1 msaa 1 rt 2048x2048x4
+  no_preview                                                     gpu  28.05 (p90  28.21)  main  28.06  cpuFrame  28.14  presentWait   0.00  dt  28.12  rs 1 msaa 1 rt 2048x2048x4
+  no_hangar_ui                                                   gpu  28.17 (p90  28.26)  main  28.19  cpuFrame  28.28  presentWait   0.00  dt  28.27  rs 1 msaa 1 rt 2048x2048x4
+  no_any_ui                                                      gpu  28.23 (p90  28.55)  main  28.19  cpuFrame  28.29  presentWait   0.00  dt  28.29  rs 1 msaa 1 rt 2048x2048x4
+  no_post                                                        gpu  25.88 (p90  26.54)  main  25.85  cpuFrame  25.93  presentWait   0.00  dt  25.93  rs 1 msaa 1 rt 2048x2048x4
+  renderScale_0.5                                                gpu   8.44 (p90   8.49)  main   9.64  cpuFrame   9.75  presentWait   0.00  dt   9.85  rs 0.5 msaa 1 rt 2048x2048x4
+  floor_all_off                                                  gpu   1.11 (p90   1.11)  main   5.65  cpuFrame   5.72  presentWait   0.00  dt   5.76  rs 1 msaa 1 rt 2048x2048x4
+  sky_only_no_post                                               gpu  24.26 (p90  24.41)  main  24.31  cpuFrame  24.41  presentWait   0.00  dt  24.41  rs 1 msaa 1 rt 2048x2048x4
+  sky_only_with_post                                             gpu  27.52 (p90  27.60)  main  27.48  cpuFrame  27.59  presentWait   0.01  dt  27.58  rs 1 msaa 1 rt 2048x2048x4
+  base_end                                                       gpu  28.97 (p90  29.10)  main  28.95  cpuFrame  29.05  presentWait   0.01  dt  29.07  rs 1 msaa 1 rt 2048x2048x4
+
+=== High Fidelity @ 3840x2160  cameras: Minimap Cam(Clone)->RT mask=14336 | UI Cam(Clone) mask=1024 | Hangar Camera(Clone) mask=65536 | PreviewCamera->RT mask=16384
+  base_tierVsync                                                 gpu  29.69 (p90  29.86)  main  29.67  cpuFrame  29.78  presentWait   0.01  dt  29.79  rs 1 msaa 4 rt 2048x2048x4
+  base                                                           gpu  29.70 (p90  29.99)  main  29.70  cpuFrame  29.80  presentWait   0.00  dt  29.77  rs 1 msaa 4 rt 2048x2048x4
+  passes: FrameTime.GPU=29.711ms x1 ; ExecuteRenderGraph=29.547ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Hangar Camera(Clone)=28.026ms x1 ; DrawTransparentObjects=23.252ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: PreviewCamera=1.398ms x1 ; SSAO=1.098ms x2 ; DrawScreenSpaceUI=0.675ms x2 ; RG_UberPost=0.662ms x1 ; DrawMotionVectors=0.649ms x1 ; RG_MotionBlur=0.578ms x1 ; Bloom=0.566ms x1 ; RG_BloomPrefilter=0.272ms x1 ; DrawOpaqueObjects=0.265ms x3 ; PaniniProjection=0.224ms x1 ; RG_StopNaNs=0.189ms x1 ; BlitFinalToBackBuffer=0.172ms x2 ; CopyColor=0.160ms x4 ; RG_BloomUpsample=0.156ms x1 ; RG_BloomDownsample=0.138ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.123ms x1 ; Draw Main Light Shadowmap=0.104ms x3 ; MainLightShadow=0.104ms x1 ; CopyDepth=0.054ms x2 ; DrawDepthNormalPrepass=0.041ms x2 ; ColorGradingLUT=0.015ms x1 ; Blit Col
+  no_sky                                                         gpu   6.37 (p90   6.49)  main  10.62  cpuFrame  10.71  presentWait   0.00  dt  10.65  rs 1 msaa 4 rt 2048x2048x4
+  no_sky:Background/Background<Locales/Flat Background>          gpu  29.43 (p90  29.53)  main  29.43  cpuFrame  29.52  presentWait   0.00  dt  29.52  rs 1 msaa 4 rt 2048x2048x4
+  no_sky:CloseNebula/CloseNebula<Custom/Nebula>                  gpu  27.41 (p90  28.11)  main  27.43  cpuFrame  27.54  presentWait   0.00  dt  27.54  rs 1 msaa 4 rt 2048x2048x4
+  no_sky:FarNebula/FarNebula<Custom/Nebula>                      gpu  15.59 (p90  17.68)  main  15.86  cpuFrame  15.89  presentWait   0.00  dt  15.93  rs 1 msaa 4 rt 2048x2048x4
+  no_sky:DistantStars/DistantStars<Custom/StarField>             gpu  30.37 (p90  30.91)  main  30.43  cpuFrame  30.48  presentWait   0.00  dt  30.44  rs 1 msaa 4 rt 2048x2048x4
+  no_sky:StarField/StarField<Custom/StarField>                   gpu  26.02 (p90  26.79)  main  25.99  cpuFrame  26.03  presentWait   0.00  dt  26.05  rs 1 msaa 4 rt 2048x2048x4
+  base_again                                                     gpu  31.70 (p90  32.30)  main  31.82  cpuFrame  31.86  presentWait   0.00  dt  31.84  rs 1 msaa 4 rt 2048x2048x4
+  only_sky:Background/Background<Locales/Flat Background>        gpu   7.39 (p90   7.63)  main  10.99  cpuFrame  11.03  presentWait   0.00  dt  10.95  rs 1 msaa 4 rt 2048x2048x4
+  only_sky:CloseNebula/CloseNebula<Custom/Nebula>                gpu   8.80 (p90   9.39)  main  11.57  cpuFrame  11.60  presentWait   0.00  dt  11.62  rs 1 msaa 4 rt 2048x2048x4
+  only_sky:FarNebula/FarNebula<Custom/Nebula>                    gpu  20.53 (p90  20.56)  main  20.54  cpuFrame  20.59  presentWait   0.00  dt  20.59  rs 1 msaa 4 rt 2048x2048x4
+  only_sky:DistantStars/DistantStars<Custom/StarField>           gpu   7.69 (p90   7.84)  main  10.79  cpuFrame  10.84  presentWait   0.00  dt  10.79  rs 1 msaa 4 rt 2048x2048x4
+  only_sky:StarField/StarField<Custom/StarField>                 gpu  11.79 (p90  11.95)  main  12.14  cpuFrame  12.17  presentWait   0.00  dt  12.16  rs 1 msaa 4 rt 2048x2048x4
+  no_preview                                                     gpu  28.47 (p90  28.70)  main  28.51  cpuFrame  28.54  presentWait   0.00  dt  28.56  rs 1 msaa 4 rt 2048x2048x4
+  no_hangar_ui                                                   gpu  29.12 (p90  29.17)  main  29.12  cpuFrame  29.16  presentWait   0.00  dt  29.16  rs 1 msaa 4 rt 2048x2048x4
+  no_any_ui                                                      gpu  29.00 (p90  29.20)  main  29.05  cpuFrame  29.09  presentWait   0.00  dt  29.09  rs 1 msaa 4 rt 2048x2048x4
+  no_post                                                        gpu  26.95 (p90  27.04)  main  26.97  cpuFrame  27.00  presentWait   0.00  dt  27.02  rs 1 msaa 4 rt 2048x2048x4
+  renderScale_0.5                                                gpu   8.85 (p90   8.89)  main  10.41  cpuFrame  10.44  presentWait   0.00  dt  10.39  rs 0.5 msaa 4 rt 2048x2048x4
+  msaa_1                                                         gpu  29.08 (p90  29.14)  main  29.09  cpuFrame  29.13  presentWait   0.00  dt  29.12  rs 1 msaa 1 rt 2048x2048x4
+  floor_all_off                                                  gpu   1.50 (p90   1.55)  main   5.62  cpuFrame   5.65  presentWait   0.00  dt   5.64  rs 1 msaa 4 rt 2048x2048x4
+  sky_only_no_post                                               gpu  24.88 (p90  25.06)  main  24.93  cpuFrame  24.97  presentWait   0.00  dt  24.96  rs 1 msaa 4 rt 2048x2048x4
+  sky_only_with_post                                             gpu  27.71 (p90  27.90)  main  27.73  cpuFrame  27.76  presentWait   0.00  dt  27.77  rs 1 msaa 4 rt 2048x2048x4
+  base_end                                                       gpu  29.65 (p90  29.79)  main  29.71  cpuFrame  29.74  presentWait   0.00  dt  29.75  rs 1 msaa 4 rt 2048x2048x4
