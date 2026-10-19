@@ -42,3 +42,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Canopy reflections (#1017)
 
 [Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).
+
+## Hull lighting prototype (#1027)
+
+[Matched Unity motion, stills, capture source, and checks](paint/hull-lighting/README.md).
