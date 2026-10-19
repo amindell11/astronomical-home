@@ -17,7 +17,7 @@ using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Hangar
 {
     /// <summary>
     /// While the hangar screen is open the player's commander must be inactive — primary fire shares
@@ -131,7 +131,7 @@ namespace Tests.PlayMode
         [Test]
         public void Preview_StaysWithin224MiB_WhenRequestedAt4K()
         {
-            var stage = HangarPreviewStage.Create(false, null, 4096, Enumerable.Empty<Ships.Ship>());
+            var stage = HangarPreviewStage.Create(null, 4096, Enumerable.Empty<Ships.Ship>());
             try
             {
                 var texture = (RenderTexture)stage.Texture;

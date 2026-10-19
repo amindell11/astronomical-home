@@ -60,9 +60,33 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator VanguardDeath_RetainsAuthoredBreakup() => FixedHullDeath("Vanguard");
 
         [UnityTest]
-        public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections()
+        public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Nightshade", 13);
+
+        [UnityTest]
+        public IEnumerator BulwarkDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Bulwark", 8);
+
+        [UnityTest]
+        public IEnumerator Bulwark_FliesFiresAndCollidesOnTheGameplayPlane()
         {
-            var ship = Spawn("Nightshade");
+            var ship = Spawn("Bulwark");
+            yield return null;
+            var start = ship.transform.position;
+            ship.Movement.Drive(new Ships.Command.PilotCommand { thrust = 1f });
+            yield return new WaitForSeconds(.3f);
+            Assert.That(Vector3.Distance(start, ship.transform.position), Is.GreaterThan(.05f));
+            Assert.That(ship.transform.position.z, Is.EqualTo(0f).Within(.001f));
+            var collider = ship.GetComponentInChildren<MeshCollider>();
+            Physics.SyncTransforms();
+            var ray = new Ray(ship.transform.position + ship.transform.up * 5f, -ship.transform.up);
+            Assert.That(collider.Raycast(ray, out _, 10f), Is.True);
+            ship.Weapons.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
+                new Combat.Weapons.WeaponCommand { held = true, pressed = true, targetPoint = ship.transform.position + ship.transform.up * 20f });
+            Assert.That(Projectiles.ActiveCount, Is.GreaterThan(0));
+        }
+
+        private IEnumerator PaintedHullDeath(string name, int pieceCount)
+        {
+            var ship = Spawn(name);
             yield return null;
             var visual = ship.GetComponentInChildren<ShipBreakupVisual>();
             var hull = (Transform)new SerializedObject(visual).FindProperty("hull").objectReferenceValue;
@@ -72,7 +96,7 @@ namespace Tests.PlayMode.Presentation.Breakup
             Kill(ship);
             var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
-            Assert.That(pieces, Has.Length.EqualTo(13));
+            Assert.That(pieces, Has.Length.EqualTo(pieceCount));
             Assert.That(hull.gameObject.activeSelf, Is.False);
             Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
                 .Count(e => e.gameObject.activeInHierarchy), Is.EqualTo(1));
@@ -292,3 +316,4 @@ namespace Tests.PlayMode.Presentation.Breakup
         }
     }
 }
+
