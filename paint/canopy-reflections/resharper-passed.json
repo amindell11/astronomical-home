@@ -2,8 +2,8 @@
     "status":  "passed",
     "baseRef":  "origin/main",
     "changedFiles":  2,
-    "unityFindings":  572,
-    "touchedFileFindings":  12,
+    "unityFindings":  577,
+    "touchedFileFindings":  17,
     "blockingFindings":  0,
     "findingsByRule":  [
                            {
@@ -12,7 +12,7 @@
                            },
                            {
                                "ruleId":  "Unity.PreferAddressByIdToGraphicsParams",
-                               "count":  200
+                               "count":  205
                            },
                            {
                                "ruleId":  "Unity.NoNullPropagation",
