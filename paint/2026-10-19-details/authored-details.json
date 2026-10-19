@@ -1,0 +1,151 @@
+[
+  {
+    "part": "Armor - Upper shoulder guards",
+    "face": 9,
+    "kind": "lamps",
+    "bounds": [
+      0.17,
+      0.83,
+      0.72,
+      0.88
+    ],
+    "segments": 3
+  },
+  {
+    "part": "Armor - Upper shoulder guards",
+    "face": 9,
+    "kind": "vent",
+    "bounds": [
+      0.21,
+      0.79,
+      0.23,
+      0.54
+    ],
+    "slats": 3
+  },
+  {
+    "part": "Armor - Lower skids",
+    "face": 9,
+    "kind": "lamps",
+    "bounds": [
+      0.17,
+      0.83,
+      0.72,
+      0.88
+    ],
+    "segments": 3
+  },
+  {
+    "part": "Armor - Lower skids",
+    "face": 9,
+    "kind": "vent",
+    "bounds": [
+      0.21,
+      0.79,
+      0.23,
+      0.54
+    ],
+    "slats": 3
+  },
+  {
+    "part": "Armor - Lower skids",
+    "face": 20,
+    "kind": "lamps",
+    "bounds": [
+      0.2,
+      0.78,
+      0.69,
+      0.84
+    ],
+    "segments": 3
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 2,
+    "kind": "vent",
+    "bounds": [
+      0.24,
+      0.73,
+      0.25,
+      0.75
+    ],
+    "slats": 3,
+    "vertical": true
+  },
+  {
+    "part": "Armor - Side plates",
+    "face": 16,
+    "kind": "vent",
+    "bounds": [
+      0.2,
+      0.79,
+      0.23,
+      0.77
+    ],
+    "slats": 3,
+    "vertical": true
+  },
+  {
+    "part": "Engine - Shrouds",
+    "face": 9,
+    "kind": "vent",
+    "bounds": [
+      0.22,
+      0.77,
+      0.17,
+      0.82
+    ],
+    "slats": 4,
+    "vertical": true
+  },
+  {
+    "part": "Engine - Shrouds",
+    "face": 2,
+    "kind": "hatch",
+    "bounds": [
+      0.24,
+      0.74,
+      0.22,
+      0.78
+    ]
+  },
+  {
+    "part": "Upper flaps - Fins",
+    "face": 0,
+    "kind": "cross_seam",
+    "y": -3.35
+  },
+  {
+    "part": "Upper flaps - Fins",
+    "face": 9,
+    "kind": "cross_seam",
+    "y": -3.35
+  },
+  {
+    "part": "Lower flaps - Fins",
+    "face": 0,
+    "kind": "cross_seam",
+    "y": -3.12
+  },
+  {
+    "part": "Lower flaps - Fins",
+    "face": 9,
+    "kind": "cross_seam",
+    "y": -3.12
+  },
+  {
+    "part": "Hull - Ram nose",
+    "face": 10,
+    "kind": "fastener",
+    "center": [
+      0.8,
+      4.63
+    ],
+    "radius": 0.035
+  },
+  {
+    "part": "Canisters - Metal side modules",
+    "face": 60,
+    "kind": "canister"
+  }
+]
