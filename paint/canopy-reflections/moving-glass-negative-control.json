@@ -1,0 +1,6 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": "Expected failure:   The purple glass must remain without its glints.\r\n  Expected: greater than 0.300000012f\r\n  But was:  0.0862745121f\r\n"
+}

@@ -83,6 +83,18 @@ public static class CanopyCapture
         return filename;
     }
 
+    public static string Stills()
+    {
+        Setup();
+        Render("after.png");
+        Render("after-bank.png", 25, 35);
+        Render("after-underside.png", 0, 180);
+        return "Final stills captured";
+    }
+
+    public static string FirstMotion() { return Motion(0, 60); }
+    public static string LastMotion() { return Motion(60, 60); }
+
     public static string Motion(int first, int count)
     {
         string[] names = { "Crimson", "Nightshade", "Valis", "Vanguard" };
