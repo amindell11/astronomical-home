@@ -46,17 +46,17 @@
     "detail emission"
   ],
   "deferred_checks": [
-    "flight approval",
-    "gameplay chassis integration",
-    "in-game bloom and scale review",
-    "breakup"
+    "owner flight and scale approval",
+    "tank balance and dedicated ram ability",
+    "in-game bloom review",
+    "owner breakup review"
   ],
   "constant_material_shadow_strength": 0.65,
   "ink_mask": "layers/Ink.png",
   "generator": "ship_paint",
   "generator_settings": "paint.json",
   "baseline": "layers/baseline",
-  "geometry_lock_status": "Owner-authorized texture fingerprint; flight approval pending",
+  "geometry_lock_status": "Owner-authorized nonvisual collider/socket additions; original part fingerprints preserved; flight approval pending",
   "unity_bundle_status": "Unity visual prefab bound and rendered; retain packed coat weights and independent DetailEmission when regenerating",
   "paint_space": "signed",
   "generator_revision": "a21a67317",
