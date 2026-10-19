@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -95,3 +96,4 @@ namespace Tests.PlayMode.Hangar
         private void Show(Ship ship) => stage.Show(new ShipLoadout(ship, null, null, null, null));
     }
 }
+#endif
