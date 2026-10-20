@@ -83,10 +83,51 @@ def batch_a():
     return runs
 
 
+DIAL = {"skillReactionMax": 0.5, "skillNoiseMax": 15, "skillAccelMin": 0.05, "skillCurve": 0.5}
+
+
+def batch_b():
+    runs = []
+    mpc = {"aimLock": False, "mpcFacingWidth": 0.1, "aimAuthority": 30}
+    for tag, over in [("t1b-n025-w01-a30", dict(mpc, mpcNoiseStd=0.25)),
+                      ("t1b-n025-quad10", {"aimLock": False, "mpcNoiseStd": 0.25}),
+                      ("t1b-n01-w01-a30", dict(mpc, mpcNoiseStd=0.1)),
+                      ("t1b-s512-w01-a30", dict(mpc, mpcSamples=512)),
+                      ("t1b-n025-s512-w01-a30", dict(mpc, mpcNoiseStd=0.25, mpcSamples=512))]:
+        runs.append(marks(tag, GUNS, ["Dummy", "Orbiter", "Aggressor"], doc(LOCK_SMART_PROF, tag, **over)))
+    final = doc(FINAL, "final")
+    for g, c in [(0.5, 0.8), (0.8, 1.2), (1.2, 1.8), (1.6, 2.5), (2.5, 3.5)]:
+        tag = f"t3x-g{g}-c{c}"
+        runs.append(matrix(tag, ["Rippers", "ChargeLasers"], doc(FINAL, tag, geomTolScale=g, chargeTolScale=c), final,
+                           opponents=GUNS))
+    for tap in (0.31, 0.5):
+        tag = f"t3x-tap{tap}"
+        runs.append(matrix(tag, ["ChargeLasers"], doc(FINAL, tag, tapCharge=tap), final, opponents=GUNS))
+    for tag, over in [("t2b-chain", {"grenadeSafeMargin": 2, "grenadeBackoff": True, "grenadeChainGap": 0.2}),
+                      ("t2b-chain-only", {"grenadeChainGap": 0.2}),
+                      ("t2b-chain-back", {"grenadeBackoff": True, "grenadeChainGap": 0.2})]:
+        runs.append(marks(tag, ["Grenades"], ["Dummy", "Orbiter", "Aggressor"], doc(FINAL, tag, **over)))
+    for tag, over in [("t2bx-ref", {}),
+                      ("t2bx-safe2-back", {"grenadeSafeMargin": 2, "grenadeBackoff": True}),
+                      ("t2bx-chain", {"grenadeSafeMargin": 2, "grenadeBackoff": True, "grenadeChainGap": 0.2})]:
+        runs.append(matrix(tag, ["Grenades"], doc(FINAL, tag, **over), final, opponents=["Missiles", "Grenades"]))
+    runs.append(marks("t4-orbit-r45-c20", ["Railgun"], ["Orbiter", "Aggressor", "Dummy"],
+                      doc(FINAL, "t4-orbit-r45-c20", railOrbit=True, railOrbitRate=45, railOrbitCommit=20),
+                      episodes=20, seed=9101))
+    base = json.dumps({"label": "base"})
+    for s in (0.0, 0.25, 0.5, 0.75, 1.0):
+        dial = doc(FINAL, f"dial-s{s}", skill=s, **DIAL)
+        runs.append(marks(f"t5d-s{s}", ALL, ["Aggressor"], dial))
+        for w in GUNS:
+            runs.append(matrix(f"t5m-s{s}-{w}", [w], dial, final, opponents=[w], seed=7101))
+            runs.append(matrix(f"t5b-s{s}-{w}", [w], dial, base, opponents=[w], seed=7201))
+    return runs
+
+
 if __name__ == "__main__":
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else "a"
-    runs = {"a": batch_a}[which]()
+    runs = {"a": batch_a, "b": batch_b}[which]()
     with open(f"tail-{which}.json", "w") as f:
         json.dump({"runs": runs}, f, indent=1)
     print(len(runs), "runs")

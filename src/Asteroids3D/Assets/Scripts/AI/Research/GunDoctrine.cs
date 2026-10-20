@@ -58,7 +58,10 @@ namespace AI.Research
         [Header("Research tail (2026-10-20)")]
         public float mpcFacingWidth = -1f;
         public float mpcYawRate = -1f;
+        public float mpcNoiseStd = -1f;
+        public int mpcSamples = -1;
         public float grenadeSafeMargin = -1f;
+        public float grenadeChainGap = -1f;
         public bool grenadeBackoff;
         public float grenadeBackoffExtra = 2f;
         public bool railOrbit;
@@ -69,7 +72,11 @@ namespace AI.Research
         public float skillNoiseMax = 10f;
         public float skillNoiseTau = 0.5f;
         public float skillAccelMin = 0.1f;
+        public float skillCurve = 1f;
         public int skillSeed = 1;
+        private double nextGrenadeOk;
+        private float lastGrenadeAimDist;
+        private bool grenadeHooked;
 
         private Ship ship;
         private bool venting;
@@ -148,6 +155,7 @@ namespace AI.Research
             noiseRng = new System.Random(skillSeed);
             noiseAngle = 0f;
             lastNoiseTime = double.NaN;
+            nextGrenadeOk = 0;
         }
 
         /// <summary>Skill dial s in [0,1]: scales the aim controller's acceleration and the strafe dodge; perception error is applied in Perceive.</summary>
@@ -155,17 +163,19 @@ namespace AI.Research
         {
             if (skill < 0f) return;
             var s = Mathf.Clamp01(skill);
-            aimAccelFrac = Mathf.Lerp(skillAccelMin, aimAccelFrac, s);
+            aimAccelFrac = Mathf.Lerp(skillAccelMin, aimAccelFrac, 1f - SkillError);
             strafeFraction *= s;
         }
 
-        /// <summary>The target as a skill-limited pilot sees it: delayed by (1-s) x reaction and rotated about the shooter by a correlated bearing error.</summary>
+        /// <summary>Error scale (1-s)^curve: 1 at s = 0, 0 at s = 1.</summary>
+        private float SkillError => Mathf.Pow(1f - Mathf.Clamp01(skill), Mathf.Max(0.01f, skillCurve));
+
+        /// <summary>The target as a skill-limited pilot sees it: delayed by SkillError x reaction and rotated about the shooter by a correlated bearing error.</summary>
         public void Perceive(Vector2 selfPos, ref Vector2 pos, ref Vector2 vel)
         {
             if (skill < 0f) return;
-            var s = Mathf.Clamp01(skill);
             var now = Time.fixedTimeAsDouble;
-            var delay = (1f - s) * skillReactionMax;
+            var delay = SkillError * skillReactionMax;
             perceived.Add((now, pos, vel));
             while (perceived.Count > 1 && perceived[1].t <= now - delay - 1e-6) perceived.RemoveAt(0);
             if (delay > 0f)
@@ -174,7 +184,7 @@ namespace AI.Research
                 vel = perceived[0].vel;
             }
 
-            var sigma = (1f - s) * skillNoiseMax;
+            var sigma = SkillError * skillNoiseMax;
             if (sigma <= 0f) return;
             noiseRng ??= new System.Random(skillSeed);
             if (now != lastNoiseTime)
@@ -354,9 +364,16 @@ namespace AI.Research
 
         private bool GrenadeLob(Grenades weapon, in Kinematics self, Vector2 targetPos, Vector2 targetVel)
         {
+            if (grenadeChainGap >= 0f && !grenadeHooked)
+            {
+                grenadeHooked = true;
+                weapon.OnFire += OnGrenadeFired;
+            }
             if (!weapon.CanFire()) return false;
+            if (grenadeChainGap >= 0f && Time.fixedTimeAsDouble < nextGrenadeOk) return false;
             var aim = GrenadeAim(weapon, in self, targetPos, targetVel);
             var d = Vector2.Distance(self.pos, aim);
+            lastGrenadeAimDist = d;
             if (grenadeSafeMargin >= 0f)
             {
                 var safe = weapon.BlastRadius + grenadeSafeMargin;
@@ -364,6 +381,13 @@ namespace AI.Research
                 if (Vector2.Distance(self.pos + self.vel * (d / 20f), aim) < safe) return false;
             }
             return d >= grenadeMinRange && d <= grenadeMaxRange && AimErr(in self, aim) <= grenadeCone;
+        }
+
+        // The next charge waits until this one has landed and its wave has finished expanding, so it never flies into that wave.
+        private void OnGrenadeFired()
+        {
+            var wave = ship && ship.Weapons && ship.Weapons.Primary is Grenades g ? g.BlastRadius / 15f : 0.8f;
+            nextGrenadeOk = Time.fixedTimeAsDouble + lastGrenadeAimDist / 20f + wave + grenadeChainGap;
         }
 
         /// <summary>Where the nose should point for the primary weapon, or null to leave yaw to the MPC.</summary>

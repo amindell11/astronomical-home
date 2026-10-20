@@ -450,16 +450,20 @@ namespace Tests.PlayMode.Research
             if (!string.IsNullOrEmpty(doctrineJson)) JsonUtility.FromJsonOverwrite(doctrineJson, doctrine);
             doctrine.ApplySkill();
             var nav = ship.GetComponentInChildren<AICommander>()?.Navigator;
-            if (nav && nav.mpcSettings && (doctrine.mpcFacingWidth > 0f || doctrine.mpcYawRate >= 0f))
+            if (nav && nav.mpcSettings && (doctrine.mpcFacingWidth > 0f || doctrine.mpcYawRate >= 0f
+                    || doctrine.mpcNoiseStd > 0f || doctrine.mpcSamples > 0))
             {
                 // The next respawn rebuilds the solver from this per-ship clone; the asset is never written.
                 var clone = UnityEngine.Object.Instantiate(nav.mpcSettings);
                 if (doctrine.mpcFacingWidth > 0f) clone.facingWidth = doctrine.mpcFacingWidth;
                 if (doctrine.mpcYawRate >= 0f) clone.wYawRate = doctrine.mpcYawRate;
+                if (doctrine.mpcNoiseStd > 0f) clone.noiseStd = doctrine.mpcNoiseStd;
+                if (doctrine.mpcSamples > 0) clone.samples = doctrine.mpcSamples;
                 nav.mpcSettings = clone;
                 if (!loggedMpc)
                 {
                     loggedMpc = true;
+                    Debug.Log($"[gun-research] mpc solver noiseStd={clone.noiseStd} samples={clone.samples}");
                     Debug.Log($"[gun-research] mpc override facingWidth={clone.facingWidth} wYawRate={clone.wYawRate} wFacing={clone.wFacing}");
                 }
             }
