@@ -44,8 +44,8 @@ namespace Tests.EditMode
         }
 
         private static DamageInfo Hit(float amount,
-            DamageKind kind = DamageKind.Laser, ShipId attackerId = default) =>
-            new(amount, kind, attackerId, 0f, Vector3.zero, Vector3.zero);
+            DamageKind kind = DamageKind.Laser, ShipId attackerId = default, bool bypassesShield = false) =>
+            new(amount, kind, attackerId, 0f, Vector3.zero, Vector3.zero, bypassesShield);
 
         private static void Damage(DamageController dc, float amount) =>
             dc.TakeDamage(Hit(amount));
@@ -120,6 +120,34 @@ namespace Tests.EditMode
             dc.Shield.Update(0.4f); // clock 0.6 > 0.5: regen due from the FIRST hit's delay
             Assert.Greater(dc.Shield.CurrentValue, 0f,
                 "A hit the shield absorbed none of must not reset the regen delay");
+        }
+
+        [Test]
+        public void ShieldBypassHit_OnFullShield_AllGoesToHull()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            var eventDamage = 0f;
+            dc.OnDamaged += hit => eventDamage = hit.Amount;
+
+            dc.TakeDamage(Hit(35f, DamageKind.Missile, bypassesShield: true));
+
+            Assert.AreEqual(50f, dc.Shield.CurrentValue, 0.001f, "Shield untouched");
+            Assert.AreEqual(65f, dc.Health.CurrentValue, 0.001f, "Hull takes the full hit");
+            Assert.AreEqual(35f, eventDamage, 0.001f, "OnDamaged reports the hull damage dealt");
+        }
+
+        [Test]
+        public void ShieldBypassHit_DoesNotPostponeShieldRegen()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f, regenRate: 10f, regenDelay: 0.5f);
+            Damage(dc, 20f);        // shield 50 -> 30; delay clock starts
+            dc.Shield.Update(0.2f); // inside the delay window
+
+            dc.TakeDamage(Hit(10f, DamageKind.Missile, bypassesShield: true));
+            Assert.AreEqual(30f, dc.Shield.CurrentValue, 0.001f, "A bypass hit leaves a charged shield alone");
+
+            dc.Shield.Update(0.4f); // clock 0.6 > 0.5: regen due from the shield-first hit's delay
+            Assert.Greater(dc.Shield.CurrentValue, 30f, "A bypass hit must not reset the regen delay");
         }
 
         [Test]

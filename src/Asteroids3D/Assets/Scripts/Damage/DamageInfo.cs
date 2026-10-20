@@ -28,9 +28,11 @@ namespace Damage
         public readonly float HitMass;
         public readonly Vector3 HitVelocity;
         public readonly Vector3 HitPoint;
+        public readonly bool BypassesShield;
 
         public DamageInfo(float amount, DamageKind kind, ShipId attackerId,
-                          float hitMass, Vector3 hitVelocity, Vector3 hitPoint)
+                          float hitMass, Vector3 hitVelocity, Vector3 hitPoint,
+                          bool bypassesShield = false)
         {
             Amount = amount;
             Kind = kind;
@@ -38,10 +40,11 @@ namespace Damage
             HitMass = hitMass;
             HitVelocity = hitVelocity;
             HitPoint = hitPoint;
+            BypassesShield = bypassesShield;
         }
 
         /// <summary>Same hit with a different amount — events report applied damage, not incoming.</summary>
         public DamageInfo WithAmount(float amount) =>
-            new(amount, Kind, AttackerId, HitMass, HitVelocity, HitPoint);
+            new(amount, Kind, AttackerId, HitMass, HitVelocity, HitPoint, BypassesShield);
     }
 }

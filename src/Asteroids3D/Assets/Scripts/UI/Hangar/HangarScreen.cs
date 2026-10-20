@@ -196,7 +196,7 @@ namespace UI.Hangar
             if (missiles)
                 return $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
                        (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
-                       "   |   Lock-on homing";
+                       "   |   Lock-on homing   |   Direct hit skips shields";
 
             var grenades = weapon as Grenades;
             if (grenades)
