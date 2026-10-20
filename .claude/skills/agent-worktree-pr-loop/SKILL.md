@@ -267,9 +267,9 @@ Vocab: …
 </details>
 
 ## Test status
-### Owed local       (cloud builds)
-## Merge order       (only when needed)
-## Visual evidence   (when there is any)
+### Owed local
+## Merge order
+## Visual evidence
 ```
 
 - **Lead.** 3–6 plain sentences written per the `unslop` skill: what changed,
@@ -288,23 +288,26 @@ Vocab: …
     Where design lives).
   - `## Scope check`: the diff read back against the Step-1 scope statement.
     Anything a scope-reader wouldn't expect either comes out or is flagged
-    here for confirmation.
+    here for confirmation, and the lead names it.
   - `## Quality pass`: Step 3's changes, or the Size-S skip.
 
   Keep the blank line after `<summary>`: without it GitHub prints the
   headings as raw `##` text.
-- **After the fold.** `## Test status` carries the test proof; the sections
-  after it follow the paragraphs below. `drain_pick.sh` reads `### Owed
-  local` and `## Merge order` to the next heading or the end of the body, so
-  only a heading may follow either list: the fold stays above
-  `## Test status`, and so does a trailer such as an attribution line.
+- **After the fold.** `## Test status` carries the test proof. `### Owed
+  local` (cloud builds), `## Merge order` (only when needed) and `## Visual
+  evidence` (when there is any) follow it, each per its paragraph below and
+  each heading written bare: the parsers match the whole line.
+  `drain_pick.sh` reads the owed and merge-order lists to the next heading or
+  the end of the body, so only a heading may follow either list. The fold
+  stays above `## Test status`, and so does a trailer such as an attribution
+  line.
 
 **Owed-local checklist.** A cloud build's `## Test status` opens with a prose
 `Hosted:` line, then `### Owed local` lists every test the hosted suite
 cannot run, for the verify task (§ Verify task) to run and tick. The heading
-makes the PR a *pipeline PR*, which the merge task may land in the *auto-merge
-class* (`doc/Glossary.md`), so a local build writes it only to join the
-pipeline.
+makes the PR a *pipeline PR*, which `land` may merge with no recorded
+instruction (the *auto-merge class*, `doc/Glossary.md`), so a local build
+writes it only to join the pipeline.
 
 ```markdown
 ## Test status

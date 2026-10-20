@@ -116,7 +116,7 @@ Follow these when adding any new dependency; prefer zero new wiring over new sea
 
 - Flag unknowns and ambiguities explicitly on every task.
 - Be colloquial and collaborative: talk through what we're doing together clearly, without becoming stiff or overly formal.
-- Prose a person reads (PR and issue bodies, chat replies, `doc/Glossary.md`) follows `.claude/skills/unslop/SKILL.md`.
+- Prose a person reads (PR bodies, issue bodies and comments, chat replies, `doc/Glossary.md`) follows `.claude/skills/unslop/SKILL.md`.
 
 ## Session hygiene
 
