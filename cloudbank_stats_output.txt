@@ -1,0 +1,5 @@
+live 2D (wide area)          opacity 0.595  light 0.138  violet 0.2282  warmHue 0.310  lum 0.164  lum>0.3 0.090
+torus tile (seed mat)        opacity 0.558  light 0.103  violet 0.2389  warmHue 0.387  lum 0.150  lum>0.3 0.076
+torus tile (seed 1)          opacity 0.631  light 0.137  violet 0.2547  warmHue 0.213  lum 0.170  lum>0.3 0.087
+torus tile (seed 2)          opacity 0.623  light 0.123  violet 0.2565  warmHue 0.179  lum 0.157  lum>0.3 0.059
+torus tile (seed 3)          opacity 0.701  light 0.184  violet 0.2357  warmHue 0.275  lum 0.197  lum>0.3 0.122
