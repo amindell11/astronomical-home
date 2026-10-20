@@ -1,0 +1,161 @@
+META {"header": true, "mode": "flight", "editor": false, "device": "NVIDIA RTX 2000 Ada Generation Laptop GPU", "api": "Direct3D11", "ftmEnabled": true, "gpuRecorder": true, "hdrActive": false, "refreshHz": 120, "desktop": "3840x2160", "sectorConfig": "SurvivalTrialConfig", "configuredLocale": "Locale_3", "forcedLocale": "Locale_1", "frozenTimeScale": 0.001}
+META {"flight": true, "activeScene": "Locale_1", "sector": "TrialSector(Clone)", "invulnerable": true, "loadSeconds": 14.4951}
+META {"matrix": "Performant", "screen": "1920x1080", "locale": "Locale_1", "sky": "FarNebula/FarNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | TurquoiseNebula/TurquoiseNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField>", "cameras": "UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56 | Main Camera(Clone) mask=66559 ortho=10", "canvases": "UIOverlay(Clone):ScreenSpaceCamera | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace", "scene": "visibleRendere
+META {"matrix": "High Fidelity", "screen": "1920x1080", "locale": "Locale_1", "sky": "FarNebula/FarNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | TurquoiseNebula/TurquoiseNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField>", "cameras": "UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56 | Main Camera(Clone) mask=66559 ortho=10", "canvases": "UIOverlay(Clone):ScreenSpaceCamera | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace", "scene": "visibleRend
+META {"matrix": "Performant", "screen": "3840x2160", "locale": "Locale_1", "sky": "FarNebula/FarNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | TurquoiseNebula/TurquoiseNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField>", "cameras": "UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56 | Main Camera(Clone) mask=66559 ortho=10", "canvases": "UIOverlay(Clone):ScreenSpaceCamera | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace", "scene": "visibleRendere
+META {"matrix": "High Fidelity", "screen": "3840x2160", "locale": "Locale_1", "sky": "FarNebula/FarNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | TurquoiseNebula/TurquoiseNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField>", "cameras": "UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56 | Main Camera(Clone) mask=66559 ortho=10", "canvases": "UIOverlay(Clone):ScreenSpaceCamera | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace", "scene": "visibleRend
+META {"liveScene": "visibleRenderers=95 [Minimap:55 Asteroid:15 Default:10 Sky:6 Ship:6 Minimap_Enemy:2 Minimap_Ship:1] particles=10"}
+META {"liveScene": "visibleRenderers=112 [Minimap:54 Asteroid:33 Default:10 Sky:6 Ship:6 Minimap_Enemy:2 Minimap_Ship:1] particles=10"}
+META {"liveScene": "visibleRenderers=114 [Minimap:50 Asteroid:30 Default:14 Ship:10 Sky:6 Minimap_Enemy:3 Minimap_Ship:1] particles=14"}
+META {"liveScene": "visibleRenderers=121 [Minimap:56 Asteroid:31 Default:14 Ship:10 Sky:6 Minimap_Enemy:3 Minimap_Ship:1] particles=14"}
+META {"header": true, "mode": "flight", "editor": false, "device": "NVIDIA RTX 2000 Ada Generation Laptop GPU", "api": "Direct3D11", "ftmEnabled": true, "gpuRecorder": true, "hdrActive": false, "refreshHz": 120, "desktop": "3840x2160", "sectorConfig": "SurvivalTrialConfig", "configuredLocale": "Locale_3", "forcedLocale": "Locale_3", "frozenTimeScale": 0.001}
+META {"flight": true, "activeScene": "Locale_3", "sector": "TrialSector(Clone)", "invulnerable": true, "loadSeconds": 9.757}
+META {"matrix": "Performant", "screen": "1920x1080", "locale": "Locale_3", "sky": "DistantStars/DistantStars<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula>", "cameras": "Main Camera(Clone) mask=66559 ortho=10 | UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56", "canvases": "Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | UIOverlay(Clone):ScreenSpaceCamera | UILockOnIndicator:WorldSpace | Shield:WorldSpace", "scene": "visibleRenderers=89 [Minimap:55 Default:12 Ship:9 Sky:5 Asteroi
+META {"matrix": "High Fidelity", "screen": "1920x1080", "locale": "Locale_3", "sky": "DistantStars/DistantStars<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula>", "cameras": "Main Camera(Clone) mask=66559 ortho=10 | UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56", "canvases": "Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | UIOverlay(Clone):ScreenSpaceCamera | UILockOnIndicator:WorldSpace | Shield:WorldSpace", "scene": "visibleRenderers=98 [Minimap:55 Asteroid:15 Default:10 Ship:
+META {"matrix": "Performant", "screen": "3840x2160", "locale": "Locale_3", "sky": "DistantStars/DistantStars<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula>", "cameras": "Main Camera(Clone) mask=66559 ortho=10 | UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56", "canvases": "Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | UIOverlay(Clone):ScreenSpaceCamera | UILockOnIndicator:WorldSpace | Shield:WorldSpace", "scene": "visibleRenderers=86 [Minimap:55 Default:10 Ship:9 Sky:5 Asteroi
+META {"matrix": "High Fidelity", "screen": "3840x2160", "locale": "Locale_3", "sky": "DistantStars/DistantStars<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | StarField/StarField<Custom/StarField> | CloseNebula/CloseNebula<Custom/Nebula>", "cameras": "Main Camera(Clone) mask=66559 ortho=10 | UI Cam(Clone) mask=1024 ortho=10 | Minimap Cam(Clone)->RT mask=14336 ortho=56", "canvases": "Shield:WorldSpace | Shield:WorldSpace | UILockOnIndicator:WorldSpace | UILockOnIndicator:WorldSpace | UIOverlay(Clone):ScreenSpaceCamera | UILockOnIndicator:WorldSpace | Shield:WorldSpace", "scene": "visibleRenderers=97 [Minimap:55 Asteroid:15 Default:10 Ship:
+META {"liveScene": "visibleRenderers=88 [Minimap:53 Default:10 Ship:9 Asteroid:6 Sky:5 Minimap_Enemy:2 Projectile:2 Minimap_Ship:1] particles=11"}
+META {"liveScene": "visibleRenderers=98 [Minimap:54 Asteroid:17 Default:10 Ship:9 Sky:5 Minimap_Enemy:2 Minimap_Ship:1] particles=10"}
+META {"liveScene": "visibleRenderers=85 [Minimap:52 Ship:9 Default:8 Asteroid:6 Sky:5 Minimap_Enemy:2 Projectile:2 Minimap_Ship:1] particles=9"}
+META {"liveScene": "visibleRenderers=128 [Minimap:47 Asteroid:41 Default:18 Ship:13 Sky:5 Minimap_Enemy:3 Minimap_Ship:1] particles=18"}
+
+## Whole frame, GPU ms (fps): frozen base [min-max of base/base_again/base_end] | live median
+### Locale_1
+  Performant     1920x1080: 16.7 (60) [15.1-16.8] | live 15.1, live_no_sky 2.3   ||   3840x2160: 65.5 (15) [65.4-65.5] | live 64.4, live_no_sky 7.2
+  High Fidelity  1920x1080: 11.7 (86) [11.6-11.7] | live 11.1, live_no_sky 2.4   ||   3840x2160: 44.3 (23) [44.3-44.3] | live 43.5, live_no_sky 7.2
+### Locale_3
+  Performant     1920x1080: 10.8 (92) [10.8-10.9] | live 10.8, live_no_sky 2.2   ||   3840x2160: 41.8 (24) [41.8-41.8] | live 43.9, live_no_sky 7.2
+  High Fidelity  1920x1080: 7.9 (126) [7.9-8.0] | live 7.9, live_no_sky 2.3   ||   3840x2160: 29.4 (34) [29.1-29.5] | live 30.2, live_no_sky 7.0
+
+## Split at 3840x2160, GPU ms: leave-one-out (base_again - no_sky:X) / alone (only_sky:X - no_sky)
+### Locale_1 Performant 3840x2160  base 65.48  no_sky 7.25  floor(sky/ui/post off) 1.2
+  All sky layers: 58.23
+  Background/Background                                          0.29 / 0.7
+  CloseNebula/CloseNebula                                        3.58 / 3.6
+  DistantStars/DistantStars                                      2.19 / 2.2
+  FarNebula/FarNebula                                           21.73 / 22.2
+  StarField/StarField                                            8.19 / 8.2
+  TurquoiseNebula/TurquoiseNebula                               21.72 / 22.1
+  post (base - no_post): 6.25
+  ui (base - no_any_ui): 0.16
+  cam Minimap Cam(Clone): 0.24
+  cam UI Cam(Clone): 2.03
+  renderScale_1: 42.07
+  renderScale_0.5: 11.21
+  msaa_1: 64.63
+  sky_on_no_ui_no_post: 59.07
+  base_tierVsync: 65.45
+### Locale_1 High Fidelity 3840x2160  base 44.34  no_sky 7.13  floor(sky/ui/post off) 3.2
+  All sky layers: 37.21
+  Background/Background                                          0.25 / 0.5
+  CloseNebula/CloseNebula                                        2.30 / 2.3
+  DistantStars/DistantStars                                      1.38 / 1.4
+  FarNebula/FarNebula                                           13.85 / 14.1
+  StarField/StarField                                            5.27 / 5.3
+  TurquoiseNebula/TurquoiseNebula                               13.85 / 14.0
+  post (base - no_post): 3.96
+  ui (base - no_any_ui): 0.16
+  cam Minimap Cam(Clone): 0.24
+  cam UI Cam(Clone): 2.05
+  renderScale_0.5: 11.97
+  msaa_1: 43.27
+  sky_on_no_ui_no_post: 40.22
+  base_tierVsync: 44.27
+### Locale_3 Performant 3840x2160  base 41.82  no_sky 7.46  floor(sky/ui/post off) 1.4
+  All sky layers: 34.36
+  Background/Background                                          0.25 / 0.6
+  CloseNebula/CloseNebula                                        3.60 / 3.6
+  DistantStars/DistantStars                                      2.01 / 2.1
+  FarNebula/FarNebula                                           20.01 / 20.5
+  StarField/StarField                                            8.03 / 8.0
+  post (base - no_post): 6.25
+  ui (base - no_any_ui): 0.16
+  cam Minimap Cam(Clone): 0.22
+  cam UI Cam(Clone): 2.04
+  renderScale_1: 26.98
+  renderScale_0.5: 7.44
+  msaa_1: 40.98
+  sky_on_no_ui_no_post: 35.38
+  base_tierVsync: 41.17
+### Locale_3 High Fidelity 3840x2160  base 29.42  no_sky 3.37  floor(sky/ui/post off) 3.6
+  All sky layers: 26.05
+  Background/Background                                          0.24 / 4.6
+  CloseNebula/CloseNebula                                        2.28 / 6.4
+  DistantStars/DistantStars                                      1.28 / 5.4
+  FarNebula/FarNebula                                           12.62 / 17.1
+  StarField/StarField                                            5.10 / 9.3
+  post (base - no_post): 3.89
+  ui (base - no_any_ui): 0.07
+  cam Minimap Cam(Clone): 0.15
+  cam UI Cam(Clone): 1.98
+  renderScale_0.5: 8.29
+  msaa_1: 28.43
+  sky_on_no_ui_no_post: 25.38
+  base_tierVsync: 29.43
+
+## Split at 1920x1080, GPU ms: leave-one-out (base_again - no_sky:X) / alone (only_sky:X - no_sky)
+### Locale_1 Performant 1920x1080  base 16.74  no_sky 2.08  floor(sky/ui/post off) 0.5
+  All sky layers: 14.66
+  Background/Background                                          0.09 / 0.2
+  CloseNebula/CloseNebula                                        0.93 / 1.0
+  DistantStars/DistantStars                                      0.56 / 0.6
+  FarNebula/FarNebula                                            5.81 / 5.5
+  StarField/StarField                                            2.14 / 2.2
+  TurquoiseNebula/TurquoiseNebula                                5.46 / 5.5
+  post (base - no_post): 1.55
+  ui (base - no_any_ui): 0.01
+  cam Minimap Cam(Clone): 0.26
+  cam UI Cam(Clone): 0.50
+  renderScale_1: 10.88
+  renderScale_0.5: 3.10
+  msaa_1: 16.63
+  sky_on_no_ui_no_post: 15.15
+  base_tierVsync: 14.29
+### Locale_1 High Fidelity 1920x1080  base 11.66  no_sky 2.24  floor(sky/ui/post off) 1.2
+  All sky layers: 9.42
+  Background/Background                                          0.09 / 0.1
+  CloseNebula/CloseNebula                                        0.61 / 0.6
+  DistantStars/DistantStars                                      0.36 / 0.4
+  FarNebula/FarNebula                                            3.45 / 3.5
+  StarField/StarField                                            1.38 / 1.4
+  TurquoiseNebula/TurquoiseNebula                                3.44 / 3.5
+  post (base - no_post): 1.05
+  ui (base - no_any_ui): 0.06
+  cam Minimap Cam(Clone): 0.24
+  cam UI Cam(Clone): 0.60
+  renderScale_0.5: 3.48
+  msaa_1: 11.39
+  sky_on_no_ui_no_post: 10.55
+  base_tierVsync: 11.62
+### Locale_3 Performant 1920x1080  base 10.82  no_sky 2.22  floor(sky/ui/post off) 0.6
+  All sky layers: 8.60
+  Background/Background                                          0.07 / 0.1
+  CloseNebula/CloseNebula                                        0.92 / 0.9
+  DistantStars/DistantStars                                      0.51 / 0.6
+  FarNebula/FarNebula                                            4.91 / 5.0
+  StarField/StarField                                            2.07 / 2.1
+  post (base - no_post): 1.57
+  ui (base - no_any_ui): 0.05
+  cam Minimap Cam(Clone): 0.29
+  cam UI Cam(Clone): 0.51
+  renderScale_1: 7.12
+  renderScale_0.5: 2.16
+  msaa_1: 10.71
+  sky_on_no_ui_no_post: 9.19
+  base_tierVsync: 10.79
+### Locale_3 High Fidelity 1920x1080  base 7.93  no_sky 2.34  floor(sky/ui/post off) 1.3
+  All sky layers: 5.59
+  Background/Background                                          0.09 / 0.1
+  CloseNebula/CloseNebula                                        0.61 / 0.6
+  DistantStars/DistantStars                                      0.34 / 0.3
+  FarNebula/FarNebula                                            3.21 / 3.3
+  StarField/StarField                                            1.38 / 1.4
+  post (base - no_post): 1.06
+  ui (base - no_any_ui): 0.04
+  cam Minimap Cam(Clone): 0.24
+  cam UI Cam(Clone): 0.56
+  renderScale_0.5: 2.56
+  msaa_1: 7.72
+  sky_on_no_ui_no_post: 6.85
+  base_tierVsync: 3.58
+
