@@ -1,0 +1,7 @@
+{
+  "verdict": "pass",
+  "seam_maximum_255": 0.9545454545453822,
+  "source_and_masks_unchanged": true,
+  "reproducible": true,
+  "geometry_lock_enforced": true
+}

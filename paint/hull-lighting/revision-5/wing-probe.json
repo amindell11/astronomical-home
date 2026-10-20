@@ -1,0 +1,8 @@
+{
+  "diagnostics": [],
+  "compileMs": 2131,
+  "executeMs": 2879,
+  "assemblyName": "PipelineRunScript_BakedWingProbe_1d1fdd36d137478bb12c3dd4829aa601",
+  "success": true,
+  "result": "Maximum vertex movement: 0.6552084; Same UV texels before/after actual wing-bone sweep: 0 / 99006 changed by >2/255; maximum delta 0/255; shader: "
+}

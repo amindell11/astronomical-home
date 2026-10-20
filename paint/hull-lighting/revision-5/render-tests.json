@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "duration": 3.35,
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(0)",
+      "Status": "Passed",
+      "Duration": 0.9367365,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(55)",
+      "Status": "Passed",
+      "Duration": 0.0393266,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.Nightshade_PaintTexturesAreImported",
+      "Status": "Passed",
+      "Duration": 0.9121468,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity(False)",
+      "Status": "Passed",
+      "Duration": 0.7342992,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity(True)",
+      "Status": "Passed",
+      "Duration": 0.6011559,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

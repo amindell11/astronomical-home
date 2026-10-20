@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "96eac70880308cee11aa3df5be4511a3f6d3e8c74e32bcb938588a29350fc500",
+  "mode": "brush-only",
+  "brush": "D:\\amind\\git\\agent-4\\scratch\\hull-lighting\\revision-5\\bake\\Brush.png",
+  "geometry": "1730bdb7e55e96af6684f8852f861454a60fa6200fc58a5ec453fc3a35bf4261",
+  "uv": "7a4d8a69abf6ce0dd1f00c9f1188cd6da23db09a049219a57de3ed67bea29fe8",
+  "texture_size": 4096,
+  "settings": {
+    "schema_version": 1,
+    "image": "../crimson/textures/painted-brush-source.png",
+    "scale": 0.8,
+    "blend": 0.25,
+    "offset": [
+      0.23,
+      0.37,
+      0.0
+    ]
+  },
+  "brush_source_sha256": "d17bebf965a771c386ab3534006cb4ca97ed263495e573b5b4c46f935582a76c",
+  "verdict": "pass"
+}

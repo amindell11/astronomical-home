@@ -1,0 +1,8 @@
+{
+  "diagnostics": [],
+  "compileMs": 233,
+  "executeMs": 18045,
+  "assemblyName": "PipelineRunScript_BakedCapture_7c360648a5dd44f080133e181ff9226f",
+  "success": true,
+  "result": "Normals abs z > .9: 15205 / 45384; shader: ; quality High Fidelity; previous shader: "
+}

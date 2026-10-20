@@ -58,3 +58,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Hull UV seam and wing-attachment diagnosis (#1029)
 
 [Continuous projection and its skinning limitation](paint/hull-lighting/revision-4/README.md).
+
+## Baked brush layer (#1029)
+
+[Continuous strokes attached through wing skinning](paint/hull-lighting/revision-5/README.md).
