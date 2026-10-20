@@ -152,7 +152,7 @@ namespace RL.Opponents
                 case OpponentArchetype.Aggressor:
                 case OpponentArchetype.Kiter:
                 {
-                    var range = Doctrine && Doctrine.holdRange > 0f ? Doctrine.holdRange : shape.desiredRange;
+                    var range = Doctrine && Doctrine.HoldRange > 0f ? Doctrine.HoldRange : shape.desiredRange;
                     var law = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, range, shape.speedFraction * maxSpeed);
                     if (Doctrine)
                         law = Doctrine.ShapeVelocity(law, in self, target.Kinematics, shape.speedFraction * maxSpeed,
@@ -177,6 +177,7 @@ namespace RL.Opponents
         {
             var self = status.Kinematics;
             var urgency = Evade(status, out var escapeHeading);
+            if (Doctrine) Doctrine.evadeUrgency = urgency;
             var velocity = ArchetypeLaws.EvasionVelocity(lawVelocity, escapeHeading, status.Dynamics.maxSpeed, urgency);
             var worldVelocity = ArchetypeSteering.BorderTangentSteer(self.pos, velocity, arenaCenter, borderRadius,
                 ArchetypeSteering.BorderMargin);

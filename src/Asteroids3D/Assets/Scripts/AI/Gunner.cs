@@ -41,6 +41,9 @@ namespace AI
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
         public bool HasTarget => hasTarget;
+        internal Vector2 TargetPos => targetPos;
+        internal Vector2 TargetVel => targetVel;
+        internal GunDoctrine ResearchDoctrine => Doctrine;
 
         /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>
         public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;

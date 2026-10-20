@@ -129,6 +129,9 @@ namespace AI
 
             var command = Navigator.ComputeCommand();
             command.boost = boost ? 1f : 0f;
+            if (Gunner && Gunner.ResearchDoctrine)
+                Gunner.ResearchDoctrine.ShapeCommand(ref command, control.Ship.Kinematics, control.Ship.Dynamics,
+                    Gunner.HasTarget, Gunner.TargetPos, Gunner.TargetVel);
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }

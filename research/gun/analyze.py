@@ -15,7 +15,7 @@ CEILING = {
     "Rippers": 36.9,       # 144 per 2.4 s dump + 1.5 s reload; burst 60
     "ChargeLasers": 42.9,  # tap at 1/3 charge every 0.42 s (18 dmg); full-charge cycle 25.0
     "Railgun": 30.0,       # 45 per 1.5 s, charge overlaps cooldown
-    "Missiles": 6.7,       # 2 rounds x 50 (35 + 15 splash) per 15 s regen; burst 100
+    "Missiles": 4.7,       # 2 rounds x 35 per 15 s regen (splash never adds on the direct target); burst 70
     "Grenades": 8.75,      # 3 x 35 per 12 s regen; burst 105
 }
 WEAPONS = list(CEILING)

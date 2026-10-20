@@ -15,8 +15,16 @@ namespace AI.Research
         [Header("Pilot")]
         public float aimAuthority = 1f;
         public float holdRange = -1f;
+        public bool autoProfile;
+        public float rangeLasers = 12f, rangeTurbo = 11f, rangeRippers = 9f, rangeCharge = 13f,
+            rangeRail = 30f, rangeMissiles = 30f, rangeGrenades = 17f;
         public float strafeFraction;
         public float strafePeriod;
+        public bool aimLock;
+        public float aimAccelFrac = 0.7f;
+        public float aimTau = 0.06f;
+        public float aimKp = 8f;
+        [System.NonSerialized] public float evadeUrgency;
 
         [Header("Trigger")]
         public bool smartTrigger;
@@ -26,6 +34,7 @@ namespace AI.Research
         public float fullChargeReleaseErr = 12f;
         public float railCommitCone = 30f;
         public float railAbortErr = -1f;
+        public float railLeadCap = 0.3f;
         public float ventTo = -1f;
         public float grenadeMinRange = 14f;
         public float grenadeMaxRange = 25f;
@@ -34,6 +43,27 @@ namespace AI.Research
         private Ship ship;
         private bool venting;
         private bool prevHeld;
+
+        /// <summary>The hold range this ship flies at: explicit, else its weapon's profile, else -1 (archetype shape).</summary>
+        public float HoldRange
+        {
+            get
+            {
+                if (holdRange > 0f) return holdRange;
+                if (!autoProfile || !ship || !ship.Weapons || !ship.Weapons.Primary) return -1f;
+                var w = ship.Weapons.Primary;
+                return w switch
+                {
+                    ChargeLasers _ => rangeCharge,
+                    Railguns _ => rangeRail,
+                    Missiles _ => rangeMissiles,
+                    Grenades _ => rangeGrenades,
+                    Rippers _ => rangeRippers,
+                    Lasers l => l.Heat && l.Heat.HeatPerShot < 10f ? rangeTurbo : rangeLasers,
+                    _ => -1f,
+                };
+            }
+        }
 
         public static GunDoctrine Of(Component c) => c ? c.GetComponentInParent<GunDoctrine>() : null;
 
@@ -168,6 +198,48 @@ namespace AI.Research
             var aim = GrenadeAim(weapon, in self, targetPos, targetVel);
             var d = Vector2.Distance(self.pos, aim);
             return d >= grenadeMinRange && d <= grenadeMaxRange && AimErr(in self, aim) <= grenadeCone;
+        }
+
+        /// <summary>Where the nose should point for the primary weapon, or null to leave yaw to the MPC.</summary>
+        public Vector2? AimPoint(in Kinematics self, Vector2 targetPos, Vector2 targetVel)
+        {
+            if (!ship || !ship.Weapons || !ship.Weapons.Primary) return null;
+            var weapon = ship.Weapons.Primary;
+            switch (weapon)
+            {
+                case Grenades _:
+                    return null;
+                case Railguns r:
+                    var remaining = (1f - r.Charge.ChargePct) * r.Charge.FullChargeTime;
+                    return targetPos + targetVel * Mathf.Min(remaining, railLeadCap);
+                case Missiles _:
+                    return targetPos;
+                default:
+                    return Gunner.AimPoint(in self, targetPos, targetVel, weapon.ProjectileSpeed);
+            }
+        }
+
+        /// <summary>Replaces the MPC's yaw with a time-optimal aim controller (bearing-rate feedforward) when aim lock is on.</summary>
+        public void ShapeCommand(ref Ships.Command.PilotCommand cmd, in Kinematics self, in Dynamics dyn, bool hasTarget,
+            Vector2 targetPos, Vector2 targetVel)
+        {
+            if (!aimLock || !hasTarget || evadeUrgency > 0f) return;
+            var aim = AimPoint(in self, targetPos, targetVel);
+            if (!aim.HasValue) return;
+            var r = aim.Value - self.pos;
+            if (r.sqrMagnitude < 0.01f) return;
+            var desiredYaw = Mathf.Atan2(-r.x, r.y) * Mathf.Rad2Deg;
+            var err = Mathf.DeltaAngle(self.yaw, desiredYaw);
+            var v = targetVel - self.vel;
+            var bearingRate = (r.x * v.y - r.y * v.x) / r.sqrMagnitude * Mathf.Rad2Deg;
+            var inertia = dyn.yawInertia > 0f ? dyn.yawInertia : 1f;
+            var alpha = dyn.yawTorque / inertia * Mathf.Rad2Deg * aimAccelFrac;
+            var approach = Mathf.Min(Mathf.Sqrt(2f * alpha * Mathf.Abs(err)), aimKp * Mathf.Abs(err));
+            var maxRate = dyn.maxYawRate > 0f ? dyn.maxYawRate * Mathf.Rad2Deg : 180f;
+            var targetRate = Mathf.Clamp(bearingRate + Mathf.Sign(err) * approach, -maxRate, maxRate);
+            var rateErr = (targetRate - self.yawRate) * Mathf.Deg2Rad;
+            var torque = inertia * (dyn.angularDrag * targetRate * Mathf.Deg2Rad + rateErr / Mathf.Max(aimTau, Time.fixedDeltaTime));
+            cmd.yawTorque = Mathf.Clamp(torque / Mathf.Max(dyn.yawTorque, 1e-3f), -1f, 1f);
         }
 
         /// <summary>The pilot's hold-range velocity with an optional circle-strafe, or null to keep the archetype law.</summary>

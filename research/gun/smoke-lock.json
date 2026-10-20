@@ -1,0 +1,23 @@
+{
+ "runs": [
+  {
+   "tag": "smoke-lock",
+   "mode": "marks",
+   "weapons": [
+    "Lasers",
+    "Railgun"
+   ],
+   "opponents": [
+    "Dummy",
+    "Orbiter"
+   ],
+   "episodes": 4,
+   "seed": 8001,
+   "timeoutSec": 40,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"label\": \"lock\", \"aimLock\": true, \"aimAuthority\": 10, \"smartTrigger\": true, \"geomTolScale\": 0.8, \"railAbortErr\": 3.0}"
+   }
+  }
+ ]
+}
