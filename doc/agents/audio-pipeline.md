@@ -4,6 +4,17 @@
 
 The owner designs every sound in FMOD Studio; agents wire events and parameters. The Studio project is `audio/fmod/` (`Astronomical.fspro`), its built Desktop banks are committed under `audio/fmod/Build/`, and `audio/fmod/Build/GUIDs.txt` is the export of every event, bus and parameter path the banks hold.
 
+## Where sound work happens
+
+Sound work happens in the primary tree, on main, as uncommitted edits beside the owner's (owner ruling, 2026-10-19): the Studio project, the clips under `audio/fmod/Assets/`, the scaffolds and banks, and the C# that wires events. Studio, Ableton and the owner's Unity editor keep fixed paths there, and Live Update plays the code the owner is hearing.
+
+- **Main stays checked out.** Every session runs the pool script from the primary tree and pulls main there after each merge, so a sound branch there would be switched out from under the open Studio and editor.
+- **C# compiles in a slot first**, then is copied in: the owner's editor recompiles on focus, and a compile error there blocks play mode.
+- **Scaffolds and bank builds run on the primary tree's project**, with Studio closed, so the primary tree stays the one source of the design.
+- **Ship from a slot.** Copy the sound paths into a slot and take them through the normal loop; the evidence tests run there. A clip ships when the project imports it (`audio/fmod/Metadata/AudioFile/`).
+- **After the merge,** `git add` in the primary tree only the shipped paths whose content now equals `origin/main`, then `git pull --ff-only`. Anything that still differs stays the owner's uncommitted edit.
+- **Sound files the session-start check lists as strays are this work in progress**: they wait for the ship.
+
 ## Studio and `fmodstudiocl`
 
 - **`fmodstudiocl` runs only while no `FMOD Studio.exe` process is running.** On an open project it deletes Studio's unsaved-changes backup, and Studio never sees the CLI's edits. Check the process list first.
