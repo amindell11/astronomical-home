@@ -46,3 +46,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Hull lighting prototype (#1027)
 
 [Matched Unity motion, stills, capture source, and checks](paint/hull-lighting/README.md).
+
+## Residual hull shading correction (#1029)
+
+[Previous/fixed motion, closeups, diagnosis, and regression evidence](paint/hull-lighting/revision-2/README.md).
