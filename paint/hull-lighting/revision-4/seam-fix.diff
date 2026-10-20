@@ -1,0 +1,137 @@
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs
+index 2d3bd2d9b..a91407aad 100644
+--- a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs
+@@ -129,15 +129,25 @@ public void LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(floa
+                 subject.layer = 31;
+                 var filter = subject.GetComponent<MeshFilter>();
+                 surfaceMesh = Object.Instantiate(filter.sharedMesh);
+-                var vertices = surfaceMesh.vertices;
+-                var normals = surfaceMesh.normals;
++                var sourceVertices = surfaceMesh.vertices;
++                var sourceNormals = surfaceMesh.normals;
++                var sourceUVs = surfaceMesh.uv;
++                var triangles = surfaceMesh.triangles;
++                var vertices = new Vector3[triangles.Length];
++                var normals = new Vector3[triangles.Length];
++                var uvs = new Vector2[triangles.Length];
+                 for (int i = 0; i < vertices.Length; i++)
+                 {
+-                    vertices[i] = facing * vertices[i];
+-                    normals[i] = facing * normals[i];
++                    vertices[i] = facing * sourceVertices[triangles[i]];
++                    normals[i] = facing * sourceNormals[triangles[i]];
++                    uvs[i] = sourceUVs[triangles[i]];
++                    triangles[i] = i;
+                 }
++                surfaceMesh.Clear();
+                 surfaceMesh.vertices = vertices;
+                 surfaceMesh.normals = normals;
++                surfaceMesh.uv = uvs;
++                surfaceMesh.triangles = triangles;
+                 surfaceMesh.RecalculateBounds();
+                 filter.sharedMesh = surfaceMesh;
+                 subject.GetComponent<Renderer>().sharedMaterial = material;
+@@ -146,6 +156,7 @@ public void LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(floa
+                 material.SetTexture("_PaintShadowMap", shadow);
+                 material.SetTexture("_PaintInkMap", ink);
+                 material.SetTexture("_PaintBrushMap", brush);
++                material.SetTextureOffset("_PaintBrushMap", Vector2.one * .5f);
+                 material.SetFloat("_PaintBrushStrength", 3.2f);
+                 material.SetColor("_PaperColor", new Color(.2f, .4f, .4f));
+                 material.SetColor("_ShadowColor", new Color(.1f, .1f, .1f));
+@@ -185,6 +196,23 @@ public void LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(floa
+                     "A sharp painted shadow edge must not remain in fully lit armor.");
+                 Assert.That(image.GetPixel(32, 40).g - image.GetPixel(32, 24).g, Is.GreaterThan(.1f),
+                     "Brush color must remain visible under frontal light.");
++                var continuousBrush = image.GetPixels();
++                for (int i = 3; i < uvs.Length; i++) uvs[i].y += .5f;
++                surfaceMesh.uv = uvs;
++                ReadCenter(camera, target, image);
++                for (int y = 20; y < 44; y++)
++                for (int x = 20; x < 44; x++)
++                    Assert.That(image.GetPixel(x, y).g, Is.EqualTo(continuousBrush[y * 64 + x].g).Within(2f / 255),
++                        "Splitting the hull into UV islands must not introduce a brush seam.");
++                for (int i = 3; i < uvs.Length; i++) uvs[i].y -= .5f;
++                surfaceMesh.uv = uvs;
++                root.transform.SetPositionAndRotation(new Vector3(4, -3, 2), Quaternion.Euler(15, 30, 12));
++                ReadCenter(camera, target, image);
++                for (int y = 20; y < 44; y++)
++                for (int x = 20; x < 44; x++)
++                    Assert.That(image.GetPixel(x, y).g, Is.EqualTo(continuousBrush[y * 64 + x].g).Within(2f / 255),
++                        "Brushstrokes must move with the hull.");
++                root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                 light.transform.rotation = facing * Quaternion.Euler(0, 60, 0);
+                 var grazing = ReadCenter(camera, target, image);
+                 Assert.That(front.g - grazing.g, Is.GreaterThan(.15f), "Lighting must move the painted boundary.");
+diff --git a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
+index edc710d95..1400c5bb7 100644
+--- a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
++++ b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
+@@ -216,8 +216,17 @@ Shader "Astronomical/Drawn/Surface"
+                         lightPalette = lerp(basePalette, 1, _PaintRegionLightLift);
+                     }
+                     #if defined(_LIGHT_DRIVEN_PAINT)
+-                        float2 brushUV = input.uv * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw;
+-                        half brush = SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap, brushUV).r;
++                        float3 brushPosition = TransformWorldToObject(input.positionWS);
++                        half3 brushWeights = abs(TransformWorldToObjectNormal(input.normalWS));
++                        brushWeights *= brushWeights;
++                        brushWeights *= brushWeights;
++                        brushWeights /= dot(brushWeights, half3(1, 1, 1));
++                        half brush = SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
++                            brushPosition.zy * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.x;
++                        brush += SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
++                            brushPosition.xz * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.y;
++                        brush += SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
++                            brushPosition.xy * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.z;
+                         // The house brush tile treats 0.625 as neutral pigment.
+                         basePalette *= max(0, 1 + (brush - 0.625h) * _PaintBrushStrength);
+                         half response = ndl + (saturate(paintedLight) - saturate(shadow))
+diff --git a/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat b/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat
+index 68ea30bc2..864d3d36d 100644
+--- a/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat	
++++ b/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat	
+@@ -47,8 +47,8 @@ Material:
+         m_Offset: {x: 0, y: 0}
+     - _PaintBrushMap:
+         m_Texture: {fileID: 2800000, guid: 730c56eb119657d479d016368d28fe51, type: 3}
+-        m_Scale: {x: 3.3, y: 3.3}
+-        m_Offset: {x: 0, y: 0}
++        m_Scale: {x: 0.8, y: 0.8}
++        m_Offset: {x: 0.23, y: 0.37}
+     - _PaintInkMap:
+         m_Texture: {fileID: 2800000, guid: 6b87fcb667999a34e9b96c4f1001efc9, type: 3}
+         m_Scale: {x: 1, y: 1}
+diff --git a/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat b/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat
+index e7f1ebd2d..817e2e322 100644
+--- a/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat
++++ b/src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat
+@@ -47,8 +47,8 @@ Material:
+         m_Offset: {x: 0, y: 0}
+     - _PaintBrushMap:
+         m_Texture: {fileID: 2800000, guid: 730c56eb119657d479d016368d28fe51, type: 3}
+-        m_Scale: {x: 3.3, y: 3.3}
+-        m_Offset: {x: 0, y: 0}
++        m_Scale: {x: 0.8, y: 0.8}
++        m_Offset: {x: 0.23, y: 0.37}
+     - _PaintInkMap:
+         m_Texture: {fileID: 2800000, guid: 6b87fcb667999a34e9b96c4f1001efc9, type: 3}
+         m_Scale: {x: 1, y: 1}
+diff --git a/src/Asteroids3D/Assets/Visuals/Ships/_Shared/Paint/Brush.png.meta b/src/Asteroids3D/Assets/Visuals/Ships/_Shared/Paint/Brush.png.meta
+index d078a01ab..94db91537 100644
+--- a/src/Asteroids3D/Assets/Visuals/Ships/_Shared/Paint/Brush.png.meta
++++ b/src/Asteroids3D/Assets/Visuals/Ships/_Shared/Paint/Brush.png.meta
+@@ -37,9 +37,9 @@ TextureImporter:
+     filterMode: 1
+     aniso: 1
+     mipBias: 0
+-    wrapU: 0
+-    wrapV: 0
+-    wrapW: 0
++    wrapU: 2
++    wrapV: 2
++    wrapW: 2
+   nPOTScale: 1
+   lightmap: 0
+   compressionQuality: 50

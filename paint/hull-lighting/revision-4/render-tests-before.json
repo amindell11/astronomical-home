@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-10-19T17:30:05.0514750-07:00",
+  "projectPath": "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "EditMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "DrawnSurfaceEditModeTests",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 5,
+    "passed": 3,
+    "failed": 2,
+    "skipped": 0,
+    "durationSec": 2.09
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "skipped": 0,
+      "durationSec": 2.09,
+      "failures": [
+        {
+          "name": "LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(0)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(0)",
+          "durationSec": 0.4536583,
+          "message": "Splitting the hull into UV islands must not introduce a brush seam. Expected: 0.270588249f +/- 0.00784313772f But was: 0.443137258f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent (System.Single slope) [0x005ee] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\R..."
+        },
+        {
+          "name": "LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(55)",
+          "fullName": "Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(55)",
+          "durationSec": 0.0174267,
+          "message": "Splitting the hull into UV islands must not introduce a brush seam. Expected: 0.270588249f +/- 0.00784313772f But was: 0.443137258f",
+          "topStack": "at Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent (System.Single slope) [0x005ee] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\R..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "DrawnSurfaceEditModeTests",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 37.914,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 10732
+}

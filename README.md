@@ -54,3 +54,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Independent hull brushstrokes (#1029)
 
 [Restored brush texture under moving Unity light](paint/hull-lighting/revision-3/README.md).
+
+## Hull UV seam and wing-attachment diagnosis (#1029)
+
+[Continuous projection and its skinning limitation](paint/hull-lighting/revision-4/README.md).
