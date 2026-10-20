@@ -3,7 +3,7 @@
 Exit codes: 0 pass, 3 findings or refusal, 1 error (bad invocation, invalid ship.json, crash).
 stdout carries only KEY=value trailers, written last: SHIP_VERDICT=pass|fail and
 SHIP_REPORT=<absolute report path> on exits 0 and 3, plus SHIP_FBX= (ship_export),
-SHIP_LOCK= (ship_lock), SHIP_MASKS= or SHIP_BRUSH= (ship_paint). Everything else, Blender's own output
+SHIP_LOCK= (ship_lock) and SHIP_MASKS= (ship_paint). Everything else, Blender's own output
 included, goes to stderr.
 """
 
@@ -186,21 +186,6 @@ def parse_palettes(value):
     if value["default"] not in palettes:
         raise ValueError("default: expected the name of a palette")
     return json.loads(json.dumps(value))
-
-
-def parse_brush(value):
-    _fields(value, ("schema_version", "image", "scale", "blend", "offset"), "brush.json")
-    if type(value["schema_version"]) is not int or value["schema_version"] != SCHEMA_VERSION:
-        raise ValueError(f"brush.json: unsupported schema_version; expected {SCHEMA_VERSION}")
-    _text(value["image"], "image")
-    _number(value["scale"], "scale", 0, exclusive_low=True)
-    _number(value["blend"], "blend", 0, 1)
-    offset = value["offset"]
-    if not isinstance(offset, list) or len(offset) != 3:
-        raise ValueError("offset: expected three coordinates")
-    for coordinate in offset:
-        _number(coordinate, "offset")
-    return value
 
 
 def parse_paint(value):
