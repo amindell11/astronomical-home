@@ -66,3 +66,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Broader baked brush strokes (#1029)
 
 [Twice the stroke size, same separate brush layer](paint/hull-lighting/revision-6/README.md).
+
+## Restore the initial hull prototype
+
+[Rollback verification](paint/hull-lighting/rollback-2026-10-20/README.md).

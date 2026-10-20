@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.5416363">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="871" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.541636" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2043" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-5/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="871" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.528538" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="33664" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2044" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="871" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.523069" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2045" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="871" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.518293" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2049" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="102" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.506136" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2050" name="Illustrated" fullname="Tests.EditMode.Rendering.Illustrated" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.504383" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="2008" name="DrawnSurfaceEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:43Z" duration="2.502927" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="2013" name="LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent" methodname="LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" seed="77783088" result="Passed" start-time="2026-10-20 17:42:41Z" end-time="2026-10-20 17:42:42Z" duration="0.801502" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2009" name="Nightshade_PaintTexturesAreImported" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.Nightshade_PaintTexturesAreImported" methodname="Nightshade_PaintTexturesAreImported" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" seed="813222421" result="Passed" start-time="2026-10-20 17:42:42Z" end-time="2026-10-20 17:42:42Z" duration="0.836836" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="2012" name="PaintedHull_FlashRestoresItsColorsInHighFidelity" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-20 17:42:42Z" end-time="2026-10-20 17:42:43Z" duration="0.851649" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2010" name="PaintedHull_FlashRestoresItsColorsInHighFidelity(False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity(False)" methodname="PaintedHull_FlashRestoresItsColorsInHighFidelity" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" seed="152516514" result="Passed" start-time="2026-10-20 17:42:42Z" end-time="2026-10-20 17:42:43Z" duration="0.427391" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2011" name="PaintedHull_FlashRestoresItsColorsInHighFidelity(True)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests.PaintedHull_FlashRestoresItsColorsInHighFidelity(True)" methodname="PaintedHull_FlashRestoresItsColorsInHighFidelity" classname="Tests.EditMode.Rendering.Illustrated.DrawnSurfaceEditModeTests" runstate="Runnable" seed="731949343" result="Passed" start-time="2026-10-20 17:42:43Z" end-time="2026-10-20 17:42:43Z" duration="0.400565" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

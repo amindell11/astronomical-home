@@ -1,0 +1,23 @@
+test_paint_controls_and_canopy_lists_are_required (test_contract.PaintSettingsTests.test_paint_controls_and_canopy_lists_are_required) ... ok
+test_paint_rejections (test_contract.PaintSettingsTests.test_paint_rejections) ... ok
+test_palettes_rejections (test_contract.PaintSettingsTests.test_palettes_rejections) ... ok
+test_plain_names_parse (test_contract.PaintSettingsTests.test_plain_names_parse) ... ok
+test_settings_parse_failure_is_a_usage_error (test_contract.PaintSettingsTests.test_settings_parse_failure_is_a_usage_error) ... ok
+test_signed_space_requires_its_own_direction (test_contract.PaintSettingsTests.test_signed_space_requires_its_own_direction) ... ok
+test_valid_settings_parse (test_contract.PaintSettingsTests.test_valid_settings_parse) ... ok
+test_static_reserved_and_plain_collections (test_contract.RoleGrammarTests.test_static_reserved_and_plain_collections) ... ok
+test_unknown_roles_are_errors (test_contract.RoleGrammarTests.test_unknown_roles_are_errors) ... ok
+test_argparse_errors_exit_1_with_empty_stdout (test_contract.RunnerTests.test_argparse_errors_exit_1_with_empty_stdout) ... ok
+test_refusal_exits_3_with_trailers_only_on_stdout (test_contract.RunnerTests.test_refusal_exits_3_with_trailers_only_on_stdout) ... ok
+test_exemptions_split_findings_by_rule_and_part (test_contract.ShipJsonTests.test_exemptions_split_findings_by_rule_and_part) ... ok
+test_rejections (test_contract.ShipJsonTests.test_rejections) ... ok
+test_valid_ship_parses_and_resolves_source_beside_ship_json (test_contract.ShipJsonTests.test_valid_ship_parses_and_resolves_source_beside_ship_json) ... ok
+test_independent_sides_detects_shared_uvs_in_center_crossing_faces (test_regions.AuthoredRegionTests.test_independent_sides_detects_shared_uvs_in_center_crossing_faces) ... ok
+test_invalid_authoring_data_is_rejected (test_regions.AuthoredRegionTests.test_invalid_authoring_data_is_rejected) ... ok
+test_packing_keeps_alpha_and_palette_changes_only_recompose_colour (test_regions.AuthoredRegionTests.test_packing_keeps_alpha_and_palette_changes_only_recompose_colour) ... ok
+test_shapes_keep_signed_and_mirrored_placement (test_regions.AuthoredRegionTests.test_shapes_keep_signed_and_mirrored_placement) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.640s
+
+OK

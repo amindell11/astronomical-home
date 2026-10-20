@@ -1,0 +1,74 @@
+{
+  "target": "c51bfd8f05b726911e9e019f1329713a3d322320",
+  "source": "36931e9f352a94efa59c9991a99e6b7418389387",
+  "base": "520cb1576ef1de96c9a4524d4a785c95befa0973",
+  "status": "passed",
+  "files": [
+    {
+      "path": "art/ships/valis/README.md",
+      "entry": "100644 blob 33a892c40c380a19f07e4e5549f554c8383407e3\tart/ships/valis/README.md",
+      "matches_original": true
+    },
+    {
+      "path": "art/ships/valis/brush.json",
+      "entry": "",
+      "matches_original": true
+    },
+    {
+      "path": "art/tools/ship/README.md",
+      "entry": "100644 blob 58ff7b9febe97dd4d3754a9152c804aecf28ced4\tart/tools/ship/README.md",
+      "matches_original": true
+    },
+    {
+      "path": "art/tools/ship/ship_contract.py",
+      "entry": "100644 blob 18054ae97b4137791daf0471389eeeaab98fdb9d\tart/tools/ship/ship_contract.py",
+      "matches_original": true
+    },
+    {
+      "path": "art/tools/ship/ship_paint.py",
+      "entry": "100644 blob 4898f2ffa8c161165255c2839bf4104a0eff8c53\tart/tools/ship/ship_paint.py",
+      "matches_original": true
+    },
+    {
+      "path": "art/tools/ship/tests/blender_brush_export.py",
+      "entry": "",
+      "matches_original": true
+    },
+    {
+      "path": "art/tools/ship/tests/test_contract.py",
+      "entry": "100644 blob 6b38ecba49419aa76b1b3826336f86b2568261e9\tart/tools/ship/tests/test_contract.py",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs",
+      "entry": "100644 blob 2c0b6e2c2863286145837fc968257e294927b130\tsrc/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Rendering/Illustrated/DrawnSurfaceEditModeTests.cs",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader",
+      "entry": "100644 blob 6692a2366e22eef73084dce1eeb07ef7bfc917cb\tsrc/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat",
+      "entry": "100644 blob c81e97fe02a8e9d455260dbb7906bfb5f7ce90a3\tsrc/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat",
+      "entry": "100644 blob 6b3d054f20863b258c7816f992d7ad7717e709b4\tsrc/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Valis/Paint/Brush.png",
+      "entry": "",
+      "matches_original": true
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Visuals/Ships/Valis/Paint/Brush.png.meta",
+      "entry": "",
+      "matches_original": true
+    }
+  ],
+  "unrelated_main_changes_preserved": true
+}
