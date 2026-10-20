@@ -216,8 +216,17 @@ Shader "Astronomical/Drawn/Surface"
                         lightPalette = lerp(basePalette, 1, _PaintRegionLightLift);
                     }
                     #if defined(_LIGHT_DRIVEN_PAINT)
-                        float2 brushUV = input.uv * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw;
-                        half brush = SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap, brushUV).r;
+                        float3 brushPosition = TransformWorldToObject(input.positionWS);
+                        half3 brushWeights = abs(TransformWorldToObjectNormal(input.normalWS));
+                        brushWeights *= brushWeights;
+                        brushWeights *= brushWeights;
+                        brushWeights /= dot(brushWeights, half3(1, 1, 1));
+                        half brush = SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
+                            brushPosition.zy * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.x;
+                        brush += SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
+                            brushPosition.xz * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.y;
+                        brush += SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap,
+                            brushPosition.xy * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw).r * brushWeights.z;
                         // The house brush tile treats 0.625 as neutral pigment.
                         basePalette *= max(0, 1 + (brush - 0.625h) * _PaintBrushStrength);
                         half response = ndl + (saturate(paintedLight) - saturate(shadow))
