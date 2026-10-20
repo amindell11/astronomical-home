@@ -108,6 +108,7 @@ namespace Tests.EditMode.Rendering.Illustrated
             var image = new Texture2D(64, 64, TextureFormat.RGB24, false);
             var shadow = new Texture2D(64, 64, TextureFormat.RGBA32, true, true);
             var ink = new Texture2D(64, 64, TextureFormat.RGBA32, false, true);
+            var brush = new Texture2D(64, 64, TextureFormat.RGBA32, false, true);
             try
             {
                 QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(
@@ -118,9 +119,11 @@ namespace Tests.EditMode.Rendering.Illustrated
                 {
                     shadow.SetPixel(x, y, Color.white * (x < 32 ? .2f : 1f));
                     ink.SetPixel(x, y, x < 13 ? Color.white : Color.black);
+                    brush.SetPixel(x, y, Color.white * (y < 32 ? .45f : .7f));
                 }
                 shadow.Apply();
                 ink.Apply();
+                brush.Apply();
                 var subject = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 subject.transform.SetParent(root.transform, false);
                 subject.layer = 31;
@@ -142,6 +145,8 @@ namespace Tests.EditMode.Rendering.Illustrated
                 material.EnableKeyword("_LIGHT_DRIVEN_PAINT");
                 material.SetTexture("_PaintShadowMap", shadow);
                 material.SetTexture("_PaintInkMap", ink);
+                material.SetTexture("_PaintBrushMap", brush);
+                material.SetFloat("_PaintBrushStrength", 3.2f);
                 material.SetColor("_PaperColor", new Color(.2f, .4f, .4f));
                 material.SetColor("_ShadowColor", new Color(.1f, .1f, .1f));
                 material.SetFloat("_PaintLightStrength", 0);
@@ -178,6 +183,8 @@ namespace Tests.EditMode.Rendering.Illustrated
                 Assert.That(front.g, Is.GreaterThan(.3f), "Frontal light must reach even fully painted shadows.");
                 Assert.That(image.GetPixel(24, 32).g, Is.EqualTo(image.GetPixel(40, 32).g).Within(2f / 255),
                     "A sharp painted shadow edge must not remain in fully lit armor.");
+                Assert.That(image.GetPixel(32, 40).g - image.GetPixel(32, 24).g, Is.GreaterThan(.1f),
+                    "Brush color must remain visible under frontal light.");
                 light.transform.rotation = facing * Quaternion.Euler(0, 60, 0);
                 var grazing = ReadCenter(camera, target, image);
                 Assert.That(front.g - grazing.g, Is.GreaterThan(.15f), "Lighting must move the painted boundary.");
@@ -201,6 +208,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 Object.DestroyImmediate(image);
                 Object.DestroyImmediate(shadow);
                 Object.DestroyImmediate(ink);
+                Object.DestroyImmediate(brush);
             }
         }
 

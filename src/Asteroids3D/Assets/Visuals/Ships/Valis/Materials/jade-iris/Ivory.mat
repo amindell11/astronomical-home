@@ -45,6 +45,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 8ba47f142a33e4c4fab11b42562c4f9f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _PaintBrushMap:
+        m_Texture: {fileID: 2800000, guid: 730c56eb119657d479d016368d28fe51, type: 3}
+        m_Scale: {x: 3.3, y: 3.3}
+        m_Offset: {x: 0, y: 0}
     - _PaintInkMap:
         m_Texture: {fileID: 2800000, guid: 6b87fcb667999a34e9b96c4f1001efc9, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -72,6 +76,7 @@ Material:
     - _LineSoftness: 0.08
     - _LineStrength: 0
     - _LineThreshold: 0.12
+    - _PaintBrushStrength: 3.2
     - _PaintInkStrength: 1.5
     - _LightDrivenPaint: 1
     - _PaintLightingBias: 1.2

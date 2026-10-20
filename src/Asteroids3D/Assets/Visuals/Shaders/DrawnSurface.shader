@@ -6,6 +6,8 @@ Shader "Astronomical/Drawn/Surface"
         [Toggle(_PAINT_LAYERS)] _PaintLayers ("Separate Paint Layers", Float) = 0
         [Toggle(_LIGHT_DRIVEN_PAINT)] _LightDrivenPaint ("Light-Driven Hull Paint", Float) = 0
         _PaintLightingBias ("Authored Shadow Influence", Range(0,2)) = 1.2
+        _PaintBrushMap ("Brushstroke Texture", 2D) = "gray" {}
+        _PaintBrushStrength ("Brushstroke Contrast", Range(0,4)) = 0
         _PaintShadowMap ("Painted Shadow Mask", 2D) = "black" {}
         _PaintLightMap ("Painted Light Mask", 2D) = "black" {}
         _PaintInkMap ("Panel Ink Mask", 2D) = "black" {}
@@ -74,12 +76,12 @@ Shader "Astronomical/Drawn/Surface"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         CBUFFER_START(UnityPerMaterial)
-            float4 _BaseMap_ST, _DetailAlbedoMap_ST;
+            float4 _BaseMap_ST, _DetailAlbedoMap_ST, _PaintBrushMap_ST;
             half4 _BaseColor, _PaperColor, _ShadowColor, _EmissionColor;
             half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
             half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
             half _PaintSaturation, _PaintEmissionBlend;
-            half _PaintLightingBias;
+            half _PaintLightingBias, _PaintBrushStrength;
             half _PaintRegionCount, _PaintRegionLightLift;
             half4 _PaintRegionColor0, _PaintRegionColor1, _PaintRegionColor2, _PaintRegionColor3;
             half4 _PaintRegionColor4, _PaintRegionColor5, _PaintRegionColor6, _PaintRegionColor7;
@@ -122,6 +124,7 @@ Shader "Astronomical/Drawn/Surface"
             TEXTURE2D(_PaintShadowMap); SAMPLER(sampler_PaintShadowMap);
             TEXTURE2D(_PaintLightMap); SAMPLER(sampler_PaintLightMap);
             TEXTURE2D(_PaintInkMap); SAMPLER(sampler_PaintInkMap);
+            TEXTURE2D(_PaintBrushMap); SAMPLER(sampler_PaintBrushMap);
             TEXTURE2D(_PaintRegionMask0); SAMPLER(sampler_PaintRegionMask0);
             TEXTURE2D(_PaintRegionMask1);
             TEXTURE2D(_PaintRegionMask2);
@@ -213,6 +216,10 @@ Shader "Astronomical/Drawn/Surface"
                         lightPalette = lerp(basePalette, 1, _PaintRegionLightLift);
                     }
                     #if defined(_LIGHT_DRIVEN_PAINT)
+                        float2 brushUV = input.uv * _PaintBrushMap_ST.xy + _PaintBrushMap_ST.zw;
+                        half brush = SAMPLE_TEXTURE2D(_PaintBrushMap, sampler_PaintBrushMap, brushUV).r;
+                        // The house brush tile treats 0.625 as neutral pigment.
+                        basePalette *= max(0, 1 + (brush - 0.625h) * _PaintBrushStrength);
                         half response = ndl + (saturate(paintedLight) - saturate(shadow))
                             * _PaintLightingBias * saturate(1 - abs(ndl));
                         half edge = max(_ShadowSoftness, fwidth(response));
