@@ -20,7 +20,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties:
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -65,13 +65,12 @@ Material:
     - _AmbientStrength: 0.486
     - _BumpScale: 1
     - _CastShadowStrength: 0.213
-    - _DamageFlash: 0
     - _DebrisVisibility: 1
     - _DetailAlbedoMapScale: 0
-    - _EmissionStrength: 1
-    - _LineSoftness: 0.027
+    - _EmissionStrength: 0.35
+    - _LineSoftness: 0.08
     - _LineStrength: 0
-    - _LineThreshold: 0.395
+    - _LineThreshold: 0.12
     - _PaintEmissionBlend: 1
     - _PaintInkStrength: 1
     - _PaintLayers: 1
@@ -89,11 +88,11 @@ Material:
     - _WearStrength: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 2.0235293, g: 2.9803917, b: 1.1294116, a: 1}
-    - _OrangeGain: {r: 1, g: 1, b: 1, a: 0}
-    - _PaintInkColor: {r: 0.015686275, g: 0.02745098, b: 0.06274508, a: 1}
-    - _PaintLightColor: {r: 0.39607838, g: 0.47843134, b: 0.61176467, a: 1}
-    - _PaperColor: {r: 0.6536583, g: 0.79639655, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OrangeGain: {r: 1, g: 1, b: 1, a: 1}
+    - _PaintInkColor: {r: 0.13187189, g: 0.18103392, b: 0.27774684, a: 1}
+    - _PaintLightColor: {r: 0.7602331, g: 0.85338686, b: 1, a: 1}
+    - _PaperColor: {r: 0.65365835, g: 0.79639662, b: 1, a: 1}
     - _ShadowColor: {r: 0.9162735, g: 0.93574095, b: 0.9776915, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
