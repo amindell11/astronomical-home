@@ -215,9 +215,10 @@ Format: **term** — definition. *(authority)*
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
   slots; the owner's checkout and the home of pool state. Agents write nothing
-  else there (AGENTS.md → Default workflow). **Clean primary**: no untracked
-  files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
-  tracked edits are the owner's and don't count.
+  else there but main's fast-forward and sound work (AGENTS.md → Default
+  workflow). **Clean primary**: no untracked files outside the sound-work paths
+  and no ignored files outside the allowlist, both lists in
+  `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
