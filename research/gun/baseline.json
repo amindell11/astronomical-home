@@ -1,0 +1,9 @@
+{ "runs": [
+  { "tag": "base-matrix", "mode": "matrix",
+    "weapons": ["Lasers","TurboLasers","Rippers","ChargeLasers","Railgun","Missiles","Grenades"],
+    "episodes": 20, "seed": 7001, "timeoutSec": 60 },
+  { "tag": "base-marks", "mode": "marks",
+    "weapons": ["Lasers","TurboLasers","Rippers","ChargeLasers","Railgun","Missiles","Grenades"],
+    "opponents": ["Dummy","Orbiter","Aggressor","Evader"],
+    "episodes": 10, "seed": 8001, "timeoutSec": 60 }
+] }

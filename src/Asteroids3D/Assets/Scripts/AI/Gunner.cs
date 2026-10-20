@@ -7,6 +7,7 @@ using Ships.Command;
 using UnityEngine;
 using Combat.Targeting;
 using Substrate;
+using AI.Research;
 
 namespace AI
 {
@@ -22,6 +23,20 @@ namespace AI
         private bool hasTarget;
         private bool prevPrimaryHeld;
         private bool prevSecondaryHeld;
+        private float targetRadius = 1f;
+        private GunDoctrine doctrine;
+        private bool doctrineResolved;
+
+        private GunDoctrine Doctrine
+        {
+            get
+            {
+                if (doctrineResolved) return doctrine;
+                doctrine = GunDoctrine.Of(this);
+                doctrineResolved = true;
+                return doctrine;
+            }
+        }
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
@@ -46,6 +61,7 @@ namespace AI
             targetVel = default;
             prevPrimaryHeld = false;
             prevSecondaryHeld = false;
+            Doctrine?.ResetState();
             ClearTarget();
         }
 
@@ -61,6 +77,17 @@ namespace AI
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
                 var aim = AimPointFor(slot);
                 var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(aim) ?? false);
+                if (slot == WeaponSlot.Primary && pose != null && Doctrine)
+                {
+                    var self = pose();
+                    var smart = Doctrine.PrimaryHeld(engage, hasTarget, in self, targetPos, targetVel, targetRadius, held);
+                    if (smart.HasValue)
+                    {
+                        held = smart.Value;
+                        var placed = Doctrine.PrimaryTargetPoint(in self, targetPos, targetVel);
+                        if (placed.HasValue) aim = placed.Value;
+                    }
+                }
                 if (slot == WeaponSlot.Primary) FireSlot(slot, held, aim, ref prevPrimaryHeld);
                 else FireSlot(slot, held, aim, ref prevSecondaryHeld);
             }
@@ -89,7 +116,11 @@ namespace AI
         }
 
         /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void Aim(in EnemyTarget anchor) => Aim(anchor.kinematics.pos, anchor.kinematics.vel);
+        public void Aim(in EnemyTarget anchor)
+        {
+            targetRadius = anchor.dynamics.shipRadius > 0f ? anchor.dynamics.shipRadius : 1f;
+            Aim(anchor.kinematics.pos, anchor.kinematics.vel);
+        }
 
         /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
         public void Aim(Vector2 referentPos, Vector2 referentVel)

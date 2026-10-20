@@ -6,6 +6,7 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using AI.Strategy;
+using AI.Research;
 
 namespace RL.Opponents
 {
@@ -72,6 +73,19 @@ namespace RL.Opponents
         private int threatSeenTick = -1;
         private ITrackingMissile evadedMissile;
         private int escapeSide;
+        private GunDoctrine doctrine;
+        private bool doctrineResolved;
+
+        private GunDoctrine Doctrine
+        {
+            get
+            {
+                if (doctrineResolved) return doctrine;
+                doctrine = GunDoctrine.Of(this);
+                doctrineResolved = true;
+                return doctrine;
+            }
+        }
 
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
             Vector2 arenaCenter, float borderRadius)
@@ -137,8 +151,14 @@ namespace RL.Opponents
             {
                 case OpponentArchetype.Aggressor:
                 case OpponentArchetype.Kiter:
-                    return Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, target.Kinematics,
-                        shape.desiredRange, shape.speedFraction * maxSpeed), engages: true);
+                {
+                    var range = Doctrine && Doctrine.holdRange > 0f ? Doctrine.holdRange : shape.desiredRange;
+                    var law = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, range, shape.speedFraction * maxSpeed);
+                    if (Doctrine)
+                        law = Doctrine.ShapeVelocity(law, in self, target.Kinematics, shape.speedFraction * maxSpeed,
+                            tickCounter * Time.fixedDeltaTime);
+                    return Pack(ctx.Self, law, engages: true);
+                }
                 case OpponentArchetype.Evader:
                     if (recomputes++ % jukeEveryRecomputes == 0)
                         jukeSign = rng.Next(2) == 0 ? -1 : 1;
@@ -161,7 +181,7 @@ namespace RL.Opponents
             var worldVelocity = ArchetypeSteering.BorderTangentSteer(self.pos, velocity, arenaCenter, borderRadius,
                 ArchetypeSteering.BorderMargin);
             var builder = NavObjective.Anchored(target.Id).Planar(worldVelocity);
-            if (engages) builder = builder.Facing(0f, 1f - urgency);
+            if (engages) builder = builder.Facing(0f, (1f - urgency) * (Doctrine ? Doctrine.aimAuthority : 1f));
             var boost = urgency > 0f && urgency >= boostUrgency
                 && Vector2.Angle(self.Forward, escapeHeading) <= boostAlignment;
             return new BrainDecision(builder, engages, engages, boost);
