@@ -1,0 +1,4 @@
+quality=High Fidelity
+fleet: left to right Valis, Crimson, Vanguard, Nightshade; unchanged prefab scales; ortho 1.810585
+fleet-game-light: left to right Valis, Crimson, Vanguard, Nightshade; unchanged prefab scales; ortho 1.810585
+nightshade: ortho 1.245045; materials Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat | Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat | Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat | Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat | Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat | Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat | Assets/Visuals/Ships/Nightshade/Materials/Contour.mat | Assets/Visuals/Ships/Nightshade/Canopy/Canopy.mat

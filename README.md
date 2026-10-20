@@ -79,3 +79,6 @@ settles that distinction. They remain here as historical evidence.
 ## Canopy reflections (#1017)
 
 [Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).
+
+- [Lineup: paint conversion 2026-10-19](lineup/2026-10-19-paint-conversion/README.md): before/after fleet lineups under the white key and the game lighting; the owner chose round 2 variant c.
+- [Paint: conversion candidates 2026-10-19](paint/2026-10-19-conversion/README.md): the six Nightshade candidates under both lights, the batch renderer, the signed-space masks and the ship_paint reports.
