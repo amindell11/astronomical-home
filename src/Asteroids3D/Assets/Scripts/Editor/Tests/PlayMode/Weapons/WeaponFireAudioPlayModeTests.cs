@@ -91,7 +91,6 @@ namespace Tests.PlayMode.Weapons
             }
         }
 
-        // Fires on the current fixed step and records the step and the shot's FirstShot value.
         private IEnumerator RipperShot(Rippers rippers, List<float> times, List<float> firstShots)
         {
             var fire = Fresh(RipperFire);

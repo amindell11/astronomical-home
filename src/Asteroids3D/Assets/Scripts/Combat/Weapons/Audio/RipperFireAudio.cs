@@ -18,7 +18,7 @@ namespace Combat.Weapons.Audio
             cooldown = GetComponent<Cooldown>();
         }
 
-        // Held fire lands exactly one cooldown apart on fixed steps; anything later follows a gap.
+        // Held fire lands one cooldown apart, rounded to a fixed step; anything later follows a gap.
         protected override void SetParameters(EventInstance instance)
         {
             var now = Time.fixedTime;
