@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "texture_size": 4096,
+  "masks": [
+    "Shadow",
+    "Light",
+    "Ink",
+    "Region_Charcoal",
+    "Region_Crimson canopy",
+    "Region_FloorIndicator",
+    "Region_Frame",
+    "Region_NozzleRing",
+    "Region_Red",
+    "Region_RedStructure",
+    "Region_Rim",
+    "Region_Silver",
+    "Region_SilverStructure",
+    "Region_YokeIndicator"
+  ],
+  "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+  "uv": "1f51622e55bd2d0738307e61622e74b9e9632b06ac1a26a415af1da949e04f00",
+  "blender_version": "5.1.2"
+}
