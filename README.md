@@ -37,3 +37,7 @@ only. Hard-coded local paths; reference, not runnable tools.
 ## Canopy reflections (#1017)
 
 [Recovery record, Unity lineup, motion clip, and validation](paint/canopy-reflections/README.md).
+
+## Grayscale conversion review — 2026-10-19
+
+See [paint/2026-10-19-grayscale](paint/2026-10-19-grayscale/README.md) for matched Unity comparisons, palette proof, lineup, and validation. Visual approval is pending; the shared painter and shader retain grayscale masks.

@@ -1,0 +1,1226 @@
+{
+  "schema_version": 1,
+  "tool": "ship_paint",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "6bf611083f7f2c495f827490a1045eed531d2ec489d20f8ef53b3049a6dabc94",
+  "palette": "crimson",
+  "regions": [
+    "Charcoal",
+    "Crimson canopy",
+    "FloorIndicator",
+    "Frame",
+    "NozzleRing",
+    "Red",
+    "RedStructure",
+    "Rim",
+    "Silver",
+    "SilverStructure",
+    "YokeIndicator"
+  ],
+  "masks": {
+    "Shadow": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Shadow.png",
+    "Light": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Light.png",
+    "Ink": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Ink.png",
+    "Region_Charcoal": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Charcoal.png",
+    "Region_Crimson canopy": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Crimson canopy.png",
+    "Region_FloorIndicator": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_FloorIndicator.png",
+    "Region_Frame": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Frame.png",
+    "Region_NozzleRing": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_NozzleRing.png",
+    "Region_Red": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Red.png",
+    "Region_RedStructure": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_RedStructure.png",
+    "Region_Rim": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Rim.png",
+    "Region_Silver": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_Silver.png",
+    "Region_SilverStructure": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_SilverStructure.png",
+    "Region_YokeIndicator": "D:\\amind\\git\\agent-5\\art\\ships\\crimson\\layers\\Region_YokeIndicator.png"
+  },
+  "baseline": "created",
+  "edited_texels": {
+    "Shadow": 0,
+    "Light": 0,
+    "Ink": 0,
+    "Region_Charcoal": 0,
+    "Region_Crimson canopy": 0,
+    "Region_FloorIndicator": 0,
+    "Region_Frame": 0,
+    "Region_NozzleRing": 0,
+    "Region_Red": 0,
+    "Region_RedStructure": 0,
+    "Region_Rim": 0,
+    "Region_Silver": 0,
+    "Region_SilverStructure": 0,
+    "Region_YokeIndicator": 0
+  },
+  "parts": {
+    "Canopy": {
+      "regions": [
+        "Crimson canopy"
+      ],
+      "thickness": 0.164908432867378,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 17,
+          "area": 0.025999827368650585,
+          "edges": 32
+        },
+        {
+          "faces": 1,
+          "area": 0.07341936230659485,
+          "edges": 24
+        }
+      ]
+    },
+    "Canopy perimeter rim": {
+      "regions": [
+        "Frame"
+      ],
+      "thickness": 0.18019874673336744,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 52,
+          "area": 0.015200815019966285,
+          "edges": 68
+        },
+        {
+          "faces": 40,
+          "area": 0.014595358315659723,
+          "edges": 60
+        }
+      ]
+    },
+    "Canopy transverse frame": {
+      "regions": [
+        "Frame"
+      ],
+      "thickness": 0.009000003337860107,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 12,
+          "area": 0.0006832295621279627,
+          "edges": 22
+        },
+        {
+          "faces": 12,
+          "area": 0.0006832292274339125,
+          "edges": 22
+        },
+        {
+          "faces": 1,
+          "area": 4.2968713387381285e-06,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 4.296852239349391e-06,
+          "edges": 4
+        }
+      ]
+    },
+    "Central hull": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.22517119720578194,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 9,
+          "area": 0.26829245407134295,
+          "edges": 30
+        },
+        {
+          "faces": 7,
+          "area": 0.32685381965711713,
+          "edges": 30
+        }
+      ]
+    },
+    "Cockpit surround": {
+      "regions": [
+        "SilverStructure"
+      ],
+      "thickness": 0.29788990318775177,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.19097870588302612,
+          "edges": 24
+        },
+        {
+          "faces": 1,
+          "area": 0.080501489341259,
+          "edges": 24
+        },
+        {
+          "faces": 4,
+          "area": 0.0190782806603238,
+          "edges": 8
+        }
+      ]
+    },
+    "Cube": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.25924405455589294,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 8,
+          "area": 0.41860166378319263,
+          "edges": 12
+        },
+        {
+          "faces": 8,
+          "area": 0.416664257645607,
+          "edges": 12
+        }
+      ]
+    },
+    "Dorsal service spine": {
+      "regions": [
+        "RedStructure"
+      ],
+      "thickness": 0.08636363595724106,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.013171656057238579,
+          "edges": 10
+        },
+        {
+          "faces": 1,
+          "area": 0.0035542829427868128,
+          "edges": 10
+        }
+      ]
+    },
+    "Engine forward cowling": {
+      "regions": [
+        "Rim"
+      ],
+      "thickness": 0.17509502172470093,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.023433782160282135,
+          "edges": 5
+        },
+        {
+          "faces": 1,
+          "area": 0.022703418508172035,
+          "edges": 5
+        },
+        {
+          "faces": 1,
+          "area": 0.023433782160282135,
+          "edges": 5
+        },
+        {
+          "faces": 1,
+          "area": 0.022703420370817184,
+          "edges": 5
+        }
+      ]
+    },
+    "Engine housing": {
+      "regions": [
+        "RedStructure"
+      ],
+      "thickness": 0.19090907275676727,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 16,
+          "area": 0.031903413124382496,
+          "edges": 16
+        },
+        {
+          "faces": 14,
+          "area": 0.028991964645683765,
+          "edges": 20
+        },
+        {
+          "faces": 16,
+          "area": 0.031903411843813956,
+          "edges": 16
+        },
+        {
+          "faces": 14,
+          "area": 0.028991964412853122,
+          "edges": 20
+        }
+      ]
+    },
+    "Engine neck": {
+      "regions": [
+        "SilverStructure"
+      ],
+      "thickness": 0.09090906381607056,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 6,
+          "area": 0.006682117178570479,
+          "edges": 12
+        },
+        {
+          "faces": 6,
+          "area": 0.0066066476865671575,
+          "edges": 12
+        },
+        {
+          "faces": 6,
+          "area": 0.006682117003947496,
+          "edges": 12
+        },
+        {
+          "faces": 6,
+          "area": 0.006606647075386718,
+          "edges": 12
+        }
+      ]
+    },
+    "Engine nozzle": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.1772727370262146,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 10,
+          "area": 0.016861910582520068,
+          "edges": 14
+        },
+        {
+          "faces": 12,
+          "area": 0.0186724552186206,
+          "edges": 14
+        },
+        {
+          "faces": 6,
+          "area": 0.005935724941082299,
+          "edges": 10
+        },
+        {
+          "faces": 10,
+          "area": 0.010128365247510374,
+          "edges": 14
+        },
+        {
+          "faces": 10,
+          "area": 0.01686191069893539,
+          "edges": 14
+        },
+        {
+          "faces": 12,
+          "area": 0.018672455800697207,
+          "edges": 14
+        },
+        {
+          "faces": 6,
+          "area": 0.005935726105235517,
+          "edges": 10
+        },
+        {
+          "faces": 10,
+          "area": 0.010128365596756339,
+          "edges": 14
+        }
+      ]
+    },
+    "Engine support frame": {
+      "regions": [
+        "SilverStructure"
+      ],
+      "thickness": 0.21152613684535027,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.06538254022598267,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.06328129768371582,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.06538256257772446,
+          "edges": 9
+        },
+        {
+          "faces": 1,
+          "area": 0.06328131258487701,
+          "edges": 9
+        }
+      ]
+    },
+    "Engine throat": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.006818234920501709,
+      "thin": true,
+      "caps": []
+    },
+    "Lower Aft swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.03518496034666896,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.0231900867074728,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.02246776595711708,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.023190084844827652,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.02246776595711708,
+          "edges": 3
+        }
+      ]
+    },
+    "Lower Forward fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.07940168678760529,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.018154552206397057,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.01758892834186554,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.018154550343751907,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.01758893020451069,
+          "edges": 4
+        }
+      ]
+    },
+    "Lower Outer swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.08107738196849823,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.016893304884433746,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.016367176547646523,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.016893304884433746,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.016367176547646523,
+          "edges": 3
+        }
+      ]
+    },
+    "Lower aft shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.14270942751318216,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.07252858579158783,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.06917205452919006,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07252857834100723,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.06917205452919006,
+          "edges": 6
+        }
+      ]
+    },
+    "Lower inner shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.12627960368990898,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.08112379163503647,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07781397551298141,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.08112378418445587,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07781397551298141,
+          "edges": 6
+        }
+      ]
+    },
+    "Lower outer armor rail": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.09280355647206306,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.038328327937051654,
+          "edges": 16
+        },
+        {
+          "faces": 1,
+          "area": 0.03870982676744461,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.03832832747139037,
+          "edges": 16
+        },
+        {
+          "faces": 1,
+          "area": 0.03870982676744461,
+          "edges": 14
+        }
+      ]
+    },
+    "Lower prow armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.06284063309431076,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.07846952439285815,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.07636784762144089,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.07846952113322914,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.0763678471557796,
+          "edges": 14
+        }
+      ]
+    },
+    "Lower prow tip": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.028763048350811005,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.042804349039215595,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.041709216544404626,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.04280434676911682,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.0417092137504369,
+          "edges": 8
+        }
+      ]
+    },
+    "Lower wing foundation": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.1780685856938362,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 6,
+          "area": 0.1670216431375593,
+          "edges": 8
+        },
+        {
+          "faces": 24,
+          "area": 0.4482104757335037,
+          "edges": 24
+        },
+        {
+          "faces": 1,
+          "area": 0.0041254544630646706,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.05997249484062195,
+          "edges": 3
+        },
+        {
+          "faces": 2,
+          "area": 0.0247479104436934,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.06444334238767624,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.0007157420041039586,
+          "edges": 3
+        },
+        {
+          "faces": 3,
+          "area": 0.024625187972560525,
+          "edges": 5
+        },
+        {
+          "faces": 6,
+          "area": 0.1670216324273497,
+          "edges": 8
+        },
+        {
+          "faces": 24,
+          "area": 0.44821047119330615,
+          "edges": 24
+        },
+        {
+          "faces": 1,
+          "area": 0.0041254544630646706,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.05997249484062195,
+          "edges": 3
+        },
+        {
+          "faces": 2,
+          "area": 0.0247479104436934,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.06444334238767624,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.000715741771273315,
+          "edges": 3
+        },
+        {
+          "faces": 3,
+          "area": 0.024625187972560525,
+          "edges": 5
+        }
+      ]
+    },
+    "Outer rail mounting block": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.11938946321606636,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.017225924879312515,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.016882823780179024,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.017225924879312515,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.016882823780179024,
+          "edges": 4
+        }
+      ]
+    },
+    "Rear cockpit yoke": {
+      "regions": [
+        "SilverStructure"
+      ],
+      "thickness": 0.09487565979361534,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.052915625274181366,
+          "edges": 24
+        },
+        {
+          "faces": 1,
+          "area": 0.0513632707297802,
+          "edges": 24
+        }
+      ]
+    },
+    "Service channel floor": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.05216741003096104,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.0377676822245121,
+          "edges": 12
+        },
+        {
+          "faces": 1,
+          "area": 0.03649964928627014,
+          "edges": 12
+        }
+      ]
+    },
+    "Service pod cap": {
+      "regions": [
+        "RedStructure"
+      ],
+      "thickness": 0.041195936501026154,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.003490553004667163,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.003397369524464011,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.003490553004667163,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.0033973692916333675,
+          "edges": 4
+        }
+      ]
+    },
+    "Shoulder service pod": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.13271310925483704,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.024941975250840187,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.02379753440618515,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.02494198828935623,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.023797528818249702,
+          "edges": 6
+        }
+      ]
+    },
+    "Shoulder underside link": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.07727272808551788,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.021485690027475357,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.020711613819003105,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.021485690027475357,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.020711613819003105,
+          "edges": 6
+        }
+      ]
+    },
+    "Structural center web": {
+      "regions": [
+        "Charcoal"
+      ],
+      "thickness": 0.14217733591794968,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 26,
+          "area": 1.5978908446413698,
+          "edges": 84
+        },
+        {
+          "faces": 36,
+          "area": 1.6239162236161064,
+          "edges": 76
+        }
+      ]
+    },
+    "Upper Aft swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.077027827501297,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.02345024235546589,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.02271931804716587,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.02345024049282074,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.02271931804716587,
+          "edges": 3
+        }
+      ]
+    },
+    "Upper Forward fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.10482645779848099,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.018356457352638245,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.017784452065825462,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.018356453627347946,
+          "edges": 4
+        },
+        {
+          "faces": 1,
+          "area": 0.01778445392847061,
+          "edges": 4
+        }
+      ]
+    },
+    "Upper Outer swept fin": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.10971050336956978,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.017188604921102524,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.01665443554520607,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.017188604921102524,
+          "edges": 3
+        },
+        {
+          "faces": 1,
+          "area": 0.01665443554520607,
+          "edges": 3
+        }
+      ]
+    },
+    "Upper aft shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10791981220245361,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.07038252055644989,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.06862834095954895,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07038252055644989,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.06862834841012955,
+          "edges": 6
+        }
+      ]
+    },
+    "Upper inner shoulder armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10559722036123276,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 1,
+          "area": 0.0803334191441536,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07863271981477737,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.0803334191441536,
+          "edges": 6
+        },
+        {
+          "faces": 1,
+          "area": 0.07863271981477737,
+          "edges": 6
+        }
+      ]
+    },
+    "Upper outer armor rail": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.15058891475200653,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.039696181600447744,
+          "edges": 16
+        },
+        {
+          "faces": 1,
+          "area": 0.03852099925279617,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.039696181076578796,
+          "edges": 16
+        },
+        {
+          "faces": 1,
+          "area": 0.038520995527505875,
+          "edges": 14
+        }
+      ]
+    },
+    "Upper prow armor": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.11826747842133045,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.07967351283878088,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.07957576913759112,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.07967350259423256,
+          "edges": 14
+        },
+        {
+          "faces": 2,
+          "area": 0.07957575377076864,
+          "edges": 14
+        }
+      ]
+    },
+    "Upper prow tip": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.05304638296365738,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.043283121136482805,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.042638755519874394,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.04328312736470252,
+          "edges": 8
+        },
+        {
+          "faces": 2,
+          "area": 0.04263876040931791,
+          "edges": 8
+        }
+      ]
+    },
+    "Upper wing foundation": {
+      "regions": [
+        "Red"
+      ],
+      "thickness": 0.1578560769557953,
+      "thin": false,
+      "caps": [
+        {
+          "faces": 3,
+          "area": 0.4365427272859961,
+          "edges": 22
+        },
+        {
+          "faces": 4,
+          "area": 0.4298355075297877,
+          "edges": 22
+        },
+        {
+          "faces": 3,
+          "area": 0.4365427263546735,
+          "edges": 22
+        },
+        {
+          "faces": 4,
+          "area": 0.4298355139326304,
+          "edges": 22
+        }
+      ]
+    },
+    "Wing root beam": {
+      "regions": [
+        "Silver"
+      ],
+      "thickness": 0.10201112926006317,
+      "thin": true,
+      "caps": [
+        {
+          "faces": 2,
+          "area": 0.05633922549895942,
+          "edges": 7
+        },
+        {
+          "faces": 1,
+          "area": 0.05677816644310951,
+          "edges": 5
+        },
+        {
+          "faces": 2,
+          "area": 0.0563392493641004,
+          "edges": 7
+        },
+        {
+          "faces": 1,
+          "area": 0.05677815154194832,
+          "edges": 5
+        }
+      ]
+    }
+  },
+  "accents": 0,
+  "preview": "D:\\amind\\git\\agent-5\\scratch\\crimson-paint\\paint\\preview\\Composite.png",
+  "authored_regions": {
+    "names": [
+      "Charcoal",
+      "Crimson canopy",
+      "FloorIndicator",
+      "Frame",
+      "NozzleRing",
+      "Red",
+      "RedStructure",
+      "Rim",
+      "Silver",
+      "SilverStructure",
+      "YokeIndicator"
+    ],
+    "paths": {
+      "RegionWeights0": "D:\\amind\\git\\agent-5\\scratch\\crimson-paint\\paint\\region-weights\\RegionWeights0.png",
+      "RegionWeights1": "D:\\amind\\git\\agent-5\\scratch\\crimson-paint\\paint\\region-weights\\RegionWeights1.png",
+      "RegionWeights2": "D:\\amind\\git\\agent-5\\scratch\\crimson-paint\\paint\\region-weights\\RegionWeights2.png"
+    }
+  },
+  "unity": {
+    "root": "D:\\amind\\git\\agent-5\\scratch\\crimson-paint\\paint\\unity\\Crimson",
+    "files": [
+      "Paint.meta",
+      "Paint/Shadow.png",
+      "Paint/Shadow.png.meta",
+      "Paint/Light.png",
+      "Paint/Light.png.meta",
+      "Paint/Ink.png",
+      "Paint/Ink.png.meta",
+      "Paint/RegionWeights0.png",
+      "Paint/RegionWeights0.png.meta",
+      "Paint/RegionWeights1.png",
+      "Paint/RegionWeights1.png.meta",
+      "Paint/RegionWeights2.png",
+      "Paint/RegionWeights2.png.meta",
+      "Materials.meta",
+      "Materials/crimson.meta",
+      "Materials/crimson/Charcoal.mat",
+      "Materials/crimson/Charcoal.mat.meta",
+      "Materials/crimson/Crimson canopy.mat",
+      "Materials/crimson/Crimson canopy.mat.meta",
+      "Materials/crimson/FloorIndicator.mat",
+      "Materials/crimson/FloorIndicator.mat.meta",
+      "Materials/crimson/Frame.mat",
+      "Materials/crimson/Frame.mat.meta",
+      "Materials/crimson/NozzleRing.mat",
+      "Materials/crimson/NozzleRing.mat.meta",
+      "Materials/crimson/Red.mat",
+      "Materials/crimson/Red.mat.meta",
+      "Materials/crimson/RedStructure.mat",
+      "Materials/crimson/RedStructure.mat.meta",
+      "Materials/crimson/Rim.mat",
+      "Materials/crimson/Rim.mat.meta",
+      "Materials/crimson/Silver.mat",
+      "Materials/crimson/Silver.mat.meta",
+      "Materials/crimson/SilverStructure.mat",
+      "Materials/crimson/SilverStructure.mat.meta",
+      "Materials/crimson/YokeIndicator.mat",
+      "Materials/crimson/YokeIndicator.mat.meta"
+    ]
+  },
+  "verdict": "pass"
+}

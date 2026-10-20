@@ -1,0 +1,30 @@
+{
+  "top": {
+    "mean_abs_rgb_255": 6.388,
+    "percent_ship_pixels_max_channel_delta_gt16": 10.823,
+    "repeat_baseline_max_delta": 0
+  },
+  "bank": {
+    "mean_abs_rgb_255": 7.885,
+    "percent_ship_pixels_max_channel_delta_gt16": 12.118,
+    "repeat_baseline_max_delta": 0
+  },
+  "underside": {
+    "mean_abs_rgb_255": 6.415,
+    "percent_ship_pixels_max_channel_delta_gt16": 10.096,
+    "repeat_baseline_max_delta": 0
+  },
+  "side-light": {
+    "mean_abs_rgb_255": 4.308,
+    "percent_ship_pixels_max_channel_delta_gt16": 8.683,
+    "repeat_baseline_max_delta": 0
+  },
+  "top_glass_samples": {
+    "upper": {
+      "max_rgb_delta": 0
+    },
+    "lower": {
+      "max_rgb_delta": 0
+    }
+  }
+}

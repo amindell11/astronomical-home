@@ -1,0 +1,614 @@
+{
+  "schema_version": 1,
+  "tool": "ship_check",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "660ddcb8ea7c5710ae52d1014f41c50ba7f40f316cdb18d1c9c6c3946d3eb1ce",
+  "findings": [
+    {
+      "rule": "origin",
+      "part": "Canopy",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Canopy",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Canopy perimeter rim",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Canopy transverse frame",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Central hull",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Central hull",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Cockpit surround",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Cockpit surround",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Cube",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Dorsal service spine",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Dorsal service spine",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine forward cowling",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine housing",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine neck",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine nozzle",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine support frame",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Engine support frame",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Engine throat",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower Aft swept fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower Forward fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower Outer swept fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower aft shoulder armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Lower aft shoulder armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower inner shoulder armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Lower inner shoulder armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower outer armor rail",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Lower outer armor rail",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower prow armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Lower prow armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower prow tip",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Lower prow tip",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Lower wing foundation",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Outer rail mounting block",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "REF PROFILE - depth guide only",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "REF TOP - authoritative outline - Num7",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Rear cockpit yoke",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Rear cockpit yoke",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Service channel floor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Service channel floor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Service pod cap",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Shoulder service pod",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Shoulder service pod",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Shoulder underside link",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Shoulder underside link",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Structural center web",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper Aft swept fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper Forward fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper Outer swept fin",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper aft shoulder armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper aft shoulder armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper inner shoulder armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper inner shoulder armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper outer armor rail",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper outer armor rail",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper prow armor",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper prow armor",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper prow tip",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper prow tip",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Upper wing foundation",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Upper wing foundation",
+      "message": "2 non-planar n-gon(s)"
+    },
+    {
+      "rule": "origin",
+      "part": "Wing root beam",
+      "message": "Not parented under SymmetryOrigin"
+    },
+    {
+      "rule": "ngon",
+      "part": "Wing root beam",
+      "message": "2 non-planar n-gon(s)"
+    }
+  ],
+  "exempted": [
+    {
+      "rule": "scale",
+      "part": "Cockpit surround",
+      "message": "Unapplied scale (1.0, 1.0, 1.882663)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "name",
+      "part": "Cube",
+      "message": "Default-named part",
+      "reason": "Approved hand-edited part kept under its default name; renaming is the owner's call."
+    },
+    {
+      "rule": "scale",
+      "part": "Cube",
+      "message": "Unapplied scale (0.129622, 0.129622, 0.129622)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Engine support frame",
+      "message": "Unapplied scale (0.890702, 0.890702, 0.890702)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Lower aft shoulder armor",
+      "message": "Unapplied scale (1.0, 1.0, 0.726205)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Lower inner shoulder armor",
+      "message": "Unapplied scale (1.0, 1.0, 0.726205)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Outer rail mounting block",
+      "message": "Unapplied scale (1.0, 1.0, 0.726205)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Rear cockpit yoke",
+      "message": "Unapplied scale (1.0, 1.0, 0.576331)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Shoulder service pod",
+      "message": "Unapplied scale (1.0, 1.0, 0.421228)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Upper aft shoulder armor",
+      "message": "Unapplied scale (1.0, 1.0, 0.726205)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Upper inner shoulder armor",
+      "message": "Unapplied scale (1.0, 1.0, 0.726205)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    },
+    {
+      "rule": "scale",
+      "part": "Wing root beam",
+      "message": "Unapplied scale (1.329736, 1.11931, 0.839902)",
+      "reason": "Approved source carries object scale on these parts; applying it would be an edit to the owner's geometry."
+    }
+  ],
+  "fingerprint": {
+    "recipe": "ship-fp-1",
+    "components": {
+      "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+      "uv": "1f51622e55bd2d0738307e61622e74b9e9632b06ac1a26a415af1da949e04f00",
+      "materials": "eecab1d206bc6508bc56d045f1f5e2f246588d99c7aa946a6651228361924398"
+    },
+    "parts": {
+      "Canopy": {
+        "geometry": "3070ae005b40a6f7e3bd088f1a07ece9a97d7686830cdd83414f7a009458ea33",
+        "uv": "86de50b9280ef8a4d39cccadc2417faa21af332fd1831817f0b72424dbde86a6",
+        "materials": "7873a2f5d5725515894fc9d6a37d2cbc05580beb7a4d60663a461134eaaa48c5"
+      },
+      "Canopy perimeter rim": {
+        "geometry": "e6b42cd065ee0b85405b3052e5e0f268796287f57f0a346da0958769fb46109b",
+        "uv": "ab9e094138e97b0c937accd457de4acff111c647c4030ec20c6d91a4ce4e533e",
+        "materials": "9504b8239fc950a4307a337b3240c8ba93a8b44f31b2cd2a61d17dc16f5cfc12"
+      },
+      "Canopy transverse frame": {
+        "geometry": "43cc9da88e35357c94fbab729f0f28a2a45aa6f7c1e01d259e236c988f104531",
+        "uv": "436c3b861ac8edc90fa9a3dabd14d7962154036caa62dd061bd6510326b79cc4",
+        "materials": "cb76adc1ae45b81822510dc7e3e2ea56fa671e644ad4e0d537f0ea1bc7e0b85a"
+      },
+      "Central hull": {
+        "geometry": "d955bfd3bcb91dfbe7d0fcaf56b5bd3137ca0b92eaaa24e98cefec92377686ed",
+        "uv": "5e7c428a97a4c20fce39d0018b38fd2f36b262a25a82c538a7898cb7e23ec690",
+        "materials": "88ab0a0244f9821c4a807c80b433ddbb0ec7209e03321d7e7721551f4f9a9086"
+      },
+      "Cockpit surround": {
+        "geometry": "e0107351b471f9a88a539b63c7132a78dd1a69e41f678c676076956779da5108",
+        "uv": "434e33a5e40c7e1af1958372bcd08cca1490d096db73d047ce34d76e7552697d",
+        "materials": "c4b1bebfb70e9734a74c2be59501e584fa960220330e2302e53e61eec1ad7354"
+      },
+      "Cube": {
+        "geometry": "ad27b281934449ef674cfbb7f1efb0f071d91fd008a163814c5e58ccdb057726",
+        "uv": "1f584669cfbe7ef34471e1baf5f3c97affec3ec2f49fb984d73f0f3e2a3dc947",
+        "materials": "4d19cabce52b16a08ae8319338f5ccd41743d4f51cad8f70cb51e40461bb7272"
+      },
+      "Dorsal service spine": {
+        "geometry": "3a80780b898c84c04326637dc6962e4af9281442a2649eeb3b1f65612e789588",
+        "uv": "d58b5b7ab9be74d5e0447952b3f2acf3b266df6faa799ced3393e1b5ad102e90",
+        "materials": "77ae21edb2fb8696c0175fdb19479e9b09c6e0c08505adc3b27776d6fd1e9da6"
+      },
+      "Engine forward cowling": {
+        "geometry": "279878e47e177c79ac19cc9599eb65860fd6665f8f216819d820c4e599885057",
+        "uv": "f9bc83c86c0b18323591dc17d6165f40cde256700d911e361c52dc0634e0028e",
+        "materials": "3295309390a418af8a8ce56a9033ee27e8f3751de13235ef5bba224fe91f16a9"
+      },
+      "Engine housing": {
+        "geometry": "a64ca96f6530d305a60c057bd046c0c284475e1f96a25166c91c0784857de2a3",
+        "uv": "3b686af84170c8579f75922db9af5b23e07054ef272de24a1b4199f3b6a52580",
+        "materials": "3da03063f23ab07b79e0d6315b9a60905bbdb43d5960fc027446bbf6a27a1a17"
+      },
+      "Engine neck": {
+        "geometry": "c4b47ff454b3f071a274bff29b9bb4d0cf105cd56b7c163cfedf097ff8413929",
+        "uv": "30ae22efc0920d3ca57fa7ffab0fa7319848976651a77dfc5257a3c63a271a69",
+        "materials": "837bf8d34427fd0c9ec664bcaa685bb41b20828cc68142b83e4db24d80f15ad7"
+      },
+      "Engine nozzle": {
+        "geometry": "1d1d5e0e39240bda05ec424dda3f19268ac75903ce19b68793c3af95fc9f598f",
+        "uv": "ed429d439da20208a6c0208af6d18c95b91d943a2be8909705eb7973860e39a8",
+        "materials": "5c5dadc72d212b3bcc5a867aac88a3e1faf91e798c1c6ca9cb17b0bccefbd57f"
+      },
+      "Engine support frame": {
+        "geometry": "da641f9d52ce367477c804fbd8789cfcbe005d5145b17a0eaede74edd72f3dff",
+        "uv": "7629d79242244543fed8c4f826189fc63d138a9d5c1e25850257f216eb41de2a",
+        "materials": "239acc45b41731d8513dd205188bba1af694ceac5277bdfaf76ee07c53bfb355"
+      },
+      "Engine throat": {
+        "geometry": "db4caae449a13ce3adcd82f2ea18df296846c9da123f03b67ef42ed323ed74f6",
+        "uv": "dc4f474cbf7c6065171033b6cb751d59f61204fd18c7fa9fd54a95cd02da867f",
+        "materials": "8c49dd198e01b6ae07301d3b72aaa3f9771a444f99fdf71ef6382af92e0e46c7"
+      },
+      "Lower Aft swept fin": {
+        "geometry": "ead3641be71e436a7ce8ef3e4aa1aeaf387a85e8fe010e507f30b6cbd314ac53",
+        "uv": "06f1ee8f3525b079b8cea4ffb14e51952a4e61626a545b72fd2674db6f73ee85",
+        "materials": "5bea474074bc4c09eda546e620f0e36606d16badb63ee3095c4374e0359a211b"
+      },
+      "Lower Forward fin": {
+        "geometry": "14a751153d6c059b0c66005da1076f4b21f0bbd037de4b6d0f929c35a6504584",
+        "uv": "6297aee4346757c76d7d0182a06b97308c58644bc530820e59d8e31d3f80f943",
+        "materials": "39bbb972fa3e3e17cc1fd503d352418695a23aaf2f8473d7233ab3f69a83ac26"
+      },
+      "Lower Outer swept fin": {
+        "geometry": "94fda75ba8806fe4b472236e4929c3a44bb97f0e66495ecfc232e14877e469e3",
+        "uv": "1c0ee3a8d4ac22d37e977885141f5e637eadcf9b310ee9330f94b1714b7f20b7",
+        "materials": "5bea474074bc4c09eda546e620f0e36606d16badb63ee3095c4374e0359a211b"
+      },
+      "Lower aft shoulder armor": {
+        "geometry": "2ed2896cedd58615dbee8693197fabf3631d931494ccbe14e98a3a39d982d8b8",
+        "uv": "b004cc2245b57e875df6595ca710555b4ad5180fada7aded0afdafaf09063dc1",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Lower inner shoulder armor": {
+        "geometry": "ecc5053a089f5fb11cc3f444f40c0836686fbf6b21f6515b3288271f23fa7311",
+        "uv": "1517309e1045174b9464fafbe24a436671c6317503e587b7da18dd6c940878b0",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Lower outer armor rail": {
+        "geometry": "9bc69b952eb7ca9d5b4da3a4989f7b5c492f44624dfed37a31fd799d28e852a9",
+        "uv": "18ce2b50b92b067fb96a06121f91bf41b7923f1f61cbc915061ce873aa41adbc",
+        "materials": "4d8e1ab2563260846ceac9002c3f6435b27cbcdb1bbd9822ac4bc60a27cf0615"
+      },
+      "Lower prow armor": {
+        "geometry": "56a4f390014478192c6061b0b0022fd908d9b6e79c8af40b853a793cf0c4c262",
+        "uv": "a0250ebdf1947b85567f317fdf53903db039e7d089c0063f0e5d925cf7662891",
+        "materials": "13702cbdd4a6601af3178726e8d20c5e82ebf0182514e9909ea691fee466aac0"
+      },
+      "Lower prow tip": {
+        "geometry": "fd961ab0d5500b17885246338b24888c971ab6fc713e09441f785857ee6015ca",
+        "uv": "10bdb466aa8bdf8e17e778e27e77625d51f68bfa3cb4e8ee942096afd0424a04",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Lower wing foundation": {
+        "geometry": "104cc443237b57b28cb9a84f54cc860e14037891d31dd647ee88944e7c07db53",
+        "uv": "03e9f52466d3b77598749fc0ecf329159ac87d55906d770a3d2946faf690060e",
+        "materials": "f7393d526aad842f9e27f96548835d4f9dbecf11a53874df9be8ba66d8278c2e"
+      },
+      "Outer rail mounting block": {
+        "geometry": "cf8bb30d1eea17cf5acabad6b1d919bee4f93f1c4f5af622c0b40a29f9598c57",
+        "uv": "e07893c3557479c69d13e8dd8944aa7607cad385e7f5e40f7943fe87611da743",
+        "materials": "39bbb972fa3e3e17cc1fd503d352418695a23aaf2f8473d7233ab3f69a83ac26"
+      },
+      "REF PROFILE - depth guide only": {
+        "geometry": "aa7706ff3d94867adf808a49657e988dbbbd0fb3fb3e61de70e314249d6774c6",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "REF TOP - authoritative outline - Num7": {
+        "geometry": "d787f308690678888a3788e5e018b204ffc94f5243b4c46a0a48387e9b6c8a30",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Rear cockpit yoke": {
+        "geometry": "afb2e8553e06c81182939f0168e28fce7b12c9782ccb9c26e59213afc29c4b53",
+        "uv": "58d7e43041981a93e8388e210515b605ccad1adefddcae8d417dc0d3bd016c07",
+        "materials": "837bf8d34427fd0c9ec664bcaa685bb41b20828cc68142b83e4db24d80f15ad7"
+      },
+      "Service channel floor": {
+        "geometry": "dee2fb3efb1d50aea45ff0a55ec0ef4eed7602007a16554198b00d01daaca266",
+        "uv": "be35b3ad13e5de2b8e5a600d229520e46311186947f3ef7498494c836ef169d5",
+        "materials": "13702cbdd4a6601af3178726e8d20c5e82ebf0182514e9909ea691fee466aac0"
+      },
+      "Service pod cap": {
+        "geometry": "1e7899c342c5956a4e52b9ace6670525c111ad396139e3fdf253de5e20c081b4",
+        "uv": "7a7da7cd810f738a9cded03f3baef493ce66d1ccaf943e32703797a72b1a625a",
+        "materials": "39bbb972fa3e3e17cc1fd503d352418695a23aaf2f8473d7233ab3f69a83ac26"
+      },
+      "Shoulder service pod": {
+        "geometry": "212910d57a2a58333421e5b1769c6f5062e8b0f4908e6575150f3ff08e52813c",
+        "uv": "295e33da8e14adaa1c552711502f19d439928aa4947f469d6f24aa1217f11ab7",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Shoulder underside link": {
+        "geometry": "40ed217fe15a10256fdcb2f5d925af7e17dba6594b2ffac9980850854a849b27",
+        "uv": "b8d3daa0bddb86562a211ee5dc8902770e4853a0862b27a371c65379e5b06345",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Structural center web": {
+        "geometry": "524166619b6293839b02b8c39fc7e1dfc0dc4217142a083e05a556fe634bcdeb",
+        "uv": "b3e85d6906fc31c02fc9004330b0e63e2532c2420c709fd6b96fa85c8e9a0215",
+        "materials": "71ef47131f4c50328a7d6408eff70a8df3b7e1117a7dc03cf6949640159ebdff"
+      },
+      "SymmetryOrigin": {
+        "geometry": "3552f99d4bba4dcb3576493c82cb030c01a08f31c6989d7e54c4dd64609feb9b",
+        "uv": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "materials": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "Upper Aft swept fin": {
+        "geometry": "6cd1a54343b9e563122657de245c6e62c0bd8c1cba4b627954180507add83877",
+        "uv": "429efb8890da873ec241c9120b7b932cdef4e4717139351685aff9f555a2b84f",
+        "materials": "5bea474074bc4c09eda546e620f0e36606d16badb63ee3095c4374e0359a211b"
+      },
+      "Upper Forward fin": {
+        "geometry": "00f96eb618a09b3d16f08c5a8e9c36ac10f477cc5a8d6f8dc1cadbeb58f1b36f",
+        "uv": "036c09dd8ef85d7c89c27803ab57dd8a3d123d053120e5adf262fa463e993256",
+        "materials": "39bbb972fa3e3e17cc1fd503d352418695a23aaf2f8473d7233ab3f69a83ac26"
+      },
+      "Upper Outer swept fin": {
+        "geometry": "9633cca177e656d58bc35d6517a5d5982fc1a145261b7579f7903d6b03aaa509",
+        "uv": "bf5e1e446ad5ffe16e901e0ee62c09884afffd9df94e31c714a0ace487fb79be",
+        "materials": "5bea474074bc4c09eda546e620f0e36606d16badb63ee3095c4374e0359a211b"
+      },
+      "Upper aft shoulder armor": {
+        "geometry": "7b7e1e05ebc2fd0a82012ab4843b83cad1265a7f6aee657bf31b9acd35255e88",
+        "uv": "719926cf082fa440d6e1253b0b6b00d567fa4e9885bf1e40470bb6ce4beba0ad",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Upper inner shoulder armor": {
+        "geometry": "393877310646d3975b2d7f0ea89962ab2d5e39cd08724794ff515e01f379825a",
+        "uv": "2c832df7ed5fbbebbf4d1cf67640a36bb71f52d64d9b0ce5659b3e86337229ae",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Upper outer armor rail": {
+        "geometry": "15219710233ae27a1ddc3da586feacfe84846f31fa89fbcc45fccf4dd998f201",
+        "uv": "163025a46eceb1fbea8d1ff26c307b6aa013fc3bde2fe740b217f5506921153a",
+        "materials": "4d8e1ab2563260846ceac9002c3f6435b27cbcdb1bbd9822ac4bc60a27cf0615"
+      },
+      "Upper prow armor": {
+        "geometry": "24326feb60f66d1aa71440485e3a086c34b6ae1dd07f514a3d790b3cbb067432",
+        "uv": "7f9397f209b3e336923dd14522c6aa69ab20f4447270a40cf84a5021e1686fb6",
+        "materials": "13702cbdd4a6601af3178726e8d20c5e82ebf0182514e9909ea691fee466aac0"
+      },
+      "Upper prow tip": {
+        "geometry": "4f97ca26d7c8cf8ab71254878f6ae0613424fabd064d4d605a7db952edfbf27e",
+        "uv": "18c0d8735192563edb5d6a7b9503cfcb55da5baa46f6b399b34aa14d7ba15d22",
+        "materials": "4b10a6c9fec02a615c018b580b09a711c4e764df7904c6cdafcff254e5e0f404"
+      },
+      "Upper wing foundation": {
+        "geometry": "dba14ad491cc400dbc224f29dfd1fece85240de3c14cd71086045d1b23f98b4b",
+        "uv": "d9a21473ecf47b7635a8f39e25860551dca820a660f264889dbd12804fb8a13e",
+        "materials": "38fc4df016aa505cc0cd63ebb03948587523a3e85bde1febd895d436c1f94cc4"
+      },
+      "Wing root beam": {
+        "geometry": "cd4c16a605ad9d240854552d4739da94f6472d05e830c6b65d2a1157f5f689ad",
+        "uv": "c162d499a31b11a592c6d12ec157150ebace5e26cbf75a1af18efbda0a652478",
+        "materials": "3295309390a418af8a8ce56a9033ee27e8f3751de13235ef5bba224fe91f16a9"
+      }
+    }
+  },
+  "verdict": "fail"
+}

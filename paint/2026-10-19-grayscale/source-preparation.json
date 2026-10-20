@@ -1,0 +1,53 @@
+{
+  "before": {
+    "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+    "uv": "1f51622e55bd2d0738307e61622e74b9e9632b06ac1a26a415af1da949e04f00",
+    "materials": "eecab1d206bc6508bc56d045f1f5e2f246588d99c7aa946a6651228361924398"
+  },
+  "after": {
+    "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+    "uv": "1f51622e55bd2d0738307e61622e74b9e9632b06ac1a26a415af1da949e04f00",
+    "materials": "005d310f654767a3ec4c839b961225c3056f451bb1c60680ef2036f019f9e81c"
+  },
+  "assignments": {
+    "Cube": "Charcoal",
+    "Structural center web": "Charcoal",
+    "Central hull": "Charcoal",
+    "Cockpit surround": "SilverStructure",
+    "Canopy": "Crimson canopy",
+    "Service channel floor": "Charcoal",
+    "Dorsal service spine": "RedStructure",
+    "Rear cockpit yoke": "SilverStructure",
+    "Canopy perimeter rim": "Frame",
+    "Canopy transverse frame": "Frame",
+    "Upper wing foundation": "Red",
+    "Upper aft shoulder armor": "Silver",
+    "Upper inner shoulder armor": "Silver",
+    "Upper prow armor": "Silver",
+    "Upper prow tip": "Silver",
+    "Upper outer armor rail": "Silver",
+    "Lower wing foundation": "Red",
+    "Lower aft shoulder armor": "Silver",
+    "Lower inner shoulder armor": "Silver",
+    "Lower prow armor": "Silver",
+    "Lower prow tip": "Silver",
+    "Lower outer armor rail": "Silver",
+    "Wing root beam": "Silver",
+    "Shoulder underside link": "Charcoal",
+    "Outer rail mounting block": "Charcoal",
+    "Shoulder service pod": "Charcoal",
+    "Service pod cap": "RedStructure",
+    "Upper Aft swept fin": "Red",
+    "Lower Aft swept fin": "Red",
+    "Upper Outer swept fin": "Red",
+    "Lower Outer swept fin": "Red",
+    "Upper Forward fin": "Red",
+    "Lower Forward fin": "Red",
+    "Engine support frame": "SilverStructure",
+    "Engine forward cowling": "Rim",
+    "Engine housing": "RedStructure",
+    "Engine neck": "SilverStructure",
+    "Engine nozzle": "Charcoal",
+    "Engine throat": "Charcoal"
+  }
+}

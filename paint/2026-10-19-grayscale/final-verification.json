@@ -1,0 +1,46 @@
+{
+  "unchanged_paths": [
+    "src/Asteroids3D/Assets/Visuals/Shaders",
+    "src/Asteroids3D/Assets/Prefabs/Ships/Crimson.prefab",
+    "src/Asteroids3D/Assets/Visuals/Ships/Crimson/Canopy",
+    "src/Asteroids3D/Assets/Visuals/Ships/Crimson/Crimson.fbx",
+    "src/Asteroids3D/Assets/Visuals/Ships/Crimson/Hull paint.mat.meta",
+    "src/Asteroids3D/Assets/Visuals/Ships/Crimson/Breakup/Debris paint.mat.meta"
+  ],
+  "preserved_material_properties": {
+    "Hull paint.mat": [
+      "_AmbientStrength",
+      "_CastShadowStrength",
+      "_ShadowThreshold",
+      "_ShadowSoftness",
+      "_PaletteLighting",
+      "_SpecularStrength",
+      "_ShadowColor",
+      "_SootStrength",
+      "_DebrisVisibility",
+      "m_CustomRenderQueue",
+      "m_Shader"
+    ],
+    "Breakup/Debris paint.mat": [
+      "_AmbientStrength",
+      "_CastShadowStrength",
+      "_ShadowThreshold",
+      "_ShadowSoftness",
+      "_PaletteLighting",
+      "_SpecularStrength",
+      "_ShadowColor",
+      "_SootStrength",
+      "_DebrisVisibility",
+      "m_CustomRenderQueue",
+      "m_Shader"
+    ]
+  },
+  "grayscale_4096_mask_sha256": {
+    "Shadow": "1a2d8d4960d5e6e8989f14b35cc9e7d9a5004dbc56d71ac14eed31a12d4abd59",
+    "Light": "6a2211cf192449e12dfdacf9fb9755833adc8b2cd4777f9141807a50c9149967",
+    "Ink": "ccebf3a6c40191ef67a5f81c3c55fd8ec13bbc227f30dadfd494d32fc0e18714"
+  },
+  "geometry": "4bde84c0be641eecb883868feab9a287344f60b4061e0ea9355fb6c8d36ac7d5",
+  "uv": "1f51622e55bd2d0738307e61622e74b9e9632b06ac1a26a415af1da949e04f00",
+  "result": "pass"
+}

@@ -1,0 +1,8 @@
+Quality=Performant
+Camera=(0.00, 0.00, -30.00)
+OrthoSize=1.425025
+Bounds=Center: (0.00, 0.00, 0.02), Extents: (1.21, 1.20, 0.26)
+LightIntensity=1.6
+Materials=Assets/Visuals/Ships/Crimson/Canopy/Canopy.mat
+Assets/Visuals/Ships/Crimson/Hull paint.mat
+Assets/Visuals/Ships/_Shared/Illustrated/Ship contour.mat
