@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "image": "../crimson/textures/painted-brush-source.png",
+  "scale": 0.4,
+  "blend": 0.25,
+  "offset": [0.23, 0.37, 0.0]
+}
