@@ -93,14 +93,16 @@ namespace Tests.EditMode.Rendering.Illustrated
             }
         }
 
-        [Test]
-        public void LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent()
+        [TestCase(0), TestCase(55)]
+        public void LightDrivenHull_RespondsToLightWhileInkAndCameraStayIndependent(float slope)
         {
             var priorPipeline = QualitySettings.renderPipeline;
             var priorTarget = RenderTexture.active;
             var priorSun = RenderSettings.sun;
             var priorAsync = ShaderUtil.allowAsyncCompilation;
             var root = new GameObject("Hull lighting test");
+            Mesh surfaceMesh = null;
+            var facing = Quaternion.Euler(0, slope, 0);
             var material = new Material(Shader.Find("Astronomical/Drawn/Surface"));
             var target = new RenderTexture(64, 64, 24);
             var image = new Texture2D(64, 64, TextureFormat.RGB24, false);
@@ -114,7 +116,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 for (int y = 0; y < 64; y++)
                 for (int x = 0; x < 64; x++)
                 {
-                    shadow.SetPixel(x, y, Color.white * (x / 63f * .6f));
+                    shadow.SetPixel(x, y, Color.white * (x < 32 ? .2f : 1f));
                     ink.SetPixel(x, y, x < 13 ? Color.white : Color.black);
                 }
                 shadow.Apply();
@@ -122,6 +124,19 @@ namespace Tests.EditMode.Rendering.Illustrated
                 var subject = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 subject.transform.SetParent(root.transform, false);
                 subject.layer = 31;
+                var filter = subject.GetComponent<MeshFilter>();
+                surfaceMesh = Object.Instantiate(filter.sharedMesh);
+                var vertices = surfaceMesh.vertices;
+                var normals = surfaceMesh.normals;
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    vertices[i] = facing * vertices[i];
+                    normals[i] = facing * normals[i];
+                }
+                surfaceMesh.vertices = vertices;
+                surfaceMesh.normals = normals;
+                surfaceMesh.RecalculateBounds();
+                filter.sharedMesh = surfaceMesh;
                 subject.GetComponent<Renderer>().sharedMaterial = material;
                 material.EnableKeyword("_PAINT_LAYERS");
                 material.EnableKeyword("_LIGHT_DRIVEN_PAINT");
@@ -130,6 +145,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 material.SetColor("_PaperColor", new Color(.2f, .4f, .4f));
                 material.SetColor("_ShadowColor", new Color(.1f, .1f, .1f));
                 material.SetFloat("_PaintLightStrength", 0);
+                material.SetFloat("_PaintShadowStrength", 1.02f);
                 material.SetFloat("_ShadowThreshold", .35f);
                 material.SetFloat("_ShadowSoftness", .1f);
                 material.SetFloat("_PaletteLighting", 1);
@@ -140,7 +156,8 @@ namespace Tests.EditMode.Rendering.Illustrated
                 material.SetFloat("_WearStrength", 0);
                 var camera = new GameObject("Hull camera", typeof(Camera)).GetComponent<Camera>();
                 camera.transform.SetParent(root.transform, false);
-                camera.transform.position = new Vector3(0, 0, -2);
+                camera.transform.position = facing * new Vector3(0, 0, -2);
+                camera.transform.rotation = facing;
                 camera.orthographic = true;
                 camera.orthographicSize = .6f;
                 camera.cullingMask = 1 << 31;
@@ -153,16 +170,20 @@ namespace Tests.EditMode.Rendering.Illustrated
                 light.type = LightType.Directional;
                 light.cullingMask = 1 << 31;
                 light.intensity = 1;
+                light.transform.rotation = facing;
                 RenderSettings.sun = light;
 
                 var front = ReadCenter(camera, target, image);
                 var inkFront = image.GetPixel(12, 32);
-                light.transform.rotation = Quaternion.Euler(0, 60, 0);
+                Assert.That(front.g, Is.GreaterThan(.3f), "Frontal light must reach even fully painted shadows.");
+                Assert.That(image.GetPixel(24, 32).g, Is.EqualTo(image.GetPixel(40, 32).g).Within(2f / 255),
+                    "A sharp painted shadow edge must not remain in fully lit armor.");
+                light.transform.rotation = facing * Quaternion.Euler(0, 60, 0);
                 var grazing = ReadCenter(camera, target, image);
                 Assert.That(front.g - grazing.g, Is.GreaterThan(.15f), "Lighting must move the painted boundary.");
                 Assert.That(image.GetPixel(12, 32).maxColorComponent, Is.LessThan(.15f), "Ink stays dark under changed lighting.");
                 Assert.That(inkFront.maxColorComponent, Is.LessThan(.15f));
-                camera.transform.position = Quaternion.Euler(0, 15, 0) * new Vector3(0, 0, -2);
+                camera.transform.position = facing * Quaternion.Euler(0, 15, 0) * new Vector3(0, 0, -2);
                 camera.transform.LookAt(Vector3.zero);
                 var orbit = ReadCenter(camera, target, image);
                 Assert.That(orbit.g, Is.EqualTo(grazing.g).Within(2f / 255), "Camera motion must not relight the hull.");
@@ -174,6 +195,7 @@ namespace Tests.EditMode.Rendering.Illustrated
                 RenderTexture.active = priorTarget;
                 ShaderUtil.allowAsyncCompilation = priorAsync;
                 Object.DestroyImmediate(root);
+                Object.DestroyImmediate(surfaceMesh);
                 Object.DestroyImmediate(material);
                 Object.DestroyImmediate(target);
                 Object.DestroyImmediate(image);

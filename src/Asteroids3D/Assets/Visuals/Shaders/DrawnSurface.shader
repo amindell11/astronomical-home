@@ -6,7 +6,6 @@ Shader "Astronomical/Drawn/Surface"
         [Toggle(_PAINT_LAYERS)] _PaintLayers ("Separate Paint Layers", Float) = 0
         [Toggle(_LIGHT_DRIVEN_PAINT)] _LightDrivenPaint ("Light-Driven Hull Paint", Float) = 0
         _PaintLightingBias ("Authored Shadow Influence", Range(0,2)) = 1.2
-        _PaintDetailMip ("Fixed Brush Detail Scale", Range(0,8)) = 5
         _PaintShadowMap ("Painted Shadow Mask", 2D) = "black" {}
         _PaintLightMap ("Painted Light Mask", 2D) = "black" {}
         _PaintInkMap ("Panel Ink Mask", 2D) = "black" {}
@@ -80,7 +79,7 @@ Shader "Astronomical/Drawn/Surface"
             half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
             half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
             half _PaintSaturation, _PaintEmissionBlend;
-            half _PaintLightingBias, _PaintDetailMip;
+            half _PaintLightingBias;
             half _PaintRegionCount, _PaintRegionLightLift;
             half4 _PaintRegionColor0, _PaintRegionColor1, _PaintRegionColor2, _PaintRegionColor3;
             half4 _PaintRegionColor4, _PaintRegionColor5, _PaintRegionColor6, _PaintRegionColor7;
@@ -149,7 +148,6 @@ Shader "Astronomical/Drawn/Surface"
                 half fog : TEXCOORD3;
                 half4 tangentWS : TEXCOORD4;
                 half soot : TEXCOORD5;
-                half paintFacing : TEXCOORD6;
             };
             SurfaceOutput SurfaceVertex(SurfaceInput input)
             {
@@ -163,7 +161,6 @@ Shader "Astronomical/Drawn/Surface"
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.fog = ComputeFogFactor(position.positionCS.z);
                 output.soot = input.color.r;
-                output.paintFacing = input.normalOS.z;
                 return output;
             }
             half4 SurfaceFragment(SurfaceOutput input) : SV_Target
@@ -215,24 +212,19 @@ Shader "Astronomical/Drawn/Surface"
                         basePalette /= max(dot(w0 + w1 + w2 + w3, half4(1, 1, 1, 1)), 0.0001h);
                         lightPalette = lerp(basePalette, 1, _PaintRegionLightLift);
                     }
-                    albedo = basePalette * (1 - shadow);
-                    albedo = lerp(albedo, lightPalette, saturate(paintedLight));
                     #if defined(_LIGHT_DRIVEN_PAINT)
-                        half broadShadow = SAMPLE_TEXTURE2D_LOD(_PaintShadowMap, sampler_PaintShadowMap,
-                            input.uv, _PaintDetailMip).r * _PaintShadowStrength;
-                        half broadLight = saturate(SAMPLE_TEXTURE2D_LOD(_PaintLightMap, sampler_PaintLightMap,
-                            input.uv, _PaintDetailMip).r * _PaintLightStrength);
-                        half3 broadPaint = lerp(basePalette * (1 - broadShadow), lightPalette, broadLight);
-                        half3 brush = albedo / max(broadPaint, 0.001h);
-                        half response = ndl + (broadLight - broadShadow) * _PaintLightingBias;
+                        half response = ndl + (saturate(paintedLight) - saturate(shadow))
+                            * _PaintLightingBias * saturate(1 - abs(ndl));
                         half edge = max(_ShadowSoftness, fwidth(response));
                         half lit = smoothstep(_ShadowThreshold - edge, _ShadowThreshold + edge, response);
                         half3 relit = basePalette * lerp(_ShadowColor.rgb, 1, lit);
                         relit = lerp(relit, lightPalette,
                             smoothstep(0.7h, 1.0h, response) * saturate(_PaintLightStrength));
-                        // Side-wall darkness stays authored; only the broad hull faces participate.
-                        paintLighting = smoothstep(0.65h, 0.9h, abs(input.paintFacing));
-                        albedo = lerp(albedo, relit * brush, paintLighting);
+                        paintLighting = 1;
+                        albedo = relit;
+                    #else
+                        albedo = basePalette * (1 - shadow);
+                        albedo = lerp(albedo, lightPalette, saturate(paintedLight));
                     #endif
                     albedo = lerp(albedo, _PaintInkColor.rgb, saturate(ink));
                     half indicator = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).r;
