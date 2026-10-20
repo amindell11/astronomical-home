@@ -47,6 +47,8 @@ namespace Tests.PlayMode.Research
             public float timeoutSec = 60f;
             public float spawnMin = 30f;
             public float spawnMax = 40f;
+            public bool field;
+            public float fieldDensity = 1f;
             public SideConfig a = new();
             public SideConfig b = new();
         }
@@ -58,8 +60,23 @@ namespace Tests.PlayMode.Research
         }
 
         [Serializable]
+        public struct Shot
+        {
+            public float t;
+            public float err;
+            public float leadErr;
+            public float dist;
+            public float cross;
+            public float selfBank;
+            public float targetBank;
+            public int hit;
+        }
+
+        [Serializable]
         public class SideStats
         {
+            public float firstShot = -1f;
+            public List<Shot> shots = new();
             public string weapon;
             public string doctrine;
             public MarksmanshipTally tally;
@@ -105,6 +122,10 @@ namespace Tests.PlayMode.Research
             private double dist, aimErr, inRangeErr;
             private int aimOk, ready, inRange, overheated, charging, inRangeOk;
             public float damageTaken;
+            private int firstFireStep = -1;
+            private readonly List<Shot> shots = new();
+            private readonly Combat.Weapons.Arsenal.Railguns rail;
+            private bool pendingRailHit;
 
             public StepStats(Ship self, Ship other, float tolerance)
             {
@@ -119,6 +140,39 @@ namespace Tests.PlayMode.Research
                         if (r is IChargeReadout c) charge = c;
                 }
                 self.Damage.OnDamaged += OnDamaged;
+                if (weapon)
+                {
+                    weapon.OnFire += OnFired;
+                    rail = weapon as Combat.Weapons.Arsenal.Railguns;
+                    if (rail) rail.Hit += OnRailHit;
+                }
+            }
+
+            private void OnFired()
+            {
+                if (firstFireStep < 0) firstFireStep = steps;
+                var me = self.Kinematics;
+                var them = other.Kinematics;
+                var aim = Gunner.AimPoint(in me, them.pos, them.vel, weapon.ProjectileSpeed);
+                var los = (them.pos - me.pos).normalized;
+                shots.Add(new Shot
+                {
+                    t = steps * Time.fixedDeltaTime,
+                    err = Vector2.Angle(me.Forward, them.pos - me.pos),
+                    leadErr = Vector2.Angle(me.Forward, aim - me.pos),
+                    dist = Vector2.Distance(me.pos, them.pos),
+                    cross = Mathf.Abs(los.x * them.vel.y - los.y * them.vel.x),
+                    selfBank = me.bank,
+                    targetBank = them.bank,
+                    hit = rail ? (pendingRailHit ? 1 : 0) : -1,
+                });
+                pendingRailHit = false;
+            }
+
+            private void OnRailHit(Vector3 point, Damage.IDamageable target)
+            {
+                // The beam's Hit fires before OnFire, so the flag rides into the shot about to be logged.
+                pendingRailHit = target is Component c && c.GetComponentInParent<Ship>() == other;
             }
 
             private void OnDamaged(Damage.DamageInfo hit)
@@ -126,7 +180,12 @@ namespace Tests.PlayMode.Research
                 if (hit.AttackerId == other.Id) damageTaken += hit.Amount;
             }
 
-            public void Dispose() => self.Damage.OnDamaged -= OnDamaged;
+            public void Dispose()
+            {
+                self.Damage.OnDamaged -= OnDamaged;
+                if (weapon) weapon.OnFire -= OnFired;
+                if (rail) rail.Hit -= OnRailHit;
+            }
 
             public void Sample()
             {
@@ -168,6 +227,8 @@ namespace Tests.PlayMode.Research
                 s.hullEnd = self.Damage.Health.CurrentValue;
                 s.shieldEnd = self.Damage.Shield.CurrentValue;
                 s.damageTaken = damageTaken;
+                s.firstShot = firstFireStep >= 0 ? firstFireStep * Time.fixedDeltaTime : -1f;
+                s.shots = shots.Count <= 60 ? new List<Shot>(shots) : shots.GetRange(0, 60);
             }
         }
 
@@ -176,6 +237,7 @@ namespace Tests.PlayMode.Research
         private ProjectileService projectiles;
         private HarnessAssets assets;
         private readonly WaitForFixedUpdate waitFixed = new();
+        private static bool loggedBounds;
 
         private static string SlotRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
 
@@ -261,9 +323,18 @@ namespace Tests.PlayMode.Research
             var weaponB = marks ? null : LoadWeapon(bName);
             var shipA = Spawn(weaponA, LoadPilot(config.a.pilot), 0, config.seed, config.a.doctrine);
             var shipB = Spawn(weaponB, LoadPilot(marks ? "ArchetypePilot" : config.b.pilot), 1, config.seed + 1,
-                marks ? "" : config.b.doctrine);
-            units.WireShipDependencies(shipA, null);
-            units.WireShipDependencies(shipB, null);
+                config.b.doctrine);
+            var harnessField = config.field
+                ? HarnessField.Spawn(Vector2.zero, assets, config.fieldDensity, arenaHost.transform, presentationEnabled: false)
+                : null;
+            if (!loggedBounds)
+            {
+                loggedBounds = true;
+                foreach (var col in shipA.GetComponentsInChildren<Collider>())
+                    Debug.Log($"[gun-research] collider {col.name} {col.GetType().Name} trigger={col.isTrigger} extents={col.bounds.extents} shipRadius={shipA.Dynamics.shipRadius}");
+            }
+            units.WireShipDependencies(shipA, harnessField?.Field);
+            units.WireShipDependencies(shipB, harnessField?.Field);
 
             ArchetypeBrain targetBrain = null;
             var targetArchetype = OpponentArchetype.Dummy;
@@ -294,6 +365,7 @@ namespace Tests.PlayMode.Research
                         targetBrain.Configure(shipA, targetArchetype,
                             new OpponentDraw { speedFraction = 0.85f, jukePeriod = 1.2f, orbitRadius = 16f, orbitDirection = swapped ? -1 : 1, desiredRange = 10f },
                             poseSeed, Vector2.zero, 500f);
+                    harnessField?.Rebuild(HarnessField.DeriveLayoutSeed(config.seed, e / 2), posA, posB);
                     units.RespawnShip(shipA.Id, posA, rotA);
                     units.RespawnShip(shipB.Id, posB, rotB);
                     projectiles.ReturnAllToPool();
@@ -330,7 +402,7 @@ namespace Tests.PlayMode.Research
                             winner = aAlive && bAlive ? "draw" : aAlive ? "A" : bAlive ? "B" : "both",
                             duration = steps * Time.fixedDeltaTime,
                             a = new SideStats { weapon = aName, doctrine = config.a.doctrine, tally = sa.Tally },
-                            b = new SideStats { weapon = bName, doctrine = marks ? "" : config.b.doctrine, tally = sb?.Tally ?? default },
+                            b = new SideStats { weapon = bName, doctrine = config.b.doctrine, tally = sb?.Tally ?? default },
                         };
                         stA.Fill(row.a);
                         stB.Fill(row.b);
@@ -347,6 +419,7 @@ namespace Tests.PlayMode.Research
             }
             finally
             {
+                harnessField?.Dispose();
                 Remove(shipA);
                 Remove(shipB);
                 projectiles.ReturnAllToPool();

@@ -1,7 +1,7 @@
 {
  "runs": [
   {
-   "tag": "x-lock-smart-prof",
+   "tag": "x9-final",
    "mode": "matrix",
    "weapons": [
     "Lasers",
@@ -17,15 +17,15 @@
    "timeoutSec": 90,
    "a": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"label\": \"lock-smart-prof\", \"autoProfile\": true, \"rangeMissiles\": 18, \"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
    },
    "b": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"label\": \"lock-smart-prof\", \"autoProfile\": true, \"rangeMissiles\": 18, \"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
    }
   },
   {
-   "tag": "x-lock-smart",
+   "tag": "h2h",
    "mode": "matrix",
    "weapons": [
     "Lasers",
@@ -36,16 +36,26 @@
     "Missiles",
     "Grenades"
    ],
+   "opponents": [
+    "Lasers",
+    "TurboLasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun",
+    "Missiles",
+    "Grenades"
+   ],
+   "ordered": true,
    "episodes": 20,
-   "seed": 7001,
+   "seed": 7301,
    "timeoutSec": 90,
    "a": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"label\": \"lock-smart\", \"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
    },
    "b": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"label\": \"lock-smart\", \"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10}"
+    "doctrine": "{\"label\": \"base\"}"
    }
   }
  ]

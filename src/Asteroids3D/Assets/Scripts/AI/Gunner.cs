@@ -24,6 +24,7 @@ namespace AI
         private bool prevPrimaryHeld;
         private bool prevSecondaryHeld;
         private float targetRadius = 1f;
+        private float targetBank;
         private GunDoctrine doctrine;
         private bool doctrineResolved;
 
@@ -83,6 +84,7 @@ namespace AI
                 if (slot == WeaponSlot.Primary && pose != null && Doctrine)
                 {
                     var self = pose();
+                    Doctrine.targetBank = targetBank;
                     var smart = Doctrine.PrimaryHeld(engage, hasTarget, in self, targetPos, targetVel, targetRadius, held);
                     if (smart.HasValue)
                     {
@@ -122,6 +124,7 @@ namespace AI
         public void Aim(in EnemyTarget anchor)
         {
             targetRadius = anchor.dynamics.shipRadius > 0f ? anchor.dynamics.shipRadius : 1f;
+            targetBank = anchor.kinematics.bank;
             Aim(anchor.kinematics.pos, anchor.kinematics.vel);
         }
 

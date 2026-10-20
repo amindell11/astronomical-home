@@ -1,0 +1,171 @@
+{
+ "runs": [
+  {
+   "tag": "r-base",
+   "mode": "marks",
+   "weapons": [
+    "Railgun",
+    "Lasers",
+    "ChargeLasers"
+   ],
+   "opponents": [
+    "Aggressor"
+   ],
+   "episodes": 20,
+   "seed": 8101,
+   "timeoutSec": 60,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"r-base\"}"
+   },
+   "b": {
+    "pilot": "ArchetypePilot",
+    "doctrine": "{\"label\": \"dodger\", \"strafeFraction\": 0.4, \"strafePeriod\": 1.2}"
+   }
+  },
+  {
+   "tag": "r-tol05",
+   "mode": "marks",
+   "weapons": [
+    "Railgun",
+    "Lasers",
+    "ChargeLasers"
+   ],
+   "opponents": [
+    "Aggressor"
+   ],
+   "episodes": 20,
+   "seed": 8101,
+   "timeoutSec": 60,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"r-tol05\", \"railTolScale\": 0.5}"
+   },
+   "b": {
+    "pilot": "ArchetypePilot",
+    "doctrine": "{\"label\": \"dodger\", \"strafeFraction\": 0.4, \"strafePeriod\": 1.2}"
+   }
+  },
+  {
+   "tag": "r-ff",
+   "mode": "marks",
+   "weapons": [
+    "Railgun",
+    "Lasers",
+    "ChargeLasers"
+   ],
+   "opponents": [
+    "Aggressor"
+   ],
+   "episodes": 20,
+   "seed": 8101,
+   "timeoutSec": 60,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"r-ff\", \"aimAccelFF\": true}"
+   },
+   "b": {
+    "pilot": "ArchetypePilot",
+    "doctrine": "{\"label\": \"dodger\", \"strafeFraction\": 0.4, \"strafePeriod\": 1.2}"
+   }
+  },
+  {
+   "tag": "r-ff-tol05",
+   "mode": "marks",
+   "weapons": [
+    "Railgun",
+    "Lasers",
+    "ChargeLasers"
+   ],
+   "opponents": [
+    "Aggressor"
+   ],
+   "episodes": 20,
+   "seed": 8101,
+   "timeoutSec": 60,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"r-ff-tol05\", \"aimAccelFF\": true, \"railTolScale\": 0.5}"
+   },
+   "b": {
+    "pilot": "ArchetypePilot",
+    "doctrine": "{\"label\": \"dodger\", \"strafeFraction\": 0.4, \"strafePeriod\": 1.2}"
+   }
+  },
+  {
+   "tag": "r-tau03",
+   "mode": "marks",
+   "weapons": [
+    "Railgun",
+    "Lasers",
+    "ChargeLasers"
+   ],
+   "opponents": [
+    "Aggressor"
+   ],
+   "episodes": 20,
+   "seed": 8101,
+   "timeoutSec": 60,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"r-tau03\", \"aimTau\": 0.03, \"aimAccelFrac\": 0.9, \"aimAccelFF\": true}"
+   },
+   "b": {
+    "pilot": "ArchetypePilot",
+    "doctrine": "{\"label\": \"dodger\", \"strafeFraction\": 0.4, \"strafePeriod\": 1.2}"
+   }
+  },
+  {
+   "tag": "f-base",
+   "mode": "marks",
+   "weapons": [
+    "Lasers",
+    "TurboLasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun",
+    "Missiles",
+    "Grenades"
+   ],
+   "opponents": [
+    "Aggressor",
+    "Orbiter"
+   ],
+   "episodes": 10,
+   "seed": 8201,
+   "timeoutSec": 60,
+   "field": true,
+   "fieldDensity": 1.0,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"label\": \"base\"}"
+   }
+  },
+  {
+   "tag": "f-smart",
+   "mode": "marks",
+   "weapons": [
+    "Lasers",
+    "TurboLasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun",
+    "Missiles",
+    "Grenades"
+   ],
+   "opponents": [
+    "Aggressor",
+    "Orbiter"
+   ],
+   "episodes": 10,
+   "seed": 8201,
+   "timeoutSec": 60,
+   "field": true,
+   "fieldDensity": 1.0,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"label\": \"f-smart\"}"
+   }
+  }
+ ]
+}

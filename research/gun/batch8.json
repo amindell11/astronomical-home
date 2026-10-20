@@ -1,0 +1,100 @@
+{
+ "runs": [
+  {
+   "tag": "r8-best",
+   "mode": "matrix",
+   "weapons": [
+    "Railgun"
+   ],
+   "opponents": [
+    "Lasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun"
+   ],
+   "episodes": 20,
+   "seed": 7001,
+   "timeoutSec": 90,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"r8-best\"}"
+   },
+   "b": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"best\"}"
+   }
+  },
+  {
+   "tag": "r8-bank15",
+   "mode": "matrix",
+   "weapons": [
+    "Railgun"
+   ],
+   "opponents": [
+    "Lasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun"
+   ],
+   "episodes": 20,
+   "seed": 7001,
+   "timeoutSec": 90,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"r8-bank15\", \"railMaxTargetBank\": 15}"
+   },
+   "b": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"best\"}"
+   }
+  },
+  {
+   "tag": "r8-steady",
+   "mode": "matrix",
+   "weapons": [
+    "Railgun"
+   ],
+   "opponents": [
+    "Lasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun"
+   ],
+   "episodes": 20,
+   "seed": 7001,
+   "timeoutSec": 90,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"r8-steady\", \"railSteady\": 0.3}"
+   },
+   "b": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"best\"}"
+   }
+  },
+  {
+   "tag": "r8-bank15-steady",
+   "mode": "matrix",
+   "weapons": [
+    "Railgun"
+   ],
+   "opponents": [
+    "Lasers",
+    "Rippers",
+    "ChargeLasers",
+    "Railgun"
+   ],
+   "episodes": 20,
+   "seed": 7001,
+   "timeoutSec": 90,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"r8-bank15-steady\", \"railMaxTargetBank\": 15, \"railSteady\": 0.3}"
+   },
+   "b": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"label\": \"best\"}"
+   }
+  }
+ ]
+}

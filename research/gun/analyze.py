@@ -20,6 +20,17 @@ CEILING = {
 }
 WEAPONS = list(CEILING)
 
+# Time to kill a 150 pool (100 hull + 50 shield, 4 s regen delay) from the first shot at full accuracy.
+TTK = {
+    "Lasers": 2.1,        # 8 x 20 at 0.3 s
+    "TurboLasers": 5.5,   # 19 x 5 in 1.35 s, vent, 11 more
+    "Rippers": 3.9,       # 24 x 6 in 2.3 s, 1.5 s reload, 1 more
+    "ChargeLasers": 3.8,  # 9 taps x 18 at 0.42 s (full-charge mode: 6.0)
+    "Railgun": 6.0,       # 4 x 45 at 1.5 s (first after a 1.5 s charge)
+    "Missiles": 75.0,     # 70 per 15 s against 9 s shield refill
+    "Grenades": 30.0,     # ~3 x 30 contact waves per 12 s against shield refill
+}
+
 
 def load(path):
     rows = []
@@ -51,6 +62,9 @@ def matrix(rows, label):
             score[(wb, wa)][1] += 1
         if w in ("A", "B"):
             ttk[(wa, wb)].append(r["duration"])
+            winner_w = wa if w == "A" else wb
+            agg[winner_w]["winT"] += r["duration"]
+            agg[winner_w]["wins"] += 1
         for side, opp_w in ((a, wb), (b, wa)):
             g = agg[side["weapon"]]
             t = side["tally"]
@@ -92,13 +106,14 @@ def matrix(rows, label):
         cells.append(f"{g['xw'] / g['xn']:.2f}" if g["xn"] else "-")
         print(f"| {x} | " + " | ".join(cells) + " |")
     print(f"\n## {label}: per weapon (all its fights)")
-    print("| weapon | win vs others | draws | DPS dealt | ceiling | % ceiling | shots/s | hit % | envelope % | aim ok % | mean aim err | mean dist | ready % | charging % | in-range % | in-range aim err | in-range aim ok % |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| weapon | win vs others | draws | mean winning fight (s) | ideal TTK (s) | DPS dealt | ceiling | % ceiling | shots/s | hit % | envelope % | aim ok % | mean aim err | mean dist | ready % | charging % | in-range % | in-range aim err | in-range aim ok % |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for x in present:
         g = agg[x]
         dps = g["dmg"] / g["time"] if g["time"] else 0
         ceil = CEILING.get(x, 0)
-        print(f"| {x} | {g['xw'] / g['xn'] if g['xn'] else 0:.2f} | {int(g['draws'])} | {dps:.1f} | {ceil} | {100 * dps / ceil if ceil else 0:.0f}% | "
+        wt = g["winT"] / g["wins"] if g["wins"] else float("nan")
+        print(f"| {x} | {g['xw'] / g['xn'] if g['xn'] else 0:.2f} | {int(g['draws'])} | {wt:.1f} | {TTK.get(x, float('nan'))} | {dps:.1f} | {ceil} | {100 * dps / ceil if ceil else 0:.0f}% | "
               f"{g['fired'] / g['time'] if g['time'] else 0:.2f} | {100 * g['hits'] / g['fired'] if g['fired'] else 0:.0f}% | "
               f"{100 * g['env'] / g['steps']:.0f}% | {100 * g['aimOk'] / g['steps']:.0f}% | {g['aimErr'] / g['steps']:.1f} | "
               f"{g['dist'] / g['steps']:.1f} | {100 * g['ready'] / g['steps']:.0f}% | {100 * g['charging'] / g['steps']:.0f}% | "

@@ -152,6 +152,7 @@ namespace RL.Opponents
                 case OpponentArchetype.Aggressor:
                 case OpponentArchetype.Kiter:
                 {
+                    if (Doctrine) Doctrine.enemy = target;
                     var range = Doctrine && Doctrine.HoldRange > 0f ? Doctrine.HoldRange : shape.desiredRange;
                     var law = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, range, shape.speedFraction * maxSpeed);
                     if (Doctrine)

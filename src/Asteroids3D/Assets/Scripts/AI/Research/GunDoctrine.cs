@@ -18,6 +18,11 @@ namespace AI.Research
         public bool autoProfile;
         public float rangeLasers = 12f, rangeTurbo = 11f, rangeRippers = 9f, rangeCharge = 13f,
             rangeRail = 30f, rangeMissiles = 30f, rangeGrenades = 17f;
+        public bool matchupRange;
+        public float outrangeMargin = 6f;
+        public bool extendGunRange;
+        public float gunRangeFrac = 0.7f;
+        [System.NonSerialized] public Ship enemy;
         public float strafeFraction;
         public float strafePeriod;
         public bool aimLock;
@@ -30,11 +35,21 @@ namespace AI.Research
         public bool smartTrigger;
         public float geomTolScale = 0f;
         public float tapCharge = 0.34f;
+        public float chargeTolScale = -1f;
         public float chargeWideCone = 25f;
         public float fullChargeReleaseErr = 12f;
         public float railCommitCone = 30f;
         public float railAbortErr = -1f;
         public float railLeadCap = 0.3f;
+        public float railTolScale = -1f;
+        public float railMaxTargetBank = -1f;
+        public float railSteady;
+        [System.NonSerialized] public float targetBank;
+        public bool aimAccelFF;
+        public float accelSmoothing = 0.3f;
+        private Vector2 lastTargetVel;
+        private Vector2 targetAccel;
+        private bool haveLastVel;
         public float ventTo = -1f;
         public float grenadeMinRange = 14f;
         public float grenadeMaxRange = 25f;
@@ -46,6 +61,40 @@ namespace AI.Research
 
         /// <summary>The hold range this ship flies at: explicit, else its weapon's profile, else -1 (archetype shape).</summary>
         public float HoldRange
+        {
+            get
+            {
+                var preferred = PreferredRange;
+                if (!matchupRange || preferred <= 0f || !enemy || !ship || !ship.Weapons || !ship.Weapons.Primary)
+                    return preferred;
+                var myReach = EffectiveFireRange(ship.Weapons.Primary);
+                var enemyDoctrine = enemy.GetComponent<GunDoctrine>();
+                var enemyWeapon = enemy.Weapons ? enemy.Weapons.Primary : null;
+                if (!enemyWeapon) return preferred;
+                var enemyReach = enemyDoctrine ? enemyDoctrine.EffectiveFireRange(enemyWeapon) : EffectiveFireRange(enemyWeapon);
+                var standoff = enemyReach + outrangeMargin;
+                if (myReach - 2f >= standoff) return Mathf.Max(preferred, standoff);
+                return preferred;
+            }
+        }
+
+        /// <summary>The farthest range at which this doctrine lets the weapon fire.</summary>
+        public float EffectiveFireRange(WeaponComponent w)
+        {
+            switch (w)
+            {
+                case Railguns r: return r.FireRange;
+                case Missiles _: return 60f;
+                case Grenades g: return Mathf.Min(grenadeMaxRange, g.Range);
+                case WeaponBase<Combat.Projectiles.Laser> gun:
+                    return extendGunRange && gun.projectilePrefab
+                        ? Mathf.Max(w.FireRange, gun.projectilePrefab.MaxDistance * gunRangeFrac)
+                        : w.FireRange;
+                default: return w.FireRange;
+            }
+        }
+
+        private float PreferredRange
         {
             get
             {
@@ -73,6 +122,8 @@ namespace AI.Research
         {
             venting = false;
             prevHeld = false;
+            haveLastVel = false;
+            targetAccel = Vector2.zero;
         }
 
         /// <summary>Primary-slot trigger under the smart policies; returns null to defer to main's Gunner rule.</summary>
@@ -121,7 +172,7 @@ namespace AI.Research
             if (geomTolScale <= 0f || weapon.FireRange <= 0f) return baselineSolution;
             var aim = Gunner.AimPoint(in self, targetPos, targetVel, weapon.ProjectileSpeed);
             var dist = Vector2.Distance(self.pos, targetPos);
-            if (dist > weapon.FireRange || !weapon.CanFire()) return false;
+            if (dist > EffectiveFireRange(weapon) || !weapon.CanFire()) return false;
             return AimErr(in self, aim) <= Tolerance(weapon, dist, targetRadius, 5f);
         }
 
@@ -145,9 +196,11 @@ namespace AI.Research
             var dist = Vector2.Distance(self.pos, targetPos);
             var aim = Gunner.AimPoint(in self, targetPos, targetVel, weapon.ProjectileSpeed);
             var err = AimErr(in self, aim);
-            var tol = Tolerance(weapon, dist, targetRadius, 5f);
+            var tol = chargeTolScale > 0f
+                ? Mathf.Max(1f, Mathf.Atan2(targetRadius * chargeTolScale, Mathf.Max(dist, 0.1f)) * Mathf.Rad2Deg)
+                : Tolerance(weapon, dist, targetRadius, 5f);
             var ready = !cooldown || cooldown.CanFire();
-            var inRange = dist <= weapon.FireRange;
+            var inRange = dist <= EffectiveFireRange(weapon);
             var pct = charge.ChargePct;
 
             // Charging: keep the trigger down while the shot is plausible.
@@ -175,8 +228,11 @@ namespace AI.Research
             var nextPct = pct + Time.fixedDeltaTime / charge.FullChargeTime;
             if (railAbortErr > 0f && nextPct >= 0.999f)
             {
-                var tol = Mathf.Max(railAbortErr, Tolerance(weapon, dist, targetRadius, 2f));
+                var tol = railTolScale > 0f
+                    ? Mathf.Max(0.5f, Mathf.Atan2(targetRadius * railTolScale, Mathf.Max(dist, 0.1f)) * Mathf.Rad2Deg)
+                    : Mathf.Max(railAbortErr, Tolerance(weapon, dist, targetRadius, 2f));
                 if (AimErr(in self, targetPos) > tol) return false;
+                if (railMaxTargetBank > 0f && Mathf.Abs(targetBank) > railMaxTargetBank) return false;
             }
             return true;
         }
@@ -223,7 +279,18 @@ namespace AI.Research
         public void ShapeCommand(ref Ships.Command.PilotCommand cmd, in Kinematics self, in Dynamics dyn, bool hasTarget,
             Vector2 targetPos, Vector2 targetVel)
         {
+            if (railSteady > 0f && ship && ship.Weapons && ship.Weapons.Primary is Railguns steadyRail
+                && steadyRail.Charge.ChargePct > 0f
+                && (1f - steadyRail.Charge.ChargePct) * steadyRail.Charge.FullChargeTime <= railSteady)
+                cmd.strafe = 0f;
             if (!aimLock || !hasTarget || evadeUrgency > 0f) return;
+            if (aimAccelFF)
+            {
+                if (haveLastVel)
+                    targetAccel = Vector2.Lerp(targetAccel, (targetVel - lastTargetVel) / Time.fixedDeltaTime, accelSmoothing);
+                lastTargetVel = targetVel;
+                haveLastVel = true;
+            }
             var aim = AimPoint(in self, targetPos, targetVel);
             if (!aim.HasValue) return;
             var r = aim.Value - self.pos;
@@ -232,6 +299,12 @@ namespace AI.Research
             var err = Mathf.DeltaAngle(self.yaw, desiredYaw);
             var v = targetVel - self.vel;
             var bearingRate = (r.x * v.y - r.y * v.x) / r.sqrMagnitude * Mathf.Rad2Deg;
+            if (aimAccelFF)
+            {
+                // Lead the rate command by the target's lateral acceleration over the controller's lag.
+                var bearingAccel = (r.x * targetAccel.y - r.y * targetAccel.x) / r.sqrMagnitude * Mathf.Rad2Deg;
+                bearingRate += bearingAccel * aimTau * 2f;
+            }
             var inertia = dyn.yawInertia > 0f ? dyn.yawInertia : 1f;
             var alpha = dyn.yawTorque / inertia * Mathf.Rad2Deg * aimAccelFrac;
             var approach = Mathf.Min(Mathf.Sqrt(2f * alpha * Mathf.Abs(err)), aimKp * Mathf.Abs(err));
