@@ -12,4 +12,5 @@
 {80b0450c-a844-41ea-be3b-7fe299907a15} event:/Weapons/Ripper/Fire
 {4ec23bc7-e0d8-4ec9-9424-65f4b65fbe6e} event:/Weapons/TurboLaser/Fire
 {9b0393d6-205e-4eb0-a426-7add98b47136} parameter:/Charge
+{b4818c81-c170-4f81-9b3a-9c884898f964} parameter:/FirstShot
 {c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat
