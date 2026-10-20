@@ -13,7 +13,6 @@ CHECK="$SCRIPT_DIR/../primary_tree_check.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-unset CLAUDE_PROJECT_DIR
 
 fail() { echo "FAIL: $1" >&2; exit 1; }
 g() { git -c user.name=t -c user.email=t@t "$@"; }
@@ -31,7 +30,7 @@ git init -q --bare -b main "$TMP/origin.git"
 g clone -q "$TMP/origin.git" "$TMP/up" 2> /dev/null
 git -C "$TMP/up" symbolic-ref HEAD refs/heads/main
 put "$TMP/up/.gitignore" $'results/\naudio/fmod/.cache/\n*.asd'
-ship base AGENTS.md rules .claude/settings.json {} edited.txt base staged.txt base other.txt base \
+ship base AGENTS.md rules .claude/settings.json {} .edited.txt base staged.txt base other.txt base \
   audio/fmod/Assets/old.wav old src/Asteroids3D/Assets/Audio/keep.wav keep \
   src/Asteroids3D/Assets/Scripts/Ships/Audio/EngineAudio.cs engine \
   src/Asteroids3D/Assets/Scripts/Weapons/Gun.cs gun
@@ -51,10 +50,10 @@ out="$(check "$W/fresh")"
 [[ "$out" != *Fast-forwarded* && "$out" != *"would be refused"* ]] || fail "current tree reported a base: $out"
 
 # --- origin moves: AGENTS.md, a shipped clip, an edit that collides, an edit already staged ---
-ship "ship sound" AGENTS.md "new rules" audio/fmod/Assets/clip.wav clip edited.txt shipped staged.txt shipped
+ship "ship sound" AGENTS.md "new rules" audio/fmod/Assets/clip.wav clip .edited.txt shipped staged.txt shipped
 put "$P/audio/fmod/Assets/clip.wav" clip            # untracked copy equal to the shipped one
-put "$P/edited.txt" owner                            # tracked edit that differs from the shipped one
-put "$P/staged.txt" shipped && g -C "$P" add staged.txt   # staged to equal origin/main: goes through
+put "$P/.edited.txt" owner                           # tracked dotfile edit that differs from the shipped one
+put "$P/staged.txt" shipped && g -C "$P" add staged.txt && put "$P/staged.txt" owner   # staged equal, edited on top: goes through
 put "$P/other.txt" owner                             # tracked edit no incoming commit touches
 put "$P/audio/fmod/Assets/new.wav" new
 put "$P/src/Asteroids3D/Assets/Audio/x.wav" x
@@ -72,7 +71,7 @@ out="$(check "$W/fresh")"
 [[ "$out" == *"re-read AGENTS.md"* ]] || fail "AGENTS.md change not flagged: $out"
 [[ "$out" == *"The primary's main is 1 commit behind origin/main, and \`git pull --ff-only\` there would be refused"* ]] ||
   fail "blocked pull not reported: $out"
-[[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  edited.txt\n'* ]] ||
+[[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt\n'* ]] ||
   fail "collisions not split into equal and different: $out"
 [[ "$out" != *"  staged.txt"* && "$out" != *"  other.txt"* ]] || fail "a path git lets through was listed: $out"
 [[ "$out" == *"Sound work in progress, not strays: 6 untracked paths"* ]] || fail "sound count: $out"
@@ -89,13 +88,13 @@ done
 if g -C "$P" -c pull.rebase=false merge -q --ff-only origin/main 2> /dev/null; then fail "git took a pull the check called refused"; fi
 g -C "$P" add audio/fmod/Assets/clip.wav
 out="$(check "$P")"
-[[ "$out" != *"  audio/fmod/Assets/clip.wav"* && "$out" == *$'leave the edits where they are:\n  edited.txt'* ]] ||
+[[ "$out" != *"  audio/fmod/Assets/clip.wav"* && "$out" == *$'leave the edits where they are:\n  .edited.txt'* ]] ||
   fail "staged equal path still listed, or the differing edit dropped: $out"
-put "$P/edited.txt" shipped                          # equal now, but unstaged: git still refuses it
+put "$P/.edited.txt" shipped                         # equal now, but unstaged: git still refuses it
 out="$(check "$P")"
-[[ "$out" == *$'lets the pull through'*$'\n  edited.txt\n'* && "$out" != *"Different from origin/main"* ]] ||
+[[ "$out" == *$'lets the pull through'*$'\n  .edited.txt\n'* && "$out" != *"Different from origin/main"* ]] ||
   fail "unstaged equal edit not listed as equal: $out"
-g -C "$P" add edited.txt
+g -C "$P" add .edited.txt
 out="$(check "$P")"
 [[ "$out" != *"would be refused"* ]] || fail "a pull git would take reported as refused: $out"
 g -C "$P" -c pull.rebase=false merge -q --ff-only origin/main || fail "git refused a pull the check called clean"

@@ -11,8 +11,7 @@
 #    Untracked SOUND paths are sound work in progress (doc/agents/audio-pipeline.md → Where sound
 #    work happens), counted but not listed. Tracked modifications are never listed as strays.
 # The primary tree is resolved from --git-common-dir, so the checks read the same tree from a
-# slot, a session worktree or the primary itself. Checks 2 and 3 leave the primary's files and
-# index untouched.
+# slot, a session worktree or the primary itself. Checks 2 and 3 never stage, pull or stash there.
 #
 # Interface: exit 0 always (a hook failure must not block a session).
 #   stdout  prose for the session (Claude Code adds it to context), then the trailer
@@ -107,9 +106,10 @@ report_primary_main() {
   read_set off_new < <(git -C "$primary" diff --cached --name-only --no-renames -z origin/main)
   read_set untracked < <(git -C "$primary" ls-files --others --exclude-standard -z)
   for path in "${incoming[@]}"; do
-    # git refuses these; a path staged to equal origin/main already goes through.
-    [[ ${unstaged[$path]+x}${untracked[$path]+x} || (${off_head[$path]+x} && ${off_new[$path]+x}) ]] || continue
-    if [[ "$(worktree_blob "$primary" "$path")" == "$(git rev-parse -q --verify "origin/main:$path")" ]]; then
+    # git refuses these; a path staged to equal origin/main goes through, unstaged edits and all.
+    [[ ${untracked[$path]+x} || (${off_new[$path]+x} && ${unstaged[$path]+x}${off_head[$path]+x}) ]] || continue
+    # Git Bash rewrites origin/main:<dotpath> as a Windows path list, so ls-tree, not rev-parse.
+    if [[ "$(worktree_blob "$primary" "$path")" == "$(git ls-tree --full-tree --object-only origin/main -- "$path")" ]]; then
       equal+=("$path")
     else
       differ+=("$path")
