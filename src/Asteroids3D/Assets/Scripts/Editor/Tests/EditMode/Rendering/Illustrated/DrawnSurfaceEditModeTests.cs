@@ -129,25 +129,15 @@ namespace Tests.EditMode.Rendering.Illustrated
                 subject.layer = 31;
                 var filter = subject.GetComponent<MeshFilter>();
                 surfaceMesh = Object.Instantiate(filter.sharedMesh);
-                var sourceVertices = surfaceMesh.vertices;
-                var sourceNormals = surfaceMesh.normals;
-                var sourceUVs = surfaceMesh.uv;
-                var triangles = surfaceMesh.triangles;
-                var vertices = new Vector3[triangles.Length];
-                var normals = new Vector3[triangles.Length];
-                var uvs = new Vector2[triangles.Length];
+                var vertices = surfaceMesh.vertices;
+                var normals = surfaceMesh.normals;
                 for (int i = 0; i < vertices.Length; i++)
                 {
-                    vertices[i] = facing * sourceVertices[triangles[i]];
-                    normals[i] = facing * sourceNormals[triangles[i]];
-                    uvs[i] = sourceUVs[triangles[i]];
-                    triangles[i] = i;
+                    vertices[i] = facing * vertices[i];
+                    normals[i] = facing * normals[i];
                 }
-                surfaceMesh.Clear();
                 surfaceMesh.vertices = vertices;
                 surfaceMesh.normals = normals;
-                surfaceMesh.uv = uvs;
-                surfaceMesh.triangles = triangles;
                 surfaceMesh.RecalculateBounds();
                 filter.sharedMesh = surfaceMesh;
                 subject.GetComponent<Renderer>().sharedMaterial = material;
@@ -156,7 +146,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                 material.SetTexture("_PaintShadowMap", shadow);
                 material.SetTexture("_PaintInkMap", ink);
                 material.SetTexture("_PaintBrushMap", brush);
-                material.SetTextureOffset("_PaintBrushMap", Vector2.one * .5f);
                 material.SetFloat("_PaintBrushStrength", 3.2f);
                 material.SetColor("_PaperColor", new Color(.2f, .4f, .4f));
                 material.SetColor("_ShadowColor", new Color(.1f, .1f, .1f));
@@ -197,15 +186,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                 Assert.That(image.GetPixel(32, 40).g - image.GetPixel(32, 24).g, Is.GreaterThan(.1f),
                     "Brush color must remain visible under frontal light.");
                 var continuousBrush = image.GetPixels();
-                for (int i = 3; i < uvs.Length; i++) uvs[i].y += .5f;
-                surfaceMesh.uv = uvs;
-                ReadCenter(camera, target, image);
-                for (int y = 20; y < 44; y++)
-                for (int x = 20; x < 44; x++)
-                    Assert.That(image.GetPixel(x, y).g, Is.EqualTo(continuousBrush[y * 64 + x].g).Within(2f / 255),
-                        "Splitting the hull into UV islands must not introduce a brush seam.");
-                for (int i = 3; i < uvs.Length; i++) uvs[i].y -= .5f;
-                surfaceMesh.uv = uvs;
                 root.transform.SetPositionAndRotation(new Vector3(4, -3, 2), Quaternion.Euler(15, 30, 12));
                 ReadCenter(camera, target, image);
                 for (int y = 20; y < 44; y++)
@@ -213,6 +193,33 @@ namespace Tests.EditMode.Rendering.Illustrated
                     Assert.That(image.GetPixel(x, y).g, Is.EqualTo(continuousBrush[y * 64 + x].g).Within(2f / 255),
                         "Brushstrokes must move with the hull.");
                 root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                var deformation = Quaternion.Euler(0, 20, 0);
+                var displacement = new Vector3(.2f, .3f, 0);
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    vertices[i] = deformation * vertices[i] + displacement;
+                    normals[i] = deformation * normals[i];
+                }
+                surfaceMesh.vertices = vertices;
+                surfaceMesh.normals = normals;
+                surfaceMesh.RecalculateBounds();
+                camera.transform.SetPositionAndRotation(deformation * facing * new Vector3(0, 0, -2) + displacement,
+                    deformation * facing);
+                light.transform.rotation = deformation * facing;
+                ReadCenter(camera, target, image);
+                for (int y = 20; y < 44; y++)
+                for (int x = 20; x < 44; x++)
+                    Assert.That(image.GetPixel(x, y).g, Is.EqualTo(continuousBrush[y * 64 + x].g).Within(2f / 255),
+                        "Brushstrokes must follow deformed vertices with preserved UVs.");
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    vertices[i] = Quaternion.Inverse(deformation) * (vertices[i] - displacement);
+                    normals[i] = Quaternion.Inverse(deformation) * normals[i];
+                }
+                surfaceMesh.vertices = vertices;
+                surfaceMesh.normals = normals;
+                surfaceMesh.RecalculateBounds();
+                camera.transform.SetPositionAndRotation(facing * new Vector3(0, 0, -2), facing);
                 light.transform.rotation = facing * Quaternion.Euler(0, 60, 0);
                 var grazing = ReadCenter(camera, target, image);
                 Assert.That(front.g - grazing.g, Is.GreaterThan(.15f), "Lighting must move the painted boundary.");
