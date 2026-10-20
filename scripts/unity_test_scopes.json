@@ -134,7 +134,7 @@
     "ui": {
       "paths": [
         "src/Asteroids3D/Assets/Scripts/UI/**",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/HangarPreviewFramingEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Hangar/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/LoadingSplashEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EventDrivenRefactorEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/MinimapLayerSetterEditModeTests.cs*",

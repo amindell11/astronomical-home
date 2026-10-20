@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1100000000000000202}
   - component: {fileID: 1100000000000000204}
   - component: {fileID: 1100000000000000205}
+  - component: {fileID: 4166343123574894590}
   m_Layer: 0
   m_Name: Grenades
   m_TagString: Untagged
@@ -80,3 +81,22 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   fireRate: 1
+--- !u!114 &4166343123574894590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0b8fa7f60ad28f0a8ac396b45fdcf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireEvent:
+    Guid:
+      Data1: 1650012228
+      Data2: 1269718942
+      Data3: -1444800125
+      Data4: 1610192940
+    Path: event:/Weapons/Grenade/Fire

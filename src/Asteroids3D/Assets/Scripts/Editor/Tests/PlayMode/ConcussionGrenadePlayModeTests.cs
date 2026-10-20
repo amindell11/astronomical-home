@@ -35,10 +35,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            // Detonation bursts (PooledVFX, untracked by design) outlive their test and would trip the phantom-burst zero-VFX assertion.
-            foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(vfx.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();

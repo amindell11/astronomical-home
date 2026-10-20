@@ -51,32 +51,10 @@ the bloom effect. The UI plates retain their native resolution without mipmaps.
 The rendering brief and visual decisions live on
 [#685](https://github.com/amindell11/astronomical-home/issues/685#issuecomment-5853114008).
 
-## Selected Vivid production paint
+## Production source
 
-`VanguardPainted.blend` is the selected editable source for the production rig.
-It packs the 4096-pixel Vivid atlas and preserves every original scene's geometry,
-triangulation, corner normals, transforms, UV coordinates and symmetry modifiers.
-`VanguardStudy.blend` and `VanguardStructure.blend` remain the original baselines.
-The separate canopy and blue cores retain their materials.
-
-Damage and service-overlay objects remain recoverable but hidden in the painted
-source and absent from the live production prefab. Vent and service-panel color is
-baked into the hull atlas, removing the overlay's triangular gray seams. The hull
-uses `Vanguard vivid paint.mat` with neutral orange gain; the texture GUID is
-unchanged. The production FBX is unchanged.
-
-The [repeatable paint pipeline](https://github.com/amindell11/astronomical-home/blob/3da0da5de39c07b98b49f203a13427ce2dbaf13d/pipeline/README.md)
-includes the recovered Crimson recipes, generation helpers and preservation
-checks. Use that pipeline for this source; the retired study export regenerated the older
-study overlays and is not the selected paint pipeline. The breakup work in
-[#795](https://github.com/amindell11/astronomical-home/issues/795) should use this
-painted source and material, retain the separate canopy/cores, and leave the
-rejected overlay objects out of the live breakup pieces.
-`Visuals/Ships/Vanguard/Meshes/Vanguard painted hull.asset` combines the nine painted hull
-meshes, and `Vanguard contour.asset` combines eleven silhouette meshes. The live
-rig keeps five art renderers: hull, contour, structural ink, canopy and cores.
-The saved meshes preserve triangle indices, painted UVs and transformed positions
-and normals without welding or recalculation. Original source parts remain
-separate in `VanguardPainted.blend` for breakup; the consolidated intact meshes
-are runtime assets rather than the breakup authoring source. `Vanguard.prefab`
-carries the five renderers under its `Hull` slot.
+The editable production source is [`../Vanguard.blend`](../Vanguard.blend).
+Its livery and paint masks follow [ship tools](../../../tools/ship/README.md).
+The study scenes and atlases here preserve provenance for the original artwork;
+production decisions and approved comparisons live on
+[#1016](https://github.com/amindell11/astronomical-home/issues/1016).

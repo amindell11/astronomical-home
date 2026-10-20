@@ -108,7 +108,8 @@ def select_triangles(piece, selected):
 
 
 def export_role(evaluation, report, role, names, contour_names=(), side=None):
-    uv_names = sorted({layer.name for name in names for layer in evaluation.copies[name].data.uv_layers})
+    uv_names = sorted({layer.name for name in names for layer in evaluation.copies[name].data.uv_layers},
+                      key=lambda name: (name != contract.PAINT_UV, name))
     parts = {name: Part(evaluation, name, uv_names) for name in names}
     slots = sorted({m.name for part in parts.values() for m in part.materials if m is not None})
     for name, part in parts.items():

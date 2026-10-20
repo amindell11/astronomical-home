@@ -89,7 +89,8 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
-| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight camera's culling mask includes) · starfield depth layer (inside `StarField.shader`) | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
 | **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
 ---
@@ -536,7 +537,8 @@ Format: **term** — definition. *(authority)*
   composes the same per-ship services through `ShipServices.Compose`.
 - **host** — the scene entry point that owns pacing and lifecycle for one
   client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
-  observer camera, with the starfield backdrop and reverb zone riding it) and
+  observer camera, with the starfield backdrop and reverb zone riding it, and
+  the hangar camera that stands in for it behind the hangar) and
   the optional *player rig*, and owns the clock, hangar, death recap and reset
   policy over one `Session`; the *harness host* (`HarnessHost`) sequences
   compositions and episode blocks for a lane client; the *training host*
@@ -653,6 +655,13 @@ Format: **term** — definition. *(authority)*
   shown for the HUD ship's own charges only: it binds to that ship's launch readout
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
+- **spent charge** — the charge-up fraction the last shot consumed, announced by
+  `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
+  release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
+- **sustained sound** — an FMOD event instance a component holds across state
+  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  against a one-shot it starts and releases at once. One component per sustained
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
@@ -898,6 +907,19 @@ Format: **term** — definition. *(authority)*
   migration deletes one, and the arc closes when it is empty. *(ShipLegacyList)*
 - **name mirror** — one ship name across the chassis prefab, the visuals folder and the
   art folder (lowercased). *(doc/agents/art-pipeline.md)*
+- **palette region** — a material slot on a visual-role part whose colour every palette
+  in `palettes.json` names; the unit of recolouring. *(art/tools/ship/README.md → Paint
+  settings)*
+- **paint mask** — Shadow, Light or Ink (Emission for painted indicators): a grayscale
+  image on `PaintUV` the drawn-surface shader applies over the region colour. Never
+  "paint layer": *layer* is a collision word; `layers/` is only the folder and
+  `_PaintLayers` only the shader toggle. *(ship_paint.py; DrawnSurface.shader)*
+- **plate** — one connected up-or-down-facing face group of a part (|n·z| ≥
+  `plates.cap_facing`), with its own boundary; the unit the diagonal sweep and the inset
+  ink line are drawn on. *(ship_paint.Part)*
+- **mask baseline** — `layers/baseline/`, the paint tool's own last output, kept so a
+  re-run can separate the owner's edits (mask minus baseline) and carry them onto the
+  new generation. *(ship_paint.py)*
 
 ### Infra & tooling
 
@@ -962,6 +984,12 @@ Format: **term** — definition. *(authority)*
   Fixed at two registry values; never fix it by committing the define.
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
   logs (WinError 32). Taskkill by PID, never by image name.
+- **FMOD stub** — `src/fmod-stub/`: the package the hosted suite compiles
+  against in place of FMOD for Unity, which only the local vendor tarball
+  supplies. Only the FMOD types the game touches, every method a no-op; a
+  prefab-visible component keeps FMOD's real script GUID. It grows one member
+  at a time when the hosted suite fails to compile, never ahead of use.
+  *(doc/agents/audio-pipeline.md; #987 ruling 2)*
 
 ---
 

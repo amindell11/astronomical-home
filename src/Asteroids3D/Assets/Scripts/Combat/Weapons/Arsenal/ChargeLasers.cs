@@ -46,12 +46,11 @@ namespace Combat.Weapons.Arsenal
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            // Captured before firing: ProcessFire consumes the charge.
-            var charge = Charge ? Charge.ChargePct : 1f;
-
             var proj = base.Fire(targetPoint, projectiles);
-            if (proj != null)
-                proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, charge));
+            if (proj == null) return null;
+
+            var spent = Charge ? Charge.SpentCharge : 1f;
+            proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, spent));
             return proj;
         }
 

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8105349543242701031}
   - component: {fileID: 6448982411033854647}
   - component: {fileID: -8301958025146036882}
+  - component: {fileID: 2792708326550319890}
   m_Layer: 0
   m_Name: ChargeLasers
   m_TagString: Untagged
@@ -84,3 +85,22 @@ MonoBehaviour:
   fullChargeDamageScale: 1
   fireDistance: 25
   fireAngleTolerance: 5
+--- !u!114 &2792708326550319890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae782305c5f498c86bd767defee1da2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireEvent:
+    Guid:
+      Data1: 37779510
+      Data2: 1143905826
+      Data3: -853110854
+      Data4: -1343374448
+    Path: event:/Weapons/ChargeLaser/Fire

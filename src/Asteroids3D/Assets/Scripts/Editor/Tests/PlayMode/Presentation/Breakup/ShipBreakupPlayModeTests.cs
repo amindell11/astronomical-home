@@ -29,7 +29,6 @@ namespace Tests.PlayMode.Presentation.Breakup
         public override void SetUp()
         {
             base.SetUp();
-            DestroyBreakupTransients();
             savedMaxDelta = Time.maximumDeltaTime;
             Time.maximumDeltaTime = .05f;
             host = new GameObject("[BreakupTestServices]");
@@ -41,7 +40,6 @@ namespace Tests.PlayMode.Presentation.Breakup
         {
             units.Clear();
             Object.DestroyImmediate(host);
-            DestroyBreakupTransients();
             Time.maximumDeltaTime = savedMaxDelta;
             base.TearDown();
         }
@@ -62,9 +60,33 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator VanguardDeath_RetainsAuthoredBreakup() => FixedHullDeath("Vanguard");
 
         [UnityTest]
-        public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections()
+        public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Nightshade", 13);
+
+        [UnityTest]
+        public IEnumerator BulwarkDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Bulwark", 8);
+
+        [UnityTest]
+        public IEnumerator Bulwark_FliesFiresAndCollidesOnTheGameplayPlane()
         {
-            var ship = Spawn("Nightshade");
+            var ship = Spawn("Bulwark");
+            yield return null;
+            var start = ship.transform.position;
+            ship.Movement.Drive(new Ships.Command.PilotCommand { thrust = 1f });
+            yield return new WaitForSeconds(.3f);
+            Assert.That(Vector3.Distance(start, ship.transform.position), Is.GreaterThan(.05f));
+            Assert.That(ship.transform.position.z, Is.EqualTo(0f).Within(.001f));
+            var collider = ship.GetComponentInChildren<MeshCollider>();
+            Physics.SyncTransforms();
+            var ray = new Ray(ship.transform.position + ship.transform.up * 5f, -ship.transform.up);
+            Assert.That(collider.Raycast(ray, out _, 10f), Is.True);
+            ship.Weapons.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
+                new Combat.Weapons.WeaponCommand { held = true, pressed = true, targetPoint = ship.transform.position + ship.transform.up * 20f });
+            Assert.That(Projectiles.ActiveCount, Is.GreaterThan(0));
+        }
+
+        private IEnumerator PaintedHullDeath(string name, int pieceCount)
+        {
+            var ship = Spawn(name);
             yield return null;
             var visual = ship.GetComponentInChildren<ShipBreakupVisual>();
             var hull = (Transform)new SerializedObject(visual).FindProperty("hull").objectReferenceValue;
@@ -74,7 +96,7 @@ namespace Tests.PlayMode.Presentation.Breakup
             Kill(ship);
             var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
-            Assert.That(pieces, Has.Length.EqualTo(13));
+            Assert.That(pieces, Has.Length.EqualTo(pieceCount));
             Assert.That(hull.gameObject.activeSelf, Is.False);
             Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
                 .Count(e => e.gameObject.activeInHierarchy), Is.EqualTo(1));
@@ -154,6 +176,23 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(hull.gameObject.activeSelf, Is.False);
         }
 
+        [UnityTest]
+        public IEnumerator FixtureSetUp_ClearsTheLastFixturesDeathTransients()
+        {
+            var ship = Spawn("Crimson");
+            yield return null;
+            Kill(ship);
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None)
+                .Count(e => e.name.StartsWith("LayeredAsteroidExplosion")), Is.EqualTo(1));
+
+            TearDown();
+            SetUp();
+
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None), Is.Empty);
+            Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None), Is.Empty);
+        }
+
         private Ship Spawn(string name)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/" + name + ".prefab");
@@ -192,8 +231,14 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(pieces, Has.Length.EqualTo(14));
             var after = pieces.SelectMany(p => p.sharedMesh.vertices.Select(p.transform.TransformPoint)).ToArray();
             AssertGeometry(before, after);
+            var fuselageMaterials = (Material[])materials.Clone();
+            var canopy = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat");
+            Assert.That(canopy.parent, Is.EqualTo(materials[5]));
+            fuselageMaterials[5] = canopy;
             foreach (var piece in pieces)
-                Assert.That(piece.GetComponent<Renderer>().sharedMaterials, Is.EqualTo(materials));
+                Assert.That(piece.GetComponent<Renderer>().sharedMaterials,
+                    Is.EqualTo(piece.name == "Fuselage and canopy" ? fuselageMaterials : materials));
             var sourceUv = hull.sharedMesh.uv.OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             var debrisUv = pieces.SelectMany(p => p.sharedMesh.uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             Assert.That(debrisUv, Is.EqualTo(sourceUv));
@@ -215,16 +260,6 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(Vector3.Distance(debris.transform.position, expected), Is.LessThan(.00001f));
             Assert.That(debris.PoseCount, Is.Zero);
             yield return VerifyMotionFadeAndCleanup(debris, Vector3.zero);
-        }
-
-        // Debris and bursts outlive whichever fixture's ship died; these tests count them globally.
-        private static void DestroyBreakupTransients()
-        {
-            foreach (var debris in Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(debris.gameObject);
-            foreach (var effect in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(effect.gameObject);
-            SimplePool<PooledVFX>.Clear();
         }
 
         private static void Kill(Ship ship) => ship.Damage.TakeDamage(new DamageInfo(
@@ -281,3 +316,4 @@ namespace Tests.PlayMode.Presentation.Breakup
         }
     }
 }
+
