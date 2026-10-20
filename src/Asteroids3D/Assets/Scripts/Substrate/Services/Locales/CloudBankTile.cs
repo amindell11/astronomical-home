@@ -27,14 +27,12 @@ namespace Substrate.Services.Locales
         private Hash128 bakedState;
 #endif
 
-        private void Awake()
-        {
-            layer = GetComponent<Renderer>();
-            properties = new MaterialPropertyBlock();
-        }
+        private void Awake() => layer = GetComponent<Renderer>();
 
         private void OnEnable()
         {
+            // A script reload re-enables without Awake, and the block does not survive it.
+            properties = new MaterialPropertyBlock();
             Bake();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.update += RebakeIfChanged;

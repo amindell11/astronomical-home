@@ -236,7 +236,7 @@ namespace Tests.EditMode.Rendering
             }
         }
 
-        // Bakes through the production component; toggling it re-bakes after a material edit.
+        // Toggling the component re-bakes the tile after a material edit.
         private void BakeTile()
         {
             if (!cloudBank)
