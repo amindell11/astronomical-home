@@ -1,0 +1,23 @@
+{
+  "art/ships/valis/Valis.blend": {
+    "main_and_head_blob": "976f48e98386c4705e74ea8e8c4013a06bead07f",
+    "working_sha256": "96eac70880308cee11aa3df5be4511a3f6d3e8c74e32bcb938588a29350fc500"
+  },
+  "art/ships/valis/layers/Shadow.png": {
+    "main_and_head_blob": "b5bfb34db0628f8aaf49ad93e1a325c50e1279d0",
+    "working_sha256": "cb21abeb6d9bcd9a10087a1f3e0e801a09c47d03872416259e23cfc1e2339ffc"
+  },
+  "art/ships/valis/layers/Light.png": {
+    "main_and_head_blob": "8f88a939915cb62797d29c5284d52cbf1a1bbda4",
+    "working_sha256": "ce1deec0684d15256f9b4bef094184e72f4502981a025cf4c49e0f0d80ca7305"
+  },
+  "art/ships/valis/layers/Ink.png": {
+    "main_and_head_blob": "d5b279e6af8de0c097d937a69e8824689ad30245",
+    "working_sha256": "91dbcf963e366bb8a8afcddd835b6f65392cafbbe3a0d1cd0a9ad86c28e207e8"
+  },
+  "art/ships/crimson/textures/painted-brush-source.png": {
+    "main_and_head_blob": "4103e3cede2ea9448a93c86caff1667b17335a19",
+    "working_sha256": "d17bebf965a771c386ab3534006cb4ca97ed263495e573b5b4c46f935582a76c"
+  },
+  "runtime_brush_sha256": "8b461d74cc8b011029ba08062deb1ad25a32bedfd3a0f09db5c653ac2a822f65"
+}

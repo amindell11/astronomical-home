@@ -62,3 +62,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Baked brush layer (#1029)
 
 [Continuous strokes attached through wing skinning](paint/hull-lighting/revision-5/README.md).
+
+## Broader baked brush strokes (#1029)
+
+[Twice the stroke size, same separate brush layer](paint/hull-lighting/revision-6/README.md).

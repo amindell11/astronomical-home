@@ -1,0 +1,8 @@
+{
+  "diagnostics": [],
+  "compileMs": 107,
+  "executeMs": 15567,
+  "assemblyName": "PipelineRunScript_ScaleCapture_db203b52427e484fbd2a3b5ff8898b47",
+  "success": true,
+  "result": "Normals abs z > .9: 15205 / 45384; shader: ; quality High Fidelity; previous shader: "
+}
