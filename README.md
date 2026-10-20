@@ -7,3 +7,5 @@ Never merged. Built from the PR branch (`task/hangar-fps-tiles`, commit `0c24a24
 - `tiles_flight_Locale_1.jsonl`: `FlightPerfProbe` Locale_1 on the tile build; the matching baseline is `flight_Locale_1.jsonl` on `evidence/hangar-fps`.
 - `cloudbank_stats.py` (+ output): numpy port of the cloud-bank formula comparing the live 2D noise model over a wide area with the 4D-torus tile model across seeds (Locale_3 material values). Shows the per-tile layout variance is around the live model's mean, not a bias.
 - `unity_batch.ps1` / `unity_runtests.ps1`: launchers run through `unity_access.ps1 -Action RunBatch` (the render tests are EditMode `RequiresGraphics`, which the test agent cannot run).
+
+- `ReloadCheck.cs` + `unity_batch_noquit.ps1`: the Edit Mode script-reload experiment (`-executeMethod ReloadCheck.Start`). It reproduced `CloudBankTile` losing its `MaterialPropertyBlock` after a reload, and verified the fix in `b7102bff0`.
