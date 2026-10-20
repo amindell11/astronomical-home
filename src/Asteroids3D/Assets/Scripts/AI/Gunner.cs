@@ -133,6 +133,7 @@ namespace AI
         {
             if (pose == null) return;
 
+            if (Doctrine) Doctrine.Perceive(pose().pos, ref referentPos, ref referentVel);
             targetPos = referentPos;
             targetVel = referentVel;
             hasTarget = true;

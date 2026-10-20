@@ -93,6 +93,7 @@ namespace Tests.PlayMode.Research
             public float hullEnd;
             public float shieldEnd;
             public float damageTaken;
+            public float selfDamage;
         }
 
         [Serializable]
@@ -122,6 +123,7 @@ namespace Tests.PlayMode.Research
             private double dist, aimErr, inRangeErr;
             private int aimOk, ready, inRange, overheated, charging, inRangeOk;
             public float damageTaken;
+            public float selfDamage;
             private int firstFireStep = -1;
             private readonly List<Shot> shots = new();
             private readonly Combat.Weapons.Arsenal.Railguns rail;
@@ -178,6 +180,7 @@ namespace Tests.PlayMode.Research
             private void OnDamaged(Damage.DamageInfo hit)
             {
                 if (hit.AttackerId == other.Id) damageTaken += hit.Amount;
+                else if (hit.AttackerId == self.Id && hit.Kind != Damage.DamageKind.Collision) selfDamage += hit.Amount;
             }
 
             public void Dispose()
@@ -227,6 +230,7 @@ namespace Tests.PlayMode.Research
                 s.hullEnd = self.Damage.Health.CurrentValue;
                 s.shieldEnd = self.Damage.Shield.CurrentValue;
                 s.damageTaken = damageTaken;
+                s.selfDamage = selfDamage;
                 s.firstShot = firstFireStep >= 0 ? firstFireStep * Time.fixedDeltaTime : -1f;
                 s.shots = shots.Count <= 60 ? new List<Shot>(shots) : shots.GetRange(0, 60);
             }
@@ -238,6 +242,7 @@ namespace Tests.PlayMode.Research
         private HarnessAssets assets;
         private readonly WaitForFixedUpdate waitFixed = new();
         private static bool loggedBounds;
+        private static bool loggedMpc;
 
         private static string SlotRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
 
@@ -443,6 +448,21 @@ namespace Tests.PlayMode.Research
             ship.Reequip(ship.Engine, ship.Shield, weapon, null);
             var doctrine = ship.gameObject.AddComponent<GunDoctrine>();
             if (!string.IsNullOrEmpty(doctrineJson)) JsonUtility.FromJsonOverwrite(doctrineJson, doctrine);
+            doctrine.ApplySkill();
+            var nav = ship.GetComponentInChildren<AICommander>()?.Navigator;
+            if (nav && nav.mpcSettings && (doctrine.mpcFacingWidth > 0f || doctrine.mpcYawRate >= 0f))
+            {
+                // The next respawn rebuilds the solver from this per-ship clone; the asset is never written.
+                var clone = UnityEngine.Object.Instantiate(nav.mpcSettings);
+                if (doctrine.mpcFacingWidth > 0f) clone.facingWidth = doctrine.mpcFacingWidth;
+                if (doctrine.mpcYawRate >= 0f) clone.wYawRate = doctrine.mpcYawRate;
+                nav.mpcSettings = clone;
+                if (!loggedMpc)
+                {
+                    loggedMpc = true;
+                    Debug.Log($"[gun-research] mpc override facingWidth={clone.facingWidth} wYawRate={clone.wYawRate} wFacing={clone.wFacing}");
+                }
+            }
             return ship;
         }
 

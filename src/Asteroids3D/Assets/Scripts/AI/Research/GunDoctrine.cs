@@ -55,9 +55,29 @@ namespace AI.Research
         public float grenadeMaxRange = 25f;
         public float grenadeCone = 180f;
 
+        [Header("Research tail (2026-10-20)")]
+        public float mpcFacingWidth = -1f;
+        public float mpcYawRate = -1f;
+        public float grenadeSafeMargin = -1f;
+        public bool grenadeBackoff;
+        public float grenadeBackoffExtra = 2f;
+        public bool railOrbit;
+        public float railOrbitRate = 90f;
+        public float railOrbitCommit = 12f;
+        public float skill = -1f;
+        public float skillReactionMax = 0.3f;
+        public float skillNoiseMax = 10f;
+        public float skillNoiseTau = 0.5f;
+        public float skillAccelMin = 0.1f;
+        public int skillSeed = 1;
+
         private Ship ship;
         private bool venting;
         private bool prevHeld;
+        private readonly System.Collections.Generic.List<(double t, Vector2 pos, Vector2 vel)> perceived = new();
+        private System.Random noiseRng;
+        private float noiseAngle;
+        private double lastNoiseTime = double.NaN;
 
         /// <summary>The hold range this ship flies at: explicit, else its weapon's profile, else -1 (archetype shape).</summary>
         public float HoldRange
@@ -124,6 +144,88 @@ namespace AI.Research
             prevHeld = false;
             haveLastVel = false;
             targetAccel = Vector2.zero;
+            perceived.Clear();
+            noiseRng = new System.Random(skillSeed);
+            noiseAngle = 0f;
+            lastNoiseTime = double.NaN;
+        }
+
+        /// <summary>Skill dial s in [0,1]: scales the aim controller's acceleration and the strafe dodge; perception error is applied in Perceive.</summary>
+        public void ApplySkill()
+        {
+            if (skill < 0f) return;
+            var s = Mathf.Clamp01(skill);
+            aimAccelFrac = Mathf.Lerp(skillAccelMin, aimAccelFrac, s);
+            strafeFraction *= s;
+        }
+
+        /// <summary>The target as a skill-limited pilot sees it: delayed by (1-s) x reaction and rotated about the shooter by a correlated bearing error.</summary>
+        public void Perceive(Vector2 selfPos, ref Vector2 pos, ref Vector2 vel)
+        {
+            if (skill < 0f) return;
+            var s = Mathf.Clamp01(skill);
+            var now = Time.fixedTimeAsDouble;
+            var delay = (1f - s) * skillReactionMax;
+            perceived.Add((now, pos, vel));
+            while (perceived.Count > 1 && perceived[1].t <= now - delay - 1e-6) perceived.RemoveAt(0);
+            if (delay > 0f)
+            {
+                pos = perceived[0].pos;
+                vel = perceived[0].vel;
+            }
+
+            var sigma = (1f - s) * skillNoiseMax;
+            if (sigma <= 0f) return;
+            noiseRng ??= new System.Random(skillSeed);
+            if (now != lastNoiseTime)
+            {
+                var dt = Time.fixedDeltaTime;
+                var u1 = 1.0 - noiseRng.NextDouble();
+                var u2 = noiseRng.NextDouble();
+                var gauss = (float)(System.Math.Sqrt(-2.0 * System.Math.Log(u1)) * System.Math.Cos(2.0 * System.Math.PI * u2));
+                noiseAngle += -noiseAngle / skillNoiseTau * dt + sigma * Mathf.Sqrt(2f * dt / skillNoiseTau) * gauss;
+                lastNoiseTime = now;
+            }
+            var c = Mathf.Cos(noiseAngle * Mathf.Deg2Rad);
+            var sn = Mathf.Sin(noiseAngle * Mathf.Deg2Rad);
+            var rel = pos - selfPos;
+            pos = selfPos + new Vector2(rel.x * c - rel.y * sn, rel.x * sn + rel.y * c);
+            vel = new Vector2(vel.x * c - vel.y * sn, vel.x * sn + vel.y * c);
+        }
+
+        /// <summary>Grenades back-off: inside its own blast (plus margin) the pilot retreats straight away at full speed.</summary>
+        public Vector2 Backoff(Vector2 law, in Kinematics self, in Kinematics enemy, float fullSpeed)
+        {
+            if (!grenadeBackoff || !ship || !ship.Weapons || !(ship.Weapons.Primary is Grenades g)) return law;
+            var los = enemy.pos - self.pos;
+            var r = los.magnitude;
+            if (r >= g.BlastRadius + Mathf.Max(0f, grenadeSafeMargin) + grenadeBackoffExtra) return law;
+            return (r > 1e-4f ? -los / r : Vector2.up) * fullSpeed;
+        }
+
+        private static float BearingRateDeg(in Kinematics self, Vector2 targetPos, Vector2 targetVel)
+        {
+            var r = targetPos - self.pos;
+            var v = targetVel - self.vel;
+            return r.sqrMagnitude > 1e-4f ? (r.x * v.y - r.y * v.x) / r.sqrMagnitude * Mathf.Rad2Deg : 0f;
+        }
+
+        private bool OrbitAmbush(in Kinematics self, Vector2 targetPos, Vector2 targetVel)
+            => railOrbit && Mathf.Abs(BearingRateDeg(in self, targetPos, targetVel)) > railOrbitRate;
+
+        /// <summary>Target position after t seconds under constant range rate and bearing rate about the shooter.</summary>
+        private static Vector2 PolarPredict(in Kinematics self, Vector2 targetPos, Vector2 targetVel, float t)
+        {
+            var r = targetPos - self.pos;
+            var dist = r.magnitude;
+            if (dist < 1e-3f) return targetPos;
+            var v = targetVel - self.vel;
+            var omega = (r.x * v.y - r.y * v.x) / (dist * dist);
+            var rdot = Vector2.Dot(r, v) / dist;
+            var c = Mathf.Cos(omega * t);
+            var s = Mathf.Sin(omega * t);
+            var dir = r / dist;
+            return self.pos + new Vector2(dir.x * c - dir.y * s, dir.x * s + dir.y * c) * Mathf.Max(0.5f, dist + rdot * t);
         }
 
         /// <summary>Primary-slot trigger under the smart policies; returns null to defer to main's Gunner rule.</summary>
@@ -223,6 +325,8 @@ namespace AI.Research
             var aimAtFire = targetPos + targetVel * remaining;
             var errAtFire = AimErr(in self, aimAtFire);
             var inRange = dist <= weapon.FireRange;
+            if (pct <= 0f && OrbitAmbush(in self, targetPos, targetVel))
+                return inRange && AimErr(in self, PolarPredict(in self, targetPos, targetVel, charge.FullChargeTime)) <= railOrbitCommit;
             if (pct <= 0f) return inRange && errAtFire <= railCommitCone;
             if (!inRange) return false;
             var nextPct = pct + Time.fixedDeltaTime / charge.FullChargeTime;
@@ -253,6 +357,12 @@ namespace AI.Research
             if (!weapon.CanFire()) return false;
             var aim = GrenadeAim(weapon, in self, targetPos, targetVel);
             var d = Vector2.Distance(self.pos, aim);
+            if (grenadeSafeMargin >= 0f)
+            {
+                var safe = weapon.BlastRadius + grenadeSafeMargin;
+                if (Vector2.Distance(self.pos, targetPos) < safe) return false;
+                if (Vector2.Distance(self.pos + self.vel * (d / 20f), aim) < safe) return false;
+            }
             return d >= grenadeMinRange && d <= grenadeMaxRange && AimErr(in self, aim) <= grenadeCone;
         }
 
@@ -267,6 +377,10 @@ namespace AI.Research
                     return null;
                 case Railguns r:
                     var remaining = (1f - r.Charge.ChargePct) * r.Charge.FullChargeTime;
+                    if (OrbitAmbush(in self, targetPos, targetVel))
+                        return r.Charge.ChargePct <= 0f
+                            ? self.pos + self.Forward * 10f
+                            : PolarPredict(in self, targetPos, targetVel, remaining);
                     return targetPos + targetVel * Mathf.Min(remaining, railLeadCap);
                 case Missiles _:
                     return targetPos;
@@ -298,8 +412,9 @@ namespace AI.Research
             var desiredYaw = Mathf.Atan2(-r.x, r.y) * Mathf.Rad2Deg;
             var err = Mathf.DeltaAngle(self.yaw, desiredYaw);
             var v = targetVel - self.vel;
-            var bearingRate = (r.x * v.y - r.y * v.x) / r.sqrMagnitude * Mathf.Rad2Deg;
-            if (aimAccelFF)
+            var ambush = ship.Weapons.Primary is Railguns && OrbitAmbush(in self, targetPos, targetVel);
+            var bearingRate = ambush ? 0f : (r.x * v.y - r.y * v.x) / r.sqrMagnitude * Mathf.Rad2Deg;
+            if (aimAccelFF && !ambush)
             {
                 // Lead the rate command by the target's lateral acceleration over the controller's lag.
                 var bearingAccel = (r.x * targetAccel.y - r.y * targetAccel.x) / r.sqrMagnitude * Mathf.Rad2Deg;

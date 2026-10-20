@@ -156,8 +156,11 @@ namespace RL.Opponents
                     var range = Doctrine && Doctrine.HoldRange > 0f ? Doctrine.HoldRange : shape.desiredRange;
                     var law = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, range, shape.speedFraction * maxSpeed);
                     if (Doctrine)
+                    {
                         law = Doctrine.ShapeVelocity(law, in self, target.Kinematics, shape.speedFraction * maxSpeed,
                             tickCounter * Time.fixedDeltaTime);
+                        law = Doctrine.Backoff(law, in self, target.Kinematics, maxSpeed);
+                    }
                     return Pack(ctx.Self, law, engages: true);
                 }
                 case OpponentArchetype.Evader:
