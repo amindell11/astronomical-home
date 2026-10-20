@@ -124,10 +124,29 @@ def batch_b():
     return runs
 
 
+def batch_c():
+    runs = []
+    mpc = {"aimLock": False, "mpcFacingWidth": 0.1, "aimAuthority": 30, "mpcNoiseStd": 0.1}
+    mpc_final = doc(FINAL, "final-mpcaim", **mpc)
+    runs.append(matrix("t1x-mpc", ALL, mpc_final, mpc_final))
+    final = doc(FINAL, "final")
+    for w in GUNS:
+        runs.append(matrix(f"t1x-cross-{w}", [w], mpc_final, final, opponents=[w], seed=7401))
+    return runs
+
+
+def batch_d():
+    final = doc(FINAL, "final")
+    return [matrix("t6-x9-c11", ALL, final, final),
+            matrix("t6-rail11", ["Railgun"], final, final, opponents=ALL, episodes=40),
+            marks("t6-marks11", ["Railgun"], ["Orbiter", "Aggressor", "Dummy"], doc(FINAL, "t6-marks11"),
+                  episodes=20, seed=9101)]
+
+
 if __name__ == "__main__":
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else "a"
-    runs = {"a": batch_a, "b": batch_b}[which]()
+    runs = {"a": batch_a, "b": batch_b, "c": batch_c, "d": batch_d}[which]()
     with open(f"tail-{which}.json", "w") as f:
         json.dump({"runs": runs}, f, indent=1)
     print(len(runs), "runs")
