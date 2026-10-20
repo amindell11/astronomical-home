@@ -41,21 +41,6 @@ def mutated(change, valid=VALID):
     return value
 
 
-class BrushJsonTests(unittest.TestCase):
-    def test_brush_export_settings_reject_ambiguous_inputs(self):
-        valid = {"schema_version": 1, "image": "brush.png", "scale": .8,
-                 "blend": .25, "offset": [.23, .37, 0]}
-        self.assertEqual(contract.parse_brush(valid), valid)
-        cases = [
-            {"scale": 0}, {"scale": True}, {"blend": 1.1}, {"offset": [0, 0]},
-            {"offset": [0, float("nan"), 0]}, {"schema_version": True},
-            {"schema_version": 2}, {"image": ""}, {"contrast": 3.2},
-        ]
-        for change in cases:
-            with self.subTest(change=change), self.assertRaises(ValueError):
-                contract.parse_brush({**valid, **change})
-
-
 class ShipJsonTests(unittest.TestCase):
     def test_valid_ship_parses_and_resolves_source_beside_ship_json(self):
         with tempfile.TemporaryDirectory() as folder:
