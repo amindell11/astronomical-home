@@ -1,0 +1,42 @@
+{
+  "output": "r2_V2_nb2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChdtdzdQYXUya0xvbUh6N0lQNTlmVDRBaxIXbXc3UGF1MmtMb21IejdJUDU5ZlQ0QWs",
+  "created_utc": "2026-10-14T05:09:45+00:00",
+  "prompt": "Design a family of seven HUD weapon glyphs for a 2.5D space-combat game with a hand-drawn, space-fantasy look and quiet futuristic instruments. Present them as one sheet: a flat, very dark navy background, seven equal square cells in one row (or 4 + 3), each glyph large and centred, with a small off-white caption under each: LASERS, TURBO LASERS, CHARGE LASERS, RAILGUN, MISSILES, RIPPERS, CONCUSSION.\r\nVisual language: thin off-white strokes on dark navy; sharp, angular, aggressive, minimal. Marks are built from interrupted strokes, offset parallel strokes and small detached geometric pieces, like markings on an advanced spacecraft's instruments. Every stroke ends in a flat slice, never a round cap. Compositions are confident and asymmetric: strokes of unequal length, staggered starts and ends, deliberate gaps. One stroke weight across the set. Flat vector, no glow, no gradients, no texture, no circles or soft curves, no literal gun or rocket silhouettes, no heraldic shields, no X marks, no heavy borders or boxes around the glyphs.\r\nThe seven must obviously belong to one family, built from the same construction and sharing one steep diagonal axis for anything that travels, yet each must have a distinct silhouette so a player who knows the weapon list can guess every one at a glance, even when shrunk to 24 pixels.\r\nThe weapons: LASERS fire fast straight beams, with heat buildup. TURBO LASERS are the same but faster-firing. CHARGE LASERS are held to charge, then released as one stronger beam. RAILGUN fires one heavy instantaneous shot that goes straight through everything. MISSILES lock on, then fly guided and slow to a big hit. RIPPERS are an autocannon spraying many small ballistic rounds, with a reload. CONCUSSION is a dropped charge, a mine, that detonates in a blast.\r\nInvent the marks yourself from the weapons' behaviour; do not default to arrows or bullets.\r\nYou have creative freedom: surprise me with a set that feels designed by one hand, powerful and interesting, not a mechanical repetition of the same stroke.",
+  "parent": null,
+  "references": [],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 458
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 458,
+    "total_output_tokens": 2319,
+    "total_thought_tokens": 0,
+    "total_tokens": 2777,
+    "total_tool_use_tokens": 0
+  },
+  "model_text": ""
+}

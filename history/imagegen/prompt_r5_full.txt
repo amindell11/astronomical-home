@@ -1,0 +1,12 @@
+A sheet of seven HUD weapon glyphs for a space-combat game: one row of seven equal square cells on flat very dark navy, each glyph large, small off-white caption under each, in this order: LASERS, TURBO LASERS, CHARGE LASERS, RAILGUN, MISSILES, RIPPERS, CONCUSSION.
+Style: thin-to-medium off-white strokes on a flat very dark navy background; sharp, angular, aggressive, precise, like engineered spacecraft instrument symbology; every stroke is a straight bar with ends cut flat or cut along the shared steep diagonal (about 63 degrees); interrupted strokes, offset parallel strokes, small detached pieces; asymmetric confident composition; no circles, no soft curves, no glow, no gradients, no texture, no literal gun silhouettes, no heraldic shields, no X marks, no boxes or frames around the glyphs; readable when shrunk to 24 pixels: few pieces, clear gaps, one dominant silhouette per glyph.
+Image 1 (CONCUSSION), Image 2 (RAILGUN bars), Image 3 (a storm of short diagonal slashes) and Image 4 (LASERS and TURBO LASERS) are the owner's approved style references: match their line quality, weight and attitude exactly.
+The glyphs:
+LASERS: exactly Image 4 left, two parallel diagonal bars of unequal length with a small notch.
+TURBO LASERS: exactly Image 4 right, three such bars.
+CHARGE LASERS: the LASERS glyph, but each bar is divided into segments separated by small gaps, the segments growing longer toward the top like a charge bar filling up; this must read as "charging".
+RAILGUN: Image 2's one heavy diagonal bar flanked by two thin full-length guide lines, but the heavy centre bar is divided into segments that grow longer toward the top like a charge bar filling up, and the bar punches through a broken square bracket frame, the frame interrupted where the bar passes through it.
+MISSILES: NOT an arrow. A stylised missile built from the same bar language: a long narrow diagonal body with a flat-cut nose, two small detached fin slashes at the tail, and a short detached exhaust dash behind, aggressive and angular, abstract enough not to be a cliché rocket.
+RIPPERS: Image 3's storm of many short diagonal slashes, dense but with clear gaps, filling the cell, reading as a hail of rounds.
+CONCUSSION: exactly Image 1, the shattered diamond burst.
+All seven from one hand.

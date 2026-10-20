@@ -1,0 +1,42 @@
+{
+  "output": "r4_hairline_pro.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3-pro-image",
+  "interaction_id": "v1_ChdRY0hQYXFERkl2N1h6N0lQdHZucjRBMBIXUWNIUGFxREZJdjdYejdJUHR2bnI0QTA",
+  "created_utc": "2026-10-14T17:52:00+00:00",
+  "prompt": "Seven HUD weapon glyphs for a space-combat game, drawn as precise AVIONICS SYMBOLOGY: the kind of engineered marks you would find on a cockpit multifunction display or a spacecraft instrument panel. Technical, cool, exact. Not tribal, not tattoo-like, not calligraphic.\r\nConstruction rules: every stroke has constant width from end to end, never tapering, never a blade or spike or flame shape; stroke ends are cut square, or cut parallel to the shared diagonal axis, never pointed; every piece sits on an implied grid; angles are only the shared steep diagonal (about 63 degrees), horizontal, and vertical; pieces are offset, interrupted and detached with crisp even gaps, like instrument tick marks and bracket registration marks; compositions are asymmetric and confident but rigorously aligned.\r\nReadability at a distance still governs: on screen each glyph is 24 to 30 pixels tall beside a ship's health bar, so at most four main pieces per glyph plus one optional hairline secondary mark (a thin tick or short bracket) for technical flavour, main strokes about one twelfth of the glyph height thick, gaps at least one eighth of the glyph height, no hatching, no fragments, one dominant shape per glyph with a silhouette no other glyph shares, and the glyph fills its cell.\r\nPresentation: flat very dark navy background, one row of seven equal square cells, each glyph large, a small off-white caption under each: LASERS, TURBO LASERS, CHARGE LASERS, RAILGUN, MISSILES, RIPPERS, CONCUSSION. Off-white strokes only; the main strokes medium weight, the single secondary mark a thin hairline, so the set has two weights like real instrument markings. Flat vector, no glow, no gradients, no texture, no circles, no literal gun or rocket silhouettes, no heraldic shields, no X marks, no boxes or frames around the glyphs.\r\nThe weapons and the mark ideas: LASERS (fast straight beams): two parallel diagonal bars of unequal length with staggered ends. TURBO LASERS (faster): three. CHARGE LASERS (hold to charge, release one strong beam): one diagonal bar held inside a square bracket frame, like a registration mark. RAILGUN (one heavy instantaneous shot straight through everything): one heavy diagonal bar between two thin full-length guide lines. MISSILES (lock on, then guided to a big hit): a bold chevron arrowhead on a dashed diagonal, with a small bracket at the tail as the lock mark. RIPPERS (autocannon, many small rounds): three open chevrons stacked up the diagonal, constant width. CONCUSSION (a dropped charge that detonates): a square rotated 45 degrees, hollow, with four short bars radiating from its corners.\r\nThe seven must read as one family from one engineer's hand.",
+  "parent": null,
+  "references": [],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.134,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 590
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 590,
+    "total_output_tokens": 1985,
+    "total_thought_tokens": 374,
+    "total_tokens": 2949,
+    "total_tool_use_tokens": 0
+  },
+  "model_text": ""
+}

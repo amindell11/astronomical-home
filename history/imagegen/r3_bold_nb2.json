@@ -1,0 +1,42 @@
+{
+  "output": "r3_bold_nb2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChZRcWpQYXA5R2k0ZlBzZ180eHJhNURBEhZRcWpQYXA5R2k0ZlBzZ180eHJhNURB",
+  "created_utc": "2026-10-14T16:05:17+00:00",
+  "prompt": "THE GOVERNING CONSTRAINT IS READABILITY AT A DISTANCE. These seven HUD weapon glyphs are shown beside a ship's tiny health bar in a 2.5D space-combat game: on screen each glyph is only 24 to 30 pixels tall, over a bright blue nebula, while the player is busy fighting. A player who knows the weapon list must identify each glyph by its overall silhouette alone, at a glance, without reading any inner detail. Design for that first and for beauty second.\r\nHard rules that follow from it: at most three strokes or pieces per glyph; every stroke heavy enough to survive being shrunk twelve times (think a stroke that is one tenth of the glyph's height); every gap between pieces at least one eighth of the glyph's height; no fine fragments, no hatching, no thin ticks, no small notches, no detail smaller than one sixth of the glyph; one bold dominant shape per glyph with a silhouette that no other glyph shares; the glyph must fill its cell, not float small in the middle.\r\nPresent the result as a sheet on a flat, very dark navy background: TOP ROW, seven equal square cells, each glyph large, with a small off-white caption under each, in this order: LASERS, TURBO LASERS, CHARGE LASERS, RAILGUN, MISSILES, RIPPERS, CONCUSSION. BOTTOM ROW: the same seven glyphs drawn again, each at one quarter of the size, in the same order, to prove they still read when small.\r\nVisual language: bold, heavy off-white strokes on dark navy; sharp, angular, aggressive, minimal; strokes end in flat slices, never round caps; confident asymmetric composition with unequal lengths and staggered ends; one stroke weight across the set; flat vector, no glow, no gradients, no texture, no circles or soft curves, no literal gun or rocket silhouettes, no heraldic shields, no X marks, no boxes or frames around the glyphs. Marks are built from interrupted strokes, offset parallel strokes and small detached geometric pieces, like markings on an advanced spacecraft's instruments. Everything that travels shares one steep diagonal axis. The seven must read as one family from one hand.\r\nThe weapons and the mark ideas, which you may reinterpret within the rules above: LASERS (fast straight beams): two parallel steep slashes of unequal length. TURBO LASERS (faster): three. CHARGE LASERS (hold to charge, release one strong beam): one slash held inside an angular bracket or cut square. RAILGUN (one heavy instantaneous shot straight through everything): one very heavy slash flanked by two thin full-length guide lines. MISSILES (lock on, then guided to a big hit): a bold arrowhead on a dashed diagonal, or a bold arrowhead leaving a lock mark. RIPPERS (autocannon, many small rounds): three bold open chevrons streaming up the diagonal. CONCUSSION (a dropped charge that detonates): a bold diamond with a few short heavy radiating cuts.\r\nUse a noticeably heavier stroke than you would for a print icon; err on the side of too bold.",
+  "parent": null,
+  "references": [],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 652
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 652,
+    "total_output_tokens": 2091,
+    "total_thought_tokens": 0,
+    "total_tokens": 2743,
+    "total_tool_use_tokens": 0
+  },
+  "model_text": ""
+}
