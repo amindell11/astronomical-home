@@ -50,3 +50,7 @@ snapshots (`v02/Valis-local-before.prefab`, `v02/Valis-staged.prefab`).
 ## Residual hull shading correction (#1029)
 
 [Previous/fixed motion, closeups, diagnosis, and regression evidence](paint/hull-lighting/revision-2/README.md).
+
+## Independent hull brushstrokes (#1029)
+
+[Restored brush texture under moving Unity light](paint/hull-lighting/revision-3/README.md).
