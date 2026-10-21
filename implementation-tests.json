@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-10-21T14:26:09.0293115-07:00",
+  "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "Both",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "RunRecapScreensPlayModeTests|MultiSectorRunPlayModeTests|RunRecordPlayModeTests|SpawnLogEditModeTests|ScoreboardEditModeTests|DamageControllerEditModeTests|DamageLedgerEditModeTests|RunRecordEditModeTests",
+    "testCategory": "",
+    "excludeCategory": "RequiresGraphics",
+    "categoryFilter": "!RequiresGraphics",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "passed",
+  "totals": {
+    "total": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "durationSec": 6.46
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261021-142447-EditMode.xml",
+      "logPath": "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261021-142447-Both.log",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 51,
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 0.6765748,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "captureScenario": "",
+        "rerunFailedFrom": "",
+        "scopeType": "Workspace",
+        "orderedTestListFile": "",
+        "withGraphics": false,
+        "categoryFilter": "!RequiresGraphics",
+        "assemblyNames": "",
+        "testCategory": "",
+        "auto": null,
+        "excludeCategory": "RequiresGraphics",
+        "scopeResolved": false,
+        "testFilter": "RunRecapScreensPlayModeTests|MultiSectorRunPlayModeTests|RunRecordPlayModeTests|SpawnLogEditModeTests|ScoreboardEditModeTests|DamageControllerEditModeTests|DamageLedgerEditModeTests|RunRecordEditModeTests",
+        "scopeName": ""
+      },
+      "startedAt": "2026-10-21 21:25:49Z",
+      "finishedAt": "2026-10-21 21:25:50Z"
+    },
+    {
+      "platform": "PlayMode",
+      "xmlPath": "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261021-142447-PlayMode.xml",
+      "logPath": "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261021-142447-Both.log",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 5.7836348,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "captureScenario": "",
+        "rerunFailedFrom": "",
+        "scopeType": "Workspace",
+        "orderedTestListFile": "",
+        "withGraphics": false,
+        "categoryFilter": "!RequiresGraphics",
+        "assemblyNames": "",
+        "testCategory": "",
+        "auto": null,
+        "excludeCategory": "RequiresGraphics",
+        "scopeResolved": false,
+        "testFilter": "RunRecapScreensPlayModeTests|MultiSectorRunPlayModeTests|RunRecordPlayModeTests|SpawnLogEditModeTests|ScoreboardEditModeTests|DamageControllerEditModeTests|DamageLedgerEditModeTests|RunRecordEditModeTests",
+        "scopeName": ""
+      },
+      "startedAt": "2026-10-21 21:25:56Z",
+      "finishedAt": "2026-10-21 21:26:02Z"
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 81.99,
+    "startupToFirstTestSec": 56.819,
+    "executionSec": 7.0,
+    "remainingSec": 18.17,
+    "unavailableReason": ""
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "testFilter set"
+  },
+  "memory": {
+    "processes": [
+      {
+        "pid": 12276,
+        "rootPeakPrivateGB": 2.273,
+        "rootPeakWorkingSetGB": 2.103,
+        "treePeakSampledPrivateGB": 2.329,
+        "treePeakSampledWorkingSetGB": 2.182,
+        "treeSumOfPeaksPrivateGB": 2.57,
+        "commitHeadroomAtLaunchGB": 27.16,
+        "commitHeadroomMinGB": 24.73,
+        "availablePhysicalAtLaunchGB": 8.94,
+        "availablePhysicalMinGB": 7.04,
+        "bootLaneReleasedAtSec": 10.351,
+        "treePeakAtSec": 68.173,
+        "samples": 10,
+        "samplesFailed": 0,
+        "unavailableReason": ""
+      }
+    ],
+    "unavailableReason": ""
+  }
+}
