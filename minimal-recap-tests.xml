@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.606968">
+  <test-suite type="TestSuite" id="1387" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="286" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.606968" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1367" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-3/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="282" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.590763" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="35048" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1368" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="282" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.588438" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1369" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="282" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.587471" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1377" name="Bootstrap" fullname="Tests.PlayMode.Bootstrap" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.277836" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1357" name="GameHostRigPlayModeTests" fullname="Tests.PlayMode.Bootstrap.GameHostRigPlayModeTests" classname="Tests.PlayMode.Bootstrap.GameHostRigPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.273065" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Bootstrap" />
+              </properties>
+              <test-case id="1358" name="Boot_BuildsThePlayerOnASceneCopyOfTheRigPrefab" fullname="Tests.PlayMode.Bootstrap.GameHostRigPlayModeTests.Boot_BuildsThePlayerOnASceneCopyOfTheRigPrefab" methodname="Boot_BuildsThePlayerOnASceneCopyOfTheRigPrefab" classname="Tests.PlayMode.Bootstrap.GameHostRigPlayModeTests" runstate="Runnable" seed="2114051170" result="Passed" start-time="2026-10-21 08:13:47Z" end-time="2026-10-21 08:13:49Z" duration="1.240607" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1371" name="Screens" fullname="Tests.PlayMode.Screens" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-21 08:13:49Z" end-time="2026-10-21 08:13:49Z" duration="0.296373" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+            <test-suite type="TestFixture" id="1305" name="RunRecapScreensPlayModeTests" fullname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests" classname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-21 08:13:49Z" end-time="2026-10-21 08:13:49Z" duration="0.290323" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="UI" />
+              </properties>
+              <test-case id="1306" name="DeathRecap_ShowsKillsAndZeroClearedSectors_AndContinues" fullname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests.DeathRecap_ShowsKillsAndZeroClearedSectors_AndContinues" methodname="DeathRecap_ShowsKillsAndZeroClearedSectors_AndContinues" classname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests" runstate="Runnable" seed="1305930227" result="Passed" start-time="2026-10-21 08:13:49Z" end-time="2026-10-21 08:13:49Z" duration="0.275348" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1307" name="Extraction_ShowsKillsAndAllClearedSectors_AndContinues" fullname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests.Extraction_ShowsKillsAndAllClearedSectors_AndContinues" methodname="Extraction_ShowsKillsAndAllClearedSectors_AndContinues" classname="Tests.PlayMode.Screens.RunRecapScreensPlayModeTests" runstate="Runnable" seed="304831623" result="Passed" start-time="2026-10-21 08:13:49Z" end-time="2026-10-21 08:13:49Z" duration="0.009449" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
