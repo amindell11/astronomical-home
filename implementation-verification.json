@@ -1,0 +1,18 @@
+{
+  "commit": "dbc4a7e8a0ce74f02afa4fc7f014191dc31c7498",
+  "captureSize": [
+    1280,
+    720
+  ],
+  "captureSource": "Unity composited Game View",
+  "captureData": "Example kills and historical scores over live gameplay",
+  "states": [
+    "EXTRACTED",
+    "VICTORY",
+    "SHIP LOST"
+  ],
+  "recapAndScoreboardHeight": 518,
+  "capturesInspected": true,
+  "editorClosed": true,
+  "qualityReview": "One save-failure ranking regression corrected; no further findings"
+}
