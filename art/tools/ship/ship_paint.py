@@ -1,7 +1,7 @@
 """Paint a ship: Crimson's rules as Shadow, Light and Ink masks over palette regions.
 
 CLI: blender -b --factory-startup --python-exit-code 1 -P ship_paint.py -- --ship SHIP_JSON --out DIR
-[--palette NAME] [--unity DIR] | --brush-only
+[--palette NAME] [--unity DIR]
 Reads paint.json and palettes.json beside the source and needs a matching geometry lock. Regions
 start in visual-role material slots; optional authored_regions adds coverage across faces. The
 masks are baked (Cycles, emission) on temporary evaluated copies in symmetry-origin space: a jittered diagonal sweep over each plate into a dark and a light third, a side-wall ramp,
@@ -14,13 +14,6 @@ UVs or texture size no longer match. --out gets the report, preview/Composite.pn
 never imported) and unity/<Name>/, a copy-ready bundle of mask textures and one _PaintLayers
 material per palette per region; --unity reuses the GUIDs of files already in that visuals folder.
 Prints SHIP_MASKS=<layers dir>.
-
---brush-only reads brush.json instead of paint.json/palettes.json. Its image, scale, blend and
-three-component offset define a mirrored box projection in signed symmetry-origin space,
-baked into PaintUV at ship.json's texture_size. Writes only --out/Brush.png and ship_paint.json;
-prints SHIP_BRUSH=<absolute PNG path>. No palette, mask, baseline or source writes.
-The raw linear grayscale has neutral pigment at 0.625; contrast belongs to the consuming material.
-Exit 0: pass; 3: refused source/UV/lock; 1: invalid arguments/settings or crash.
 """
 
 import json
@@ -130,8 +123,8 @@ class Graph:
             inside = test if inside is None else self.math("MULTIPLY", inside, test)
         return inside
 
-    def brush(self, image, folded, scale, blend, extension="REPEAT"):
-        node = self.node("ShaderNodeTexImage", projection="BOX", projection_blend=blend, extension=extension)
+    def brush(self, image, folded, scale, blend):
+        node = self.node("ShaderNodeTexImage", projection="BOX", projection_blend=blend, extension="REPEAT")
         node.image = image
         self.feed(node.inputs["Vector"], self.vector("SCALE", folded, scale=scale))
         return node.outputs["Color"]
@@ -351,102 +344,12 @@ def bake(scene, surface, graphs, image, which, margin, quantize=True):
     return np.rint(rgb * 255).astype(np.uint8) if quantize else rgb
 
 
-def bake_brush(scene, surface, settings, brush_image, size):
-    material = bpy.data.materials.new("brush surface")
-    graph = Graph(material)
-    position = graph.node("ShaderNodeNewGeometry").outputs["Position"]
-    coordinates = graph.vector("ADD", graph.vector("SCALE", position, scale=settings["scale"]), settings["offset"])
-    brush = graph.brush(brush_image, coordinates, 1.0, settings["blend"], extension="MIRROR")
-    emitter = graph.node("ShaderNodeEmission")
-    graph.tree.links.new(emitter.outputs[0], graph.node("ShaderNodeOutputMaterial").inputs["Surface"])
-    graph.tree.nodes.active = graph.node("ShaderNodeTexImage", name="BAKE TARGET")
-    surface.data.materials.clear()
-    surface.data.materials.append(material)
-    for face in surface.data.polygons:
-        face.material_index = 0
-    layer = surface.data.uv_layers[contract.PAINT_UV]
-    surface.data.uv_layers.active = layer
-    layer.active_render = True
-    image = bpy.data.images.new("brush atlas", size, size, alpha=False)
-    image.colorspace_settings.name = "Non-Color"
-    margin = max(2, round(SEED_MARGIN * size / SEED_SIZE))
-    return bake(scene, surface, {"brush": (material, (graph, emitter, {"brush": brush}))},
-                image, "brush", margin)[..., 0]
-
-
-class BrushPart:
-    def __init__(self, evaluation, name):
-        self.mesh = evaluation.mesh(name)
-        self.mesh.transform(evaluation.to_space(name))
-        self.mesh.update()
-        self.co = ship_source.read_array(self.mesh.vertices, "co", np.float64, 3).reshape(-1, 3)
-
-
-def export_brush(ship, source, out):
-    settings_path = source.parent / "brush.json"
-    settings = contract.load_settings(settings_path, contract.parse_brush)
-    brush_path = (source.parent / settings["image"]).resolve()
-    protected = list((source.parent / contract.LAYERS_DIR).glob("*.png"))
-    report = contract.Report("ship_paint", out, ship_source.blender_version(),
-                             [source, settings_path, brush_path, *protected])
-    if not source.is_file() or not brush_path.is_file():
-        raise report.refuse("Brush export requires the source blend and brush image")
-    scene = ship_source.open_source(source)
-    roles = ship_source.Roles(scene)
-    if roles.errors:
-        raise report.refuse("; ".join(error for _, error in roles.errors))
-    names = sorted({name for role in contract.VISUAL_ROLES for name in roles.members.get(role, ())
-                    if scene.objects[name].type == "MESH"})
-    if not names:
-        raise report.refuse("No visual role parts")
-    fingerprint = ship_source.fingerprint(scene)
-    lock_path = source.parent / "lock.json"
-    locked = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.is_file() else {}
-    if locked.get("recipe") != contract.FINGERPRINT_RECIPE or locked.get("geometry") != fingerprint["components"]["geometry"]:
-        raise report.refuse("ship_paint requires a matching geometry lock")
-    evaluation = ship_source.Evaluation(scene)
-    if not evaluation.has_origin:
-        raise report.refuse(f"No {contract.SYMMETRY_ORIGIN} empty")
-    parts = {name: BrushPart(evaluation, name) for name in names}
-    for name, part in parts.items():
-        if part.mesh.uv_layers.get(contract.PAINT_UV) is None:
-            raise report.refuse(f"{name} has no {contract.PAINT_UV} layer")
-    try:
-        ship_regions.require_independent_sides(parts, ship["texture_size"], contract.PAINT_UV)
-    except ValueError as error:
-        raise report.refuse(str(error))
-    objects = []
-    for name, part in parts.items():
-        obj = bpy.data.objects.new(f"brush surface {name}", part.mesh)
-        evaluation.scene.collection.objects.link(obj)
-        objects.append(obj)
-    for obj in evaluation.scene.objects:
-        obj.select_set(obj in objects)
-    bpy.context.view_layer.objects.active = objects[0]
-    bpy.ops.object.join()
-    surface = bpy.context.view_layer.objects.active
-    brush_image = bpy.data.images.load(str(brush_path), check_existing=False)
-    brush_image.colorspace_settings.name = "Non-Color"
-    pixels = bake_brush(evaluation.scene, surface, settings, brush_image, ship["texture_size"])
-    path = report.path.parent / "Brush.png"
-    write_png(path, pixels)
-    return report.finish(True, [("SHIP_BRUSH", str(path))], mode="brush-only", brush=str(path),
-                         geometry=fingerprint["components"]["geometry"], uv=fingerprint["components"]["uv"],
-                         texture_size=ship["texture_size"], settings=settings,
-                         brush_source_sha256=contract.sha256_file(brush_path))
-
-
 def main(argv):
     parser = contract.tool_parser("Bake a ship's Shadow, Light and Ink masks and its palette materials.")
     parser.add_argument("--palette", help="Palette for the composite preview (default: palettes.json default)")
     parser.add_argument("--unity", help="Existing visuals folder whose .meta GUIDs the bundle reuses")
-    parser.add_argument("--brush-only", action="store_true", help="Bake only brush.json into --out/Brush.png")
     args = parser.parse_args(argv)
     ship, source = contract.load_ship(args.ship)
-    if args.brush_only:
-        if args.palette or args.unity:
-            raise contract.UsageError("--brush-only cannot be combined with --palette or --unity")
-        return export_brush(ship, source, args.out)
     folder = source.parent
     paint_path, palettes_path = folder / "paint.json", folder / "palettes.json"
     paint = contract.load_settings(paint_path, contract.parse_paint)

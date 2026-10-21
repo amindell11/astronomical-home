@@ -19,6 +19,8 @@ namespace Tests.EditMode.Rendering
         private RenderTexture previousTarget;
         private Vector4 previousTime;
         private Vector4 previousCamera;
+        private GameObject cloudBank;
+        private MaterialPropertyBlock tileProperties;
 
         [SetUp]
         public void SetUp()
@@ -49,6 +51,8 @@ namespace Tests.EditMode.Rendering
             Shader.SetGlobalVector("_Time", previousTime);
             Shader.SetGlobalVector("_WorldSpaceCameraPos", previousCamera);
             commands?.Release();
+            if (cloudBank) Object.DestroyImmediate(cloudBank);
+            tileProperties = null;
             if (target) target.Release();
             Object.DestroyImmediate(target);
             Object.DestroyImmediate(pixels);
@@ -173,6 +177,7 @@ namespace Tests.EditMode.Rendering
             material.SetFloat("_NebulaScale", 0.25f);
             material.SetFloat("_NebulaStrength", 0.6f);
             material.SetFloat("_NebulaParallax", 0.025f);
+            BakeTile();
             var black = Render(0);
             var white = Render(0, background: Color.white);
             var transmission = white.Zip(black, (w, b) => w.r - b.r).ToArray();
@@ -190,9 +195,11 @@ namespace Tests.EditMode.Rendering
             material.SetFloat("_CloudCoverage", 0.55f);
             material.SetFloat("_NebulaScale", 0.25f);
             material.SetFloat("_NebulaStrength", 0.6f);
+            BakeTile();
             var unlit = Render(0);
             var unlitWhite = Render(0, background: Color.white);
             material.SetFloat("_CloudGlow", 1.5f);
+            BakeTile();
             var glowing = Render(0);
             var glowingWhite = Render(0, background: Color.white);
             var unlitTransmission = unlitWhite.Zip(unlit, (w, b) => w - b).ToArray();
@@ -201,6 +208,78 @@ namespace Tests.EditMode.Rendering
             Assert.Greater(unlitTransmission.Where((c, i) => c.r > 0.8f && glowing[i].b - unlit[i].b > 0.01f).Count(), 100,
                 "Interior light must spread beyond the dense silhouettes.");
         }
+
+        [Test]
+        public void CloudBankTile_WrapsWithoutASeam()
+        {
+            material.SetFloat("_CloudOpacity", 0.95f);
+            material.SetFloat("_CloudCoverage", 0.55f);
+            material.SetFloat("_NebulaScale", 0.25f);
+            material.SetFloat("_NebulaStrength", 0.6f);
+            material.SetFloat("_CloudGlow", 1.5f);
+            BakeTile();
+            var tile = (RenderTexture)tileProperties.GetTexture("_CloudBankTile");
+            var last = tile.width - 2;
+            foreach (var columns in new[] { true, false })
+            {
+                var low = ReadStrip(tile, 0, columns);
+                var high = ReadStrip(tile, last, columns);
+                var seam = 0f;
+                var step = 0f;
+                for (var i = 0; i < tile.width; i++)
+                {
+                    seam = Mathf.Max(seam, Step(high[i * 2 + 1], low[i * 2]));
+                    step = Mathf.Max(step, Mathf.Max(Step(low[i * 2], low[i * 2 + 1]), Step(high[i * 2], high[i * 2 + 1])));
+                }
+                Assert.Greater(step, 0.001f, "The tile must hold clouds.");
+                Assert.Less(seam, step * 2, columns ? "Left and right edges must meet." : "Top and bottom edges must meet.");
+            }
+        }
+
+        // Toggling the component re-bakes the tile after a material edit.
+        private void BakeTile()
+        {
+            if (!cloudBank)
+            {
+                cloudBank = new GameObject("CloudBank", typeof(MeshRenderer));
+                cloudBank.GetComponent<MeshRenderer>().sharedMaterial = material;
+                cloudBank.AddComponent<CloudBankTile>();
+            }
+            else
+            {
+                var tile = cloudBank.GetComponent<CloudBankTile>();
+                tile.enabled = false;
+                tile.enabled = true;
+            }
+            tileProperties = new MaterialPropertyBlock();
+            cloudBank.GetComponent<MeshRenderer>().GetPropertyBlock(tileProperties);
+        }
+
+        // Two texel lines at an edge, interleaved per position along it.
+        private static Color[] ReadStrip(RenderTexture tile, int start, bool columns)
+        {
+            var previous = RenderTexture.active;
+            RenderTexture.active = tile;
+            var width = columns ? 2 : tile.width;
+            var height = columns ? tile.height : 2;
+            var strip = new Texture2D(width, height, TextureFormat.RGBAFloat, false, true);
+            strip.ReadPixels(new Rect(columns ? start : 0, columns ? 0 : start, width, height), 0, 0);
+            strip.Apply();
+            RenderTexture.active = previous;
+            var texels = strip.GetPixels();
+            Object.DestroyImmediate(strip);
+            if (columns) return texels;
+            var interleaved = new Color[texels.Length];
+            for (var i = 0; i < tile.width; i++)
+            {
+                interleaved[i * 2] = texels[i];
+                interleaved[i * 2 + 1] = texels[tile.width + i];
+            }
+            return interleaved;
+        }
+
+        private static float Step(Color a, Color b) =>
+            Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Abs(a.g - b.g), Mathf.Abs(a.b - b.b), Mathf.Abs(a.a - b.a));
 
         private Color[] Render(float time, float cameraX = 0, float halfHeight = 7, Color? background = null)
         {
@@ -213,7 +292,7 @@ namespace Tests.EditMode.Rendering
                 GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfHeight * 16 / 9, halfHeight * 16 / 9, -halfHeight, halfHeight, 0.1f, 100), true));
             commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
             commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
-            commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            commands.DrawMesh(mesh, Matrix4x4.identity, material, 0, 0, tileProperties);
             Graphics.ExecuteCommandBuffer(commands);
             RenderTexture.active = target;
             pixels.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
