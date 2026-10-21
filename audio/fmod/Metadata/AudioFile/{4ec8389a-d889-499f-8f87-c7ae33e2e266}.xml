@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{4ec8389a-d889-499f-8f87-c7ae33e2e266}">
+		<property name="assetPath">
+			<value>Sfx/Weapon Sounds/railgun_charge.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.0642176870748299</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{f3f5788a-2024-4cc1-9c4a-b275a56be015}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -359,5 +359,21 @@ namespace Game
             Destroy(screen.gameObject);
             if (overlay) overlay.SetVisible(true);
         }
+
+        private IEnumerator RunWinScreen(int sectorsCleared)
+        {
+            var overlay = rigInstance.Overlay;
+            if (overlay) overlay.SetVisible(false);
+
+            var screen = RunWonScreen.Create(ui);
+            var dismissed = false;
+            screen.Show(rigInstance.Tally, sectorsCleared, () => dismissed = true);
+
+            var deadline = Time.unscaledTime + recapHoldSeconds;
+            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
+
+            Destroy(screen.gameObject);
+            if (overlay) overlay.SetVisible(true);
+        }
     }
 }

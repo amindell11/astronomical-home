@@ -28,6 +28,7 @@ mkdir -p "$LOCK_ROOT"
 #   Borrow / return           borrow_slot (land's too), cmd_borrow, return_slot
 #   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
 #   Docs-only landing         cmd_land_docs, land_docs_push (runs under the merge turn)
+#   Primary sync              cmd_sync_primary, sync_primary (runs under the sync lock)
 #   Finalize / review / revise
 #   Dispatch                  main
 # ------------------------------------------------------------------------------
@@ -371,6 +372,48 @@ Commands:
         turn-held  the merge turn was still held after the wait
       Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
 
+  sync-primary
+      Bring the primary tree up to origin/main past the owner's uncommitted
+      edits, from any worktree (the primary is found through git's common
+      dir). Replay: re-apply the owner's tracked edits onto the new main,
+      done only when git merge-tree shows the three-way merge clean.
+      Holding primary-sync.lock under the lock root (waiting up to
+      WORKTREE_POOL_PRIMARY_SYNC_WAIT_SECONDS, default 120), it fetches
+      origin main and fast-forwards with git merge --ff-only, never git
+      pull, so no pull or autostash config applies. When no edited file is
+      among the files HEAD..origin/main changes, it fast-forwards with
+      --no-autostash, staged edits included. Otherwise it replays: it
+      snapshots the edits (git stash create), pins the snapshot at
+      refs/primary-sync/<UTC timestamp> (keeping the newest 20), pre-checks
+      the merge, fast-forwards with --autostash, and compares the resulting
+      tree with the one merge-tree predicted. Just before either
+      fast-forward it moves each untracked file whose content equals the
+      file main adds at its path (a shipped copy) under the git dir's
+      primary-sync-parked/ and hashes it again there; the fast-forward
+      writes the same bytes back, and the parked copies are deleted. On a
+      failure they go back to their paths.
+      Stdout trailer: PRIMARY_SYNC=current (already at origin/main), ok
+      (fast-forwarded), replayed, refused:<reason> or failed:<reason>.
+      Every refusal is decided before any file changes, the reason one of
+        branch     the primary is not on main; switching is the owner's call
+        diverged   local main has commits origin/main lacks
+        staged     a replay is needed and the index differs from HEAD (the
+                   autostash would bring staged edits back unstaged)
+        conflict   the edits conflict with main; stderr lists each
+                   conflicted file with its conflict-marker line ranges
+        untracked  untracked, non-ignored files sit at paths main adds,
+                   with content other than main's (stderr lists them)
+        fetch      the fetch from origin failed
+        busy       another sync still held the lock after the wait
+      A failure names the backup ref on stderr, when one was pinned:
+        mismatch   the synced tree differs from the prediction, or a shipped
+                   copy changed after its check; e.g. the owner saved a file
+                   mid-sync
+        git        a git step failed; stderr names it
+        remove     moving a shipped copy aside failed, e.g. a program holds
+                   it open
+      Exit: 0 current, ok or replayed; 1 refused, or a usage error; 2 failed.
+
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
       origin/main), delete the task branch, and release the lock. Requires a
@@ -401,6 +444,7 @@ Examples:
   scripts/agent_worktree_pool.sh submit agent-1 origin/main --title "fix(nav): clamp turn rate" --body-file pr_body.md -- -Mode Both -ScopeType Workspace
   scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh land 812
+  scripts/agent_worktree_pool.sh sync-primary
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
   scripts/agent_worktree_pool.sh hold agent-1 --local
@@ -2952,6 +2996,187 @@ land_docs_push() {
   echo "LAND_DOCS=landed $head"
 }
 
+# ---- Primary sync ----------------------------------------------------------
+PRIMARY_SYNC_LOCK="$LOCK_ROOT/primary-sync.lock"
+PRIMARY_SYNC_WAIT_SECONDS="${WORKTREE_POOL_PRIMARY_SYNC_WAIT_SECONDS:-120}"
+PRIMARY_SYNC_BACKUPS=20
+
+cmd_sync_primary() {
+  [[ $# -eq 0 ]] || { echo "sync-primary takes no arguments: it always syncs the primary tree, $ROOT." >&2; return 1; }
+  local rc=0
+  # A concurrent sync could move main while this one's autostash holds the edits.
+  with_flock "$PRIMARY_SYNC_LOCK" "$PRIMARY_SYNC_WAIT_SECONDS" \
+    "sync-primary: another sync still holds $PRIMARY_SYNC_LOCK after ${PRIMARY_SYNC_WAIT_SECONDS}s; nothing was touched." \
+    sync_primary "$ROOT" || rc=$?
+  if [[ "$rc" -eq "$LOCK_BUSY_EXIT" ]]; then
+    echo "PRIMARY_SYNC=refused:busy"
+    return 1
+  fi
+  return "$rc"
+}
+
+common_lines() {
+  LC_ALL=C comm -12 <(sed '/^$/d' <<< "$1" | LC_ALL=C sort -u) <(sed '/^$/d' <<< "$2" | LC_ALL=C sort -u)
+}
+
+sync_primary_failed() {
+  local p="$1" step="$2" backup="${3:-}" stash_before="${4:-}"
+  echo "sync-primary: git $step failed." >&2
+  sync_primary_backup_note "$p" "$backup" "$stash_before"
+  echo "PRIMARY_SYNC=failed:git"
+}
+
+sync_primary_backup_note() {
+  local p="$1" backup="$2" stash_before="$3" stash_now
+  [[ -n "$backup" ]] || return 0
+  echo "sync-primary: your edits from before the sync are pinned at $backup (git restore --source=$backup -- <path>)." >&2
+  stash_now="$(git -C "$p" rev-parse -q --verify refs/stash)" || stash_now=""
+  [[ "$stash_now" == "$stash_before" ]] || echo "sync-primary: git also kept them in the stash as stash@{0}." >&2
+}
+
+# Parked copies sit where no program writes, so their re-hash catches a save after the check.
+ff_past_shipped() {
+  local p="$1" target="$2" backup="$3" stash_before="$4" autostash="$5" dir f
+  shift 5
+  dir="$(git -C "$p" rev-parse --absolute-git-dir)/primary-sync-parked/$(date -u +%Y%m%dT%H%M%S.%NZ)"
+  for f in "$@"; do
+    if ! { mkdir -p "$dir/$(dirname "$f")" && mv -- "$p/$f" "$dir/$f"; }; then
+      unpark_shipped "$p" "$dir" "$@"
+      echo "sync-primary: moving the shipped copy $f out of the tree failed." >&2
+      sync_primary_backup_note "$p" "$backup" "$stash_before"
+      echo "PRIMARY_SYNC=failed:remove"
+      return 2
+    fi
+    if [[ "$(git -C "$p" hash-object --path="$f" -- "$dir/$f")" != "$(git -C "$p" ls-tree --full-tree --object-only "$target" -- "$f")" ]]; then
+      unpark_shipped "$p" "$dir" "$@"
+      echo "sync-primary: $f changed after the check, e.g. saved mid-sync; nothing was synced." >&2
+      sync_primary_backup_note "$p" "$backup" "$stash_before"
+      echo "PRIMARY_SYNC=failed:mismatch"
+      return 2
+    fi
+  done
+  if ! git -C "$p" merge --ff-only "$autostash" "$target" >&2; then
+    unpark_shipped "$p" "$dir" "$@"
+    sync_primary_failed "$p" "merge --ff-only $autostash" "$backup" "$stash_before"
+    return 2
+  fi
+  rm -rf -- "$dir" || echo "sync-primary: could not delete $dir, which holds copies main already has." >&2
+}
+
+unpark_shipped() {
+  local p="$1" dir="$2" f
+  shift 2
+  for f in "$@"; do
+    if [[ -e "$dir/$f" && ! -e "$p/$f" ]]; then mv -- "$dir/$f" "$p/$f"; fi
+  done
+  if find "$dir" -type f -print -quit 2> /dev/null | grep -q .; then
+    echo "sync-primary: a file reappeared at a parked path; the parked copy stays under $dir." >&2
+  else
+    rm -rf -- "$dir"
+  fi
+}
+
+# Runs under the sync lock; every refusal returns before any tree or index write.
+sync_primary() {
+  local p="$1" branch head target ahead changed added dirty untracked overlap out predicted f ranges
+  local snap="" backup="" stash_before="" actual actual_tree rc=0
+  local -a q=(-c core.quotePath=false) shipped=() differ=()
+  branch="$(git -C "$p" symbolic-ref -q --short HEAD)" || branch=""
+  if [[ "$branch" != main ]]; then
+    echo "sync-primary: $p is on ${branch:-a detached HEAD}, not main; switching it back is the owner's call." >&2
+    echo "PRIMARY_SYNC=refused:branch"
+    return 1
+  fi
+  # Git writes progress and merge reports to stdout; stdout carries only the trailer.
+  if ! git -C "$p" fetch -q origin main >&2; then
+    echo "PRIMARY_SYNC=refused:fetch"
+    return 1
+  fi
+  # Resolved once: a fetch in any worktree moves the shared origin/main mid-sync.
+  head="$(git -C "$p" rev-parse HEAD)" && target="$(git -C "$p" rev-parse origin/main)" \
+    && ahead="$(git -C "$p" rev-list --count "$target..$head")" || { sync_primary_failed "$p" rev-parse; return 2; }
+  if [[ "$ahead" -gt 0 ]]; then
+    echo "sync-primary: local main has $ahead commit(s) origin/main lacks; reconciling them is the owner's call." >&2
+    echo "PRIMARY_SYNC=refused:diverged"
+    return 1
+  fi
+  if [[ "$head" == "$target" ]]; then
+    echo "PRIMARY_SYNC=current"
+    return 0
+  fi
+  changed="$(git "${q[@]}" -C "$p" diff --name-only --no-renames "$head" "$target")" \
+    && added="$(git "${q[@]}" -C "$p" diff --name-only --no-renames --diff-filter=A "$head" "$target")" \
+    && dirty="$(git "${q[@]}" -C "$p" diff --name-only --no-renames "$head")" \
+    && untracked="$(git "${q[@]}" -C "$p" ls-files --others --exclude-standard)" \
+    || { sync_primary_failed "$p" "diff/ls-files"; return 2; }
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    # Hashed as git add would store it (eol, LFS), so equal means main holds these bytes.
+    if [[ "$(git -C "$p" hash-object -- "$f")" == "$(git -C "$p" ls-tree --full-tree --object-only "$target" -- "$f")" ]]; then
+      shipped+=("$f")
+    else
+      differ+=("$f")
+    fi
+  done <<< "$(common_lines "$added" "$untracked")"
+  if ((${#differ[@]})); then
+    echo "sync-primary: main adds files where untracked files with other content sit; moving them is the owner's call:" >&2
+    printf '  %s\n' "${differ[@]}" >&2
+    echo "PRIMARY_SYNC=refused:untracked"
+    return 1
+  fi
+  overlap="$(common_lines "$dirty" "$changed")"
+  if [[ -z "$overlap" ]]; then
+    ff_past_shipped "$p" "$target" "" "" --no-autostash "${shipped[@]}" || return 2
+    echo "PRIMARY_SYNC=ok"
+    return 0
+  fi
+
+  # Replay: the autostash re-applies without --index, so staged edits would come back unstaged.
+  git -C "$p" diff --cached --quiet "$head" || rc=$?
+  if [[ "$rc" -eq 1 ]]; then
+    echo "sync-primary: main changes files you edited, and replaying them would unstage your staged edits. Unstage or commit them, then re-run. The edited files main changes:" >&2
+    sed 's/^/  /' <<< "$overlap" >&2
+    echo "PRIMARY_SYNC=refused:staged"
+    return 1
+  fi
+  [[ "$rc" -eq 0 ]] || { sync_primary_failed "$p" "diff --cached"; return 2; }
+  stash_before="$(git -C "$p" rev-parse -q --verify refs/stash)" || stash_before=""
+  snap="$(git -C "$p" stash create "sync-primary: edits before syncing to ${target:0:10}")" \
+    || { sync_primary_failed "$p" "stash create"; return 2; }
+  backup="refs/primary-sync/$(date -u +%Y%m%dT%H%M%S.%NZ)"
+  git -C "$p" update-ref "$backup" "$snap" "" || { sync_primary_failed "$p" "update-ref $backup"; return 2; }
+  git -C "$p" for-each-ref --sort=-refname --format='delete %(refname)' refs/primary-sync/ \
+    | tail -n +$((PRIMARY_SYNC_BACKUPS + 1)) | git -C "$p" update-ref --stdin \
+    || { sync_primary_failed "$p" "update-ref (pruning old backups)" "$backup" "$stash_before"; return 2; }
+  out="$(git -C "$p" merge-tree --write-tree --name-only -z --merge-base="$head" "$snap" "$target" | tr '\0' '\n')" || rc=$?
+  predicted="$(sed -n 1p <<< "$out")"
+  if [[ "$rc" -eq 1 ]]; then
+    echo "sync-primary: your edits conflict with main ($head..$target); nothing was touched. Conflicts in the merged result:" >&2
+    while IFS= read -r f; do
+      [[ -n "$f" ]] || continue
+      ranges="$(git -C "$p" cat-file -p "$predicted:$f" 2>/dev/null \
+        | awk '/^<<<<<<< / { s = NR } /^>>>>>>> / && s { printf "%s%d-%d", sep, s, NR; sep = ", "; s = 0 }')" || ranges=""
+      if [[ -n "$ranges" ]]; then echo "  $f: conflict markers at lines $ranges" >&2; else echo "  $f: no conflict markers" >&2; fi
+    done < <(sed -n '2,/^$/p' <<< "$out")
+    grep '^CONFLICT ([^)]*): ' <<< "$out" | sed 's/^/  /' >&2 || true
+    echo "PRIMARY_SYNC=refused:conflict"
+    return 1
+  fi
+  [[ "$rc" -eq 0 ]] || { sync_primary_failed "$p" merge-tree "$backup" "$stash_before"; return 2; }
+
+  ff_past_shipped "$p" "$target" "$backup" "$stash_before" --autostash "${shipped[@]}" || return 2
+  actual="$(git -C "$p" stash create)" && actual_tree="$(git -C "$p" rev-parse "${actual:-HEAD}^{tree}")" \
+    || { sync_primary_failed "$p" "stash create (post-check)" "$backup" "$stash_before"; return 2; }
+  if [[ "$actual_tree" != "$predicted" ]]; then
+    echo "sync-primary: the synced tree differs from the predicted merge, e.g. a file saved mid-sync (git diff $predicted $actual_tree)." >&2
+    sync_primary_backup_note "$p" "$backup" "$stash_before"
+    echo "PRIMARY_SYNC=failed:mismatch"
+    return 2
+  fi
+  echo "sync-primary: replayed your edits onto main at $target; the snapshot from before is $backup." >&2
+  echo "PRIMARY_SYNC=replayed"
+}
+
 # ---- Finalize / review / revise --------------------------------------------
 cmd_finalize() {
   local slot="$1"
@@ -3147,6 +3372,7 @@ main() {
         return_slot "$@"
       ;;
     land-docs) cmd_land_docs "$@" ;;
+    sync-primary) cmd_sync_primary "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
     review-comments) require_slot_arg "review-comments requires <slot> [base]" "$#"; cmd_review_comments "$@" ;;
@@ -3171,5 +3397,6 @@ main() {
 # Executed: dispatch. Sourced (scripts/tests/): define the functions and stop, so a test can call
 # one directly - the bash twin of the `$MyInvocation.InvocationName -eq '.'` guard in the PS scripts.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  main "$@"
+  # Exits before bash reads further: sync-primary can replace this file while it runs.
+  main "$@"; exit $?
 fi

@@ -174,7 +174,8 @@ namespace Tests.PlayMode
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
-            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing")]
+            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing",
+            "Direct hit skips shields")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
             @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(regen [\d.]+s/round\)", @"Range \d+u")]
         public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
@@ -200,6 +201,43 @@ namespace Tests.PlayMode
                 Assert.AreEqual(offer.ships[i % offer.ships.Length].name, screen.shipRow.label.text,
                     $"ship step {i} reaches offered ship {i % offer.ships.Length}");
             }
+        }
+
+        [Test]
+        public void RealCatalog_ModuleRowsAndKitLine_ShowDisplayNames()
+        {
+            var offer = Load<ItemSubset>(RealCatalogPath);
+            var first = offer.ships[0];
+            var loadout = new ShipLoadout(first, first.Engine, first.Shield, null, null);
+            Show(offer, loadout);
+
+            for (var i = 0; i < offer.engines.Length; i++)
+            {
+                Next(screen.engineRow);
+                AssertDisplayName(loadout.Engine.DisplayName, screen.engineRow.label.text, $"engine step {i + 1}");
+            }
+
+            for (var i = 0; i < offer.shields.Length; i++)
+            {
+                Next(screen.shieldRow);
+                AssertDisplayName(loadout.Shield.DisplayName, screen.shieldRow.label.text, $"shield step {i + 1}");
+            }
+
+            var stats = screen.transform.Find("Panel/StatsText").GetComponent<Text>();
+            screen.shipRow.GetComponent<EventTrigger>().OnPointerEnter(new PointerEventData(null));
+            for (var i = 0; i < offer.ships.Length; i++)
+            {
+                Next(screen.shipRow);
+                var kit = $"Kit: {loadout.Ship.Engine.DisplayName} + {loadout.Ship.Shield.DisplayName}";
+                StringAssert.EndsWith(kit, stats.text, $"ship step {i + 1} hover names the authored kit");
+                StringAssert.DoesNotContain("_", kit, $"ship step {i + 1} kit shows authored names");
+            }
+        }
+
+        private static void AssertDisplayName(string displayName, string label, string step)
+        {
+            Assert.AreEqual(displayName, label, $"{step} labels the pick by its display name");
+            StringAssert.DoesNotContain("_", label, $"{step} shows an authored name, not the asset name");
         }
     }
 }

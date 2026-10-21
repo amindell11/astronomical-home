@@ -76,6 +76,8 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Nightshade", "Canopy", 0, false)]
         [TestCase("Valis", "Valis", 5, false)]
         [TestCase("Vanguard", "Canopy", 0, false)]
+        [TestCase("Bulwark", "Canopy", 0, false)]
+        [TestCase("Bulwark", "Cockpit", 0, true)]
         [TestCase("Valis", "Fuselage and canopy", 5, true)]
         public void Prefab_GlassProjectionMatchesItsMaterialSubmesh(string ship, string rendererName, int index, bool debris)
         {
@@ -142,6 +144,31 @@ namespace Tests.EditMode.Rendering.Illustrated
                 "The fixed glass must retain its painted shading.");
         }
 
+        [Test]
+        public void Bulwark_ReflectionDisabledLeavesNoAuthoredStripes()
+        {
+            UseMaterial("Bulwark/Materials/plum-bone/Bulwark Glass.mat");
+            material.SetFloat("_DrawnReflectionStrength", 0);
+            var pixels = Read();
+            var centerRow = pixels.Skip(64 * 128 + 40).Take(48).Select(c => c.grayscale).ToArray();
+            Assert.That(centerRow.Max() - centerRow.Min(), Is.LessThan(.01f),
+                "The authored reflection strokes must not remain in the fixed glass paint.");
+            key.transform.rotation = Quaternion.Euler(0, 20, 0);
+            Assert.That(Read(), Is.EqualTo(pixels));
+        }
+
+        [TestCase(-65)]
+        [TestCase(65)]
+        public void Bulwark_StripesContinuePastGlassAtExtremePitch(float pitch)
+        {
+            UseMaterial("Bulwark/Materials/plum-bone/Bulwark Glass.mat");
+            key.transform.rotation = Quaternion.Euler(pitch, 0, 0);
+            var pixels = ReadReflection();
+            foreach (int row in new[] { 12, 115 })
+                Assert.That(pixels.Skip(row * 128 + 32).Take(64).Max(c => c.grayscale), Is.GreaterThan(.03f),
+                    "The moving reflection must not expose the texture's top or bottom cutoff.");
+        }
+
         [TestCase(-60)]
         [TestCase(60)]
         public void Crimson_StripesContinuePastGlassAtExtremePitch(float pitch)
@@ -160,6 +187,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Nightshade/Canopy/Canopy.mat", true)]
         [TestCase("Valis/Canopy/jade-iris.mat", false)]
         [TestCase("Vanguard/Materials/Canopy.mat", false)]
+        [TestCase("Bulwark/Materials/plum-bone/Bulwark Glass.mat", false)]
         public void Reflection_MovesAcrossGlassWhenLightTurns(string path, bool underside)
         {
             UseMaterial(path, underside);
@@ -200,6 +228,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Nightshade/Canopy/Canopy.mat")]
         [TestCase("Valis/Canopy/jade-iris.mat")]
         [TestCase("Vanguard/Materials/Canopy.mat")]
+        [TestCase("Bulwark/Materials/plum-bone/Bulwark Glass.mat")]
         public void Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(string path)
         {
             UseMaterial(path);
@@ -221,6 +250,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Nightshade/Canopy/Canopy.mat")]
         [TestCase("Valis/Canopy/jade-iris.mat")]
         [TestCase("Vanguard/Materials/Canopy.mat")]
+        [TestCase("Bulwark/Materials/plum-bone/Bulwark Glass.mat")]
         public void RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(string path)
         {
             UseMaterial(path);
