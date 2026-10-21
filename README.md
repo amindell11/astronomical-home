@@ -1,6 +1,6 @@
 # Laser impact shape and motion studies
 
-Visual prototypes for [Direct-hit effects for lasers, rippers, and railguns](https://github.com/amindell11/astronomical-home/issues/792). This evidence branch never merges. On 2026-10-21 the user approved the B1 variant without left spikes as the source. The [motion preview and tuner](history/05-motion/README.md) now await the user's settings. The earlier spiked B1 and its cleanup working file remain historical references.
+Visual prototypes for [Direct-hit effects for lasers, rippers, and railguns](https://github.com/amindell11/astronomical-home/issues/792). This evidence branch never merges. On 2026-10-21 the user approved the B1 variant without left spikes and then [approved its animation](https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6328585947). The [energy-family comparison](history/06-energy-family/README.md) proposes turbo and charge variants. The earlier spiked B1 and its cleanup working file remain historical references.
 
 ## What to compare
 

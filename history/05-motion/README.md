@@ -4,7 +4,7 @@ The user [approved the source as-is](https://github.com/amindell11/astronomical-
 
 ## What is being tuned?
 
-The contact cap stays fixed. The fan opens slightly and its edges move, the white and mint bands fade first, and short outward sparks finish the impact. The default duration is 340 ms, with a 48-pixel solid width, 12% fan motion, 20-pixel spark reach, and 25% localized glow. These are prototype defaults awaiting the user's settings.
+The contact cap stays fixed. The fan opens slightly and its edges move, the white and mint bands fade first, and short outward sparks finish the impact. The duration is 340 ms, with a 48-pixel solid width, 12% fan motion, 20-pixel spark reach, and 25% localized glow. The user [approved this animation and these settings](https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6328585947) after reviewing the quarter-speed GIF and MP4 on 2026-10-21.
 
 The source parser identifies four color regions and five outward lobe directions. It retains the original pixel colors, including the approved residual shading. `parsed-bands.png` shows the regions. Time zero draws the original image directly; later frames warp the source and fade each band. The source PNG remains untouched.
 

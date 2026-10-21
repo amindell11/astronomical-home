@@ -1,0 +1,75 @@
+<div id="energy-hit-family">
+  <div data-scenes>
+    <div class="family-row" data-weapon="laser"><div class="viz-row"><span>Laser · approved</span><span class="text-small text-muted" data-spec="laser"></span></div><div class="family-views"></div></div>
+    <div class="family-row" data-weapon="turbo"><div class="viz-row"><span>Turbo laser</span><span class="text-small text-muted" data-spec="turbo"></span></div><div class="family-views"></div></div>
+    <div class="family-row" data-weapon="charge"><div class="viz-row"><span>Charge laser</span><span class="text-small text-muted" data-spec="charge"></span></div><div class="family-views"></div></div>
+  </div>
+  <div class="viz-controls">
+    <button type="button" class="btn btn-primary" data-play>Play comparison</button>
+    <label class="form-label">Playback<select class="form-select" data-speed><option value="1">Normal speed</option><option value="0.25">Quarter speed</option></select></label>
+    <label class="form-label">Turbo contacts<select class="form-select" data-burst><option value="0">Single hit</option><option value="1">Six hits · 75 ms apart</option></select></label>
+    <label class="form-label">Charge strength <output data-charge-value>100%</output><input class="form-range" type="range" min="30" max="100" step="1" value="100" data-charge></label>
+    <label class="form-label">Time <output data-time-value class="tabular-nums">0 ms</output><input class="form-range" type="range" min="0" max="800" step="1" value="0" data-time></label>
+  </div>
+  <details><summary>Tune variants</summary><div class="viz-controls">
+    <label class="form-label">Turbo duration <output data-value="turbo.durationMs"></output><input class="form-range" data-setting="turbo.durationMs" type="range" min="100" max="240" step="10" value="160"></label>
+    <label class="form-label">Turbo width <output data-value="turbo.widthPx"></output><input class="form-range" data-setting="turbo.widthPx" type="range" min="28" max="48" step="2" value="40"></label>
+    <label class="form-label">Full-charge duration <output data-value="chargeMax.durationMs"></output><input class="form-range" data-setting="chargeMax.durationMs" type="range" min="340" max="500" step="10" value="420"></label>
+    <label class="form-label">Full-charge width <output data-value="chargeMax.widthPx"></output><input class="form-range" data-setting="chargeMax.widthPx" type="range" min="56" max="80" step="2" value="72"></label>
+  </div></details>
+  <div class="viz-row"><button type="button" class="btn" data-use>Use these variants</button><span class="text-small text-muted" data-status aria-live="polite">Turbo and charge proposals</span></div>
+  <details data-export-details><summary>Settings</summary><label class="form-label">Export<textarea class="form-control" data-export readonly rows="6"></textarea></label></details>
+</div>
+<style>
+#energy-hit-family .family-row{margin-bottom:16px}
+#energy-hit-family .family-views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px}
+#energy-hit-family figure{min-width:0;margin:0}
+#energy-hit-family figcaption{margin-bottom:6px}
+#energy-hit-family canvas{display:block;width:100%;aspect-ratio:1.4}
+#energy-hit-family details{margin:12px 0}
+@media(max-width:520px){#energy-hit-family .family-views{grid-template-columns:1fr}#energy-hit-family canvas{aspect-ratio:1.8}}
+</style>
+<script>
+__ENGINE__
+(()=>{
+const root=document.getElementById('energy-hit-family'),defaults=__SETTINGS__,baseline=__BASELINE__;
+let settings=structuredClone(defaults),time=0,charge=1,burst=false,speed=1,playing=false,start=0,engines=null;
+const source=new Image(),backdrop=new Image();source.src='__SOURCE__';backdrop.src='__BACKDROP__';
+const fields=[...root.querySelectorAll('[data-setting]')],playButton=root.querySelector('[data-play]'),status=root.querySelector('[data-status]');
+const scenes=[];
+for(const row of root.querySelectorAll('[data-weapon]'))for(const view of ['large','ship','asteroid']){
+ const figure=document.createElement('figure'),caption=document.createElement('figcaption'),canvas=document.createElement('canvas');
+ caption.className='text-small';caption.textContent={large:'Enlarged',ship:'Ship · scale preview',asteroid:'Asteroid · scale preview'}[view];
+ canvas.setAttribute('role','img');canvas.setAttribute('aria-label',`${row.dataset.weapon} impact, ${caption.textContent}`);figure.append(caption,canvas);row.querySelector('.family-views').append(figure);scenes.push({weapon:row.dataset.weapon,view,canvas,ctx:canvas.getContext('2d')});
+}
+function charged(c){const u=(c-settings.minCharge)/(1-settings.minCharge);return Object.fromEntries(Object.keys(baseline).map(k=>[k,settings.chargeMin[k]+u*(settings.chargeMax[k]-settings.chargeMin[k])]));}
+function preset(weapon){return weapon==='laser'?baseline:weapon==='turbo'?settings.turbo:charged(charge);}
+function restore(state){const saved=state?.modelContent?.energyHitSettings;if(saved)for(const f of fields){const [group,key]=f.dataset.setting.split('.'),v=saved[group]?.[key];if(Number.isFinite(v)&&v>=+f.min&&v<=+f.max)settings[group][key]=v;}const ui=state?.privateContent;if(ui){if(ui.speed===1||ui.speed===.25)speed=ui.speed;if(typeof ui.burst==='boolean')burst=ui.burst;if(Number.isFinite(ui.charge)&&ui.charge>=.3&&ui.charge<=1)charge=ui.charge;}}
+function save(){window.openai?.setWidgetState?.({modelContent:{energyHitSettings:settings},privateContent:{charge,burst,speed}})?.catch(()=>{});}
+function sync(){for(const f of fields){const [group,key]=f.dataset.setting.split('.');f.value=settings[group][key];root.querySelector(`[data-value="${f.dataset.setting}"]`).textContent=f.value+(key==='durationMs'?' ms':' px');}root.querySelector('[data-export]').value=JSON.stringify(settings,null,2);root.querySelector('[data-speed]').value=speed;root.querySelector('[data-burst]').value=burst?'1':'0';root.querySelector('[data-charge]').value=charge*100;root.querySelector('[data-charge-value]').textContent=Math.round(charge*100)+'%';}
+function stop(){playing=false;playButton.textContent='Play comparison';}
+function render(ms){
+ time=ms;root.querySelector('[data-time]').value=Math.max(0,ms);root.querySelector('[data-time-value]').textContent=Math.max(0,Math.round(ms))+' ms';if(!engines)return;
+ const theme=getComputedStyle(root),neutral=theme.getPropertyValue('--muted').trim();
+ for(const weapon of ['laser','turbo','charge']){const s=preset(weapon);root.querySelector(`[data-spec="${weapon}"]`).textContent=`${Math.round(s.durationMs)} ms · ${Math.round(s.widthPx)} px`+(weapon==='charge'?` · ${Math.round(charge*100)}% charge`:weapon==='turbo'&&burst?' · six hits':'');}
+ for(const scene of scenes){const {canvas,ctx:c,view,weapon}=scene,w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+  const large=view==='large',contact=large?[w*.12,h*.55]:[w*.46,h*.53],s=preset(weapon),width=large?s.widthPx*Math.min(2.2,w*.76/80):s.widthPx;
+  if(large){c.fillStyle=neutral;c.fillRect(0,0,w,h);}else{const center=view==='ship'?[1149,319]:[976,210];c.drawImage(backdrop,center[0]-contact[0],center[1]-contact[1],w,h,0,0,w,h);}
+  const count=weapon==='turbo'&&burst?settings.turboHits:1;
+  for(let i=0;i<count;i++)engines[weapon].draw(c,ms-i*settings.turboIntervalMs,s,contact,width);
+ }
+}
+function animate(now){if(!playing)return;const ms=(now-start)*speed;render(Math.min(ms,settings.previewEndMs));if(ms>=settings.previewEndMs){stop();status.textContent='Comparison complete';return;}requestAnimationFrame(animate);}
+playButton.onclick=()=>{if(playing){stop();return;}playing=true;start=performance.now();playButton.textContent='Pause';status.textContent='Playing comparison';requestAnimationFrame(animate);};
+root.querySelector('[data-time]').oninput=e=>{stop();render(+e.target.value);};
+root.querySelector('[data-speed]').onchange=e=>{stop();speed=+e.target.value;save();};
+root.querySelector('[data-burst]').onchange=e=>{stop();burst=e.target.value==='1';sync();render(burst?100:0);save();};
+root.querySelector('[data-charge]').oninput=e=>{stop();charge=+e.target.value/100;sync();render(0);};root.querySelector('[data-charge]').onchange=save;
+for(const f of fields){f.oninput=()=>{const [group,key]=f.dataset.setting.split('.');settings[group][key]=+f.value;stop();sync();render(30);};f.onchange=save;}
+root.querySelector('[data-use]').onclick=async()=>{save();if(window.openai?.sendFollowUpMessage)await window.openai.sendFollowUpMessage({prompt:'Use these approved turbo and charge laser hit variants: '+JSON.stringify(settings),title:'Use energy hit variants'});else{root.querySelector('[data-export-details]').open=true;root.querySelector('[data-export]').select();status.textContent='Settings selected for copying';}};
+restore(window.openai?.widgetState);sync();window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState){restore(e.detail.globals.widgetState);sync();render(time);}});
+new ResizeObserver(()=>render(time)).observe(root);
+new MutationObserver(()=>render(time)).observe(document.documentElement,{attributes:true,attributeFilter:['class','style','data-theme']});
+Promise.all([source.decode(),backdrop.decode()]).then(()=>{const parsed=ImpactMotion.parse(source);engines=Object.fromEntries(['laser','turbo','charge'].map(k=>[k,ImpactMotion.create(parsed)]));render(0);window.energyPreview={ready:true,engines,baseline,get settings(){return structuredClone(settings);},charged,render:ms=>{stop();render(ms);},setView:v=>{stop();if(v.charge!==undefined)charge=v.charge;if(v.burst!==undefined)burst=v.burst;sync();render(0);}};}).catch(e=>{status.setAttribute('role','alert');status.textContent=e.message;throw e;});
+})();
+</script>

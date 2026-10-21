@@ -1,0 +1,9 @@
+{
+  "turbo": {"durationMs": 160, "widthPx": 40, "fanMotion": 0.08, "sparkReachPx": 14, "glow": 0.15},
+  "chargeMin": {"durationMs": 260, "widthPx": 42, "fanMotion": 0.10, "sparkReachPx": 16, "glow": 0.20},
+  "chargeMax": {"durationMs": 420, "widthPx": 72, "fanMotion": 0.12, "sparkReachPx": 30, "glow": 0.35},
+  "minCharge": 0.3,
+  "turboIntervalMs": 75,
+  "turboHits": 6,
+  "previewEndMs": 800
+}

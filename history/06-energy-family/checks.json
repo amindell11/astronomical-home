@@ -1,0 +1,49 @@
+{
+  "baseline": {
+    "durationMs": 340,
+    "widthPx": 48,
+    "fanMotion": 0.12,
+    "sparkReachPx": 20,
+    "glow": 0.25
+  },
+  "chargeSamples": [
+    {
+      "charge": 0.3,
+      "durationMs": 260,
+      "widthPx": 42,
+      "fanMotion": 0.1,
+      "sparkReachPx": 16,
+      "glow": 0.2
+    },
+    {
+      "charge": 0.65,
+      "durationMs": 340,
+      "widthPx": 57,
+      "fanMotion": 0.11,
+      "sparkReachPx": 23,
+      "glow": 0.275
+    },
+    {
+      "charge": 1,
+      "durationMs": 420,
+      "widthPx": 72,
+      "fanMotion": 0.12,
+      "sparkReachPx": 30,
+      "glow": 0.35
+    }
+  ],
+  "expiryAlpha": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "turboVisibleBeforeExpiry": true,
+  "chargeControlWorks": true,
+  "burstControlWorks": true,
+  "tuningUpdatesExport": true,
+  "settingsActionWorks": true,
+  "mobileOverflow": false,
+  "pageErrors": []
+}
