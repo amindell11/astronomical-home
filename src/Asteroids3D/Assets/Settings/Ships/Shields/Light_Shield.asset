@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a8844267fe64e1b845d63987923db74, type: 3}
   m_Name: Light_Shield
   m_EditorClassIdentifier: 
+  displayName: Light Shield
   maxShield: 32
   shieldRegenDelay: 2
   shieldRegenRate: 18

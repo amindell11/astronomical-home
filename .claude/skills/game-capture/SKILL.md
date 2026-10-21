@@ -183,7 +183,9 @@ snippets live in this skill's `cli-eval/` — run them with
   example: `cli-eval/asset_still_scene.cs` then `asset_still_render.cs` (overlays are
   line-topology meshes, since gizmos never reach an own-camera render) → PNG in the
   scratchpad → SendUserFile. Load an empty scene before closing the editor so nothing
-  prompts to save. The lane is young: extend the snippets as uses accumulate.
+  prompts to save. The lane is young: extend the snippets as uses accumulate. A fleet
+  lineup, or any still while the owner's editor blocks a boot, takes the batch lane in
+  `ship-art-pipeline` → `stages/8-lineup.md` instead.
 - **Sub-second subjects**: a select→capture round-trip is ~0.5–1 s, too slow for laser
   bolts and projectiles-in-flight. `wait_for` with an `on_met` capture fires in the frame
   its condition holds (`doc/agents/unity-cli.md` → Latency envelope); whether that

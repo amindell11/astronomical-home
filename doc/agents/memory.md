@@ -13,7 +13,7 @@ since 2026-09-22 no working state either:
 - in-flight work — the pool (`./scripts/worktree_dashboard.sh`,
   `agent_worktree_pool.sh status`: leases, held work) plus open PRs;
 - active arcs — `gh issue list --label arc --state open` and the board;
-- handoffs — the spawn-chip prompt that starts the fresh session.
+- handoffs — the prompt that starts the new session.
 
 If a fact would hurt the repo when it drifts, it does not belong here: a
 decision or result → the issue; a rule → `doc/agents/` or `AGENTS.md`; an

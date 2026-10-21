@@ -388,6 +388,7 @@ GameObject:
   - component: {fileID: 454884373}
   - component: {fileID: 454884375}
   - component: {fileID: 454884374}
+  - component: {fileID: 454884376}
   m_Layer: 16
   m_Name: FarNebula
   m_TagString: Untagged
@@ -463,6 +464,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 454884372}
   m_Mesh: {fileID: 4300000, guid: f4d30870e21c8da429a2da47965d6903, type: 2}
+--- !u!114 &454884376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 454884372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af6cc7a2f6c3d2488cc86ab5534a9f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &671319353
 GameObject:
   m_ObjectHideFlags: 0
@@ -474,6 +487,7 @@ GameObject:
   - component: {fileID: 671319354}
   - component: {fileID: 671319356}
   - component: {fileID: 671319355}
+  - component: {fileID: 671319357}
   m_Layer: 16
   m_Name: TurquoiseNebula
   m_TagString: Untagged
@@ -549,6 +563,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 671319353}
   m_Mesh: {fileID: 4300000, guid: f4d30870e21c8da429a2da47965d6903, type: 2}
+--- !u!114 &671319357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 671319353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af6cc7a2f6c3d2488cc86ab5534a9f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &740512522
 GameObject:
   m_ObjectHideFlags: 0
