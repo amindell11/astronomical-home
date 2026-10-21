@@ -1,0 +1,20 @@
+[
+  {
+    "outcome": "victory",
+    "frames": 18,
+    "durationMs": 3200,
+    "firstDetailsSeconds": 1.0264,
+    "interactiveSeconds": 1.536,
+    "gifBytes": 4032231,
+    "pausedThroughout": true
+  },
+  {
+    "outcome": "defeat",
+    "frames": 18,
+    "durationMs": 3270,
+    "firstDetailsSeconds": 1.1116,
+    "interactiveSeconds": 1.6207,
+    "gifBytes": 4053448,
+    "pausedThroughout": true
+  }
+]
