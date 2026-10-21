@@ -26,7 +26,6 @@ namespace Ships.Keystones
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
 
-        /// <summary>Advances the clock; a nonzero input while ready activates. Returns the impulse to apply this step.</summary>
         public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated)
         {
             clock += dt;
