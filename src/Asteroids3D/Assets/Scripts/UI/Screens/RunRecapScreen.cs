@@ -70,7 +70,7 @@ namespace UI.Screens
             blocker.anchorMax = Vector2.one;
             blocker.offsetMin = blocker.offsetMax = Vector2.zero;
             blocker.gameObject.AddComponent<Image>().color = Color.clear;
-            var group = Box(transform, "Panels", 0, 0, 642f, height);
+            var group = Box(transform, "Panels", 0, 0, 710f, height);
             group.anchorMin = group.anchorMax = new Vector2(.07f, .5f);
             group.pivot = new Vector2(0f, .5f);
             var panel = Box(group, "Recap", 0, 0, 338, height);
@@ -138,11 +138,11 @@ namespace UI.Screens
 
         private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor, float height)
         {
-            var panel = Box(parent, "Scoreboard", 350, 0, 292, height);
+            var panel = Box(parent, "Scoreboard", 350, 0, 360, height);
             Fill(panel, Backing);
-            Label(panel, "Heading", "SCOREBOARD", 22, 32, 248, 24, 16, Ink);
+            Label(panel, "Heading", "SCOREBOARD", 28, 32, 304, 24, 16, Ink);
             var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
-            Label(panel, "Rank", "Your best runs · " + rank, 22, 62, 248, 18, 11, Muted);
+            Label(panel, "Rank", "Your best runs · " + rank, 28, 62, 304, 18, 11, Muted);
             ScoreCells(panel, "Columns", 105, "Run", "Sectors", "Kills", "Time", Muted, false);
             var visible = Math.Min(5, board.Rows.Count);
             for (var i = 0; i < visible; i++)
@@ -151,9 +151,9 @@ namespace UI.Screens
                 var row = board.Rows[index];
                 var current = board.Rank == index + 1;
                 var y = 132 + i * 44f;
-                Fill(Box(panel, "Divider", 22, y, 248, 1), Line);
+                Fill(Box(panel, "Divider", 28, y, 304, 1), Line);
                 if (current)
-                    Fill(Box(panel, "CurrentRun", 22, y, 248, 44),
+                    Fill(Box(panel, "CurrentRun", 28, y, 304, 44),
                         new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
                 ScoreCells(panel, "Row" + (index + 1), y + 10,
                     $"{index + 1}   " + (current ? "This run" : row.EndedUtc.ToLocalTime().ToString("MMM d", CultureInfo.InvariantCulture)),
@@ -165,11 +165,11 @@ namespace UI.Screens
         private void ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
-            var row = Box(panel, name, 22, y, 248, 24);
-            Label(row, "Run", run, 0, 0, 106, 24, 11, color);
-            Label(row, "Sectors", sectors, 106, 0, 53, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Kills", kills, 162, 0, 36, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Time", time, 202, 0, 46, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            var row = Box(panel, name, 28, y, 304, 24);
+            Label(row, "Run", run, 0, 0, 122, 24, 11, color);
+            Label(row, "Sectors", sectors, 134, 0, 58, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Kills", kills, 204, 0, 36, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Time", time, 254, 0, 50, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
         }
 
         private void Continue(RectTransform parent, string caption, float y, Action onContinue)
