@@ -64,7 +64,7 @@ namespace RL.Probes
         public int agentBoostsPaid;
         public int oppBoostsPaid;
 
-        public const string SchemaId = "rl-combat-telemetry-v1";
+        public const string SchemaId = "rl-combat-telemetry-v2";
         /// <summary>Quarter-envelope bins to 2.0× the normalizer, plus one overflow bin.</summary>
         public const int RangeBands = 9;
 
@@ -102,7 +102,7 @@ namespace RL.Probes
         public float meanAgentBoostsPaid;
         public float meanOppBoostsPaid;
 
-        public const string SchemaId = "rl-combat-telemetry-summary-v1";
+        public const string SchemaId = "rl-combat-telemetry-summary-v2";
 
         public static CombatTelemetrySummary Summarize(string opponent, IReadOnlyList<CombatTelemetryRow> rows)
         {
