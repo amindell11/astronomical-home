@@ -113,17 +113,21 @@ clone/machine from Git Bash: `mkdir -p .agents && ln -s "$(pwd)/.claude/skills" 
 — symlinks need Developer Mode or an elevated shell on Windows; otherwise use a
 directory junction: `cmd /c mklink /J .agents\skills .claude\skills`.
 
-## The primary tree pulls by fast-forward, never rebase
+## The primary tree syncs through `sync-primary`, never `git pull`
 
 The owner's global `~/.gitconfig` sets `pull.rebase=true`, `rebase.autostash=true` and
 `branch.autosetuprebase=always` (which stamps `branch.main.rebase=true`), so a plain
 `git pull` in the primary tree stashed their uncommitted edits when main conflicted with
-them (2026-10-03). Turning autostash off alone made every pull refuse over any tracked
-edit. The primary's repo-local config overrides all three, so `git pull --ff-only` goes
-through beside the owner's edits and refuses with "would be overwritten" only when they
-overlap. Recreate on a fresh clone:
-`git -C D:/amind/git/astronomical-home config rebase.autoStash false`,
-`… config pull.rebase false`, `… config branch.main.rebase false`.
+them (2026-10-03). The primary's repo-local config overrides only `branch.main.rebase=false`,
+so a plain pull merges, which `rebase.autostash` does not reach, and it refuses whenever
+main changes any file the owner has edited: git checks per file, not per hunk, and Unity
+YAML files overlap often. `./scripts/agent_worktree_pool.sh sync-primary` replaces the
+pull: it fetches and fast-forwards with `--no-autostash` or `--autostash` spelled out, so
+no pull or autostash config applies, and replays the owner's edits only when
+`git merge-tree` shows the merge clean. Its `--help` entry is the interface. A plain
+`git pull --ff-only` stays harmless because it refuses. Recreate the override on a fresh
+clone, so a stray pull merges instead of rebasing with autostash:
+`git -C D:/amind/git/astronomical-home config branch.main.rebase false`.
 
 ## Never hand-edit `~/.claude.json` while Claude Code runs
 
