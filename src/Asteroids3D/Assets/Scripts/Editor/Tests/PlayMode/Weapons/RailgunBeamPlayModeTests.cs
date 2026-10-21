@@ -13,10 +13,6 @@ using UnityEngine;
 
 namespace Tests.PlayMode.Weapons
 {
-    /// <summary>
-    /// The railgun beam is a capsule swept along the game plane that pierces: it strikes targets
-    /// nearest-first and carries each kill's overkill on until a survivor stops it.
-    /// </summary>
     [Category("Weapons")]
     public class RailgunBeamPlayModeTests : PlayModeWorldFixture
     {
