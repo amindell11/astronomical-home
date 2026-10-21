@@ -75,7 +75,7 @@ Notes on the judgement calls:
 
 | Slot | Count | Fills with | Status |
 |---|---|---|---|
-| **Engine** | 1 | engine module | **built** |
+| **Engine** | 1 | the chassis's own engine module — locked to the ship, not a hangar pick (#1028) | **built** |
 | **Shield** | 1 | shield module | **built** |
 | **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
