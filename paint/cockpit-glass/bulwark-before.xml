@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Failed(Child)" total="9" passed="7" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.2011702">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="898" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.201170" total="9" passed="7" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="2076" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="898" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.166405" total="9" passed="7" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44504" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="2077" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="898" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.154850" total="9" passed="7" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="2078" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="898" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.146304" total="9" passed="7" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="2082" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="110" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.004803" total="3" passed="1" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="2083" name="Illustrated" fullname="Tests.EditMode.Rendering.Illustrated" runstate="Runnable" testcasecount="46" result="Failed" site="Child" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:38Z" duration="6.002120" total="3" passed="1" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1993" name="BulwarkGlassCaptureEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:37Z" duration="5.559510" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="1994" name="Capture" fullname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests.Capture" methodname="Capture" classname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" runstate="Runnable" seed="888193168" result="Passed" start-time="2026-10-21 17:28:32Z" end-time="2026-10-21 17:28:37Z" duration="5.516974" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1995" name="DrawnCanopyEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="33" result="Failed" site="Child" start-time="2026-10-21 17:28:37Z" end-time="2026-10-21 17:28:38Z" duration="0.439056" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-suite type="ParameterizedMethod" id="2002" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-10-21 17:28:37Z" end-time="2026-10-21 17:28:38Z" duration="0.379046" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <failure>
+                    <message><![CDATA[One or more child tests had errors]]></message>
+                  </failure>
+                  <test-case id="2000" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Canopy&quot;,0,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Canopy&quot;,0,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1964350922" result="Failed" start-time="2026-10-21 17:28:37Z" end-time="2026-10-21 17:28:38Z" duration="0.374572" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <failure>
+                      <message><![CDATA[  Expected string length 25 but was 26. Strings differ at index 19.
+  Expected: "Astronomical/Drawn/Canopy"
+  But was:  "Astronomical/Drawn/Surface"
+  ------------------------------^
+]]></message>
+                      <stack-trace><![CDATA[at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh (System.String ship, System.String rendererName, System.Int32 index, System.Boolean debris) [0x00079] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\Illustrated\DrawnCanopyEditModeTests.cs:91
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2022" name="Reflection_MovesAcrossGlassWhenLightTurns" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.050877" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <failure>
+                    <message><![CDATA[One or more child tests had errors]]></message>
+                  </failure>
+                  <test-case id="2021" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="329976587" result="Failed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.042453" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <failure>
+                      <message><![CDATA[  The reflection render must contain visible artwork.
+  Expected: greater than 10
+  But was:  0.0f
+]]></message>
+                      <stack-trace><![CDATA[at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.LuminanceCentroid (UnityEngine.Color[] pixels) [0x0003e] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\Illustrated\DrawnCanopyEditModeTests.cs:292
+at Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns (System.String path, System.Boolean underside) [0x0002c] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\Illustrated\DrawnCanopyEditModeTests.cs:169
+]]></stack-trace>
+                    </failure>
+                    <output><![CDATA[Material 'Bulwark Glass' with Shader 'Astronomical/Drawn/Surface' doesn't have a float or range property '_DrawnReflectionStrength'
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="2080" name="Ships" fullname="Tests.EditMode.Ships" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.107539" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1848" name="ShipAnatomyEditModeTests" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.106245" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Ships" />
+              </properties>
+              <test-suite type="ParameterizedMethod" id="1860" name="Chassis_FillsOnlyDeclaredSlots" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.042896" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1859" name="Chassis_FillsOnlyDeclaredSlots(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Bulwark)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="682894163" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.041632" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1874" name="Chassis_HullKeepsTheContourAsASeparateVertexRange" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.026940" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1873" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Bulwark)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1264713315" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.024169" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1870" name="Chassis_HullSlotHoldsItsOwnRoleMeshes" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.014290" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1869" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Bulwark)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1693738539" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.012573" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1855" name="Chassis_IsADepthOneVariantOfShipBase" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.007903" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1854" name="Chassis_IsADepthOneVariantOfShipBase(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Bulwark)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1226372984" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.006374" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1865" name="Chassis_PlacesEverySocket" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.011353" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1864" name="Chassis_PlacesEverySocket(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Bulwark)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="972603826" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.009398" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1783" name="ShipSilhouetteEditModeTests" fullname="Tests.EditMode.ShipSilhouetteEditModeTests" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.010659" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1789" name="Chassis_WiresItsRigAndEveryHullRenderer" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.009169" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1788" name="Chassis_WiresItsRigAndEveryHullRenderer(Bulwark)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Bulwark)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="805985230" result="Passed" start-time="2026-10-21 17:28:38Z" end-time="2026-10-21 17:28:38Z" duration="0.007690" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

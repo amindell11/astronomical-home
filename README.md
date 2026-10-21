@@ -13,3 +13,5 @@
 Earlier reviews: [Fitted mounting shoes](detail-model/2026-10-13-r07/README.md) · [Separate tail fins](detail-model/2026-10-13-r06/README.md) · [Restored tails](detail-model/2026-10-13-r05/README.md) · [Cockpit and inset fixes](detail-model/2026-10-13-r03/README.md) · [Approved concept](concept/2026-10-11-r04/README.md)
 
 [Issue #963](https://github.com/amindell11/astronomical-home/issues/963)
+
+[Moving cockpit glass, 2026-10-21](paint/cockpit-glass/README.md). Matched Unity captures and recovered authored-mask evidence for issue #1087.
