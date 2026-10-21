@@ -27,13 +27,13 @@ namespace Combat.Projectiles.Audio
         private void OnEnable()
         {
             missile.Launched += BeginFlight;
-            missile.OnDetonated += Detonate;
+            missile.OnDetonated += PlayDetonation;
         }
 
         private void OnDisable()
         {
             missile.Launched -= BeginFlight;
-            missile.OnDetonated -= Detonate;
+            missile.OnDetonated -= PlayDetonation;
             StopFlight();
         }
 
@@ -45,16 +45,16 @@ namespace Combat.Projectiles.Audio
             flight.setParameterByName(SpeedParameter, missile.NormalizedSpeed);
         }
 
-        // Only the Rigidbody overload gives FMOD a velocity; the plain one leaves Doppler at zero.
         private void BeginFlight()
         {
             flight = RuntimeManager.CreateInstance(flightEvent);
+            // Only the Rigidbody overload sends FMOD the body's velocity, which Doppler needs.
             RuntimeManager.AttachInstanceToGameObject(flight, gameObject, missile.rb);
             flight.setParameterByName(SpeedParameter, missile.NormalizedSpeed);
             flight.start();
         }
 
-        private void Detonate(Vector3 position)
+        private void PlayDetonation(Vector3 position)
         {
             StopFlight();
             RuntimeManager.PlayOneShot(detonateEvent, position);
