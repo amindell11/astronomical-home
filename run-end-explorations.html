@@ -1,0 +1,315 @@
+<style>
+#run-end-explorations { width:100%; }
+#run-end-explorations .example-controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+#run-end-explorations .example-controls > span { margin-right:5px; }
+#run-end-explorations .concept-stage { height:526px; }
+#run-end-explorations .game { --g-ink:#f0f1e9; --g-muted:#a8b4bd; --g-line:#ffffff28; --g-accent:#d8edbd; position:relative; isolation:isolate; overflow:hidden; width:100%; height:486px; background:#080e16; color:var(--g-ink); font-family:Arial,Helvetica,sans-serif; color-scheme:dark; }
+#run-end-explorations .game *, #run-end-explorations .game *::before, #run-end-explorations .game *::after { box-sizing:border-box; }
+#run-end-explorations .sky { position:absolute; z-index:-2; inset:0; opacity:.78; background:radial-gradient(ellipse at 77% 32%,#16495865,transparent 42%),radial-gradient(ellipse at 20% 91%,#18244f8c,transparent 58%),#070d16; }
+#run-end-explorations .stars { position:absolute; inset:0; background-image:radial-gradient(circle at 13% 18%,#b4d2de 0 1px,transparent 1.8px),radial-gradient(circle at 76% 61%,#95a4b8 0 .8px,transparent 1.4px),radial-gradient(circle at 41% 37%,#bdc4cd 0 .65px,transparent 1.4px),radial-gradient(circle at 69% 84%,#a9c0b0 0 .6px,transparent 1.5px); background-size:197px 151px,263px 173px,137px 231px,307px 291px; opacity:.38; }
+#run-end-explorations .game button { font:inherit; color:inherit; border:0; margin:0; }
+#run-end-explorations .game button:disabled { opacity:.55; }
+#run-end-explorations .tag { font:11px/1.4 Consolas,monospace; text-transform:uppercase; letter-spacing:2px; color:var(--g-muted); }
+#run-end-explorations .metric-label { font-size:12px; line-height:1.5; letter-spacing:1px; text-transform:uppercase; color:var(--g-muted); }
+#run-end-explorations .action { display:inline-flex; gap:12px; align-items:center; justify-content:center; min-height:44px; padding:12px 23px; background:var(--g-accent); color:#122017!important; font-size:13px!important; font-weight:600!important; border-radius:3px; }
+#run-end-explorations .action:hover { filter:brightness(1.1); }
+#run-end-explorations .text-action { min-height:44px; padding:10px 3px; background:transparent; font-size:12px!important; color:var(--g-muted)!important; }
+#run-end-explorations .text-action:hover { color:var(--g-ink)!important; }
+#run-end-explorations .actions { display:flex; flex-wrap:wrap; gap:22px; align-items:center; }
+#run-end-explorations .concept-caption { height:40px; display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; line-height:1.3; color:var(--muted-foreground); }
+#run-end-explorations .flow-screen { position:absolute; inset:0; z-index:10; background:#0b1521f5; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:24px; text-align:center; padding:28px; }
+#run-end-explorations .flow-screen[hidden] { display:none; }
+#run-end-explorations .flow-title { font-size:44px; font-weight:400; line-height:1.1; letter-spacing:-1px; }
+#run-end-explorations .flow-caption { font-size:13px; color:var(--g-muted); }
+#run-end-explorations .open-content { height:100%; padding:52px 58px 38px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+#run-end-explorations .open .tag { letter-spacing:4px; }
+#run-end-explorations .open-stats { display:grid; grid-template-columns:1fr 1fr; gap:76px; margin:38px 0 40px; }
+#run-end-explorations .open-number { font-size:110px; line-height:1; font-weight:300; letter-spacing:-7px; margin-bottom:12px; }
+#run-end-explorations .open .action { background:transparent; border-bottom:1px solid #d8edbd88; color:var(--g-accent)!important; border-radius:0; padding:9px 2px; }
+#run-end-explorations .open .actions { gap:30px; }
+#run-end-explorations .journey-content { height:100%; padding:46px 42px 36px; display:flex; flex-direction:column; }
+#run-end-explorations .journey-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:15px; margin-top:18px; }
+#run-end-explorations .journey-title { font-size:35px; line-height:1.12; letter-spacing:-1.2px; max-width:280px; }
+#run-end-explorations .journey-kills { text-align:right; }
+#run-end-explorations .journey-kills strong { display:block; font-size:45px; line-height:1.1; font-weight:400; }
+#run-end-explorations .route { display:flex; align-items:flex-start; justify-content:space-between; margin:44px 0 30px; position:relative; }
+#run-end-explorations .route::before { content:""; position:absolute; top:17px; left:25px; right:25px; height:3px; background:linear-gradient(to right,#d8edbd 65%,#b0c3cb33 65%); }
+#run-end-explorations .game[data-outcome="win"] .route::before { background:#d8edbd; }
+#run-end-explorations .route-stop { position:relative; display:flex; align-items:center; flex-direction:column; min-width:70px; background:transparent; gap:10px; padding:0!important; }
+#run-end-explorations .route-dot { background:#d8edbd; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#18261d; font-size:14px; }
+#run-end-explorations .route-stop:last-child .route-dot { background:#e9b09d; color:#32201e; }
+#run-end-explorations .game[data-outcome="win"] .route-stop:last-child .route-dot { background:#d8edbd; color:#18261d; }
+#run-end-explorations .route-stop > span:last-child { font:11px/1.3 Consolas,monospace; color:var(--g-muted); }
+#run-end-explorations .route-detail { font-size:12px; color:var(--g-muted); margin-bottom:auto; min-height:20px; }
+#run-end-explorations .journey .actions { justify-content:space-between; }
+#run-end-explorations .arcade { background:#131611; --g-accent:#def76a; --g-ink:#f5f2dd; --g-muted:#bdbea6; }
+#run-end-explorations .arcade-content { height:100%; padding:39px 42px 32px; display:flex; flex-direction:column; }
+#run-end-explorations .arcade .tag { color:#def76a; letter-spacing:3px; }
+#run-end-explorations .arcade-kills { display:flex; align-items:baseline; gap:18px; margin:22px 0 4px; font-family:Impact,'Arial Narrow',sans-serif; text-transform:uppercase; }
+#run-end-explorations .arcade-number { font-size:142px; line-height:.95; letter-spacing:-4px; }
+#run-end-explorations .arcade-word { font-size:58px; line-height:1; }
+#run-end-explorations .arcade-distance { border-top:2px solid #e7ebd0; padding-top:15px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; font-family:Impact,'Arial Narrow',sans-serif; font-size:34px; }
+#run-end-explorations .arcade-distance small { font-family:Arial,sans-serif; font-size:12px; color:var(--g-muted); }
+#run-end-explorations .arcade .actions { margin-top:auto; }
+#run-end-explorations .arcade .action { border-radius:0; min-width:160px; text-transform:uppercase; letter-spacing:1px; }
+#run-end-explorations .arcade::after { content:""; position:absolute; right:0; top:0; width:10px; height:100%; background:repeating-linear-gradient(0deg,#def76a 0 18px,transparent 18px 22px); opacity:.9; }
+#run-end-explorations .arcade .battle-scene { z-index:-1; opacity:.45; }
+#run-end-explorations .arcade-content { background:linear-gradient(90deg,#0d1413ed,#0d14135c); }
+#run-end-explorations .arcade .rock { background:#425d50; }
+#run-end-explorations .dock-content { height:100%; padding:35px 38px; display:flex; flex-direction:column; }
+#run-end-explorations .dock-heading { font-size:25px; letter-spacing:4px; margin-top:8px; }
+#run-end-explorations .dock-platform { position:absolute; z-index:-1; width:340px; height:340px; border:1px solid #83b2c02b; border-radius:50%; right:-90px; top:53px; box-shadow:0 0 0 30px #83b2c008,0 0 0 90px #83b2c006; }
+#run-end-explorations .dock-platform::before { content:""; position:absolute; width:1px; top:0; bottom:0; left:50%; background:#83b2c022; }
+#run-end-explorations .dock-platform::after { content:""; position:absolute; height:1px; left:0; right:0; top:50%; background:#83b2c022; }
+#run-end-explorations .dock-card { margin-top:48px; padding:0 0 0 18px; border-left:2px solid var(--g-accent); width:max-content; max-width:100%; }
+#run-end-explorations .dock-stats { display:flex; gap:35px; margin-top:17px; }
+#run-end-explorations .dock-number { display:block; font-size:43px; line-height:1; margin-bottom:8px; }
+#run-end-explorations .dock .actions { margin-top:auto; }
+#run-end-explorations .dock .action { border-radius:25px; }
+#run-end-explorations .dock-equipment { display:none; margin-top:20px; padding:12px 0; font-size:13px; color:var(--g-muted); }
+#run-end-explorations .dock.equipment-open .dock-equipment { display:block; }
+#run-end-explorations .dock.equipment-open .dock-card { margin-top:20px; }
+#run-end-explorations .bottom .sky { background:radial-gradient(ellipse at 50% 52%,#23374788,transparent 45%),#08111a; }
+#run-end-explorations .battle-scene { position:absolute; inset:0; overflow:hidden; }
+#run-end-explorations .rock { position:absolute; border-radius:46% 54% 53% 47%; background:#303e4760; box-shadow:inset 3px 3px 0 #81909a20; transform:rotate(25deg); }
+#run-end-explorations .rock.a { width:75px; height:63px; left:12%; top:19%; }
+#run-end-explorations .rock.b { width:32px; height:41px; left:70%; top:39%; }
+#run-end-explorations .rock.c { width:54px; height:44px; left:79%; top:10%; }
+#run-end-explorations .wreck { position:absolute; width:4px; height:4px; border-radius:50%; top:42%; left:44%; background:#daae83; box-shadow:20px -12px #b38a67,-18px 7px #878776,9px 18px #d5b597,35px 8px #63747c,-27px -19px #8e9b9b; }
+#run-end-explorations .battle-status { position:absolute; left:28px; top:29px; }
+#run-end-explorations .bottom-dock { position:absolute; bottom:28px; left:28px; right:28px; background:#101b25f5; border-top:1px solid #9cb0b544; padding:22px 24px; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+#run-end-explorations .bottom-stats { display:flex; gap:27px; }
+#run-end-explorations .bottom-number { display:block; font-size:34px; line-height:1.1; margin-bottom:7px; }
+#run-end-explorations .bottom .metric-label { font-size:11px; letter-spacing:.4px; }
+#run-end-explorations .bottom .action { padding:12px 18px; }
+#run-end-explorations .terminal { background:#070c0f; --g-accent:#b4e8e0; --g-ink:#dceae6; --g-muted:#8fa6a5; }
+#run-end-explorations .terminal-content { height:100%; display:flex; flex-direction:column; justify-content:center; width:270px; max-width:calc(100% - 48px); margin:auto; font-family:Consolas,monospace; }
+#run-end-explorations .terminal-title { font-size:21px; line-height:1.3; text-transform:uppercase; letter-spacing:2px; margin-bottom:29px; }
+#run-end-explorations .terminal-row { display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:12px 0; font-size:13px; text-transform:uppercase; }
+#run-end-explorations .terminal-row strong { font-size:28px; font-weight:400; }
+#run-end-explorations .terminal .actions { margin-top:30px; gap:8px; align-items:stretch; flex-direction:column; }
+#run-end-explorations .terminal .action { justify-content:flex-start; border-radius:0; padding:12px 15px; font-family:Consolas,monospace; }
+#run-end-explorations .terminal .text-action { text-align:left; padding-left:15px; }
+#run-end-explorations .terminal::before, #run-end-explorations .terminal::after { content:""; position:absolute; width:1px; background:#637f7e33; top:40px; bottom:40px; left:calc(50% - 180px); }
+#run-end-explorations .terminal::after { left:calc(50% + 180px); }
+#run-end-explorations .blackbox { background:#101719; }
+#run-end-explorations .blackbox-content { display:grid; grid-template-columns:1fr 1fr; gap:36px; height:100%; padding:56px 38px; align-items:center; }
+#run-end-explorations .last-frame { position:relative; height:260px; background:radial-gradient(ellipse at 45% 55%,#27464e,#0b121b 80%); border:7px solid #d3d8cf; border-bottom-width:35px; transform:rotate(-3deg); }
+#run-end-explorations .last-frame .rock { background:#506061; }
+#run-end-explorations .last-frame .wreck { top:55%; left:50%; }
+#run-end-explorations .frame-caption { position:absolute; bottom:-28px; left:6px; color:#25312e; font:11px/1.4 Consolas,monospace; letter-spacing:1px; }
+#run-end-explorations .blackbox-title { font-size:28px; line-height:1.15; margin:10px 0 25px; }
+#run-end-explorations .blackbox-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:12px 0; border-bottom:1px solid #ffffff20; }
+#run-end-explorations .blackbox-row strong { font-size:32px; font-weight:400; }
+#run-end-explorations .blackbox .actions { margin-top:24px; gap:6px; align-items:flex-start; flex-direction:column; }
+#run-end-explorations .blackbox .action { border-radius:0; }
+#run-end-explorations .sentence-content { height:100%; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; padding:52px; }
+#run-end-explorations .sentence-title { font-family:Georgia,'Times New Roman',serif; font-size:48px; line-height:1.2; letter-spacing:-1.4px; margin:23px 0 35px; max-width:100%; }
+#run-end-explorations .sentence-title .quiet { color:#b5c6c5; }
+#run-end-explorations .sentence .tag { letter-spacing:3px; }
+#run-end-explorations .sentence .action { border-radius:0; background:transparent; color:var(--g-ink)!important; padding:0; border-bottom:1px solid #b2c7bd77; }
+#run-end-explorations .sentence .sky { background:radial-gradient(ellipse at 80% 100%,#31413eaa,transparent 66%),#0b1318; }
+@media(max-width:520px) {
+  #run-end-explorations .concept-stage { height:554px; }
+  #run-end-explorations .game { height:500px; }
+  #run-end-explorations .concept-caption { height:54px; gap:8px; }
+  #run-end-explorations .open-content { padding:35px 20px; }
+  #run-end-explorations .open-stats { gap:36px; margin:44px 0; }
+  #run-end-explorations .open-number { font-size:86px; letter-spacing:-5px; }
+  #run-end-explorations .metric-label { font-size:11px; letter-spacing:.4px; }
+  #run-end-explorations .journey-content { padding:40px 24px 25px; }
+  #run-end-explorations .journey-title { font-size:29px; max-width:175px; }
+  #run-end-explorations .journey-kills strong { font-size:38px; }
+  #run-end-explorations .journey .actions { gap:8px; }
+  #run-end-explorations .journey .action { padding:12px 17px; }
+  #run-end-explorations .arcade-content { padding:44px 25px 29px; }
+  #run-end-explorations .arcade-kills { gap:13px; margin-top:32px; }
+  #run-end-explorations .arcade-number { font-size:108px; }
+  #run-end-explorations .arcade-word { font-size:43px; }
+  #run-end-explorations .arcade-distance { flex-wrap:wrap; font-size:30px; gap:4px; }
+  #run-end-explorations .arcade-distance small { flex-basis:100%; }
+  #run-end-explorations .arcade .actions { gap:13px; }
+  #run-end-explorations .arcade .action { min-width:140px; }
+  #run-end-explorations .dock-content { padding:35px 25px; }
+  #run-end-explorations .dock-stats { gap:25px; }
+  #run-end-explorations .dock .actions { gap:15px; }
+  #run-end-explorations .bottom-dock { left:16px; right:16px; bottom:20px; padding:20px; flex-wrap:wrap; }
+  #run-end-explorations .bottom-stats { justify-content:space-between; width:100%; }
+  #run-end-explorations .bottom .action { width:100%; }
+  #run-end-explorations .blackbox-content { grid-template-columns:1fr; grid-template-rows:160px auto; gap:20px; padding:26px; }
+  #run-end-explorations .last-frame { height:160px; width:100%; transform:rotate(-2deg); border-bottom-width:29px; }
+  #run-end-explorations .frame-caption { bottom:-24px; }
+  #run-end-explorations .blackbox-title { font-size:22px; margin:5px 0 8px; }
+  #run-end-explorations .blackbox-row { padding:7px 0; }
+  #run-end-explorations .blackbox-row strong { font-size:26px; }
+  #run-end-explorations .blackbox .actions { flex-direction:row; gap:16px; margin-top:16px; align-items:center; }
+  #run-end-explorations .blackbox .action { padding:12px 18px; }
+  #run-end-explorations .sentence-content { padding:32px; }
+  #run-end-explorations .sentence-title { font-size:42px; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  #run-end-explorations .game button { transition:filter .15s,background .15s,color .15s; }
+}
+</style>
+<div id="run-end-explorations" aria-label="Run-end mockups">
+  <div class="example-controls" aria-label="Example run outcome">
+    <span class="text-small text-muted">Example run</span>
+    <button type="button" class="btn" data-example="loss" aria-pressed="true">Ship lost</button>
+    <button type="button" class="btn" data-example="win" aria-pressed="false">Extracted</button>
+  </div>
+  <div class="viz-carousel" aria-label="Run-end design directions">
+    <section data-variant="Flight path" aria-label="Flight path" class="concept-stage">
+      <div class="game journey" data-outcome="loss" aria-label="Flight path result">
+        <div class="sky"><div class="stars"></div></div>
+        <div class="journey-content">
+          <div class="tag" data-status>Run ended</div>
+          <div class="journey-heading"><div class="journey-title" data-reached>Reached<br>sector 03</div><div class="journey-kills"><strong data-kills>17</strong><span class="metric-label">Kills</span></div></div>
+          <div class="route" aria-label="Sector progress">
+            <button type="button" class="route-stop cursor-interaction" data-sector="1"><span class="route-dot">✓</span><span>SECTOR 01</span></button>
+            <button type="button" class="route-stop cursor-interaction" data-sector="2"><span class="route-dot">✓</span><span>SECTOR 02</span></button>
+            <button type="button" class="route-stop cursor-interaction" data-sector="3"><span class="route-dot" data-last-stop>×</span><span>SECTOR 03</span></button>
+          </div>
+          <div class="route-detail" aria-live="polite">2 sectors cleared</div>
+          <div class="actions"><button type="button" class="action cursor-interaction" data-action="retry">Fly again <span aria-hidden="true">↗</span></button><button type="button" class="text-action cursor-interaction" data-action="hangar">Hangar</button></div>
+        </div>
+      </div>
+      <div class="concept-caption"><span>Cuphead + Nuclear Throne · tap a sector</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Arcade" aria-label="Arcade" class="concept-stage" hidden>
+      <div class="game arcade" data-outcome="loss" aria-label="Arcade result">
+        <div class="battle-scene" aria-hidden="true"><div class="rock a"></div><div class="rock b"></div><div class="rock c"></div><div class="wreck"></div></div>
+        <div class="arcade-content">
+          <div class="tag" data-status>Run ended</div>
+          <div class="arcade-kills"><span class="arcade-number" data-kills>17</span><span class="arcade-word">Kills</span></div>
+          <div class="arcade-distance"><span data-sector-title>Sector 03</span><small data-cleared-text>2 sectors cleared</small></div>
+          <div class="actions"><button type="button" class="action cursor-interaction" data-action="retry">One more run <span aria-hidden="true">↗</span></button><button type="button" class="text-action cursor-interaction" data-action="hangar">Hangar</button></div>
+        </div>
+      </div>
+      <div class="concept-caption"><span>Nuclear Throne · big kills, immediate retry</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Terminal" aria-label="Terminal" class="concept-stage" hidden>
+      <div class="game terminal" data-outcome="loss" aria-label="Compact terminal result">
+        <div class="terminal-content"><div class="terminal-title" data-status>Run ended</div><div class="terminal-row"><span>Kills</span><strong data-kills>17</strong></div><div class="terminal-row"><span>Sectors cleared</span><strong data-cleared-pad>02</strong></div><div class="actions"><button type="button" class="action cursor-interaction" data-action="retry"><span aria-hidden="true">›</span> Fly again</button><button type="button" class="text-action cursor-interaction" data-action="hangar">Return to hangar</button></div></div>
+      </div>
+      <div class="concept-caption"><span>Downwell · compact, two rows, one accent</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Last frame" aria-label="Last frame" class="concept-stage" hidden>
+      <div class="game blackbox" data-outcome="loss" aria-label="Final moment beside run results">
+        <div class="blackbox-content"><div class="last-frame" aria-label="Placeholder for the last moment of gameplay"><div class="battle-scene" aria-hidden="true"><div class="rock a"></div><div class="rock b"></div><div class="rock c"></div><div class="wreck"></div></div><div class="frame-caption">SECTOR 03</div></div><div><div class="tag">Flight record</div><div class="blackbox-title" data-status>Run ended</div><div class="blackbox-row"><span class="metric-label">Kills</span><strong data-kills>17</strong></div><div class="blackbox-row"><span class="metric-label">Sectors cleared</span><strong data-cleared-pad>02</strong></div><div class="actions"><button type="button" class="action cursor-interaction" data-action="retry">Fly again <span aria-hidden="true">↗</span></button><button type="button" class="text-action cursor-interaction" data-action="hangar">Hangar</button></div></div></div>
+      </div>
+      <div class="concept-caption"><span>Spelunky 2 · last-frame placeholder + results</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Open space" aria-label="Open space" class="concept-stage" hidden>
+      <div class="game open" data-outcome="loss" aria-label="Open space result">
+        <div class="sky"><div class="stars"></div></div>
+        <div class="open-content">
+          <div class="tag" data-status>Run ended</div>
+          <div class="open-stats">
+            <div><div class="open-number" data-kills>17</div><div class="metric-label">Kills</div></div>
+            <div><div class="open-number" data-cleared-pad>02</div><div class="metric-label">Sectors cleared</div></div>
+          </div>
+          <div class="actions"><button type="button" class="action cursor-interaction" data-action="retry">Fly again <span aria-hidden="true">↗</span></button><button type="button" class="text-action cursor-interaction" data-action="hangar">Hangar</button></div>
+        </div>
+      </div>
+      <div class="concept-caption"><span>Open typography · immediate retry</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Bottom bar" aria-label="Bottom bar" class="concept-stage" hidden>
+      <div class="game bottom" data-outcome="loss" aria-label="Result over the final scene">
+        <div class="sky"><div class="stars"></div></div>
+        <div class="battle-scene" aria-hidden="true"><div class="rock a"></div><div class="rock b"></div><div class="rock c"></div><div class="wreck"></div></div>
+        <div class="battle-status tag" data-status>Run ended</div>
+        <div class="bottom-dock"><div class="bottom-stats"><div><span class="bottom-number" data-kills>17</span><span class="metric-label">Kills</span></div><div><span class="bottom-number" data-cleared>2</span><span class="metric-label">Sectors cleared</span></div></div><button type="button" class="action cursor-interaction" data-action="retry">Try again <span aria-hidden="true">↗</span></button></div>
+      </div>
+      <div class="concept-caption"><span>Keep the final scene · compact bottom bar</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="Hangar return" aria-label="Hangar return" class="concept-stage" hidden>
+      <div class="game dock" data-outcome="loss" aria-label="Result inside the hangar">
+        <div class="sky"><div class="stars"></div></div><div class="dock-platform" aria-hidden="true"></div>
+        <div class="dock-content">
+          <div class="tag">Ready for another run</div><div class="dock-heading">HANGAR</div>
+          <div class="dock-card"><div class="tag">Last run · <span data-status>Run ended</span></div><div class="dock-stats"><div><span class="dock-number" data-kills>17</span><span class="metric-label">Kills</span></div><div><span class="dock-number" data-cleared>2</span><span class="metric-label">Sectors cleared</span></div></div></div>
+          <div class="actions"><button type="button" class="action cursor-interaction" data-action="retry">Launch again <span aria-hidden="true">↗</span></button></div>
+        </div>
+      </div>
+      <div class="concept-caption"><span>Skip the result screen · keep the last score</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+    <section data-variant="One line" aria-label="One line" class="concept-stage" hidden>
+      <div class="game sentence" data-outcome="loss" aria-label="Single-sentence result">
+        <div class="sky"><div class="stars"></div></div>
+        <div class="sentence-content"><div class="tag" data-status>Run ended</div><div class="sentence-title"><span data-kills>17</span> kills.<br><span class="quiet"><span data-cleared-word>Two</span> sectors<br>cleared.</span></div><button type="button" class="action cursor-interaction" data-action="retry">Go again <span aria-hidden="true">↗</span></button></div>
+      </div>
+      <div class="concept-caption"><span>A sentence · no scorecard</span><button type="button" class="btn btn-ghost replay" data-replay>Replay</button></div>
+    </section>
+  </div>
+</div>
+<script>
+(function () {
+  const root = document.getElementById('run-end-explorations');
+  const saved = window.openai && window.openai.widgetState;
+  const remembered = saved && (saved.modelContent || saved);
+  const state = { outcome: remembered && remembered.outcome === 'win' ? 'win' : 'loss', starfield: 78 };
+  const games = Array.from(root.querySelectorAll('.game'));
+  const setText = (selector, text) => root.querySelectorAll(selector).forEach(el => { el.textContent = text; });
+  function reset(game) {
+    const flow = game.querySelector('.flow-screen');
+    if (flow) flow.remove();
+    game.classList.remove('equipment-open');
+    const loadout = game.querySelector('[data-action="loadout"]');
+    if (loadout) loadout.textContent = 'Review loadout';
+  }
+  function render() {
+    const win = state.outcome === 'win';
+    games.forEach(game => { game.dataset.outcome = state.outcome; reset(game); });
+    setText('[data-kills]', win ? '24' : '17');
+    setText('[data-cleared]', win ? '3' : '2');
+    setText('[data-cleared-pad]', win ? '03' : '02');
+    setText('[data-cleared-word]', win ? 'Three' : 'Two');
+    setText('[data-cleared-text], .route-detail', win ? '3 sectors cleared' : '2 sectors cleared');
+    setText('[data-status]', win ? 'Extracted' : 'Ship lost');
+    setText('[data-last-stop]', win ? '✓' : '×');
+    setText('[data-route-status]', win ? 'Route complete' : 'Route unfinished');
+    setText('[data-sector-title]', win ? 'All sectors' : 'Sector 03');
+    const reached = root.querySelector('[data-reached]');
+    reached.innerHTML = win ? 'Made it<br>all the way' : 'Reached<br>sector 03';
+    root.querySelectorAll('[data-example]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.example === state.outcome)));
+    root.querySelectorAll('.sky').forEach(sky => { sky.style.opacity = state.starfield / 100; });
+  }
+  function persist(concept, action) {
+    if (window.openai && window.openai.setWidgetState) window.openai.setWidgetState({ modelContent:{ outcome:state.outcome, concept:concept || null, action:action || null }, privateContent:{ starfield:state.starfield } }).catch(function () {});
+  }
+  function flow(game, type) {
+    reset(game);
+    const screen = document.createElement('div');
+    screen.className = 'flow-screen';
+    screen.setAttribute('aria-live','polite');
+    if (type === 'hangar') {
+      screen.innerHTML = '<div class="tag">Ready when you are</div><div class="flow-title">Hangar</div><div class="flow-caption">Your current loadout is ready.</div><button type="button" class="action cursor-interaction" data-action="retry">Launch <span aria-hidden="true">↗</span></button>';
+    } else {
+      screen.innerHTML = '<div class="tag">New run · same loadout</div><div class="flow-title">Sector 01</div><div class="flow-caption">Back into the fight.</div>';
+    }
+    game.appendChild(screen);
+  }
+  root.addEventListener('click', function (event) {
+    const button = event.target.closest('button');
+    if (!button || !root.contains(button)) return;
+    if (button.hasAttribute('data-example')) { state.outcome = button.dataset.example; render(); persist(null, 'outcome'); return; }
+    const variant = button.closest('[data-variant]');
+    if (!variant) return;
+    const game = variant.querySelector('.game');
+    if (button.hasAttribute('data-replay')) { reset(game); const detail = game.querySelector('.route-detail'); if(detail) detail.textContent = state.outcome === 'win' ? '3 sectors cleared' : '2 sectors cleared'; return; }
+    if (button.hasAttribute('data-sector')) { const n=Number(button.dataset.sector); game.querySelector('.route-detail').textContent='Sector 0'+n+' · '+(n<3 || state.outcome==='win' ? 'cleared' : 'ship lost'); return; }
+    if (button.dataset.action === 'loadout') { const open=game.classList.toggle('equipment-open'); button.textContent=open?'Hide loadout':'Review loadout'; return; }
+    if (button.dataset.action) { flow(game,button.dataset.action); persist(variant.dataset.variant,button.dataset.action); }
+  });
+  window.addEventListener('openai:set_globals', function (event) {
+    const snapshot = event.detail && event.detail.globals && event.detail.globals.widgetState;
+    const content = snapshot && (snapshot.modelContent || snapshot);
+    if (content && ['win','loss'].includes(content.outcome) && content.outcome !== state.outcome) { state.outcome=content.outcome; render(); }
+  });
+  render();
+  if (globalThis.Tweak) {
+    const tweak = new Tweak({ container:root, onChange:render });
+    tweak.addSlider(state,'starfield',{label:'Starfield brightness',min:20,max:100,unit:'%',reference:'starfield'});
+  }
+}());
+</script>
