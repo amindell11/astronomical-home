@@ -1,6 +1,6 @@
 {
   "tool": "built-in image_gen",
-  "status": "exploration",
+  "status": "approved-as-is",
   "parent": "../02-refinement/b1-broad-bands.png",
   "parent_sha256": "b35269dd1b223cf90ff7c3ace978af92e96c77902b96c860a44e008ae5ef5ae2",
   "output": "b1-no-left-spikes.png",
@@ -8,5 +8,10 @@
   "transparent_background": true,
   "pixels_modified_after_generation": false,
   "sha256": "0eb51ba237edc0a04427f49863250b4d234705e9a07e1de12a1da3061c9e6108",
-  "generated_utc": "2026-10-21T21:45:45.6746935Z"
+  "generated_utc": "2026-10-21T21:45:45.6746935Z",
+  "approval": {
+    "date": "2026-10-21",
+    "ruling": "https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6327345037",
+    "user_words": "Perfect, approve"
+  }
 }

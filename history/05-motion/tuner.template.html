@@ -1,0 +1,88 @@
+<div id="laser-impact-tuner">
+  <div class="motion-scenes">
+    <figure><figcaption>Enlarged impact</figcaption><canvas data-view="large" role="img" aria-label="Animated laser impact enlarged on a neutral backdrop"></canvas></figure>
+    <figure><figcaption>Ship contact · scale preview</figcaption><canvas data-view="ship" role="img" aria-label="Animated impact at approximate game size on the ship reference"></canvas></figure>
+    <figure><figcaption>Asteroid contact · scale preview</figcaption><canvas data-view="asteroid" role="img" aria-label="Animated impact at approximate game size on the asteroid reference"></canvas></figure>
+  </div>
+  <div class="viz-controls">
+    <button type="button" class="btn btn-primary" data-action="play">Play impact</button>
+    <label class="form-label">Playback speed<select class="form-select" data-control="speed"><option value="1">Normal</option><option value="0.25">Quarter speed</option></select></label>
+    <label class="form-label">Time <output class="tabular-nums" data-output="time">0 ms</output><input class="form-range" data-control="time" type="range" min="0" max="340" step="1" value="0"></label>
+  </div>
+  <hr>
+  <div class="viz-controls" data-tuning>
+    <label class="form-label">Duration <output class="tabular-nums" data-output="durationMs">340 ms</output><input class="form-range" data-setting="durationMs" type="range" min="180" max="500" step="10" value="340"></label>
+    <label class="form-label">Effect width <output class="tabular-nums" data-output="widthPx">48 px</output><input class="form-range" data-setting="widthPx" type="range" min="24" max="72" step="2" value="48"></label>
+    <label class="form-label">Fan motion <output class="tabular-nums" data-output="fanMotion">12%</output><input class="form-range" data-setting="fanMotion" type="range" min="0" max="0.3" step="0.01" value="0.12"></label>
+    <label class="form-label">Spark reach <output class="tabular-nums" data-output="sparkReachPx">20 px</output><input class="form-range" data-setting="sparkReachPx" type="range" min="0" max="40" step="1" value="20"></label>
+    <label class="form-label">Glow <output class="tabular-nums" data-output="glow">25%</output><input class="form-range" data-setting="glow" type="range" min="0" max="1" step="0.05" value="0.25"></label>
+  </div>
+  <div class="viz-row"><button type="button" class="btn btn-primary" data-action="use">Use these settings</button><span class="text-small text-muted" data-status aria-live="polite">Approved source · motion prototype</span></div>
+  <details><summary>Settings</summary><label class="form-label">Export<textarea class="form-control" data-export readonly rows="7" aria-label="Current animation settings as JSON"></textarea></label></details>
+</div>
+<style>
+#laser-impact-tuner .motion-scenes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+#laser-impact-tuner figure{min-width:0;margin:0}
+#laser-impact-tuner figcaption{margin-bottom:8px}
+#laser-impact-tuner canvas{display:block;width:100%;aspect-ratio:1.4}
+#laser-impact-tuner details{margin-top:12px}
+@media(max-width:620px){#laser-impact-tuner .motion-scenes{grid-template-columns:1fr}#laser-impact-tuner canvas{aspect-ratio:1.85}}
+</style>
+<script>
+__MOTION_ENGINE__
+(()=>{
+const root=document.getElementById('laser-impact-tuner');
+const defaults=__SETTINGS__;
+let settings={...defaults},time=0,playing=false,start=0,speed=1,engine=null;
+const source=new Image(),backdrop=new Image();source.src='__SOURCE_IMAGE__';backdrop.src='__BACKDROP_IMAGE__';
+const scenes=Array.from(root.querySelectorAll('canvas')).map(canvas=>({canvas,ctx:canvas.getContext('2d'),view:canvas.dataset.view}));
+const fields=Array.from(root.querySelectorAll('[data-setting]')),timeField=root.querySelector('[data-control="time"]'),playButton=root.querySelector('[data-action="play"]');
+const jsonField=root.querySelector('[data-export]'),status=root.querySelector('[data-status]');
+
+function savedSettings(state){
+ const saved=state?.modelContent?.laserImpactSettings;if(!saved)return;
+ for(const field of fields){const key=field.dataset.setting,value=saved[key];if(Number.isFinite(value)&&value>=Number(field.min)&&value<=Number(field.max))settings[key]=value;}
+}
+savedSettings(window.openai?.widgetState);
+function save(){window.openai?.setWidgetState?.({modelContent:{laserImpactSettings:{...settings}},privateContent:{speed}})?.catch(()=>{});}
+function sync(){
+ for(const field of fields){const key=field.dataset.setting;field.value=settings[key];root.querySelector(`[data-output="${key}"]`).textContent=key==='durationMs'?settings[key]+' ms':key==='widthPx'||key==='sparkReachPx'?settings[key]+' px':Math.round(settings[key]*100)+'%';}
+ timeField.max=settings.durationMs;jsonField.value=JSON.stringify(settings,null,2);
+}
+function stop(){playing=false;playButton.textContent='Play impact';}
+function render(ms){
+ time=ms;timeField.value=Math.min(settings.durationMs,Math.max(0,ms));root.querySelector('[data-output="time"]').textContent=Math.round(Math.max(0,ms))+' ms';
+ if(!engine)return;
+ const theme=getComputedStyle(root),neutral=theme.getPropertyValue('--muted').trim()||getComputedStyle(document.documentElement).backgroundColor;
+ for(const panel of scenes){
+   const w=panel.canvas.clientWidth,h=panel.canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
+   if(panel.canvas.width!==Math.round(w*dpr)||panel.canvas.height!==Math.round(h*dpr)){panel.canvas.width=Math.round(w*dpr);panel.canvas.height=Math.round(h*dpr);}
+   const c=panel.ctx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+   if(panel.view==='large'){c.fillStyle=neutral;c.fillRect(0,0,w,h);engine.draw(c,ms,settings,[w*.24,h*.53],Math.min(w*.64,h*.9));}
+   else{
+     const isShip=panel.view==='ship',center=isShip?[1149,319]:[976,210];
+     c.drawImage(backdrop,center[0]-w*.46,center[1]-h*.53,w,h,0,0,w,h);
+     engine.draw(c,ms,settings,[w*.46,h*.53]);
+   }
+ }
+}
+function animate(now){if(!playing)return;const elapsed=(now-start)*speed;render(Math.min(elapsed,settings.durationMs));if(elapsed>=settings.durationMs){stop();status.textContent='Impact complete';return;}requestAnimationFrame(animate);}
+function play(){stop();playing=true;start=performance.now();playButton.textContent='Pause';status.textContent='Playing impact';requestAnimationFrame(animate);}
+playButton.onclick=()=>playing?stop():play();
+timeField.oninput=()=>{stop();render(Number(timeField.value));status.textContent='Scrubbing impact';};
+root.querySelector('[data-control="speed"]').onchange=e=>{speed=Number(e.target.value);save();if(playing)play();};
+for(const field of fields){field.oninput=()=>{settings[field.dataset.setting]=Number(field.value);stop();sync();render(settings.durationMs*.2);status.textContent='Settings changed';};field.onchange=save;}
+root.querySelector('[data-action="use"]').onclick=async()=>{
+ save();
+ if(window.openai?.sendFollowUpMessage){await window.openai.sendFollowUpMessage({prompt:'Use these approved laser-impact animation settings: '+JSON.stringify(settings),title:'Use impact settings'});}
+ else{root.querySelector('details').open=true;jsonField.focus();jsonField.select();status.textContent='Settings selected for copying';}
+};
+window.addEventListener('openai:set_globals',event=>{if(event.detail?.globals?.widgetState){savedSettings(event.detail.globals.widgetState);sync();render(Math.min(time,settings.durationMs));}});
+new ResizeObserver(()=>render(time)).observe(root);
+Promise.all([source.decode(),backdrop.decode()]).then(()=>{
+ engine=ImpactMotion.create(ImpactMotion.parse(source));sync();render(0);
+ window.impactPreview={engine,get settings(){return {...settings};},setSettings(values){Object.assign(settings,values);sync();render(0);},render:ms=>{stop();render(ms);},ready:true};
+}).catch(error=>{status.setAttribute('role','alert');status.textContent=error.message;throw error;});
+sync();
+})();
+</script>
