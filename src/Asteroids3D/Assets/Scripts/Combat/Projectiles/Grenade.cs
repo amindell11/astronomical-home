@@ -88,9 +88,10 @@ namespace Combat.Projectiles
             Detonate();
         }
 
-        public void TakeDamage(in DamageInfo hit)
+        public float TakeDamage(in DamageInfo hit)
         {
             Detonate();
+            return 0f;
         }
 
         private void Detonate()

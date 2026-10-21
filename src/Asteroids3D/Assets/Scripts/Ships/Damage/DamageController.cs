@@ -40,9 +40,9 @@ namespace Ships.Damage
             Shield.Update(Time.deltaTime);
         }
 
-        public void TakeDamage(in DamageInfo hit)
+        public float TakeDamage(in DamageInfo hit)
         {
-            if (hit.Amount <= 0 || IsInvulnerable) return;
+            if (hit.Amount <= 0 || IsInvulnerable) return 0f;
             var shieldAbsorbed = hit.BypassesShield ? 0f : Shield.ApplyDamage(hit.Amount);
             var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
             var applied = hit.WithAmount(appliedDamage);
@@ -51,10 +51,10 @@ namespace Ships.Damage
                 OnDamaged?.Invoke(applied);
             }
 
-            if (Health.CurrentValue <= 0f)
-            {
-                BroadcastDeath(applied);
-            }
+            if (Health.CurrentValue > 0f) return 0f;
+
+            BroadcastDeath(applied);
+            return hit.Amount - appliedDamage;
         }
 
         private void BroadcastDeath(in DamageInfo killingBlow)

@@ -9,6 +9,7 @@ namespace Damage
         /// </summary>
         GameObject gameObject { get; }
 
-        void TakeDamage(in DamageInfo hit);
+        /// <returns>Overkill: damage left over once the target is dead; 0 if it survives or takes none.</returns>
+        float TakeDamage(in DamageInfo hit);
     }
 }
