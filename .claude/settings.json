@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./scripts/agent_worktree_pool.sh land-docs)"
+      "Bash(./scripts/agent_worktree_pool.sh land-docs)",
+      "Bash(./scripts/agent_worktree_pool.sh sync-primary)"
     ]
   },
   "hooks": {
