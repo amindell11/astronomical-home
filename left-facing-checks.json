@@ -1,0 +1,77 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "width": 1024,
+      "treatment": "Left-facing tally",
+      "outcome": "loss",
+      "panelWidth": 338,
+      "panelHeight": 510,
+      "titleSize": 40,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "treatment": "Left-facing tally",
+      "outcome": "win",
+      "panelWidth": 338,
+      "panelHeight": 510,
+      "titleSize": 40,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "width": 736,
+      "treatment": "Left-facing tally",
+      "outcome": "loss",
+      "panelWidth": 338,
+      "panelHeight": 510,
+      "titleSize": 40,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "width": 736,
+      "treatment": "Left-facing tally",
+      "outcome": "win",
+      "panelWidth": 338,
+      "panelHeight": 510,
+      "titleSize": 40,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "treatment": "Left-facing tally",
+      "outcome": "loss",
+      "panelWidth": 288,
+      "panelHeight": 521.5,
+      "titleSize": 35,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "treatment": "Left-facing tally",
+      "outcome": "win",
+      "panelWidth": 288,
+      "panelHeight": 521.5,
+      "titleSize": 35,
+      "maxOtherSize": 18,
+      "clipped": [],
+      "inside": true,
+      "overflow": false
+    }
+  ]
+}
