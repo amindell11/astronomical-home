@@ -1,0 +1,12 @@
+{
+  "missileFireSeconds": 0.31,
+  "missileTailSeconds": 0.58,
+  "mineSweepSeconds": 0.8,
+  "mineIgnitionSeconds": 0.4,
+  "missileSpread": 1,
+  "smokeOpacity": 0.72,
+  "mineFill": 0.38,
+  "mineGlow": 1,
+  "missileAtlasScale": 1,
+  "mineIgnitionAtlasScale": 1.3888888888888888
+}
