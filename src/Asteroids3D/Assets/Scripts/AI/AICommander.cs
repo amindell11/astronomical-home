@@ -167,7 +167,13 @@ namespace AI
                 else
                     Gunner.HoldFire();
             }
-            else if (nav.hasAnchor) Gunner.Aim(anchor);
+            else if (nav.hasAnchor)
+            {
+                if (Gunner.ResearchDoctrine && nav.TryGetAnchorId(out var aimId)
+                    && Scout.Registry.TryGetShip(aimId, out var aimShip))
+                    Gunner.ResearchDoctrine.NoteTarget(aimShip);
+                Gunner.Aim(anchor);
+            }
             else Gunner.HoldFire();
         }
 

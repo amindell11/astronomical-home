@@ -51,6 +51,164 @@ namespace Tests.PlayMode.Research
             public float fieldDensity = 1f;
             public SideConfig a = new();
             public SideConfig b = new();
+            public int[] crowd = Array.Empty<int>();
+            public float ringRadius = 55f;
+            public float spawnInterval = 4f;
+            public string sector = "Assets/Prefabs/Sectors/TrialSector.prefab";
+        }
+
+        [Serializable]
+        public class EnemyLife
+        {
+            public int draw;
+            public string chassis;
+            public string pilot;
+            public string engine;
+            public string shield;
+            public string weapon;
+            public float spawnT;
+            public float endT = -1f;
+            public bool died;
+            public bool killedByStandIn;
+            public int shots;
+            public int hits;
+            public float damage;
+            public float firstHitT = -1f;
+            public float firstInRangeT = -1f;
+            public int steps;
+            public int inRangeSteps;
+            public int envelopeSteps;
+            public float inRangeAimErr = -1f;
+            public float eaErrAtShot = -1f;
+            public float eaProgAtShot = -1f;
+            public int eaJinks;
+            public int eaBoosts;
+            public int eaLos;
+            public int eaReacq;
+            public float takenFromStandIn;
+            public int hitsTaken;
+        }
+
+        [Serializable]
+        public class CrowdRow
+        {
+            public string tag;
+            public string mode = "crowd";
+            public int n;
+            public int episode;
+            public int drawSeed;
+            public float timeout;
+            public bool died;
+            public float survival;
+            public int kills;
+            public int spawned;
+            public float damageTaken;
+            public float dmgLasers;
+            public float dmgRippers;
+            public float dmgMissiles;
+            public float dmgCollision;
+            public float dmgOther;
+            public int standInShots;
+            public int standInHits;
+            public int standInBoosts;
+            public string standIn;
+            public string enemy;
+            public int[] latHist;
+            public List<EnemyLife> lives = new();
+        }
+
+        private sealed class LifeTracker
+        {
+            public readonly Ship ship;
+            public readonly EnemyLife rec;
+            private readonly Ship standIn;
+            private readonly WeaponComponent weapon;
+            private readonly Gunsight sight;
+            private readonly GunDoctrine doc;
+            private readonly float range;
+            public bool Ended;
+            private double aimErrSum;
+            private double eaErrSum;
+            private double eaProgSum;
+            private int eaShots;
+
+            public LifeTracker(Ship ship, Ship standIn, EnemyLife rec, GunDoctrine doc)
+            {
+                this.ship = ship;
+                this.standIn = standIn;
+                this.rec = rec;
+                this.doc = doc;
+                weapon = ship.Weapons.Primary;
+                sight = ship.Weapons.Context.Sight(Ships.Command.WeaponSlot.Primary);
+                range = weapon.FireRange > 0f ? weapon.FireRange : 50f;
+                weapon.OnFire += OnFired;
+                ship.Damage.OnDamaged += OnDamaged;
+                ship.Damage.OnDeath += OnDeath;
+            }
+
+            private void OnFired()
+            {
+                rec.shots++;
+                if (!doc || doc.eaE0 <= 0f) return;
+                eaShots++;
+                eaErrSum += Mathf.Abs(doc.eaAngle);
+                eaProgSum += doc.eaProgress;
+            }
+
+            private void OnDamaged(Damage.DamageInfo hit)
+            {
+                if (hit.AttackerId != standIn.Id) return;
+                rec.takenFromStandIn += hit.Amount;
+                if (hit.Kind != Damage.DamageKind.Collision) rec.hitsTaken++;
+            }
+
+            private void OnDeath(Ships.Registry.ShipId victim, Damage.DamageInfo blow) =>
+                rec.killedByStandIn = blow.AttackerId == standIn.Id;
+
+            public void OnHitStandIn(in Damage.DamageInfo hit, float t)
+            {
+                rec.damage += hit.Amount;
+                if (hit.Kind == Damage.DamageKind.Collision) return;
+                rec.hits++;
+                if (rec.firstHitT < 0f) rec.firstHitT = t - rec.spawnT;
+            }
+
+            public void Sample(float t)
+            {
+                rec.steps++;
+                var me = ship.Kinematics;
+                var them = standIn.Kinematics;
+                var aim = Gunner.AimPoint(in me, them.pos, them.vel, weapon.ProjectileSpeed);
+                if (sight.InEnvelope(GamePlane.PlanePointToWorld(aim))) rec.envelopeSteps++;
+                if (Vector2.Distance(me.pos, them.pos) > range) return;
+                rec.inRangeSteps++;
+                if (rec.firstInRangeT < 0f) rec.firstInRangeT = t - rec.spawnT;
+                aimErrSum += Vector2.Angle(me.Forward, aim - me.pos);
+            }
+
+            public void End(float t)
+            {
+                if (Ended) return;
+                Ended = true;
+                rec.endT = t;
+                rec.died = !Alive(ship);
+                rec.inRangeAimErr = rec.inRangeSteps > 0 ? (float)(aimErrSum / rec.inRangeSteps) : -1f;
+                if (eaShots > 0)
+                {
+                    rec.eaErrAtShot = (float)(eaErrSum / eaShots);
+                    rec.eaProgAtShot = (float)(eaProgSum / eaShots);
+                }
+                if (doc)
+                {
+                    rec.eaJinks = doc.eaJinks;
+                    rec.eaBoosts = doc.eaBoosts;
+                    rec.eaLos = doc.eaLosBreaks;
+                    rec.eaReacq = doc.eaReacquires;
+                }
+                weapon.OnFire -= OnFired;
+                ship.Damage.OnDamaged -= OnDamaged;
+                ship.Damage.OnDeath -= OnDeath;
+            }
         }
 
         [Serializable]
@@ -243,6 +401,7 @@ namespace Tests.PlayMode.Research
         private readonly WaitForFixedUpdate waitFixed = new();
         private static bool loggedBounds;
         private static bool loggedMpc;
+        private static bool loggedFacing;
 
         private static string SlotRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
 
@@ -278,7 +437,203 @@ namespace Tests.PlayMode.Research
             Directory.CreateDirectory(outDir);
             File.Copy(configPath, Path.Combine(outDir, $"{batch.runs[0].tag}.batch.json"), true);
             foreach (var config in batch.runs)
-                yield return RunConfig(config, outDir);
+                yield return config.mode == "crowd" ? RunCrowd(config, outDir) : RunConfig(config, outDir);
+        }
+
+        private struct EnemyDraw
+        {
+            public int roster, engine, shield, weapon, seed;
+            public float angle;
+        }
+
+        /// <summary>One stand-in (team 0, side a) against up to N trial enemies (team 1, doctrine b), replaced one per spawnInterval like the WaveDirector; ends on the stand-in's death or the timeout. Draws come from drawSeed and the episode only, so every config sees the same enemies in the same order.</summary>
+        private IEnumerator RunCrowd(Config config, string outDir)
+        {
+            var outPath = Path.Combine(outDir, $"{config.tag}.jsonl");
+            File.WriteAllText(outPath, string.Empty);
+
+            var director = AssetDatabase.LoadAssetAtPath<GameObject>(config.sector)
+                .GetComponentInChildren<Substrate.Sectors.Elements.WaveDirector>(true);
+            var so = new SerializedObject(director);
+            var rosterProp = so.FindProperty("roster");
+            var roster = new List<(Ship template, Ships.Command.Commander pilot)>();
+            for (var i = 0; i < rosterProp.arraySize; i++)
+            {
+                var el = rosterProp.GetArrayElementAtIndex(i);
+                roster.Add(((Ship)el.FindPropertyRelative("template").objectReferenceValue,
+                    (Ships.Command.Commander)el.FindPropertyRelative("pilot").objectReferenceValue));
+            }
+            var pool = (Ships.Loadout.ItemSubset)so.FindProperty("loadouts").objectReferenceValue;
+            Debug.Log($"[gun-research] crowd roster {string.Join(", ", roster.ConvertAll(r => $"{r.template.name}/{r.pilot.name}"))}; " +
+                      $"weapons {string.Join(", ", Array.ConvertAll(pool.weapons, w => w.gameObject.name))}");
+
+            var standWeapon = LoadWeapon(config.weapons[0]);
+            var standIn = Spawn(standWeapon, LoadPilot(config.a.pilot), 0, config.seed, config.a.doctrine);
+            units.WireShipDependencies(standIn, null);
+            var maxSteps = Mathf.RoundToInt(config.timeoutSec / Time.fixedDeltaTime);
+            var started = DateTime.UtcNow;
+            var simSeconds = 0f;
+            try
+            {
+                foreach (var n in config.crowd)
+                for (var e = 0; e < config.episodes; e++)
+                {
+                    var drawSeed = config.seed * 1000 + e;
+                    var rng = new System.Random(drawSeed);
+                    var standRot = (float)rng.NextDouble() * 360f;
+                    var draws = new EnemyDraw[96];
+                    for (var k = 0; k < draws.Length; k++)
+                        draws[k] = new EnemyDraw
+                        {
+                            roster = rng.Next(roster.Count),
+                            engine = rng.Next(pool.engines.Length),
+                            shield = rng.Next(pool.shields.Length),
+                            weapon = rng.Next(pool.weapons.Length),
+                            angle = (float)rng.NextDouble() * 360f,
+                            seed = rng.Next(1, int.MaxValue),
+                        };
+
+                    units.RespawnShip(standIn.Id, Vector2.zero, standRot);
+                    projectiles.ReturnAllToPool();
+
+                    var row = new CrowdRow
+                    {
+                        tag = config.tag, n = n, episode = e, drawSeed = drawSeed, timeout = config.timeoutSec,
+                        standIn = config.a.doctrine, enemy = config.b.doctrine, latHist = new int[17],
+                    };
+                    var lives = new List<LifeTracker>();
+                    var next = 0;
+                    var steps = 0;
+                    var t = 0f;
+                    var lastBoostCd = standIn.BoostCooldownRemaining;
+                    var lastVel = standIn.Kinematics.vel;
+                    var accel = Vector2.zero;
+
+                    void SpawnEnemy()
+                    {
+                        var d = draws[next % draws.Length];
+                        var (template, pilot) = roster[d.roster];
+                        var center = standIn.Kinematics.pos;
+                        var outward = new Vector2(Mathf.Cos(d.angle * Mathf.Deg2Rad), Mathf.Sin(d.angle * Mathf.Deg2Rad));
+                        var pos = center + outward * config.ringRadius;
+                        var r = center - pos;
+                        var yaw = Mathf.Atan2(-r.x, r.y) * Mathf.Rad2Deg;
+                        var ship = Factory.CreateShip(template, pilot, 1, d.seed, projectiles,
+                            GamePlane.PlanePointToWorld(pos), GamePlane.Rotation * Quaternion.AngleAxis(yaw, Vector3.forward));
+                        ship.transform.SetParent(units.UnitsRoot, true);
+                        units.ActiveRegistry.ActiveShips.Add(ship);
+                        ship.Reequip(pool.engines[d.engine], pool.shields[d.shield], pool.weapons[d.weapon], null);
+                        var doc = ship.gameObject.AddComponent<GunDoctrine>();
+                        if (!string.IsNullOrEmpty(config.b.doctrine)) JsonUtility.FromJsonOverwrite(config.b.doctrine, doc);
+                        doc.skillSeed = d.seed;
+                        doc.eaSeed = d.seed ^ 0x5bd1e995;
+                        doc.ResetState();
+                        doc.ApplySkill();
+                        units.WireShipDependencies(ship, null);
+                        var rec = new EnemyLife
+                        {
+                            draw = next, chassis = template.name, pilot = pilot.name,
+                            engine = pool.engines[d.engine].name, shield = pool.shields[d.shield].name,
+                            weapon = pool.weapons[d.weapon].gameObject.name, spawnT = t,
+                        };
+                        lives.Add(new LifeTracker(ship, standIn, rec, doc));
+                        next++;
+                    }
+
+                    void OnStandInDamaged(Damage.DamageInfo hit)
+                    {
+                        row.damageTaken += hit.Amount;
+                        LifeTracker from = null;
+                        foreach (var l in lives)
+                            if (l.ship && l.ship.Id == hit.AttackerId) from = l;
+                        if (hit.Kind == Damage.DamageKind.Collision) row.dmgCollision += hit.Amount;
+                        else if (from == null) row.dmgOther += hit.Amount;
+                        else if (from.rec.weapon.StartsWith("Laser")) row.dmgLasers += hit.Amount;
+                        else if (from.rec.weapon.StartsWith("Ripper")) row.dmgRippers += hit.Amount;
+                        else if (from.rec.weapon.StartsWith("Missile")) row.dmgMissiles += hit.Amount;
+                        else row.dmgOther += hit.Amount;
+                        from?.OnHitStandIn(in hit, t);
+                    }
+
+                    void OnStandInFired() => row.standInShots++;
+
+                    standIn.Damage.OnDamaged += OnStandInDamaged;
+                    standIn.Weapons.Primary.OnFire += OnStandInFired;
+                    try
+                    {
+                        for (var i = 0; i < n; i++) SpawnEnemy();
+                        var nextSpawnT = config.spawnInterval;
+                        while (steps < maxSteps)
+                        {
+                            yield return waitFixed;
+                            steps++;
+                            t = steps * Time.fixedDeltaTime;
+                            if (!Alive(standIn)) break;
+
+                            var vel = standIn.Kinematics.vel;
+                            accel = Vector2.Lerp(accel, (vel - lastVel) / Time.fixedDeltaTime, Mathf.Clamp01(Time.fixedDeltaTime / 0.1f));
+                            lastVel = vel;
+                            var cd = standIn.BoostCooldownRemaining;
+                            if (cd > lastBoostCd + 0.5f) row.standInBoosts++;
+                            lastBoostCd = cd;
+
+                            var alive = 0;
+                            foreach (var l in lives)
+                            {
+                                if (l.Ended) continue;
+                                if (!l.ship.gameObject.activeInHierarchy || !Alive(l.ship))
+                                {
+                                    l.End(t);
+                                    continue;
+                                }
+                                alive++;
+                                l.Sample(t);
+                                if (!loggedFacing && l.rec.steps == 1)
+                                {
+                                    loggedFacing = true;
+                                    Debug.Log($"[gun-research] crowd spawn facing error {Vector2.Angle(l.ship.Kinematics.Forward, standIn.Kinematics.pos - l.ship.Kinematics.pos):F1} deg at {Vector2.Distance(l.ship.Kinematics.pos, standIn.Kinematics.pos):F1} u");
+                                }
+                                var los = (standIn.Kinematics.pos - l.ship.Kinematics.pos).normalized;
+                                var lat = Mathf.Abs(accel.x * los.y - accel.y * los.x);
+                                row.latHist[Mathf.Min(16, (int)(lat / 2.5f))]++;
+                            }
+                            if (t >= nextSpawnT && alive < n)
+                            {
+                                SpawnEnemy();
+                                nextSpawnT = t + config.spawnInterval;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        standIn.Damage.OnDamaged -= OnStandInDamaged;
+                        standIn.Weapons.Primary.OnFire -= OnStandInFired;
+                        foreach (var l in lives) l.End(t);
+                    }
+
+                    row.died = !Alive(standIn);
+                    row.survival = t;
+                    row.spawned = lives.Count;
+                    foreach (var l in lives)
+                    {
+                        if (l.rec.killedByStandIn) row.kills++;
+                        row.standInHits += l.rec.hitsTaken;
+                        row.lives.Add(l.rec);
+                    }
+                    foreach (var l in lives) Remove(l.ship);
+                    projectiles.ReturnAllToPool();
+                    simSeconds += t;
+                    using (var w = new StreamWriter(outPath, append: true, new UTF8Encoding(false)))
+                        w.WriteLine(JsonUtility.ToJson(row));
+                    if (e == config.episodes - 1)
+                        Debug.Log($"[gun-research] {config.tag} N={n}: {config.episodes} episodes, wall {(DateTime.UtcNow - started).TotalSeconds:F0}s, sim {simSeconds:F0}s");
+                }
+            }
+            finally
+            {
+                Remove(standIn);
+                projectiles.ReturnAllToPool();
+            }
         }
 
         private IEnumerator RunConfig(Config config, string outDir)

@@ -75,6 +75,35 @@ namespace AI.Research
         public float skillCurve = 1f;
         public float skillTolGain;
         public int skillSeed = 1;
+
+        [Header("Earned accuracy (2026-10-21)")]
+        public float eaE0 = -1f;
+        public float eaT = 4f;
+        public float eaCurve = 1f;
+        public float eaCone = 30f;
+        public float eaRange = -1f;
+        public float eaLoseRate;
+        public float eaJinkAccel = -1f;
+        public float eaJinkReset = 1f;
+        public float eaBoostReset = -1f;
+        public float eaLosReset = 1f;
+        public float eaReacquireReset = 1f;
+        public float eaNoiseTau = 0.5f;
+        public float eaAccelSmooth = 0.1f;
+        public int eaSeed = 1;
+        [System.NonSerialized] public float eaProgress;
+        [System.NonSerialized] public float eaAngle;
+        [System.NonSerialized] public float eaLatAccel;
+        [System.NonSerialized] public int eaJinks, eaBoosts, eaLosBreaks, eaReacquires;
+        private Ship eaTarget;
+        private System.Random eaRng;
+        private float eaW;
+        private double eaLastTime = double.NaN;
+        private Vector2 eaLastVel, eaAccel;
+        private bool eaHaveVel;
+        private bool eaJinkArmed = true;
+        private bool eaHadLos = true;
+        private float eaLastBoostCd;
         private double nextGrenadeOk;
         private float lastGrenadeAimDist;
         private bool grenadeHooked;
@@ -157,6 +186,114 @@ namespace AI.Research
             noiseAngle = 0f;
             lastNoiseTime = double.NaN;
             nextGrenadeOk = 0;
+            eaProgress = 0f;
+            eaAngle = 0f;
+            eaW = 0f;
+            eaRng = new System.Random(eaSeed);
+            eaLastTime = double.NaN;
+            eaTarget = null;
+            eaHaveVel = false;
+            eaAccel = Vector2.zero;
+            eaJinkArmed = true;
+            eaHadLos = true;
+            eaJinks = eaBoosts = eaLosBreaks = eaReacquires = 0;
+        }
+
+        /// <summary>Earned accuracy: the Gunner's anchor ship this tick. A new ship is an acquisition; a switch away from a live one is a re-acquisition.</summary>
+        public void NoteTarget(Ship target)
+        {
+            if (target == eaTarget) return;
+            if (eaTarget)
+            {
+                eaProgress *= 1f - eaReacquireReset;
+                eaReacquires++;
+            }
+            else eaProgress = 0f;
+            eaTarget = target;
+            eaHaveVel = false;
+            eaHadLos = true;
+            eaJinkArmed = true;
+            eaLastBoostCd = target ? target.BoostCooldownRemaining : 0f;
+        }
+
+        private static int AsteroidMask => 1 << Substrate.LayerIds.Asteroid;
+
+        /// <summary>Earned accuracy: a bearing error of RMS E0 x (1 - progress)^curve, where progress grows over eaT seconds of tracking (target inside the nose cone, in range, line of sight clear, no jink under way) and the target's jinks, boosts and broken line of sight knock it back.</summary>
+        private void EarnedAccuracy(Vector2 selfPos, Vector2 tPos, Vector2 tVel, ref Vector2 pos, ref Vector2 vel)
+        {
+            var now = Time.fixedTimeAsDouble;
+            if (now != eaLastTime)
+            {
+                var dt = double.IsNaN(eaLastTime) ? 0f : Mathf.Min((float)(now - eaLastTime), 0.1f);
+                eaLastTime = now;
+                var los = tPos - selfPos;
+                var dist = los.magnitude;
+                var losHat = dist > 1e-4f ? los / dist : Vector2.up;
+                if (eaHaveVel && dt > 0f)
+                    eaAccel = Vector2.Lerp(eaAccel, (tVel - eaLastVel) / dt, Mathf.Clamp01(dt / Mathf.Max(eaAccelSmooth, dt)));
+                eaLastVel = tVel;
+                eaHaveVel = true;
+                eaLatAccel = Mathf.Abs(eaAccel.x * losHat.y - eaAccel.y * losHat.x);
+                if (eaJinkAccel > 0f)
+                {
+                    if (eaJinkArmed && eaLatAccel > eaJinkAccel)
+                    {
+                        eaJinkArmed = false;
+                        eaProgress *= 1f - eaJinkReset;
+                        eaJinks++;
+                    }
+                    else if (!eaJinkArmed && eaLatAccel < 0.5f * eaJinkAccel) eaJinkArmed = true;
+                }
+                if (eaBoostReset > 0f && eaTarget)
+                {
+                    var cd = eaTarget.BoostCooldownRemaining;
+                    if (cd > eaLastBoostCd + 0.5f)
+                    {
+                        eaProgress *= 1f - eaBoostReset;
+                        eaBoosts++;
+                    }
+                    eaLastBoostCd = cd;
+                }
+                var losClear = true;
+                if (eaLosReset > 0f)
+                {
+                    losClear = !Physics.Linecast(Substrate.GamePlane.PlanePointToWorld(selfPos),
+                        Substrate.GamePlane.PlanePointToWorld(tPos), AsteroidMask);
+                    if (!losClear && eaHadLos)
+                    {
+                        eaProgress *= 1f - eaLosReset;
+                        eaLosBreaks++;
+                    }
+                    eaHadLos = losClear;
+                }
+                var fwd = ship ? ship.Kinematics.Forward : losHat;
+                var inCone = Vector2.Angle(fwd, los) <= eaCone;
+                var inRange = eaRange <= 0f || dist <= eaRange;
+                var rate = dt / Mathf.Max(eaT, 1e-3f);
+                if (inCone && inRange && losClear && (eaJinkAccel <= 0f || eaJinkArmed)) eaProgress += rate;
+                else if (!inCone) eaProgress -= eaLoseRate * rate;
+                eaProgress = Mathf.Clamp01(eaProgress);
+
+                eaRng ??= new System.Random(eaSeed);
+                if (dt > 0f)
+                {
+                    var u1 = 1.0 - eaRng.NextDouble();
+                    var u2 = eaRng.NextDouble();
+                    var gauss = (float)(System.Math.Sqrt(-2.0 * System.Math.Log(u1)) * System.Math.Cos(2.0 * System.Math.PI * u2));
+                    eaW += -eaW / eaNoiseTau * dt + Mathf.Sqrt(2f * dt / eaNoiseTau) * gauss;
+                }
+                eaAngle = eaE0 * Mathf.Pow(1f - eaProgress, Mathf.Max(0.01f, eaCurve)) * eaW;
+            }
+            Rotate(selfPos, eaAngle, ref pos, ref vel);
+        }
+
+        private static void Rotate(Vector2 center, float deg, ref Vector2 pos, ref Vector2 vel)
+        {
+            var c = Mathf.Cos(deg * Mathf.Deg2Rad);
+            var sn = Mathf.Sin(deg * Mathf.Deg2Rad);
+            var rel = pos - center;
+            pos = center + new Vector2(rel.x * c - rel.y * sn, rel.x * sn + rel.y * c);
+            vel = new Vector2(vel.x * c - vel.y * sn, vel.x * sn + vel.y * c);
         }
 
         /// <summary>Skill dial s in [0,1]: scales the aim controller's acceleration and the strafe dodge; perception error is applied in Perceive.</summary>
@@ -178,7 +315,14 @@ namespace AI.Research
         /// <summary>The target as a skill-limited pilot sees it: delayed by SkillError x reaction and rotated about the shooter by a correlated bearing error.</summary>
         public void Perceive(Vector2 selfPos, ref Vector2 pos, ref Vector2 vel)
         {
-            if (skill < 0f) return;
+            var truePos = pos;
+            var trueVel = vel;
+            if (skill >= 0f) PerceiveSkill(selfPos, ref pos, ref vel);
+            if (eaE0 > 0f) EarnedAccuracy(selfPos, truePos, trueVel, ref pos, ref vel);
+        }
+
+        private void PerceiveSkill(Vector2 selfPos, ref Vector2 pos, ref Vector2 vel)
+        {
             var now = Time.fixedTimeAsDouble;
             var delay = SkillError * skillReactionMax;
             perceived.Add((now, pos, vel));
