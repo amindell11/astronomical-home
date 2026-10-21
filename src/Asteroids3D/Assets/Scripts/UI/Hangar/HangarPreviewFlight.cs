@@ -18,7 +18,7 @@ namespace UI.Hangar
         internal const float HandoffSeconds = .85f;
         // Share of a path's clock spent fading at its outer end.
         private const float FadeSpan = .35f;
-        // The drawn shaders' screen-door fade, named for the breakup debris that introduced it.
+        // The drawn shaders' screen-door fade; the name comes from breakup debris.
         private static readonly int VisibilityId = Shader.PropertyToID("_DebrisVisibility");
         private WingVisuals[] wings;
         private Renderer[] renderers;

@@ -7,10 +7,10 @@ namespace UI.Hangar
     /// <summary>
     /// The hangar preview's carousel: position p (unwrapped ship indices) chases the selected index t on a
     /// critically damped spring. A press moves t and keeps p's velocity, so rapid presses stream ships along
-    /// one path instead of restarting it. One press replays the formation handoff exactly: an offset maps back
-    /// to the handoff clock through the spring's own single-step response. When presses run more than a lap of
-    /// the offered list ahead, p skips whole laps: every slot then holds the same ship it did, so the skip is
-    /// invisible and the stream keeps walking the list in order.
+    /// one unbroken path. One press replays the formation handoff exactly: an offset maps back to the handoff
+    /// clock through the spring's own single-step response. When presses run more than a lap of the offered
+    /// list ahead, p skips whole laps: slots a lap apart hold the same ship, so the skip is invisible and the
+    /// stream keeps walking the list in order.
     /// </summary>
     internal sealed class HangarCarousel
     {
@@ -24,6 +24,7 @@ namespace UI.Hangar
         internal static readonly float PathEnd = Response(SettleRate);
 
         private readonly Dictionary<int, Ship> slots = new();
+        private readonly List<int> stale = new();
         private readonly int lap;
 
         public float Position { get; private set; }
@@ -40,13 +41,11 @@ namespace UI.Hangar
             slots[0] = ship;
         }
 
-        /// <summary>Retargets one index toward <paramref name="direction"/>; false when the pick is unchanged.</summary>
-        public bool Step(Ship ship, int direction)
+        public void Step(Ship ship, int direction)
         {
-            if (slots[Target] == ship) return false;
+            if (slots[Target] == ship) return;
             Target += direction;
             slots[Target] = ship;
-            return true;
         }
 
         public Ship At(int index) => slots.TryGetValue(index, out var ship) ? ship : null;
@@ -72,15 +71,18 @@ namespace UI.Hangar
 
             var low = Mathf.Min(Position, Target) - 2f;
             var high = Mathf.Max(Position, Target) + 2f;
-            foreach (var index in new List<int>(slots.Keys))
+            stale.Clear();
+            foreach (var index in slots.Keys)
                 if (index < low || index > high)
-                    slots.Remove(index);
+                    stale.Add(index);
+            foreach (var index in stale)
+                slots.Remove(index);
         }
 
         /// <summary>Handoff clock (0–1) at which one press has carried p <paramref name="progress"/> of an index.</summary>
         internal static float HandoffTime(float progress)
         {
-            if (progress >= 1f - SettledOffset) return 1f;
+            if (progress >= PathEnd) return 1f;
             float lo = 0f, hi = SettleRate;
             for (var i = 0; i < 24; i++)
             {
