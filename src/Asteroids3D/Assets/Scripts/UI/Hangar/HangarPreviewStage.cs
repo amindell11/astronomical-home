@@ -9,8 +9,9 @@ namespace UI.Hangar
 {
     /// <summary>
     /// Offscreen 3D preview for the hangar: renders pooled clones of each ship's visual rig to a RenderTexture
-    /// on the isolated ShipPreview layer. The camera never moves; each clone is scaled to one framing sphere, so
-    /// every hull fills the same share of the frame. A <see cref="HangarCarousel"/> places the clones.
+    /// on the isolated ShipPreview layer. The texture spans the whole surface ships fly across; an off-axis camera
+    /// holds the settled ship inside a framing square on it. The camera never moves; each clone is scaled to one
+    /// framing sphere, so every hull fills the same share of the square. A <see cref="HangarCarousel"/> places the clones.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -31,18 +32,19 @@ namespace UI.Hangar
         private Camera stageCamera;
         private Transform anchor;
         private RenderTexture texture;
+        private float inkFramePixels;
         private bool showing;
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(Transform parent, int texturePixels,
+        public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
             IEnumerable<Ship> offeredShips)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
-            stage.BuildStage(texturePixels);
+            stage.BuildStage(surfacePixels, frame);
             foreach (var ship in offeredShips)
                 stage.CloneOf(ship);
             return stage;
@@ -59,7 +61,7 @@ namespace UI.Hangar
             return layer;
         }
 
-        private void BuildStage(int texturePixels)
+        private void BuildStage(Vector2Int surfacePixels, Rect frame)
         {
             var layer = PreviewLayer();
             gameObject.layer = layer;
@@ -79,7 +81,7 @@ namespace UI.Hangar
             var direction = new Vector3(0f, 0.55f, -1f).normalized;
             stageCamera.transform.position = anchor.position + direction * CameraDistance(FramedRadius, CameraFovDeg);
             stageCamera.transform.LookAt(anchor.position);
-            Resize(texturePixels);
+            Resize(surfacePixels, frame);
 
             var lightGo = new GameObject("PreviewLight");
             lightGo.layer = layer;
@@ -91,25 +93,45 @@ namespace UI.Hangar
             light.intensity = 1.6f;
         }
 
-        /// <summary>Re-renders at <paramref name="pixels"/> square, capped at <see cref="MaxTextureSize"/>; past the
-        /// cap the UI draws the preview upscaled. Replaces <see cref="Texture"/> when the size changes.</summary>
-        public void Resize(int pixels)
+        /// <summary>Renders a <paramref name="surface"/>-pixel target, long side capped at <see cref="MaxTextureSize"/>
+        /// (past the cap the UI draws it upscaled), with the framing square at <paramref name="frame"/> in normalized
+        /// surface coordinates. Replaces <see cref="Texture"/> when the size changes.</summary>
+        public void Resize(Vector2Int surface, Rect frame)
         {
-            var size = Mathf.Min(pixels, MaxTextureSize);
-            if (texture && texture.width == size) return;
+            var fit = Mathf.Min(1f, (float)MaxTextureSize / Mathf.Max(surface.x, surface.y));
+            var width = Mathf.Max(1, Mathf.RoundToInt(surface.x * fit));
+            var height = Mathf.Max(1, Mathf.RoundToInt(surface.y * fit));
+            Project(frame);
+            var framePixels = frame.width * width;
+            if (texture && texture.width == width && texture.height == height && framePixels == inkFramePixels) return;
 
-            stageCamera.targetTexture = null;
-            ReleaseTexture();
-            texture = new RenderTexture(size, size, 24) { name = "HangarPreviewRT", antiAliasing = TextureMsaa };
-            stageCamera.targetTexture = texture;
+            inkFramePixels = framePixels;
+            if (!texture || texture.width != width || texture.height != height)
+            {
+                stageCamera.targetTexture = null;
+                ReleaseTexture();
+                texture = new RenderTexture(width, height, 24) { name = "HangarPreviewRT", antiAliasing = TextureMsaa };
+                stageCamera.targetTexture = texture;
+            }
             foreach (var clone in clones.Values)
                 ScaleInk(clone);
         }
 
-        // Contour width is in render-target pixels; scaling with the texture holds on-screen ink weight.
+        // Off-axis frustum: the framing square keeps a CameraFovDeg view wherever it sits on the surface.
+        private void Project(Rect frame)
+        {
+            var near = stageCamera.nearClipPlane;
+            var half = near * Mathf.Tan(CameraFovDeg * .5f * Mathf.Deg2Rad);
+            var left = -half - 2f * half * frame.x / frame.width;
+            var bottom = -half - 2f * half * frame.y / frame.height;
+            stageCamera.projectionMatrix = Matrix4x4.Frustum(left, left + 2f * half / frame.width,
+                bottom, bottom + 2f * half / frame.height, near, stageCamera.farClipPlane);
+        }
+
+        // Contour width is in render-target pixels; scaling with the framing square holds on-screen ink weight.
         private void ScaleInk(Component rig)
         {
-            var scale = texture.width / InkReferenceTextureSize;
+            var scale = inkFramePixels / InkReferenceTextureSize;
             var block = new MaterialPropertyBlock();
             foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
             {

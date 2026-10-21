@@ -31,7 +31,7 @@ namespace Tests.PlayMode.Hangar
         {
             valis = AssetDatabase.LoadAssetAtPath<Ship>(ShipPaths[0]);
             nightshade = AssetDatabase.LoadAssetAtPath<Ship>(ShipPaths[1]);
-            stage = HangarPreviewStage.Create(null, 256, new[] { valis, nightshade });
+            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f), new[] { valis, nightshade });
         }
 
         [TearDown]
@@ -129,13 +129,13 @@ namespace Tests.PlayMode.Hangar
                 for (var end = Time.time + .1f; Time.time < end;)
                 {
                     yield return null;
-                    AssertAShipInFrame(camera);
+                    AssertAShipInFrame(camera, screen.view);
                 }
             }
             for (var end = Time.time + 1.5f; Time.time < end;)
             {
                 yield return null;
-                AssertAShipInFrame(camera);
+                AssertAShipInFrame(camera, screen.view);
             }
 
             Assert.That(stage.GetComponentsInChildren<HangarPreviewFlight>(true), Is.EquivalentTo(pool),
@@ -143,9 +143,17 @@ namespace Tests.PlayMode.Hangar
             Assert.That(Active().Single().name, Is.EqualTo(ships[index].name + "_Preview"));
         }
 
-        private void AssertAShipInFrame(Camera camera)
+        // The stage camera's viewport is the preview image; the framing square is where the ship settles.
+        private void AssertAShipInFrame(Camera camera, HangarScreen screen)
         {
-            var frame = new Rect(0f, 0f, 1f, 1f);
+            var image = new Vector3[4];
+            var square = new Vector3[4];
+            screen.previewImage.rectTransform.GetWorldCorners(image);
+            screen.previewFrame.GetWorldCorners(square);
+            var size = (Vector2)(image[2] - image[0]);
+            var min = (Vector2)(square[0] - image[0]) / size;
+            var max = (Vector2)(square[2] - image[0]) / size;
+            var frame = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             Assert.That(Active().Any(f => frame.Overlaps(ViewportBounds(camera, f))),
                 "some ship overlaps the preview on frame {0}", Time.frameCount);
         }

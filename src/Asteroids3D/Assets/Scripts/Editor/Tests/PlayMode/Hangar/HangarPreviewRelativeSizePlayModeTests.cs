@@ -40,7 +40,7 @@ namespace Tests.PlayMode.Hangar
             doubled.transform.localScale = valis.transform.localScale * 2f;
 
             var ships = new[] { valis, doubled };
-            stage = HangarPreviewStage.Create(null, 256, ships);
+            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f), ships);
             var camera = stage.GetComponentInChildren<Camera>();
 
             var onScreen = new float[ships.Length];
