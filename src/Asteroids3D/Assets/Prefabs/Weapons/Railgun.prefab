@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66a2ea484ed844bc8971ac8a1cb255ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 1.1
+  chargeTime: 1.5
   minChargeToFire: 1
   autoFireAtFull: 1
 --- !u!114 &-8301958025146036882
