@@ -43,7 +43,7 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 
 `Packages/manifest.json` names the real package by its local vendor tarball; the hosted runner cannot reach that path, so `headless-suite.yml` points the manifest at `src/fmod-stub/` before Unity boots. The stub compiles and never plays: only the FMOD types the game touches, every method a no-op, package version `0.0.1` so `ASTRO_FMOD` (the real-package define) stays off.
 
-- **A new FMOD member the game uses → the same member in the stub**: same type, namespace and signature, no-op body, copied from the vendor package in `D:\amind\git\vendor\fmod\fmodstudio20400.tgz`. The compiler enforces it: the hosted suite fails to compile until the member exists.
+- **A new FMOD member the game uses → the same member in the stub**: same type, namespace and signature, no-op body, copied from the vendor package in `D:\amind\git\vendor\fmod\fmodstudio20400.tgz`. The compiler enforces it: the hosted suite fails to compile until the member exists. An overload whose extra parameter is a `UnityEngine.Object` is the exception: it binds silently to a `bool` overload (`Object` converts to `bool`), so add that stub overload by hand.
 - **A new FMOD component placed on a prefab → its stub `.cs.meta` carries FMOD's real script GUID** (from the same tarball). `FmodWiringEditModeTests` fails on the missing script otherwise.
 - The stub grows when the hosted suite demands a member, never ahead of use.
 
