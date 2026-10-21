@@ -131,7 +131,7 @@ namespace Tests.EditMode
         public void OfSetting_IgnoresListOrder()
         {
             var offer = HangarOffer();
-            var baseline = StatHash.OfSetting(offer, ScratchSector(RosterOf(offer.ships), PhaseInterval), KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, new[] { ScratchSector(RosterOf(offer.ships), PhaseInterval) }, KillHullRestore);
 
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
@@ -142,7 +142,7 @@ namespace Tests.EditMode
             var reversedRoster = RosterOf(offer.ships.Reverse());
 
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(reordered, ScratchSector(reversedRoster, PhaseInterval), KillHullRestore));
+                StatHash.OfSetting(reordered, new[] { ScratchSector(reversedRoster, PhaseInterval) }, KillHullRestore));
         }
 
         [Test]
@@ -156,24 +156,27 @@ namespace Tests.EditMode
             var paired = ScratchSector(new[] { Entry(0, first), Entry(1, second) }, PhaseInterval);
             var swapped = ScratchSector(new[] { Entry(0, second), Entry(1, first) }, PhaseInterval);
 
-            Assert.AreNotEqual(StatHash.OfSetting(offer, paired, KillHullRestore),
-                StatHash.OfSetting(offer, swapped, KillHullRestore),
+            Assert.AreNotEqual(StatHash.OfSetting(offer, new[] { paired }, KillHullRestore),
+                StatHash.OfSetting(offer, new[] { swapped }, KillHullRestore),
                 "Which pilot flies which hull is part of what a run can draw from.");
         }
 
         [Test]
-        public void OfSetting_MovesWithPacingAndKillRefill()
+        public void OfSetting_MovesWithEverySectorsPacingAndKillRefill()
         {
             var offer = HangarOffer();
             var roster = RosterOf(offer.ships);
             var sector = ScratchSector(roster, PhaseInterval);
-            var baseline = StatHash.OfSetting(offer, sector, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, new[] { sector }, KillHullRestore);
 
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, ScratchSector(roster, PhaseInterval + 1f), KillHullRestore),
+                StatHash.OfSetting(offer, new[] { ScratchSector(roster, PhaseInterval + 1f) }, KillHullRestore),
                 "A pacing number on the wave director must move the fingerprint.");
-            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, sector, KillHullRestore + 0.05f),
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, new[] { sector, ScratchSector(roster, PhaseInterval + 1f) }, KillHullRestore),
+                "A later sector's pacing must move the fingerprint.");
         }
 
         [Test]
@@ -193,17 +196,33 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OfSetting_MovesWhenRunSectorsReorderOrRepeat()
+        {
+            var offer = HangarOffer();
+            var roster = RosterOf(offer.ships);
+            var easy = ScratchSector(roster, PhaseInterval);
+            var hard = ScratchSector(roster, PhaseInterval - 2f);
+
+            var baseline = StatHash.OfSetting(offer, new[] { easy, hard }, KillHullRestore);
+
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { hard, easy }, KillHullRestore),
+                "Sector order sets the difficulty curve, so a reordered run must move the fingerprint.");
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { easy, hard, hard }, KillHullRestore),
+                "A repeated sector lengthens the run, so it must move the fingerprint.");
+        }
+
+        [Test]
         public void OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool()
         {
             var sector = AssetDatabase.LoadAssetAtPath<Sector>(TrialSectorPath);
             Assert.IsNotNull(sector, $"Trial sector prefab missing at {TrialSectorPath}");
             var director = sector.Spawners.OfType<WaveDirector>().Single();
 
-            var lines = StatHash.SettingLines(HangarOffer(), sector, KillHullRestore);
+            var lines = StatHash.SettingLines(HangarOffer(), new[] { sector }, KillHullRestore);
 
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.phases[0]={{"));
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.roster={{"));
-            Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/ItemSubset.weapons="));
+            Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.phases[0]={{"));
+            Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.roster={{"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/TrialEnemyLoadout/ItemSubset.weapons="));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }
@@ -256,7 +275,7 @@ namespace Tests.EditMode
         {
             var sector = ScratchSector(roster, 6f);
             sector.Spawners.OfType<WaveDirector>().Single().Configure(roster, phases);
-            return StatHash.OfSetting(offer, sector, KillHullRestore);
+            return StatHash.OfSetting(offer, new[] { sector }, KillHullRestore);
         }
 
         private Sector ScratchSector(WaveDirector.RosterEntry[] roster, float interval)

@@ -546,8 +546,9 @@ Format: **term** — definition. *(authority)*
   client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
   observer camera, with the starfield backdrop and reverb zone riding it, and
   the hangar camera that stands in for it behind the hangar) and
-  the optional *player rig*, and owns the clock, hangar, death recap and reset
-  policy over one `Session`; the *harness host* (`HarnessHost`) sequences
+  the optional *player rig*, and owns the clock, hangar, sector chaining, hull
+  carry-over, death recap, win screen and reset policy over one `Session`; the
+  *harness host* (`HarnessHost`) sequences
   compositions and episode blocks for a lane client; the *training host*
   (`TrainingHost`) fans arenas out and drives one episode loop each while
   mlagents-learn attaches. Always qualified — bare "host" also names the pool
@@ -594,10 +595,11 @@ Format: **term** — definition. *(authority)*
 - **sector phase** — one timed row of a wave director's pacing table. Bare
   *phase* is the RL run segment (§2) outside the wave director's code (§1
   *stage / phase* row). The player-facing HUD says "PHASE". *(SectorPhase)*
-- **survival trial** — the sector whose goal is surviving its sector phases and
-  then reaching the extraction zone (`PhaseSpineModule`). Extraction or the
-  game host's player-death path ends it; the run tally is its score.
-  *(TrialSector prefab)*
+- **survival trial** — a sector whose goal is surviving its sector phases and
+  then reaching the extraction zone (`PhaseSpineModule`). A run chains three,
+  each faster-paced: extracting moves the run on, extracting from the last wins
+  it, and the game host's player-death path ends it.
+  *(TrialSector, TrialSector2, TrialSector3 prefabs)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -846,7 +848,8 @@ Format: **term** — definition. *(authority)*
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
   hangar can rebuild the player); only deaths between the game host's clock
-  stamps count (begin after the sector load, end at player death). Raises
+  stamps count (begin after the run's first sector load, end at player death or
+  the last extraction). Raises
   `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
 - **kill refill** — the fraction of max hull the game host restores to the
   player each time the run tally counts a kill; hull only (ammo or heat on a kill
@@ -862,17 +865,18 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, the sector's wave director (its pacing, its roster and
+  what the hangar offers, each run sector's wave director in run order (its pacing, its roster and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
-- **run record** — one JSON line appended when a run ends in the player's death:
-  what it was played on (build identity, stat fingerprint), the player's loadout,
-  kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
-  log. Player death is the only exit that writes; quitting mid-run writes nothing.
+- **run record** — one JSON line appended when a run ends, extracted from its last
+  sector or dead: what it was played on (build identity, stat fingerprint), its
+  outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
+  seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
+  spawn log. Quitting mid-run writes nothing.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
