@@ -89,7 +89,7 @@ namespace Game.Runs
         private static bool TryParse(string line, out Row row)
         {
             row = default;
-            // JsonUtility unboxes a blank line to a null struct, which throws.
+            // JsonUtility unboxes an empty line to a null struct, which throws NullReferenceException.
             if (string.IsNullOrWhiteSpace(line)) return false;
 
             RunRecord record;
