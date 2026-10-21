@@ -1,6 +1,7 @@
 using System;
 using Damage;
 using UnityEngine;
+using Ships.Keystones;
 using Ships.Loadout;
 using Ships.Registry;
 
@@ -10,6 +11,7 @@ namespace Ships.Damage
     {
         public event Action<DamageInfo> OnDamaged; // amount = applied (absorbed by shield + hull)
         public event Action<ShipId, DamageInfo> OnDeath; // victimId, killing blow
+        public event Action<DamageInfo> OnBlocked; // dropped by invulnerability or the keystone
 
         public float maxHealth = 100f;
         public float maxShield = 100f;
@@ -20,6 +22,7 @@ namespace Ships.Damage
         public RegenResource Shield { get; private set; }
 
         private Ship myShip;
+        private Keystone keystone;
         private bool deathFired;
 
         private float invulnerableUntil;
@@ -40,9 +43,16 @@ namespace Ships.Damage
             Shield.Update(Time.deltaTime);
         }
 
+        public void Initialize(Keystone keystone) => this.keystone = keystone;
+
         public void TakeDamage(in DamageInfo hit)
         {
-            if (hit.Amount <= 0 || IsInvulnerable) return;
+            if (hit.Amount <= 0) return;
+            if (IsInvulnerable || keystone && keystone.Blocks(in hit))
+            {
+                OnBlocked?.Invoke(hit);
+                return;
+            }
             var shieldAbsorbed = hit.BypassesShield ? 0f : Shield.ApplyDamage(hit.Amount);
             var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
             var applied = hit.WithAmount(appliedDamage);

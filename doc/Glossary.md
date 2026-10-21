@@ -800,6 +800,10 @@ Format: **term** — definition. *(authority)*
   later its windows) that a shared module asset cannot. The boost names stay —
   `PilotCommand.boost`, `IShipStatus.BoostAvailable` — and mean "activate the
   keystone". Always "keystone slot", never bare "slot". *(Keystone, Ship)*
+- **tell** — the player-visible cue for a keystone's ready, fired or active
+  state. A prerequisite, not polish: any keystone state the AI may read needs a
+  player-readable counterpart (#488 §A8). It rides the kit prefab as a
+  presentation part, so presentation-off sessions drop it. *(GuardFlash)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
   `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned

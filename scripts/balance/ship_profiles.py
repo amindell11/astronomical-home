@@ -29,7 +29,7 @@ LASER_WEAPON = ASSETS / "Prefabs/Weapons/Lasers.prefab"
 
 ENGINE_FIELDS = ["maxSpeed", "maxYawRate", "forwardForce", "reverseForce", "yawTorque", "angularDrag",
                  "bankTorque", "bankDamping", "minStrafeForce", "maxStrafeForce", "linearDrag"]
-DASH_FIELDS = ["impulse", "cooldown"]
+DASH_FIELDS = ["impulse", "cooldown", "window"]
 SHIELD_FIELDS = ["maxShield", "shieldRegenDelay", "shieldRegenRate"]
 CHASSIS_FIELDS = ["mass", "maxHealth", "maxBankAngle"]
 
@@ -254,7 +254,7 @@ def main() -> None:
     authored = {s.name: {**{k: s.chassis[k] for k in CHASSIS_FIELDS}, "engine": s.engine.name,
                          "shield": s.shield.name, "keystone": s.keystone.name, "yaw inertia (pinned)": s.inertia_z,
                          **{f"engine.{k}": v for k, v in s.engine.fields.items()},
-                         **{f"keystone.{k}": v for k, v in s.keystone.fields.items()},
+                         **{f"keystone.{k}": s.keystone.fields.get(k, "—") for k in DASH_FIELDS},
                          **{f"shield.{k}": v for k, v in s.shield.fields.items()}} for s in ships}
     print(f"laser: {w['damage']:g} dmg every {w['fireRate']:g} s, {w['heatPerShot']:g} heat/shot of {w['maxHeat']:g}, "
           f"cooling {w['coolingRate']:g}/s after {w['coolDownDelay']:g} s; drag and caps per engine asset")

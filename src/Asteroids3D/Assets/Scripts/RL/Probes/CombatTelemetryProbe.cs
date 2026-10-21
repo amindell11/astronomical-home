@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Combat.Weapons;
+using Damage;
 using Ships;
+using Ships.Keystones;
 using Ships.Command;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -29,7 +31,7 @@ namespace RL.Probes
         public int oppBoosts;
     }
 
-    /// <summary>One episode's combat-telemetry signals: range-band occupancy normalized to the agent's primary FireRange, TTK inputs, engagement cycles, regen events split engaged/disengaged, and boost activations per engagement and per gap.</summary>
+    /// <summary>One episode's combat-telemetry signals: range-band occupancy normalized to the agent's primary FireRange, TTK inputs, engagement cycles, regen events split engaged/disengaged, boost activations per engagement and per gap, and how many activations blocked a hit.</summary>
     [Serializable]
     public struct CombatTelemetryRow
     {
@@ -59,6 +61,8 @@ namespace RL.Probes
         public float oppRegenAmountDisengaged;
         public int agentBoostsTrailingGap;
         public int oppBoostsTrailingGap;
+        public int agentBoostsPaid;
+        public int oppBoostsPaid;
 
         public const string SchemaId = "rl-combat-telemetry-v1";
         /// <summary>Quarter-envelope bins to 2.0× the normalizer, plus one overflow bin.</summary>
@@ -95,6 +99,8 @@ namespace RL.Probes
         public float meanAgentBoostsGap;
         public float meanOppBoostsEngaged;
         public float meanOppBoostsGap;
+        public float meanAgentBoostsPaid;
+        public float meanOppBoostsPaid;
 
         public const string SchemaId = "rl-combat-telemetry-summary-v1";
 
@@ -136,6 +142,8 @@ namespace RL.Probes
                 }
                 summary.meanAgentBoostsGap += row.agentBoostsTrailingGap;
                 summary.meanOppBoostsGap += row.oppBoostsTrailingGap;
+                summary.meanAgentBoostsPaid += row.agentBoostsPaid;
+                summary.meanOppBoostsPaid += row.oppBoostsPaid;
             }
             if (rows.Count > 0)
             {
@@ -162,6 +170,8 @@ namespace RL.Probes
                 summary.meanAgentBoostsGap /= n;
                 summary.meanOppBoostsEngaged /= n;
                 summary.meanOppBoostsGap /= n;
+                summary.meanAgentBoostsPaid /= n;
+                summary.meanOppBoostsPaid /= n;
             }
             return summary;
         }
@@ -220,6 +230,28 @@ namespace RL.Probes
         }
     }
 
+    // An activation pays once, on the first hit its keystone blocks.
+    internal sealed class KeystonePaidCounter
+    {
+        private readonly Keystone keystone;
+        private int credited;
+
+        public int Paid { get; private set; }
+
+        public KeystonePaidCounter(Keystone keystone)
+        {
+            this.keystone = keystone;
+            credited = keystone.Activations;
+        }
+
+        public void OnBlocked(DamageInfo _)
+        {
+            if (keystone.Activations == credited) return;
+            credited = keystone.Activations;
+            Paid++;
+        }
+    }
+
     /// <summary>Regen events off Shield.OnValueChanged: a rising tick is regen (damage only falls), routed by engagement state.</summary>
     internal sealed class RegenSplit
     {
@@ -245,7 +277,7 @@ namespace RL.Probes
         }
     }
 
-    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over the episode loop's <see cref="IStepSnapshotSource"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, and polled boost availability. Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
+    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over the episode loop's <see cref="IStepSnapshotSource"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, polled boost availability, and each side's blocked hits (paid activations). Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
     public sealed class CombatTelemetrySampler : IDisposable
     {
         private readonly Ship agent;
@@ -259,6 +291,8 @@ namespace RL.Probes
         private readonly WeaponComponent[] oppWeapons;
         private readonly BoostEdgeDetector agentBoostEdge;
         private readonly BoostEdgeDetector oppBoostEdge;
+        private readonly KeystonePaidCounter agentPaid;
+        private readonly KeystonePaidCounter oppPaid;
         private readonly EngagementTracker tracker = new();
         private readonly RegenSplit agentRegen = new();
         private readonly RegenSplit oppRegen = new();
@@ -298,6 +332,10 @@ namespace RL.Probes
             baseline.Damage.Shield.OnValueChanged += OnOppShieldChanged;
             agentBoostEdge = new BoostEdgeDetector(agent.BoostAvailable);
             oppBoostEdge = new BoostEdgeDetector(baseline.BoostAvailable);
+            agentPaid = new KeystonePaidCounter(agent.Keystone);
+            oppPaid = new KeystonePaidCounter(baseline.Keystone);
+            agent.Damage.OnBlocked += agentPaid.OnBlocked;
+            baseline.Damage.OnBlocked += oppPaid.OnBlocked;
         }
 
         internal static int BandIndex(float normalizedRange) =>
@@ -363,6 +401,8 @@ namespace RL.Probes
                 oppRegenAmountDisengaged = oppRegen.DisengagedAmount,
                 agentBoostsTrailingGap = agentBoostsGap,
                 oppBoostsTrailingGap = oppBoostsGap,
+                agentBoostsPaid = agentPaid.Paid,
+                oppBoostsPaid = oppPaid.Paid,
             };
         }
 
@@ -374,6 +414,8 @@ namespace RL.Probes
                 if (weapon) weapon.OnFire -= CountOppShot;
             if (agent) agent.Damage.Shield.OnValueChanged -= OnAgentShieldChanged;
             if (baseline) baseline.Damage.Shield.OnValueChanged -= OnOppShieldChanged;
+            if (agent) agent.Damage.OnBlocked -= agentPaid.OnBlocked;
+            if (baseline) baseline.Damage.OnBlocked -= oppPaid.OnBlocked;
         }
 
         private void OpenEngagement(float time, in CombatSnapshot snapshot)

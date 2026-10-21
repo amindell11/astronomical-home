@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using Damage;
 using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Registry;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -27,18 +29,67 @@ namespace Tests.EditMode.Ships
             if (host) Object.DestroyImmediate(host);
         }
 
-        private Dash NewDash()
+        private const float Window = 0.4f;
+
+        private Dash NewDash() => NewKit<Dash>();
+
+        private T NewKit<T>() where T : Dash
         {
-            host = new GameObject("Dash");
-            var dash = host.AddComponent<Dash>();
-            var so = new SerializedObject(dash);
+            host = new GameObject(typeof(T).Name);
+            var kit = host.AddComponent<T>();
+            var so = new SerializedObject(kit);
             so.FindProperty("impulse").floatValue = Impulse;
             so.FindProperty("cooldown").floatValue = Cooldown;
+            var window = so.FindProperty("window");
+            if (window != null) window.floatValue = Window;
             so.ApplyModifiedPropertiesWithoutUndo();
-            return dash;
+            return kit;
         }
 
         private static Kinematics Facing(float yawDeg) => new(Vector2.zero, Vector2.zero, yawDeg, 0f, 0f);
+
+        private static readonly DamageInfo AnyHit = new(10f, DamageKind.Missile, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
+
+        [Test]
+        public void GuardDash_BlocksEveryHitForItsWindow_ThenNone()
+        {
+            var guard = NewKit<GuardDash>();
+            var kin = Facing(0f);
+            Assert.That(guard.Blocks(in AnyHit), Is.False, "nothing is blocked before the first activation");
+
+            guard.Step(in kin, 1f, Dt, out _);
+            var steps = 0;
+            while (guard.Blocks(in AnyHit))
+            {
+                guard.Step(in kin, 0f, Dt, out _);
+                steps++;
+            }
+            Assert.That(steps * Dt, Is.EqualTo(Window).Within(Dt), "the guard lasts its window");
+            Assert.That(guard.Guarding, Is.False);
+        }
+
+        [Test]
+        public void GuardDash_ResetClosesAnOpenWindow()
+        {
+            var guard = NewKit<GuardDash>();
+            var kin = Facing(0f);
+            guard.Step(in kin, 1f, Dt, out _);
+            Assert.That(guard.Guarding, Is.True);
+
+            guard.ResetKeystone();
+
+            Assert.That(guard.Guarding, Is.False, "a respawn never inherits an open window");
+            Assert.That(guard.Activations, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void PlainDash_BlocksNothing_EvenRightAfterActivating()
+        {
+            var dash = NewDash();
+            var kin = Facing(0f);
+            dash.Step(in kin, 1f, Dt, out _);
+            Assert.That(dash.Blocks(in AnyHit), Is.False);
+        }
 
         [Test]
         public void Dash_ActivatesOnce_AlongTheNose_ThenWaitsOutItsCooldown()
@@ -98,6 +149,16 @@ namespace Tests.EditMode.Ships
 
             var thrown = Assert.Throws<InvalidOperationException>(() => ship.Initialize(0, 0, null));
             StringAssert.Contains("keystone", thrown.Message);
+        }
+
+        [Test]
+        public void Vanguard_CarriesTheGuardDash()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var guard = catalog.Chassis.Single(c => c.name == "Vanguard").KeystonePrefab as GuardDash;
+            Assert.That(guard, Is.Not.Null, "Vanguard's kit is the Guard Dash");
+            Assert.That(guard.Window, Is.EqualTo(0.4f));
+            Assert.That(guard.GetComponent<GuardFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
         [TestCase("Vanguard", 9000f, 5f)]

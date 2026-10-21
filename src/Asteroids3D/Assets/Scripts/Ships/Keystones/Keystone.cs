@@ -1,4 +1,5 @@
 using Balance;
+using Damage;
 using Movement;
 using UnityEngine;
 
@@ -19,12 +20,16 @@ namespace Ships.Keystones
 
         private float clock;
         private float readyAt;
+        private float activatedAt = float.NegativeInfinity;
 
         public abstract string DisplayName { get; }
         public float Cooldown => cooldown;
         public bool Ready => clock >= readyAt;
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
+        public int Activations { get; private set; }
+
+        protected float SinceActivation => clock - activatedAt;
 
         public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated)
         {
@@ -32,6 +37,8 @@ namespace Ships.Keystones
             activated = Ready && input != 0f;
             if (!activated) return Vector2.zero;
             readyAt = clock + cooldown;
+            activatedAt = clock;
+            Activations++;
             return Activate(in kinematics);
         }
 
@@ -39,7 +46,11 @@ namespace Ships.Keystones
         {
             clock = 0f;
             readyAt = 0f;
+            activatedAt = float.NegativeInfinity;
+            Activations = 0;
         }
+
+        public virtual bool Blocks(in DamageInfo hit) => false;
 
         protected abstract Vector2 Activate(in Kinematics kinematics);
     }
