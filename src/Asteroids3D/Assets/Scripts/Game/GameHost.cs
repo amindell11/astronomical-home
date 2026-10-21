@@ -203,7 +203,7 @@ namespace Game
                     if (!playerDied) EndRun();
                     var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     if (presentation)
-                        yield return playerDied ? RunDeathRecap(board) : RunWinScreen(index + 1, board);
+                        yield return playerDied ? RunDeathRecap(index, board) : RunWinScreen(index + 1, board);
                 }
 
                 SetSplashVisible(true);
@@ -329,14 +329,14 @@ namespace Game
             Destroy(screen.gameObject);
         }
 
-        private IEnumerator RunDeathRecap(Scoreboard board)
+        private IEnumerator RunDeathRecap(int sectorsCleared, Scoreboard board)
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(lastKillingBlow, rigInstance.Ledger, rigInstance.Tally, board, () => dismissed = true);
+            screen.Show(rigInstance.Ledger, rigInstance.Tally, sectorsCleared, board, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
@@ -352,7 +352,7 @@ namespace Game
 
             var screen = RunWonScreen.Create(ui);
             var dismissed = false;
-            screen.Show(rigInstance.Tally, sectorsCleared, board, () => dismissed = true);
+            screen.Show(rigInstance.Tally, sectorsCleared, rigInstance.Ledger, board, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);

@@ -27,6 +27,8 @@ namespace Game.Runs
     {
         public string kind;
         public float total;
+        public float shield;
+        public float hull;
         public int hits;
         public string source;
         public int spawn;
@@ -55,6 +57,7 @@ namespace Game.Runs
     /// ends extracted from its last sector or dead; only a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
+    /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero damage.
     /// What a record holds and why: https://github.com/amindell11/astronomical-home/issues/772#issuecomment-5905712068
     /// </summary>
     [Serializable]
@@ -72,6 +75,7 @@ namespace Game.Runs
         public int kills;
         public float secondsSurvived;
         public List<DamageRow> damage;
+        public bool hasDamageSplit;
         public KillingBlowRow killingBlow;
         public List<SpawnRow> spawns;
 
@@ -113,6 +117,7 @@ namespace Game.Runs
                 kills = tally.Kills,
                 secondsSurvived = tally.SecondsSurvived,
                 damage = new List<DamageRow>(ledger.Rows.Count),
+                hasDamageSplit = true,
                 killingBlow = killingBlow is { } blow
                     ? new KillingBlowRow { kind = blow.Kind.ToString(), spawn = SpawnOf(blow.AttackerId) }
                     : new KillingBlowRow { kind = string.Empty, spawn = NoSpawn },
@@ -137,6 +142,8 @@ namespace Game.Runs
                 }
                 var row = record.damage[i];
                 row.total += hit.Amount;
+                row.shield += hit.Shield;
+                row.hull += hit.Hull;
                 row.hits++;
                 record.damage[i] = row;
             }

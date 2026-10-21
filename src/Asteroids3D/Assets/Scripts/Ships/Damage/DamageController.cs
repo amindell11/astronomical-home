@@ -8,7 +8,7 @@ namespace Ships.Damage
 {
     public class DamageController : MonoBehaviour, IDamageable, IDamageEvents
     {
-        public event Action<DamageInfo> OnDamaged; // amount = applied (absorbed by shield + hull)
+        public event Action<AppliedDamage> OnDamaged;
         public event Action<ShipId, DamageInfo> OnDeath; // victimId, killing blow
 
         public float maxHealth = 100f;
@@ -44,16 +44,16 @@ namespace Ships.Damage
         {
             if (hit.Amount <= 0 || IsInvulnerable) return;
             var shieldAbsorbed = Shield.ApplyDamage(hit.Amount);
-            var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
-            var applied = hit.WithAmount(appliedDamage);
-            if (appliedDamage > 0)
+            var hullDamage = Health.ApplyDamage(hit.Amount - shieldAbsorbed);
+            var applied = new AppliedDamage(hit, shieldAbsorbed, hullDamage);
+            if (applied.Info.Amount > 0)
             {
                 OnDamaged?.Invoke(applied);
             }
 
             if (Health.CurrentValue <= 0f)
             {
-                BroadcastDeath(applied);
+                BroadcastDeath(applied.Info);
             }
         }
 

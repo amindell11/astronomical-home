@@ -22,7 +22,7 @@ namespace Tests.PlayMode
     {
         private sealed class FakeDamageEvents : IDamageEvents
         {
-            public event System.Action<Damage.DamageInfo> OnDamaged { add { } remove { } }
+            public event System.Action<Damage.AppliedDamage> OnDamaged { add { } remove { } }
             public event System.Action<ShipId, Damage.DamageInfo> OnDeath { add { } remove { } }
             public Resource Health { get; } = new Resource(100f);
             public RegenResource Shield { get; } = new RegenResource(50f, 0f, 999f);

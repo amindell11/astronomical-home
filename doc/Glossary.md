@@ -821,14 +821,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **DamageInfo** — the per-hit context struct every damage producer builds at
+- **DamageInfo**. The per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
-  event-side the *applied* damage (shield + hull, the locked bleed-through
+  `AppliedDamage.Info.Amount` is the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life record of the player's received DamageInfo: every
-  hit stamped with game time, and the hits aggregated per source —
-  consumer-side recorder owned by the player rig, never sim state. Source names
+- **damage ledger**. Records received shield and hull damage across the whole run,
+  including repairs and sector changes. A consumer-side recorder owned by the
+  player rig, never sim state. Source names
   are captured at event time because the attacker may despawn before the recap
   reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
@@ -859,18 +859,19 @@ Format: **term** — definition. *(authority)*
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
-- **run record** — one JSON line appended when a run ends, extracted from its last
+- **run record**. One JSON line appended when a run ends, extracted from its last
   sector or dead: what it was played on (build identity, stat fingerprint), its
   outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
   seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
-  spawn log. Quitting mid-run writes nothing.
+  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
+  measured shield/hull points from older v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
-- **scoreboard** — the rank and top-five list the death recap and the win screen
-  show, read from the run-record file at run end. Only v2 run records count, from
+- **scoreboard**. The rank shown below the combat recap, read from the run-record
+  file at run end. Only v2 run records count, from
   any stat fingerprint; older v1 records stay in the file and off the board. The
   file sits under the results root, so the editor and a player build keep separate
   boards. An unrecorded run shows as not ranked. *(Scoreboard.Compare is the
