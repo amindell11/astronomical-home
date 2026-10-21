@@ -165,11 +165,11 @@ namespace UI.Screens
         private void ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
-            var row = Box(panel, name, 28, y, 304, 24);
-            Label(row, "Run", run, 0, 0, 122, 24, 11, color);
-            Label(row, "Sectors", sectors, 134, 0, 58, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Kills", kills, 204, 0, 36, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Time", time, 254, 0, 50, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            var row = Box(panel, name, 40, y, 280, 24);
+            Label(row, "Run", run, 0, 0, 98, 24, 11, color);
+            Label(row, "Sectors", sectors, 110, 0, 58, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Kills", kills, 180, 0, 36, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Time", time, 230, 0, 50, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
         }
 
         private void Continue(RectTransform parent, string caption, float y, Action onContinue)
