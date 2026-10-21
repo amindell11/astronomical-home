@@ -80,7 +80,7 @@ namespace AI
                 ? targetPos
                 : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
 
-        /// <summary>The bearing from this pose to the primary weapon's aim point, with that bearing's rate; none without a target.</summary>
+        /// <summary>Bearing to the primary weapon's aim point and its rate; none without a target.</summary>
         public AimReference PrimaryAimReference()
         {
             if (!hasTarget) return AimReference.None;

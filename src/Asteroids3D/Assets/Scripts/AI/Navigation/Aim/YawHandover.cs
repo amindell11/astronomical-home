@@ -11,8 +11,7 @@ namespace AI.Navigation.Aim
 
         public YawHandover(MpcSettings settings) => this.settings = settings;
 
-        public bool Latched => latched;
-        public bool Vetoed => sinceThreat < settings.aimServoVetoHold;
+        private bool Vetoed => sinceThreat < settings.aimServoVetoHold;
 
         public bool ServoOwnsYaw(in AimReference reference) => reference.live && latched && !Vetoed;
 
