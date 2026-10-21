@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SessionStart hook: start the session from a current base, and surface what needs triage.
+# Primary-tree checks for two hooks. The SessionStart hook runs checks 1 and 2, so a session starts
+# from a current base; .githooks/post-merge runs check 3 after a merge in the primary itself.
 #
 # 1. An app session worktree (under <primary>/.claude/worktrees/) can start behind origin/main.
 #    With no commits of its own and a clean tree it is fast-forwarded. Claude Code has already
@@ -14,11 +15,13 @@
 # slot, a session worktree or the primary itself. Checks 2 and 3 never stage, pull or stash there.
 #
 # Interface: exit 0 always (a hook failure must not block a session).
-#   stdout  prose for the session (Claude Code adds it to context), then the trailer
-#           PRIMARY_TREE_DIRTY=<stray count>; nothing to report prints the trailer alone.
-#   stderr  git errors only.
-# Never runs Unity. One `git fetch origin main`, capped at FETCH_SECONDS; with no origin remote,
-# checks 1 and 2 are skipped.
+#   (no args)  checks 1 and 2. stdout is prose for the session (Claude Code adds it to context);
+#              nothing to report prints nothing.
+#   strays     check 3. stdout is prose, then the trailer PRIMARY_TREE_DIRTY=<stray count>;
+#              nothing to report prints the trailer alone.
+#   stderr     git errors only.
+# Never runs Unity. Checks 1 and 2 run one `git fetch origin main`, capped at FETCH_SECONDS; with
+# no origin remote, they are skipped.
 set -uo pipefail
 
 ALLOW=(
@@ -28,6 +31,8 @@ ALLOW=(
   'doc/design/.obsidian/workspace.json' 'doc/design/.obsidian/cache/' '__pycache__/' '*/__pycache__/'
   'audio/fmod/.cache/' 'audio/fmod/.user/' 'audio/fmod/.unsaved/' '*.asd'
   'src/Asteroids3D/Assets/Resources/FMOD/FMODStudioCache.asset*' 'src/Asteroids3D/fmod_editor.log'
+  'results/' 'src/Asteroids3D/.idea/' 'src/Asteroids3D/Build/'
+  'src/Asteroids3D/Assets/ML-Agents/' 'src/Asteroids3D/Assets/ML-Agents.meta'
 )
 SOUND=(
   'audio/*' 'src/Asteroids3D/Assets/Audio/*'
@@ -156,12 +161,11 @@ report_strays() {
 
 main() {
   local common primary
-  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || {
-    echo "PRIMARY_TREE_DIRTY=0"
-    return
-  }
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
   primary="$(dirname "$common")"
-  if git remote get-url origin > /dev/null 2>&1; then
+  if [[ "${1-}" == strays ]]; then
+    report_strays "$primary"
+  elif git remote get-url origin > /dev/null 2>&1; then
     if GIT_TERMINAL_PROMPT=0 timeout "$FETCH_SECONDS" git fetch -q origin main; then
       fast_forward_session "$primary"
       report_primary_main "$primary"
@@ -169,7 +173,6 @@ main() {
       echo "Could not fetch origin main, so this session's base and the primary's main went unchecked."
     fi
   fi
-  report_strays "$primary"
 }
 
 # Bash reads a script as it runs; parsing main whole first lets the fast-forward rewrite this file.

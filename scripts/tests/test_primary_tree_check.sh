@@ -6,7 +6,8 @@ set -euo pipefail
 # repo stands in for origin and a clone for the primary tree, with app session worktrees under
 # its .claude/worktrees/ and a sibling slot. Only a clean app worktree with no commits of its own
 # is fast-forwarded. The primary's blocked pull lists its collisions in git's own terms, checked
-# against a real merge, and untracked sound paths are counted apart from strays.
+# against a real merge, and untracked sound paths are counted apart from strays. The post-merge
+# hook prints the stray report after a pull in the primary and stays quiet in a slot.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECK="$SCRIPT_DIR/../primary_tree_check.sh"
@@ -16,7 +17,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 fail() { echo "FAIL: $1" >&2; exit 1; }
 g() { git -c user.name=t -c user.email=t@t "$@"; }
-check() { (cd "$1" && bash "$CHECK"); }
+check() { (cd "$1" && bash "$CHECK" "${@:2}"); }
 put() { mkdir -p "$(dirname "$1")" && printf '%s\n' "$2" > "$1"; }
 head_of() { git -C "$1" rev-parse HEAD; }
 ship() {
@@ -44,10 +45,11 @@ put "$W/busy/mine.txt" mine && g -C "$W/busy" add mine.txt && g -C "$W/busy" com
 put "$W/dirty/scratch.txt" scratch
 busy_head="$(head_of "$W/busy")" base_head="$(head_of "$P")"
 
-# --- current everywhere: only the stray trailer, no fetch noise ---
+# --- current everywhere: the session check says nothing, the stray report lists the nested worktree ---
 out="$(check "$W/fresh")"
+[[ -z "$out" ]] || fail "current tree reported something: $out"
+out="$(check "$W/fresh" strays)"
 [[ "$out" == $'Primary tree '*'!! .claude/worktrees/'*'PRIMARY_TREE_DIRTY=1' ]] || fail "current tree: $out"
-[[ "$out" != *Fast-forwarded* && "$out" != *"would be refused"* ]] || fail "current tree reported a base: $out"
 
 # --- origin moves: AGENTS.md, a shipped clip, an edit that collides, an edit already staged ---
 ship "ship sound" AGENTS.md "new rules" audio/fmod/Assets/clip.wav clip .edited.txt shipped staged.txt shipped
@@ -71,17 +73,18 @@ out="$(check "$W/fresh")"
 [[ "$out" == *"re-read AGENTS.md"* ]] || fail "AGENTS.md change not flagged: $out"
 [[ "$out" == *"The primary's main is 1 commit behind origin/main, and \`git pull --ff-only\` there would be refused"* ]] ||
   fail "blocked pull not reported: $out"
-[[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt\n'* ]] ||
+[[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt' ]] ||
   fail "collisions not split into equal and different: $out"
 [[ "$out" != *"  staged.txt"* && "$out" != *"  other.txt"* ]] || fail "a path git lets through was listed: $out"
+out="$(check "$W/fresh" strays)"
 [[ "$out" == *"Sound work in progress, not strays: 6 untracked paths"* ]] || fail "sound count: $out"
-for stray in '?? notes/' '!! results/' '!! .claude/worktrees/'; do
+for stray in '?? notes/' '!! .claude/worktrees/'; do
   [[ "$out" == *"  $stray"* ]] || fail "stray $stray missing: $out"
 done
-[[ "$out" != *"  ?? audio/"* && "$out" != *"  ?? src/"* && "$out" != *.cache* && "$out" != *.asd* ]] ||
-  fail "sound path or byproduct listed as a stray: $out"
+[[ "$out" != *"  ?? audio/"* && "$out" != *"  ?? src/"* && "$out" != *.cache* && "$out" != *.asd* && "$out" != *results/* ]] ||
+  fail "sound path, byproduct or allowlisted dir listed as a stray: $out"
 [[ "$out" == *"Agents write there only to fast-forward main and for sound work"* ]] || fail "stray wording: $out"
-[[ "$(tail -n1 <<< "$out")" == "PRIMARY_TREE_DIRTY=3" ]] || fail "trailer: $out"
+[[ "$(tail -n1 <<< "$out")" == "PRIMARY_TREE_DIRTY=2" ]] || fail "trailer: $out"
 
 # --- the hook's prediction matches git, and it never moved the primary ---
 [[ "$(head_of "$P")" == "$base_head" ]] || fail "the check moved the primary's main"
@@ -92,7 +95,7 @@ out="$(check "$P")"
   fail "staged equal path still listed, or the differing edit dropped: $out"
 put "$P/.edited.txt" shipped                         # equal now, but unstaged: git still refuses it
 out="$(check "$P")"
-[[ "$out" == *$'lets the pull through'*$'\n  .edited.txt\n'* && "$out" != *"Different from origin/main"* ]] ||
+[[ "$out" == *$'lets the pull through'*$'\n  .edited.txt' && "$out" != *"Different from origin/main"* ]] ||
   fail "unstaged equal edit not listed as equal: $out"
 g -C "$P" add .edited.txt
 out="$(check "$P")"
@@ -115,13 +118,21 @@ out="$(check "$W/later")"
 [[ "$out" == *"Fast-forwarded this session worktree 1 commit"* && "$out" != *"re-read AGENTS.md"* ]] ||
   fail "plain range: $out"
 
+# --- post-merge: a pull in the primary, under the owner's pull.rebase, prints strays; a slot merge doesn't ---
+git -C "$P" config core.hooksPath "$SCRIPT_DIR/../../.githooks"
+out="$(g -C "$TMP/slot" merge --ff-only origin/main 2>&1)"
+[[ "$out" != *PRIMARY_TREE_DIRTY* ]] || fail "a merge in a slot listed strays: $out"
+out="$(g -C "$P" -c pull.rebase=true pull -q 2>&1)"
+[[ "$out" == *"Triage these now"*"PRIMARY_TREE_DIRTY=2"* ]] || fail "a pull in the primary listed no strays: $out"
+git -C "$P" config --unset core.hooksPath
+
 # --- a diverged main, then an unreachable origin ---
+ship "upstream change" other3.txt y
 put "$P/local.txt" local && g -C "$P" add local.txt && g -C "$P" commit -qm local
 out="$(check "$P")"
 [[ "$out" == *"The primary's main has commits origin/main lacks"* ]] || fail "diverged main: $out"
 g -C "$P" remote set-url origin "$TMP/missing.git"
 out="$(check "$W/fresh" 2> /dev/null)"
-[[ "$out" == *"Could not fetch origin main"* && "$(tail -n1 <<< "$out")" == PRIMARY_TREE_DIRTY=* ]] ||
-  fail "unreachable origin: $out"
+[[ "$out" == *"Could not fetch origin main"* ]] || fail "unreachable origin: $out"
 
-echo "PASS: primary-tree check base handling and sound-work split"
+echo "PASS: primary-tree check base handling, sound-work split and post-merge stray report"
