@@ -8,7 +8,7 @@
 #    Untracked SOUND paths are sound work in progress (doc/agents/audio-pipeline.md → Where sound
 #    work happens), counted but not listed. Tracked modifications are never listed as strays.
 # The primary tree is resolved from --git-common-dir, so the checks read the same tree from a
-# slot, a session worktree or the primary itself. They never stage, pull or stash there.
+# slot, an app worktree or the primary itself. They never stage, pull or stash there.
 #
 # Interface: exit 0 always (a hook failure must not block a session).
 #   stdout  prose for the session (Claude Code adds it to context), then the trailer

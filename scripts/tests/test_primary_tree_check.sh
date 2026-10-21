@@ -3,7 +3,7 @@ set -euo pipefail
 # covers: scripts/primary_tree_check.sh
 
 # Hermetic regression for the session-start check's pull report and sound-work split. A bare repo
-# stands in for origin and a clone for the primary tree, with an app session worktree under its
+# stands in for origin and a clone for the primary tree, with an app worktree under its
 # .claude/worktrees/ that the check runs from and never moves. The primary's blocked pull lists its
 # collisions in git's own terms, checked against a real merge, and untracked sound paths are
 # counted apart from strays.

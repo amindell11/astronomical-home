@@ -1,18 +1,19 @@
 """PreToolUse hook (mcp__ccd_session__start_session): refuse a session start that makes an app worktree.
 
 The Claude desktop app gives a started session its own git worktree under
-<primary>/.claude/worktrees/ when the call asks for one (`use_worktree: true`), and by default
-when the calling session already sits in one. Agent work never happens there; sessions open in the
-caller's folder and build in a pool slot (AGENTS.md, Default workflow).
+<primary>/.claude/worktrees/ on `use_worktree: true`, and on an omitted `use_worktree` or
+`context: "fork"` when the calling session already sits in one. Agent work never happens there;
+sessions open in the caller's folder and build in a pool slot (AGENTS.md, Default workflow).
 
 Interface (Claude Code hook contract), exit 0 on well-formed hook JSON:
-  stdin   the hook JSON; reads `cwd` and `tool_input`.
+  stdin   the hook JSON; reads `cwd` (the calling session's folder) and `tool_input`.
   stdout  nothing when allowed; when refused, one JSON line with
           hookSpecificOutput.permissionDecision "deny" and a permissionDecisionReason naming
           the fix (`use_worktree: false`).
 
-Passes: starts at another place (`target` cloud/ssh, `cwd`, `host`, `preset`), and calls without
-a brief (a title-only offer, a proposal started as proposed), which were judged when they carried it.
+Refused: the starts above. Passed: a start elsewhere (`target` cloud/ssh, or `tool_input.cwd`,
+`host` or `preset` set), and a call without `prompt` (a title-only offer, a `proposal_id`-only
+start), since the call that carries the brief is the one judged.
 """
 
 import json
@@ -22,16 +23,14 @@ ELSEWHERE = ("cwd", "host", "preset")
 
 
 def in_app_worktree(cwd):
-    return "/.claude/worktrees/" in cwd.replace("\\", "/").casefold() + "/"
+    return "/.claude/worktrees/" in cwd.replace("\\", "/").casefold()
 
 
 def makes_worktree(inp, in_app):
-    if inp.get("target") in ("cloud", "ssh") or any(inp.get(k) for k in ELSEWHERE):
+    if "prompt" not in inp or inp.get("target") in ("cloud", "ssh") or any(inp.get(k) for k in ELSEWHERE):
         return False
     if inp.get("context") == "fork":
         return in_app
-    if "prompt" not in inp:
-        return False
     wt = inp.get("use_worktree")
     return wt is True or (wt is None and in_app)
 
