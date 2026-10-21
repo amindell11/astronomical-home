@@ -56,8 +56,9 @@ not stacking a bonus.
 |---|---|
 | hull (`maxHealth`), lives, `mass`, `maxBankAngle`, slot layout | **Ship (chassis)** |
 | physical size (root scale) → collision radius (derived from colliders) | **Ship prefab geometry** |
-| thrust / reverse / strafe forces, top speed, yaw torque + rate, boost impulse + cooldown, linear + angular drag, roll torque + damping | **Engine** |
+| thrust / reverse / strafe forces, top speed, yaw torque + rate, boost impulse, linear + angular drag, roll torque + damping | **Engine** |
 | max shield, shield regen delay, shield regen rate | **Shield** |
+| boost cooldown | **Keystone** (ruled on #1028; the Engine holds it until the slot builds) |
 
 Notes on the judgement calls:
 - **`mass` is the chassis's**, not the engine's. Under disjoint ownership there's
@@ -70,16 +71,20 @@ Notes on the judgement calls:
 - **Size and collision radius are the prefab's geometry**, not a tunable scalar:
   size is the prefab's authored root scale, and the collision radius is derived
   from the scaled collider bounds at spawn — a single source of truth.
+- **The boost cooldown is the Keystone's**, not the Engine's: the thing on
+  cooldown is the ability, and an engine swap should not change how often a
+  ship can fire it. The Engine keeps the boost impulse as dash strength, an
+  input the dash-shaped keystones read.
 
 ## Slot taxonomy
 
 | Slot | Count | Fills with | Status |
 |---|---|---|---|
-| **Engine** | 1 | engine module | **built** |
+| **Engine** | 1 | engine module | **built**; locked to the chassis — it leaves the hangar and the loot pool (#1028 Slice 1) |
 | **Shield** | 1 | shield module | **built** |
 | **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
-| **Keystone** | 1 | a keystone ability | **designed, deferred** |
+| **Keystone** | 1 | a keystone ability | **locked per ship; building (#1028)** |
 | **Passive** | 1 | a passive | **designed, deferred** |
 
 **Weapon count** is meant to be a big archetype differentiator (some frames
@@ -101,7 +106,8 @@ like a Hades character) or **open** (player picks, e.g. from the [[Keystones]]
 pairs). A locked slot is just an open slot with its choice pinned in data.
 
 - **Starting stance:** ship the first frames with *locked* kits — easier to tune
-  and gives each ship a strong identity.
+  and gives each ship a strong identity. The first five ship with locked
+  keystones, one kit per ship, per #1028 ([[Keystones]] has the mapping).
 - **When playtesting says a ship wants choice**, flip that one slot to open — no
   code change, just data. Can go per-ship, even per-slot (locked passive + open
   keystone).
@@ -115,25 +121,27 @@ build identity is an observable.
 
 ## Current roster (design intent vs what's built)
 
-Five ship identities are the design roster — their intended feel:
+Six ship identities are the design roster — their intended feel:
 
-- **Interceptor** — low hull, high maneuverability. Glass ship that lives on
+- **Interceptor** (Crimson) — low hull, high maneuverability. Glass ship that lives on
   dodging (see [[Flight]] skill expression).
-- **Tank / Brawler** — high hull, heavy shield, sluggish. Wants to close and
+- **Tank / Brawler** (Bulwark) — high hull, heavy shield, sluggish. Wants to close and
   trade — the "commit for the kill" side of the [[Combat Depth|tempo]] tension.
-- **Fast** — speed/handling-tuned; differs from Default mainly in its Engine.
-- **Default** — the baseline balanced chassis.
+- **Fast** (Valis) — speed/handling-tuned; differs from Default mainly in its Engine.
+- **Default** (Vanguard) — the baseline balanced chassis.
+- **Stealth** (Nightshade) — light, quick, and briefly unseen. Wins on
+  information: breaks the enemy's track to reset the fight on its own terms
+  (see [[Keystones]]).
 - **Cargo** — utility/peaceful chassis (may carry no weapons; ships can be
   unarmed).
 
-**What's built today:** three ship *prefabs* — the baseline `Ship_1` (Default),
-its variant hulls `Ship_2`/`Ship_3`, and the `Junker` cargo hull — each carrying
-its chassis + `Default`/`Cargo` engine & shield modules. The `Fast`,
-`Interceptor` and `Tank` seeds were **removed** (they were orphan stat-sets with
-no prefab); they come back as real ship prefabs when we build those archetypes.
+**What's built today:** five ship *prefabs* — `Vanguard`, `Crimson`, `Nightshade`,
+`Valis` and `Bulwark`, each a `ShipBase` variant — plus the `Junker` cargo hull,
+each carrying its chassis + engine & shield modules. The five still share one
+chassis profile; per-ship profiles are #1028's Slice 2.
 
-Keystones/passives per frame (e.g. Interceptor→*Ghost* blink, Brawler→
-*Headstrong* front-shield) are illustrative until the ability system exists.
+Each ship's keystone is fixed in [[Keystones]]; passives stay illustrative
+until the ability system exists.
 
 ## Enemies use the same model
 
