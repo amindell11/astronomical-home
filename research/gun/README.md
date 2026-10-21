@@ -44,3 +44,20 @@ Fields of `Assets/Scripts/AI/Research/GunDoctrine.cs`; every default is main's b
 - `batch7`: best doctrine with dodging, empty and field.
 - `batch8`: Railgun bank logging, bank abort, level release.
 - `batch9`: final matrix (`x9-final`) and the smart-against-main cross (`h2h`).
+
+## Research tail (2026-10-20)
+
+The second-round rulings on #409 asked for six follow-ups. Findings are in the dated 2026-10-20 tail comment on #409 and, for the Railgun `chargeTime`, on #335.
+
+`python research/gun/mkbatch.py <a..g>` writes `tail-<a..g>.json`. `python research/gun/tail.py <dir> marks <metric> <tag>...` and `python research/gun/tail.py <dir> matrix <tag>...` print the side-by-side tables.
+
+New `GunDoctrine` knobs (defaults are main's behaviour):
+
+- MPC aim without the aim controller: `mpcFacingWidth`, `mpcYawRate`, `mpcNoiseStd`, `mpcSamples`. The rig applies them to a per-ship clone of the navigator's `MpcSettings`.
+- Grenades: `grenadeSafeMargin` (no launch with the enemy, or the shooter at arrival, inside blast radius plus margin), `grenadeBackoff` with `grenadeBackoffExtra` (retreat at full speed inside that radius plus the extra), `grenadeChainGap` (the next charge waits for the previous one's arrival, its wave's 0.8 s expansion and this gap).
+- Railgun against a close crossing target: `railOrbit`, `railOrbitRate`, `railOrbitCommit`.
+- Skill dial: `skill` in [0, 1] (-1 is off), `skillReactionMax`, `skillNoiseMax`, `skillNoiseTau`, `skillAccelMin`, `skillCurve`, `skillTolGain`, `skillSeed`. Error scale e = (1 - s)^curve. The Gunner sees the target delayed by e × reaction and rotated about the shooter by a correlated bearing error of e × noise degrees. The aim controller's acceleration fraction runs from `skillAccelMin` to `aimAccelFrac`, the strafe dodge scales by s, and the trigger tolerances widen by 1 + gain × e.
+
+The rig also logs `selfDamage` per side.
+
+Batches: `tail-a` (first probes of every task, plus the Railgun row at 1.5), `tail-b` (MPC solver noise, tolerance sweep in the armed matrix, grenade wave gap, first dial), `tail-c` (final matrix with MPC aim, and MPC aim against the aim controller), `tail-d` (Railgun `chargeTime` 1.1, run between commits `3b7189d5` and its revert `e6b0debb`), `tail-e` (dial v2), `tail-f` (dial v3 noise bracket), `tail-g` (final dial).
