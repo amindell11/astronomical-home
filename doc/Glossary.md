@@ -222,6 +222,10 @@ Format: **term** — definition. *(authority)*
   and no ignored files outside the allowlist, both lists in
   `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
+- **app worktree** — the per-session worktree the Claude desktop app makes under
+  `.claude/worktrees/` in the primary tree, on a `claude/<name>` branch. No agent
+  work happens in one; `scripts/app_worktree_guard.py` refuses session starts
+  that would make one. *(#1058)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate

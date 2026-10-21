@@ -2,12 +2,12 @@
 set -euo pipefail
 # covers: scripts/primary_tree_check.sh
 
-# Hermetic regression for the session-start check's base handling and sound-work split. A bare
-# repo stands in for origin and a clone for the primary tree, with app session worktrees under
-# its .claude/worktrees/ and a sibling slot. Only a clean app worktree with no commits of its own
-# is fast-forwarded. The primary's blocked pull lists its collisions in git's own terms, checked
-# against a real merge, and untracked sound paths are counted apart from strays. The post-merge
-# hook prints the stray report after a pull in the primary and stays quiet in a slot.
+# Hermetic regression for the session-start check's pull report and sound-work split. A bare repo
+# stands in for origin and a clone for the primary tree, with an app worktree under its
+# .claude/worktrees/ that the check runs from and never moves. The primary's blocked pull lists its
+# collisions in git's own terms, checked against a real merge, and untracked sound paths are
+# counted apart from strays. The post-merge hook prints the stray report after a pull in the
+# primary and stays quiet in the app worktree.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECK="$SCRIPT_DIR/../primary_tree_check.sh"
@@ -38,21 +38,18 @@ ship base AGENTS.md rules .claude/settings.json {} .edited.txt base staged.txt b
 g clone -q "$TMP/origin.git" "$TMP/primary"
 P="$TMP/primary"
 echo '.claude/worktrees/' >> "$P/.git/info/exclude"
-for w in fresh busy dirty; do g -C "$P" worktree add -q -b "claude/$w" "$P/.claude/worktrees/$w" main; done
-g -C "$P" worktree add -q --detach "$TMP/slot" main
 W="$P/.claude/worktrees"
-put "$W/busy/mine.txt" mine && g -C "$W/busy" add mine.txt && g -C "$W/busy" commit -qm mine
-put "$W/dirty/scratch.txt" scratch
-busy_head="$(head_of "$W/busy")" base_head="$(head_of "$P")"
+g -C "$P" worktree add -q -b claude/fresh "$W/fresh" main
+base_head="$(head_of "$P")"
 
-# --- current everywhere: the session check says nothing, the stray report lists the nested worktree ---
+# --- current everywhere: the session check says nothing, the stray report lists the app worktree ---
 out="$(check "$W/fresh")"
 [[ -z "$out" ]] || fail "current tree reported something: $out"
 out="$(check "$W/fresh" strays)"
 [[ "$out" == $'Primary tree '*'!! .claude/worktrees/'*'PRIMARY_TREE_DIRTY=1' ]] || fail "current tree: $out"
 
-# --- origin moves: AGENTS.md, a shipped clip, an edit that collides, an edit already staged ---
-ship "ship sound" AGENTS.md "new rules" audio/fmod/Assets/clip.wav clip .edited.txt shipped staged.txt shipped
+# --- origin moves: a shipped clip, an edit that collides, an edit already staged ---
+ship "ship sound" audio/fmod/Assets/clip.wav clip .edited.txt shipped staged.txt shipped
 put "$P/audio/fmod/Assets/clip.wav" clip            # untracked copy equal to the shipped one
 put "$P/.edited.txt" owner                           # tracked dotfile edit that differs from the shipped one
 put "$P/staged.txt" shipped && g -C "$P" add staged.txt && put "$P/staged.txt" owner   # staged equal, edited on top: goes through
@@ -68,9 +65,7 @@ put "$P/notes/report.md" report
 put "$P/results/run.json" run
 
 out="$(check "$W/fresh")"
-[[ "$(head_of "$W/fresh")" == "$(git -C "$P" rev-parse origin/main)" ]] || fail "fresh worktree not fast-forwarded: $out"
-[[ "$out" == *"Fast-forwarded this session worktree 1 commit to origin/main"* ]] || fail "no fast-forward line: $out"
-[[ "$out" == *"re-read AGENTS.md"* ]] || fail "AGENTS.md change not flagged: $out"
+[[ "$(head_of "$W/fresh")" == "$base_head" ]] || fail "the check moved the app worktree: $out"
 [[ "$out" == *"The primary's main is 1 commit behind origin/main, and \`git pull --ff-only\` there would be refused"* ]] ||
   fail "blocked pull not reported: $out"
 [[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt' ]] ||
@@ -103,31 +98,18 @@ out="$(check "$P")"
 g -C "$P" -c pull.rebase=false merge -q --ff-only origin/main || fail "git refused a pull the check called clean"
 [[ "$(git -C "$P" show HEAD:other.txt)" == base && "$(cat "$P/other.txt")" == owner ]] || fail "unrelated edit lost"
 
-# --- never fast-forwarded: own commits, a dirty tree, a slot, the primary ---
-for from in "$W/busy" "$W/dirty" "$TMP/slot"; do
-  out="$(check "$from")"
-  [[ "$out" != *Fast-forwarded* ]] || fail "fast-forward reported from $from: $out"
-done
-[[ "$(head_of "$W/busy")" == "$busy_head" && "$(head_of "$W/dirty")" == "$base_head" && "$(head_of "$TMP/slot")" == "$base_head" ]] ||
-  fail "a worktree that must stay put was fast-forwarded"
-
-# --- a range that leaves AGENTS.md alone asks for no re-read ---
-g -C "$P" worktree add -q -b claude/later "$W/later" main
-ship "plain change" other2.txt x
-out="$(check "$W/later")"
-[[ "$out" == *"Fast-forwarded this session worktree 1 commit"* && "$out" != *"re-read AGENTS.md"* ]] ||
-  fail "plain range: $out"
-
-# --- post-merge: a pull in the primary, under the owner's pull settings, prints strays; a slot merge doesn't ---
+# --- post-merge: a pull in the primary, under the owner's pull settings, prints strays; an app-worktree merge doesn't ---
+ship "for the hook" other3.txt y
 git -C "$P" config core.hooksPath "$SCRIPT_DIR/../../.githooks"
-out="$(g -C "$TMP/slot" merge --ff-only origin/main 2>&1)"
-[[ "$out" != *PRIMARY_TREE_DIRTY* ]] || fail "a merge in a slot listed strays: $out"
+g -C "$P" fetch -q origin
+out="$(g -C "$W/fresh" merge --ff-only origin/main 2>&1)"
+[[ "$out" != *PRIMARY_TREE_DIRTY* ]] || fail "a merge in the app worktree listed strays: $out"
 out="$(g -C "$P" -c pull.rebase=true -c rebase.autostash=true pull -q 2>&1)"
 [[ "$out" == *"Triage these now"*"PRIMARY_TREE_DIRTY=2"* ]] || fail "a pull in the primary listed no strays: $out"
 git -C "$P" config --unset core.hooksPath
 
 # --- a diverged main, then an unreachable origin ---
-ship "upstream change" other3.txt y
+ship "plain change" other2.txt x
 put "$P/local.txt" local && g -C "$P" add local.txt && g -C "$P" commit -qm local
 out="$(check "$P")"
 [[ "$out" == *"The primary's main has commits origin/main lacks"* ]] || fail "diverged main: $out"
@@ -135,4 +117,4 @@ g -C "$P" remote set-url origin "$TMP/missing.git"
 out="$(check "$W/fresh" 2> /dev/null)"
 [[ "$out" == *"Could not fetch origin main"* ]] || fail "unreachable origin: $out"
 
-echo "PASS: primary-tree check base handling, sound-work split and post-merge stray report"
+echo "PASS: primary-tree check pull report, sound-work split and post-merge stray report"
