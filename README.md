@@ -18,10 +18,17 @@ These are motion and shape studies on the existing game style reference, not Uni
 - `comparison.png`: all three shapes at 55 ms after contact.
 - `follow-through.png`: later shape and target debris at 160 ms.
 - `motion-quarter-speed.gif`: one contact at quarter speed, with a short empty tail between loops.
+- `motion-quarter-speed.mp4`: the same 55-frame study as an H.264 clip for playback and download.
 - `rapid-hits.png`: three-hit sketch with contacts spaced 140 ms apart, viewed at 220 ms. This interval is an authoring probe, not a statement of any weapon's actual cadence.
 - `style-frame.webp`: an unchanged copy of `art/vfx/laser-bolt/refs/style_frame.webp` from the project.
 - `capture.cjs`: headless Playwright captures and interaction/layout checks. Requires `playwright`; optionally set `CHROMIUM_EXECUTABLE` to an installed Chromium binary.
 - `animate.py`: assembles browser captures using Pillow. Run after `node capture.cjs`.
+
+To regenerate the MP4 with a full FFmpeg build, run:
+
+```sh
+ffmpeg -y -framerate 12.5 -i frames/%03d.png -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' -c:v libx264 -pix_fmt yuv420p -movflags +faststart motion-quarter-speed.mp4
+```
 
 The palette follows `art/vfx/laser-bolt/crackle/crackle.py`. The rough shapes are deterministic canvas paths, following the cheap-sketch step in aesthetic-authoring. There was no image-generation call in this round. Refinement follows the user's shape choice.
 
