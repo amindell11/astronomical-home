@@ -852,7 +852,8 @@ Format: **term** — definition. *(authority)*
   what the hangar offers, the sector's wave director (its pacing, its roster and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
-  can reach does not move it, and neither does list order or listing a part twice.
+  can reach does not move it, and neither does list order or listing a part twice,
+  except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record** — one JSON line appended when a run ends in the player's death:
