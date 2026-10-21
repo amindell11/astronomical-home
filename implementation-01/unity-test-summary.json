@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-21T12:04:07.8775999-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-2\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "ConcussionGrenadePlayModeTests|TransientPresentationPlayModeTests|CaptureScenarioPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  "WeaponExplosionPreview"
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  19,
+                   "passed":  19,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  15.923
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20261021-120240-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-2\\results\\unity-tests-agent\\20261021-120240-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  19,
+                     "passed":  19,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  15.9225682,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "WeaponExplosionPreview",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "ConcussionGrenadePlayModeTests|TransientPresentationPlayModeTests|CaptureScenarioPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-21 19:03:37Z",
+                     "finishedAt":  "2026-10-21 19:03:53Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  88.003,
+                       "startupToFirstTestSec":  51.399,
+                       "executionSec":  16,
+                       "remainingSec":  20.604,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  4296,
+                                         "rootPeakPrivateGB":  4.432,
+                                         "rootPeakWorkingSetGB":  3.222,
+                                         "treePeakSampledPrivateGB":  4.486,
+                                         "treePeakSampledWorkingSetGB":  3.418,
+                                         "treeSumOfPeaksPrivateGB":  4.894,
+                                         "commitHeadroomAtLaunchGB":  18.99,
+                                         "commitHeadroomMinGB":  14.6,
+                                         "availablePhysicalAtLaunchGB":  5.79,
+                                         "availablePhysicalMinGB":  2.7,
+                                         "bootLaneReleasedAtSec":  7.383,
+                                         "treePeakAtSec":  57.652,
+                                         "samples":  11,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

@@ -1,0 +1,86 @@
+{
+  "samples": [
+    {
+      "time": 0,
+      "alpha": 91186
+    },
+    {
+      "time": 0.04,
+      "alpha": 1392289
+    },
+    {
+      "time": 0.12,
+      "alpha": 1405577
+    },
+    {
+      "time": 0.3,
+      "alpha": 859839
+    },
+    {
+      "time": 0.57,
+      "alpha": 58037
+    },
+    {
+      "time": 0.59,
+      "alpha": 0
+    }
+  ],
+  "atlasChecks": [
+    {
+      "spread": 0.7,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 0.7,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1.3,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1.3,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    }
+  ],
+  "dimensions": {
+    "Missile": [
+      1024,
+      2048
+    ],
+    "MineIgnition": [
+      1024,
+      1024
+    ],
+    "MineDisc": [
+      512,
+      512
+    ]
+  },
+  "widths": [
+    320,
+    736,
+    1120
+  ],
+  "tunerPassed": true
+}
