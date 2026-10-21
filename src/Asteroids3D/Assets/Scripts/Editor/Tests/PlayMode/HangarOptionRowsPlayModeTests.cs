@@ -201,6 +201,43 @@ namespace Tests.PlayMode
                     $"ship step {i} reaches offered ship {i % offer.ships.Length}");
             }
         }
+
+        [Test]
+        public void RealCatalog_ModuleRowsAndKitLine_ShowDisplayNames()
+        {
+            var offer = Load<ItemSubset>(RealCatalogPath);
+            var first = offer.ships[0];
+            var loadout = new ShipLoadout(first, first.Engine, first.Shield, null, null);
+            Show(offer, loadout);
+
+            for (var i = 0; i < offer.engines.Length; i++)
+            {
+                Next(screen.engineRow);
+                AssertDisplayName(loadout.Engine.DisplayName, screen.engineRow.label.text, $"engine step {i + 1}");
+            }
+
+            for (var i = 0; i < offer.shields.Length; i++)
+            {
+                Next(screen.shieldRow);
+                AssertDisplayName(loadout.Shield.DisplayName, screen.shieldRow.label.text, $"shield step {i + 1}");
+            }
+
+            var stats = screen.transform.Find("Panel/StatsText").GetComponent<Text>();
+            screen.shipRow.GetComponent<EventTrigger>().OnPointerEnter(new PointerEventData(null));
+            for (var i = 0; i < offer.ships.Length; i++)
+            {
+                Next(screen.shipRow);
+                var kit = $"Kit: {loadout.Ship.Engine.DisplayName} + {loadout.Ship.Shield.DisplayName}";
+                StringAssert.EndsWith(kit, stats.text, $"ship step {i + 1} hover names the authored kit");
+                StringAssert.DoesNotContain("_", kit, $"ship step {i + 1} kit shows authored names");
+            }
+        }
+
+        private static void AssertDisplayName(string displayName, string label, string step)
+        {
+            Assert.AreEqual(displayName, label, $"{step} labels the pick by its display name");
+            StringAssert.DoesNotContain("_", label, $"{step} shows an authored name, not the asset name");
+        }
     }
 }
 #endif

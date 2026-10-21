@@ -94,6 +94,35 @@ namespace Tests.EditMode.Rendering
             }
         }
 
+        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
+        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
+        [TestCase("Assets/Scenes/EditScene.unity")]
+        public void CloudBankLayers_BakeAStaticZoomFreeTile(string scenePath)
+        {
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>());
+                foreach (var layer in root.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var material = layer.sharedMaterial;
+                    var cloudBank = material.HasProperty("_CloudOpacity") && material.GetFloat("_CloudOpacity") > 0;
+                    var tile = layer.GetComponent<CloudBankTile>();
+                    Assert.That((bool)tile, Is.EqualTo(cloudBank),
+                        $"{layer.name}: a cloud-bank sky layer samples a baked tile, so exactly those carry CloudBankTile.");
+                    if (!cloudBank) continue;
+                    Assert.That(material.GetFloat("_NebulaSpeed"), Is.Zero, $"{layer.name}: a baked tile cannot animate.");
+                    Assert.That(material.GetFloat("_NebulaZoomResponse"), Is.Zero,
+                        $"{layer.name}: a baked tile cannot respond to zoom.");
+                }
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
         [TestCase("Assets/Scenes/InitScene.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
         [TestCase("Assets/Scenes/Locales/Locale_2.unity")]

@@ -13,7 +13,7 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 - **Scaffolds and bank builds run on the primary tree's project**, with Studio closed, so the primary tree stays the one source of the design.
 - **Ship from a slot.** Copy the sound paths into a slot and take them through the normal loop; the evidence tests run there. A clip ships when the project imports it (`audio/fmod/Metadata/AudioFile/`).
 - **After the merge,** `git add` in the primary tree only the shipped paths whose content now equals `origin/main`, then `git pull --ff-only`. Anything that still differs stays the owner's uncommitted edit.
-- **Sound files the session-start check lists as strays are this work in progress**: they wait for the ship.
+- **The session-start check counts untracked sound files as this work in progress**, not strays; they wait for the ship. When main's pull is blocked, it names the colliding paths already equal to `origin/main`, the ones the step above stages.
 
 ## Studio and `fmodstudiocl`
 

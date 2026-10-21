@@ -48,7 +48,9 @@ why of *decisions* has three homes, none of them under `doc/`:
   before the first implementing slot is acquired. Unbuilt design, open forks
   and user rulings stay on that issue while the arc is open.
 - **The PR description** carries the why of what shipped *and* the alternatives
-  tried and rejected on the way. `git blame` → commit → PR (squash merges keep
+  tried and rejected on the way, in its `## Why` and `## Rejected alternatives`
+  sections (the folded build record, worktree-loop skill → Step 4).
+  `git blame` → commit → PR (squash merges keep
   the number in the subject) is the sanctioned hop from a line to its why;
   make it when you're curious, don't ask for a doc.
 - **The closed issue** carries what shipped nothing: negative results,

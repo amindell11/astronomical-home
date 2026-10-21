@@ -217,9 +217,10 @@ Format: **term** — definition. *(authority)*
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
   slots; the owner's checkout and the home of pool state. Agents write nothing
-  else there (AGENTS.md → Default workflow). **Clean primary**: no untracked
-  files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
-  tracked edits are the owner's and don't count.
+  else there but main's fast-forward and sound work (AGENTS.md → Default
+  workflow). **Clean primary**: no untracked files outside the sound-work paths
+  and no ignored files outside the allowlist, both lists in
+  `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
@@ -605,6 +606,11 @@ Format: **term** — definition. *(authority)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps it
   loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+- **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
+  `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
+  not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and
+  `_NebulaZoomResponse` at 0; the locale wiring test pins both). `_Seed` picks
+  the tile's cloud layout. *(`CloudBankTile`, #1048)*
 - **palette role** — one of base, primary, secondary or accent: the colours
   Blender exports in a flat background's sidecar `.json`. Scene-linear.
   *(FlatBackgroundSidecar)*
