@@ -36,8 +36,19 @@ timeline captures, animation frames and the settings used. Its single stdout JSO
 record names the output directory, textures and frame count. Failure exits nonzero.
 The renderer requires no network requests.
 
+Exported settings include `missileAtlasScale` and `mineIgnitionAtlasScale`. The
+exporter fits each effect inside a padded cell; Unity applies these scale factors
+to preserve its visible size. Opacity controls accept values from zero to one.
+
 After exporting, run **Tools > Art > Bake weapon explosions** in a coordinated
-Unity editor for this worktree. `WeaponExplosionBaker.Bake` imports the textures,
+Unity editor for this worktree and select the exported directory.
+For coordinated batch execution, pass the output path returned by `bake.cjs`:
+
+```text
+-executeMethod Combat.Projectiles.Visual.WeaponExplosionBaker.Bake -weaponExplosionExport <output>
+```
+
+The Unity baker imports the textures,
 updates the effect materials and prefabs, and assigns the two projectile effects.
 It reads the exported settings alongside the textures.
 

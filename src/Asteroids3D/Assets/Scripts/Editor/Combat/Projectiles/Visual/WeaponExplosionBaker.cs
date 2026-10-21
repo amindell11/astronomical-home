@@ -19,12 +19,28 @@ namespace Combat.Projectiles.Visual
             public float mineIgnitionSeconds;
             public float mineFill;
             public float mineGlow;
+            public float missileAtlasScale;
+            public float mineIgnitionAtlasScale;
         }
 
         [MenuItem("Tools/Art/Bake weapon explosions")]
+        private static void BakeFromFolder()
+        {
+            var source = EditorUtility.OpenFolderPanel("Select weapon explosion export", "", "");
+            if (source.Length > 0) BakeFromDirectory(source);
+        }
+
         public static void Bake()
         {
-            var source = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../art/vfx/weapon-explosions/out"));
+            var args = Environment.GetCommandLineArgs();
+            var index = Array.IndexOf(args, "-weaponExplosionExport");
+            if (index < 0 || index + 1 >= args.Length)
+                throw new ArgumentException("Pass -weaponExplosionExport with the directory returned by bake.cjs.");
+            BakeFromDirectory(args[index + 1]);
+        }
+
+        private static void BakeFromDirectory(string source)
+        {
             var settings = JsonUtility.FromJson<Settings>(File.ReadAllText(Path.Combine(source, "settings.json")));
             Directory.CreateDirectory($"{Root}/Textures");
             Directory.CreateDirectory($"{Root}/Prefabs");
@@ -53,8 +69,8 @@ namespace Combat.Projectiles.Visual
             discMaterial.SetFloat("_FillOpacity", settings.mineFill);
             discMaterial.SetFloat("_EdgeGain", settings.mineGlow);
             EditorUtility.SetDirty(discMaterial);
-            var missileBurst = Burst("MissileExplosion", missileMaterial, settings.missileTailSeconds, 6f, 8);
-            var mineBurst = Burst("MineIgnition", ignitionMaterial, settings.mineIgnitionSeconds, 5f, 4);
+            var missileBurst = Burst("MissileExplosion", missileMaterial, settings.missileTailSeconds, 6f * settings.missileAtlasScale, 8);
+            var mineBurst = Burst("MineIgnition", ignitionMaterial, settings.mineIgnitionSeconds, 5f * settings.mineIgnitionAtlasScale, 4);
 
             EditPrefab("Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab", root =>
             {

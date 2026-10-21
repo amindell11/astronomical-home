@@ -172,25 +172,30 @@
     ignition(ctx, time, size * 0.18, settings);
   }
 
-  function atlas(painter, seconds, columns, rows, cell, settings) {
+  function atlas(painter, seconds, columns, rows, cell, scale, settings) {
     const result = canvas(columns * cell, rows * cell);
     const ctx = result.getContext('2d');
     for (let frame = 0; frame < columns * rows; frame++) {
       ctx.save();
       ctx.translate((frame % columns + 0.5) * cell, (Math.floor(frame / columns) + 0.5) * cell);
-      painter(ctx, seconds * frame / (columns * rows - 1), cell * 0.88, settings);
+      painter(ctx, seconds * frame / (columns * rows - 1), cell * 0.88 / scale, settings);
       ctx.restore();
     }
     return result;
   }
 
+  function atlasScales(settings) {
+    return {missileAtlasScale: Math.max(1, settings.missileSpread), mineIgnitionAtlasScale: layers.flash.height / layers.flash.width};
+  }
+
   function textures(settings) {
+    const scale = atlasScales(settings);
     return {
-      Missile: atlas(missile, settings.missileTailSeconds, 4, 8, 256, settings),
-      MineIgnition: atlas(ignition, settings.mineIgnitionSeconds, 4, 4, 256, settings),
+      Missile: atlas(missile, settings.missileTailSeconds, 4, 8, 256, scale.missileAtlasScale, settings),
+      MineIgnition: atlas(ignition, settings.mineIgnitionSeconds, 4, 4, 256, scale.mineIgnitionAtlasScale, settings),
       MineDisc: layers.disc
     };
   }
 
-  window.WeaponExplosions = {load, layers, missile, mine, ignition, disc, textures};
+  window.WeaponExplosions = {load, layers, missile, mine, ignition, disc, textures, atlasScales};
 })();

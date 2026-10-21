@@ -14,6 +14,9 @@ async function main() {
   for (const key of ['missileFireSeconds', 'missileTailSeconds', 'mineSweepSeconds', 'mineIgnitionSeconds', 'missileSpread']) {
     if (settings[key] === 0) throw new Error(`Setting must be positive: ${key}`);
   }
+  for (const key of ['smokeOpacity', 'mineFill', 'mineGlow']) {
+    if (settings[key] > 1) throw new Error(`Opacity must not exceed one: ${key}`);
+  }
   const sources = Object.fromEntries(['missile', 'mine'].map(name => [name,
     `data:image/png;base64,${fs.readFileSync(path.join(__dirname, 'source', `${name}.png`)).toString('base64')}`]));
   const html = fs.readFileSync(path.join(__dirname, 'tuner.template.html'), 'utf8')
@@ -45,7 +48,8 @@ async function main() {
       await page.locator('#preview').screenshot({path:path.join(frameDir, `${String(frame).padStart(3, '0')}.png`)});
     }
     if (errors.length) throw new Error(errors.join('\n'));
-    fs.writeFileSync(path.join(output, 'settings.json'), JSON.stringify(settings, null, 2) + '\n');
+    const scales = await page.evaluate(() => WeaponExplosions.atlasScales(explosionPreview.settings));
+    fs.writeFileSync(path.join(output, 'settings.json'), JSON.stringify({...settings, ...scales}, null, 2) + '\n');
     process.stdout.write(JSON.stringify({output, textures:Object.keys(textures), frames:34, browserErrors:errors}) + '\n');
   } finally {await browser.close();}
 }
