@@ -177,6 +177,22 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OfSetting_MovesWhenSectorPhasesReorderOrRepeat()
+        {
+            var offer = HangarOffer();
+            var roster = RosterOf(offer.ships);
+            var early = new SectorPhase { seconds = 40f, interval = 6f, cap = 2 };
+            var late = new SectorPhase { seconds = 40f, interval = 4f, cap = 4 };
+
+            var baseline = PhasedSetting(offer, roster, early, late);
+
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, roster, late, early),
+                "Phase order is pacing, so a reordered table must move the fingerprint.");
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, roster, early, early, late),
+                "A repeated phase lengthens the sector, so it must move the fingerprint.");
+        }
+
+        [Test]
         public void OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool()
         {
             var sector = AssetDatabase.LoadAssetAtPath<Sector>(TrialSectorPath);
@@ -185,7 +201,7 @@ namespace Tests.EditMode
 
             var lines = StatHash.SettingLines(HangarOffer(), sector, KillHullRestore);
 
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.phases={{"));
+            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.phases[0]={{"));
             Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.roster={{"));
             Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/ItemSubset.weapons="));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
@@ -234,6 +250,13 @@ namespace Tests.EditMode
             var pilot = new GameObject(pilotName).AddComponent<ScratchCommander>();
             scratch.Add(pilot.gameObject);
             return pilot;
+        }
+
+        private string PhasedSetting(ItemSubset offer, WaveDirector.RosterEntry[] roster, params SectorPhase[] phases)
+        {
+            var sector = ScratchSector(roster, 6f);
+            sector.Spawners.OfType<WaveDirector>().Single().Configure(roster, phases);
+            return StatHash.OfSetting(offer, sector, KillHullRestore);
         }
 
         private Sector ScratchSector(WaveDirector.RosterEntry[] roster, float interval)

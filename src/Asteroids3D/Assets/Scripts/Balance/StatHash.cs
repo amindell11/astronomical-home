@@ -68,15 +68,17 @@ namespace Balance
             var asset = AssetName(source);
             var type = source.GetType();
             foreach (var field in StatFields(type))
-                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(source), lines, visited);
+                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(source), lines, visited,
+                    field.GetCustomAttribute<StatAttribute>().Ordered);
         }
 
-        private static void Read(string key, object value, ISet<string> lines, ISet<Object> visited)
+        private static void Read(string key, object value, ISet<string> lines, ISet<Object> visited,
+            bool ordered = false)
         {
             if (value is IList items)
             {
-                foreach (var item in items)
-                    Read(key, item, lines, visited);
+                for (var i = 0; i < items.Count; i++)
+                    Read(ordered ? $"{key}[{i}]" : key, items[i], lines, visited);
                 return;
             }
 

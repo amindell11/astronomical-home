@@ -41,7 +41,7 @@ namespace Substrate.Sectors.Elements
 
         [Header("Sector phases")]
         [Tooltip("Phases in run order; the clock starts on the first tick with an active hero.")]
-        [Stat, SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
+        [Stat(Ordered = true), SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
         [Tooltip("Seconds between one phase's end and the next phase's opening, with nothing spawning.")]
         [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
 
