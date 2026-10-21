@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="62" result="Passed" total="62" passed="62" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.6372699">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="904" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.637270" total="62" passed="62" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2083" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="904" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.586341" total="62" passed="62" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44940" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2084" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="904" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.552539" total="62" passed="62" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2085" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="904" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.519219" total="62" passed="62" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2089" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="116" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.225428" total="40" passed="40" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2090" name="Illustrated" fullname="Tests.EditMode.Rendering.Illustrated" runstate="Runnable" testcasecount="52" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:20Z" duration="4.223213" total="40" passed="40" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1993" name="BulwarkGlassCaptureEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:18Z" duration="2.365337" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="1994" name="Capture" fullname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests.Capture" methodname="Capture" classname="Tests.EditMode.Rendering.Illustrated.BulwarkGlassCaptureEditModeTests" runstate="Runnable" seed="1754466076" result="Passed" start-time="2026-10-21 17:49:15Z" end-time="2026-10-21 17:49:18Z" duration="2.342939" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1995" name="DrawnCanopyEditModeTests" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:20Z" duration="1.854525" total="39" passed="39" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Ships" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="2013" name="Bulwark_ReflectionDisabledLeavesNoAuthoredStripes" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Bulwark_ReflectionDisabledLeavesNoAuthoredStripes" methodname="Bulwark_ReflectionDisabledLeavesNoAuthoredStripes" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1179774426" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.086131" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="2016" name="Bulwark_StripesContinuePastGlassAtExtremePitch" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Bulwark_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.026716" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2014" name="Bulwark_StripesContinuePastGlassAtExtremePitch(-65)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Bulwark_StripesContinuePastGlassAtExtremePitch(-65)" methodname="Bulwark_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1532203143" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.016021" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2015" name="Bulwark_StripesContinuePastGlassAtExtremePitch(65)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Bulwark_StripesContinuePastGlassAtExtremePitch(65)" methodname="Bulwark_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="610638788" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.008803" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2019" name="Crimson_StripesContinuePastGlassAtExtremePitch" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.054634" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2017" name="Crimson_StripesContinuePastGlassAtExtremePitch(-60)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch(-60)" methodname="Crimson_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1088231646" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.043752" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2018" name="Crimson_StripesContinuePastGlassAtExtremePitch(60)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Crimson_StripesContinuePastGlassAtExtremePitch(60)" methodname="Crimson_StripesContinuePastGlassAtExtremePitch" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="2047454227" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.009787" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2031" name="Nightshade_SecondaryGlintsEnterDuringRoll" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.034391" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2029" name="Nightshade_SecondaryGlintsEnterDuringRoll(-55)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll(-55)" methodname="Nightshade_SecondaryGlintsEnterDuringRoll" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="123815949" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.022796" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2030" name="Nightshade_SecondaryGlintsEnterDuringRoll(55)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Nightshade_SecondaryGlintsEnterDuringRoll(55)" methodname="Nightshade_SecondaryGlintsEnterDuringRoll" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="618616722" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.010115" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2012" name="PaintedGlass_RemainsFixedWithoutReflections" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.323095" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2008" name="PaintedGlass_RemainsFixedWithoutReflections(&quot;Nightshade/Canopy/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(&quot;Nightshade/Canopy/Canopy.mat&quot;)" methodname="PaintedGlass_RemainsFixedWithoutReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="570238988" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.064842" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2009" name="PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/jade-iris.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/jade-iris.mat&quot;)" methodname="PaintedGlass_RemainsFixedWithoutReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="96455558" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.098976" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2010" name="PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/jade-gray.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/jade-gray.mat&quot;)" methodname="PaintedGlass_RemainsFixedWithoutReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="921565612" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.086432" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2011" name="PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/ivory-lavender.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.PaintedGlass_RemainsFixedWithoutReflections(&quot;Valis/Canopy/ivory-lavender.mat&quot;)" methodname="PaintedGlass_RemainsFixedWithoutReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="78083747" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:18Z" duration="0.070915" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2003" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:19Z" duration="0.448546" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1996" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Crimson&quot;,&quot;Hull&quot;,0,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Crimson&quot;,&quot;Hull&quot;,0,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1690564393" result="Passed" start-time="2026-10-21 17:49:18Z" end-time="2026-10-21 17:49:19Z" duration="0.155109" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1997" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Nightshade&quot;,&quot;Canopy&quot;,0,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Nightshade&quot;,&quot;Canopy&quot;,0,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1301489387" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.067015" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1998" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Valis&quot;,&quot;Valis&quot;,5,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Valis&quot;,&quot;Valis&quot;,5,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1407367877" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.115417" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1999" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Vanguard&quot;,&quot;Canopy&quot;,0,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Vanguard&quot;,&quot;Canopy&quot;,0,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1021139619" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.067308" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2000" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Canopy&quot;,0,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Canopy&quot;,0,False)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1757028107" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.010647" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2001" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Cockpit&quot;,0,True)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Bulwark&quot;,&quot;Cockpit&quot;,0,True)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="873970616" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.006602" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2002" name="Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Valis&quot;,&quot;Fuselage and canopy&quot;,5,True)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Prefab_GlassProjectionMatchesItsMaterialSubmesh(&quot;Valis&quot;,&quot;Fuselage and canopy&quot;,5,True)" methodname="Prefab_GlassProjectionMatchesItsMaterialSubmesh" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="594169724" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.023428" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2027" name="Reflection_MovesAcrossGlassWhenLightTurns" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.281422" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2020" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Crimson/Canopy/Canopy.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Crimson/Canopy/Canopy.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1000435262" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.019192" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2021" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Crimson/Canopy/Canopy.mat&quot;,True)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Crimson/Canopy/Canopy.mat&quot;,True)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1982936267" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.020736" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2022" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Nightshade/Canopy/Canopy.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Nightshade/Canopy/Canopy.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="261290711" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.016623" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2023" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Nightshade/Canopy/Canopy.mat&quot;,True)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Nightshade/Canopy/Canopy.mat&quot;,True)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1472631083" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.018213" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2024" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Valis/Canopy/jade-iris.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Valis/Canopy/jade-iris.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="314121955" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.015716" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2025" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Vanguard/Materials/Canopy.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Vanguard/Materials/Canopy.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1449491837" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.168877" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2026" name="Reflection_MovesAcrossGlassWhenLightTurns(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;,False)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_MovesAcrossGlassWhenLightTurns(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;,False)" methodname="Reflection_MovesAcrossGlassWhenLightTurns" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="657773891" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.016970" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2037" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.091680" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2032" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Crimson/Canopy/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Crimson/Canopy/Canopy.mat&quot;)" methodname="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="941194470" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.018476" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2033" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Nightshade/Canopy/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Nightshade/Canopy/Canopy.mat&quot;)" methodname="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1423373561" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.015928" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2034" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Valis/Canopy/jade-iris.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Valis/Canopy/jade-iris.mat&quot;)" methodname="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="377572668" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.016938" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2035" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Vanguard/Materials/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Vanguard/Materials/Canopy.mat&quot;)" methodname="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1287974303" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.021377" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2036" name="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;)" methodname="Reflection_SurfaceDirectionChangesDrawingUnderSymmetricLighting" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1129396511" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.014920" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2043" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:20Z" duration="0.429424" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2038" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Crimson/Canopy/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Crimson/Canopy/Canopy.mat&quot;)" methodname="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="455917144" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.074196" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2039" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Nightshade/Canopy/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Nightshade/Canopy/Canopy.mat&quot;)" methodname="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1856170725" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.074508" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2040" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Valis/Canopy/jade-iris.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Valis/Canopy/jade-iris.mat&quot;)" methodname="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="362954724" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:19Z" duration="0.090552" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2041" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Vanguard/Materials/Canopy.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Vanguard/Materials/Canopy.mat&quot;)" methodname="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="2134287196" result="Passed" start-time="2026-10-21 17:49:19Z" end-time="2026-10-21 17:49:20Z" duration="0.115471" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2042" name="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.RendererOverrides_FlashRestoresDrawingAndDebrisDisappears(&quot;Bulwark/Materials/plum-bone/Bulwark Glass.mat&quot;)" methodname="RendererOverrides_FlashRestoresDrawingAndDebrisDisappears" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1805315980" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.072549" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2007" name="Valis_RetainsAuthoredMaskStrengths" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_RetainsAuthoredMaskStrengths" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.005331" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2004" name="Valis_RetainsAuthoredMaskStrengths(&quot;jade-iris&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_RetainsAuthoredMaskStrengths(&quot;jade-iris&quot;)" methodname="Valis_RetainsAuthoredMaskStrengths" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1371048636" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.002061" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2005" name="Valis_RetainsAuthoredMaskStrengths(&quot;jade-gray&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_RetainsAuthoredMaskStrengths(&quot;jade-gray&quot;)" methodname="Valis_RetainsAuthoredMaskStrengths" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="338696005" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000999" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2006" name="Valis_RetainsAuthoredMaskStrengths(&quot;ivory-lavender&quot;)" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_RetainsAuthoredMaskStrengths(&quot;ivory-lavender&quot;)" methodname="Valis_RetainsAuthoredMaskStrengths" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1768713937" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000819" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="2028" name="Valis_UnpaintedSideKeepsGlassWithoutInventedReflections" fullname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests.Valis_UnpaintedSideKeepsGlassWithoutInventedReflections" methodname="Valis_UnpaintedSideKeepsGlassWithoutInventedReflections" classname="Tests.EditMode.Rendering.Illustrated.DrawnCanopyEditModeTests" runstate="Runnable" seed="1422505841" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.064383" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="2087" name="Ships" fullname="Tests.EditMode.Ships" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.208623" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1848" name="ShipAnatomyEditModeTests" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.206999" total="21" passed="21" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Ships" />
+              </properties>
+              <test-suite type="ParameterizedMethod" id="1860" name="Chassis_FillsOnlyDeclaredSlots" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.060133" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1856" name="Chassis_FillsOnlyDeclaredSlots(Vanguard)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Vanguard)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1992790157" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.019236" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1857" name="Chassis_FillsOnlyDeclaredSlots(Crimson)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Crimson)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="842871932" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.013017" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1858" name="Chassis_FillsOnlyDeclaredSlots(Valis)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Valis)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="360016666" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.023163" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1859" name="Chassis_FillsOnlyDeclaredSlots(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_FillsOnlyDeclaredSlots(Bulwark)" methodname="Chassis_FillsOnlyDeclaredSlots" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="709382388" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.003551" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1874" name="Chassis_HullKeepsTheContourAsASeparateVertexRange" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.084458" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1871" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Vanguard)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Vanguard)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="97142388" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.077444" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1872" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Crimson)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Crimson)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1520516515" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.002457" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1873" name="Chassis_HullKeepsTheContourAsASeparateVertexRange(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullKeepsTheContourAsASeparateVertexRange(Bulwark)" methodname="Chassis_HullKeepsTheContourAsASeparateVertexRange" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="293070778" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.002378" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1870" name="Chassis_HullSlotHoldsItsOwnRoleMeshes" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.012786" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1866" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Vanguard)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Vanguard)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="895498214" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.006318" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1867" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Crimson)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Crimson)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1300893675" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000987" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1868" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Valis)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Valis)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1808330730" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.002032" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1869" name="Chassis_HullSlotHoldsItsOwnRoleMeshes(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_HullSlotHoldsItsOwnRoleMeshes(Bulwark)" methodname="Chassis_HullSlotHoldsItsOwnRoleMeshes" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1913130204" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.001372" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1855" name="Chassis_IsADepthOneVariantOfShipBase" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.004642" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1851" name="Chassis_IsADepthOneVariantOfShipBase(Vanguard)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Vanguard)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1643717043" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.002427" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1852" name="Chassis_IsADepthOneVariantOfShipBase(Crimson)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Crimson)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="579860966" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000497" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1853" name="Chassis_IsADepthOneVariantOfShipBase(Valis)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Valis)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="863474212" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000293" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1854" name="Chassis_IsADepthOneVariantOfShipBase(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_IsADepthOneVariantOfShipBase(Bulwark)" methodname="Chassis_IsADepthOneVariantOfShipBase" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="564771730" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000205" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1865" name="Chassis_PlacesEverySocket" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.009414" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1861" name="Chassis_PlacesEverySocket(Vanguard)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Vanguard)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1858048688" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.006290" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1862" name="Chassis_PlacesEverySocket(Crimson)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Crimson)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="573026479" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000611" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1863" name="Chassis_PlacesEverySocket(Valis)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Valis)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="1647257933" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000351" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1864" name="Chassis_PlacesEverySocket(Bulwark)" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.Chassis_PlacesEverySocket(Bulwark)" methodname="Chassis_PlacesEverySocket" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="302634240" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.000507" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1849" name="LegacyList_NamesOnlyCatalogChassis" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.LegacyList_NamesOnlyCatalogChassis" methodname="LegacyList_NamesOnlyCatalogChassis" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="499175334" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.016736" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1850" name="ShipBase_IsNeutralAndNotAVariant" fullname="Tests.EditMode.Ships.ShipAnatomyEditModeTests.ShipBase_IsNeutralAndNotAVariant" methodname="ShipBase_IsNeutralAndNotAVariant" classname="Tests.EditMode.Ships.ShipAnatomyEditModeTests" runstate="Runnable" seed="822313328" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.016346" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1783" name="ShipSilhouetteEditModeTests" fullname="Tests.EditMode.ShipSilhouetteEditModeTests" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.006466" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Ships" />
+            </properties>
+            <test-suite type="ParameterizedMethod" id="1789" name="Chassis_WiresItsRigAndEveryHullRenderer" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.005105" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1788" name="Chassis_WiresItsRigAndEveryHullRenderer(Bulwark)" fullname="Tests.EditMode.ShipSilhouetteEditModeTests.Chassis_WiresItsRigAndEveryHullRenderer(Bulwark)" methodname="Chassis_WiresItsRigAndEveryHullRenderer" classname="Tests.EditMode.ShipSilhouetteEditModeTests" runstate="Runnable" seed="1480563765" result="Passed" start-time="2026-10-21 17:49:20Z" end-time="2026-10-21 17:49:20Z" duration="0.003301" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
