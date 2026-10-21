@@ -131,11 +131,21 @@ def load_ships(root: Path, names: list[str]) -> list[Ship]:
     return ships
 
 
-def laser(root: Path) -> tuple[float, float, float, float]:
-    """(damage per shot, seconds between shots, heat per shot, max heat)."""
-    dmg = scalar_fields((root / LASER_PREFAB).read_text(), ["damage"])["damage"]
-    w = scalar_fields((root / LASER_WEAPON).read_text(), ["fireRate", "heatPerShot", "maxHeat"])
-    return dmg, w["fireRate"], w["heatPerShot"], w["maxHeat"]
+def laser(root: Path) -> dict[str, float]:
+    """Damage per shot, seconds between shots, and the heat fields Heat.ShotsToOverheat reads."""
+    w = scalar_fields((root / LASER_WEAPON).read_text(), ["fireRate", "heatPerShot", "maxHeat", "coolingRate", "coolDownDelay"])
+    w["damage"] = scalar_fields((root / LASER_PREFAB).read_text(), ["damage"])["damage"]
+    return w
+
+
+def shots_before_overheat(w: dict[str, float]) -> float:
+    """Shots that fit before the next one overheats, mirroring Heat.ShotsToOverheat; inf when cooling keeps pace."""
+    if w["heatPerShot"] >= w["maxHeat"]:
+        return 0
+    net = w["heatPerShot"] - w["coolingRate"] * max(0.0, w["fireRate"] - w["coolDownDelay"])
+    if net <= 0:
+        return math.inf
+    return math.ceil((w["maxHeat"] - w["heatPerShot"]) / net)
 
 
 def stopping_distance(v0: float, a_rev: float, drag: float) -> float:
@@ -155,7 +165,7 @@ def time_to_speed(target: float, a: float, drag: float) -> float:
     return -math.log(1.0 - target / vt) / drag
 
 
-def metrics(s: Ship, laser_dmg: float, laser_dt: float, heat_shot: float, heat_max: float) -> dict[str, float]:
+def metrics(s: Ship, w: dict[str, float]) -> dict[str, float]:
     e, sh, c = s.engine.fields, s.shield.fields, s.chassis
     m, drag = c["mass"], e["linearDrag"]
     a_fwd, a_rev = e["forwardForce"] / m, e["reverseForce"] / m
@@ -168,9 +178,9 @@ def metrics(s: Ship, laser_dmg: float, laser_dt: float, heat_shot: float, heat_m
     spin_up = cap_rad * s.inertia_z / e["yawTorque"]
     reaim_90 = 90.0 / e["maxYawRate"] + spin_up
     ehp = c["maxHealth"] + sh["maxShield"]
-    dps = laser_dmg / laser_dt
-    shots = math.ceil(ehp / laser_dmg)
-    magazine = math.floor(heat_max / heat_shot)
+    dps = w["damage"] / w["fireRate"]
+    shots = math.ceil(ehp / w["damage"])
+    magazine = shots_before_overheat(w)
     return {
         "accel fwd (u/s²)": a_fwd,
         "accel rev (u/s²)": a_rev,
@@ -192,7 +202,8 @@ def metrics(s: Ship, laser_dmg: float, laser_dt: float, heat_shot: float, heat_m
         "EHP": ehp,
         "shield reset (s, delay + refill)": sh["shieldRegenDelay"] + sh["maxShield"] / sh["shieldRegenRate"],
         "laser shots to kill": shots,
-        "laser heat cycles to kill": math.ceil(shots / magazine),
+        "laser shots before overheat": magazine,
+        "laser heat cycles to kill": 1 if math.isinf(magazine) else math.ceil(shots / magazine),
         "laser TTK sustained (s)": ehp / dps,
         "rock Δv per 1000 impulse (u/s)": 1000.0 / m,
     }
@@ -231,13 +242,14 @@ def main() -> None:
                 s_.engine = Module(o.get("engineName", s_.engine.name + "*"), "", {**s_.engine.fields, **{k: float(v) for k, v in o["engine"].items()}})
             if "shield" in o:
                 s_.shield = Module(o.get("shieldName", s_.shield.name + "*"), "", {**s_.shield.fields, **{k: float(v) for k, v in o["shield"].items()}})
-    ld, lt, hs, hm = laser(root)
-    rows = {s.name: metrics(s, ld, lt, hs, hm) for s in ships}
+    w = laser(root)
+    rows = {s.name: metrics(s, w) for s in ships}
     authored = {s.name: {**{k: s.chassis[k] for k in CHASSIS_FIELDS}, "engine": s.engine.name,
                          "shield": s.shield.name, "yaw inertia (pinned)": s.inertia_z,
                          **{f"engine.{k}": v for k, v in s.engine.fields.items()},
                          **{f"shield.{k}": v for k, v in s.shield.fields.items()}} for s in ships}
-    print(f"laser: {ld:g} dmg every {lt:g} s, {hs:g} heat/shot of {hm:g}; drag and caps per engine asset")
+    print(f"laser: {w['damage']:g} dmg every {w['fireRate']:g} s, {w['heatPerShot']:g} heat/shot of {w['maxHeat']:g}, "
+          f"cooling {w['coolingRate']:g}/s after {w['coolDownDelay']:g} s; drag and caps per engine asset")
     if args.markdown:
         for title, table in (("Authored", authored), ("Derived", rows)):
             keys = list(next(iter(table.values())).keys())
