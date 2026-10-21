@@ -5,6 +5,7 @@ using Damage;
 using Game.Player;
 using UnityEngine;
 using UnityEngine.UI;
+using static UI.Screens.ScreenWidgets;
 
 namespace UI.Screens
 {
@@ -35,47 +36,24 @@ namespace UI.Screens
             new(0.95f, 0.88f, 0.35f),
         };
 
-        public static DeathRecapScreen Create(Transform parent)
-        {
-            var go = new GameObject("DeathRecapScreen");
-            go.transform.SetParent(parent, false);
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-            go.AddComponent<GraphicRaycaster>();
-            return go.AddComponent<DeathRecapScreen>();
-        }
+        public static DeathRecapScreen Create(Transform parent) =>
+            CreateOverlay<DeathRecapScreen>(parent, "DeathRecapScreen");
 
         public void Show(in DamageInfo killingBlow, DamageLedger ledger, IRunTally tally, Action onContinue)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            var dim = AddStretchedImage(transform, "Dim", new Color(0f, 0f, 0f, 0.65f));
+            var panel = AddPanel(transform);
 
-            var panel = new GameObject("Panel", typeof(RectTransform));
-            panel.transform.SetParent(dim.transform, false);
-            panel.AddComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f, 0.9f);
-            var layout = panel.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(36, 36, 24, 24);
-            layout.spacing = 12f;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-            var fitter = panel.AddComponent<ContentSizeFitter>();
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            AddText(panel.transform, "Title", "SHIP DESTROYED", font, 34,
+            AddText(panel, "Title", "SHIP DESTROYED", font, 34,
                 new Color(1f, 0.45f, 0.35f), FontStyle.Bold);
-            AddText(panel.transform, "Cause", CauseLine(killingBlow, ledger.Rows), font, 22, Color.white);
-            AddText(panel.transform, "Tally", TallyBlock(tally), font, 22, Color.white);
+            AddText(panel, "Cause", CauseLine(killingBlow, ledger.Rows), font, 22, Color.white);
+            AddText(panel, "Tally", TallyBlock(tally), font, 22, Color.white);
             if (ledger.Hits.Count > 0)
-                AddBurstChart(panel.transform, DamageBurst.From(ledger, SourceColors.Length), font);
-            AddText(panel.transform, "Rows", RowsBlock(ledger.Rows), font, 17, DetailColor);
+                AddBurstChart(panel, DamageBurst.From(ledger, SourceColors.Length), font);
+            AddText(panel, "Rows", RowsBlock(ledger.Rows), font, 17, DetailColor);
 
-            AddContinueButton(panel.transform, font, onContinue);
+            AddContinueButton(panel, font, onContinue);
         }
 
         internal static string CauseLine(in DamageInfo killingBlow, IReadOnlyList<DamageLedger.Row> rows)
@@ -88,9 +66,6 @@ namespace UI.Screens
                 ? $"Destroyed by {name} — {DamageLedger.DescribeKind(killingBlow.Kind)}."
                 : $"Destroyed by {DamageLedger.DescribeKind(killingBlow.Kind)}.";
         }
-
-        internal static string TallyBlock(IRunTally tally) =>
-            $"Kills: {tally.Kills}\nTime survived: {RunTally.FormatSeconds(tally.SecondsSurvived)}";
 
         internal static string RowsBlock(IReadOnlyList<DamageLedger.Row> rows)
         {
@@ -189,61 +164,6 @@ namespace UI.Screens
                 if (rows[i].AttackerId == killingBlow.AttackerId && rows[i].Kind == killingBlow.Kind)
                     return rows[i].SourceName;
             return null;
-        }
-
-        private static GameObject AddStretchedImage(Transform parent, string name, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rect = (RectTransform)go.transform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            go.AddComponent<Image>().color = color;
-
-            // Center anchor for children laid out inside the stretched dim.
-            var center = go.AddComponent<VerticalLayoutGroup>();
-            center.childAlignment = TextAnchor.MiddleCenter;
-            center.childControlWidth = false;
-            center.childControlHeight = false;
-            center.childForceExpandWidth = false;
-            center.childForceExpandHeight = false;
-            return go;
-        }
-
-        private static Text AddText(Transform parent, string name, string content, Font font,
-            int size, Color color, FontStyle style = FontStyle.Normal)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var text = go.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = size;
-            text.fontStyle = style;
-            text.color = color;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            text.text = content;
-            return text;
-        }
-
-        private static void AddContinueButton(Transform parent, Font font, Action onContinue)
-        {
-            var go = new GameObject("Continue", typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            go.AddComponent<Image>().color = new Color(0.20f, 0.55f, 0.95f, 1f);
-            var size = go.AddComponent<LayoutElement>();
-            size.preferredWidth = 220f;
-            size.preferredHeight = 44f;
-            var label = AddText(go.transform, "Label", "CONTINUE", font, 20, Color.white, FontStyle.Bold);
-            var rect = (RectTransform)label.transform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            go.AddComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
         }
     }
 }

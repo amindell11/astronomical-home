@@ -48,7 +48,7 @@ namespace Game.Player
 
                 var spawnedAt = Mathf.Max(spawn.SpawnedAt, runStart);
                 SpawnSeconds = spawnedAt - runStart;
-                AliveSeconds = (spawn.Dead ? spawn.DiedAt : runEnd) - spawnedAt;
+                AliveSeconds = (spawn.Dead ? spawn.DiedAt : spawn.Left ? spawn.LeftAt : runEnd) - spawnedAt;
                 KilledByPlayer = spawn.KilledByPlayer;
             }
         }
@@ -66,6 +66,8 @@ namespace Game.Player
             public float SpawnedAt;
             public float DiedAt;
             public bool Dead;
+            public bool Left;
+            public float LeftAt;
             public bool KilledByPlayer;
         }
 
@@ -114,6 +116,17 @@ namespace Game.Player
             if (!running) return;
             endTime = now;
             running = false;
+        }
+
+        /// <summary>Stops the alive clock of every open life, which the sector unload despawns; the run goes on.</summary>
+        public void EndSector(float now)
+        {
+            foreach (var spawn in spawns)
+            {
+                if (spawn.Dead || spawn.Left) continue;
+                spawn.Left = true;
+                spawn.LeftAt = now;
+            }
         }
 
         /// <summary>Every logged ship but the current player, in spawn order.</summary>

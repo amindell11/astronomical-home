@@ -24,13 +24,14 @@ namespace Game
     /// <summary>
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
-    /// observer and hangar cameras) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, load the
-    /// sector, play until the sector ends or the player dies, run record, death recap, unload. It owns the
-    /// clock, splash, hangar, run record, recap, restart, kill refill and the one EventSystem; the session only composes,
+    /// observer and hangar cameras) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, then
+    /// each of the profile's sectors in turn until the player dies or extracts from the last one (hull carries
+    /// from sector to sector), run record, death recap or win screen, unload. It owns the clock, splash, hangar,
+    /// run record, recap, restart, kill refill and the one EventSystem; the session only composes,
     /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer and
     /// hangar cameras), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
     /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
-    /// The hangar, recap and restart stand in for Home Base, multi-sector runs and player progress;
+    /// The hangar, recap and restart stand in for Home Base and player progress;
     /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
     [RequireComponent(typeof(UnitService))]
@@ -73,8 +74,8 @@ namespace Game
         [SerializeField] internal ItemSubset hangarOffer;
 
         [Header("Death Policy")]
-        [Tooltip("What happens when the player ship dies. RestartSector runs the death recap and " +
-                 "reloads the active sector; None does nothing.")]
+        [Tooltip("What happens when the player ship dies. RestartSector ends the run (run record, death " +
+                 "recap) and starts a new one from the hangar; None does nothing.")]
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
 
         [Header("Kill Refill")]
@@ -82,8 +83,8 @@ namespace Game
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Death Recap")]
-        [Tooltip("Seconds the death recap holds before auto-continuing; the Continue button skips " +
-                 "the wait. Shown only under RestartSector with presentation on.")]
+        [Tooltip("Seconds the death recap or the win screen holds before auto-continuing; the Continue " +
+                 "button skips the wait. The recap shows only under RestartSector; both need presentation on.")]
         [SerializeField, Min(0f)] private float recapHoldSeconds = 8f;
 
         // Test seams, set before the host activates: null → the default store path and the real source.
@@ -165,22 +166,44 @@ namespace Game
                     SetHangarViewVisible(false);
                 }
 
-                SetSplashVisible(true);
                 playerDied = false;
-                sectorEnded = false;
-                yield return session.LoadSector(rigInstance ? rigInstance.Player : null, _ => sectorEnded = true);
-                var playerLoadoutStatHash = rigInstance ? BeginRun() : null;
-                SetSplashVisible(false);
-
-                // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
-                while (!playerDied && !sectorEnded)
-                    yield return null;
-
-                if (playerDied)
+                string playerLoadoutStatHash = null;
+                var hull = 1f;
+                var index = 0;
+                while (true)
                 {
-                    AppendRunRecord(playerLoadoutStatHash);
+                    SetSplashVisible(true);
+                    sectorEnded = false;
+                    yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, _ => sectorEnded = true);
+                    if (index == 0)
+                        playerLoadoutStatHash = rigInstance ? BeginRun() : null;
+                    else if (rigInstance)
+                        rigInstance.Player.Damage.Health.SetFraction(hull);
+                    SetSplashVisible(false);
+
+                    // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
+                    while (!playerDied && !sectorEnded)
+                        yield return null;
+
+                    if (playerDied || index == sessionProfile.sectors.Length - 1) break;
+
+                    // The unload despawns this sector's ships, and the next load resets the player's hull.
+                    if (rigInstance)
+                    {
+                        hull = rigInstance.Player.Damage.Health.Pct;
+                        rigInstance.Spawns.EndSector(Time.time);
+                    }
+                    SetSplashVisible(true);
+                    yield return session.UnloadSector();
+                    index++;
+                }
+
+                if (rigInstance)
+                {
+                    if (!playerDied) EndRun();
+                    AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     if (presentation)
-                        yield return RunDeathRecap();
+                        yield return playerDied ? RunDeathRecap() : RunWinScreen(index + 1);
                 }
 
                 SetSplashVisible(true);
@@ -243,8 +266,7 @@ namespace Game
                 case PlayerDeathBehavior.RestartSector:
                     return (_, killingBlow) =>
                     {
-                        rigInstance.Tally.End(Time.time);
-                        rigInstance.Spawns.End(Time.time);
+                        EndRun();
                         lastKillingBlow = killingBlow;
                         playerDied = true;
                     };
@@ -262,8 +284,14 @@ namespace Game
             return StatHash.OfLoadout(rigInstance.Player);
         }
 
+        private void EndRun()
+        {
+            rigInstance.Tally.End(Time.time);
+            rigInstance.Spawns.End(Time.time);
+        }
+
         // An unreadable build identity is treated like the store's failed write: the run goes unrecorded.
-        private void AppendRunRecord(string playerLoadoutStatHash)
+        private void AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
         {
             if (!buildIdentity(out var identity, out var failure))
             {
@@ -271,10 +299,11 @@ namespace Game
                 return;
             }
 
-            var sector = sessionProfile.sectorEntry.prefab;
-            runRecords.Append(RunRecord.Compose(DateTime.UtcNow, sector.name, identity,
-                StatHash.OfSetting(hangarOffer, sector, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
-                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, lastKillingBlow));
+            var sectors = Array.ConvertAll(sessionProfile.sectors, entry => entry.prefab);
+            var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
+            runRecords.Append(RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
+                StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
+                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow));
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
@@ -306,6 +335,22 @@ namespace Game
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
             screen.Show(lastKillingBlow, rigInstance.Ledger, rigInstance.Tally, () => dismissed = true);
+
+            var deadline = Time.unscaledTime + recapHoldSeconds;
+            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
+
+            Destroy(screen.gameObject);
+            if (overlay) overlay.SetVisible(true);
+        }
+
+        private IEnumerator RunWinScreen(int sectorsCleared)
+        {
+            var overlay = rigInstance.Overlay;
+            if (overlay) overlay.SetVisible(false);
+
+            var screen = RunWonScreen.Create(ui);
+            var dismissed = false;
+            screen.Show(rigInstance.Tally, sectorsCleared, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);

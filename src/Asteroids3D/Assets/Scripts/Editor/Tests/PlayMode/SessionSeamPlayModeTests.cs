@@ -45,7 +45,7 @@ namespace Tests.PlayMode
             hostGo = new GameObject("SessionRoot");
             var session = TestSession.Create(hostGo, new SessionProfile
             {
-                sectorEntry = null,
+                sectors = null,
                 presentation = false
             });
 
