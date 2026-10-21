@@ -178,6 +178,7 @@ universe
 sed -i 's/^35$/thirty-five-owner/' "$P/f.txt"
 main_edits f.txt 's/^5$/five-main/'
 printf '#!/bin/sh\necho saved-mid-sync >> g.txt\n' > "$P/.git/hooks/post-merge"
+chmod +x "$P/.git/hooks/post-merge"
 sync_from "$P"
 expect failed:mismatch 2 "a file saved mid-sync"
 grep -q "pinned at $(backups)" "$TMP/err" || fail "a mismatch names the backup ref"
