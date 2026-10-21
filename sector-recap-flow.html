@@ -46,7 +46,8 @@
 #sector-recap-flow .rf-wrap { position:absolute; top:50%; left:7%; transform:translateY(-50%); display:flex; align-items:flex-start; gap:12px; }
 #sector-recap-flow .rf-panel { position:relative; left:auto; top:auto; transform:none; width:338px; padding:27px 28px; }
 #sector-recap-flow .rf-outcome { margin-bottom:8px; color:#8fd4aa; }
-#sector-recap-flow .rf-game[data-mode="victory"] .rf-outcome { margin-bottom:29px; }
+#sector-recap-flow .rf-game:not([data-mode="sector"]) .rf-outcome { margin-bottom:29px; }
+#sector-recap-flow .rf-game[data-mode="defeat"] .rf-outcome { color:#e89594; }
 #sector-recap-flow .rf-context { color:var(--rf-soft); font-size:11px; letter-spacing:1.4px; margin-bottom:25px; }
 #sector-recap-flow .rf-trophies { min-height:86px; }
 #sector-recap-flow .rf-mark::before { transform:none; }
@@ -67,9 +68,11 @@
 #sector-recap-flow .rf-table small { display:block; font-size:11px; color:var(--rf-soft); margin-top:4px; white-space:nowrap; }
 #sector-recap-flow .rf-table tr.rf-current { background:#8fd4aa0d; }
 #sector-recap-flow .rf-table tr.rf-current td:first-child { color:#8fd4aa; }
+#sector-recap-flow .rf-game[data-mode="defeat"] .rf-table tr.rf-current { background:#e895940d; }
+#sector-recap-flow .rf-game[data-mode="defeat"] .rf-table tr.rf-current td:first-child { color:#e89594; }
 #sector-recap-flow .rf-rank-number { display:inline-block; min-width:21px; color:var(--rf-soft); }
 @media(max-width:700px) {
- #sector-recap-flow .rf-game[data-mode="victory"] { height:1000px; }
+ #sector-recap-flow .rf-game:not([data-mode="sector"]) { height:1000px; }
  #sector-recap-flow .rf-wrap { left:50%; transform:translate(-50%,-50%); width:calc(100% - 32px); max-width:338px; flex-direction:column; }
  #sector-recap-flow .rf-panel { width:100%; max-width:none; padding:24px 22px; }
  #sector-recap-flow .rf-board { width:100%; padding:24px 22px; }
@@ -82,6 +85,7 @@
   <div class="viz-row" role="group" aria-label="Recap stage">
    <button class="btn" type="button" data-preview="sector" aria-pressed="true">Between sectors</button>
    <button class="btn" type="button" data-preview="victory" aria-pressed="false">Final victory</button>
+   <button class="btn" type="button" data-preview="defeat" aria-pressed="false">Ship lost</button>
   </div>
  </div>
  <div class="rf-game" data-mode="sector">
@@ -122,24 +126,35 @@
  const runKills=['Valis','Crimson','Valis','Nightshade','Vanguard','Crimson','Valis','Bulwark','Nightshade','Valis','Vanguard','Crimson','Nightshade','Bulwark','Valis','Crimson','Vanguard'];
  const sectorKills=runKills.slice(5,12);
  const game=root.querySelector('.rf-game');
- let mode='sector',selected=-1;
- function restore(saved){mode=saved?.mode==='victory'?'victory':'sector';const kills=mode==='sector'?sectorKills:runKills;selected=Number.isInteger(saved?.selected)&&saved.selected>=0&&saved.selected<kills.length?saved.selected:-1;}
+ let mode='defeat',selected=-1;
+ function restore(saved){mode=['sector','victory','defeat'].includes(saved?.mode)?saved.mode:'defeat';const kills=mode==='sector'?sectorKills:runKills;selected=Number.isInteger(saved?.selected)&&saved.selected>=0&&saved.selected<kills.length?saved.selected:-1;}
  restore(window.openai?.widgetState?.modelContent);
  function persist(){window.openai?.setWidgetState?.({modelContent:{mode,selected,selectedShip:(mode==='sector'?sectorKills:runKills)[selected]??null},privateContent:null})?.catch?.(()=>{});}
  function render(){
-  const victory=mode==='victory',kills=victory?runKills:sectorKills;
+  const runEnded=mode!=='sector',defeat=mode==='defeat',kills=runEnded?runKills:sectorKills;
   game.dataset.mode=mode;
   root.querySelectorAll('[data-preview]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.preview===mode)));
-  game.querySelector('.rf-outcome').textContent=victory?'VICTORY':'EXTRACTED';
-  game.querySelector('.rf-context').textContent=victory?'RUN COMPLETE':'SECTOR 02 COMPLETE';
-  game.querySelector('.rf-context').hidden=victory;
+  game.querySelector('.rf-outcome').textContent=defeat?'SHIP LOST':runEnded?'VICTORY':'EXTRACTED';
+  game.querySelector('.rf-context').hidden=runEnded;
   game.querySelector('.rf-count').textContent=kills.length;
-  game.querySelector('.rf-time').hidden=victory;
-  game.querySelector('.rf-progress').hidden=!victory;
-  game.querySelector('.rf-board').hidden=!victory;
-  game.querySelector('.rf-action-label').textContent=victory?'RETURN TO HANGAR':'NEXT SECTOR';
+  game.querySelector('.rf-time').hidden=runEnded;
+  game.querySelector('.rf-progress').hidden=!runEnded;
+  game.querySelector('.rf-board').hidden=!runEnded;
+  game.querySelector('.rf-action-label').textContent=runEnded?'RETURN TO HANGAR':'NEXT SECTOR';
+  game.querySelector('.rf-distance').textContent=defeat?'2 SECTORS CLEARED':'3 SECTORS CLEARED';
+  game.querySelectorAll('.rf-node').forEach((node,index)=>{const reached=defeat&&index===2;node.classList.toggle('rf-reached',reached);node.setAttribute('aria-label',`Sector ${index+1} ${reached?'reached':'cleared'}`);});
+  const current={label:'This run',sectors:defeat?2:3,kills:17,time:'11:26',current:true};
+  const scores=[{label:'Oct 19',sectors:3,kills:24,time:'14:08'},{label:'Oct 20',sectors:3,kills:19,time:'12:35'},{label:'Oct 18',sectors:3,kills:15,time:'13:12'},{label:'Oct 20',sectors:2,kills:20,time:'09:44'},current].sort((a,b)=>b.sectors-a.sectors||b.kills-a.kills);
+  const rank=scores.indexOf(current)+1;
+  game.querySelector('.rf-board-rank').textContent=`Your best runs · ${rank===3?'3rd':'5th'} of 12`;
+  const body=game.querySelector('.rf-table tbody');body.replaceChildren();
+  scores.forEach((score,index)=>{
+   const row=document.createElement('tr');if(score.current)row.className='rf-current';
+   const name=document.createElement('td'),position=document.createElement('span');position.className='rf-rank-number';position.textContent=index+1;name.append(position,document.createTextNode(score.label));row.append(name);
+   [score.sectors,score.kills,score.time].forEach(value=>{const cell=document.createElement('td');cell.textContent=value;row.append(cell);});body.append(row);
+  });
   const grid=game.querySelector('.rf-trophies');
-  grid.setAttribute('aria-label',victory?'Confirmed kills for the whole run':'Confirmed kills in this sector');
+  grid.setAttribute('aria-label',runEnded?'Confirmed kills for the whole run':'Confirmed kills in this sector');
   grid.replaceChildren();
   kills.forEach((name,index)=>{
    const mark=document.createElement('button');mark.type='button';mark.className='rf-mark cursor-interaction';mark.style.setProperty('--rf-ship',`url("${textures[name]}")`);mark.setAttribute('aria-label',`${name}, confirmed kill ${index+1}`);mark.setAttribute('aria-pressed',String(index===selected));
