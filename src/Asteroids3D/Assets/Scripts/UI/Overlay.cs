@@ -4,6 +4,7 @@ using UI.Audio;
 using UI.Markers;
 using UI.PlayerState;
 using Combat.Weapons.Conditions;
+using Substrate.Services.Objectives;
 
 namespace UI
 {
@@ -87,6 +88,14 @@ namespace UI
 
             if (lockOnAudio)
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+        }
+
+        public void BindObjectives(IObjectiveService objectives)
+        {
+            if (ObjectiveMarker)
+                ObjectiveMarker.BindObjectiveService(objectives);
+
+            ObjectiveStatusReadout.Create(transform).Initialize(objectives);
         }
     }
 }

@@ -69,7 +69,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
 | **rung / tier** | fix-ladder rung · curriculum ladder · screening ladder (Tier 0–3) | "Rung" is fix-ladder-only. The curriculum has *lessons*; screening has *tiers*. |
 | **archetype** | opponent archetype (Aggressor/Evader/Orbiter/Kiter/Dummy) · chassis archetype · ship-prefab archetype | Qualify — the first two both feed the matchup matrix. |
-| **spine** | sector spine (`SectorSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
+| **spine** | sector spine (`SectorSpineModule`, `PhaseSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
 | **adopt** | sector adoption (the placed object IS the runtime object) · coordinator Adopt (seize an orphan process) | Qualify: "sector-adopt" / "coordinator Adopt". |
 | **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
 | **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
@@ -80,7 +80,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
-| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage* — five schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. |
+| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage*, *sector phase* — six schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. Bare "phase" = sector phase inside `WaveDirector` and `Substrate/Sectors/Elements/Phases/` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
@@ -568,9 +568,10 @@ Format: **term** — definition. *(authority)*
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
   *(Sector.cs)*
-- **sector spine** — the sector's main objective chain; step names ARE the bus
-  tokens (`spine:ready-to-extract`). Distinct from the **reward spine**, the
-  sparse ±1 outcome term. *(SectorSpineModule.cs)*
+- **sector spine** — the sector's main objective chain, set by its spine module.
+  `SectorSpineModule`'s step names ARE the bus tokens (`spine:ready-to-extract`);
+  `PhaseSpineModule` latches none. Distinct from the **reward spine**, the
+  sparse ±1 outcome term. *(SectorSpineModule.cs, PhaseSpineModule.cs)*
 - **activation rule / term / latch** — `predicate(terms) → effect`; terms are
   AND-ed, evaluated as a standing *level* rather than an enter-edge, and latched
   Active on first satisfaction. *(ActivationRule.cs)*
@@ -580,13 +581,16 @@ Format: **term** — definition. *(authority)*
   local objective + on-complete events. A thin rule on a fixture is not an
   encounter.
 - **wave director** — the continuous sector spawner: ships ringing the hero
-  just off screen on an escalating interval under an escalating alive cap,
-  dead products despawned as it goes. Content, not a sector module, so product
-  ownership and teardown stay the spawner's. *(WaveDirector)*
-- **survival trial** — the sector whose only goal is surviving: a wave director
-  and an asteroid field, no sector module, never raising a sector end — the
-  game host's player-death path is its only exit, and the run tally is its
-  score. *(TrialSector prefab)*
+  just off screen, paced by its sector phases, dead products despawned as it
+  goes. Content, not a sector module, so product ownership and teardown stay
+  the spawner's. *(WaveDirector)*
+- **sector phase** — one timed row of a wave director's pacing table. Bare
+  *phase* is the RL run segment (§2) outside the wave director's code (§1
+  *stage / phase* row). The player-facing HUD says "PHASE". *(SectorPhase)*
+- **survival trial** — the sector whose goal is surviving its sector phases and
+  then reaching the extraction zone (`PhaseSpineModule`). Extraction or the
+  game host's player-death path ends it; the run tally is its score.
+  *(TrialSector prefab)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —

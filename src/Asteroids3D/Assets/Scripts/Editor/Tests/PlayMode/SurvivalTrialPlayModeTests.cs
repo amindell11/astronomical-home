@@ -10,6 +10,7 @@ using Ships.Loadout;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -94,7 +95,7 @@ namespace Tests.PlayMode
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                startInterval: 100f, endInterval: 100f, startCap: 1, endCap: 1, rampSeconds: 100f, SpawnRadius, _pool);
+                new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }, spawnRadius: SpawnRadius, loadouts: _pool);
             sector.SetManifest(null, new SectorSpawner[] { director }, null);
             sector.Initialize(_unitService, _objectives, true, _config, default, player);
 
@@ -102,7 +103,7 @@ namespace Tests.PlayMode
             tally.Begin(Time.time);
             for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
                 yield return null;
-            Assert.AreEqual(1, director.Spawned.Count, "The first tick's opening wave fills the start cap.");
+            Assert.AreEqual(1, director.Spawned.Count, "The first phase opens by filling its cap.");
             var enemy = director.Spawned[0];
             Assert.AreEqual(1, enemy.teamNumber, "Director products are hostile to the team-0 player.");
             Assert.AreEqual(_pool.engines[0], enemy.Engine, "Products are re-armed from the pool at spawn.");

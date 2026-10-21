@@ -122,11 +122,7 @@ namespace Game
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.SetCanvasWorldCamera(uiCam);
                 Overlay.Initialize(BuildHudBinding());
-
-                // Hand the objective marker the objective-service channel; it subscribes and
-                // self-decides visibility (encounters report their target via IObjectiveService).
-                if (Overlay.ObjectiveMarker)
-                    Overlay.ObjectiveMarker.BindObjectiveService(objectives);
+                Overlay.BindObjectives(objectives);
             }
 
             if (presentationEnabled && observer && minimapCamPrefab)
