@@ -11,7 +11,8 @@
 #left-facing-trophies .hr-scene-ship { position:absolute; width:48px; height:48px; left:72%; top:36%; transform:rotate(43deg); opacity:.65; background:#a5b7d3; mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
 #left-facing-trophies .hr-panel { --hr-opacity:.9; position:absolute; left:7%; top:50%; transform:translateY(-50%); width:338px; padding:27px 28px; background:rgba(12,20,39,var(--hr-opacity)); }
 #left-facing-trophies .hr-panel::before { content:""; position:absolute; top:0; left:0; width:17px; height:17px; border:solid #e9edf16e; border-width:1px 0 0 1px; }
-#left-facing-trophies .hr-outcome { font:400 40px/1.1 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; letter-spacing:1.8px; margin:0 0 29px; white-space:nowrap; color:var(--hr-ink); }
+#left-facing-trophies .hr-outcome { font:400 40px/1.1 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; letter-spacing:1.8px; margin:0 0 29px; white-space:nowrap; color:#e89594; }
+#left-facing-trophies .hr-game[data-result="win"] .hr-outcome { color:#8fd4aa; }
 #left-facing-trophies .hr-tally-label { display:flex; align-items:baseline; gap:9px; color:var(--hr-soft); font-size:11px; line-height:20px; letter-spacing:1.7px; margin-bottom:12px; }
 #left-facing-trophies .hr-count { color:var(--hr-ink); font-size:17px; letter-spacing:.5px; }
 #left-facing-trophies .hr-trophies { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px 8px; }
@@ -76,6 +77,7 @@
  function render(){
   root.querySelectorAll('[data-outcome]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.outcome===outcome)));
   root.querySelectorAll('.hr-game').forEach(game=>{
+   game.dataset.result=outcome;
    game.querySelector('.hr-outcome').textContent=outcome==='win'?'EXTRACTED':'SHIP LOST';
    game.querySelector('.hr-distance').textContent=outcome==='win'?'3 SECTORS CLEARED':'2 SECTORS CLEARED';
    game.querySelectorAll('.hr-node').forEach((node,index)=>{
