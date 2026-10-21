@@ -1,0 +1,85 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "width": 640,
+      "variant": "Fine slash",
+      "height": 414,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 640,
+      "variant": "Painted stroke",
+      "height": 414,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 640,
+      "variant": "Cut through",
+      "height": 414,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 640,
+      "variant": "Twin strokes",
+      "height": 414,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 640,
+      "variant": "Corner slash",
+      "height": 414,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 320,
+      "variant": "Fine slash",
+      "height": 458,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 320,
+      "variant": "Painted stroke",
+      "height": 458,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 320,
+      "variant": "Cut through",
+      "height": 458,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 320,
+      "variant": "Twin strokes",
+      "height": 458,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    },
+    {
+      "width": 320,
+      "variant": "Corner slash",
+      "height": 458,
+      "clipped": [],
+      "mask": true,
+      "icons": 2
+    }
+  ]
+}

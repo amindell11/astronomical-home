@@ -1,0 +1,71 @@
+<style>
+#strike-mark-studies .ss-stage { --ss-paper:#e8e7d9; --ss-strike:#d8bda4; --ss-navy:#10192d; --ss-angle:-38deg; --ss-weight:1; box-sizing:border-box; max-width:640px; height:414px; margin:0 auto; padding:32px; background:var(--ss-navy); color:var(--ss-paper); color-scheme:dark; font:400 12px/1.4 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; }
+#strike-mark-studies .ss-stage * { box-sizing:border-box; }
+#strike-mark-studies .ss-specimens { display:flex; justify-content:center; align-items:center; gap:52px; height:100%; }
+#strike-mark-studies .ss-specimen { display:flex; flex-direction:column; align-items:center; gap:24px; margin:0; }
+#strike-mark-studies .ss-caption { color:#b2bdcf; font-size:11px; letter-spacing:1.6px; }
+#strike-mark-studies .ss-icon { position:relative; width:44px; height:44px; flex:none; }
+#strike-mark-studies .ss-icon.ss-large { width:264px; height:264px; }
+#strike-mark-studies .ss-ship { position:absolute; inset:11.364%; background:var(--ss-paper); mask-image:var(--ss-asset); mask-position:center; mask-size:contain; mask-repeat:no-repeat; }
+#strike-mark-studies .ss-stroke { position:absolute; width:86.364%; height:calc(2.273% * var(--ss-weight)); left:50%; top:52.273%; transform:translate(-50%,-50%) rotate(var(--ss-angle)); background:var(--ss-strike); box-shadow:0 0 0 calc(var(--ss-unit) * 1.5) var(--ss-navy); }
+#strike-mark-studies .ss-icon { --ss-unit:1px; }
+#strike-mark-studies .ss-icon.ss-large { --ss-unit:6px; }
+#strike-mark-studies .ss-painted .ss-stroke { height:calc(6% * var(--ss-weight)); width:93%; background:var(--ss-strike); box-shadow:none; clip-path:polygon(0 37%,10% 22%,38% 12%,74% 24%,96% 0,100% 30%,94% 62%,61% 71%,26% 87%,6% 100%,0 74%); }
+#strike-mark-studies .ss-painted .ss-stroke::after { content:""; position:absolute; left:21%; right:8%; top:59%; height:12%; background:var(--ss-navy); opacity:.25; transform:rotate(-1deg); }
+#strike-mark-studies .ss-cut .ss-stroke { width:93%; height:calc(5.5% * var(--ss-weight)); background:var(--ss-navy); box-shadow:none; }
+#strike-mark-studies .ss-double .ss-stroke { width:75%; top:47%; height:calc(2.273% * var(--ss-weight)); }
+#strike-mark-studies .ss-double .ss-stroke.ss-second { top:62%; }
+#strike-mark-studies .ss-corner .ss-stroke { width:32%; left:78%; top:77%; height:calc(3.41% * var(--ss-weight)); box-shadow:0 0 0 calc(var(--ss-unit) * 1.1) var(--ss-navy); }
+@media(max-width:540px) {
+ #strike-mark-studies .ss-stage { height:458px; padding:24px 12px; }
+ #strike-mark-studies .ss-specimens { flex-direction:column; gap:22px; }
+ #strike-mark-studies .ss-specimen { gap:12px; }
+}
+</style>
+<div id="strike-mark-studies">
+ <div class="viz-carousel viz-dotted-background" aria-label="Single ship strike treatments">
+  <section data-variant="Fine slash" aria-label="Fine slash">
+   <div class="ss-stage ss-fine" aria-label="Fine slash settings"><div class="ss-specimens"></div></div>
+  </section>
+  <section data-variant="Painted stroke" aria-label="Painted stroke" hidden>
+   <div class="ss-stage ss-painted" aria-label="Painted stroke settings"><div class="ss-specimens"></div></div>
+  </section>
+  <section data-variant="Cut through" aria-label="Cut through" hidden>
+   <div class="ss-stage ss-cut" aria-label="Cut through settings"><div class="ss-specimens"></div></div>
+  </section>
+  <section data-variant="Twin strokes" aria-label="Twin strokes" hidden>
+   <div class="ss-stage ss-double" aria-label="Twin strokes settings"><div class="ss-specimens"></div></div>
+  </section>
+  <section data-variant="Corner slash" aria-label="Corner slash" hidden>
+   <div class="ss-stage ss-corner" aria-label="Corner slash settings"><div class="ss-specimens"></div></div>
+  </section>
+ </div>
+</div>
+<script type="application/json" id="strike-mark-asset">"data:image/png;base64,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"</script>
+<script>
+(() => {
+ const root=document.getElementById('strike-mark-studies');
+ const asset=JSON.parse(document.getElementById('strike-mark-asset').textContent);
+ root.style.setProperty('--ss-asset',`url("${asset}")`);
+ root.querySelectorAll('.ss-stage').forEach(stage=>{
+  const specimens=stage.querySelector('.ss-specimens');
+  [{large:true,label:'6× DETAIL'},{large:false,label:'TALLY SIZE'}].forEach(({large,label})=>{
+   const figure=document.createElement('figure');figure.className='ss-specimen';
+   const caption=document.createElement('figcaption');caption.className='ss-caption';caption.textContent=label;
+   const icon=document.createElement('div');icon.className=`ss-icon${large?' ss-large':''}`;icon.setAttribute('role','img');icon.setAttribute('aria-label',`Crimson destroyed, ${stage.parentElement.dataset.variant}, ${large?'six times enlarged':'actual tally size'}`);
+   const ship=document.createElement('span');ship.className='ss-ship';ship.setAttribute('aria-hidden','true');icon.append(ship);
+   const stroke=document.createElement('span');stroke.className='ss-stroke';stroke.setAttribute('aria-hidden','true');icon.append(stroke);
+   if(stage.classList.contains('ss-double')){const second=stroke.cloneNode();second.classList.add('ss-second');icon.append(second);}
+   figure.append(caption,icon);specimens.append(figure);
+  });
+  const state={angle:-38,weight:1};
+  const render=()=>{stage.style.setProperty('--ss-angle',`${state.angle}deg`);stage.style.setProperty('--ss-weight',state.weight);};
+  render();
+  if(globalThis.Tweak){
+   const tweak=new Tweak({container:stage,onChange:render});
+   tweak.addSlider(state,'angle',{label:'Strike angle',min:-65,max:-20,step:1,unit:'°'});
+   tweak.addSlider(state,'weight',{label:'Stroke weight',min:.65,max:1.7,step:.05,unit:'×'});
+  }
+ });
+})();
+</script>
