@@ -1,0 +1,40 @@
+diff --git a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnCanopy.shader b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnCanopy.shader
+index 76cdabd62..6e9692f14 100644
+--- a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnCanopy.shader
++++ b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnCanopy.shader
+@@ -256,6 +256,15 @@ Shader "Astronomical/Drawn/Canopy"
+             ENDHLSL
+         }
+         Pass
++        {
++            Name "MotionVectors"
++            Tags { "LightMode"="MotionVectors" }
++            ColorMask RG
++            HLSLPROGRAM
++            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
++            ENDHLSL
++        }
++        Pass
+         {
+             Name "DepthOnly"
+             Tags { "LightMode"="DepthOnly" }
+diff --git a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
+index 6692a2366..10f5f221f 100644
+--- a/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
++++ b/src/Asteroids3D/Assets/Visuals/Shaders/DrawnSurface.shader
+@@ -339,6 +339,15 @@ Shader "Astronomical/Drawn/Surface"
+             ENDHLSL
+         }
+         Pass
++        {
++            Name "MotionVectors"
++            Tags { "LightMode"="MotionVectors" }
++            ColorMask RG
++            HLSLPROGRAM
++            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
++            ENDHLSL
++        }
++        Pass
+         {
+             Name "DepthOnly"
+             Tags { "LightMode"="DepthOnly" }

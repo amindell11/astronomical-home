@@ -1,0 +1,12 @@
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs b/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
+index 55dda74af..20dedd556 100644
+--- a/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
++++ b/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
+@@ -26,6 +26,7 @@ public class Overlay : MonoBehaviour
+ 
+         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
+         public RectTransform MinimapRect => minimapRect;
++        public bool IsVisible => canvases[0].enabled;
+ 
+         private void Awake()
+         {
