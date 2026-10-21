@@ -167,9 +167,10 @@ namespace UI.Hangar
             var dt = Time.deltaTime;
             carousel.Advance(dt);
             var nearest = Mathf.FloorToInt(carousel.Position);
-            var behind = CloneOf(carousel.At(nearest));
-            // At a whole position the next index sits at d = 1, the off-frame start of its arrival.
-            var ahead = carousel.Position > nearest ? CloneOf(carousel.At(nearest + 1)) : null;
+            // The path ends where one press's handoff ends; the spring's tail beyond it is off-frame.
+            var pathEnd = 1f - HangarCarousel.SettledOffset;
+            var behind = carousel.Position - nearest < pathEnd ? CloneOf(carousel.At(nearest)) : null;
+            var ahead = nearest + 1 - carousel.Position < pathEnd ? CloneOf(carousel.At(nearest + 1)) : null;
             foreach (var clone in clones.Values)
                 if (clone != behind && clone != ahead && clone.gameObject.activeSelf)
                     clone.Hide();

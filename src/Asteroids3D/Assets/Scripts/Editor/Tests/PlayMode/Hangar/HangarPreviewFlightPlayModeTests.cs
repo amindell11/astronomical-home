@@ -20,6 +20,9 @@ namespace Tests.PlayMode.Hangar
             "Assets/Prefabs/Ships/Crimson.prefab",
         };
 
+        // An arrival spends its first frames off-frame, before its path begins.
+        private const float OnPath = .15f;
+
         private HangarPreviewStage stage;
         private Ship valis;
         private Ship nightshade;
@@ -54,7 +57,7 @@ namespace Tests.PlayMode.Hangar
                 var outgoing = Active().Single().transform;
                 var start = outgoing.localPosition;
                 (backwards ? screen.view.shipRow.previousButton : screen.view.shipRow.nextButton).onClick.Invoke();
-                yield return null;
+                yield return new WaitForSeconds(OnPath);
                 var incoming = Active().Single(f => f.transform != outgoing);
                 var direction = backwards ? -1f : 1f;
                 Assert.That(incoming.transform.localPosition.x * direction, Is.GreaterThan(0f),
@@ -96,7 +99,7 @@ namespace Tests.PlayMode.Hangar
             var camera = stage.GetComponentInChildren<Camera>();
             var cameraPosition = camera.transform.position;
             Show(nightshade);
-            yield return null;
+            yield return new WaitForSeconds(OnPath);
             var incoming = Active().Single(f => f.transform != outgoing);
             Assert.That(incoming.transform.localPosition.x, Is.GreaterThan(start.x));
             var right = incoming.transform.localPosition.x;
