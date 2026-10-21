@@ -15,6 +15,15 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_check.sh\""
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"$CLAUDE_PROJECT_DIR/.claude/after-compact.md\""
+          }
+        ]
       }
     ],
     "PreToolUse": [

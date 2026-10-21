@@ -196,8 +196,10 @@ Format: **term** — definition. *(authority)*
   feedback notes only. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
-- **handoff** — a brief a fresh session reads cold to take over; it rides the
-  spawn-chip prompt that starts that session. Explicitly not `/compact`.
+- **handoff** — a brief a new session reads cold to take over separate work (a
+  child issue's owner, a worker); it rides the prompt that starts that session.
+  A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
+  Session hygiene).
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
@@ -215,9 +217,10 @@ Format: **term** — definition. *(authority)*
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
   slots; the owner's checkout and the home of pool state. Agents write nothing
-  else there (AGENTS.md → Default workflow). **Clean primary**: no untracked
-  files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
-  tracked edits are the owner's and don't count.
+  else there but main's fast-forward and sound work (AGENTS.md → Default
+  workflow). **Clean primary**: no untracked files outside the sound-work paths
+  and no ignored files outside the allowlist, both lists in
+  `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
