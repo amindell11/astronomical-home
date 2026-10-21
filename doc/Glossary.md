@@ -222,6 +222,10 @@ Format: **term** — definition. *(authority)*
   and no ignored files outside the allowlist, both lists in
   `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
+- **app worktree** — the per-session worktree the Claude desktop app makes under
+  `.claude/worktrees/` in the primary tree, on a `claude/<name>` branch. No agent
+  work happens in one; `scripts/app_worktree_guard.py` refuses session starts
+  that would make one. *(#1058)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
@@ -818,6 +822,12 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **shield bypass** — a hit's damage skips the shield and goes straight to hull.
+  Only a missile's direct hit carries it; its splash stays shield-first with
+  bleed-through. The producer sets the flag, and `DamageController` routes on it,
+  never on `DamageKind` (direct hit and splash share one kind). A bypass hit
+  doesn't restart the shield's regen delay.
+  *(`DamageInfo.BypassesShield`)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
