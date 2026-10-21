@@ -65,7 +65,7 @@ namespace Tests.EditMode.Runs
             RunRecord.Compose(
                 new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), "TrialSector",
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
-                new ShipLoadout(offer.ships[0], offer.engines[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
+                new ShipLoadout(offer.ships[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), ledger, spawns, Hit(99f, DamageKind.Laser, Laserer));
 
         [TearDown]
@@ -114,7 +114,7 @@ namespace Tests.EditMode.Runs
             var player = JsonUtility.FromJson<RunRecord>(json).player;
 
             Assert.AreEqual(offer.ships[0].name, player.chassis);
-            Assert.AreEqual(offer.engines[0].name, player.engine);
+            Assert.AreEqual(offer.ships[0].Engine.name, player.engine, "the engine is the chassis's own");
             Assert.AreEqual(offer.shields[0].name, player.shield);
             Assert.AreEqual(offer.weapons[0].name, player.primary);
             Assert.AreEqual(string.Empty, player.secondary, "an empty mount is an empty name");

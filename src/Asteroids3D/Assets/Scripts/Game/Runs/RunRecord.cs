@@ -93,7 +93,7 @@ namespace Game.Runs
                 player = new LoadoutRow
                 {
                     chassis = NameOf(playerLoadout.Ship),
-                    engine = NameOf(playerLoadout.Engine),
+                    engine = NameOf(playerLoadout.Ship.Engine),
                     shield = NameOf(playerLoadout.Shield),
                     primary = NameOf(playerLoadout.PrimaryWeapon),
                     secondary = NameOf(playerLoadout.SecondaryWeapon),

@@ -32,7 +32,7 @@ namespace Substrate.Sectors.Elements
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
-        [Tooltip("Engine, shield and weapon pool each spawn draws its build from; the chassis stays the roster's. " +
+        [Tooltip("Shield and weapon pool each spawn draws its build from; the chassis, and with it the engine, stays the roster's. " +
                  "Unset → products fly their template's authored build.")]
         [Stat, SerializeField] private ItemSubset loadouts;
         [SerializeField] private int team = 1;
@@ -73,9 +73,9 @@ namespace Substrate.Sectors.Elements
                 yield break;
             }
 
-            if (loadouts && (IsEmpty(loadouts.engines) || IsEmpty(loadouts.shields) || IsEmpty(loadouts.weapons)))
+            if (loadouts && (IsEmpty(loadouts.shields) || IsEmpty(loadouts.weapons)))
                 throw new InvalidOperationException(
-                    $"WaveDirector on '{name}': loadout pool '{loadouts.name}' needs at least one engine, shield and weapon.");
+                    $"WaveDirector on '{name}': loadout pool '{loadouts.name}' needs at least one shield and weapon.");
 
             units = ctx.Units;
             field = ctx.Field;
@@ -129,7 +129,7 @@ namespace Substrate.Sectors.Elements
 
         /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
         internal ShipLoadout Draw(Ship chassis) =>
-            new(chassis, Pick(loadouts.engines), Pick(loadouts.shields), Pick(loadouts.weapons), null);
+            new(chassis, Pick(loadouts.shields), Pick(loadouts.weapons), null);
 
         private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
 

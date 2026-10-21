@@ -130,7 +130,7 @@ namespace Tests.PlayMode
             var missiles = AssetDatabase.LoadAssetAtPath<WeaponComponent>(MissilesPath);
             Assert.IsTrue(railgun && missiles, "test premise: both mount prefabs load");
 
-            ship.Reequip(null, null, railgun, missiles);
+            ship.Reequip(null, railgun, missiles);
             units.WireShipDependencies(ship, Field);
 
             var beam = ship.GetComponentInChildren<RailBeamVisual>(true);
