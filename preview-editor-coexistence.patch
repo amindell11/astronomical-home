@@ -1,0 +1,71 @@
+diff --git a/scripts/tests/test_unity_access.ps1 b/scripts/tests/test_unity_access.ps1
+index 76125d99d..18d25a9d1 100644
+--- a/scripts/tests/test_unity_access.ps1
++++ b/scripts/tests/test_unity_access.ps1
+@@ -361,6 +361,21 @@ try {
+     Assert-Equal $editorStrict.value.status "blocked_user_editor" "editor-mode block classification"
+     [void](Invoke-Coordinator -Action Cancel -Lease editor-strict)
+ 
++    $coexist = @{ CoexistWithUserEditor = 41001 }
++    $allowed = Invoke-Coordinator -Action Acquire -Lease coexist -Mode editor -ProjectPath $agentProject -Extra $coexist -RealProcess
++    Assert-Equal $allowed.value.status "acquired" "explicit cross-project coexistence acquires"
++    $bootAllowed = Invoke-Coordinator -Action BootAcquire -Lease coexist -Mode editor -ProjectPath $agentProject -Extra $coexist
++    Assert-Equal $bootAllowed.value.status "boot_acquired" "coexistence retains coordinated boot"
++    $visible = Invoke-Coordinator -Action Status -Extra $coexist
++    Assert-Equal $visible.value.blockers[0].processId 41001 "coexisting user editor remains visible"
++    [void](Invoke-Coordinator -Action Release -Lease coexist)
++    $sameUser = Invoke-Coordinator -Action Acquire -Lease coexist-same -Mode editor -ProjectPath $mainProject -Extra $coexist
++    Assert-Equal $sameUser.value.status "blocked_user_editor" "coexistence never grants the user's project"
++    [void](Invoke-Coordinator -Action Cancel -Lease coexist-same)
++    $wrongPid = Invoke-Coordinator -Action Acquire -Lease coexist-wrong -Mode editor -ProjectPath $agentProject -Extra @{ CoexistWithUserEditor = 41003 }
++    Assert-Equal $wrongPid.value.status "blocked_user_editor" "coexistence only covers the specified editor"
++    [void](Invoke-Coordinator -Action Cancel -Lease coexist-wrong)
++
+     Write-Snapshot @([ordered]@{ processId = 41002; commandLine = "Unity.exe -batchMode -projectPath `"$mainProject`"" })
+     $unmanaged = Invoke-Coordinator -Action Acquire -Lease unmanaged -ProjectPath $agentProject
+     Assert-Equal $unmanaged.code 21 "unmanaged batch process exit"
+diff --git a/scripts/unity_access.ps1 b/scripts/unity_access.ps1
+index d32537acb..3d85e5a98 100644
+--- a/scripts/unity_access.ps1
++++ b/scripts/unity_access.ps1
+@@ -10,6 +10,10 @@
+     Law: doc/agents/script-contracts.md.
+     This file is the CLI; the implementation is scripts/unity_access_lib.ps1, which adds no interface.
+ 
++    -CoexistWithUserEditor <PID> permits editor requests on a different project beside that
++    user editor, only with the user's explicit instruction. It never grants access to that
++    editor, hides it from Status, or changes memory admission or other process blockers.
++
+     MACHINE CHANNEL
+       With -Json: stdout carries EXACTLY one compressed JSON line and nothing else. The whole
+       stdout stream is parseable with ConvertFrom-Json; no line-sniffing. Every other emission
+@@ -183,6 +187,7 @@ param(
+     [string]$ProcessSnapshotPath = "",
+     [string]$MemorySnapshotPath = "",
+     [switch]$AllowLowMemory,
++    [int]$CoexistWithUserEditor = 0,
+     [string]$UnityPath = "",
+     [switch]$CloseEditor,
+     [string[]]$EditorArgs = @(),
+diff --git a/scripts/unity_access_lib.ps1 b/scripts/unity_access_lib.ps1
+index f6c0b4a3e..fe880a8de 100644
+--- a/scripts/unity_access_lib.ps1
++++ b/scripts/unity_access_lib.ps1
+@@ -590,6 +590,9 @@ function Get-Blockers {
+             $blocker.ageSeconds = $zombie.ageSeconds
+         }
+         elseif (-not $process.batch -and $process.normalizedProjectPath -eq $mainProject) { $blocker.kind = "user_editor" }
++        if ($RequestedMode -eq "editor" -and $blocker.kind -eq "user_editor" -and
++            $process.processId -eq $CoexistWithUserEditor -and
++            -not [string]::IsNullOrWhiteSpace($requested) -and $requested -ne $mainProject) { continue }
+         $blockers += $blocker
+     }
+     return $blockers
+@@ -1147,6 +1150,7 @@ function Invoke-UnityAccessAction {
+         [string]$ProcessSnapshotPath = "",
+         [string]$MemorySnapshotPath = "",
+         [switch]$AllowLowMemory,
++        [int]$CoexistWithUserEditor = 0,
+         [string]$UnityPath = "",
+         [switch]$CloseEditor,
+         [string[]]$EditorArgs = @(),

@@ -1,0 +1,14 @@
+Painted tally Unity preview, 2026-10-21
+Source baseline: a9eb769063224d9bd07e92861abda6f1722e7121
+Actual Unity game-view captures at 1280 x 720, using example results: 17 kills, 2 sectors cleared.
+The 470 x 344 overlay covers 17.54% of the frame. No full-screen dim layer.
+Ship silhouettes: Valis, Crimson, Nightshade, Vanguard, Bulwark. Projected in ship-local coordinates so prefab placement rotations do not turn trophies edge-on.
+run_script compile: success, zero diagnostics.
+run_script execution: success, 17 marks from 5 ship models.
+Interaction check: second mark selects Crimson; 18 buttons (17 trophies + Continue); timeScale 0.
+Continue callback: timeScale restored to 1, overlay destruction requested.
+Editor scene after stop: Assets/Scenes/InitScene.unity dirty=False.
+The user explicitly requested a separate editor while their own remained open.
+The accompanying temporary coordinator patch adds a PID-specific, cross-project coexistence option. It retains memory admission, boot coordination, project ownership and visibility of the user editor. It is not part of the scoreboard production branch.
+Coordinator regression suite: UNITY_ACCESS_TESTS_PASSED assertions=465.
+Production result screens still use the earlier panel. Per-kill trophy data and this layout have not been integrated.

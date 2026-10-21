@@ -22,6 +22,8 @@ public static class PaintedTallyMockup
     public static object Run()
     {
         if (!Application.isPlaying) throw new InvalidOperationException("Enter the game before creating this preview.");
+        var rig = Object.FindFirstObjectByType<Game.PlayerRig>();
+        rig.Overlay.SetVisible(false);
         var previous = GameObject.Find("PaintedTallyMockup");
         if (previous) Object.DestroyImmediate(previous);
         Directory.CreateDirectory(Output);
@@ -86,6 +88,7 @@ public static class PaintedTallyMockup
         caption.alignment = TextAnchor.MiddleCenter;
         exit.gameObject.AddComponent<Button>().onClick.AddListener(() => {
             Time.timeScale = 1;
+            rig.Overlay.SetVisible(true);
             Object.Destroy(root.gameObject);
         });
         Time.timeScale = 0;
@@ -99,14 +102,15 @@ public static class PaintedTallyMockup
         if (!ship || !ship.VisualRig) throw new InvalidOperationException(name + " has no visual rig.");
         var renderers = ship.VisualRig.Silhouette;
         if (renderers.Count == 0) throw new InvalidOperationException(name + " has no hull renderers.");
-        var bounds = new Bounds(renderers[0].transform.position, Vector3.zero);
+        var toShip = ship.transform.worldToLocalMatrix;
+        var bounds = new Bounds(toShip.MultiplyPoint3x4(renderers[0].transform.position), Vector3.zero);
         foreach (var renderer in renderers)
         {
             var local = renderer.localBounds;
             for (var x = -1; x <= 1; x += 2)
             for (var y = -1; y <= 1; y += 2)
             for (var z = -1; z <= 1; z += 2)
-                bounds.Encapsulate(renderer.localToWorldMatrix.MultiplyPoint3x4(
+                bounds.Encapsulate((toShip * renderer.localToWorldMatrix).MultiplyPoint3x4(
                     local.center + Vector3.Scale(local.extents, new Vector3(x, y, z))));
         }
         var span = Mathf.Max(bounds.size.x, bounds.size.y) * 1.12f;
@@ -135,7 +139,7 @@ public static class PaintedTallyMockup
             else mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
             material.SetPass(0);
             for (var sub = 0; sub < mesh.subMeshCount; sub++)
-                Graphics.DrawMeshNow(mesh, normalize * renderer.localToWorldMatrix, sub);
+                Graphics.DrawMeshNow(mesh, normalize * toShip * renderer.localToWorldMatrix, sub);
             if (skinned) Object.DestroyImmediate(mesh);
         }
         GL.PopMatrix();
