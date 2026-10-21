@@ -34,18 +34,23 @@ namespace UI.Hangar
         [SerializeField] private Text statsText;
 
         [Header("Ship preview")]
-        [Tooltip("Displays the preview stage's render texture. Null → no 3D preview.")]
-        [SerializeField] private RawImage previewImage;
+        [Tooltip("Displays the preview stage's render texture across the area ships fly through. Null → no 3D preview.")]
+        [SerializeField] internal RawImage previewImage;
+        [Tooltip("The square inside the preview image where the selected ship settles.")]
+        [SerializeField] internal RectTransform previewFrame;
 
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
         private readonly Vector3[] previewCorners = new Vector3[4];
+        private readonly Vector3[] frameCorners = new Vector3[4];
         private Func<string> hoveredStats;
 
         private void OnValidate()
         {
             if (previewImage && previewImage.raycastTarget)
                 throw new InvalidOperationException("HangarScreen previewImage must ignore pointer hits.");
+            if (previewImage && !previewFrame)
+                throw new InvalidOperationException("HangarScreen previewImage needs a previewFrame to settle the ship in.");
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
@@ -54,7 +59,8 @@ namespace UI.Hangar
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
-                previewStage = HangarPreviewStage.Create(transform.parent, PreviewPixels(),
+                var (surface, frame) = PreviewLayout();
+                previewStage = HangarPreviewStage.Create(transform.parent, surface, frame,
                     offer ? offer.ships : Array.Empty<Ship>());
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout, backwards: false);
@@ -73,8 +79,8 @@ namespace UI.Hangar
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout, backwards: step < 0);
                 }, Describe);
-                BindRow(engineRow, offer.engines, () => loadout.Engine, (m, _) => loadout.Engine = m, Describe);
-                BindRow(shieldRow, offer.shields, () => loadout.Shield, (m, _) => loadout.Shield = m, Describe);
+                BindRow(engineRow, offer.engines, () => loadout.Engine, (m, _) => loadout.Engine = m, Describe, ModuleLabel);
+                BindRow(shieldRow, offer.shields, () => loadout.Shield, (m, _) => loadout.Shield = m, Describe, ModuleLabel);
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
                 BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
@@ -94,16 +100,20 @@ namespace UI.Hangar
         private void LateUpdate()
         {
             if (!previewStage) return;
-            previewStage.Resize(PreviewPixels());
+            var (surface, frame) = PreviewLayout();
+            previewStage.Resize(surface, frame);
             previewImage.texture = previewStage.Texture;
         }
 
         // Overlay canvas: world corners are screen pixels.
-        private int PreviewPixels()
+        private (Vector2Int surface, Rect frame) PreviewLayout()
         {
             previewImage.rectTransform.GetWorldCorners(previewCorners);
-            var size = previewCorners[2] - previewCorners[0];
-            return Mathf.CeilToInt(Mathf.Max(size.x, size.y));
+            previewFrame.GetWorldCorners(frameCorners);
+            var size = (Vector2)(previewCorners[2] - previewCorners[0]);
+            var min = (Vector2)(frameCorners[0] - previewCorners[0]) / size;
+            var max = (Vector2)(frameCorners[2] - previewCorners[0]) / size;
+            return (Vector2Int.CeilToInt(size), Rect.MinMaxRect(min.x, min.y, max.x, max.y));
         }
 
         private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T, int> setCurrent,
@@ -160,7 +170,7 @@ namespace UI.Hangar
 
         private static string Describe(Ship ship) =>
             $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
-            $"Kit: {(ship.Engine ? ship.Engine.name : "no engine")} + {(ship.Shield ? ship.Shield.name : "no shield")}";
+            $"Kit: {(ship.Engine ? ship.Engine.DisplayName : "no engine")} + {(ship.Shield ? ship.Shield.DisplayName : "no shield")}";
 
         private static string Describe(EngineModule engine) =>
             $"Top speed {engine.maxSpeed:0}   |   Turn {engine.maxYawRate:0} deg/s   |   Thrust {engine.forwardForce:0}   |   " +
@@ -196,7 +206,7 @@ namespace UI.Hangar
             if (missiles)
                 return $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
                        (missiles.Rounds ? $"   |   {missiles.Rounds.MaxAmmo} rounds{Refill(missiles.Rounds)}" : "") +
-                       "   |   Lock-on homing";
+                       "   |   Lock-on homing   |   Direct hit skips shields";
 
             var grenades = weapon as Grenades;
             if (grenades)
@@ -219,6 +229,8 @@ namespace UI.Hangar
             : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
+
+        private static string ModuleLabel(TunableModule module) => module.DisplayName;
 
         private void Refresh()
         {

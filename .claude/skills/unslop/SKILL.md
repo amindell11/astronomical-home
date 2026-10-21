@@ -72,4 +72,10 @@ Rule numbers are stable ids that other skills cite, and they match pstack's numb
 32. **Mannered prose.** Metaphor or flourish where a literal phrase exists: aphorisms ("wire it or delete it"), rhetorical fragments for effect, personified code ("the plan holds it"), figurative verbs ("rides along", "stands on"), stock framing phrases. "A dial worth turning" becomes "a parameter worth varying". Say what you mean. Rule 26 covers the metaphor nouns.
 33. **Over-compression.** Dropped articles, verbless fragments, symbol-speak, and abbreviations that make the reader decode instead of read. "Parser rejects bad date → exit 2, no write" becomes "The parser rejects a bad date, exits with code 2, and writes nothing." Write whole sentences with their articles and verbs, and spell out arrows and abbreviations.
 
+## Repo additions
+
+Rules this repo adds to pstack's set. They carry names instead of numbers, so pstack's numbering stays free.
+
+**Descriptive links.** In a chat reply, write each issue or PR reference as a markdown link whose text names the item: "the [hull-shading prototype](https://github.com/amindell11/astronomical-home/pull/1029)". In a dense triage list the number can sit inside the link text: "[#1029 hull shading](https://github.com/amindell11/astronomical-home/pull/1029)". PR and issue bodies keep plain `#N`, which GitHub links itself.
+
 Adapted from the `unslop` skill in pstack by Lauren Tan (cursor/plugins, MIT); the license is in `LICENSE.md` beside this file.
