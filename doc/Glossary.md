@@ -688,6 +688,21 @@ Format: **term** — definition. *(authority)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
+- **aim reference** — the heading a ship's primary weapon needs this step and
+  that heading's rate, or none, published by the Gunner. It parallels the
+  velocity reference. The Gunner computes it from the target it holds, with the
+  same lead it fires with, and the AICommander hands it to the Navigator as a
+  value on each `ComputeCommand` call, so no weapon fact enters the Navigator.
+  *(AimReference, Gunner.PrimaryAimReference)*
+- **aim servo** — the Navigator's yaw controller that turns the ship onto the
+  aim reference within the engine's yaw torque. It replaces only the MPC's yaw
+  torque, and the Navigator stays the single author of the pilot command. The
+  AIM slot's weight switches it in and out with hysteresis rather than blending
+  torques, because #871's research found continuous blending flip-flops. An
+  obstacle threat hands yaw back to the MPC, which keeps it for a short hold
+  after the threat clears. It exists because the MPC's facing cost cannot aim:
+  its sampling noise held aim error near 20° whatever the facing cost's shape
+  or weight (#409). *(AimServo, YawHandover)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
   yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
@@ -695,7 +710,7 @@ Format: **term** — definition. *(authority)*
   fires — hull overlap (`Cost.Collides`) or collision-course turn-away
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
-  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
+  *(Cost.ObstacleCosts, Cost.ObstacleThreat)*
 - **intent sentence** — the decision-varying slice of the MPC cost as a fixed
   set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
   pinned to the enemy, FIELD a class slot binding none), each with a signed

@@ -30,6 +30,12 @@ MonoBehaviour:
   wFacing: 1
   facingWidth: 1.5
   wFacingPrior: 0
+  aimServoAccelFraction: 0.7
+  aimServoTau: 0.06
+  aimServoKp: 8
+  aimServoEngageWeight: 0.9
+  aimServoReleaseWeight: 0.8
+  aimServoVetoHold: 0.2
   wObstacle: 5
   collisionPenalty: 10000
   collisionSafetyMargin: 0.3

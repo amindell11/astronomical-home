@@ -6,7 +6,6 @@ using Movement;
 using AI.Navigation.MPC;
 using Ships;
 using Ships.Command;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using RL.Episodes;
@@ -322,7 +321,7 @@ namespace RL.Probes
 
             // The obstacle buffer is only valid until the next Solve — classify in the tick it was written.
             var hullRadius = cfg.shipRadius * Cost.BankProfileScale(control.strafe, cfg) + cfg.collisionSafetyMargin;
-            var underThreat = ObstacleThreat(pos, new float2(kin.vel.x, kin.vel.y),
+            var underThreat = Cost.ObstacleThreat(pos, new float2(kin.vel.x, kin.vel.y),
                 solver.Obstacles, solver.ObstacleCount, hullRadius, cfg.maxLatAccel);
 
             var hasAnchor = (bool)enemy;
@@ -337,12 +336,6 @@ namespace RL.Probes
             sampler.Sample(control.yawTorque, kin.yawRate, hasAnchor, anchorYawRad, underThreat,
                 Time.fixedDeltaTime);
         }
-
-        /// <summary>Obstacle threat: the MPC's obstacle handling fires this step — hull overlap or collision-course turn-away, mirroring <see cref="Cost.ObstacleCosts"/>' two mutually exclusive branches.</summary>
-        internal static bool ObstacleThreat(float2 pos, float2 vel, NativeArray<ObstacleData> obstacles,
-            int count, float hullRadius, float maxLatAccel)
-            => count > 0 && (Cost.Collides(pos, obstacles, count, hullRadius)
-                || Cost.TurnAwayCost(pos, vel, obstacles, count, hullRadius, maxLatAccel) > 0f);
 
         public string End(in EpisodeResult result)
         {
