@@ -565,6 +565,7 @@ MonoBehaviour:
   - HUD
   - Ships
   - Weapons
+  - World
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0

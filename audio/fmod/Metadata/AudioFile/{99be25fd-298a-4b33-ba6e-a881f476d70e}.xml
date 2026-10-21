@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{99be25fd-298a-4b33-ba6e-a881f476d70e}">
+		<property name="assetPath">
+			<value>Sfx/Impacts/hull_thud_main.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>1</value>
+		</property>
+		<property name="length">
+			<value>0.28000000000000003</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{f3f5788a-2024-4cc1-9c4a-b275a56be015}</destination>
+		</relationship>
+	</object>
+</objects>
