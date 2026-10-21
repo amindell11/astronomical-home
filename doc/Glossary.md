@@ -196,8 +196,10 @@ Format: **term** — definition. *(authority)*
   feedback notes only. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
-- **handoff** — a brief a fresh session reads cold to take over; it rides the
-  spawn-chip prompt that starts that session. Explicitly not `/compact`.
+- **handoff** — a brief a new session reads cold to take over separate work (a
+  child issue's owner, a worker); it rides the prompt that starts that session.
+  A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
+  Session hygiene).
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
@@ -215,10 +217,15 @@ Format: **term** — definition. *(authority)*
   on acquire instead of auto-picking.
 - **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
   slots; the owner's checkout and the home of pool state. Agents write nothing
-  else there (AGENTS.md → Default workflow). **Clean primary**: no untracked
-  files and no ignored files outside `scripts/primary_tree_check.sh`'s allowlist;
-  tracked edits are the owner's and don't count.
+  else there but main's fast-forward and sound work (AGENTS.md → Default
+  workflow). **Clean primary**: no untracked files outside the sound-work paths
+  and no ignored files outside the allowlist, both lists in
+  `scripts/primary_tree_check.sh`; tracked edits don't count.
   Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
+- **app worktree** — the per-session worktree the Claude desktop app makes under
+  `.claude/worktrees/` in the primary tree, on a `claude/<name>` branch. No agent
+  work happens in one; `scripts/app_worktree_guard.py` refuses session starts
+  that would make one. *(#1058)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
   the only sanctioned merge path.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
@@ -603,6 +610,11 @@ Format: **term** — definition. *(authority)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps it
   loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+- **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
+  `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
+  not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and
+  `_NebulaZoomResponse` at 0; the locale wiring test pins both). `_Seed` picks
+  the tile's cloud layout. *(`CloudBankTile`, #1048)*
 - **palette role** — one of base, primary, secondary or accent: the colours
   Blender exports in a flat background's sidecar `.json`. Scene-linear.
   *(FlatBackgroundSidecar)*
@@ -810,6 +822,12 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **shield bypass** — a hit's damage skips the shield and goes straight to hull.
+  Only a missile's direct hit carries it; its splash stays shield-first with
+  bleed-through. The producer sets the flag, and `DamageController` routes on it,
+  never on `DamageKind` (direct hit and splash share one kind). A bypass hit
+  doesn't restart the shield's regen delay.
+  *(`DamageInfo.BypassesShield`)*
 - **DamageInfo** — the per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
   event-side the *applied* damage (shield + hull, the locked bleed-through
