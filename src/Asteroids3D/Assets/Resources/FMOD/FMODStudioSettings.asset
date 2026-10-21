@@ -562,6 +562,7 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
+  - HUD
   - Ships
   - Weapons
   BanksToLoad: []
