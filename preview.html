@@ -1790,13 +1790,13 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;div class=&quot;viz-controls&quot;&gt;
     &lt;button class=&quot;btn btn-primary&quot; type=&quot;button&quot; id=&quot;blast-play&quot;&gt;Play all&lt;/button&gt;
     &lt;label class=&quot;form-check&quot;&gt;&lt;input class=&quot;form-check-input&quot; id=&quot;blast-slow&quot; type=&quot;checkbox&quot;&gt;&lt;span class=&quot;form-check-label&quot;&gt;Slow motion&lt;/span&gt;&lt;/label&gt;
-    &lt;label class=&quot;form-label&quot; for=&quot;blast-time&quot;&gt;After detonation &lt;output id=&quot;blast-clock&quot; class=&quot;tabular-nums&quot;&gt;120 ms&lt;/output&gt;&lt;input class=&quot;form-range&quot; id=&quot;blast-time&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;650&quot; step=&quot;5&quot; value=&quot;120&quot;&gt;&lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;blast-time&quot;&gt;After detonation &lt;output id=&quot;blast-clock&quot; class=&quot;tabular-nums&quot;&gt;120 ms&lt;/output&gt;&lt;input class=&quot;form-range&quot; id=&quot;blast-time&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;1100&quot; step=&quot;5&quot; value=&quot;120&quot;&gt;&lt;/label&gt;
   &lt;/div&gt;
   &lt;div class=&quot;viz-grid blast-grid&quot;&gt;
-    &lt;section class=&quot;mine-study&quot;&gt;&lt;h3&gt;Mine · seismic disc&lt;/h3&gt;&lt;canvas data-effect=&quot;seismic&quot; role=&quot;img&quot; aria-label=&quot;Blue-white core snapping into a broad translucent blue pressure disc. Large oblique view and smaller overhead view show the same motion.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Blue-white flash · broad energy sheet · fast leading edge&lt;/div&gt;&lt;/section&gt;
-    &lt;section&gt;&lt;h3&gt;Missile · tighter timing&lt;/h3&gt;&lt;canvas data-effect=&quot;compact&quot; role=&quot;img&quot; aria-label=&quot;Compact warm missile burst at 1.7 times the earlier speed, enlarged and in a 96 pixel box.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Fire breaks by 180 ms · residual sparks clear by 340 ms&lt;/div&gt;&lt;/section&gt;
+    &lt;section class=&quot;mine-study&quot;&gt;&lt;h3&gt;Mine · seismic disc&lt;/h3&gt;&lt;canvas data-effect=&quot;seismic&quot; role=&quot;img&quot; aria-label=&quot;Blue-white core snapping into a broad translucent blue pressure disc over the original 0.8 second sweep. Large oblique view and smaller overhead view show the same motion.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Blue-white flash · broad energy sheet · 0.8 s sweep&lt;/div&gt;&lt;/section&gt;
+    &lt;section&gt;&lt;h3&gt;Missile · compact burst&lt;/h3&gt;&lt;canvas data-effect=&quot;compact&quot; role=&quot;img&quot; aria-label=&quot;Compact warm missile burst at its original speed, enlarged and in a 96 pixel box.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Fire breaks by 310 ms · residual sparks and smoke clear by 580 ms&lt;/div&gt;&lt;/section&gt;
   &lt;/div&gt;
-  &lt;div class=&quot;text-small text-muted&quot; id=&quot;blast-status&quot; aria-live=&quot;polite&quot;&gt;Real-time playback · motion study · camera angles and scale are illustrative&lt;/div&gt;
+  &lt;div class=&quot;text-small text-muted&quot; id=&quot;blast-status&quot; aria-live=&quot;polite&quot;&gt;Approved rough shapes · original timing · camera angles and scale are illustrative&lt;/div&gt;
 &lt;/div&gt;
 &lt;style&gt;
 #weapon-explosion-study .blast-grid{gap:20px;grid-template-columns:minmax(0,1fr);margin:12px 0}
@@ -1885,8 +1885,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     ctx.closePath();
   }
   function seismic(ctx,t,pitch){
-    if(t&lt;0||t&gt;.48)return;
-    const r=104*clamp(t/.36),fade=1-clamp((t-.36)/.12);
+    if(t&lt;0||t&gt;.92)return;
+    const r=104*clamp(t/.8),fade=1-clamp((t-.8)/.12);
     ctx.save();ctx.rotate(-.10);ctx.scale(1,pitch);ctx.globalAlpha=fade;
     if(r&gt;1){
       const wash=ctx.createRadialGradient(0,0,0,0,0,r);
@@ -1902,7 +1902,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         for(let k=0;k&lt;=20;k++){const theta=a+k/20*span,rr=r*(.62+k/20*.23+.025*Math.sin(k*.5+j));const x=Math.cos(theta)*rr,y=Math.sin(theta)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}
         ctx.strokeStyle=&#x27;rgba(109,213,248,0.25)&#x27;;ctx.lineWidth=1.2;ctx.stroke();
       }
-      if(t&lt;.36){
+      if(t&lt;.8){
         ctx.shadowBlur=7;ctx.shadowColor=&#x27;#34b7ff&#x27;;wavePath(ctx,r);ctx.strokeStyle=&#x27;rgba(53,174,255,0.5)&#x27;;ctx.lineWidth=3;ctx.stroke();
         ctx.shadowBlur=0;wavePath(ctx,r);ctx.strokeStyle=&#x27;#8edbf5&#x27;;ctx.lineWidth=.85;ctx.stroke();
         ctx.beginPath();ctx.ellipse(0,0,r,r,0,.05,Math.PI-.05);ctx.strokeStyle=&#x27;#d0f7ff&#x27;;ctx.lineWidth=1.2;ctx.stroke();
@@ -1935,23 +1935,23 @@ html&gt;body{padding:0}&lt;/style&gt;
       ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.fillText(&#x27;Oblique view&#x27;,views[0][0],narrow?160:230);ctx.fillText(&#x27;Overhead view&#x27;,views[1][0],narrow?310:230);
     }else{
       const bigX=width*.36,smallX=width*.82,scale=Math.min(.73,(width*.63-24)/215);
-      for(const v of [[bigX,85,scale],[smallX,85,.43]]){ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);missile(ctx,time*1.7,false);ctx.restore()}
+      for(const v of [[bigX,85,scale],[smallX,85,.43]]){ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);missile(ctx,time,false);ctx.restore()}
       ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.fillText(&#x27;Enlarged&#x27;,bigX,160);ctx.fillText(&#x27;96 px box&#x27;,smallX,160);
     }
   }
   function draw(){canvases.forEach(drawOne);slider.value=Math.round(time*1000);clock.textContent=Math.round(time*1000)+&#x27; ms&#x27;}
   function stop(){cancelAnimationFrame(frame);playing=false;play.textContent=&#x27;Play all&#x27;}
-  function save(){if(window.openai&amp;&amp;window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{revision:2,milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=&gt;{})}
+  function save(){if(window.openai&amp;&amp;window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{revision:3,milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=&gt;{})}
   slider.addEventListener(&#x27;input&#x27;,()=&gt;{stop();time=+slider.value/1000;draw()});slider.addEventListener(&#x27;change&#x27;,save);
   slow.addEventListener(&#x27;change&#x27;,()=&gt;{stop();save()});
   play.addEventListener(&#x27;click&#x27;,()=&gt;{
     if(playing){stop();save();return}
-    if(reduced){time=Math.min(.65,time+.05);if(time&gt;=.65)time=0;draw();status.textContent=&#x27;Reduced motion · use the time slider to inspect each pose&#x27;;return}
+    if(reduced){time=Math.min(1.1,time+.05);if(time&gt;=1.1)time=0;draw();status.textContent=&#x27;Reduced motion · use the time slider to inspect each pose&#x27;;return}
     playing=true;time=0;start=performance.now();play.textContent=&#x27;Pause&#x27;;
-    const tick=(now)=&gt;{time=Math.min(.65,(now-start)/1000/(slow.checked?4:1));draw();if(time&lt;.65)frame=requestAnimationFrame(tick);else{stop();save()}};
+    const tick=(now)=&gt;{time=Math.min(1.1,(now-start)/1000/(slow.checked?4:1));draw();if(time&lt;1.1)frame=requestAnimationFrame(tick);else{stop();save()}};
     frame=requestAnimationFrame(tick);
   });
-  function restore(state){const s=state&amp;&amp;state.privateContent;if(!s||s.revision!==2)return;stop();time=Math.max(0,Math.min(650,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
+  function restore(state){const s=state&amp;&amp;state.privateContent;if(!s||s.revision!==3)return;stop();time=Math.max(0,Math.min(1100,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
   if(window.openai)restore(window.openai.widgetState);
   window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState)});
   new ResizeObserver(draw).observe(root);

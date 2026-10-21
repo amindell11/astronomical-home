@@ -2,13 +2,13 @@
   <div class="viz-controls">
     <button class="btn btn-primary" type="button" id="blast-play">Play all</button>
     <label class="form-check"><input class="form-check-input" id="blast-slow" type="checkbox"><span class="form-check-label">Slow motion</span></label>
-    <label class="form-label" for="blast-time">After detonation <output id="blast-clock" class="tabular-nums">120 ms</output><input class="form-range" id="blast-time" type="range" min="0" max="650" step="5" value="120"></label>
+    <label class="form-label" for="blast-time">After detonation <output id="blast-clock" class="tabular-nums">120 ms</output><input class="form-range" id="blast-time" type="range" min="0" max="1100" step="5" value="120"></label>
   </div>
   <div class="viz-grid blast-grid">
-    <section class="mine-study"><h3>Mine · seismic disc</h3><canvas data-effect="seismic" role="img" aria-label="Blue-white core snapping into a broad translucent blue pressure disc. Large oblique view and smaller overhead view show the same motion."></canvas><div class="text-small">Blue-white flash · broad energy sheet · fast leading edge</div></section>
-    <section><h3>Missile · tighter timing</h3><canvas data-effect="compact" role="img" aria-label="Compact warm missile burst at 1.7 times the earlier speed, enlarged and in a 96 pixel box."></canvas><div class="text-small">Fire breaks by 180 ms · residual sparks clear by 340 ms</div></section>
+    <section class="mine-study"><h3>Mine · seismic disc</h3><canvas data-effect="seismic" role="img" aria-label="Blue-white core snapping into a broad translucent blue pressure disc over the original 0.8 second sweep. Large oblique view and smaller overhead view show the same motion."></canvas><div class="text-small">Blue-white flash · broad energy sheet · 0.8 s sweep</div></section>
+    <section><h3>Missile · compact burst</h3><canvas data-effect="compact" role="img" aria-label="Compact warm missile burst at its original speed, enlarged and in a 96 pixel box."></canvas><div class="text-small">Fire breaks by 310 ms · residual sparks and smoke clear by 580 ms</div></section>
   </div>
-  <div class="text-small text-muted" id="blast-status" aria-live="polite">Real-time playback · motion study · camera angles and scale are illustrative</div>
+  <div class="text-small text-muted" id="blast-status" aria-live="polite">Approved rough shapes · original timing · camera angles and scale are illustrative</div>
 </div>
 <style>
 #weapon-explosion-study .blast-grid{gap:20px;grid-template-columns:minmax(0,1fr);margin:12px 0}
@@ -97,8 +97,8 @@
     ctx.closePath();
   }
   function seismic(ctx,t,pitch){
-    if(t<0||t>.48)return;
-    const r=104*clamp(t/.36),fade=1-clamp((t-.36)/.12);
+    if(t<0||t>.92)return;
+    const r=104*clamp(t/.8),fade=1-clamp((t-.8)/.12);
     ctx.save();ctx.rotate(-.10);ctx.scale(1,pitch);ctx.globalAlpha=fade;
     if(r>1){
       const wash=ctx.createRadialGradient(0,0,0,0,0,r);
@@ -114,7 +114,7 @@
         for(let k=0;k<=20;k++){const theta=a+k/20*span,rr=r*(.62+k/20*.23+.025*Math.sin(k*.5+j));const x=Math.cos(theta)*rr,y=Math.sin(theta)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}
         ctx.strokeStyle='rgba(109,213,248,0.25)';ctx.lineWidth=1.2;ctx.stroke();
       }
-      if(t<.36){
+      if(t<.8){
         ctx.shadowBlur=7;ctx.shadowColor='#34b7ff';wavePath(ctx,r);ctx.strokeStyle='rgba(53,174,255,0.5)';ctx.lineWidth=3;ctx.stroke();
         ctx.shadowBlur=0;wavePath(ctx,r);ctx.strokeStyle='#8edbf5';ctx.lineWidth=.85;ctx.stroke();
         ctx.beginPath();ctx.ellipse(0,0,r,r,0,.05,Math.PI-.05);ctx.strokeStyle='#d0f7ff';ctx.lineWidth=1.2;ctx.stroke();
@@ -147,23 +147,23 @@
       ctx.fillStyle='#aebac8';ctx.fillText('Oblique view',views[0][0],narrow?160:230);ctx.fillText('Overhead view',views[1][0],narrow?310:230);
     }else{
       const bigX=width*.36,smallX=width*.82,scale=Math.min(.73,(width*.63-24)/215);
-      for(const v of [[bigX,85,scale],[smallX,85,.43]]){ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);missile(ctx,time*1.7,false);ctx.restore()}
+      for(const v of [[bigX,85,scale],[smallX,85,.43]]){ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);missile(ctx,time,false);ctx.restore()}
       ctx.fillStyle='#aebac8';ctx.fillText('Enlarged',bigX,160);ctx.fillText('96 px box',smallX,160);
     }
   }
   function draw(){canvases.forEach(drawOne);slider.value=Math.round(time*1000);clock.textContent=Math.round(time*1000)+' ms'}
   function stop(){cancelAnimationFrame(frame);playing=false;play.textContent='Play all'}
-  function save(){if(window.openai&&window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{revision:2,milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=>{})}
+  function save(){if(window.openai&&window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{revision:3,milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=>{})}
   slider.addEventListener('input',()=>{stop();time=+slider.value/1000;draw()});slider.addEventListener('change',save);
   slow.addEventListener('change',()=>{stop();save()});
   play.addEventListener('click',()=>{
     if(playing){stop();save();return}
-    if(reduced){time=Math.min(.65,time+.05);if(time>=.65)time=0;draw();status.textContent='Reduced motion · use the time slider to inspect each pose';return}
+    if(reduced){time=Math.min(1.1,time+.05);if(time>=1.1)time=0;draw();status.textContent='Reduced motion · use the time slider to inspect each pose';return}
     playing=true;time=0;start=performance.now();play.textContent='Pause';
-    const tick=(now)=>{time=Math.min(.65,(now-start)/1000/(slow.checked?4:1));draw();if(time<.65)frame=requestAnimationFrame(tick);else{stop();save()}};
+    const tick=(now)=>{time=Math.min(1.1,(now-start)/1000/(slow.checked?4:1));draw();if(time<1.1)frame=requestAnimationFrame(tick);else{stop();save()}};
     frame=requestAnimationFrame(tick);
   });
-  function restore(state){const s=state&&state.privateContent;if(!s||s.revision!==2)return;stop();time=Math.max(0,Math.min(650,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
+  function restore(state){const s=state&&state.privateContent;if(!s||s.revision!==3)return;stop();time=Math.max(0,Math.min(1100,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
   if(window.openai)restore(window.openai.widgetState);
   window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState)});
   new ResizeObserver(draw).observe(root);
