@@ -1789,23 +1789,22 @@ html&gt;body{padding:0}&lt;/style&gt;
 &lt;div id=&quot;weapon-explosion-study&quot;&gt;
   &lt;div class=&quot;viz-controls&quot;&gt;
     &lt;button class=&quot;btn btn-primary&quot; type=&quot;button&quot; id=&quot;blast-play&quot;&gt;Play all&lt;/button&gt;
-    &lt;label class=&quot;form-check&quot;&gt;&lt;input class=&quot;form-check-input&quot; id=&quot;blast-slow&quot; type=&quot;checkbox&quot;&gt;&lt;span class=&quot;form-check-label&quot;&gt;Quarter speed&lt;/span&gt;&lt;/label&gt;
-    &lt;label class=&quot;form-label&quot; for=&quot;blast-time&quot;&gt;After detonation &lt;output id=&quot;blast-clock&quot; class=&quot;tabular-nums&quot;&gt;160 ms&lt;/output&gt;&lt;input class=&quot;form-range&quot; id=&quot;blast-time&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;1100&quot; step=&quot;10&quot; value=&quot;160&quot;&gt;&lt;/label&gt;
+    &lt;label class=&quot;form-check&quot;&gt;&lt;input class=&quot;form-check-input&quot; id=&quot;blast-slow&quot; type=&quot;checkbox&quot;&gt;&lt;span class=&quot;form-check-label&quot;&gt;Slow motion&lt;/span&gt;&lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;blast-time&quot;&gt;After detonation &lt;output id=&quot;blast-clock&quot; class=&quot;tabular-nums&quot;&gt;120 ms&lt;/output&gt;&lt;input class=&quot;form-range&quot; id=&quot;blast-time&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;650&quot; step=&quot;5&quot; value=&quot;120&quot;&gt;&lt;/label&gt;
   &lt;/div&gt;
   &lt;div class=&quot;viz-grid blast-grid&quot;&gt;
-    &lt;section&gt;&lt;h3&gt;Missile A · compact burst&lt;/h3&gt;&lt;canvas data-effect=&quot;compact&quot; role=&quot;img&quot; aria-label=&quot;Angular warm missile burst, enlarged and at 96 pixels.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Brief white core · angular fire · sparse sparks&lt;/div&gt;&lt;/section&gt;
-    &lt;section&gt;&lt;h3&gt;Mine A · blue pressure ring&lt;/h3&gt;&lt;canvas data-effect=&quot;pressure&quot; role=&quot;img&quot; aria-label=&quot;Blue concussion ring with a brief warm ignition, enlarged and at 96 pixels.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Warm ignition · pale blue rim · hollow center&lt;/div&gt;&lt;/section&gt;
-    &lt;section&gt;&lt;h3&gt;Missile B · forward splinters&lt;/h3&gt;&lt;canvas data-effect=&quot;directional&quot; role=&quot;img&quot; aria-label=&quot;Warm missile burst with longer splinters along the direction of travel.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Same radial blast · forward streaks · short smoke&lt;/div&gt;&lt;/section&gt;
-    &lt;section&gt;&lt;h3&gt;Mine B · warm pressure ring&lt;/h3&gt;&lt;canvas data-effect=&quot;warm&quot; role=&quot;img&quot; aria-label=&quot;Gold concussion ring with torn orange shapes trailing behind its continuous edge.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Gold rim · torn orange collar · hollow center&lt;/div&gt;&lt;/section&gt;
+    &lt;section class=&quot;mine-study&quot;&gt;&lt;h3&gt;Mine · seismic disc&lt;/h3&gt;&lt;canvas data-effect=&quot;seismic&quot; role=&quot;img&quot; aria-label=&quot;Blue-white core snapping into a broad translucent blue pressure disc. Large oblique view and smaller overhead view show the same motion.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Blue-white flash · broad energy sheet · fast leading edge&lt;/div&gt;&lt;/section&gt;
+    &lt;section&gt;&lt;h3&gt;Missile · tighter timing&lt;/h3&gt;&lt;canvas data-effect=&quot;compact&quot; role=&quot;img&quot; aria-label=&quot;Compact warm missile burst at 1.7 times the earlier speed, enlarged and in a 96 pixel box.&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;text-small&quot;&gt;Fire breaks by 180 ms · residual sparks clear by 340 ms&lt;/div&gt;&lt;/section&gt;
   &lt;/div&gt;
-  &lt;div class=&quot;text-small text-muted&quot; id=&quot;blast-status&quot; aria-live=&quot;polite&quot;&gt;Motion sketches · enlarged + 96 px readability check · not an in-game capture&lt;/div&gt;
+  &lt;div class=&quot;text-small text-muted&quot; id=&quot;blast-status&quot; aria-live=&quot;polite&quot;&gt;Real-time playback · motion study · camera angles and scale are illustrative&lt;/div&gt;
 &lt;/div&gt;
 &lt;style&gt;
-#weapon-explosion-study .blast-grid{gap:22px 20px;grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0}
+#weapon-explosion-study .blast-grid{gap:20px;grid-template-columns:minmax(0,1fr);margin:12px 0}
 #weapon-explosion-study section{min-width:0}
 #weapon-explosion-study h3{margin:0 0 8px}
-#weapon-explosion-study canvas{display:block;width:100%;height:232px;margin-bottom:8px}
-@media(max-width:580px){#weapon-explosion-study .blast-grid{grid-template-columns:1fr}}
+#weapon-explosion-study canvas{display:block;width:100%;height:180px;margin-bottom:8px}
+#weapon-explosion-study .mine-study canvas{height:270px}
+@media(max-width:480px){#weapon-explosion-study .mine-study canvas{height:330px}}
 &lt;/style&gt;
 &lt;script&gt;
 (()=&gt;{
@@ -1817,7 +1816,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   const reduced=matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;).matches;
   const TAU=Math.PI*2,clamp=(n)=&gt;Math.max(0,Math.min(1,n));
   const rand=(i)=&gt;{const r=Math.sin(i*127.1+311.7)*43758.5453;return r-Math.floor(r)};
-  let time=.16,frame=0,start=0,playing=false;
+  let time=.12,frame=0,start=0,playing=false;
   const palette={ink:&#x27;#252b39&#x27;,smoke:&#x27;#404a5d&#x27;,smokeLight:&#x27;#747d8a&#x27;,red:&#x27;#ea4818&#x27;,orange:&#x27;#ff791b&#x27;,gold:&#x27;#ffc849&#x27;,cream:&#x27;#fff2aa&#x27;,white:&#x27;#fffbe5&#x27;,blue:&#x27;#4b99c6&#x27;,ice:&#x27;#b8edf3&#x27;};
   function shape(ctx,pts,color){ctx.beginPath();pts.forEach((p,i)=&gt;i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
   function burst(ctx,r,seed,sx=1,sy=1){
@@ -1875,61 +1874,84 @@ html&gt;body{padding:0}&lt;/style&gt;
       shard(ctx,Math.cos(a)*distance,Math.sin(a)*distance,a,(directional&amp;&amp;i&lt;4?28:16)*k+2,5*k+1,i%2?palette.gold:palette.orange);
     }
   }
-  function band(ctx,r,width,a0,a1,color,seed){
-    const pts=[],n=Math.max(10,Math.ceil((a1-a0)*18));
-    for(let i=0;i&lt;=n;i++){const a=a0+(a1-a0)*i/n;pts.push([Math.cos(a)*r,Math.sin(a)*r])}
-    for(let i=n;i&gt;=0;i--){const a=a0+(a1-a0)*i/n;const inner=r-width*(.55+rand(i+seed)*.7);pts.push([Math.cos(a)*inner,Math.sin(a)*inner])}
-    shape(ctx,pts,color);
+  function wavePath(ctx,r,inner=0){
+    ctx.beginPath();
+    for(let i=0;i&lt;=128;i++){
+      const a=i/128*TAU,rough=1+.006*Math.sin(a*11)+.004*Math.sin(a*19+.7);
+      const x=Math.cos(a)*r*rough,y=Math.sin(a)*r*rough;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    if(inner&gt;0){for(let i=128;i&gt;=0;i--){const a=i/128*TAU,rr=inner*(1+.035*Math.sin(a*5+1)+.018*Math.cos(a*13));ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}}
+    ctx.closePath();
   }
-  function mine(ctx,t,warm){
-    const radius=104*clamp(t/.8);
-    if(t&lt;.16){
-      const r=30*Math.sin(Math.PI*clamp(t/.2))+3,pts=burst(ctx,r,11,1,.78);
-      shape(ctx,pts,palette.orange);shape(ctx,scaled(pts,.72),palette.gold);shape(ctx,scaled(pts,.44),palette.white);
-    }
-    if(t&lt;.015||t&gt;.88)return;
-    const late=clamp((t-.8)/.08),alpha=1-late;
-    ctx.save();ctx.globalAlpha=alpha;
-    const rim=warm?palette.cream:palette.ice,body=warm?palette.orange:palette.blue;
-    for(let i=0;i&lt;7;i++){
-      const a=i/7*TAU+.16,span=.48+rand(i)*.25,rr=radius-2-5*rand(i+1);
-      if(rr&lt;4)continue;
-      band(ctx,rr,Math.min(9,radius*.26)*(1-t*.6),a,a+span,body,12+i);
-      band(ctx,rr-.6,Math.min(4,radius*.15),a+.05,a+span*.6,warm?palette.gold:&#x27;#79c8df&#x27;,20+i);
-    }
-    if(t&lt;.8){ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke()}
-    if(t&lt;.26){
-      for(let i=0;i&lt;4;i++){const a=i/4*TAU+.3,r=radius*.65;shard(ctx,Math.cos(a)*r,Math.sin(a)*r,a,7*(1-t/.3),2,palette.gold)}
+  function seismic(ctx,t,pitch){
+    if(t&lt;0||t&gt;.48)return;
+    const r=104*clamp(t/.36),fade=1-clamp((t-.36)/.12);
+    ctx.save();ctx.rotate(-.10);ctx.scale(1,pitch);ctx.globalAlpha=fade;
+    if(r&gt;1){
+      const wash=ctx.createRadialGradient(0,0,0,0,0,r);
+      wash.addColorStop(0,&#x27;rgba(30,109,190,0.24)&#x27;);wash.addColorStop(.35,&#x27;rgba(36,137,210,0.27)&#x27;);
+      wash.addColorStop(.67,&#x27;rgba(31,151,214,0.27)&#x27;);wash.addColorStop(.9,&#x27;rgba(63,194,239,0.31)&#x27;);wash.addColorStop(1,&#x27;rgba(138,239,255,0.10)&#x27;);
+      wavePath(ctx,r);ctx.fillStyle=wash;ctx.fill();
+      wavePath(ctx,r*.96,r*.83);ctx.fillStyle=&#x27;rgba(49,148,222,0.10)&#x27;;ctx.fill();
+      shape(ctx,[[-r*.83,-r*.20],[-r*.3,-r*.26],[r*.63,-r*.1],[r*.91,r*.15],[r*.22,r*.02],[-r*.5,-r*.03]],&#x27;rgba(66,174,221,0.14)&#x27;);
+      shape(ctx,[[-r*.7,r*.5],[-r*.1,r*.16],[r*.75,r*.37],[r*.4,r*.45],[-r*.13,r*.34]],&#x27;rgba(71,183,224,0.12)&#x27;);
+      for(let j=0;j&lt;5;j++){
+        const a=rand(j+41)*TAU,span=.23+rand(j+12)*.34;
+        ctx.beginPath();
+        for(let k=0;k&lt;=20;k++){const theta=a+k/20*span,rr=r*(.62+k/20*.23+.025*Math.sin(k*.5+j));const x=Math.cos(theta)*rr,y=Math.sin(theta)*rr;k?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+        ctx.strokeStyle=&#x27;rgba(109,213,248,0.25)&#x27;;ctx.lineWidth=1.2;ctx.stroke();
+      }
+      if(t&lt;.36){
+        ctx.shadowBlur=7;ctx.shadowColor=&#x27;#34b7ff&#x27;;wavePath(ctx,r);ctx.strokeStyle=&#x27;rgba(53,174,255,0.5)&#x27;;ctx.lineWidth=3;ctx.stroke();
+        ctx.shadowBlur=0;wavePath(ctx,r);ctx.strokeStyle=&#x27;#8edbf5&#x27;;ctx.lineWidth=.85;ctx.stroke();
+        ctx.beginPath();ctx.ellipse(0,0,r,r,0,.05,Math.PI-.05);ctx.strokeStyle=&#x27;#d0f7ff&#x27;;ctx.lineWidth=1.2;ctx.stroke();
+      }
     }
     ctx.restore();
+    if(t&lt;.14){
+      const u=clamp(t/.14),coreRadius=3+21*Math.pow(Math.sin(Math.PI*u),1.1),energy=1-clamp((t-.055)/.085);
+      ctx.save();ctx.globalAlpha=energy;ctx.shadowBlur=12;ctx.shadowColor=&#x27;#2698ff&#x27;;
+      const pts=burst(ctx,coreRadius,30,1,.85);shape(ctx,pts,&#x27;#164a9a&#x27;);shape(ctx,scaled(pts,.8),&#x27;#238fd5&#x27;);shape(ctx,scaled(pts,.56),&#x27;#5bd8f0&#x27;);shape(ctx,scaled(pts,.32),&#x27;#e4ffff&#x27;);ctx.shadowBlur=0;
+      if(t&lt;.095)for(const sign of [-1,1]){
+        ctx.save();ctx.scale(1,sign);const jet=13+28*clamp(t/.085),width=5*(1-u);
+        shape(ctx,[[-width,5],[-width*.6,-jet*.5],[-width*.2,-jet],[width*.4,-jet*.7],[width,5]],&#x27;#43b9ef&#x27;);
+        shape(ctx,[[-width*.35,0],[0,-jet*.93],[width*.3,0]],&#x27;#dcffff&#x27;);ctx.restore();
+      }
+      ctx.restore();
+    }
   }
   function drawOne(canvas){
-    const width=Math.max(260,canvas.getBoundingClientRect().width),height=232,dpr=Math.min(devicePixelRatio||1,2);
+    const bounds=canvas.getBoundingClientRect(),width=bounds.width,height=bounds.height,dpr=Math.min(devicePixelRatio||1,2);
     canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
     const ctx=canvas.getContext(&#x27;2d&#x27;);ctx.scale(dpr,dpr);
     ctx.fillStyle=&#x27;#0c1421&#x27;;ctx.fillRect(0,0,width,height);
     const type=canvas.dataset.effect;
-    const leftWidth=width-105,bigScale=Math.min(type===&#x27;pressure&#x27;||type===&#x27;warm&#x27;?.8:1.2,(leftWidth-18)/210);
-    for(const item of [[leftWidth/2,123,bigScale],[width-53,125,.43]]){
-      ctx.save();ctx.translate(item[0],item[1]);ctx.scale(item[2],item[2]);
-      if(type===&#x27;compact&#x27;||type===&#x27;directional&#x27;)missile(ctx,time,type===&#x27;directional&#x27;);else mine(ctx,time,type===&#x27;warm&#x27;);ctx.restore();
+    ctx.font=&#x27;12px system-ui&#x27;;ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.textAlign=&#x27;center&#x27;;
+    if(type===&#x27;seismic&#x27;){
+      const narrow=width&lt;480,mainWidth=narrow?width:width*.72;
+      const views=narrow?[[width/2,98,(width-36)/215,.23],[width/2,235,.48,1]]:[[mainWidth/2,125,(mainWidth-36)/215,.23],[width*.86,125,Math.min(.64,(width*.28-24)/215),1]];
+      views.forEach(v=&gt;{ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);seismic(ctx,time,v[3]);ctx.restore()});
+      ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.fillText(&#x27;Oblique view&#x27;,views[0][0],narrow?160:230);ctx.fillText(&#x27;Overhead view&#x27;,views[1][0],narrow?310:230);
+    }else{
+      const bigX=width*.36,smallX=width*.82,scale=Math.min(.73,(width*.63-24)/215);
+      for(const v of [[bigX,85,scale],[smallX,85,.43]]){ctx.save();ctx.translate(v[0],v[1]);ctx.scale(v[2],v[2]);missile(ctx,time*1.7,false);ctx.restore()}
+      ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.fillText(&#x27;Enlarged&#x27;,bigX,160);ctx.fillText(&#x27;96 px box&#x27;,smallX,160);
     }
-    ctx.font=&#x27;12px system-ui&#x27;;ctx.fillStyle=&#x27;#aebac8&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.fillText(&#x27;Enlarged&#x27;,leftWidth/2,213);ctx.fillText(&#x27;96 px&#x27;,width-53,213);
-    if(type===&#x27;directional&#x27;){ctx.fillStyle=&#x27;#8193a9&#x27;;ctx.fillText(&#x27;Travel →&#x27;,leftWidth/2,25)}
   }
   function draw(){canvases.forEach(drawOne);slider.value=Math.round(time*1000);clock.textContent=Math.round(time*1000)+&#x27; ms&#x27;}
   function stop(){cancelAnimationFrame(frame);playing=false;play.textContent=&#x27;Play all&#x27;}
-  function save(){if(window.openai&amp;&amp;window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=&gt;{})}
+  function save(){if(window.openai&amp;&amp;window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{revision:2,milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=&gt;{})}
   slider.addEventListener(&#x27;input&#x27;,()=&gt;{stop();time=+slider.value/1000;draw()});slider.addEventListener(&#x27;change&#x27;,save);
   slow.addEventListener(&#x27;change&#x27;,()=&gt;{stop();save()});
   play.addEventListener(&#x27;click&#x27;,()=&gt;{
     if(playing){stop();save();return}
-    if(reduced){time=Math.min(1.1,time+.1);if(time&gt;=1.1)time=0;draw();status.textContent=&#x27;Reduced motion · use the time slider to inspect each pose&#x27;;return}
+    if(reduced){time=Math.min(.65,time+.05);if(time&gt;=.65)time=0;draw();status.textContent=&#x27;Reduced motion · use the time slider to inspect each pose&#x27;;return}
     playing=true;time=0;start=performance.now();play.textContent=&#x27;Pause&#x27;;
-    const tick=(now)=&gt;{time=Math.min(1.1,(now-start)/1000/(slow.checked?4:1));draw();if(time&lt;1.1)frame=requestAnimationFrame(tick);else{stop();save()}};
+    const tick=(now)=&gt;{time=Math.min(.65,(now-start)/1000/(slow.checked?4:1));draw();if(time&lt;.65)frame=requestAnimationFrame(tick);else{stop();save()}};
     frame=requestAnimationFrame(tick);
   });
-  function restore(state){const s=state&amp;&amp;state.privateContent;if(!s)return;stop();time=Math.max(0,Math.min(1100,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
+  function restore(state){const s=state&amp;&amp;state.privateContent;if(!s||s.revision!==2)return;stop();time=Math.max(0,Math.min(650,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
   if(window.openai)restore(window.openai.widgetState);
   window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState)});
   new ResizeObserver(draw).observe(root);

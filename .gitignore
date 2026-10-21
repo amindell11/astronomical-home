@@ -1,4 +1,7 @@
 check-preview.cjs
 capture-motion.cjs
 frames/
+frames-v2/
 mobile-check.png
+ignition-check.png
+expansion-check.png

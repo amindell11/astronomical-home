@@ -1,25 +1,25 @@
 # Missile and mine explosion motion sketches
 
-Proposed directions, 2026-10-21. No user selection or implementation approval yet. Related work: #789, with #794 folded into it.
+Revised proposal, 2026-10-21. Related work: #789, with #794 folded into it. The user found the first pass slow and the mine odd-looking, and supplied two Star Wars seismic-charge stills as the intended direction. The stills remain outside this public branch.
 
 ## What should distinguish the weapons?
 
-The recommended pair is missile A, a compact angular fire burst, and mine A, a blue pressure ring with a warm ignition. Both retain the drawn explosion's separate core, sparks and smoke, broad color bands and crisp silhouette. The finished drawings should inherit the irregular contours and sculpted flame shapes of the shipped textures. These procedural sketches only test shape, timing and separation.
+The mine now starts with a blue-white energy flash and two brief opposing flares, then opens into a broad translucent blue disc. A thin bright leading edge carries its expansion. Blue tone bands and a few irregular strokes give the plane structure without the first pass's detached chunks. The interior carries a transparent blue wash instead of an empty hole. An oblique view and an overhead view show the same effect, so the film angle is not confused with the game's camera projection.
 
-The missile should peak quickly and clear quickly, leaving room for a ship destruction effect if the hit kills its target. Starting timing: a bright core for about 60 ms, fire breakup by 310 ms, sparse sparks through about 500 ms and brief smoke through 580 ms. The alternative missile B pushes some splinters along the incoming travel direction. Its blast remains radial. The current visual spawn uses identity rotation, so choosing B would require capturing the projectile's direction for presentation.
+The compact warm missile burst runs at 1.7 times the first pass's speed. Fire breaks up by about 180 ms, and sparks and brief smoke clear by about 340 ms. This revision changes its timing, not its shape direction.
 
-The mine should communicate the traveling damage boundary. A short warm ignition clears into a pale blue continuous rim with irregular drawn shapes behind it. The rim follows the gameplay radius, not an independent animation curve. The current prefab expands to 12 units at 15 units per second, taking 0.8 seconds. Any remaining visual tail must be clearly separate from the active damage edge. Mine B keeps the same motion but uses gold and orange, bringing it closer to the fire palette at the cost of less immediate distinction from missiles.
+The proposed mine sweep lasts 0.36 seconds, with a faint energy tail through 0.48 seconds. Its bright rim ends with the proposed sweep. This is an aesthetic timing proposal, not an implemented gameplay change. The current prefab takes 0.8 seconds to reach 12 units at 15 units per second. A 0.36-second gameplay sweep at the same radius would require about 33.3 units per second. Implementation must keep the visible boundary and damage sweep synchronized; it must not run this faster visual ahead of existing damage.
 
-No extra fuse delay, second damage pulse or gameplay change is proposed. The current concussion weapon is aimed toward a point and detonates on contact or arrival. Missile expiry feedback remains separate in #1004.
+No extra fuse delay or second pulse is proposed. The current concussion weapon is aimed toward a point and detonates on contact or arrival. Missile expiry feedback remains separate in #1004. The earlier directions remain in this branch's history at dacf7e5542bddbdf6bfbcb958975508cbf5c9593.
 
 ## How can the motion be reviewed?
 
-- `missile-mine-explosions.html` is the interactive conversation fragment. Play all, quarter speed and a time slider compare four proposals.
+- `missile-mine-explosions.html` is the interactive conversation fragment. Play all defaults to real time; optional slow motion and a time slider expose the poses.
 - `preview.html` is its standalone browser version.
-- `motion-sketches.gif` shows the same sequence at half speed.
-- `comparison.png` shows the proposals at 160 ms.
+- `motion-sketches.gif` shows the same sequence at real time.
+- `comparison.png` shows the proposals at 120 ms.
 
-Each effect has an enlarged view and a 96 px comparison box. Effects are framed independently; the boxes do not establish world scale or final camera size. This is not an in-game capture, finished sprite art or bloom proof.
+The mine has oblique and overhead views; the missile has an enlarged view and a 96 px comparison box. These views do not establish world scale or final camera size. This is not an in-game capture, finished sprite art or Unity bloom proof.
 
 ## What was checked?
 
@@ -32,4 +32,4 @@ The browser preview ran without JavaScript errors. Scrubbing updated the display
 - `src/Asteroids3D/Assets/Visuals/Vfx/LayeredExplosion/Textures/`.
 - `ConcussionWaveVisual`, `ConcussionWave` and `MissileVisual`.
 
-The next design decision is the preferred missile and mine shape. Detailed art follows that selection under `.claude/skills/aesthetic-authoring/SKILL.md`.
+The revised mine follows the user's seismic-charge direction. The particular drawing and timing remain proposals for visual review under `.claude/skills/aesthetic-authoring/SKILL.md`.
