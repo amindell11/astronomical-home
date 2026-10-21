@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6567524228965887451}
   - component: {fileID: 4368679400082138271}
-  - component: {fileID: 5082111559182030622}
   - component: {fileID: 4924019626341795963}
   - component: {fileID: 3329361744963321735}
   - component: {fileID: 7485980348268028267}
@@ -62,103 +61,6 @@ MonoBehaviour:
   explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
     type: 3}
   collisionExplosionPrefab: {fileID: 0}
---- !u!82 &5082111559182030622
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 579888702181409527}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &4924019626341795963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,13 +73,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e629c0ee0feac32469009a6a0e7b62f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shieldHitClip: {fileID: 8300000, guid: de5fee5ab6bd25a40bec6be190b31253, type: 3}
-  hullHitClip: {fileID: 8300000, guid: b87b13ff4faa47d4a3d12e4d3fdfbbfb, type: 3}
-  deathClip: {fileID: 8300000, guid: df2d261e3ab4dcb4ea63f13022237a7d, type: 3}
-  collisionDeathClip: {fileID: 8300000, guid: cf21eb8d6eae0dd40a75d51edc82f5dc, type: 3}
-  shieldVolume: 0.8
-  hullVolume: 1
-  deathVolume: 1
+  shieldHitEvent:
+    Guid:
+      Data1: 535524970
+      Data2: 1323420191
+      Data3: -1852463712
+      Data4: -1627897905
+    Path: event:/Ships/ShieldHit
+  hullHitEvent:
+    Guid:
+      Data1: -91716690
+      Data2: 1106947462
+      Data3: -244520805
+      Data4: 2009114219
+    Path: event:/Ships/HullHit
+  deathEvent:
+    Guid:
+      Data1: 2081186808
+      Data2: 1229125449
+      Data3: 552200095
+      Data4: 648606342
+    Path: event:/Ships/Death
+  collisionDeathEvent:
+    Guid:
+      Data1: 432615297
+      Data2: 1182498574
+      Data3: 762216371
+      Data4: -877877235
+    Path: event:/Ships/CollisionDeath
 --- !u!114 &3329361744963321735
 MonoBehaviour:
   m_ObjectHideFlags: 0
