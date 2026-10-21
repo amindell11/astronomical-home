@@ -129,7 +129,6 @@ namespace Tests.EditMode.Rendering.Illustrated
         [TestCase("Valis/Canopy/jade-iris.mat")]
         [TestCase("Valis/Canopy/jade-gray.mat")]
         [TestCase("Valis/Canopy/ivory-lavender.mat")]
-        [TestCase("Bulwark/Materials/plum-bone/Bulwark Glass.mat")]
         public void PaintedGlass_RemainsFixedWithoutReflections(string path)
         {
             UseMaterial(path);
@@ -143,6 +142,31 @@ namespace Tests.EditMode.Rendering.Illustrated
                 "The authored glass color must remain without its glints.");
             Assert.That(centerRow.Max() - centerRow.Min(), Is.GreaterThan(material.GetColor("_ReflectionColor").b * .25f),
                 "The fixed glass must retain its painted shading.");
+        }
+
+        [Test]
+        public void Bulwark_ReflectionDisabledLeavesNoAuthoredStripes()
+        {
+            UseMaterial("Bulwark/Materials/plum-bone/Bulwark Glass.mat");
+            material.SetFloat("_DrawnReflectionStrength", 0);
+            var pixels = Read();
+            var centerRow = pixels.Skip(64 * 128 + 40).Take(48).Select(c => c.grayscale).ToArray();
+            Assert.That(centerRow.Max() - centerRow.Min(), Is.LessThan(.01f),
+                "The authored reflection strokes must not remain in the fixed glass paint.");
+            key.transform.rotation = Quaternion.Euler(0, 20, 0);
+            Assert.That(Read(), Is.EqualTo(pixels));
+        }
+
+        [TestCase(-65)]
+        [TestCase(65)]
+        public void Bulwark_StripesContinuePastGlassAtExtremePitch(float pitch)
+        {
+            UseMaterial("Bulwark/Materials/plum-bone/Bulwark Glass.mat");
+            key.transform.rotation = Quaternion.Euler(pitch, 0, 0);
+            var pixels = ReadReflection();
+            foreach (int row in new[] { 12, 115 })
+                Assert.That(pixels.Skip(row * 128 + 32).Take(64).Max(c => c.grayscale), Is.GreaterThan(.03f),
+                    "The moving reflection must not expose the texture's top or bottom cutoff.");
         }
 
         [TestCase(-60)]

@@ -170,6 +170,7 @@ Shader "Astronomical/Drawn/Canopy"
                 half response = smoothstep(0.35, 0.88, lightFacing);
                 response *= facing * _DrawnReflectionStrength * lerp(0.15, 1, light.shadowAttenuation);
                 #if defined(_AUTHORED_REFLECTION)
+                    uv.y = clamp(uv.y, _ReflectionVerticalRange.x, _ReflectionVerticalRange.y);
                     half3 reflection;
                     if (_ReflectionArtwork > 0.5)
                     {
@@ -178,7 +179,6 @@ Shader "Astronomical/Drawn/Canopy"
                     }
                     else
                     {
-                        uv.y = clamp(uv.y, _ReflectionVerticalRange.x, _ReflectionVerticalRange.y);
                         half4 drawing = SampleReflection(uv, input.localFacing);
                         reflection = max(drawing.rgb - glass, 0) * drawing.a;
                     }
