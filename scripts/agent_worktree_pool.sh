@@ -3034,8 +3034,7 @@ sync_primary_backup_note() {
   [[ "$stash_now" == "$stash_before" ]] || echo "sync-primary: git also kept them in the stash as stash@{0}." >&2
 }
 
-# Parked under the git dir, a copy's bytes are ones no program can still rewrite, so the re-hash
-# catches a save made after the first one; the fast-forward writes main's equal bytes back.
+# Parked copies sit where no program writes, so their re-hash catches a save after the check.
 ff_past_shipped() {
   local p="$1" target="$2" backup="$3" stash_before="$4" autostash="$5" dir f
   shift 5
@@ -3070,7 +3069,7 @@ unpark_shipped() {
   for f in "$@"; do
     if [[ -e "$dir/$f" && ! -e "$p/$f" ]]; then mv -- "$dir/$f" "$p/$f"; fi
   done
-  if find "$dir" -type f 2> /dev/null | grep -q .; then
+  if find "$dir" -type f -print -quit 2> /dev/null | grep -q .; then
     echo "sync-primary: a file reappeared at a parked path; the parked copy stays under $dir." >&2
   else
     rm -rf -- "$dir"

@@ -135,7 +135,7 @@ expect ok 0 "an untracked copy of the file main adds"
 at_main || fail "the fast path past a shipped copy reaches main"
 [[ -z "$(git -C "$P" status --porcelain)" ]] || fail "the shipped copy leaves the tree clean"
 
-# A sound ship: main holds the owner's tracked edit and new file, beside an edit it leaves alone.
+# A sound ship: main holds the owner's tracked edit and new file; another edit stays.
 universe
 sed -i 's/^5$/five-main/' "$P/f.txt"
 echo clip > "$P/clip.wav"
@@ -158,7 +158,7 @@ expect failed:git 2 "a fast-forward refused by a held index lock"
 rm "$P/.git/index.lock"
 [[ "$(cat "$P/clip.wav")" == clip && -z "$(parked)" ]] || fail "the failed fast-forward puts the shipped copy back"
 
-# The clean filter rewrites the copy right after its first hash, as a save in that window would.
+# The clean filter appends after the copy's first hash, standing in for a mid-sync save.
 universe
 echo clip > "$P/clip.wav"
 main_adds clip.wav clip
