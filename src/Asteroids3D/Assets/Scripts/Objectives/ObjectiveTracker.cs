@@ -20,6 +20,8 @@ namespace Objectives
 
         public string CurrentStep => currentStep;
 
+        public string CurrentStatusLine => current.StatusLine;
+
         public ObjectiveTracker(
             MissionDefinition mission,
             IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
