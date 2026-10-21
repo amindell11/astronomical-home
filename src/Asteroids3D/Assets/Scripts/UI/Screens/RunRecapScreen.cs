@@ -71,12 +71,19 @@ namespace UI.Screens
             details.alpha = 0f;
             details.interactable = false;
             details.blocksRaycasts = false;
-            var intro = Box(transform, "OutcomeIntro", 0, 0, 0, 0);
-            intro.anchorMin = Vector2.zero;
-            intro.anchorMax = Vector2.one;
-            intro.offsetMin = intro.offsetMax = Vector2.zero;
-            Fill(intro, new Color(Backing.r, Backing.g, Backing.b, .24f));
-            var headline = Label(intro, "Outcome", title, 0, 0, 1100, 160, 112, outcomeColor,
+            var intro = Box(transform, "OutcomeIntro", 0, 0, 820, 196);
+            intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
+            Fill(intro, new Color(Backing.r, Backing.g, Backing.b, .72f));
+            var corners = new Color(1f, 1f, 1f, .65f);
+            Fill(Box(intro, "TopLeftHorizontal", 0, 0, 18, 1), corners);
+            Fill(Box(intro, "TopLeftVertical", 0, 0, 1, 18), corners);
+            Fill(Box(intro, "TopRightHorizontal", 802, 0, 18, 1), corners);
+            Fill(Box(intro, "TopRightVertical", 819, 0, 1, 18), corners);
+            Fill(Box(intro, "BottomLeftHorizontal", 0, 195, 18, 1), corners);
+            Fill(Box(intro, "BottomLeftVertical", 0, 178, 1, 18), corners);
+            Fill(Box(intro, "BottomRightHorizontal", 802, 195, 18, 1), corners);
+            Fill(Box(intro, "BottomRightVertical", 819, 178, 1, 18), corners);
+            var headline = Label(intro, "Outcome", title, 0, 0, 764, 160, 112, outcomeColor,
                 TextAnchor.MiddleCenter);
             headline.rectTransform.anchorMin = headline.rectTransform.anchorMax = new Vector2(.5f, .5f);
             headline.rectTransform.pivot = new Vector2(.5f, .5f);
