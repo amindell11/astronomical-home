@@ -70,7 +70,7 @@ namespace UI.Screens
         internal static string RankLine(Scoreboard board) =>
             board.Rank is { } rank ? $"RANK {rank} OF {board.Rows.Count}" : "NOT RANKED";
 
-        // One text per column, each a header and a line per row, so rows line up across columns.
+        // One text per column, so rows line up across columns.
         public static void AddScoreboard(Transform parent, Font font, Scoreboard board)
         {
             AddText(parent, "Rank", RankLine(board), font, 24, Color.white, FontStyle.Bold);

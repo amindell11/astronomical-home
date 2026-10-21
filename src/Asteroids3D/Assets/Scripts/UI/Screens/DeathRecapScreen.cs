@@ -12,9 +12,10 @@ namespace UI.Screens
 {
     /// <summary>
     /// Post-death recap panel rendered from the damage ledger, the run tally and the scoreboard: what
-    /// killed you, this run's kills, time survived and rank, a burst chart of the life's last seconds,
-    /// and what hurt you this life, aggregated per source. Code-built (no prefab) so headless paths never touch
-    /// it; <see cref="Game.GameHost"/> creates it for the recap hold between death and unload.
+    /// killed you, this run's kills, time survived and rank, the top five runs, a burst chart of the
+    /// life's last seconds, and what hurt you this life, aggregated per source. Code-built (no prefab)
+    /// so headless paths never touch it; <see cref="Game.GameHost"/> creates it for the recap hold
+    /// between death and unload.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class DeathRecapScreen : MonoBehaviour

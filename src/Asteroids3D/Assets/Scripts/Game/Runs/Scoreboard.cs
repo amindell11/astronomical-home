@@ -49,7 +49,7 @@ namespace Game.Runs
             Rows = rows.OrderBy(row => row, Comparer<Row>.Create(Compare)).ToList();
         }
 
-        /// <summary>Negative when <paramref name="a"/> ranks above <paramref name="b"/>: more sectors cleared, then more kills, then longer survived.</summary>
+        /// <summary>Negative when <paramref name="a"/> ranks above <paramref name="b"/>.</summary>
         public static int Compare(Row a, Row b)
         {
             var bySectors = b.SectorsCleared.CompareTo(a.SectorsCleared);
@@ -58,10 +58,7 @@ namespace Game.Runs
             return byKills != 0 ? byKills : b.SecondsSurvived.CompareTo(a.SecondsSurvived);
         }
 
-        /// <summary>
-        /// Read before this run's record is appended, so the run enters the board once. A null
-        /// <paramref name="thisRun"/> is a run that went unrecorded; an unreadable file leaves the board empty.
-        /// </summary>
+        /// <summary>Read before this run's record is appended, so the run enters the board once.</summary>
         public static Scoreboard Read(string path, RunRecord? thisRun)
         {
             Row? mine = null;

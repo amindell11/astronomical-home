@@ -305,8 +305,7 @@ namespace Game
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
                 rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
             var board = Scoreboard.Read(runRecords.Path, record);
-            runRecords.Append(record);
-            return board;
+            return runRecords.Append(record) ? board : Scoreboard.Read(runRecords.Path, null);
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
