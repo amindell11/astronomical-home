@@ -1,0 +1,135 @@
+<style>
+#hangar-trophy-refinement .hr-controls { margin-bottom:12px; }
+#hangar-trophy-refinement .hr-game { --hr-ink:#edf0ec; --hr-soft:#b2bdcf; --hr-line:#d6dfed40; --hr-paint:#e8e7d9; position:relative; isolation:isolate; height:606px; overflow:hidden; background:#061027; color:var(--hr-ink); color-scheme:dark; font:400 14px/1.4 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; }
+#hangar-trophy-refinement .hr-game *, #hangar-trophy-refinement .hr-game *::before, #hangar-trophy-refinement .hr-game *::after { box-sizing:border-box; }
+#hangar-trophy-refinement .hr-space { position:absolute; z-index:-2; inset:0; overflow:hidden; background:radial-gradient(ellipse at 91% 72%,#3c3e8177,transparent 40%),radial-gradient(ellipse at 17% 30%,#2e79a45e,transparent 28%),linear-gradient(149deg,#061025 18%,#102348 40%,#266984 44%,#162d59 49%,#080f2b 66%,#1c2859); }
+#hangar-trophy-refinement .hr-star { position:absolute; border-radius:50%; background:#ecf1f6; }
+#hangar-trophy-refinement .hr-rock { position:absolute; background:linear-gradient(130deg,#c2bca0 0 28%,#79766d 29% 46%,#4b4e60 47% 71%,#30394c 72%); clip-path:polygon(5% 33%,20% 10%,49% 0,72% 9%,94% 35%,100% 69%,76% 92%,41% 100%,12% 79%,0 57%); }
+#hangar-trophy-refinement .hr-rock.a { width:112px; height:139px; right:4%; top:3%; transform:rotate(22deg); }
+#hangar-trophy-refinement .hr-rock.b { width:84px; height:70px; left:26%; bottom:7%; transform:rotate(-38deg); }
+#hangar-trophy-refinement .hr-rock.c { width:51px; height:72px; right:17%; bottom:25%; transform:rotate(19deg); }
+#hangar-trophy-refinement .hr-scene-ship { position:absolute; width:48px; height:48px; left:72%; top:36%; transform:rotate(43deg); opacity:.65; background:#a5b7d3; mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
+#hangar-trophy-refinement .hr-panel { --hr-opacity:.9; position:absolute; left:7%; top:50%; transform:translateY(-50%); width:338px; padding:27px 28px; background:rgba(12,20,39,var(--hr-opacity)); }
+#hangar-trophy-refinement .hr-panel::before { content:""; position:absolute; top:0; left:0; width:17px; height:17px; border:solid #e9edf16e; border-width:1px 0 0 1px; }
+#hangar-trophy-refinement .hr-outcome { font:400 40px/1.1 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; letter-spacing:1.8px; margin:0 0 29px; white-space:nowrap; color:var(--hr-ink); }
+#hangar-trophy-refinement .hr-tally-label { display:flex; align-items:baseline; gap:9px; color:var(--hr-soft); font-size:11px; line-height:20px; letter-spacing:1.7px; margin-bottom:12px; }
+#hangar-trophy-refinement .hr-count { color:var(--hr-ink); font-size:17px; letter-spacing:.5px; }
+#hangar-trophy-refinement .hr-trophies { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px 8px; }
+#hangar-trophy-refinement .hr-mark { position:relative; display:grid; place-items:center; height:40px; min-width:0; border:0; padding:0; background:transparent; color:var(--hr-paint); }
+#hangar-trophy-refinement .hr-mark::before { content:""; width:34px; height:34px; background:currentColor; mask-image:var(--hr-ship); mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
+#hangar-trophy-refinement .hr-struck .hr-mark::after { content:""; position:absolute; top:21px; left:50%; width:38px; height:1px; background:#d8bda4; box-shadow:0 0 0 1.5px #10192d; transform:translateX(-50%) rotate(-38deg); }
+#hangar-trophy-refinement .hr-mark:hover { color:#fff; }
+#hangar-trophy-refinement .hr-mark[aria-pressed="true"] { background:#bbc8df13; }
+#hangar-trophy-refinement .hr-detail { height:17px; margin-top:8px; color:var(--hr-soft); font-size:11px; line-height:17px; letter-spacing:.8px; }
+#hangar-trophy-refinement .hr-progress { border-top:1px solid var(--hr-line); padding-top:18px; margin-top:11px; }
+#hangar-trophy-refinement .hr-distance { color:var(--hr-soft); font-size:11px; letter-spacing:1.4px; line-height:16px; margin-bottom:13px; }
+#hangar-trophy-refinement .hr-route { display:flex; align-items:center; gap:10px; }
+#hangar-trophy-refinement .hr-node { position:relative; display:grid; place-items:center; width:26px; height:26px; flex-shrink:0; font-size:11px; letter-spacing:.5px; }
+#hangar-trophy-refinement .hr-node::before { content:""; position:absolute; inset:0; border-radius:50%; background:#a7bbcf20; }
+#hangar-trophy-refinement .hr-node.hr-reached { color:#edba9d; }
+#hangar-trophy-refinement .hr-node.hr-reached::before { border:1px solid #e2b69588; border-top-color:transparent; background:none; transform:rotate(-30deg); }
+#hangar-trophy-refinement .hr-path { flex:1; height:1px; background:#c4d1e64a; }
+#hangar-trophy-refinement .hr-continue { display:flex; align-items:center; gap:29px; margin-top:24px; padding:10px 16px; min-height:38px; border:1px solid #e4e8ec80; color:var(--hr-ink); background:transparent; font:400 11px/1.2 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; letter-spacing:2px; }
+#hangar-trophy-refinement .hr-continue span { font-size:18px; line-height:12px; }
+#hangar-trophy-refinement .hr-continue:hover { background:#d8e1f111; border-color:#edf0ec; }
+@media(max-width:560px) {
+ #hangar-trophy-refinement .hr-game { height:606px; }
+ #hangar-trophy-refinement .hr-panel { left:50%; width:calc(100% - 32px); max-width:338px; padding:26px 22px; transform:translate(-50%,-50%); }
+ #hangar-trophy-refinement .hr-outcome { font-size:35px; letter-spacing:1.2px; }
+ #hangar-trophy-refinement .hr-trophies { gap:5px 2px; }
+ #hangar-trophy-refinement .hr-mark { height:44px; }
+ #hangar-trophy-refinement .hr-struck .hr-mark::after { top:23px; width:34px; }
+ #hangar-trophy-refinement .hr-continue { min-height:44px; }
+}
+</style>
+<div id="hangar-trophy-refinement">
+ <div class="hr-controls">
+  <div class="viz-row" role="group" aria-label="Preview outcome">
+   <button class="btn" type="button" data-outcome="loss" aria-pressed="true">Ship lost</button>
+   <button class="btn" type="button" data-outcome="win" aria-pressed="false">Extracted</button>
+  </div>
+ </div>
+ <div class="viz-carousel" aria-label="Hangar panel trophy treatments">
+  <section data-variant="Clean tally" aria-label="Clean tally">
+   <div class="hr-game" data-treatment="Clean tally">
+    <div class="hr-space" aria-hidden="true"></div>
+    <div class="hr-panel" aria-label="Clean tally panel">
+     <h2 class="hr-outcome" aria-live="polite">SHIP LOST</h2>
+     <div class="hr-tally-label"><span class="hr-count">17</span> SHIPS DESTROYED</div>
+     <div class="hr-trophies" aria-label="Destroyed ships"></div>
+     <div class="hr-detail" aria-live="polite"></div>
+     <div class="hr-progress"><div class="hr-distance">2 SECTORS CLEARED</div><div class="hr-route"></div></div>
+     <button class="hr-continue cursor-interaction" type="button">CONTINUE <span aria-hidden="true">›</span></button>
+    </div>
+   </div>
+  </section>
+  <section data-variant="Strike marks" aria-label="Strike marks" hidden>
+   <div class="hr-game hr-struck" data-treatment="Strike marks">
+    <div class="hr-space" aria-hidden="true"></div>
+    <div class="hr-panel" aria-label="Strike marks panel">
+     <h2 class="hr-outcome" aria-live="polite">SHIP LOST</h2>
+     <div class="hr-tally-label"><span class="hr-count">17</span> SHIPS DESTROYED</div>
+     <div class="hr-trophies" aria-label="Destroyed ships"></div>
+     <div class="hr-detail" aria-live="polite"></div>
+     <div class="hr-progress"><div class="hr-distance">2 SECTORS CLEARED</div><div class="hr-route"></div></div>
+     <button class="hr-continue cursor-interaction" type="button">CONTINUE <span aria-hidden="true">›</span></button>
+    </div>
+   </div>
+  </section>
+ </div>
+</div>
+<script type="application/json" id="hangar-trophy-assets">{"Valis":"data:image/png;base64,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","Crimson":"data:image/png;base64,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","Nightshade":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAGRElEQVR4Ae2c247cOAxEM4v8/y/vxgG0EAyJ5qUolWX2iz0WxcthiW00gvz6VZ8iUASKQBEoAkWgCBSBIlAEikAR+BCBnw/V+rfUf/98pJp//nyk9dPWPlPsU+Pvjf2KED4hAGvzmxi+IILjBeBt/ldEcLQAos3/ggj+aUXW9ZsEjp0AqNPfZHHq+0BNgNbhj16PnADo09+0ceIUqAnQuvvR63ETIOv0N32cNgWOnQDIRiF9NSGxXI+aANmnvzXtJEEcOwFas+oqE3iFADQnW2Mjo9CvamJpbPQR8yzpBdBAtmseCpznlmu74jzjPdELQFPyDtA7YmpYWG2oBXACZPYaaAWgBae1s54Mjb02ttZOExNtQykAZmDeBrDWRCcAVlDexvf7GGv73Se4854RTgaPVifLj0kUE6BByQDO6pOl5u0CiICI7EUJI5JDZC8q/+0CsBTCAOwp3zfk2NewVQBvg9WDQ93vZrBNAN7CvftQDZP8eHPz7pNy0a5tEUC04Oh+LRyLXTSn6H5Lrr3tFgH0CdT9XgLL/0HILqXvxayPvvr3gZoA+t4cabl0AtTp12lo5RSoCaDrybFWyyZAnX6bhlZNgZoAtr4cZ71kAtTp9+lmxRSoCeDrzTG70idAnf6YVrKnQE2AWH9ev7sE8PoWxgpI/Qqo8R9rTtud+TVQE6BR/ug1bQLU6ccqKmsK1ATA9ul13koAr2sZNuEUASDHf9bow2Ice0PmjmTaZ5vyDpCVbJ/4F++Rgmr8UiZAcx69ZhQczcm6n70GagFYYZe9nQCtANhPjgU1cy20ArgAn/AuwV4DpQCYT4zl5Pe2rDXBBcCu+L4pb7vPYAsXAApqRrGo3Kx+mGuhEwDrqLQ2fWTPWBudAEbg6lkegRJAHttXeKYUAPN3prerrDVRCsALufbZCZQA7MyO2vEaAWjfoLV2ni5qfWvtPDmg99AJYPRdeQEdPZ/ByGiAxeeV68jeUsOsNvRzmv8osi9sBK9ff8v9vQ5GAdBNgKu5jKCiomOtiVIAXtj3E+f1I+1bEUOKj147SgA9HGSjkL76HBnuKQVwInDWmigFwHAyvpLD0QJAnDqED2YxQQXA+qbL3ABrbmjGUAFYixnZe0+cd98oh6dn3ljefU/5RNbpBBApZrQ3Aj2yd5QL4zMqAcyAo8feikbMcp7VuCKnUQzKn4JbojOIbZ392vJna3rPDTYBWrG9c8t9JiSPb88ebb1R31HWfZ4wAfROEffIIhH5RHww10IhgOiJiDRn116WmikEgGjCylO2MhaCjeRjuwBWnQRLHIutBPdpbVUcKY/tApgl54Gz4mR6YnhqmXFBP98qgAwwngZpoWb4zmCgreeygwggA8yVnBdORj5en94arvqljzefu0+IAO5ONX9rwWjtUDFXx7vyRsbUcOhttgjAWrDVvi9w1701Z6s9qq4tAkAlP/OTATPD5yz/lc+XC8AL0rtvJcwWy5urd1+L67mGBYB6GdEkrwGksdHEGtlofGtsRr49zxDswwKwJI6Ag/Bhydlii8gN4cOS8zIBrCoMcSpmADN99zFXsbpiLhNAX2D0fiUgba6MOWlyXyKADDiSz4yTKvmUctE0YWST4XMUJyQACUoLtqqQFu+kq4adpgcSk5AAJMcr1iRAUTB9/pIvKYfeB+t9qgBWwJFiSI3TNkTyIcXW+n+yy47hFoAE5qko5PpTHvd1Ceh97b73nvfT+t0+6+9IHm4BPBVzh/lkX+tzApks0wQwL6dWmAi4BPA0cjIVi4A3ym/0DBEL5eMpv6eezPJwCWDmjPH5DFz/vL/va5g9723efg8XwGpokXjX3uvjbWJkrydmRjyzALyjxlNw7bER8PTGLAAppQyFSvG+uIZmbBKApDB0Ypbm7oi9I2ZjIsWWetT291e1AKyO+yC77iVQ2pwQPrSxUHaWXqkFICX3RkhSPW9YQzGHCIABGAqIppaVsTT5RGyOEUAEwpf3hgXAdBpW5LIihlaQiFyo/4sYLYjeDgGl93fdZ/i8x9j1t+lXsPvb5clgdjXEEzfSl/BXgCfh2sNDwC2AOv08TYz0wi0AnvIrkwgBlwAiioskW3vnBKoncza1UgSKQBEoAkWgCBSBIlAEikARKAL/E/gP8mPpbkmVg3MAAAAASUVORK5CYII=","Vanguard":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAEpElEQVR4Ae2a23LjMAxD2/3/f96tp4OOVrVs3UkKyAtjWxcSOKbTNB8fekkBKSAFpIAUkAJSQApIASkgBaQAkQKfRLX+V+rfr1d64vPrlR6zvKcsOjcfZjNCQAdAyXxWCP6gcEVOBag6wNvdDwSYHgU0ANSazwaBHgFwnDRSdIDWux8sMDwK1AHgNmkUAKTGo+zjHwG97f9HoMO/IVQHgNOkUQCQGo+yj34EjLb/H5EOfgyoA8Bl0igASI1H2QIASpDGYz8DzHr+g4tTvxVUB4DDpFEAkBqPsgUAlCCNAoDUeJQtAKAEaRQApMajbAEAJUijACA1HmULAChBGgUAqfEoWwBACdIoAEiNR9kCAEqQRgFAajzKFgBQgjQKAFLjUbYAgBKkUQCQGo+yBQCUII1H/iZw9u8BwcaJvwsM2wFWmQyzW6KnXFryvsaGBACCI7YWPXM8ckCcufaOtcI9AnKh07acX1sl4NOe6bVV+89cNxQAJYMv0UvXZoqVrvW0ZyQIwgCw2+DU7J73USAIAUA08wFMBAhCfgiEwIrjCrjvAFHvfljjvQu4BiC6+REgcAvAKeZ7h8AlAKeZ7xkCdwCcar5XCPRXAJwhja46wOl3Pxjz9JeBOgBcIY1uOgDL3Q/OvHQBdQA4QhoFAKnxKFsAQAnSKABIjUfZAgBKkEYBQGo8yhYAUII0CgBS41G2AIASpNHFN4Fs3wKCNQ/fBqoDwA3SSAFAz53WMyciQxQARDRmV84CYJfSTvcRAE6N2ZWWANiltNN9BIBTY3alRQNAy6f6lrG7jFq1z/EAjJg5MneVYbPXNQeA9VvAy0gPtZsDMEq05V1qufeobpgfHgAUotingADo0+2YWUcDMKNFz1jDMy1HA5ALX2NmzZh83cjHVABENmpV7gJglbJB1jUHgK3lplx4qN0cgEsQD0Kkxux476VmFwCsgGCmwDPXWlHrCLBuAPAmzIioT3Nnw/S0V801VwDUJDw65smAp2uj+3qd7woAD/8cWW2UtxpdAbBafK3/WwE3APTeGb3zfkvRfqZ379557Rm+z3ADwHuqGrFCgbAAXB/YrtcKUVrW/M7CPo+WnNOxLgB4a4nRRK7J963m1KSV710A8FTgJSau1wiLsRYxzy/N3SKfmj1dA1ASsHS+puBVY0o5lc6vyqN1XXMASq3Qu3AtQpdqKdXesvboWHMA7gooCXY3Nso5rzWZAjDjDrAUdsbeMzQYuQlMAbhLfIaoM9bIc5ux5ow18rxGj10B4FGgUYHz+d5qNAMgb33ehMmNm3mc15prMXOvt7XMAEgTywVJr9W8H51fs0c+ZnTP0fl5Pr3HJgCkxHsRolfAkXlp7akmI2u2zjUBAEmmAuAcW7TWwBQAK7PvRL87Z5Xfzn23A4BWxyr4nbnQAtrcjVl1bjsAVyEoeFVREde10mQrABfhVoVGgOLSZncX2ArASvNXrp3Ds3KvlWvndVzHWwG4S0DnbBUQALb6m+8uAMwtsE3gKAB2PD937LETiaMA2CncKXv9/ODylIJq68j/3Drtzq7VQeOkgBSQAlJACkgBKSAFpIAUkAJSgEqBf9h73Za4NQY8AAAAAElFTkSuQmCC","Bulwark":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAEDElEQVR4Ae2b4W7bMBCD26Hv/8pbDx4HL7AFyNNypEj/yKW2Y9+Rn85SkH58ZIsCUSAKRIEoEAWiQBSIAlEgCkQBIwU+d6315/e2srbP723l9ViutVVRq02/M2knGLYA4F3GvwKxAwjyAHSZDxjUIfiBQhI9FZDuAN2jH8god4F0ALhoGmU7AMvoBzeqXSAdAA6aRtkOUH6xdAHV0V8aygLAYn6JWJsqBHkEHP7Zvkp2ALbRD3oUu4AcAKzmq0KQRwCcM41SHYB99IMhpUeBDAAq5qtBkEcAHDONEh1AbfSDJYVHAS0AqqbD/NfICgMlALuZDxgYIaACYFfjAQAiEwg0ALiYzwYBBQBu5jNBkGUg3DCNAcDUeJTd+ghwbf0QH7FzUtgGQMyH/UfsgqAFgJj/t/n4qwOCzAGgvmkMAKbGo+wAACVMYwAwNR5lBwAoYRoDgKnxKPvty8AsASH9dXz3UjAd4NoHm70BwMbq60IDwLUuNnsDgI3V14UGgGtdbPYGABurrwt9+zIQaWQ5CCWO+O7lH+6eDgAlTGMAMDUeZQcAKGEa2+YApXfmAQd1Xc//uns6wOGB7WsAsLX+KDwABABzBczLb50ElvbuE8HOCWDp3w5AJVGbGwjdxh+qkwDgZv4f8b8pwPuumElgl/Ik9w0AJEZ0pREAupQnuW8AIDGiK40A0KU8yX0DAIkRXWkEgC7lSe7bvg6FDm7fBbB8EZQOAAJNYwAwNR5lBwAoYRoDgKnxKDsAQAnTSLMKKP1dVgIsK4DSPB2gVDDeAoCx+VV6ADAHgGoOUF7sPg9gev6X3ukApYLxFgCMza/SA4A5AHRzgPJj13kA2/O/tJbqAIwClojnTSHHc74yAJSwCp2hclSCQAIAJUExulRyppwDlIgY7a9CYj+EZot3+b7uZ8mbFoCRQKwQsJo80vJrdHCXY0+NYQVtpS8Sc4BzwcymMOd21vD8XgoABYEVcpQF4Jz4zPsnpjz5zExOLOfKdAAlQ5RylQGAZcTslkcA2M3RyXoCwKRgu50eAHZzdLKeADAp2G6nB4DdHJ2sJwBMCrbb6QFgN0cn65EAQOmLFeivkrMEABA1cb0CAWC9plJXDABSdq1PNgCs11TqigFAyq71yQaA9ZpKXTEASNm1PtkAsF5TqStaAPDkV8FPPiPl/O9kt/1Z+AoDz9dQ+WZvFsLtADibNivG6HxcdzcQ6P8zaEZwmDQycsUxxpye1mUxB3gqjsPnpAAYjfDRsdVGju41OrY6jxXXo58DqAlapijlLNUB7ojvELzjnnf1/8t+OQCYhWfO7Q4SOQDuCsn+ZwrQzwFGZXWPONx/Zlk4qifHokAUiAJRIApEgSgQBaJAFIgCUSAK/GcFfgH7T9Tx1bYUrgAAAABJRU5ErkJggg=="}</script>
+<script>
+(() => {
+ const root=document.getElementById('hangar-trophy-refinement');
+ const textures=JSON.parse(document.getElementById('hangar-trophy-assets').textContent);
+ const kills=['Valis','Crimson','Valis','Nightshade','Vanguard','Crimson','Valis','Bulwark','Nightshade','Valis','Vanguard','Crimson','Nightshade','Bulwark','Valis','Crimson','Vanguard'];
+ const saved=window.openai?.widgetState?.modelContent;
+ let outcome=saved?.outcome==='win'?'win':'loss';
+ let selected=Number.isInteger(saved?.selected)&&saved.selected>=0&&saved.selected<kills.length?saved.selected:-1;
+ function persist(){window.openai?.setWidgetState?.({modelContent:{outcome,selected,selectedShip:kills[selected]??null},privateContent:null})?.catch?.(()=>{});}
+ function render(){
+  root.querySelectorAll('[data-outcome]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.outcome===outcome)));
+  root.querySelectorAll('.hr-game').forEach(game=>{
+   game.querySelector('.hr-outcome').textContent=outcome==='win'?'EXTRACTED':'SHIP LOST';
+   game.querySelector('.hr-distance').textContent=outcome==='win'?'3 SECTORS CLEARED':'2 SECTORS CLEARED';
+   game.querySelectorAll('.hr-node').forEach((node,index)=>{
+    const cleared=index<2||outcome==='win';
+    node.classList.toggle('hr-reached',!cleared);
+    node.setAttribute('aria-label',`Sector ${index+1}, ${cleared?'cleared':'reached'}`);
+   });
+   game.querySelector('.hr-detail').textContent=selected>=0?`${kills[selected]} destroyed`:'';
+   game.querySelectorAll('.hr-mark').forEach((mark,index)=>mark.setAttribute('aria-pressed',String(index===selected)));
+  });
+ }
+ root.querySelectorAll('.hr-game').forEach(game=>{
+  const space=game.querySelector('.hr-space');
+  for(let i=0;i<95;i++){
+   const star=document.createElement('i');star.className='hr-star';star.style.cssText=`left:${(i*67.31)%100}%;top:${(i*43.77)%100}%;width:${i%13===0?2:1}px;height:${i%13===0?2:1}px;opacity:${.2+(i%5)*.13}`;space.append(star);
+  }
+  ['a','b','c'].forEach(name=>{const rock=document.createElement('i');rock.className=`hr-rock ${name}`;space.append(rock);});
+  const sceneShip=document.createElement('i');sceneShip.className='hr-scene-ship';sceneShip.style.maskImage=`url("${textures.Valis}")`;space.append(sceneShip);
+  const grid=game.querySelector('.hr-trophies');
+  kills.forEach((name,index)=>{
+   const mark=document.createElement('button');mark.type='button';mark.className='hr-mark cursor-interaction';mark.setAttribute('aria-label',`${name} destroyed, kill ${index+1}`);mark.style.setProperty('--hr-ship',`url("${textures[name]}")`);mark.addEventListener('click',()=>{selected=selected===index?-1:index;render();persist();});grid.append(mark);
+  });
+  const route=game.querySelector('.hr-route');
+  ['01','02','03'].forEach((num,index)=>{
+   if(index){const path=document.createElement('span');path.className='hr-path';path.setAttribute('aria-hidden','true');route.append(path);}
+   const node=document.createElement('span');node.className='hr-node';node.textContent=num;route.append(node);
+  });
+  game.querySelector('.hr-continue').addEventListener('click',()=>game.querySelector('.hr-detail').textContent='Returns to the hangar');
+  if(globalThis.Tweak){
+   const panel=game.querySelector('.hr-panel');const state={backing:90};
+   const tweak=new Tweak({container:panel,onChange:()=>panel.style.setProperty('--hr-opacity',String(state.backing/100))});
+   tweak.addSlider(state,'backing',{label:'Backing opacity',min:55,max:100,step:1,unit:'%'});
+  }
+ });
+ root.querySelectorAll('[data-outcome]').forEach(button=>button.addEventListener('click',()=>{outcome=button.dataset.outcome;render();persist();}));
+ window.addEventListener('openai:set_globals',event=>{
+  const state=event.detail?.globals?.widgetState?.modelContent;if(!state)return;
+  outcome=state.outcome==='win'?'win':'loss';selected=Number.isInteger(state.selected)&&state.selected>=0&&state.selected<kills.length?state.selected:-1;render();
+ });
+ render();
+})();
+</script>

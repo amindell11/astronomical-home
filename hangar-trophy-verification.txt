@@ -1,0 +1,11 @@
+Hangar side-panel refinement, 2026-10-21
+
+The user selected the Hangar side panel and asked for Ship Lost or Extracted to be the largest text. The user also asked for a clearer indication that the silhouettes represent kills.
+
+Both proposals use the same selected panel. Clean tally labels the group "17 ships destroyed" and leaves the ships unobscured. Strike marks keeps that label and adds one thin diagonal line across each silhouette. The mark treatment remains an open visual choice.
+
+These are interactive layout studies with example data and a schematic game backdrop, not Unity captures or integrated production screens. The five ship silhouettes come from the earlier Unity mockup. Sector imagery remains deferred in issue #1071.
+
+Verified both treatments and both outcomes at widths 1024, 736 and 320 pixels. All 12 layouts keep the outcome larger than every other panel label. No clipping, horizontal overflow, controls outside the panel or JavaScript errors. Outcome and sector-count changes, 17 trophies, trophy selection and the prototype Continue response passed. Desktop and narrow extraction captures received visual review.
+
+The existing production branch was not changed in this round.
