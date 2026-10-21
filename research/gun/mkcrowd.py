@@ -87,7 +87,18 @@ def r2():
     return runs
 
 
-BATCHES = {"smoke": smoke, "r1": r1, "r2": r2}
+def r3():
+    runs = [crowd("f-main", MAIN, episodes=40, seed=9301), crowd("f-servo", SERVO, episodes=40, seed=9301),
+            crowd("f-d-0.25", dial(0.25), episodes=40, seed=9301), crowd("f-d-0.5", dial(0.5), episodes=40, seed=9301),
+            crowd("f-e-20-6", ea(20, 6), episodes=40, seed=9301),
+            crowd("f-c-0.75-20-6", combo(0.75, 20, 6), episodes=40, seed=9301)]
+    for suffix in ("-hard", "-weak"):
+        runs.append(crowd(f"d-0.5{suffix}", dial(0.5), stand=STANDS[suffix], episodes=20))
+        runs.append(crowd(f"c-0.75-20-6{suffix}", combo(0.75, 20, 6), stand=STANDS[suffix], episodes=20))
+    return runs
+
+
+BATCHES = {"smoke": smoke, "r1": r1, "r2": r2, "r3": r3}
 
 if __name__ == "__main__":
     for name in sys.argv[1:]:
