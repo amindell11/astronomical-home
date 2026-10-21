@@ -112,22 +112,22 @@ expect allow PowerShell "$P" "Remove-Item -Recurse -Force $S\\Temp -ErrorAction 
 
 # --- the check lists the primary's dirt, from either worktree ---
 git -C "$TMP/primary" worktree remove "$TMP/primary/nested"
-printf 'results/\nsrc/Asteroids3D/Library/\n*.sln\n' > "$TMP/primary/.gitignore"
+printf 'scratch/\nsrc/Asteroids3D/Library/\n*.sln\n' > "$TMP/primary/.gitignore"
 mkdir -p "$TMP/primary/src/Asteroids3D" && touch "$TMP/primary/src/Asteroids3D/tracked.cs"
 git -C "$TMP/primary" add .gitignore src
 git -C "$TMP/primary" -c user.name=t -c user.email=t@t commit -q -m ignore
-out="$(cd "$TMP/slot" && bash "$CHECK")"
+out="$(cd "$TMP/slot" && bash "$CHECK" strays)"
 [[ "$out" == "PRIMARY_TREE_DIRTY=0" ]] || fail "clean primary reported dirt: $out"
 
-mkdir -p "$TMP/primary/results/run" "$TMP/primary/src/Asteroids3D/Library" "$TMP/primary/notes"
-touch "$TMP/primary/results/run/a.json" "$TMP/primary/src/Asteroids3D/Library/x" \
+mkdir -p "$TMP/primary/scratch/run" "$TMP/primary/src/Asteroids3D/Library" "$TMP/primary/notes"
+touch "$TMP/primary/scratch/run/a.json" "$TMP/primary/src/Asteroids3D/Library/x" \
   "$TMP/primary/src/Asteroids3D/A.sln" "$TMP/primary/notes/report.md"
 echo "tracked edit" >> "$TMP/primary/.gitignore"
 git -C "$TMP/primary" worktree add -q --detach "$TMP/primary/nested"
 for from in slot primary; do
-  out="$(cd "$TMP/$from" && bash "$CHECK")"
+  out="$(cd "$TMP/$from" && bash "$CHECK" strays)"
   [[ "$out" == *"?? notes/"* ]] || fail "untracked notes/ missing (from $from): $out"
-  [[ "$out" == *"!! results/"* ]] || fail "ignored results/ missing (from $from): $out"
+  [[ "$out" == *"!! scratch/"* ]] || fail "ignored scratch/ missing (from $from): $out"
   [[ "$out" == *"?? nested/"* ]] || fail "nested worktree missing (from $from): $out"
   [[ "$out" == *"Triage these now"* ]] || fail "no triage instruction (from $from): $out"
   [[ "$out" != *Library* && "$out" != *A.sln* ]] || fail "allowlisted path reported (from $from): $out"

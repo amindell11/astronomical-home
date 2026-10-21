@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SessionStart hook: surface what needs triage in the primary tree.
+# Primary-tree checks for two hooks. The SessionStart hook runs check 1, so a blocked pull shows
+# early; .githooks/post-merge runs check 2 after a merge in the primary itself.
 #
 # 1. When the primary's main is behind origin/main and `git pull --ff-only` there would be
 #    refused, the colliding paths are listed in two groups: those already equal to origin/main,
@@ -11,11 +12,13 @@
 # slot, an app worktree or the primary itself. They never stage, pull or stash there.
 #
 # Interface: exit 0 always (a hook failure must not block a session).
-#   stdout  prose for the session (Claude Code adds it to context), then the trailer
-#           PRIMARY_TREE_DIRTY=<stray count>; nothing to report prints the trailer alone.
-#   stderr  git errors only.
-# Never runs Unity. One `git fetch origin main`, capped at FETCH_SECONDS; with no origin remote,
-# check 1 is skipped.
+#   (no args)  check 1. stdout is prose for the session (Claude Code adds it to context);
+#              nothing to report prints nothing.
+#   strays     check 2. stdout is prose, then the trailer PRIMARY_TREE_DIRTY=<stray count>;
+#              nothing to report prints the trailer alone.
+#   stderr     git errors only.
+# Never runs Unity. Check 1 runs one `git fetch origin main`, capped at FETCH_SECONDS; with no
+# origin remote, it is skipped.
 set -uo pipefail
 
 ALLOW=(
@@ -25,6 +28,8 @@ ALLOW=(
   'doc/design/.obsidian/workspace.json' 'doc/design/.obsidian/cache/' '__pycache__/' '*/__pycache__/'
   'audio/fmod/.cache/' 'audio/fmod/.user/' 'audio/fmod/.unsaved/' '*.asd'
   'src/Asteroids3D/Assets/Resources/FMOD/FMODStudioCache.asset*' 'src/Asteroids3D/fmod_editor.log'
+  'results/' 'src/Asteroids3D/.idea/' 'src/Asteroids3D/Build/'
+  'src/Asteroids3D/Assets/ML-Agents/' 'src/Asteroids3D/Assets/ML-Agents.meta'
 )
 SOUND=(
   'audio/*' 'src/Asteroids3D/Assets/Audio/*'
@@ -135,19 +140,17 @@ report_strays() {
 
 main() {
   local common primary
-  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || {
-    echo "PRIMARY_TREE_DIRTY=0"
-    return
-  }
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
   primary="$(dirname "$common")"
-  if git remote get-url origin > /dev/null 2>&1; then
+  if [[ "${1-}" == strays ]]; then
+    report_strays "$primary"
+  elif git remote get-url origin > /dev/null 2>&1; then
     if GIT_TERMINAL_PROMPT=0 timeout "$FETCH_SECONDS" git fetch -q origin main; then
       report_primary_main "$primary"
     else
       echo "Could not fetch origin main, so the primary's main went unchecked."
     fi
   fi
-  report_strays "$primary"
 }
 
 main "$@"; exit 0
