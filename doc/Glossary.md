@@ -196,8 +196,10 @@ Format: **term** — definition. *(authority)*
   feedback notes only. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
-- **handoff** — a brief a fresh session reads cold to take over; it rides the
-  spawn-chip prompt that starts that session. Explicitly not `/compact`.
+- **handoff** — a brief a new session reads cold to take over separate work (a
+  child issue's owner, a worker); it rides the prompt that starts that session.
+  A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
+  Session hygiene).
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
