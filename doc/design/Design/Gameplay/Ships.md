@@ -56,9 +56,8 @@ not stacking a bonus.
 |---|---|
 | hull (`maxHealth`), lives, `mass`, `maxBankAngle`, slot layout | **Ship (chassis)** |
 | physical size (root scale) → collision radius (derived from colliders) | **Ship prefab geometry** |
-| thrust / reverse / strafe forces, top speed, yaw torque + rate, boost impulse, linear + angular drag, roll torque + damping | **Engine** |
+| thrust / reverse / strafe forces, top speed, yaw torque + rate, boost impulse + cooldown, linear + angular drag, roll torque + damping | **Engine** |
 | max shield, shield regen delay, shield regen rate | **Shield** |
-| boost cooldown | **Keystone** (ruled on #1028; the Engine holds it until the slot builds) |
 
 Notes on the judgement calls:
 - **`mass` is the chassis's**, not the engine's. Under disjoint ownership there's
@@ -71,20 +70,16 @@ Notes on the judgement calls:
 - **Size and collision radius are the prefab's geometry**, not a tunable scalar:
   size is the prefab's authored root scale, and the collision radius is derived
   from the scaled collider bounds at spawn — a single source of truth.
-- **The boost cooldown is the Keystone's**, not the Engine's: the thing on
-  cooldown is the ability, and an engine swap should not change how often a
-  ship can fire it. The Engine keeps the boost impulse as dash strength, an
-  input the dash-shaped keystones read.
 
 ## Slot taxonomy
 
 | Slot | Count | Fills with | Status |
 |---|---|---|---|
-| **Engine** | 1 | engine module | **built**; locked to the chassis — it leaves the hangar and the loot pool (#1028 Slice 1) |
+| **Engine** | 1 | engine module | **built** |
 | **Shield** | 1 | shield module | **built** |
 | **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
-| **Keystone** | 1 | a keystone ability | **locked per ship; building (#1028)** |
+| **Keystone** | 1 | a keystone ability | **designed, deferred** |
 | **Passive** | 1 | a passive | **designed, deferred** |
 
 **Weapon count** is meant to be a big archetype differentiator (some frames
@@ -106,8 +101,8 @@ like a Hades character) or **open** (player picks, e.g. from the [[Keystones]]
 pairs). A locked slot is just an open slot with its choice pinned in data.
 
 - **Starting stance:** ship the first frames with *locked* kits — easier to tune
-  and gives each ship a strong identity. The first five ship with locked
-  keystones, one kit per ship, per #1028 ([[Keystones]] has the mapping).
+  and gives each ship a strong identity. The first five frames are planned
+  with locked keystones (#1028; [[Keystones]] has the mapping).
 - **When playtesting says a ship wants choice**, flip that one slot to open — no
   code change, just data. Can go per-ship, even per-slot (locked passive + open
   keystone).

@@ -2,8 +2,10 @@
 
 A keystone is the locked ability in a ship's keystone slot (see [[Ships]]):
 each ship carries exactly one, fixed to its chassis, and the boost key fires
-it. One kit per ship, no choice, retuned by playtest. The why behind this
-mapping and the rules below lives on #1028.
+it. The first five ships get one kit each, no choice, retuned by playtest; the
+slot itself stays data-flippable to open, per the locked-vs-open section of
+[[Ships]]. The why behind this mapping, each kit's rules and the open forks
+live on #1028 until the kit ships.
 
 | Ship | Keystone | Pole it owns |
 |---|---|---|
@@ -12,23 +14,6 @@ mapping and the rules below lives on #1028.
 | Valis | overdrive window: raised speed cap and thrust, no impulse | sustained mobility |
 | Crimson | blink toward the cursor, clamped to a range | free reposition |
 | Nightshade | short stealth; the first shot out of it is buffed | information |
-
-## Rules
-
-- **Blink preserves velocity.** Zeroing it would be a free brake, and braking
-  is the hard part of Newtonian [[Flight]]; blinking against your own momentum
-  is the mistake that makes it a skill. No protection during the blink.
-- **Stealth does not dodge projectiles.** That would be Vanguard's window in
-  disguise. Stealth is a visibility predicate: scanner, tracker, lock-on and
-  missile seeker all lose the ship on the same tick.
-- **The ram lands once per dash**, on first contact, and its immunity — to
-  collision damage only, never lasers or missiles — ends at that instant.
-  Against rocks a mass threshold decides: the Bulwark shatters rocks lighter
-  than itself and bounces off the rest. The free brake into a big rock is part
-  of the kit, not a leak.
-- **Every keystone ships with a tell** — the player-visible cue that it is
-  ready, fired or active. Anything the AI may later read off an enemy's
-  keystone needs this counterpart first.
 
 ## For a sixth ship
 
