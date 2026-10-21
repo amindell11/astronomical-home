@@ -8,23 +8,30 @@ namespace UI.Hangar
     /// The hangar preview's carousel: position p (unwrapped ship indices) chases the selected index t on a
     /// critically damped spring. A press moves t and keeps p's velocity, so rapid presses stream ships along
     /// one path instead of restarting it. One press replays the formation handoff exactly: an offset maps back
-    /// to the handoff clock through the spring's own single-step response.
+    /// to the handoff clock through the spring's own single-step response. When presses run more than a lap of
+    /// the offered list ahead, p skips whole laps: every slot then holds the same ship it did, so the skip is
+    /// invisible and the stream keeps walking the list in order.
     /// </summary>
     internal sealed class HangarCarousel
     {
         // Rate × handoff duration: one press settles to within 1.7% of an index by the handoff's end.
         private const float SettleRate = 6f;
         private const float Rate = SettleRate / HangarPreviewFlight.HandoffSeconds;
-        private const float MaxSpeed = 8f;
-        private const int MaxLead = 2;
+        private const float MaxSpeed = 4f;
 
         internal static readonly float SettledOffset = 1f - Response(SettleRate);
+        // A ship further than this from p has finished, or not begun, its handoff: it is off-frame.
+        internal static readonly float PathEnd = Response(SettleRate);
 
         private readonly Dictionary<int, Ship> slots = new();
+        private readonly int lap;
 
         public float Position { get; private set; }
         public float Velocity { get; private set; }
         public int Target { get; private set; }
+
+        /// <param name="offered">How many ships the list cycles through.</param>
+        public HangarCarousel(int offered) => lap = Mathf.Max(1, offered);
 
         public void Start(Ship ship)
         {
@@ -54,16 +61,19 @@ namespace UI.Hangar
             Velocity = Mathf.Clamp((Velocity - Rate * drive) * decay, -MaxSpeed, MaxSpeed);
 
             var lead = Target - Position;
-            if (Mathf.Abs(lead) > MaxLead)
-                Position += Mathf.Sign(lead) * Mathf.Ceil(Mathf.Abs(lead) - MaxLead);
+            // Keep an index of lead after the skip: at MaxSpeed the spring then stops short of overshooting.
+            if (Mathf.Abs(lead) > lap + 1)
+                Position += Mathf.Sign(lead) * lap * Mathf.Floor((Mathf.Abs(lead) - 1f) / lap);
             if (Mathf.Abs(lead) < 1e-4f && Mathf.Abs(Velocity) < 1e-3f)
             {
                 Position = Target;
                 Velocity = 0f;
             }
 
+            var low = Mathf.Min(Position, Target) - 2f;
+            var high = Mathf.Max(Position, Target) + 2f;
             foreach (var index in new List<int>(slots.Keys))
-                if (index != Target && Mathf.Abs(index - Position) > MaxLead + 1)
+                if (index < low || index > high)
                     slots.Remove(index);
         }
 
