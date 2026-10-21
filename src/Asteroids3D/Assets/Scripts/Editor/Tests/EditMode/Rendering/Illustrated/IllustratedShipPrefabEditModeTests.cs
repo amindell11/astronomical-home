@@ -1,0 +1,142 @@
+using System.Linq;
+using NUnit.Framework;
+using Ships.Presentation;
+using Ships.Visuals;
+using Substrate;
+using Unity.Collections;
+using UnityEditor;
+using UnityEngine;
+
+namespace Tests.EditMode.Rendering.Illustrated
+{
+    [Category("Ships")]
+    public sealed class IllustratedShipPrefabEditModeTests
+    {
+        private const string SurfaceShader = "Astronomical/Drawn/Surface";
+        private const string ContourShader = "Astronomical/Drawn/Contour";
+        private const string Vanguard = "Assets/Prefabs/Ships/Vanguard.prefab";
+        private const string Crimson = "Assets/Prefabs/Ships/Crimson.prefab";
+        private const string Nightshade = "Assets/Prefabs/Ships/Nightshade.prefab";
+        private const string ShipBase = "Assets/Prefabs/Ships/ShipBase.prefab";
+        private const string NightshadeHullModel = "Assets/Visuals/Ships/Nightshade/Nightshade.fbx";
+
+        [Test]
+        public void Vanguard_HasOneRigWithSavedGameplaySurfacesAndContours()
+        {
+            var ship = LoadShip(Vanguard);
+            var rigs = ship.GetComponentsInChildren<ShipVisualRig>(true);
+            Assert.That(rigs, Has.Length.EqualTo(1), "A variant must not inherit a second visual rig.");
+            var hull = rigs[0].GetComponentsInChildren<Transform>(true).Single(t => t.name == "Vanguard");
+            var surfaces = hull.GetComponentsInChildren<MeshRenderer>(true)
+                .Where(r => UsesShader(r, SurfaceShader)).ToArray();
+            var contours = hull.GetComponentsInChildren<MeshRenderer>(true)
+                .Where(r => UsesShader(r, ContourShader)).ToArray();
+            Assert.That(surfaces, Is.Not.Empty, "The saved hull must carry its painted geometry.");
+            Assert.That(contours, Is.Not.Empty, "Outlines must exist before a ship is spawned.");
+            foreach (var renderer in surfaces.Concat(contours))
+            {
+                Assert.That(renderer.enabled && IsActiveInPrefab(renderer.transform), Is.True, renderer.name);
+                Assert.That(renderer.gameObject.layer, Is.EqualTo(LayerIds.Ship), renderer.name);
+                var mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(mesh, Is.Not.Null, renderer.name);
+                Assert.That(AssetDatabase.Contains(mesh), Is.True, "Ship spawning must not generate drawing meshes.");
+                Assert.That(renderer.sharedMaterials.All(AssetDatabase.Contains), Is.True);
+            }
+            var feedback = rigs[0].GetComponentsInChildren<HullVisuals>(true);
+            Assert.That(feedback, Has.Length.EqualTo(1));
+            Assert.That(feedback[0].enabled, Is.False, "Multi-surface damage feedback is deferred.");
+        }
+
+        [Test]
+        public void Nightshade_UsesPaintedRoleMeshesAndKeepsDamageFeedback()
+        {
+            var ship = LoadShip(Nightshade);
+            Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(ship)), Is.EqualTo(ShipBase));
+            var rigs = ship.GetComponentsInChildren<ShipVisualRig>(true);
+            Assert.That(rigs, Has.Length.EqualTo(1));
+            var feedback = rigs[0].GetComponentsInChildren<HullVisuals>(true);
+            Assert.That(feedback, Has.Length.EqualTo(1));
+            Assert.That(feedback[0].enabled, Is.True);
+            Assert.That(ship.GetComponentsInChildren<Transform>(true)
+                .Any(t => t.name == "Vanguard" || t.name == "Crimson"), Is.False);
+            var hull = rigs[0].transform.Find("Hull").GetComponentsInChildren<MeshRenderer>(true);
+            Assert.That(hull, Has.Length.EqualTo(3));
+            foreach (var renderer in hull)
+            {
+                Assert.That(renderer.enabled, Is.True);
+                Assert.That(AssetDatabase.GetAssetPath(renderer.GetComponent<MeshFilter>().sharedMesh), Is.EqualTo(NightshadeHullModel));
+                foreach (var material in renderer.sharedMaterials.Where(m => m.shader.name == SurfaceShader))
+                {
+                    Assert.That(material.IsKeywordEnabled("_PAINT_LAYERS"), Is.True);
+                    Assert.That(material.GetFloat("_PaintSaturation"), Is.EqualTo(1.25f));
+                    Assert.That(material.GetFloat("_PaintEmissionBlend"), Is.EqualTo(1f));
+                    Assert.That(material.GetFloat("_SpecularStrength"), Is.Zero);
+                }
+            }
+            Assert.That(new SerializedObject(feedback[0]).FindProperty("hull").objectReferenceValue,
+                Is.EqualTo(hull.Single(r => r.name == "Nightshade")));
+        }
+
+        [TestCase(Vanguard)]
+        [TestCase(Crimson)]
+        [TestCase(Nightshade)]
+        public void ShipColliderBounds_EncloseThePaintedHullInShipCoordinates(string path)
+        {
+            var ship = LoadShip(path);
+            var colliders = ship.GetComponentsInChildren<MeshCollider>(true)
+                .Where(c => c.enabled && !c.isTrigger && c.sharedMesh).ToArray();
+            Assert.That(colliders, Is.Not.Empty);
+            var colliderBounds = BoundsInShip(ship.transform, colliders[0].transform, colliders[0].sharedMesh.bounds);
+            foreach (var collider in colliders.Skip(1))
+                colliderBounds.Encapsulate(BoundsInShip(ship.transform, collider.transform, collider.sharedMesh.bounds));
+            colliderBounds.Expand(.002f);
+            var surfaces = ship.GetComponentsInChildren<MeshRenderer>(true)
+                .Where(r => UsesShader(r, SurfaceShader)).ToArray();
+            Assert.That(surfaces, Is.Not.Empty);
+            foreach (var surface in surfaces)
+            {
+                var mesh = surface.GetComponent<MeshFilter>().sharedMesh;
+                using var meshData = MeshUtility.AcquireReadOnlyMeshData(mesh);
+                using var vertices = new NativeArray<Vector3>(meshData[0].vertexCount, Allocator.Temp);
+                meshData[0].GetVertices(vertices);
+                var matrix = ship.transform.worldToLocalMatrix * surface.transform.localToWorldMatrix;
+                foreach (var vertex in vertices)
+                {
+                    var point = matrix.MultiplyPoint3x4(vertex);
+                    Assert.That(colliderBounds.Contains(point), Is.True,
+                        $"{ship.name} collider excludes {surface.name} vertex {point}: collider {colliderBounds}.");
+                }
+            }
+        }
+
+        private static bool IsActiveInPrefab(Transform transform)
+        {
+            for (var current = transform; current; current = current.parent)
+                if (!current.gameObject.activeSelf) return false;
+            return true;
+        }
+
+        private static GameObject LoadShip(string path)
+        {
+            var ship = AssetDatabase.LoadMainAssetAtPath(path) as GameObject;
+            Assert.That(ship, Is.Not.Null, path);
+            return ship;
+        }
+
+        private static bool UsesShader(MeshRenderer renderer, string shader) =>
+            renderer.sharedMaterials.Any(m => m && m.shader && m.shader.name == shader);
+
+        private static Bounds BoundsInShip(Transform ship, Transform part, Bounds local)
+        {
+            var matrix = ship.worldToLocalMatrix * part.localToWorldMatrix;
+            var bounds = new Bounds(matrix.MultiplyPoint3x4(local.center), Vector3.zero);
+            for (var corner = 0; corner < 8; corner++)
+            {
+                var point = local.center + Vector3.Scale(local.extents,
+                    new Vector3((corner & 1) == 0 ? -1 : 1, (corner & 2) == 0 ? -1 : 1, (corner & 4) == 0 ? -1 : 1));
+                bounds.Encapsulate(matrix.MultiplyPoint3x4(point));
+            }
+            return bounds;
+        }
+    }
+}

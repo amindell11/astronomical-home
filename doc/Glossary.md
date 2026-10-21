@@ -1,0 +1,1025 @@
+# Glossary
+
+> STATUS: living — shared vocabulary; updated in the same PR that coins or shifts a term.
+
+Coined terms accumulate faster than shared definitions do. This file is the
+authority for what this project's words mean, and the place to look when a term
+reads like it might mean two things.
+
+## How to use this
+
+**Two standing rules.**
+
+1. **Never bare — unless the row grants it.** Every word in the collision table
+   carries a qualifier by default: "eval gate", "worktree slot", "command
+   churn". Some rows name exactly one context where the bare word is legal
+   (bare "envelope" = firing envelope, "harness" = RL harness, "seed" = RNG
+   seed, "arc" = the work sense, "slot" = worktree slot in workflow text). The
+   exception belongs to the row, not to the writer — if the row grants none,
+   qualify. In a doc title or heading, always qualify regardless.
+2. **Words, not tenses.** This file settles competing *words* for one thing.
+   Inflections of a settled root are all canonical and need no entry of their
+   own: grill / grilled / grilling / grill session / grill-settled are one term.
+3. **One home per term.** An entry carries only what the code cannot tell you —
+   a constraint, a decision, a gotcha, or a concept spanning several symbols.
+   Where the code already answers "what is this?", point at the symbol instead
+   of restating it. Two copies of one definition is the drift this file exists
+   to prevent, and a symbol that needs a line of its own gets it at the symbol
+   (that line is a non-obvious *why*, so the comments policy already allows it).
+
+**Definition at first use.** Before deploying a new term anywhere — brief,
+design discussion, one-off bug fix — define it inline in the simplest concise
+form, using existing terms and general concepts. **Define downward:** never
+define a new term by way of another new term.
+
+**Re-orientation.** When someone's usage drifts from this file:
+
+- Cosmetic drift (a deprecated synonym, unambiguous): recast silently — the
+  canonical term simply appears in the reply.
+- Any collision-table word: state the reading you took, even when the parse
+  feels certain — "(taking 'gate' as the gate score here)".
+- Genuine ambiguity, or a divergence that would change what happens next:
+  **ask** rather than assume — "which roster, the training mixture or the eval
+  instrument?"
+- Always phrased as your own interpretation, never as the other person's error.
+  Max one explicit flag per message: flag the load-bearing drift, recast the rest.
+- Repair symmetric misreads — if a reply presupposes a misread of a term *you*
+  used, fix that before proceeding.
+- After roughly three recasts of the same form, propose making that form
+  canonical, once. The vocabulary serves its speakers, not the reverse.
+
+**Keeping it current.** Coining or shifting a term updates this file in the same
+PR. Deprecated forms get fixed in hunks you already touch (the ratchet);
+whole-file sweeps belong in dedicated hygiene PRs.
+
+---
+
+## 1. Collision table — never write these bare
+
+| Word | Live senses | Rule |
+|---|---|---|
+| **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
+| **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
+| **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
+| **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
+| **rung / tier** | fix-ladder rung · curriculum ladder · screening ladder (Tier 0–3) | "Rung" is fix-ladder-only. The curriculum has *lessons*; screening has *tiers*. |
+| **archetype** | opponent archetype (Aggressor/Evader/Orbiter/Kiter/Dummy) · chassis archetype · ship-prefab archetype | Qualify — the first two both feed the matchup matrix. |
+| **spine** | sector spine (`SectorSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
+| **adopt** | sector adoption (the placed object IS the runtime object) · coordinator Adopt (seize an orphan process) | Qualify: "sector-adopt" / "coordinator Adopt". |
+| **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
+| **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
+| **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
+| **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor · speed floor (missile evasion's closing-speed floor, `ArchetypeBrain.closingSpeedFloor`) | Always qualified. |
+| **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
+| **lock** | geometry lock (§2 → *Art pipeline*) · pool locks (slot lock, merge-turn lock) · two-tier lock · "design locked" (pr-prep, §2 → *locked / frozen*) · missile lock (`LockOnSensor`) | Always qualified. |
+| **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
+| **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
+| **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
+| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage* — five schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. |
+| **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
+| **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
+| **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
+| **anchor** | `--initialize-from` checkpoint · field anchor / subject (the transform an asteroid field streams and LODs against) / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
+| **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
+| **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
+| **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
+| **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
+
+---
+
+## 2. Canonical terms
+
+Format: **term** — definition. *(authority)*
+
+### Workflow & process
+
+- **fix ladder** — the five-rung classification for programmer-error fixes, one
+  rung per fix: unrepresentable → earliest deterministic failure → cost gate →
+  loud failure → guards (prohibited). *(AGENTS.md § Fix ladder)*
+- **operating vs programmer error** — the triage above the ladder: untrusted
+  boundary input is parsed once at the boundary; our own invariant violations
+  climb the ladder. *(AGENTS.md)*
+- **cost gate** — fix-ladder rung 3: the structural fix exceeds the current
+  scope, so stop and present narrow-vs-structural to the user. Never downgrade
+  silently.
+- **guard** (pejorative) — a check that absorbs a bad state and keeps running;
+  prohibited for programmer errors. Log-and-continue is a guard wearing a costume.
+- **scope conservation** — the confirmed scope bounds the *diff*, not just the
+  intent; re-read the diff against it before submit. It never licenses violating
+  a design value to touch fewer files. *(AGENTS.md)*
+- **fork** — a consequential design decision with named alternatives, surfaced
+  to and resolved by the user before building. Not the git sense. *(pr-prep)*
+- **locked / frozen** — a fork the user resolved / a brief the implementer builds
+  from without re-deciding. The user may still reopen; downstream agents may not.
+- **no-brainer assumption** — too obvious to be a fork, but recorded in the brief
+  anyway so the implementer cannot silently deviate. A cheap option that conflicts
+  with a documented principle is a fork, not a no-brainer.
+- **proximity** — the recurring failure mode where the locally cheapest option
+  beats a documented principle and hides under "(Recommended)". Surface the
+  tension out loud instead.
+- **blindsider** — a foreseeable ambush of the *committed* design, hunted in a
+  dedicated post-lock pass. Findings meet the fix-ladder entry bar or they are
+  noise. *(pr-prep)*
+- **entry bar** — what a proposed check, fix, or review finding must clear before
+  becoming code: an observed failure or an explicit user pull. (Retired form:
+  "entry gate".)
+- **speculative** — a review comment about a hypothetical; gets a written reply,
+  never code.
+- **decision brief** — pr-prep's frozen artifact: scope + fork resolutions +
+  assumptions + blindsider resolutions; lives on the arc's issue. *(doc/agents/design-docs.md)*
+- **grill** — a user-driven adversarial interrogation that can overturn a
+  direction; distinct from pr-prep (plan-seeded) and design consult (external
+  agent). All inflections canonical. *(grill-me skill)*
+- **counsel** — a multi-seat, multi-model design panel with per-seat value
+  charters; its settled principles bind later design within their jurisdiction.
+  One spelling throughout, including the `ai-counsel` MCP tool. (Retired:
+  "council".)
+- **design consult** — handing a brief or diff to a fresh external agent for a
+  second opinion, results routed back through fix-ladder triage.
+- **evidence bar / rule-of-three** — machinery earns its place by observed need;
+  generalize on the third instance.
+- **arc** — a multi-PR narrative with a declared end: its issue's
+  `## Exit criterion`. *(doc/agents/issue-tracker.md → Body law)*
+- **active arc / waiting arc** — an open arc or wayfinder map at `pri:now` /
+  any other open one. Three active is the suggested ceiling: arcs wait on the
+  user's attention, not on build capacity. "Waiting", never "parked": parked
+  work is closed. *(doc/agents/issue-tracker.md → Body law)*
+- **slice** — a sub-unit of an arc, each getting its own short pr-prep,
+  planned one ahead: each slice's pr-prep has rewritten the plan behind it.
+- **build slice / prototype slice** — the two slice types a brief opens with.
+  Discarding a prototype slice is an acceptable result, and unlike a
+  `wayfinder:prototype` ticket's artifact its PR merges when accepted.
+  *(.claude/pr-prep.md → Arc planning)*
+- **pass** — a bounded one-shot sweep with no successor (hygiene pass, texture
+  pass). Retired for this sense: "program", "package", "series".
+- **arc & PR naming** — arcs and slices carry BOTH a descriptive, branch-style
+  name (`vocab`, `vocab-docfix`) and a positional label within their plan
+  (`Slice-C`, `PR-4`): the word name is the identity, the label is the rank.
+  Plans assign both; chat titles show both. Branches and leases use only the
+  word path (`task/vocab-seed`) — labels never appear in git refs. A leaf
+  number for one named unit spanning several PRs (`vocab-docfix-1..3`) still
+  appears only at build time. Once a PR merges, its GitHub number is a
+  historical fact and never renumbers. Max three levels; a fourth means you
+  have two arcs. (Amended 2026-07-31: positional labels un-retired — the
+  2026-07-29 word-only ruling left slices without a quick rank/order handle.
+  Plans written under it gain labels lazily, as their slices are next touched.)
+- **SHIPPED / CLOSED** (arc status) — every planned PR merged, nothing left over /
+  the arc ended deliberately with residuals deferred, named on the same line.
+  (Retired: "COMPLETE".)
+- **stage** (roman i–iii) — a chapter of a research campaign; each ends in a
+  decision. Sequential, complete all.
+- **phase** (letters A/B) — a segment inside **one continuous run** (Phase A =
+  3.5M steps scripted, Phase B = 1.5M hybrid). Retired: "Phase 0–N" as a chapter
+  scheme — those were arc slices and take branch-names today.
+- **tier** (0–3) — a rung of the screening ladder, where you **stop as soon as
+  something falsifies**. Escalation, not a sequence to complete.
+- **batch** (letters) — unordered parallel buckets of independent work.
+- **prime mark** (`X′`) — superseded scope or section; the successor is
+  authoritative and must be named at that document's first use of the mark.
+- **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
+  live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
+  vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file /
+  namespace and asmdef naming, `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
+  (AGENTS.md → Design & agent-doc ratchets).
+- **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
+  into an infra-hygiene PR rather than losing them to a slot reset.
+- **tracking surfaces** — GitHub Issues/PRs = what / for-when / why / status;
+  the pool (slot leases, `held/*` branches) = right-now claims; memory =
+  feedback notes only. Never conflate. *(doc/agents/memory.md)*
+- **parking lot** — deferred *discussion* items, not work items; add on park,
+  delete on resolution. *(memory)*
+- **handoff** — a brief a new session reads cold to take over separate work (a
+  child issue's owner, a worker); it rides the prompt that starts that session.
+  A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
+  Session hygiene).
+- **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
+  pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
+- **held** (work) — slot work set aside while it waits on the user; mechanics
+  are `hold` / `resume` in the pool script's `--help`. The issue stays open and
+  carries the resume line; `pool status` lists the held lease. *(#559)*
+- **benched** — set aside until a dependency or missing knowledge unlocks it;
+  expected to finish. Branch `bench/<topic>` on origin, kept. Issue closed,
+  first line `Benched <date> — reopen when …`. Comments
+  before 2026-09-21 opening `Shelved <date>` mean benched. *(#559)*
+- **parked** (work) — not worth pursuing; kept for posterity, not expected to
+  resume. Branch `park/<topic>` on origin. Issue closed as not planned, first
+  line `Parked <date> — why`, no label. The probe-code
+  step *scratch → promote → park* is a separate sense. *(#559)*
+- **warm** (slot) — its Unity Library is already built; a reason to name a slot
+  on acquire instead of auto-picking.
+- **primary tree** — `D:/amind/git/astronomical-home`, as against the `agent-N`
+  slots; the owner's checkout and the home of pool state. Agents write nothing
+  else there but main's fast-forward and sound work (AGENTS.md → Default
+  workflow). **Clean primary**: no untracked files outside the sound-work paths
+  and no ignored files outside the allowlist, both lists in
+  `scripts/primary_tree_check.sh`; tracked edits don't count.
+  Short forms: **prim tree**, **primary**. "Main" is exclusively the git branch.
+- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
+  the only sanctioned merge path.
+- **`land`** — the pool command that lands a PR no slot holds: the merge gate
+  on the hosted path, in a borrowed slot, on a *recorded instruction* or the
+  *auto-merge class*. Always
+  in code font: the plain word keeps its everyday sense ("land it" is
+  consent). *(agent_worktree_pool.sh `land`; #830)*
+- **merge turn** — the pool-wide right to run a merge gate, held by one gate at
+  a time from before its fetch through `gh pr merge`. Waiting gates take it in
+  arrival order (**turn ticket**). Any other push to main takes it with no
+  ticket, whenever it is free: `land-docs`, or a command run under
+  `lock merge-turn`. A waiter gives up only after watching one holder keep the
+  turn for the cap; a line that keeps moving times nobody out. Machine-local:
+  a base move from any other clone is caught only by the gate's base re-check.
+  *(`with_merge_turn`, agent_worktree_pool.sh; #639)*
+- **turn ticket** — a waiting merge gate's recorded arrival; the line for the
+  merge turn is the live tickets in arrival order. A ticket is live only while
+  its gate holds an OS lock on it — never by a timer or a pid check — so a dead
+  waiter cannot block the line, and a re-run gate arrives anew at the back.
+  Always "turn ticket": the Unity access coordinator's queue ticket is another
+  thing. *(`MERGE_TURN_LINE_PL`, agent_worktree_pool.sh; #639)*
+- **merge-grade proof / tested-tree proof** — a recorded tree hash from a green
+  full run, produced on this machine or as **remote proof**. Scoped runs never
+  produce one.
+- **remote proof** — proof the merge gate accepts from a GitHub-hosted run, as
+  `success` commit statuses on the landing commit: `merge-proof/headless`
+  (merge-grade test proof; trailer stamps the landing tree) and
+  `merge-proof/resharper` (the **hosted ratchet**). The merge gate never
+  accepts either for a landing diff that touches `.github/` — that PR can edit
+  the workflow that proves it. *(`verified_remote_status`, agent_worktree_pool.sh)*
+- **hosted ratchet** — the ReSharper ratchet run inside the hosted
+  headless-suite job, on the solution files that job's test boot wrote. Its
+  trailer stamps the landing tree AND the base tree it diffed against, so a
+  moved or non-main base is no proof and the local ReSharper ratchet runs.
+  *(.github/workflows/headless-suite.yml)*
+- **headless suite** — the merge gate's test selection run with no GPU and
+  without the heavy art/audio files (light LFS checkout). A test that needs
+  one of those files cannot live in it.
+  *(.github/workflows/headless-suite.yml)*
+- **script-suite selection** — the merge gate runs only the `scripts/tests/`
+  files the landing diff selects through their **covers lines**, falling back
+  to every file on the run-everything triggers. Always qualified: bare "test
+  selection" is the Unity run. *(doc/agents/script-contracts.md sec.4)*
+- **covers line** — a script test file's `# covers:` header naming the
+  scripts it runs or loads. An entry matching no file refuses the suite. Not
+  "coverage": that word is the merge gate's full-coverage proof.
+  *(read_covers_line, agent_worktree_pool.sh)*
+- **inert diff** — a behaviour-neutral delta (docs-only, comment-only) that
+  extends existing proof without a fresh run.
+- **consent / merge instruction** — an explicit "merge it". Praise is not
+  consent. It binds the commit the user saw: a later delta needs a fresh
+  instruction, except that a *recorded instruction* survives an inert diff
+  (`land` decides).
+- **recorded instruction** — the user's merge instruction for one PR at one
+  commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
+  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
+  user may type it on the PR, naming the commit by a prefix
+  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  *covers* the landing tree when merging its commit with base gives that tree,
+  or one an inert diff away; `land` needs a covering one unless the PR is in
+  the *auto-merge class*. Every session is the same GitHub account, so policy
+  alone keeps it the user's.
+  *(scripts/drain_pick.sh `instruct`; #830)*
+- **spend** — compute expenditure needing its own explicit approval; a run is a
+  run, not a PR.
+- **disposition table** — the per-review-round table, one row per comment:
+  Fixed (rung N) / Rebutted / Deferred.
+- **ready queue** — open issues labelled `ready-for-agent`, unblocked,
+  unassigned, carrying a build-scope block (a `Ready proposal` comment the user
+  saw before labelling — see *readiness proposal* — or a body in slice-issue
+  shape). A labelled issue with no build-scope block stays out of the queue: it
+  gets a proposal instead of a build. A *cloud batch* admits items by their
+  `unity:*` label and claims each with the assignee plus `drain:building`.
+  *(#617, #830, scripts/drain_pick.sh)*
+- **decisions view** — the board view "Decisions": the open issues and PRs
+  whose `Decision` field is set, each row the one line the user is asked. An
+  item enters with a `Question` comment or pipeline-PR state (tried or `eyes`
+  items, a merge no recorded instruction names) and leaves on a ruling comment,
+  the state change, or a close. Askers only comment: the *decision reconcile*
+  is the field's only writer. Interactive sessions still ask in their chat.
+  *(scripts/drain_pick.sh `decision`; #830)*
+- **triage sweep** — the on-demand or daily triage run over the open tracker,
+  one evidenced verdict per issue. Recurs, so not a *pass*.
+  *(.claude/skills/issue-triage)*
+- **on-event triage** — the mechanical triage run on issue opened / edited:
+  board add + Status, one-priority rule, retry / premise / dead-pointer checks;
+  writes labels and at most one comment, and treats issue text as data.
+  *(.claude/skills/issue-triage/on-event.md)*
+- **merge reconcile** — the mechanical triage run on each push to main: for
+  every squash-merged PR in the push, a Shipped note and board Done on the
+  issues it closes, a Touched note on the open issues its body cites, a listing
+  of `#N` citations of the closed issues left in the agent docs, and a warning
+  when the body disclaims a close the PR performs. Never closes or reopens an
+  issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
+- **decision reconcile** — the Actions job that evaluates one issue or PR with
+  `drain_pick.sh decision` on each comment, close or PR change and writes its
+  board `Decision` field, with an hourly `--all` backstop. It adds items, PRs
+  included, and never removes one. *(scripts/decision_reconcile.sh)*
+- **sweep lead** — a mechanical reason for the *triage sweep* to research an
+  open issue since a watermark: a merged PR cites it, an issue it cites
+  closed, a path it names is gone, or it was itself updated. With `--since`,
+  an issue with none is *quiet*: a report row, no subagent. Computed from PR
+  and issue data, never from the *merge reconcile*'s notes. Gap: a PR that
+  obsoletes an issue without citing it leaves no lead — only a full sweep
+  catches it. Always "sweep lead" outside the triage skill (the Gunner's
+  firing lead is unrelated). *(scripts/sweep_leads.sh)*
+- **readiness proposal** — the *triage sweep*'s queued `Ready proposal <date>`
+  comment proposing `ready-for-agent`; its `Unity:` field, one of four values,
+  mints the matching `unity:*` label on the same `Apply:` line. Once the user
+  applies the label it is the issue's build-scope block.
+  *(.claude/skills/issue-triage/comment-formats.md)*
+- **drain pipeline** — build, verify and merge of *ready queue* items as three
+  steps, each started from queue state on GitHub and never from a chat
+  handoff, so a fresh session continues where a dead one stopped. *(#830)*
+- **cloud batch** — the *drain pipeline*'s build step: one hand-started cloud
+  session that picks and claims every item the *ready queue* admits, then
+  builds them in parallel. One at a time, which is what makes a claimed issue
+  with no PR a dead batch's. Bare "batch" reads this way only inside that
+  skill section; elsewhere it is the letter-bucket scheme above or Unity's
+  batch mode.
+  *(agent-worktree-pr-loop → Cloud batch)*
+- **cloud build** — one item's build inside a *cloud batch*, ending in a PR,
+  opened ready for review, that closes the issue.
+  *(agent-worktree-pr-loop → Cloud batch)*
+- **owed-local checklist** — the `### Owed local` list in a *cloud build*'s PR
+  body: the tests the hosted suite cannot run, written by the builder. Its
+  ticks and result lines are written only through `drain_pick.sh result`,
+  except an `eyes` item, which a person ticks. `None.` means nothing was ever
+  owed, as against owed and all ticked. *(grammar: scripts/drain_pick.sh `owed`)*
+- **pipeline PR** — an open PR against `main` whose body has a `### Owed local`
+  heading. The heading is the whole membership test: draft state, the closing
+  issue and its labels play no part, so a PR built by hand joins by writing
+  the section. *(scripts/drain_pick.sh)*
+- **verify queue** — the *pipeline PRs* with an owed `unity` or `script` item
+  no run has tried on the head commit. An item tried there (failed or not run)
+  leaves the queue until the head moves. *(scripts/drain_pick.sh `verify-queue`)*
+- **verify task** — the desktop scheduled task `verify`, started by hand: one
+  pass over the *verify queue* in one borrowed slot. The only *drain pipeline*
+  session that boots Unity. *(agent-worktree-pr-loop → Verify task)*
+- **main arm** — re-running a failed owed item on `origin/main` in the same
+  slot. The same failure there makes it pre-existing: an issue is filed, and
+  the item stays tried for the user to rule on. *(agent-worktree-pr-loop →
+  Verify task)*
+- **merge queue** — the *pipeline PRs* whose checklist is `None.` or all
+  ticked, with their facts (among them `instructed`, and `class`: the
+  *auto-merge class* as GitHub shows it) and landing order; it never says who
+  may merge. Always qualified ("the pipeline's merge queue", or the verb
+  `merge-queue`): it is neither GitHub's merge-queue feature nor the line for
+  the *merge turn*. *(scripts/drain_pick.sh `merge-queue`)*
+- **auto-merge class** — the PRs `land` merges with no *recorded
+  instruction*; its conditions are in `land`'s `--help`. Each such merge is
+  labelled `auto-merged`, and the *pipeline digest* lists it until the user
+  removes the label on review: the user's review comes after the merge. It
+  means "nothing owed", so discharged PRs stay out; it widens only on
+  evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
+- **merge task** — the desktop scheduled task `merge`, started by hand: one
+  pass over the pipeline's merge queue, landing each instructed or class PR
+  through `land`. *(agent-worktree-pr-loop → Merge task)*
+- **pipeline digest** — the Markdown report of what waits on the user and on a
+  session the user starts, relayed as printed. Bare "digest" reads this way
+  only in drain-pipeline text. *(scripts/drain_pick.sh `digest`)*
+- **chunk-down** — replacing a class of remembered failures with a deterministic
+  tool ("preflight, don't remember"). *(postmortem)*
+
+### Design vocabulary
+
+- **deep module / interface / seam / adapter / depth** — the design-vocabulary
+  set; the authority is the `codebase-design` user skill (`~/.claude/skills`),
+  not this file. Gists: behaviour concentrated behind a small interface / every
+  fact a caller must know, not just the type surface / where an interface
+  lives — the place behaviour can vary without editing there (Feathers sense) /
+  a concrete thing satisfying an interface at a seam / leverage per unit of
+  interface a caller must learn. Canonical for design discussion. Seam
+  discipline in one line: one adapter is a hypothetical seam, two adapters is
+  a real one.
+
+### RL & training
+
+- **league** — the self-play opponent population. Mirror league = own snapshots
+  only; hybrid league = a per-worker split of scripted roster and snapshots.
+- **roster** — the weighted scripted-opponent mixture. It is simultaneously a
+  training mixture, an eval instrument, and a tuning lever — always say which.
+- **opponent archetype** — a scripted opponent held to exactly one job, so a
+  per-archetype result isolates one capability. The constraint is the point; the
+  cast list is in the code. *(OpponentRoster.cs)*
+- **teacher** — an archetype in its pedagogical role; the scripted roster as
+  curriculum bootstrap.
+- **hole** — a per-archetype capability deficit. **Evader hole** is the specific,
+  long-running instance: the policy's inability to beat the Evader. (Retired:
+  "pursuit gap", "pursuit ceiling", "pursuit-gradient hole".)
+- **pursuit gradient** — the learning signal that closes a pursuit hole; the
+  mechanism, as against the deficit it fixes.
+- **mirror-brawlers** — the stage-(iii) diagnosis in one phrase: a league of
+  mirror-brawlers has no pursuit gradient, because every opponent already wants
+  the same close-range fight the policy does.
+- **trainer runtime** — the Python process owning environment scheduling, PPO
+  updates, checkpointing, and stats for a training run: stock `mlagents-learn`
+  (the *ml-agents runtime*) today, replaced stage-by-stage by the project-owned
+  *owned runtime*. *(#494)*
+- **inference microbatch** — one policy forward over decision requests from
+  several ready trainer-runtime workers. Designed, not built — slice-4a is
+  parked on `task/trainer-microbatch-parked`.
+  *(#494 §Stage 2)*
+- **checkpoint manifest** — the producer-emitted completeness signal replacing
+  glob-visibility inference. Gotcha: readers dedupe by step, last line wins —
+  resume legs legitimately republish a boundary step.
+  *(training/rl/trainer_runtime/contract.py)*
+- **eval gate** — the deterministic scripted eval run per checkpoint, as a
+  **sidecar**: it reports and does not kill the trainer runtime unless
+  explicitly armed to. Treating it as an automatic stop is the recurring
+  misread. *(eval_gate.py)*
+- **gate score** — the eval total (5 archetypes × 15 = X/75; older runs X/60).
+  Not comparable across a rules change.
+- **noise floor** — eval re-run variance, **measured 2026-07-30** (34-eval
+  variance experiment): run-jitter SD ≈ 1.2–2.5 on gate totals — so ±4/75 holds
+  as a ~2σ bound — mechanical in origin ([[project-eval-sim-nondeterminism]])
+  and policy-dependent. A different seed set adds another SD ≈ 2 on top.
+  Per-archetype cells are proportionally noisier than totals; never read a
+  single cell against a threshold without an interval.
+  *(calibration evidence: memory `project_rl_infra_paydown.md` §PR-4)*
+- **replicate** — one complete re-execution of the identical eval protocol
+  (same checkpoint, seed set, episodes/seed, density, tree) in a fresh boot,
+  differing only by mechanical sim nondeterminism; the unit of measurement for
+  one checkpoint. NOT a new seed draw (that samples different episodes) and NOT
+  a cross-tree re-eval (that confounds code drift with draw luck).
+  *(memory `project_rl_infra_paydown.md` §PR-4)*
+- **ELO treadmill** — snapshots inherit `current_elo`, so ELO measures
+  improvement against recent selves and cannot see absolute capability loss. The
+  gate score is the absolute yardstick.
+- **erosion** — self-play destroying a previously-earned capability while ELO rises.
+- **reality check** — the scheduled per-archetype scripted eval during self-play,
+  which exists because ELO structurally cannot see erosion.
+- **blended-metrics ban** — no aggregate win rate in any summary; per-archetype
+  only. All three stage-(ii) defects were invisible in the mean.
+- **pause-eval** — stop the trainer at a checkpoint export, run the deterministic
+  eval, `--resume` losslessly. *(runbook)*
+- **scorecard / eval tripwire** — per-archetype W/L/D plus behavior metrics / the
+  subset watched purely as a collapse detector.
+- **combat telemetry** — the offline balance instrument: the `combat` registry
+  probe's per-episode measurement surface (range-band occupancy, TTK inputs,
+  engagement cycles, resource-at-engagement, regen events, boost usage). Lands
+  ahead of the rules branch so every screening consumer reads one instrument.
+  *(#488 · CombatTelemetryProbe.cs)*
+- **engagement** (telemetry) — the interval while either ship's firing envelope
+  is valid, ended by a 3 s exit hysteresis; the predicate behind
+  engage/disengage metrics. Definition lives at `EngagementTracker`
+  (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
+  as disengagement, geometric so heat lockouts do not.
+- **duel lane** — the harness lane that runs the baseline duel: a scripted
+  shooter carrying one weapon alone in its primary weapon slot against an
+  unarmed target. Its rows are a snapshot, not a constant: judge a change by
+  running the lane on the base and the head with the same seeds, and quote the
+  replicate gap between two identical runs as the noise. *(#409 · DuelLane.cs)*
+- **marksmanship probe** — the harness probe that counts, per episode, what the
+  shooter's weapon fired and what it hit. A hit is one damage event on the
+  target, so a missile's contact and splash are not told apart, and a shot
+  still in flight when the target dies is fired and never hits.
+  *(MarksmanshipProbe, MarksmanshipSampler)*
+- **command churn** — commanded facing movement per decision (measured 48°)
+  exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
+  cause.
+- **facing thrash** — the visible symptom command churn produces. (Retired:
+  "yaw-thrash". Not to be confused with **twitch**, reserved for the MPC
+  obstacle×tactical defect, or **chatter**, a metric that provably does not
+  capture thrash.)
+- **plan fast-forward** — the MPC warm start advancing more plan time per
+  solve than sim time has elapsed: the solver re-plans every fixed step
+  (0.02 s) but consumes one rollout step (0.1 s) per solve, so the plan runs
+  5× ahead of reality. Observed 2026-08-06; evidence in
+  #486 §The churn diagnosis. *(Mpc.ShiftSequenceForward)*
+- **facing authority** — the policy's way of saying "facing doesn't matter right
+  now", by scaling down the MPC facing cost. It changed the **action semantics**,
+  so checkpoints from before it cannot warm-start across the boundary.
+- **shaping / Φ / undiscounted telescoping** — potential shaping deliberately
+  telescoped *undiscounted* (Φ′ − Φ), trading Ng policy-invariance for a pursuit
+  gradient. The discounted form leaks a per-decision drain that pays the agent to
+  disengage. *(PotentialShaping.cs)*
+- **dummy ignition** — weighting the passive Dummy high early so sparse reward
+  ever fires; proven necessary.
+- **curriculum lane / lesson** — one env-param's schedule track / one step on it.
+  Env lanes gate on `measure: progress`, a fraction of `max_steps` — rescale when
+  bumping `max_steps`.
+- **boot-frozen composition** — a worker's episode composition (scripted vs
+  mirror) is decided at boot and never changes mid-run; mid-run flips wedge all
+  workers (observed twice).
+- **worker / fleet** — one player process under `--num-envs` / the set of live
+  training processes. Workers are addressed by index everywhere (ports, JSONL
+  names), so "worker 3" is the same 3 across every surface.
+- **screening ladder** — cheapest-falsifier-first evaluation of a rules change:
+  Tier 0 arithmetic/scripted → Tier 1 frozen-policy A/B (screens, never
+  certifies) → Tier 2 ~500k best-response probe → Tier 3 full retrain for
+  finalists. Stop at the first tier that falsifies.
+- **obs/policy surface** — the observation+action contract. Any change forces a
+  full retrain; production and training share one spec.
+- **seed checkpoint / warm start** — the `--initialize-from` origin. Distinct
+  from an RNG seed.
+- **seed sets** — three roles, do not mix them: training runs at **runSeed 1**
+  (`EvalProtocol.TrainingRunSeed`); routine checkpoint eval defaults to
+  **2001–2005** (`eval_gate.py`); **1001–1020 is the sealed held-out set** —
+  never spent, reserved for one defensible final claim, and a knob change resets
+  the protocol rather than re-opening it.
+- **brawl** — the degenerate equilibrium where optimal range is provably ~0, so
+  the game prices no decision. The motivation for the rules change.
+- **passivity rot** — the policy ceasing to engage; visible only per-archetype.
+
+### Game & sim
+
+- **substrate** — the session-shaped package both clients share: `Session`,
+  sectors, the three services and the presentation flag, and the plane, tag and
+  layer conventions. Rooted at `Substrate/`; the interactive game (`Game/`) and
+  the RL harness (`RL/`) are its two clients.
+- **session tier** — the lifecycle layer (`Substrate/Sessions`) whose one
+  type, the self-orchestrating `Session`, composes a session's services and
+  cycles sectors; a *host* paces it and hands each load the *hero* it built —
+  the session owns no rig and no policy. The RL harness does not use it; it
+  composes the same per-ship services through `ShipServices.Compose`.
+- **host** — the scene entry point that owns pacing and lifecycle for one
+  client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
+  observer camera, with the starfield backdrop and reverb zone riding it, and
+  the hangar camera that stands in for it behind the hangar) and
+  the optional *player rig*, and owns the clock, hangar, death recap and reset
+  policy over one `Session`; the *harness host* (`HarnessHost`) sequences
+  compositions and episode blocks for a lane client; the *training host*
+  (`TrainingHost`) fans arenas out and drives one episode loop each while
+  mlagents-learn attaches. Always qualified — bare "host" also names the pool
+  worktree machine.
+- **player rig** — what the interactive game puts into a session for the human:
+  the player ship and its commander, the HUD (overlay, UI and minimap cameras),
+  the pending loadout, the damage ledger, the run tally, the spawn log and the death hook. Built once by the
+  game host against the viewport it owns, injected into every sector load, torn
+  down at session exit. A host with no rig assigned has no player.
+  *(`PlayerRig`, `Game/`)*
+- **hero** — the main character of a session: the ship a sector lays out around
+  and the session resets to the sector's start point. The player in the
+  interactive game, possibly an AI in a scenario.
+  *(`Session.LoadSector(hero)`, `SectorBuildContext.Hero`)*
+- **start point** — where a sector begins: an authored plane position the sector declares,
+  baked by the manifest sync from an optional marker child (the sector root
+  otherwise). A fact of the sector, not of whoever flies: the field carves its
+  permanent clearing around it even with no hero. *(`Sector.StartPoint`)*
+- **session frame** — the in-plane frame a session's authored content is placed
+  in (offset + `Place`); zero for the single-arena game, a per-arena offset for
+  anything fanning sessions across one plane. A session fact, distinct from the
+  obstacle field an AI ship senses, which rides the spawn call on its own.
+  *(`SessionFrame`, `Substrate/Sessions/Session.cs`)*
+- **sector** — a bounded open-space field of POIs. The load-bearing decisions:
+  it builds **deterministically** from a serialized manifest, and there is **one
+  concrete class**, configured by prefab — variation never arrives as a subclass.
+  *(Sector.cs)*
+- **sector spine** — the sector's main objective chain; step names ARE the bus
+  tokens (`spine:ready-to-extract`). Distinct from the **reward spine**, the
+  sparse ±1 outcome term. *(SectorSpineModule.cs)*
+- **activation rule / term / latch** — `predicate(terms) → effect`; terms are
+  AND-ed, evaluated as a standing *level* rather than an enter-edge, and latched
+  Active on first satisfaction. *(ActivationRule.cs)*
+- **presence ≠ arming ≠ firing** — exists in world / trigger listening /
+  predicate fired. "Present-but-inert" is the named middle state.
+- **encounter** — the *fat* activation rule: rule + lazily-spawned content +
+  local objective + on-complete events. A thin rule on a fixture is not an
+  encounter.
+- **wave director** — the continuous sector spawner: ships ringing the hero
+  just off screen on an escalating interval under an escalating alive cap,
+  dead products despawned as it goes. Content, not a sector module, so product
+  ownership and teardown stay the spawner's. *(WaveDirector)*
+- **survival trial** — the sector whose only goal is surviving: a wave director
+  and an asteroid field, no sector module, never raising a sector end — the
+  game host's player-death path is its only exit, and the run tally is its
+  score. *(TrialSector prefab)*
+- **sector fixture** — a world object present at spawn, sector-owned, independent
+  of encounter state.
+- **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
+  publisher-owned ports are the intended replacement for free-string tokens, so
+  a doc describing them is describing the plan; the code is still
+  `ActivateOnToken`.
+- **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
+  spawner-produced. Variation lives in the object or in the spawner type.
+- **locale** — the per-sector look *scene*: lights, flat ambient, custom
+  reflection, ambience and sky layers (under its `LocaleSky` root).
+  `LocaleService` loads it additively and makes it active. Look is a scene;
+  gameplay is a prefab. The boot scene carries none: every authored sector
+  names one, and the session shows its idle locale between sectors.
+- **idle locale** — the locale a presentation session shows while no sector is
+  loaded (the hangar's backdrop). A sector naming the same locale keeps it
+  loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+- **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
+  `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
+  not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and
+  `_NebulaZoomResponse` at 0; the locale wiring test pins both). `_Seed` picks
+  the tile's cloud layout. *(`CloudBankTile`, #1048)*
+- **palette role** — one of base, primary, secondary or accent: the colours
+  Blender exports in a flat background's sidecar `.json`. Scene-linear.
+  *(FlatBackgroundSidecar)*
+- **palette parent** — a generated Material Variant of a shared sky-layer
+  material whose only overrides are palette-mapped colours (`PaletteParents`).
+  Never hand-edited: every sidecar reimport rewrites it. Tune a locale's own
+  variant instead; its overrides survive the refresh.
+- **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
+  plane); never reshape toward Y. *(GamePlane.cs)*
+- **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
+  arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
+  physical leakage — is a known, accepted consequence rather than a bug. The
+  harness's per-arena composition spawns at its offset and hands its field to
+  each ship; "arena" names the isolation unit, never a handle or a session.
+- **firing envelope** — whether a shot is currently takeable (nose cone, range,
+  LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
+  mutates the firing path's LOS cache, so observing changes behaviour.
+- **lock-on cone** — the cone around a ship's nose, measured from the ship's centre,
+  within which its lock-on sensor acquires and holds a missile lock. Missiles
+  launch from the mount, so the cone's tip is not where they leave.
+  *(`LockOnSensor.lockOnConeAngle`)*
+- **seeker cone** — the angle around a missile's nose within which it can see its
+  target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
+- **lose track** — a missile drops its target for good and flies straight: on the
+  first physics step its target is outside the seeker cone, or an asteroid cuts one
+  thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
+  reacquire. *(`Missile.CanSeeTarget`)*
+- **tracking missile** — a missile that has a target and hasn't lost track. The
+  target's lock channel lists it from launch until it loses track or leaves play.
+  *(`Missile.IsTracking`, `LockChannel.Trackers`, `IShipStatus.TrackingMissiles`)*
+- **missile evasion** — a scripted pilot leaning away from a tracking missile and
+  boosting to escape it. Only missiles tracking its own ship count: a lost track ends
+  it, and a missile lock before launch draws none (dodging the lock-on cone would deny
+  every missile lock). *(`ArchetypeBrain.evadeMissiles`)*
+- **evasion urgency** — 0 to 1, how hard missile evasion leans, from the missile's
+  time to impact. *(`ArchetypeLaws.EvasionUrgency`, `ArchetypeLaws.TimeToImpact`)*
+- **swept hit test** — each physics step a projectile tests the whole path it is
+  about to cover, so a fast shot can't pass through a thin target between steps
+  (tunneling). Its trigger collider callback still catches anything already
+  overlapping when a step starts. Not Unity's continuous collision detection,
+  which skips trigger colliders, and every shot is one. Always qualified: the
+  triage and rescue sweeps share the word. *(`ProjectileBase.SweepStep`)*
+- **target point** — the world point in the game plane a shot flies to, fixed
+  at fire time: the cursor for the player (the nose at max range with no cursor),
+  `Gunner.AimPointFor` for the AI. It rides `WeaponCommand.targetPoint`; only
+  self-steering projectiles (the concussion charge) read it, and the charge clamps
+  it to its max range. Not `ITargetable.TargetPoint`, the lock anchor a missile
+  homes on.
+- **target marker** — the HUD's small ring at a concussion charge's target point,
+  shown for the HUD ship's own charges only: it binds to that ship's launch readout
+  (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
+  owner ruled it handholding.
+- **spent charge** — the charge-up fraction the last shot consumed, announced by
+  `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
+  release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
+- **sustained sound** — an FMOD event instance a component holds across state
+  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  against a one-shot it starts and releases at once. One component per sustained
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
+- **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
+  never trigger timing. The Gunner owns the firing instant (envelope + lead) at
+  physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
+  "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
+  2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
+  emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
+  velocity-track).
+- **controller** (probe) — the MPC-retune instrument separating target-motion
+  yaw demand from self-generated churn; metrics live in the row schema.
+  *(ControllerProbe, ControllerSampler)*
+- **obstacle threat** — per-step classification: the MPC's obstacle handling
+  fires — hull overlap (`Cost.Collides`) or collision-course turn-away
+  (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
+  sidecar's `threat`/`clear` field names are context-bound and stay.
+  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
+- **intent sentence** — the decision-varying slice of the MPC cost as a fixed
+  set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
+  pinned to the enemy, FIELD a class slot binding none), each with a signed
+  authority weight against its settings ceiling; the solver re-resolves every
+  armed slot against live referent state each rollout step. An armed weight-0
+  slot is a live command ("nothing matters"); an absent sentence is idleness —
+  the distinction is structural (`IsIdle` = no armed slot). Design + staging:
+  #485. *(IntentSentence, Cost.EvalContext)*
+- **LANE slot** — the sentence term over the enemy's fire-lane geometry: a
+  ray-segment down the enemy's facing, held (+) or dodged (−) by the weight's
+  sign. Referent pinned to the enemy — rocks have no facing, so a referent
+  branch would be noise (§Stage C fork 2). Always caps, always "LANE slot" or
+  "LANE term" — bare "lane" stays collision-table qualified. *(LaneSlot,
+  Cost.Lane)*
+- **error-relative POS width** — the per-solve POS saturation law:
+  width = max(posWidthSlope × err₀, posWidth), with err₀ the ring error at the
+  solve's initial state, frozen for that solve's rollouts. Reach and settle
+  stop sharing a width by construction; the asset `posWidth` is the near-field
+  settle floor, and per-row width overrides are retired. Ruled §Stage C fork 3
+  over authored-parameter scaling and a policy width channel.
+  *(Cost.EffectivePosWidth, Mpc.ApplyErrorRelativePosWidth)*
+- **intent grammar** — the closed design space intent sentences are written in:
+  a term is a point in space × sign × geometry × frame/referent; slots sort
+  instance-vs-class by the timescale rule (focused entities bind instance
+  referents, ambient populations are class terms the solver resolves); six
+  admission rules gate new vocabulary. "Closed" means syntax never grows, only
+  vocabulary. Frozen at Stage B (2026-08-13) with the normalization contract.
+  *(#485 §The grammar + §Stage B freeze)*
+- **anchored intent** — the enemy-bound AIM+VEL degenerate intent sentence,
+  today's production shape: a facing offset around the enemy intercept anchor,
+  and a polar velocity in the enemy frame, each with a [0,1] weight. The MPC
+  re-resolves both against the predicted enemy every rollout step, so the
+  command never goes stale. **Sign pins:** radial > 0 closes along +losHat;
+  tangential > 0 and positive facing offsets are CCW; the polar velocity is
+  *relative to the enemy's motion*. Since Stage C3 the action-side VEL mapping
+  is the θ-head — unit direction × the character-axis `speedRef`, vector
+  magnitude = the slot weight. Authored through `NavObjective.Anchored(...)`;
+  the `IntentSentence` struct is the solver-side carrier.
+  *(AnchoredBuilder, IntentSentence, Cost.EvalContext)*
+- **delegation prior** — the low-weight, config-gated fallback that steers a
+  channel when its anchored authority is 0: facing eases to the velocity-aligned
+  pose (`wFacingPrior`), velocity keeps course (`wMomentum`). Weight-0 reads as
+  competent coasting, never drift. *(Cost.FacingPriorCost, Cost.MomentumCost)*
+- **terminal ramp** — the MPC multiplier that scales *state* costs up toward the
+  horizon end (reaching semantics); control terms and the velocity tracker
+  deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
+- **nav objective** — the decision-varying slice of the MPC cost function, and
+  the only thing that crosses the seam's navigation lane: an intent sentence
+  plus the legacy world-plane move channel, and (since Stage C2) the rock-seat
+  identities behind the sentence's non-anchor referents. Two constraints are
+  structural, not conventions: referent-frame slots are reachable only through
+  `Anchored(...)`, so an anchorless one cannot be authored, and the move
+  channels (world-plane vs VEL slot) overwrite each other, so only one
+  survives. Idempotent per decision — re-applying one is safe, which is what
+  lets a 5 Hz decision be re-pushed every tick. *(NavObjective, AnchoredBuilder)*
+- **rock seat** — one of the three synthetic-referent identity carriers (sentence
+  referent 1–3) riding a nav objective beside its sentence: the sentence's own
+  max, since only AIM/POS/VEL bind one referent each. Asteroids bind by
+  component-ref + spawn-epoch — an explicitly interim identity, replaced by an
+  AsteroidId registry on its carded trigger (#423); the host re-resolves every
+  seat into a fresh snapshot each tick, and a dead seat rides to the solver
+  invalid (its slots drop to weight 0 until the next decision).
+  *(AsteroidRef, NavObjective.RockSeat, CostInput.referent1–3)*
+- **rock slot** — one of the 6 sticky positions in the asteroid referent menu
+  the policy observes: the union of nearest-3-to-self and nearest-3-to-enemy,
+  deduped and backfilled by self-distance. Occupancy is hysteretic (a challenger
+  must beat the occupant's proximity score by a real margin) and binding-aware
+  (an occupant bound by the held sentence only leaves by despawn or range-exit).
+  Refreshed only at the decision boundary, so referent actions always bind
+  against the roster the policy observed. Distinct from the obstacle-token
+  attention buffer, which stays unindexed. *(RockSlotRoster)*
+- **sentence release** — the curriculum pin state on the sentence action head,
+  carried by the `sentence_release` environment parameter and enforced by the
+  discrete action mask: pinned (0) = referents→enemy, frames→Position — the
+  legacy-equivalence point — while released (1) opens every occupied rock slot
+  and frame. An ABSENT key reads released, so eval and gameplay always run the
+  full vocabulary; the secondary trigger stays disengage-only under both states
+  until marksmanship (#409). Continuous channels are never pinned (§Stage C
+  fork 5). *(EnvParamOverlay.SentenceRelease, AgentActions.WriteMask)*
+- **sentence probe** — the session probe over the policy's decoded sentences
+  (per-episode JSONL aggregates + a per-decision CSV sidecar): §Stage C fork 6's
+  failure-branch diagnosis surface and the live check on residual slot thrash.
+  Weight-entropy is Shannon entropy over the five |weights| (0 = saturated on
+  one slot). *(SentenceProbe, SentenceSampler)*
+- **brain / decision lane** — the swappable-decision seam. A **brain** is the
+  component that decides: one `Brain` subclass per policy, installed through
+  `AICommander.InstallBrain` or authored on the pilot prefab. ("Chooser" was the
+  interface-era name for the same thing — retired with `IIntentChooser`.) A
+  `BrainDecision` is a transport, not a union: the commander opens it and routes
+  each lane to a different consumer, keeping nothing. The nav lane is *solved*
+  into a `PilotCommand` by the MPC; the fire lane is a per-slot **engage** bool
+  the Gunner converts into trigger commands; the ability lane is a one-shot
+  activation. On the nav lane, objective and command are different altitudes
+  rather than synonyms.
+  ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
+  *(Brain, BrainDecision)*
+- **presentation** — the per-session axis deciding whether visuals and audio
+  exist. Two things a reader needs: it is applied by the owning spawn seams,
+  never by per-component globals; and it is **not** the same axis as the deleted
+  `vfx` flag, which it has been confused with three separate times.
+- **chassis / module / loadout / hangar / sidegrade** — the ship-customization
+  naming key, in order of containment: the hull's own stats / the swappable parts
+  / the equipped set / the between-run screen where you change it / an option
+  that trades rather than upgrades.
+- **item** — anything that fills a loadout slot: a chassis (a prefab with a root
+  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
+  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
+  but fill no slot, so they are not items.
+- **item catalog** — the one asset listing every item in the project, grouped
+  by item type. An index only: each item's stats stay on its own asset. Listing
+  is not what makes something an item — a test scans the project by type and
+  fails when the list and the scan differ. *(ItemCatalog)*
+- **item subset** — an authored list of items one consumer chooses from, per
+  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
+  "the catalog": neither lists everything. *(ItemSubset)*
+- **hangar's offer** — the item subset the hangar shows the player.
+  *(GameHost.hangarOffer)*
+- **lane clearing** — shooting asteroids to open a firing lane. Currently
+  inexpressible: the firing-envelope check vetoes it, so the policy learned that
+  asteroids are walls.
+- **broadphase scalar** — an asteroid's single-number size: the radius of a
+  sphere with its baked volume. It answers a *bulk/extent* question only —
+  cheap-collider sizing, field packing, the obstacle-scan reach cull — and is
+  never the rock's shape. Shape is the baked **lobes** (`MeshInfo.cachedLobes`,
+  1–3 covering spheres), which the MPC consumes directly. Deriving the scalar
+  from volume rather than measuring the render mesh is what lets the runtime
+  read no mesh vertices at all. Caveat: the RL obstacle token still carries this
+  scalar and not the lobes, so the policy sees elongated rocks as circles (#377).
+  *(AsteroidGeometry.RadiusFromVolume, AsteroidGeometryBuildGate)*
+- **bleed-through** — letting a damage remainder cross a shield break into hull.
+  The live rule since the §C3 overkill PR; the old discard rule was a hidden
+  alpha-weapon tax.
+- **DamageInfo** — the per-hit context struct every damage producer builds at
+  its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
+  event-side the *applied* damage (shield + hull, the locked bleed-through
+  reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
+  `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
+- **damage ledger** — per-life record of the player's received DamageInfo: every
+  hit stamped with game time, and the hits aggregated per source —
+  consumer-side recorder owned by the player rig, never sim state. Source names
+  are captured at event time because the attacker may despawn before the recap
+  reads the row. *(DamageLedger)*
+- **run tally** — kills and time survived for one run: a consumer-side recorder
+  on the player rig beside the damage ledger, never sim state. A kill is a death
+  whose killing blow came from the current player (id read at event time — the
+  hangar can rebuild the player); only deaths between the game host's clock
+  stamps count (begin after the sector load, end at player death). Raises
+  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the fraction of max hull the game host restores to the
+  player each time the run tally counts a kill; hull only (ammo or heat on a kill
+  would be a reset button, and the shield already regens). Interactive sessions
+  only — RL has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+- **loadout stat hash** — a short hash of the balance numbers one ship flies with:
+  its hull, its engine, its shield and the weapon on each mount. Only fields marked
+  `[Stat]` count. The same parts with the same numbers give the same hash on any
+  commit and any machine, and a spawned ship hashes like its prefab asset, so facts
+  recorded about one loadout can be added up across runs. Two gotchas. Lines are
+  keyed by asset name and field name, so renaming a marked field, or the asset it
+  sits on, changes the hash with no number changed. A mount's numbers are read off
+  the weapon prefab, so an inspector edit to the prefab or to a module asset shows
+  up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
+- **stat fingerprint** — a short hash of every balance number a run can draw from:
+  what the hangar offers, the sector's wave director (its pacing, its roster and
+  the parts its enemies draw from) and the kill refill. Runs played against the
+  same numbers share a fingerprint, so results are grouped by it. A number no run
+  can reach does not move it, and neither does list order or listing a part twice.
+  Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
+  *(StatHash.OfSetting, StatAttribute)*
+- **run record** — one JSON line appended when a run ends in the player's death:
+  what it was played on (build identity, stat fingerprint), the player's loadout,
+  kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
+  log. Player death is the only exit that writes; quitting mid-run writes nothing.
+  Every record goes to one append-only file under the results root, which in the
+  editor is the worktree's own `results/`, so an agent's editor runs never land in
+  the user's file. A failed write, or an unreadable build identity, is logged and
+  that run goes unrecorded. Rows name a ship by its position in the record's spawn
+  list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **spawn log** — one entry per life of each ship spawned or sector-adopted in a
+  run, other than the player (a respawn-policy revive opens a fresh entry): its
+  parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
+  long it lived and whether the player's shot killed it (the run tally's rule). A
+  consumer-side recorder on the player rig beside the damage ledger and the run
+  tally, never sim state. It exists because damage kind cannot say which weapon
+  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  placed during the sector load reads as spawned at second 0. *(SpawnLog)*
+- **build identity** — the git side of what a run was played on: the commit and a
+  dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
+  editor asks git at run end; a player build carries a file its pre-build hook
+  stamped, and the game host throws at startup when that file is missing.
+  Informational only: records are grouped by stat fingerprint and loadout stat
+  hash. "Build" in this term is the git side, never a ship's parts, which are its
+  loadout. *(BuildIdentity, BuildIdentityStamp)*
+- **death recap** — the post-death summary rendered from the damage ledger and
+  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
+  game host with presentation off goes straight to the unload.
+  *(DeathRecapScreen, GameHost.RunDeathRecap)*
+- **gizmo capture profile** — the named set of Unity component types a capture
+  selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
+  no per-diagnostic selection grammar, because Unity's own per-component-type
+  Gizmos controls are the authority. Selecting any profile films with
+  presentation off — collider silhouettes and gizmo geometry are the footage;
+  selecting none films plain gameplay with presentation on.
+  *(GizmoCaptureProfile, GizmoCaptureProfiles)*
+- **gizmo subview** — one registered gizmo toggle row in the Gizmo View window.
+  Drawers gate each on the window's flag + scope predicate instead of
+  `GizmoType.Selected`. Distinct from a *gizmo capture profile* (the headless
+  RL-capture selection): subviews are interactive-editing state, in EditorPrefs,
+  never committed. *(GizmoView, GizmoViewWindow)*
+
+### Art pipeline
+
+- **ship art stage** (1–8) — one of the eight owner-approved steps from concept to
+  lineup review; each starts only after the owner approves the one before. Written
+  "ship art stage 4" or by name ("the flight check"). *(`ship-art-pipeline` skill)*
+- **anatomy** — the fixed set of named child slots (anatomy slots) every chassis prefab
+  has; a hull fills them and never restructures them. *(ShipAnatomyEditModeTests)*
+- **socket** — a named empty transform the hull places (engine emitters, hardpoints), so
+  hull geometry, not the base, positions what mounts there. *(the anatomy's `Sockets`;
+  `role.sockets` in art/tools/ship/README.md)*
+- **role collection** — a Blender collection named for what its contents export as; a
+  part in none is not exported. *(art/tools/ship/README.md)*
+- **geometry lock** — the geometry fingerprint written at flight-check approval;
+  `verify` fails on changed geometry, and only a reopen the owner approves moves it,
+  reporting what it invalidates. *(art/tools/ship/ship_lock.py)*
+- **legacy list** — the ship names not yet migrated; each array exempts only from its
+  own check (`doc/agents/art-pipeline.md` → Legacy list). It only shrinks: each
+  migration deletes one, and the arc closes when it is empty. *(ShipLegacyList)*
+- **name mirror** — one ship name across the chassis prefab, the visuals folder and the
+  art folder (lowercased). *(doc/agents/art-pipeline.md)*
+- **palette region** — a material slot on a visual-role part whose colour every palette
+  in `palettes.json` names; the unit of recolouring. *(art/tools/ship/README.md → Paint
+  settings)*
+- **paint mask** — Shadow, Light or Ink (Emission for painted indicators): a grayscale
+  image on `PaintUV` the drawn-surface shader applies over the region colour. Never
+  "paint layer": *layer* is a collision word; `layers/` is only the folder and
+  `_PaintLayers` only the shader toggle. *(ship_paint.py; DrawnSurface.shader)*
+- **plate** — one connected up-or-down-facing face group of a part (|n·z| ≥
+  `plates.cap_facing`), with its own boundary; the unit the diagonal sweep and the inset
+  ink line are drawn on. *(ship_paint.Part)*
+- **mask baseline** — `layers/baseline/`, the paint tool's own last output, kept so a
+  re-run can separate the owner's edits (mask minus baseline) and carry them onto the
+  new generation. *(ship_paint.py)*
+
+### Infra & tooling
+
+- **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
+  new caller goes through the coordinator; generalize the primitive, never bypass
+  it. *(AGENTS.md wiring §6)*
+- **editor profile / profile receipt** — a coordinator-selected, launch-scoped
+  Unity quality tier (`LowMemory` → `Performant`, `HighFidelity` → `High
+  Fidelity`) / the bootstrap's atomic record of requested-vs-observed values.
+  The coordinator verifies the receipt before handing the editor off, so a
+  mismatch fails the start rather than downgrading silently.
+  *(unity_access.ps1, PR #457)*
+- **producer-owns-outputs** — when one tool's output is another's input, the
+  location and format are the producer's contract; consumers never re-derive
+  paths. *(AGENTS.md §6 corollary)*
+- **player-build tripwire** — merge-gate EditMode lints re-stating what the
+  RLTraining player build needs (asmdef reference closure, scene-script
+  survival, hydrated LFS meshes) without building one — the merge gate never
+  builds a player, so player-only breaks are otherwise invisible (#185, #251).
+  *(PlayerBuildTripwireEditModeTests)*
+- **lane launcher** — the Python library that composes a lane's env, runs the
+  batch child through the coordinator, and reads artifacts back from the dir it
+  named. *(eval_lane.py)*
+- **player eval lane** — the eval lane under player executionMode (a leased
+  editor convert step builds the session's model bundle, the dedicated headless
+  exe runs the sim lease-free), NOT a new `HarnessLane`. Player scores are an
+  uncalibrated executionMode until bundle v2; the editor eval stays the
+  verdict-bearing reference. *(eval_lane.py --exec player, EvalPlayerBoot)*
+- **checkpoint watch** — the discover → per-step-dir → replay-or-run loop
+  extracted from the eval gate; a finished step dir replays instead of
+  re-running. *(checkpoint_watch.py)*
+- **owner lease / boot lane / two-tier lock** — a per-project run claim / the
+  machine-wide startup-only lock / their combination. Pid-backed leases survive
+  TTL; pid-less ones expire and orphan live editors. A **wedged** boot lane — an
+  unowned boot dir the cleanup cannot delete — reports `boot_lane_wedged`
+  (exit 25), never free.
+- **memory admission** — the coordinator's yes/no on whether a Unity boot may
+  start, given memory. Asked read-only through `-Action BootAdmission`, enforced
+  when the boot lane is granted; the refusal is `boot_refused_low_memory`
+  (exit 28), and `-AllowLowMemory` overrides it for one invocation, only after
+  the user approved that specific boot.
+  *(Get-BootAdmission, scripts/unity_access.ps1)*
+- **commit headroom** — commit limit minus commit charge: what a dying Unity
+  boot runs out of, and the only reading memory admission blocks on. Available
+  physical RAM rides along in the verdict and never refuses a boot.
+- **coordinator Adopt** — seize an untracked live Unity process into fresh
+  ownership. Refuses the user's hand-opened editor.
+- **tracked vs user editor** — coordinator-owned versus user-owned. A user editor
+  is never terminated, only asked about.
+- **single-boot mode** — running EditMode and PlayMode in one editor boot
+  (`-Mode Both`). It is a **mode, not a pass/fail check** — which is why the old
+  name was wrong. (Retired: "single-boot gate".)
+- **watchdog note field** — a non-empty `note` in the test summary means the
+  editor hung; empty means healthy.
+- **scratch → promote → park** — gitignored investigation code → committed →
+  archived. Standing rule: **probes that live only as patches do not exist.**
+- **staging** — *retired 2026-10-03*: copying checkpoints and exes into the
+  primary tree so they survive slot recycling. The primary tree takes no agent
+  writes now; the RL tools' staging comments predate that, and where durable RL
+  artifacts live is open on #883 (an orphan branch is favoured).
+- **define churn** — Sentis re-adding its analytics define on interactive loads.
+  Fixed at two registry values; never fix it by committing the define.
+- **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
+  logs (WinError 32). Taskkill by PID, never by image name.
+- **FMOD stub** — `src/fmod-stub/`: the package the hosted suite compiles
+  against in place of FMOD for Unity, which only the local vendor tarball
+  supplies. Only the FMOD types the game touches, every method a no-op; a
+  prefab-visible component keeps FMOD's real script GUID. It grows one member
+  at a time when the hosted suite fails to compile, never ahead of use.
+  *(doc/agents/audio-pipeline.md; #987 ruling 2)*
+
+---
+
+## 3. Deprecated forms
+
+| Retired | Use instead |
+|---|---|
+| council, agent council, agent counsel | **counsel** |
+| yaw-thrash | **facing thrash** (symptom) or **command churn** (cause) |
+| pursuit gap, pursuit ceiling, pursuit-gradient hole | **Evader hole** (deficit) or **pursuit gradient** (mechanism) |
+| entry gate | **entry bar** |
+| single-boot gate | **single-boot mode** |
+| RAM floor | **memory admission** (the verdict decides; no hand-evaluated floor) |
+| main tree | **primary tree** (or prim tree / primary) |
+| program, package, series (as a work grouping) | **arc**, **slice**, or **pass** |
+| ARC COMPLETE | **SHIPPED** or **CLOSED** |
+| PR-N as an identifier | **branch-style arc names** (`vocab-docfix-2`) — for new arcs only |
+| shelve, shelved, shelf, unshelf (work set aside) | **benched** (waits on a dependency or knowledge) or **held** (slot work waiting on the user) |
+| parked, for slot work waiting on the user | **held** |
+| parked arc | **waiting arc** |
+| ledger row, work ledger | *(retired 2026-09-22)* — in-flight state is the pool (`status`, dashboard) plus open PRs |
+| Phase 0–N as a chapter scheme | **stage** (campaign chapter) or an arc **slice** |
+| "Driver:" as a doc header | *(drop it — say what it motivates)* |
+| drain run, drain task | *(retired 2026-10-01)* — the ready queue is built by a **cloud batch**; one item's build is a **cloud build** |
+| decision inbox | *(retired 2026-10-04)* — open questions and PR waits show in the **decisions view**; `ready-for-human` keeps its label meaning |

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f9e6f833c16459549a9a18a7963df5af
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 144868
+  packageName: Asteroids HD
+  packageVersion: 2.0
+  assetPath: Assets/NV3D/HD_Asteroids/Materials/LightA.mat
+  uploadId: 663966

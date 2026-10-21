@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c614a291eb7721547889ae83831c11bc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 144868
+  packageName: Asteroids HD
+  packageVersion: 2.0
+  assetPath: Assets/NV3D/HD_Asteroids/Materials/DarkB.mat
+  uploadId: 663966

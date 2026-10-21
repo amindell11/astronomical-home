@@ -1,0 +1,39 @@
+{
+  "updated_at_utc": "2026-10-07T00:44:43.307038+00:00",
+  "owner_feedback": "That doesn\u2019t match the concept color at all.. are you counting on lighting?",
+  "paint_concept": "concept-05.png",
+  "texture_pass": 2,
+  "texture_approved": false,
+  "flight_approved": false,
+  "geometry_lock_written": false,
+  "uv_layout_approved": false,
+  "geometry_unchanged": true,
+  "uv_unchanged": true,
+  "geometry_fingerprint": "0295e454e717db1006aa102f4fdedea1cb71f9de876f128e47b149ddb3b293e5",
+  "uv_fingerprint": "386d351b1c5508b53b2ea3955582fd4589b65abc06bff89e41241d8ce90d5da6",
+  "source_sha256": "a9ef1b3d7deeceeb10b3830f2021b16f0c4bdb06fea9b6d095616a601724fc8b",
+  "source_check": "pass",
+  "uv_check": "pass",
+  "uv_density_ratio": 1.1267956139728017,
+  "green_light_mask_unchanged": true,
+  "correction": "Replaced faint masks and uniform material fill with stronger painted plane contrast, narrow colored rims, broad pigment variation and blue canopy reflections. Fixed-lighting and unlit views both supplied for review.",
+  "publication": "local only; remote publication awaits owner instruction",
+  "layers": {
+    "Shadow": {
+      "path": "layers/Shadow.png",
+      "sha256": "e873c72eb4b8d3122abdf8f66377da7f7b0edc0959af34cdbf2c9298a73252e9"
+    },
+    "Light": {
+      "path": "layers/Light.png",
+      "sha256": "a378bc207ddc6ef616a084108be0bb5b6b018927ebabddb2f6b6f5f297f7547b"
+    },
+    "Ink": {
+      "path": "layers/Ink.png",
+      "sha256": "3fb660457855e3a5f4ba92bdebc60558a611a9bbdf9635a9493266d4fefd26f3"
+    },
+    "Emission": {
+      "path": "layers/Emission.png",
+      "sha256": "b6c9e1e391ddfc6cdf253dd0d87235ccb8b539c1c6405fdca1f5807ea5e187f5"
+    }
+  }
+}

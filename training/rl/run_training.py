@@ -1,0 +1,112 @@
+"""Asserting long-run training driver (pilot or full): boots a batch-mode editor, runs
+mlagents-learn against the given config, and FAILS unless the trainer exited 0, a
+checkpoint was exported, and the pacing-contract marker was logged. Structurally parallel
+to run_smoke.py (armed batch editor + start flag + log markers). Run from training/rl with
+the venv set up (README.md); coordinate editor access first (skills/unity-access) - this
+boots its own editor and pegs the CPU for the run's whole wall-clock.
+"""
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+from driver_common import (ARMED_MARKER, PACING_MARKER, config_has_self_play, config_run_id,
+                           default_unity_exe, episode_rows, log_contains, wait_for)
+from unity_access import release_editor, start_editor
+
+RL_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RL_DIR.parent.parent
+PROJECT = REPO_ROOT / "src" / "Asteroids3D"
+RESULTS = REPO_ROOT / "results" / "rl-training"
+START_FLAG = RESULTS / "start-play.flag"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=None, help="trainer YAML (default: the full 2M-step config, or the selfplay config under --self-play; use ppo_ship_combat_pilot.yaml for the pilot)")
+    parser.add_argument("--self-play", action="store_true", help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
+    parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's checkpoint_settings run_id)")
+    parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
+    parser.add_argument("--force", action="store_true", help="overwrite the run id's existing results")
+    parser.add_argument("--unity", type=Path, default=None, help="Unity.exe path (default: derived from ProjectVersion.txt)")
+    parser.add_argument("--boot-timeout", type=float, default=1800.0, help="seconds to wait for the editor to arm")
+    parser.add_argument("--run-timeout", type=float, default=172800.0, help="seconds to wait for the trainer to finish (default 48h; training is frame-rate-bound)")
+    args = parser.parse_args()
+    if args.resume and args.force:
+        parser.error("--resume and --force are mutually exclusive")
+
+    unity = args.unity or default_unity_exe(PROJECT)
+    config = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
+    # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
+    if args.self_play and not config_has_self_play(config):
+        parser.error(f"--self-play passed but {config.name} has no self_play: block — "
+                     "the trainer would run without a ghost league")
+    if config_has_self_play(config) and not args.self_play:
+        parser.error(f"{config.name} has a self_play: block but --self-play was not passed — "
+                     "the harness would compose the scripted roster")
+    run_id = args.run_id or config_run_id(config)
+    onnx = RESULTS / run_id / "ShipCombat.onnx"
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    START_FLAG.unlink(missing_ok=True)
+    editor_log = RESULTS / f"{run_id}-editor.log"
+    editor_log.unlink(missing_ok=True)
+
+    # An inherited RL_SMOKE would silently shrink the run; an inherited RL_SELFPLAY would bypass the cross-check.
+    editor_env = {k: v for k, v in os.environ.items() if k not in ("RL_SMOKE", "RL_SELFPLAY")}
+    if args.self_play:
+        editor_env["RL_SELFPLAY"] = "1"
+    lease = f"rl-{run_id}"
+    editor_pid = start_editor(
+        lease, PROJECT,
+        ["-batchmode", "-nographics",
+         "-executeMethod", "RL.Hosts.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
+         "-logFile", str(editor_log)],
+        unity, editor_env)
+    print(f"editor pid {editor_pid} (owned by unity-access lease {lease})")
+    trainer = None
+    try:
+        wait_for(lambda: log_contains(editor_log, ARMED_MARKER), "editor to arm", args.boot_timeout)
+
+        trainer_cmd = [str(RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"),
+                       str(config), "--run-id", run_id]
+        if args.resume:
+            trainer_cmd.append("--resume")
+        if args.force:
+            trainer_cmd.append("--force")
+
+        trainer_log = RESULTS / f"{run_id}-trainer.log"
+        with open(trainer_log, "w") as tl:
+            trainer = subprocess.Popen(trainer_cmd, cwd=RL_DIR, stdout=tl, stderr=subprocess.STDOUT)
+        wait_for(lambda: log_contains(trainer_log, "Listening on port"), "trainer to listen", 300.0)
+
+        START_FLAG.touch()
+        wait_for(lambda: trainer.poll() is not None, "trainer to finish", args.run_timeout, poll_s=30.0)
+        if trainer.returncode != 0:
+            sys.exit(f"FAIL: mlagents-learn exited {trainer.returncode} (see {trainer_log})")
+    finally:
+        if trainer and trainer.poll() is None:
+            trainer.kill()
+        release_editor(lease, PROJECT, editor_env)
+
+    failures = []
+    if not onnx.exists():
+        failures.append(f"no checkpoint exported at {onnx}")
+    log_text = editor_log.read_text(errors="replace")
+    if PACING_MARKER not in log_text:
+        failures.append(f"pacing-contract marker '{PACING_MARKER}' missing from {editor_log}")
+    rows = episode_rows(log_text)
+    if rows:
+        _, terminals, truncations = rows[-1]
+        print(f"episodes={len(rows)} terminals={terminals} truncations={truncations}")
+
+    if failures:
+        sys.exit("FAIL:\n  " + "\n  ".join(failures))
+    print(f"PASS: training run '{run_id}' complete")
+    print(f"  checkpoints: {RESULTS / run_id}")
+    print(f"  final onnx:  {onnx}")
+    print(f"  tensorboard: .venv\\Scripts\\tensorboard --logdir {RESULTS}")
+
+
+if __name__ == "__main__":
+    main()

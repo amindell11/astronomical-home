@@ -1,0 +1,8 @@
+{
+  "shadow_strength": 1.02,
+  "light_strength": 0.2,
+  "ink_strength": 1.5,
+  "light_color_linear": [0.82, 0.93, 0.88, 1],
+  "ink_color_linear": [0.006, 0.012, 0.018, 1],
+  "palette": "jade-iris"
+}

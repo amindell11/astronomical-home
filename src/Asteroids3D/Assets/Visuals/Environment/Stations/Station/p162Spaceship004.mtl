@@ -1,0 +1,14 @@
+# Blender 5.0.1 MTL File: 'p_162_Spaceship_004.blend'
+# www.blender.org
+
+newmtl ScifiTrim_3
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ns C:/roughness.png
+map_refl C:/metallic.png
+map_Ke C:/emission.png
+map_Bump -bm 1.000000 C:/normal.png

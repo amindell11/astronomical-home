@@ -1,0 +1,9 @@
+# Human-readable intent; installs go through requirements.lock.txt (the pip-freeze of this resolve).
+# Paired with Unity package com.unity.ml-agents 4.0.3 (release_23); Python 3.10.12 exactly (.python-version).
+mlagents==1.1.0
+mlagents-envs==1.1.0
+# torch >= 2.9 routes torch.onnx.export through the dynamo/onnxscript path, breaking mlagents 1.1.0 checkpoint export.
+# For CUDA on Windows: pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cu121
+torch==2.2.2
+# mlagents imports pkg_resources, removed in setuptools >= 81.
+setuptools<81

@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "stage": "final",
+  "width": 2048,
+  "height": 2048,
+  "palette": {
+    "base": [
+      0.015,
+      0.001,
+      0.055
+    ],
+    "primary": [
+      0.35,
+      0.008,
+      0.52
+    ],
+    "secondary": [
+      0.018,
+      0.18,
+      0.72
+    ],
+    "accent": [
+      0.75,
+      0.025,
+      0.16
+    ]
+  },
+  "provenance": {
+    "blender_version": "5.1.2",
+    "generator": "4D torus clouds v1",
+    "samples": 8,
+    "render_seconds": 0.9446060000045691,
+    "preset": {
+      "schema_version": 1,
+      "nebula": {
+        "variation": 0,
+        "scale": 1.0,
+        "stretch": [
+          0.62,
+          1.05,
+          0.62
+        ],
+        "rotation": [
+          0.2,
+          -0.35,
+          0.58
+        ],
+        "coverage": 0.0,
+        "core_emission": 1.5,
+        "palette": [
+          [
+            0.015,
+            0.001,
+            0.055
+          ],
+          [
+            0.35,
+            0.008,
+            0.52
+          ],
+          [
+            0.018,
+            0.18,
+            0.72
+          ],
+          [
+            0.75,
+            0.025,
+            0.16
+          ]
+        ]
+      },
+      "tiny_stars": {
+        "brightness": 0.0,
+        "legacy_seed": 7319.0
+      },
+      "anchor_brightness": 1.0,
+      "anchors": [
+        {
+          "direction": [
+            0.78,
+            -0.36,
+            0.51
+          ],
+          "radius": 0.055,
+          "color": [
+            0.55,
+            0.72,
+            1.0
+          ],
+          "strength": 420.0
+        },
+        {
+          "direction": [
+            -0.43,
+            -0.81,
+            0.4
+          ],
+          "radius": 0.07,
+          "color": [
+            1.0,
+            0.47,
+            0.17
+          ],
+          "strength": 260.0
+        },
+        {
+          "direction": [
+            -0.7,
+            0.31,
+            -0.64
+          ],
+          "radius": 0.05,
+          "color": [
+            0.52,
+            0.66,
+            1.0
+          ],
+          "strength": 600.0
+        },
+        {
+          "direction": [
+            0.18,
+            0.91,
+            0.37
+          ],
+          "radius": 0.062,
+          "color": [
+            1.0,
+            0.78,
+            0.45
+          ],
+          "strength": 360.0
+        },
+        {
+          "direction": [
+            0.52,
+            0.43,
+            -0.74
+          ],
+          "radius": 0.045,
+          "color": [
+            0.7,
+            0.82,
+            1.0
+          ],
+          "strength": 850.0
+        }
+      ]
+    },
+    "migration": [
+      "Palette, variation, scale, coverage and core emission retain their authoring roles.",
+      "Stretch X/Y control torus radii; stretch Z controls cloud detail.",
+      "Rotation X/Y shift periodic phases; rotation Z offsets the 4D field.",
+      "Tiny stars, their seed, focal-star brightness and all anchors are ignored; stars belong to Unity.",
+      "Spherical cloud positions are regenerated; historical panoramas are not visually reproduced."
+    ]
+  }
+}

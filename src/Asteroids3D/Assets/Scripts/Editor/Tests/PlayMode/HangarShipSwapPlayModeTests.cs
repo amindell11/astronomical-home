@@ -1,0 +1,124 @@
+#if UNITY_EDITOR
+using System.Collections;
+using Cameras;
+using Game;
+using Substrate.Sessions;
+using NUnit.Framework;
+using Ships;
+using Tests.PlayMode.Common;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Ships.Registry;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Objectives;
+
+namespace Tests.PlayMode
+{
+    /// <summary>
+    /// The hangar's ship change is a whole-player rebuild (PlayerRig.ApplyLoadout →
+    /// RebuildPlayer): the old ship despawns, a fresh build of the chosen prefab takes its place
+    /// with the standard wiring re-run, and the injected death callback follows the new instance.
+    /// Uses the real PlayerRig prefab + a real unit service — this is the integration seam the
+    /// between-run flow drives.
+    /// </summary>
+    // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
+    [Category("RequiresGraphics")]
+    public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
+    {
+        private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
+        private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
+
+        private GameObject servicesGo;
+        private PlayerRig rig;
+        private ObserverCam observer;
+        private UnitService unitService;
+
+        public override void TearDown()
+        {
+            if (rig) rig.Teardown();
+            if (unitService) unitService.Clear();
+            DestroyTestObject(rig ? rig.gameObject : null);
+            DestroyTestObject(observer ? observer.gameObject : null);
+            DestroyTestObject(servicesGo);
+            base.TearDown();
+        }
+
+        private IEnumerator BuildRig(System.Action<ShipId, Damage.DamageInfo> onPlayerDeath = null)
+        {
+            servicesGo = new GameObject("TestServices");
+            unitService = servicesGo.AddComponent<UnitService>();
+            var objectiveService = servicesGo.AddComponent<ObjectiveService>();
+            ShipServices.Compose(unitService, servicesGo.transform, presentationEnabled: false);
+
+            observer = TestAssets.NewObserverCam();
+            var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
+            Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
+            rig = Object.Instantiate(rigPrefab);
+            yield return rig.Build(unitService, objectiveService, presentationEnabled: false, observer,
+                servicesGo.transform, new SessionFrame(Vector2.zero), onPlayerDeath: onPlayerDeath);
+            Assert.IsNotNull(rig.Player, "rig built a player");
+        }
+
+        [UnityTest]
+        public IEnumerator ShipChange_RebuildsPlayer_WithNewTemplateAndWiring()
+        {
+            yield return BuildRig();
+
+            var oldShip = rig.Player;
+            var oldId = oldShip.Id;
+
+            var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
+            Assert.IsNotNull(vanguard, "Vanguard prefab loads");
+            Assert.AreNotEqual("Vanguard(Clone)", oldShip.name, "test premise: rig does not start on Vanguard");
+
+            rig.Loadout.Ship = vanguard;
+            rig.Loadout.Engine = vanguard.Engine;
+            rig.Loadout.Shield = vanguard.Shield;
+            rig.ApplyLoadout();
+
+            Assert.AreNotSame(oldShip, rig.Player, "a new player instance was built");
+            Assert.AreEqual("Vanguard(Clone)", rig.Player.name, "new player comes from the chosen template");
+            Assert.AreEqual("Player", rig.Player.tag, "player wiring re-ran on the new instance");
+            Assert.IsFalse(unitService.Registry.TryGetShip(oldId, out _),
+                "old ship left the registry");
+            Assert.IsTrue(unitService.Registry.TryGetShip(rig.Player.Id, out _),
+                "new ship is registered");
+
+            yield return null; // let Destroy(oldShip) finalize
+            Assert.IsTrue(oldShip == null, "old player instance was destroyed");
+        }
+
+        [UnityTest]
+        public IEnumerator SameShip_LaunchDoesNotRebuild()
+        {
+            yield return BuildRig();
+            var shipBefore = rig.Player;
+
+            rig.ApplyLoadout(); // unedited loadout — same template
+
+            Assert.AreSame(shipBefore, rig.Player, "unchanged ship pick must not rebuild the player");
+        }
+
+        [UnityTest]
+        public IEnumerator ShipChange_DeathCallbackFollowsNewShip()
+        {
+            var died = false;
+            yield return BuildRig((_, _) => died = true);
+
+            var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
+            rig.Loadout.Ship = vanguard;
+            rig.Loadout.Engine = vanguard.Engine;
+            rig.Loadout.Shield = vanguard.Shield;
+            rig.ApplyLoadout();
+
+            var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
+            rig.Player.Damage.TakeDamage(new Damage.DamageInfo(lethal, Damage.DamageKind.Laser,
+                ShipId.Invalid, 0f, Vector3.zero, rig.Player.transform.position));
+
+            Assert.IsTrue(died, "injected death callback re-armed on the rebuilt player");
+        }
+    }
+}
+#endif

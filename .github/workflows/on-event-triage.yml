@@ -1,0 +1,55 @@
+name: on-event-triage
+
+# No pull_request trigger: fork PRs must never run this workflow or reach its secrets.
+# Label and comment writes go out under GITHUB_TOKEN, so they never trigger a workflow.
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue to triage
+        required: true
+        type: string
+      dry_run:
+        description: Print every write instead of running it
+        type: boolean
+        default: true
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: on-event-triage-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: false
+
+      # The pinned CLI declares node >=22; an older runtime installs with an engine warning only.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.280
+
+      # scripts/on_event_triage.sh owns the run; its trailers and the job summary are the report.
+      - name: Triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          flag=""
+          [ "$DRY_RUN" != true ] || flag=--dry-run
+          bash scripts/on_event_triage.sh --event "$GITHUB_EVENT_PATH" $flag

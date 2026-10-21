@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# covers: scripts/agent_worktree_pool.sh
+
+# Regression for the shared PR seams (#456): one flag grammar for create-pr/submit, a PR lookup
+# that refuses a missing head branch, and the single-owner Unity churn classifier the pool shells
+# out to. Every case here fails before any network or gh call, so the suite stays hermetic.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
+CHURN="$SCRIPT_DIR/../lib/unity_churn.ps1"
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
+
+fail() { echo "FAIL: $1" >&2; exit 1; }
+
+git init -q --bare -b main "$TMP/origin.git"
+git clone -q "$TMP/origin.git" "$TMP/primary"
+git -C "$TMP/primary" config user.email pool-test@example.test
+git -C "$TMP/primary" config user.name "Pool Test"
+mkdir -p "$TMP/primary/src/Asteroids3D/ProjectSettings" "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles"
+printf 'base\n' > "$TMP/primary/file.txt"
+printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2\n' \
+  > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
+printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2'
+"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
+git -C "$TMP/primary" add -A
+git -C "$TMP/primary" commit -qm init
+git -C "$TMP/primary" push -q origin main
+git -C "$TMP/primary" worktree add -q -b agent-1 "$TMP/agent-1" main
+cd "$TMP/primary"
+
+pool() { bash "$POOL" "$@"; }
+
+# --- flag grammar: both commands reject the same shapes, and reject them before gh -----------
+expect_reject() {
+  local why="$1"; shift
+  local out rc=0
+  out="$(pool "$@" 2>&1)" || rc=$?
+  [[ "$rc" -ne 0 ]] || fail "$why (command succeeded)"
+  printf '%s' "$out"
+}
+
+out="$(expect_reject "create-pr must require --title" create-pr agent-1 --body "b")"
+[[ "$out" == *"missing required --title"* ]] || fail "create-pr should name the missing --title (got: $out)"
+
+out="$(expect_reject "create-pr must reject --body with --body-file" \
+  create-pr agent-1 --title t --body b --body-file "$TMP/primary/file.txt")"
+[[ "$out" == *"mutually exclusive"* ]] || fail "create-pr should reject --body + --body-file (got: $out)"
+
+out="$(expect_reject "create-pr must reject an unknown flag" create-pr agent-1 --title t --body b --nope)"
+[[ "$out" == *"unknown argument: --nope"* ]] || fail "create-pr should name the unknown flag (got: $out)"
+
+out="$(expect_reject "create-pr must reject test args" create-pr agent-1 --title t --body b -- -Mode EditMode)"
+[[ "$out" == *"'--' is not accepted"* ]] || fail "create-pr takes no test-runner args (got: $out)"
+
+out="$(expect_reject "submit must reject an unknown flag before --" submit agent-1 --title t --body b --nope)"
+[[ "$out" == *"test-runner args go after '--'"* ]] || fail "submit should point at '--' (got: $out)"
+
+# The regression this seam exists for: a bare word was silently collected as a test arg.
+out="$(expect_reject "submit must reject a bare positional before --" submit agent-1 --title t --body b -Mode EditMode)"
+[[ "$out" == *"unexpected argument '-Mode'"* ]] \
+  || fail "submit should refuse a bare positional before '--' (got: $out)"
+
+out="$(expect_reject "submit must require a body" submit agent-1 --title t -- -Mode EditMode)"
+[[ "$out" == *"missing required --body"* ]] || fail "submit should validate flags before running tests (got: $out)"
+
+# --- a negated closing keyword still closes on merge: refused before anything runs ----------
+rc=0; out="$(pool create-pr agent-1 --title t --body $'Summary.\nDoes not close #617; the arc stays open.' 2>&1)" || rc=$?
+[[ "$rc" -eq 2 ]] || fail "create-pr should exit 2 on a negated close (rc=$rc, got: $out)"
+[[ "$out" == *"line 2: Does not close #617; the arc stays open."* && "$out" == *'"Relates to #617"'* ]] \
+  || fail "create-pr should print the offending line and the rewording (got: $out)"
+
+printf "Won't fix: #12\n" > "$TMP/negated-body.md"
+rc=0; out="$(pool submit agent-1 --title t --body-file "$TMP/negated-body.md" -- -Mode EditMode 2>&1)" || rc=$?
+[[ "$rc" -eq 2 && "$out" == *"line 1: Won't fix: #12"* ]] || fail "submit should refuse a negated close in a body file (rc=$rc, got: $out)"
+
+# --- a quoted or mid-line closing keyword closes too: only a line-leading "Closes #N" passes --
+rc=0; out="$(pool create-pr agent-1 --title t --body $'Triage.\nThe body says \'Closes #286\' for its issue.' 2>&1)" || rc=$?
+[[ "$rc" -eq 2 && "$out" == *"line 2: The body says 'Closes #286' for its issue."* && "$out" == *'"Refs #286"'* ]] \
+  || fail "create-pr should refuse a quoted closing keyword (rc=$rc, got: $out)"
+for body in "lists 'closes #621'" "This also fixes #5." 'Mentions `Resolves #7`.' 'Closes #1, fixes #2' \
+    'Fixes octo-org/octo-repo#100' "Doesn't close octo-org/octo-repo#100"; do
+  rc=0; printf '%s\n' "$body" | python3 "$SCRIPT_DIR/../lib/negated_close.py" 2>/dev/null || rc=$?
+  [[ "$rc" -eq 2 ]] || fail "negated_close.py should refuse '$body' (rc=$rc)"
+done
+out="$(printf 'Fixes octo-org/octo-repo#100\n' | python3 "$SCRIPT_DIR/../lib/negated_close.py" 2>&1)" || true
+[[ "$out" == *'"Refs octo-org/octo-repo#100"'* ]] || fail "a cross-repo reference should be named whole (got: $out)"
+
+# The check passes these bodies, so the run goes on to the (empty) slot's no-commits skip; the gh
+# stub only satisfies require_gh and fails any real call.
+mkdir -p "$TMP/bin"
+printf '#!/usr/bin/env bash\necho "unexpected gh call: $*" >&2\nexit 99\n' > "$TMP/bin/gh"
+chmod +x "$TMP/bin/gh"
+for body in "Closes #617." "Closes octo-org/octo-repo#100" $'Summary.\n  Closes #617\nCloses #618\nRefs #619' "Not closing #617: GitHub has no 'closing' keyword." "No issue refs at all."; do
+  rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 --title t --body "$body" 2>&1)" || rc=$?
+  [[ "$rc" -eq 0 && "$out" == *"no commits ahead"* ]] || fail "create-pr should accept '$body' (rc=$rc, got: $out)"
+done
+
+# --- PR lookup refuses a missing head branch ---------------------------------------------
+# Sourced, not executed: the guard at the foot of the pool script leaves the functions defined.
+set +u
+# shellcheck disable=SC1090
+source "$POOL"
+set -u
+if pr_number_for_pushed_head "" main >/dev/null 2>&1; then
+  fail "pr_number_for_pushed_head must refuse an empty head branch rather than listing every PR"
+fi
+
+# --- a body file reaches gh as a path, never inlined onto the command line -------------------
+big_body="$TMP/big-body.md"
+head -c 45000 /dev/zero | tr '\0' 'x' > "$big_body"
+(
+  git() { :; }
+  gh() {
+    if [[ "$1 $2" == "pr create" ]]; then printf '%s\n' "$@" > "$TMP/gh-create-args"; echo "https://example.test/pr/1"; fi
+  }
+  PR_TITLE=t PR_BODY="" PR_BODY_FILE="$big_body"
+  push_and_open_pr "$TMP/agent-1" agent-1 main task/big >/dev/null
+)
+grep -qxF -- "--body-file" "$TMP/gh-create-args" || fail "gh pr create should receive --body-file for a body file"
+grep -qxF -- "$big_body" "$TMP/gh-create-args" || fail "gh pr create should receive the body file's path"
+! grep -qxF -- "--body" "$TMP/gh-create-args" || fail "a body file must not be inlined as --body"
+
+# --- churn classifier is the single owner of the restore allowlist ------------------------
+churn() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$CHURN" -WorktreePath "$1"; }
+
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "a clean worktree is not unexpected churn"
+
+printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED\n' \
+  > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the analytics define flip is the known churn"
+
+printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED'
+"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in both files together is the known churn"
+
+git -C "$TMP/primary" restore --worktree -- src/Asteroids3D/ProjectSettings
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in the Main build profile alone is the known churn"
+
+printf 'edited\n' > "$TMP/primary/file.txt"
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "a real edit alongside the churn is NOT allowlisted"
+
+git -C "$TMP/primary" restore --worktree -- .
+printf 'edited\n' > "$TMP/primary/file.txt"
+[[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "an unrelated tracked edit is not allowlisted"
+
+echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + body-file pass-through + single-owner churn classifier"

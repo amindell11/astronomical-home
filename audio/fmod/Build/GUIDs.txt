@@ -1,0 +1,15 @@
+{0a75aa53-831f-45a5-97ce-8fd31cc4d649} bank:/Master
+{92688a87-f264-09e7-1187-052ded37d0d1} bank:/Master.strings
+{56d0553b-e4a9-4f30-96f1-4d4006cb1b6c} bank:/Weapons
+{2fbb1511-ccb2-4fd2-9a27-eff30263dc28} bus:/
+{b6cda0c2-7027-4991-bd43-4273b51b9f17} bus:/Reverb
+{02407836-9e22-442e-ba8f-26cd90bbedaf} event:/Weapons/ChargeLaser/Fire
+{7c08ffa3-bf3c-4e03-ad3c-00e493d15ca3} event:/Weapons/Grenade/Detonate
+{62593044-5f9e-4bae-8319-e2a92c98f95f} event:/Weapons/Grenade/Fire
+{85adae07-467f-4762-912e-f9fb33647da8} event:/Weapons/Laser/Fire
+{33e07935-6fe3-4380-bd87-3352f889cdfc} event:/Weapons/Railgun/Fire
+{8508d72d-7646-428e-a140-8943fd4e0f7c} event:/Weapons/Railgun/Impact
+{80b0450c-a844-41ea-be3b-7fe299907a15} event:/Weapons/Ripper/Fire
+{4ec23bc7-e0d8-4ec9-9424-65f4b65fbe6e} event:/Weapons/TurboLaser/Fire
+{9b0393d6-205e-4eb0-a426-7add98b47136} parameter:/Charge
+{c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat

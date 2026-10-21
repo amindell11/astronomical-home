@@ -1,0 +1,158 @@
+{
+  "_comment": "Scope-name -> test-selection map for unity_test_agent.ps1. FEATURES resolve to a friendly name-regex (-ScopeType Feature -ScopeName <key>); curated, human-picked, may go stale on rename. MODULES carry only 'paths' (repo-relative forward-slash globs): -ScopeType Auto maps changed files to modules and -ScopeType Module <name> names one, then BOTH derive the run from the domain [Category] tags on the fixtures those paths cover (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md) rather than a hand-maintained test-name list -- so a new fixture in an already-mapped domain is picked up with zero map upkeep. A changed file matching no module glob, or a matched module whose paths cover no tagged fixture, makes Auto fall back to the full Workspace suite, so leaving ambiguous areas unmapped is safe. Speed/selector overlays (Smoke/Slow/RequiresGraphics) never seed a scope; the Smoke category is always added.",
+  "smoke": {
+    "testFilter": "CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|ForcesEditModeTests"
+  },
+  "features": {
+    "camera": {
+      "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
+    },
+    "navigation": {
+      "testFilter": "MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|LosCostEditModeTests"
+    },
+    "navigation_perf": {
+      "testFilter": "MpcPerformancePlayModeTests"
+    },
+    "scanning": {
+      "testFilter": "ScannerPlayMode"
+    },
+    "ai": {
+      "testFilter": "AiCommanderDeterminismPlayMode|ScannerPlayMode"
+    },
+    "physics": {
+      "testFilter": "CollisionDamageUtilityTests|ForcesEditModeTests|FragneticsCalculatorEditModeTests"
+    },
+    "weapons": {
+      "testFilter": "HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch|ParentedEntityIdentityPlayMode"
+    },
+    "targeting": {
+      "testFilter": "LockOnRegistryWiring|LockOnRegressionEditModeTests"
+    },
+    "objectives": {
+      "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests"
+    },
+    "sectors": {
+      "testFilter": "SectorCompositionPlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests|MultiArenaSmokePlayMode"
+    },
+    "damage": {
+      "testFilter": "ShipRespawnDamagePlayMode|CollisionDamageUtilityTests"
+    },
+    "ui": {
+      "testFilter": "UILifecyclePlayMode|EventDrivenRefactorEditModeTests"
+    },
+    "ships": {
+      "testFilter": "ShipChildComponentStatePlayMode"
+    },
+    "services": {
+      "testFilter": "ServiceContractsEditModeTests"
+    },
+    "bootstrap": {
+      "testFilter": "SessionContractsEditModeTests|GameHostRigPlayModeTests"
+    }
+  },
+  "modules": {
+    "ai": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/AI/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TacticalObservationEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/AiCommanderDeterminismPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/AgentDecisionSeedPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ScannerPlayModeTests.cs*"
+      ]
+    },
+    "rlharness": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/RL/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RL*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/RL*"
+      ]
+    },
+    "mpc": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/AI/Navigation/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Mpc*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/LosCostEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/MultiSphereObstacleEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObstacleSelectionEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavigatorIdleGateEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TwoArenaIsolationEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcNavigatorPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcPerformancePlayModeTests.cs*"
+      ]
+    },
+    "combat": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/Combat/**",
+        "src/Asteroids3D/Assets/Scripts/Ships/Weapons/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/HeatEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ChargeTimeEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RoundsReloadEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ConcussionGrenadeEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/LockOnRegressionEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/WeaponHardpointEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/HeatOverheatStressPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MissileGuidancePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ConcussionGrenadePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/LockOnRegistryWiringPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponCommandDispatchPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponTriggerSemanticsPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponReequipPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ParentedEntityIdentityPlayModeTests.cs*"
+      ]
+    },
+    "sectors": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/Substrate/Sectors/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorActivationEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorManifestSyncEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EncounterLifecycleEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorCompositionPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TriggerVolumeActivationPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EncounterLifecyclePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MultiArenaSmokePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/LocalePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RespawnEditModeTests.cs*"
+      ]
+    },
+    "objectives": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/Objectives/**",
+        "src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Objective*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/KeyPickupObjectivePlayModeTests.cs*"
+      ]
+    },
+    "asteroids": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/Asteroids/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Asteroid*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/FragneticsCalculatorEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ObstacleFieldQueryPlayModeTests.cs*"
+      ]
+    },
+    "ui": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/UI/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Hangar/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/LoadingSplashEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EventDrivenRefactorEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/MinimapLayerSetterEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Hangar*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/UILifecyclePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponHudBindingPlayModeTests.cs*"
+      ]
+    },
+    "utils": {
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/Utils/CollisionDamageUtility.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/CollisionDamageUtilityTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/CameraUtilsEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ForcesEditModeTests.cs*"
+      ]
+    },
+    "workspace": {
+      "testFilter": ""
+    }
+  }
+}

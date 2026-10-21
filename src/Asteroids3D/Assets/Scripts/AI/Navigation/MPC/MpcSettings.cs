@@ -1,0 +1,141 @@
+using UnityEngine;
+
+namespace AI.Navigation.MPC
+{
+    [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
+    public class MpcSettings : ScriptableObject
+    {
+        [Header("Solver")]
+        [Tooltip("Total lookahead time in seconds. Longer = smoother paths but slower to react.")]
+        public float horizonSeconds = 1.5f;
+        [Tooltip("Time step between rollout samples. Smaller = finer resolution but more steps per horizon.")]
+        public float rolloutDt = 0.1f;
+        [Tooltip("Number of random control sequences evaluated each solve step.")]
+        public int samples = 128;
+        [Tooltip("Standard deviation of Gaussian noise added to the warm-start sequence for exploration.")]
+        public float noiseStd = 0.25f;
+        [Tooltip("Number of noise knots spread evenly over the horizon. Gaussian noise is drawn " +
+                 "at each knot and linearly interpolated between them (time-correlated exploration), " +
+                 "so one draw can hold a maneuver for several steps. 2 = one linear ramp across the " +
+                 "whole horizon; higher = choppier, approaching per-step i.i.d. noise.")]
+        [Range(2, 16)]
+        public int noiseKnots = 5;
+        [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
+        [Range(0.01f, 0.5f)]
+        public float eliteFraction = 0.1f;
+
+        [Header("Tracking")]
+        [Tooltip("Weight on the velocity-tracking objective: cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². " +
+                 "Per-step (un-ramped) so tracking is uniform across the horizon rather than terminal-weighted.")]
+        public float wVelTrack = 5f;
+        [Tooltip("Reference speed in m/s for VEL decode scaling — the speed a full-authority direction head " +
+                 "commands. Near cruise speed; rig-tuned (the bingo card's authored speeds top out ~12). " +
+                 "No consumer until the Stage C3 decode lands.")]
+        public float speedRef = 12f;
+        [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
+        public float wYawRate = 0.1f;
+        [Tooltip("Peak multiplier for state costs at the end of the horizon. " +
+                 "Ramps up from 0 at step 0 to this value at the final step, shaped by terminalCurve.")]
+        public float terminalMultiplier = 10f;
+        [Tooltip("Exponent shaping the terminal ramp. 1 = linear, >1 = late ramp (convex), <1 = early ramp (concave).")]
+        public float terminalCurve = 1f;
+
+        [Header("Control")]
+        [Tooltip("Effort cost weight. Penalizes large control inputs (thrust, strafe, yaw torque).")]
+        public float wEffort = 0.05f;
+        [Tooltip("Smoothness weight for thrust changes between steps. Reduces forward/back jitter.")]
+        public float wSmoothnessThrust = 0.005f;
+        [Tooltip("Smoothness weight for strafe changes between steps. High value suppresses lateral oscillation.")]
+        public float wSmoothnessStrafe = 0.05f;
+        [Tooltip("Smoothness weight for yaw torque changes between steps. Reduces rotational jitter.")]
+        public float wSmoothnessYaw = 0.002f;
+        [Tooltip("Momentum cost weight. Penalizes velocity direction changes, rewarding smooth trajectories that maintain course.")]
+        public float wMomentum = 0f;
+
+        [Header("Aim")]
+        [Tooltip("Facing weight. Steers the nose toward the intercept-lead angle (or an explicit facing override).")]
+        public float wFacing = 1.0f;
+        [Tooltip("Facing Huber dead-zone width in radians. Errors within this range get a gentle quadratic penalty; beyond it cost grows linearly.")]
+        public float facingWidth = 0.5f;
+        [Tooltip("Velocity-aligned facing prior weight — the weight-0 delegation floor: with facing authority at 0 " +
+                 "the nose eases toward the direction of travel instead of drifting. Keep well below wFacing so it " +
+                 "only wins when the commanded facing abstains. 0 disables (production default).")]
+        public float wFacingPrior = 0f;
+
+        [Header("Position")]
+        [Tooltip("POS ceiling: the sentence slot's signed authority multiplies this weight. The term is " +
+                 "normalized 0-1 (saturating), so the ceiling is what trades it off against wFacing/wVelTrack. " +
+                 "Inert until a decision arms a POS slot.")]
+        public float wPos = 1f;
+        [Tooltip("POS saturation half-width in meters: a position error of this size costs 0.5; the cost " +
+                 "saturates toward 1 beyond it (err² / (err² + posWidth²)), keeping far-away errors bounded.")]
+        public float posWidth = 10f;
+        [Tooltip("Error-relative POS width slope: each solve widens the saturation to " +
+                 "max(posWidthSlope × initial ring error, posWidth), so a distant point keeps a usable " +
+                 "gradient while posWidth stays the near-field settle floor. 0 disables (fixed width). " +
+                 "2/3 is the bingo card's minefield 90→60 ratio, verified as the transit threshold on the rig.")]
+        public float posWidthSlope = 2f / 3f;
+
+        [Header("Lane")]
+        [Tooltip("LANE ceiling: the sentence slot's signed authority multiplies this weight. Positive " +
+                 "authority holds the enemy's fire lane, negative dodges it. Inert until a decision arms LANE.")]
+        public float wLane = 1f;
+        [Tooltip("Lane segment length in meters along the enemy's facing — how far downrange the fire lane reaches.")]
+        public float laneRange = 60f;
+        [Tooltip("LANE saturation half-width in meters: a lateral error of this size costs 0.5; the cost " +
+                 "saturates toward 1 beyond it, keeping far-off-lane errors bounded.")]
+        public float laneWidth = 8f;
+
+        [Header("Obstacle Avoidance")]
+        [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
+                 "into an obstacle that the ship's lateral thrust can no longer sidestep before " +
+                 "reaching it (collision-course-gated, continuous, C1 at the boundary). Obstacles " +
+                 "the ship already passes clear of cost nothing — a weaving pursuer steers around " +
+                 "off-course rocks for free.")]
+        public float wObstacle = 5f;
+        [Tooltip("Fixed cost added for every rollout step whose (bank-narrowed) hull overlaps an obstacle. " +
+                 "Near-binary: must decisively dominate any per-step stage cost (>=10x) so colliding " +
+                 "rollouts never win the elite set.")]
+        public float collisionPenalty = 10000f;
+        [Tooltip("Constant safety margin added to the hull radius in the collision test, absorbing " +
+                 "model error. Deliberately NOT speed-scaled — speed safety is the admissibility term's job.")]
+        public float collisionSafetyMargin = 0.3f;
+        [Tooltip("Represent each asteroid by its baked lobe spheres (1–3) instead of one volume-" +
+                 "derived covering circle, freeing the space beside an elongated rock that the " +
+                 "single circle blocked. Kill switch: OFF reverts to single-circle-per-rock. " +
+                 "Unbaked obstacles and ships are single circles either way.")]
+        public bool multiSphereObstacles = true;
+
+        public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
+
+        public Config ToConfig(float facingTargetRad = float.NaN)
+        {
+            return new Config
+            {
+                dt = rolloutDt,
+                horizon = Horizon,
+                wYawRate = wYawRate,
+                terminalMultiplier = terminalMultiplier,
+                terminalCurve = terminalCurve,
+                wEffort = wEffort,
+                wSmoothnessThrust = wSmoothnessThrust,
+                wSmoothnessStrafe = wSmoothnessStrafe,
+                wSmoothnessYaw = wSmoothnessYaw,
+                wMomentum = wMomentum,
+                wFacing = wFacing,
+                facingWidth = facingWidth,
+                facingTarget = facingTargetRad,
+                wFacingPrior = wFacingPrior,
+                wPos = wPos,
+                posWidth = posWidth,
+                wLane = wLane,
+                laneRange = laneRange,
+                laneWidth = laneWidth,
+                wObstacle = wObstacle,
+                collisionPenalty = collisionPenalty,
+                collisionSafetyMargin = collisionSafetyMargin,
+                wVelTrack = wVelTrack,
+            };
+        }
+    }
+}

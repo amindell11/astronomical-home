@@ -1,0 +1,3 @@
+Built-in image generation; edit of generated-blue-nebula-concept.png from the September 24 asteroid study.
+
+Use case: precise-object-edit. Input image 1 is the edit target. Create a clean background plate for a Unity game style comparison. Remove EVERY foreground asteroid and rock, including all partial rocks at the borders, and remove the small spaceship and green status bar near the lower center. Fill their areas seamlessly with the surrounding painted nebula and stars. Preserve the original composition, blue/cyan/purple palette, broad nebula bands, deep navy negative space, visible painterly brushwork, and stars everywhere else. Only the empty nebula starfield should remain. No rocks, no ships, no UI, no text. Preserve wide landscape framing.

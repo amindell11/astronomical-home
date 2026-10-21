@@ -1,0 +1,16 @@
+{
+  "bundleId": "eval-bundle-v1",
+  "seeds": [2001, 2002, 2003, 2004, 2005],
+  "episodesPerSeed": 3,
+  "thresholds": {
+    "alertEvaderWins": 10,
+    "evaderEpisodes": 15,
+    "minTotalWins": 55,
+    "totalEpisodes": 75
+  },
+  "armingPredicate": "healthy",
+  "kWatch": 1,
+  "kConfirm": 2,
+  "kBank": 5,
+  "executionMode": "parallel"
+}

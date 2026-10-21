@@ -1,0 +1,144 @@
+{
+  "source": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\VanguardStudy.blend",
+  "source_sha256": "611e7f8a3146356769c4fffacc1f1cb0caead3f63e24662302df6f6f0b99c47f",
+  "scene": "Vanguard - Texture MVP",
+  "images": [
+    {
+      "name": "ref_side.png.001",
+      "path": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\..\\..\\..\\..\\..\\astronomical-home\\art\\ships\\vanguard\\reference\\side.png",
+      "packed": true,
+      "exists": true
+    },
+    {
+      "name": "ref_top.png.001",
+      "path": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\..\\..\\..\\..\\..\\astronomical-home\\art\\ships\\vanguard\\reference\\top.png",
+      "packed": true,
+      "exists": true
+    },
+    {
+      "name": "Starship_Vanguard_0606163455_texture.png.001",
+      "path": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\..\\..\\..\\..\\..\\astronomical-home\\art\\ships\\vanguard\\textures\\donor_albedo.png",
+      "packed": true,
+      "exists": true
+    },
+    {
+      "name": "Vanguard MVP - Base Color",
+      "path": "D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Visuals\\Ships\\Vanguard\\DrawnStudy\\VanguardBaseColor.png",
+      "packed": true,
+      "exists": true
+    },
+    {
+      "name": "vanguard_livery_uv_master_2.png",
+      "path": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\..\\..\\..\\..\\..\\astronomical-home\\art\\ships\\vanguard\\textures\\livery_mask.png",
+      "packed": true,
+      "exists": true
+    },
+    {
+      "name": "vanguard_stamp_atlas_height_v1.png",
+      "path": "D:\\amind\\git\\agent-4\\art\\ships\\vanguard\\drawn-study\\..\\..\\..\\..\\..\\astronomical-home\\art\\ships\\vanguard\\textures\\stamp_atlas.png",
+      "packed": true,
+      "exists": true
+    }
+  ],
+  "objects": [
+    {
+      "name": "MVP Fuselage",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Cockpit.001",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Sparrow Tail",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Wing",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Tail",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP wing_armature",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP wing_armor",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP wing_tail",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Canopy",
+      "materials": [
+        "Vanguard | Canopy navy",
+        "Vanguard | Canopy orange surround"
+      ],
+      "uv_layers": [
+        "UVMap",
+        "LiveryUV_Work"
+      ]
+    },
+    {
+      "name": "MVP Power Nacelle Housing",
+      "materials": [
+        "Vanguard | Painted atlas + preview cel shading"
+      ],
+      "uv_layers": [
+        "MVP_Atlas"
+      ]
+    },
+    {
+      "name": "MVP Power Nacelle Core",
+      "materials": [
+        "Vanguard | Blue core emission - bloom separate"
+      ],
+      "uv_layers": []
+    }
+  ]
+}

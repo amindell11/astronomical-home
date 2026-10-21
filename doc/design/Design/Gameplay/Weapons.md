@@ -1,0 +1,14 @@
+-Laser lasers can shoot 
+	-perk: higher heat shots do more damage
+	 -Charge laser does more damage 
+	 -charged burst
+	 -
+-Ripper - regular gun that uses ammo, no overheat case, but a fixed reload time when you run out (or ammo is a resource but not sure i like that idea)
+-Missile
+	-homing / speed can be different
+	-some explode on impact, some do more damage to hull, some disable systems
+	-Sparrows - fires a swarm of tiny missles which are more resistant to flares and cover objects, but each individual one does lower damage
+-Concussion Mine (like jango fett) bonus damage to asteroids
+-charged railgun (hitscan)
+-Flares
+-

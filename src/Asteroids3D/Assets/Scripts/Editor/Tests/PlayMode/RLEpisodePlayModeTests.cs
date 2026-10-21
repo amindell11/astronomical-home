@@ -1,0 +1,462 @@
+#if UNITY_EDITOR
+using System.Collections;
+using System.Collections.Generic;
+using AI;
+using AI.Observation;
+using NUnit.Framework;
+using Ships;
+using Ships.Command;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes;
+using RL.Opponents;
+using RL.Reward;
+using RL.Runtime;
+using Substrate;
+
+namespace Tests.PlayMode
+{
+    [TestFixture]
+    [Category("AI")]
+    public class RLEpisodePlayModeTests
+    {
+        private const float RangerHoldRange = 15f;
+
+        private GameObject arenaHost;
+        private UnitService unitService;
+        private ProjectileService projectiles;
+        private HarnessAssets assets;
+        private float savedTimeScale;
+        private float savedMaxDelta;
+        private float savedCaptureDelta;
+
+        private EpisodePair pair;
+        private Ship agent;
+        private Ship baseline;
+        private HarnessField field;
+
+        [SetUp]
+        public void SetUp()
+        {
+            AudioListener.pause = true;
+            arenaHost = new GameObject("[EpisodeArena]");
+            unitService = arenaHost.AddComponent<UnitService>();
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
+            AssertNoForeignDebris();
+
+            savedTimeScale = Time.timeScale;
+            savedMaxDelta = Time.maximumDeltaTime;
+            savedCaptureDelta = Time.captureDeltaTime;
+            Time.timeScale = 20f;
+            Time.maximumDeltaTime = 1f;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Time.timeScale = savedTimeScale;
+            Time.maximumDeltaTime = savedMaxDelta;
+            Time.captureDeltaTime = savedCaptureDelta;
+
+            projectiles?.ReturnAllToPool();
+
+            field?.Dispose();
+            field = null;
+            pair?.Dispose();
+            pair = null;
+            agent = null;
+            baseline = null;
+
+            if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
+            projectiles = null;
+
+            AudioListener.pause = false;
+        }
+
+        // Debris leaked by earlier fixtures (drifting ships, live projectiles) enters scans and cover checks and varies between recordings, breaking trajectory equivalence. Registration is mandatory and transients die with their fixture root, so debris here is a leaking fixture to FIX — assert, never sweep.
+        private static void AssertNoForeignDebris()
+        {
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectiles.ProjectileBase>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked live projectiles — its transients escaped their registry/root");
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked ships — fix its teardown");
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator EpisodeLoop_Smoke_BackToBackEpisodesTerminateLegally()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 150;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
+
+            SpawnPair(in spec);
+
+            for (var i = 0; i < 3; i++)
+            {
+                var poses = pair.Reset(in spec, i);
+                Assert.AreEqual(0, projectiles.ActiveCount,
+                    $"Episode {i} must start with zero active projectiles");
+                AssertPoseApplied(agent, poses.agentPos, $"agent episode {i}");
+                AssertPoseApplied(baseline, poses.baselinePos, $"baseline episode {i}");
+
+                var runner = new EpisodeRunner(agent, baseline, spec, i, Vector2.zero);
+                yield return RunToCompletion(runner, spec);
+
+                var result = runner.Result;
+                Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome,
+                    $"Episode {i} did not terminate legally");
+                Assert.AreNotEqual(EndKind.None.ToString(), result.endKind,
+                    $"Episode {i} must report how it ended");
+                Assert.Greater(result.decisions, 0);
+                AssertFinite(result.sumDense, "sumDense");
+                AssertFinite(result.sumShapingEnvelope, "sumShapingEnvelope");
+                AssertFinite(result.sumShapingBorder, "sumShapingBorder");
+                AssertFinite(result.totalReward, "totalReward");
+
+                var line = result.ToJsonLine();
+                var roundTrip = JsonUtility.FromJson<EpisodeResult>(line);
+                Assert.AreEqual(EpisodeResult.SchemaId, roundTrip.schema);
+                Assert.AreEqual(i, roundTrip.episodeIndex);
+                Assert.AreEqual(result.endKind, roundTrip.endKind);
+                Assert.AreEqual(spec.runSeed, roundTrip.spec.runSeed);
+                Assert.AreEqual(spec.decisionIntervalSteps, roundTrip.spec.decisionIntervalSteps);
+            }
+
+            var again = EpisodePoses.Derive(in spec, 1, Vector2.zero);
+            var reference = EpisodePoses.Derive(in spec, 1, Vector2.zero);
+            Assert.AreEqual(reference.agentPos, again.agentPos, "(runSeed, i) must reproduce poses");
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator TrajectoryEquivalence_PairResetRestoresFreshSpawnState()
+        {
+            // Locked frame pacing (1 fixed step per frame) removes Update/FixedUpdate phase noise from the comparison.
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+
+            var spec = RewardSpec.Default;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 22f;
+
+            // 2 s at sub-physical tolerance: forgotten resets diverge immediately and macroscopically; longer windows reach combat, where pool identity and CEM near-ties amplify float noise into honest drift.
+            const int recordSteps = 100;
+            const int dirtySteps = 80;
+
+            SpawnPair(in spec);
+            // Warm-up so both recordings run on Burst-compiled solver code (the managed fallback rounds differently).
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            pair.Reset(in spec, 0);
+            yield return null;
+            var trajectoryA = new List<float>();
+            yield return Record(trajectoryA, recordSteps);
+
+            pair.Reset(in spec, 1);
+            yield return null;
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            pair.Reset(in spec, 0);
+            yield return null;
+            var trajectoryB = new List<float>();
+            yield return Record(trajectoryB, recordSteps);
+
+            Assert.AreEqual(trajectoryA.Count, trajectoryB.Count);
+            for (var i = 0; i < trajectoryA.Count; i++)
+                Assert.AreEqual(trajectoryA[i], trajectoryB[i], 1e-3f,
+                    $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator TrajectoryEquivalence_FieldEnabled_PairResetRestoresFreshFieldAndSpawnState()
+        {
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+
+            var spec = RewardSpec.Default;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 22f;
+            spec.useAsteroidField = true;
+
+            const int recordSteps = 100;
+            const int dirtySteps = 80;
+
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
+            SpawnPair(in spec);
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            ResetWithField(in spec, 0);
+            var digestA = CaptureFieldDigest(in spec);
+            Assert.Greater(digestA.Count, 1, "Field-enabled episode must actually contain asteroids");
+            AssertSpawnClearings(in spec, 0);
+            yield return null;
+            var trajectoryA = new List<float>();
+            yield return Record(trajectoryA, recordSteps);
+
+            ResetWithField(in spec, 1);
+            yield return null;
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            ResetWithField(in spec, 0);
+            var digestB = CaptureFieldDigest(in spec);
+            yield return null;
+            var trajectoryB = new List<float>();
+            yield return Record(trajectoryB, recordSteps);
+
+            Assert.AreEqual(digestA.Count, digestB.Count,
+                "Field rebuild returned a different asteroid set — the layout is not a pure function of (runSeed, episodeIndex)");
+            for (var i = 0; i < digestA.Count; i++)
+                Assert.AreEqual(digestA[i], digestB[i],
+                    $"Field digest diverged at channel {i}: a rebuild left stale field state behind — fix the reset, never loosen this test");
+
+            Assert.AreEqual(trajectoryA.Count, trajectoryB.Count);
+            for (var i = 0; i < trajectoryA.Count; i++)
+                Assert.AreEqual(trajectoryA[i], trajectoryB[i], 1e-3f,
+                    $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
+        }
+
+        // Anchorless fields ran collision-less for a full gate sweep before this pin existed (2026-07-18) — never loosen it.
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator FieldColliders_AnchorlessFieldKeepsDetailedCollidersLive()
+        {
+            var spec = RewardSpec.Default;
+            spec.useAsteroidField = true;
+
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
+            field.Reset(in spec, 0, EpisodePoses.Derive(in spec, 0, Vector2.zero));
+            yield return null; // frame 1: the field's Start runs the staged build
+            yield return null; // frame 2: LateUpdate applies the no-anchor collider default
+
+            var controllers = field.Field.GetComponentsInChildren<Asteroids.AsteroidController>();
+            Assert.Greater(controllers.Length, 0, "Field-enabled episode must actually contain asteroids");
+            foreach (var controller in controllers)
+            {
+                var mesh = controller.GetComponent<MeshCollider>();
+                if (!mesh) continue;
+                Assert.IsTrue(mesh.enabled,
+                    $"Anchorless asteroid '{controller.name}' has a disabled MeshCollider — ships fly through it");
+            }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ObstacleTokens_FieldEnabled_BuildProducesNearestNonZeroTokens()
+        {
+            var spec = RewardSpec.Default;
+            spec.useAsteroidField = true;
+
+            field = HarnessField.Spawn(Vector2.zero, assets, spec.fieldDensityScale, arenaHost.transform);
+            SpawnPair(in spec);
+            ResetWithField(in spec, 0);
+            yield return null; // frame 1: the field's Start runs the staged build
+            yield return null; // frame 2: Scout.Update scans the live field
+
+            var scout = agent.GetComponentInChildren<AICommander>().Scout;
+            var scan = scout.AsteroidScan;
+            Assert.Greater(scan.count, 0, "Scout must see asteroids in a field-enabled episode");
+
+            var dest = new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
+            var n = AgentObservations.BuildObstacleTokens(
+                dest, AgentObservations.ObstacleTokenCap, agent, spec.arenaRadius, scan);
+
+            Assert.AreEqual(Mathf.Min(AgentObservations.ObstacleTokenCap, scan.count), n,
+                "emits the nearest min(cap, occupancy) tokens");
+            var previousDistance = 0f;
+            for (var s = 0; s < n; s++)
+            {
+                var b = s * AgentObservations.ObstacleTokenFloats;
+                Assert.Greater(dest[b + 5], 0f, $"token {s} must carry a real radius");
+                Assert.Greater(dest[b + 6], 0f, $"token {s} must carry a live healthPct");
+                Assert.GreaterOrEqual(dest[b + 2] + 1e-5f, previousDistance,
+                    $"nearest-N selection emits in non-decreasing distance order (token {s})");
+                previousDistance = dest[b + 2];
+            }
+        }
+
+        /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
+        private void ResetWithField(in RewardSpec spec, int episodeIndex)
+        {
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, Vector2.zero);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            field.Reset(in spec, episodeIndex, in poses);
+            sw.Stop();
+            Debug.Log($"[FieldReset] episode {episodeIndex}: RebuildField took {sw.Elapsed.TotalMilliseconds:F1} ms");
+            pair.Reset(in spec, episodeIndex);
+        }
+
+        /// <summary>The full loaded-asteroid set (count + positions + radii) via the same QueryObstacles the MPC scans, captured synchronously after the rebuild so it reflects generation, not drift.</summary>
+        private List<float> CaptureFieldDigest(in RewardSpec spec)
+        {
+            var buffer = new AI.Scanning.DetectedObstacle[1024];
+            var count = field.Field.QueryObstacles(Vector2.zero, spec.arenaRadius + 40f, buffer);
+            Assert.Less(count, buffer.Length, "Digest buffer saturated — it must hold the FULL loaded set");
+            var digest = new List<float>(1 + count * 3) { count };
+            for (var i = 0; i < count; i++)
+            {
+                digest.Add(buffer[i].position.x);
+                digest.Add(buffer[i].position.y);
+                digest.Add(buffer[i].radius);
+            }
+            return digest;
+        }
+
+        private void AssertSpawnClearings(in RewardSpec spec, int episodeIndex)
+        {
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, Vector2.zero);
+            var buffer = new AI.Scanning.DetectedObstacle[1024];
+            var count = field.Field.QueryObstacles(Vector2.zero, spec.arenaRadius + 40f, buffer);
+            for (var i = 0; i < count; i++)
+            {
+                Assert.Greater((buffer[i].position - poses.agentPos).magnitude, HarnessField.SpawnClearRadius,
+                    "Generation must carve a clearing around the agent spawn");
+                Assert.Greater((buffer[i].position - poses.baselinePos).magnitude, HarnessField.SpawnClearRadius,
+                    "Generation must carve a clearing around the baseline spawn");
+            }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator Telescoping_SumsMatchPoolSwingAndStartPotential()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 120;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
+
+            SpawnPair(in spec);
+            pair.Reset(in spec, 0);
+
+            var runner = new EpisodeRunner(agent, baseline, spec, 0, Vector2.zero, tracePerDecision: true);
+            yield return RunToCompletion(runner, spec);
+            var result = runner.Result;
+            Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome);
+
+            var myMaxPool = agent.Damage.Health.MaxValue + agent.Damage.Shield.MaxValue;
+            var enemyMaxPool = baseline.Damage.Health.MaxValue + baseline.Damage.Shield.MaxValue;
+            var expectedDense = spec.lambda * (result.startEnemyPool - result.endEnemyPool) / enemyMaxPool
+                                - spec.lambda * (result.startMyPool - result.endMyPool) / myMaxPool;
+            Assert.AreEqual(expectedDense, result.sumDense, 1e-3f,
+                "Delta-sampled dense contributions must telescope to the start-to-end pool differential");
+            Assert.AreEqual(-spec.timeCostPerDecision * result.decisions, result.sumTimeCost, 1e-6f,
+                "Every paid decision pays the flat time cost");
+
+            AssertShapingTelescopes(result);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator Telescoping_TruncationKeepsFinalPotential()
+        {
+            var spec = RewardSpec.Default;
+            // Short clock, wide start: guarantees a timeout end so the truncation path (Φ kept, not forced to 0) is what telescopes.
+            spec.timeoutDecisions = 12;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            SpawnPair(in spec);
+            pair.Reset(in spec, 0);
+
+            var runner = new EpisodeRunner(agent, baseline, spec, 0, Vector2.zero, tracePerDecision: true);
+            yield return RunToCompletion(runner, spec);
+            var result = runner.Result;
+
+            Assert.AreEqual(EndKind.Truncation.ToString(), result.endKind);
+            Assert.AreEqual(EpisodeOutcome.Draw.ToString(), result.outcome);
+            Assert.IsTrue(result.timedOut);
+            Assert.AreEqual(spec.timeoutDecisions, result.decisions);
+            Assert.AreEqual(EndKind.Truncation, runner.LastBoundary.endKind);
+            Assert.AreEqual(0f, runner.LastBoundary.outcomeReward);
+            Assert.AreEqual(-spec.timeCostPerDecision * spec.timeoutDecisions, result.sumTimeCost, 1e-6f,
+                "A full-clock draw nets the whole time-cost drag — waiting is never free");
+
+            AssertShapingTelescopes(result);
+        }
+
+        private void SpawnPair(in RewardSpec spec)
+        {
+            pair = EpisodePair.Spawn(unitService, Vector2.zero, field?.Field, projectiles, in spec, (commander, baselineShip) =>
+            {
+                var ranger = commander.InstallBrain<RangerBrain>();
+                ranger.Configure(baselineShip, RangerHoldRange);
+                return ranger;
+            }, assets);
+            agent = pair.Agent;
+            baseline = pair.Baseline;
+        }
+
+        private static void AssertShapingTelescopes(in EpisodeResult result)
+        {
+            var traceDense = 0f;
+            for (var i = 0; i < result.trace.Count; i++) traceDense += result.trace[i].dense;
+            Assert.AreEqual(result.sumDense, traceDense, 1e-4f);
+
+            // Undiscounted: every intermediate Φ cancels, so the sum is exactly −Φ(s₀) + Φ_end,
+            // where Φ_end is 0 on terminal and the kept final potential on truncation.
+            var expectedShapingEnv = -result.startPhiEnvelope + result.endPhiEnvelope;
+            var expectedShapingBorder = -result.startPhiBorder + result.endPhiBorder;
+            Assert.AreEqual(expectedShapingEnv, result.sumShapingEnvelope, 1e-3f,
+                "Shaping must telescope to −Φ(s₀) + Φ_end");
+            Assert.AreEqual(expectedShapingBorder, result.sumShapingBorder, 1e-3f);
+        }
+
+        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec)
+        {
+            runner.Begin();
+            var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
+            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds;
+            while (!runner.IsDone && Time.realtimeSinceStartup < deadline)
+            {
+                yield return new WaitForFixedUpdate();
+                runner.Tick();
+            }
+            Assert.IsTrue(runner.IsDone, "Episode wall-clock deadline exceeded before termination");
+        }
+
+        private IEnumerator Record(List<float> samples, int steps)
+        {
+            for (var i = 0; i < steps; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                Sample(samples, agent);
+                Sample(samples, baseline);
+            }
+        }
+
+        private static void Sample(List<float> samples, Ship ship)
+        {
+            var k = ship.Kinematics;
+            samples.Add(k.pos.x);
+            samples.Add(k.pos.y);
+            samples.Add(k.vel.x);
+            samples.Add(k.vel.y);
+            samples.Add(k.yaw);
+        }
+
+        private static void AssertPoseApplied(Ship ship, Vector2 expectedPlanePos, string label)
+        {
+            var actual = GamePlane.WorldPointToPlane(ship.transform.position);
+            Assert.Less((actual - expectedPlanePos).magnitude, 1.5f,
+                $"Respawn did not place the {label} at its (runSeed, i)-derived pose");
+        }
+
+        private static void AssertFinite(float value, string name)
+        {
+            Assert.IsFalse(float.IsNaN(value) || float.IsInfinity(value), $"{name} must be finite, was {value}");
+        }
+    }
+}
+#endif

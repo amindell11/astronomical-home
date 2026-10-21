@@ -1,0 +1,41 @@
+{
+  "style": "Approved Nightshade concept: marker-like multitone swaths that imply light, selective dark ink, drawn cockpit reflections. Crimson is the paint and light benchmark.",
+  "generator": "Built-in image_gen; no external API fallback",
+  "inputs": [
+    "Exact native Nightshade flat top and underside views",
+    "Approved concept-05",
+    "Current Crimson Unity material capture"
+  ],
+  "paint_sources": {
+    "marker-top.png": "fac7445f41c2e0b2edd3fa2a98a164767c5260607ec55e96ff97f74115962795",
+    "marker-bottom.png": "2aca2ecb15a1125d177fc7416d34584dfac5bd0f3089815bd9fde048efb2832f"
+  },
+  "prompt": "This is a production paint source for projection onto an EXISTING 3D spacecraft, not a redesign. Image 1 is the exact edit target. Keep its orthographic camera, every silhouette point, panel boundary, gap, cockpit shape, proportions, scale, position and gray background EXACTLY unchanged. Image 2 is the approved Nightshade concept: match its rich deep purple, blue-black hull and indigo-violet cockpit, and its almost alcohol-marker drawn finish. Image 3 is the actual Crimson game model: borrow the layered MULTITONE SWATHS that imply light within a plate, not its white/red palette or geometry. Paint 3\u00e2\u20ac\u201c5 broad, deliberately shaped translucent-marker strokes on each large plate, following its form: deep cool shadow mass, rich middle tone, restrained lighter violet swath, a few broken edge catches. Uneven stroke endpoints and overlapping flat tonal patches, calm interiors. Selectively weighted dark ink at important overlaps; avoid uniform bright outlines, fine repeated scratches, grain, noisy speckles, grunge, metal noise or airbrushed smooth gradients. It should feel like a clean hand-rendered marker industrial-design illustration whose light is drawn onto it. Cockpit: saturated blue-violet with overlapping broad marker tones and two or three simple hand-drawn pale lavender reflection marks, NOT physically reflective glass, no chrome, no sharp studio glints, no glossy clearcoat. No gold, bronze or warm metal. No labels, text, extra views, extra parts, new seams, geometric changes or environment. Keep the original gray background. Output only the repainted single exact view at square aspect ratio, preserving target registration.\n\nTop source: small muted lime-green ticks only inside existing outer-side louvers and a small symmetrical inner-shoulder pair. No large central lights.\nUnderside source: match top stroke scale and colors while preserving underside geometry and fewer panels. Slightly quieter and darker. No added green lights.\n",
+  "transfer": "Native and mirrored triangle positions project independently into the existing source paintings. Separate grayscale Shadow, Light and Ink masks occupy independent atlas halves, retaining the previous texel density. The main canopy reflection remains on one side; wings retain independently painted swaths.",
+  "source_changes": "PaintUV scaled by 0.5; live X Mirror UV offset U = 0.5. Geometry, transforms, geometry modifier settings and material assignments unchanged. Masks repacked at 4096 pixels. The upper atlas half is reserved; native and mirrored charts occupy the lower-left and lower-right quadrants.",
+  "physical_specular": false,
+  "clearcoat": false,
+  "evidence": "Actual Blender model renders, including an unlit painted-color view; not yet integrated into Unity.",
+  "approval": "Owner requested repair of textures on the current mesh; texture repair 05 saved locally for viewport review.",
+  "edge_light_cleanup": "Three paired side lights moved from obscured backing faces onto visible louver strips. Projected fixture silhouettes cleared from the underlying wing surface. Paired small shoulder indicators retained.",
+  "new_image_generation": false,
+  "texture_repair_05": {
+    "reason": "Source outline samples produced streaks on exposed wing/fin surfaces; tail masks retained Violet contrast after faces changed to Glass.",
+    "method": "Independent asymmetric grayscale paint masks, repaired to exclude source outlines when projecting onto underlying wing and fin surfaces. Tail highlight contrast recalibrated for its reassigned Glass faces. Existing armor strokes, canopy reflection, material colors and emission mask retained. No physical specular or coat.",
+    "preserved": [
+      "geometry",
+      "PaintUV",
+      "material assignments",
+      "palette node values",
+      "shared saturation group at 1.25",
+      "Emission mask",
+      "canopy and armor masks"
+    ],
+    "fingerprint": {
+      "geometry": "6383a7f327241beb75faac48cf671820ca0ae2ffa0295ca5d04a41ba4b193fab",
+      "uv": "18ad15248c264eb83240c25d42819350c3bb6d4b727ab1f9d35982d5b6fd25e3",
+      "materials": "5b86229692fb247905781a7d0fc28b39ad9456c6b45294f4016a94dc3710c117"
+    },
+    "source_image_generation": false
+  }
+}

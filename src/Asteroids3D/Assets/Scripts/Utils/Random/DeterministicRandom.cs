@@ -1,0 +1,93 @@
+using UnityEngine;
+
+namespace Utils
+{
+    /// <summary>
+    /// Small self-contained PCG-style random stream for simulation draws that
+    /// must replay. Such draws never come from UnityEngine.Random (global,
+    /// order-sensitive): each consumer owns a stream keyed by a stable seed —
+    /// a field asteroid's ID, a rock's break seed — so results are independent
+    /// of call order, load order and platform.
+    /// </summary>
+    public struct DeterministicRandom
+    {
+        private uint state;
+
+        public DeterministicRandom(uint seed)
+        {
+            // Zero state would lock the low-entropy start; nudge it.
+            state = seed == 0 ? 0x9E3779B9u : seed;
+            // Burn one step so consecutive integer seeds decorrelate.
+            NextUInt();
+        }
+
+        public uint NextUInt()
+        {
+            state = state * 747796405u + 2891336453u;
+            var word = ((state >> (int)((state >> 28) + 4u)) ^ state) * 277803737u;
+            return (word >> 22) ^ word;
+        }
+
+        /// <summary>Uniform in [0, 1).</summary>
+        public float NextFloat() => (NextUInt() >> 8) * (1f / 16777216f);
+
+        public float Range(float minInclusive, float maxInclusive) =>
+            minInclusive + (maxInclusive - minInclusive) * NextFloat();
+
+        /// <summary>Uniform int in [0, maxExclusive).</summary>
+        public int RangeInt(int maxExclusive) =>
+            maxExclusive <= 0 ? 0 : (int)(NextUInt() % (uint)maxExclusive);
+
+        /// <summary>Uniform direction on the unit circle.</summary>
+        public Vector2 Direction2()
+        {
+            var angle = NextFloat() * (2f * Mathf.PI);
+            return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
+
+        /// <summary>Uniform point inside the unit sphere: always three draws, never a rejection loop.</summary>
+        public Vector3 InsideUnitSphere()
+        {
+            var z = Range(-1f, 1f);
+            var angle = NextFloat() * (2f * Mathf.PI);
+            var radius = Mathf.Pow(NextFloat(), 1f / 3f);
+            var ring = Mathf.Sqrt(1f - z * z);
+            return radius * new Vector3(ring * Mathf.Cos(angle), ring * Mathf.Sin(angle), z);
+        }
+
+        /// <summary>Uniform random rotation (Shoemake's subgroup algorithm).</summary>
+        public Quaternion RotationUniform()
+        {
+            var u1 = NextFloat();
+            var u2 = NextFloat() * (2f * Mathf.PI);
+            var u3 = NextFloat() * (2f * Mathf.PI);
+            var a = Mathf.Sqrt(1f - u1);
+            var b = Mathf.Sqrt(u1);
+            return new Quaternion(
+                a * Mathf.Sin(u2),
+                a * Mathf.Cos(u2),
+                b * Mathf.Sin(u3),
+                b * Mathf.Cos(u3));
+        }
+
+        /// <summary>Order-sensitive integer mix (murmur3-style finalizer chain) for keying streams.</summary>
+        public static uint Hash(int a, int b, int c, int d = unchecked((int)0x5BD1E995))
+        {
+            var h = Mix((uint)a);
+            h = Mix(h ^ (uint)b);
+            h = Mix(h ^ (uint)c);
+            h = Mix(h ^ (uint)d);
+            return h;
+        }
+
+        private static uint Mix(uint h)
+        {
+            h ^= h >> 16;
+            h *= 0x85EBCA6Bu;
+            h ^= h >> 13;
+            h *= 0xC2B2AE35u;
+            h ^= h >> 16;
+            return h;
+        }
+    }
+}
