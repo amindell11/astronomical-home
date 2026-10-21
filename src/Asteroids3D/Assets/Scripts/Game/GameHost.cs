@@ -187,8 +187,12 @@ namespace Game
 
                     if (playerDied || index == sessionProfile.sectors.Length - 1) break;
 
-                    // The next load resets the ship; the run's hull goes back on after it.
-                    if (rigInstance) hull = rigInstance.Player.Damage.Health.Pct;
+                    // The unload despawns this sector's ships, and the next load resets the player's hull.
+                    if (rigInstance)
+                    {
+                        hull = rigInstance.Player.Damage.Health.Pct;
+                        rigInstance.Spawns.EndSector(Time.time);
+                    }
                     SetSplashVisible(true);
                     yield return session.UnloadSector();
                     index++;

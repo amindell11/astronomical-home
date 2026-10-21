@@ -196,6 +196,22 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OfSetting_MovesWhenRunSectorsReorderOrRepeat()
+        {
+            var offer = HangarOffer();
+            var roster = RosterOf(offer.ships);
+            var easy = ScratchSector(roster, PhaseInterval);
+            var hard = ScratchSector(roster, PhaseInterval - 2f);
+
+            var baseline = StatHash.OfSetting(offer, new[] { easy, hard }, KillHullRestore);
+
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { hard, easy }, KillHullRestore),
+                "Sector order sets the difficulty curve, so a reordered run must move the fingerprint.");
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { easy, hard, hard }, KillHullRestore),
+                "A repeated sector lengthens the run, so it must move the fingerprint.");
+        }
+
+        [Test]
         public void OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool()
         {
             var sector = AssetDatabase.LoadAssetAtPath<Sector>(TrialSectorPath);
@@ -204,9 +220,9 @@ namespace Tests.EditMode
 
             var lines = StatHash.SettingLines(HangarOffer(), new[] { sector }, KillHullRestore);
 
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.phases[0]={{"));
-            Assert.That(lines, Has.Some.StartsWith($"{director.name}/WaveDirector.roster={{"));
-            Assert.That(lines, Has.Some.StartsWith("TrialEnemyLoadout/ItemSubset.weapons="));
+            Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.phases[0]={{"));
+            Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.roster={{"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/TrialEnemyLoadout/ItemSubset.weapons="));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }
