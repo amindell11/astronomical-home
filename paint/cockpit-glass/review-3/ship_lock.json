@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "tool": "ship_lock",
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "827d79c2970a78592a3652b111fc1f4b60ba5b640bc29ffa3240c83e841474ac",
+  "mode": "verify",
+  "geometry": "efa081d971cc375a2f36c8e35ad0cbc5ab99d7219e44d1814c921913c2eb873a",
+  "locked": "efa081d971cc375a2f36c8e35ad0cbc5ab99d7219e44d1814c921913c2eb873a",
+  "added": [],
+  "removed": [],
+  "changed": [],
+  "verdict": "pass"
+}

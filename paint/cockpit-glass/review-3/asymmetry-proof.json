@@ -1,0 +1,24 @@
+{
+  "movies": [
+    {
+      "frames": 160,
+      "duration_seconds": 18.4,
+      "gif": "bulwark-slow-preview.gif",
+      "mp4": "bulwark-slow-preview.mp4"
+    },
+    {
+      "frames": 160,
+      "duration_seconds": 18.4,
+      "gif": "asymmetry-comparison.gif",
+      "mp4": "asymmetry-comparison.mp4"
+    }
+  ],
+  "fixed_glass_identical": true,
+  "changed_whole_ship_pixels": 2728,
+  "changed_pixel_bounds_xy": [
+    311,
+    120,
+    344,
+    258
+  ]
+}

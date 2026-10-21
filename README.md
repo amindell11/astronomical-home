@@ -17,3 +17,5 @@ Earlier reviews: [Fitted mounting shoes](detail-model/2026-10-13-r07/README.md) 
 [Moving cockpit glass, 2026-10-21](paint/cockpit-glass/README.md). Matched Unity captures and recovered authored-mask evidence for issue #1087.
 
 [Corrected cockpit glass, 2026-10-21](paint/cockpit-glass/review-2/README.md). Removes fixed ghost stripes and extends moving highlights beyond the glass boundary.
+
+[Asymmetric cockpit reflections and slower preview, 2026-10-21](paint/cockpit-glass/review-3/README.md). One dominant stroke and a smaller glint, shown in separate roll and pitch passes with a scrub-capable video.
