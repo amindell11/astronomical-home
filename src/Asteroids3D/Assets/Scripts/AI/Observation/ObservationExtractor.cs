@@ -113,13 +113,11 @@ namespace AI.Observation
             var kin = self.Kinematics;
             var speedPct = self.MaxSpeed > 0f ? Mathf.Clamp01(kin.Speed / self.MaxSpeed) : 0f;
             var yawRatePct = self.MaxYawRate > 0f ? Mathf.Clamp(kin.yawRate / self.MaxYawRate, -1f, 1f) : 0f;
-            var cooldown = self.Dynamics.boostCooldown;
-            var boostCooldownPct = cooldown > 0f ? Mathf.Clamp01(self.BoostCooldownRemaining / cooldown) : 0f;
 
             return new SelfToken(
                 frame.Direction(kin.vel), speedPct, yawRatePct,
                 self.HealthPct, self.ShieldPct,
-                self.BoostAvailable ? 1f : 0f, boostCooldownPct);
+                self.BoostAvailable ? 1f : 0f, Mathf.Clamp01(self.BoostCooldownPct));
         }
 
         internal static TargetToken BuildTarget(EgoFrame frame, Vector2 selfVel, in TargetView target)

@@ -20933,6 +20933,7 @@ MonoBehaviour:
   maxBankAngle: 10
   engine: {fileID: 11400000, guid: b63b46134abb483586d8c315401f3d4a, type: 2}
   shield: {fileID: 11400000, guid: 1df67c0d876d4885bb8b12c532765350, type: 2}
+  keystone: {fileID: 5512903418735166201, guid: 636e2f5abb00481eabc3e4700416770c, type: 3}
   teamNumber: 0
 --- !u!114 &-3878361978911940446
 MonoBehaviour:

@@ -38,7 +38,7 @@ namespace Ships.Movement
                     SuperGizmos.HeadType.Cube, Color.yellow);
 
             if (mover.dbgBoost.sqrMagnitude > MinForce)
-                Arrow(origin, Fraction(mover.dbgBoost, settings?.boostImpulse ?? 0f) * scale * 1.5f,
+                Arrow(origin, mover.dbgBoost.normalized * scale * 1.5f,
                     SuperGizmos.HeadType.Sphere, Color.cyan);
 
             if (Mathf.Abs(mover.dbgYaw) > MinForce)

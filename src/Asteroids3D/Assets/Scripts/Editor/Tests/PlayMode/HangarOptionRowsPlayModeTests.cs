@@ -226,6 +226,7 @@ namespace Tests.PlayMode
                 var engine = $"Engine: {loadout.Ship.Engine.DisplayName}";
                 StringAssert.EndsWith(kit, lines[0], $"ship step {i + 1} hover names the authored shield as the kit");
                 StringAssert.StartsWith(engine, lines[1], $"ship step {i + 1} hover names the chassis's engine under the ship");
+                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[2], $"ship step {i + 1} hover names the chassis's keystone");
                 StringAssert.DoesNotContain("_", kit + engine, $"ship step {i + 1} kit shows authored names");
             }
         }

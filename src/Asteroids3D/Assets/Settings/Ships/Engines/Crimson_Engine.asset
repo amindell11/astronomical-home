@@ -24,5 +24,3 @@ MonoBehaviour:
   minStrafeForce: 3000
   maxStrafeForce: 3700
   linearDrag: 0.3
-  boostImpulse: 7000
-  boostCooldown: 4

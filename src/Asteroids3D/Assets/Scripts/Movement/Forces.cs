@@ -7,13 +7,6 @@ namespace Ships.Movement
 {
     public struct Forces
     {
-        private static Vector2 Boost(Kinematics kin, float input, float strength)
-        {
-            if (input < 0f) return Vector2.zero;
-            var boostForce = kin.Forward * (strength * Mathf.Clamp01(input));
-            return boostForce;
-        }
-
         private static Vector2 Thrust(Kinematics kin, float input, float forwardAccl, float revAccl)
         {
             var mag = input >= 0 ? forwardAccl : revAccl;
@@ -50,7 +43,6 @@ namespace Ships.Movement
             return new Outputs(
                 Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),
                 Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
-                Boost(kin, cmd.boost, sets.boostImpulse),
                 YawTorque(kin, cmd.yawTorque, sets.yawTorque),
                 Bank(cmd.strafe, sets.maxBankAngle)
             );

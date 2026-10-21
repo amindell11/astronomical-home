@@ -21,13 +21,13 @@ namespace Movement
     /// <summary>Force outputs from the flight computer.</summary>
     public readonly struct Outputs
     {
-        public readonly Vector2 thrust, strafe, boost;
+        public readonly Vector2 thrust, strafe;
         public readonly float yawTorque, bank;
 
-        public Outputs(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float bank)
-            => (this.thrust, this.strafe, this.boost, this.yawTorque, this.bank) = (thrust, strafe, boost, yawTorque, bank);
+        public Outputs(Vector2 thrust, Vector2 strafe, float yawTorque, float bank)
+            => (this.thrust, this.strafe, this.yawTorque, this.bank) = (thrust, strafe, yawTorque, bank);
 
-        public static readonly Outputs Zero = new(Vector2.zero, Vector2.zero, Vector2.zero, 0, 0);
+        public static readonly Outputs Zero = new(Vector2.zero, Vector2.zero, 0, 0);
     }
 /// <summary>Stores physical dyanmics properties of objects with thrust and rotation abilities</summary>
     [StructLayout(LayoutKind.Sequential)]
@@ -38,14 +38,12 @@ namespace Movement
         public readonly float yawTorque, angularDrag, linearDrag;
         public readonly float yawInertia;
         public readonly float bankTorque, bankDamping, maxBankAngleRad;
-        public readonly float boostImpulse, boostCooldown;
         public readonly float shipRadius;
 
         public Dynamics(float mass, float forwardAcc, float reverseAcc, float maxStrafeAcc, float minStrafeAcc,
             float maxSpeed, float maxYawRate, float yawTorque, float angularDrag, float linearDrag,
             float yawInertia = 0f,
             float bankTorque = 0f, float bankDamping = 0f, float maxBankAngleRad = 0f,
-            float boostImpulse = 0f, float boostCooldown = 0f,
             float shipRadius = 1f)
         {
             (this.mass, this.maxSpeed, this.maxYawRate) = (mass, maxSpeed, maxYawRate);
@@ -56,7 +54,6 @@ namespace Movement
             // Callers must pass yawInertia > 0 or pass mass explicitly.
             this.yawInertia = yawInertia;
             (this.bankTorque, this.bankDamping, this.maxBankAngleRad) = (bankTorque, bankDamping, maxBankAngleRad);
-            (this.boostImpulse, this.boostCooldown) = (boostImpulse, boostCooldown);
             this.shipRadius = shipRadius;
         }
 
