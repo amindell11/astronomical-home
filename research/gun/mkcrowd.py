@@ -12,6 +12,9 @@ FINAL = {"smartTrigger": True, "geomTolScale": 0.8, "ventTo": 0.0, "railAbortErr
          "rangeGrenades": 20, "railSteady": 0.3}
 STRONG = dict(FINAL, label="stand-final")
 WEAK = {"label": "stand-main"}
+NOJINK = dict(FINAL, strafeFraction=0.0, label="stand-nojink")
+HARD = dict(FINAL, strafeFraction=0.0, hardJink=True, strafePeriod=1.2, label="stand-hard")
+STANDS = {"": STRONG, "-nojink": NOJINK, "-hard": HARD, "-weak": WEAK}
 
 MAIN = {"label": "main"}
 SERVO = {"aimLock": True, "label": "servo"}
@@ -55,7 +58,36 @@ def r1():
     return runs
 
 
-BATCHES = {"smoke": smoke, "r1": r1}
+def combo(s, e0, t, **over):
+    d = dial(s)
+    d.update(ea(e0, t))
+    d.update(over)
+    d["label"] = f"dial{s}+ea{e0}-{t}"
+    return d
+
+
+def r2():
+    runs = []
+    for suffix in ("-nojink", "-hard"):
+        runs += [crowd(f"r-main{suffix}", MAIN, stand=STANDS[suffix], episodes=20),
+                 crowd(f"r-servo{suffix}", SERVO, stand=STANDS[suffix], episodes=20)]
+    for suffix in ("-nojink", "-hard", "-weak"):
+        runs.append(crowd(f"d-0.25{suffix}", dial(0.25), stand=STANDS[suffix], episodes=20))
+        runs.append(crowd(f"e-20-6{suffix}", ea(20, 6), stand=STANDS[suffix], episodes=20))
+    runs.append(crowd("d-0.4", dial(0.4), episodes=20))
+    runs.append(crowd("e-25-4", ea(25, 4), episodes=20))
+    runs += [crowd("e-20-6-nojr", ea(20, 6, eaJinkAccel=-1), episodes=20),
+             crowd("e-20-6-half", ea(20, 6, eaJinkReset=0.5), episodes=20),
+             crowd("e-20-6-thr8", ea(20, 6, eaJinkAccel=8), episodes=20),
+             crowd("e-20-6-norange", ea(20, 6, eaRange=-1), episodes=20),
+             crowd("e-20-6-lose1", ea(20, 6, eaLoseRate=1), episodes=20)]
+    runs += [crowd("c-0.5-10-6", combo(0.5, 10, 6), episodes=20),
+             crowd("c-0.25-10-3", combo(0.25, 10, 3), episodes=20),
+             crowd("c-0.75-20-6", combo(0.75, 20, 6), episodes=20)]
+    return runs
+
+
+BATCHES = {"smoke": smoke, "r1": r1, "r2": r2}
 
 if __name__ == "__main__":
     for name in sys.argv[1:]:

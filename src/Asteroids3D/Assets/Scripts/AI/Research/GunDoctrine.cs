@@ -25,6 +25,7 @@ namespace AI.Research
         [System.NonSerialized] public Ship enemy;
         public float strafeFraction;
         public float strafePeriod;
+        public bool hardJink;
         public bool aimLock;
         public float aimAccelFrac = 0.7f;
         public float aimTau = 0.06f;
@@ -570,6 +571,8 @@ namespace AI.Research
                 && steadyRail.Charge.ChargePct > 0f
                 && (1f - steadyRail.Charge.ChargePct) * steadyRail.Charge.FullChargeTime <= railSteady)
                 cmd.strafe = 0f;
+            if (hardJink && hasTarget && evadeUrgency <= 0f && strafePeriod > 0f)
+                cmd.strafe = Mathf.FloorToInt(Time.fixedTime / strafePeriod) % 2 == 1 ? -1f : 1f;
             if (!aimLock || !hasTarget || evadeUrgency > 0f) return;
             if (aimAccelFF)
             {
