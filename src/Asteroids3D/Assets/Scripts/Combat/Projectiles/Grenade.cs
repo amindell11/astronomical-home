@@ -10,14 +10,22 @@ namespace Combat.Projectiles
     /// <summary>
     /// Concussion charge flown as a reverse missile: launched at a fixed speed straight at its
     /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it brakes by its own
-    /// thrust to rest on that point. Detonates on arrival, on contact (never the owner's hull), or
-    /// when shot — the owner's fire included. Detonation spawns a <see cref="ConcussionWave"/>;
-    /// the charge itself never applies damage. Design: arc #950.
+    /// thrust to rest on that point. Being shot detonates it at once — the owner's fire included.
+    /// Every other fuse waits for <see cref="armingTime"/> after launch: then it detonates on
+    /// arrival (holding on the point if it got there first), on contact, or when a ship comes
+    /// within <see cref="proximityRadius"/> — never the owner's hull. Detonation spawns a
+    /// <see cref="ConcussionWave"/>; the charge itself never applies damage. Design: arc #950.
     /// </summary>
     public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner, IChargeFlight
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
+
+        [Header("Fuse")]
+        [Tooltip("Seconds after launch before arrival, contact or proximity can detonate the charge; being shot always does.")]
+        [Stat, SerializeField, Min(0f)] internal float armingTime = 0.6f;
+        [Tooltip("An armed charge detonates when any ship but its owner's comes within this distance.")]
+        [Stat, SerializeField, Min(0f)] internal float proximityRadius = 4f;
 
         [Header("Blast")]
         [Stat, SerializeField] private ConcussionWave wavePrefab;
@@ -25,6 +33,10 @@ namespace Combat.Projectiles
         private Vector3 targetPoint;
         private Vector3 heading;
         private bool detonated;
+        private float sinceLaunch;
+        private int shipLayers;
+
+        private bool Armed => sinceLaunch >= armingTime;
 
         protected override DamageKind Kind => DamageKind.ConcussionWave;
         protected override bool TakesOwnerFire => true;
@@ -49,6 +61,7 @@ namespace Combat.Projectiles
         protected override void Awake()
         {
             base.Awake();
+            shipLayers = LayerIds.Mask(LayerIds.Ship);
             SimplePool<ConcussionWave>.Warm(wavePrefab);
         }
 
@@ -66,15 +79,20 @@ namespace Combat.Projectiles
 
         protected override void FixedUpdate()
         {
+            sinceLaunch += Time.fixedDeltaTime;
             var remaining = Vector3.Dot(targetPoint - transform.position, heading);
             var closingSpeed = Vector3.Dot(rb.linearVelocity, heading);
-            if (remaining <= 0f || closingSpeed <= 0f)
+            var arrived = remaining <= 0f || closingSpeed <= 0f;
+            if (Armed && (arrived || ShipInProximity()))
             {
                 Detonate();
                 return;
             }
 
-            rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
+            if (arrived)
+                rb.linearVelocity = Vector3.zero;
+            else
+                rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
             base.FixedUpdate();
         }
 
@@ -82,8 +100,18 @@ namespace Combat.Projectiles
         internal static float BrakingDeceleration(float speed, float distance, float dt) =>
             speed * speed / (2f * distance + speed * dt);
 
+        private bool ShipInProximity()
+        {
+            var buffer = PhysicsBuffers.GetColliderBuffer();
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, proximityRadius, buffer, shipLayers, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < hitCount; i++)
+                if (TryGetHitTarget(buffer[i], out _)) return true;
+            return false;
+        }
+
         protected override void OnHit(IDamageable other)
         {
+            if (!Armed) return;
             RaiseHit(other);
             Detonate();
         }
@@ -109,6 +137,7 @@ namespace Combat.Projectiles
         protected override void OnReturnToPool()
         {
             detonated = false;
+            sinceLaunch = 0f;
         }
     }
 }
