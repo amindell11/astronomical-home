@@ -1,6 +1,6 @@
 # Laser impact shape and motion studies
 
-First procedural sketches for [Direct-hit effects for lasers, rippers, and railguns](https://github.com/amindell11/astronomical-home/issues/792). This evidence branch never merges. The user selected B, Directional fan, on 2026-10-21. The [drawn refinement comparison](history/02-refinement/README.md) now awaits a source choice. No final sprite is approved yet.
+First procedural sketches for [Direct-hit effects for lasers, rippers, and railguns](https://github.com/amindell11/astronomical-home/issues/792). This evidence branch never merges. The user selected B, Directional fan, then B1, Broad bands, on 2026-10-21. The [cleanup working file](history/03-cleanup/README.md) awaits the user's hand edit before generator work.
 
 ## What to compare
 

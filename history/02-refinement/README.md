@@ -4,7 +4,7 @@ The user selected B from the procedural study on 2026-10-21. The [selection ruli
 
 This round compares B1, Broad bands, and B2, Torn bands. Both came from the built-in image generator with the same selected sketch, shipped laser source, and game style frame as references. These are two contour treatments, not an nb2/pro model comparison. The exact prompts are in `prompts.json`; each source's sidecar records its prompt and reference hashes. Generated pixels and transparency are unchanged.
 
-B1 keeps a more continuous bright center at 32 and 48 pixels. B2 retains more jagged breaks and stays closer to the procedural sketch, but some breaks disappear at small size. B1 is the recommendation, pending the user's choice. Both still need the user's source cleanup, particularly flattening residual gradients and stray edge pixels, before generator work.
+B1 keeps a more continuous bright center at 32 and 48 pixels. B2 retains more jagged breaks and stays closer to the procedural sketch, but some breaks disappear at small size. The user [selected B1](https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6325600369) on 2026-10-21. Its [cleanup working file](../03-cleanup/README.md) awaits the user's hand edit before generator work. Both generated originals remain unchanged here.
 
 ## Files and reproduction
 
