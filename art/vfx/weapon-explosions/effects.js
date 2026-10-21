@@ -3,6 +3,7 @@
   const fade = (time, begin, end) => 1 - clamp((time - begin) / (end - begin));
   const canvas = (width, height = width) => Object.assign(document.createElement('canvas'), {width, height});
   const layers = {};
+  const mineIgnitionExpansionSeconds = 0.047;
 
   function pruneSmoke(pixels, width, height) {
     const visited = new Uint8Array(width * height);
@@ -155,7 +156,7 @@
   function ignition(ctx, time, size, settings) {
     const progress = time / settings.mineIgnitionSeconds;
     if (progress < 0 || progress > 1) return;
-    stamp(ctx, layers.flash, size * (0.62 + clamp(progress * 3) * 0.25), fade(progress, 0.24, 1));
+    stamp(ctx, layers.flash, size * (0.62 + clamp(time / mineIgnitionExpansionSeconds) * 0.25), fade(progress, 0.24, 1));
   }
 
   function disc(ctx, size, settings) {
