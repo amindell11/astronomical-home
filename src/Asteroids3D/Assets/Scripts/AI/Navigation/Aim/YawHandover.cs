@@ -1,4 +1,5 @@
 using AI.Navigation.MPC;
+using AI.Playtest;
 
 namespace AI.Navigation.Aim
 {
@@ -13,7 +14,7 @@ namespace AI.Navigation.Aim
 
         private bool Vetoed => sinceThreat < settings.aimServoVetoHold;
 
-        public bool ServoOwnsYaw(in AimReference reference) => reference.live && latched && !Vetoed;
+        public bool ServoOwnsYaw(in AimReference reference) => LethalityPresets.ServoOn && reference.live && latched && !Vetoed;
 
         public void UpdateAuthority(float aimAuthority) =>
             latched = aimAuthority >= (latched ? settings.aimServoReleaseWeight : settings.aimServoEngageWeight);

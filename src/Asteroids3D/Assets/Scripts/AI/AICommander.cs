@@ -9,6 +9,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Ships.Registry;
 using AI.Strategy;
+using AI.Playtest;
 
 namespace AI
 {
@@ -20,6 +21,7 @@ namespace AI
     public class AICommander : Commander
     {
         private const uint NavStream = 1;
+        private const uint PlaytestStream = 0x9E37;
 
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
@@ -96,7 +98,10 @@ namespace AI
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
+            {
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
+                Gunner.Playtest = new PlaytestPerception(seed.Derive(PlaytestStream).ToSeed());
+            }
 
             context = new AIContext(self, Scout, combatExitDelay);
 
@@ -164,7 +169,13 @@ namespace AI
                 else
                     Gunner.HoldFire();
             }
-            else if (nav.hasAnchor) Gunner.Aim(anchor);
+            else if (nav.hasAnchor)
+            {
+                if (Gunner.Playtest != null && nav.TryGetAnchorId(out var aimId)
+                    && Scout.Registry.TryGetShip(aimId, out var aimShip))
+                    Gunner.Playtest.NoteTarget(aimShip);
+                Gunner.Aim(anchor);
+            }
             else Gunner.HoldFire();
         }
 

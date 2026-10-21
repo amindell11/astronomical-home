@@ -1,4 +1,5 @@
 using AI.Navigation.MPC;
+using AI.Playtest;
 using Movement;
 using Unity.Mathematics;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace AI.Navigation.Aim
         {
             var error = reference.heading - self.yaw * Mathf.Deg2Rad;
             error -= TwoPi * math.round(error / TwoPi);
-            var accel = dynamics.yawTorque / dynamics.yawInertia * settings.aimServoAccelFraction;
+            var accel = dynamics.yawTorque / dynamics.yawInertia * LethalityPresets.AccelFraction(settings.aimServoAccelFraction);
             // Braking-limited: the fastest closing rate that can still stop on the heading.
             var approach = math.min(math.sqrt(2f * accel * math.abs(error)), settings.aimServoKp * math.abs(error));
             var targetRate = math.clamp(reference.rate + math.sign(error) * approach,

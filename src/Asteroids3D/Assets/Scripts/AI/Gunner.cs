@@ -1,6 +1,7 @@
 using System;
 using AI.Context;
 using AI.Navigation.MPC;
+using AI.Playtest;
 using Combat;
 using Combat.Weapons;
 using Movement;
@@ -23,6 +24,7 @@ namespace AI
         private bool hasTarget;
         private bool prevPrimaryHeld;
         private bool prevSecondaryHeld;
+        internal PlaytestPerception Playtest;
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
         internal Vector3 Target { get; private set; }
@@ -47,6 +49,7 @@ namespace AI
             targetVel = default;
             prevPrimaryHeld = false;
             prevSecondaryHeld = false;
+            Playtest?.Reset();
             ClearTarget();
         }
 
@@ -113,6 +116,7 @@ namespace AI
         {
             if (pose == null) return;
 
+            Playtest?.Perceive(pose(), ref referentPos, ref referentVel);
             targetPos = referentPos;
             targetVel = referentVel;
             hasTarget = true;
