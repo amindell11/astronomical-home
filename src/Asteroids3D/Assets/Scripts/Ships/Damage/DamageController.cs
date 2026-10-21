@@ -43,7 +43,7 @@ namespace Ships.Damage
         public void TakeDamage(in DamageInfo hit)
         {
             if (hit.Amount <= 0 || IsInvulnerable) return;
-            var shieldAbsorbed = Shield.ApplyDamage(hit.Amount);
+            var shieldAbsorbed = hit.BypassesShield ? 0f : Shield.ApplyDamage(hit.Amount);
             var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
             var applied = hit.WithAmount(appliedDamage);
             if (appliedDamage > 0)

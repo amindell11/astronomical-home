@@ -55,6 +55,8 @@ namespace Combat.Projectiles
 
         protected override DamageKind Kind => DamageKind.Missile;
 
+        protected override bool DirectHitBypassesShield => true;
+
         public float SplashDamage => splashDamage;
 
         /// <summary>

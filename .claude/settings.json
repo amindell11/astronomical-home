@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./scripts/agent_worktree_pool.sh land-docs)"
+      "Bash(./scripts/agent_worktree_pool.sh land-docs)",
+      "Bash(./scripts/agent_worktree_pool.sh sync-primary)"
     ]
   },
   "hooks": {
@@ -14,6 +15,15 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_check.sh\""
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"$CLAUDE_PROJECT_DIR/.claude/after-compact.md\""
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -23,6 +33,15 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_guard.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__ccd_session__start_session",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/app_worktree_guard.py\""
           }
         ]
       }

@@ -66,6 +66,9 @@
 		<property name="dopplerScale">
 			<value>30</value>
 		</property>
+		<property name="maximumDistance">
+			<value>115</value>
+		</property>
 	</object>
 	<object class="MarkerTrack" id="{8a2e992f-f013-4d3b-9194-18234fd70aeb}" />
 	<object class="GroupTrack" id="{f953dd72-3ec7-4a2c-8231-e0b9d8b7178c}">

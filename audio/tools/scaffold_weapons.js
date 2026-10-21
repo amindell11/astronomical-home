@@ -6,8 +6,11 @@
 //   event:/Weapons/Ripper/Fire       (FirstShot)  one-shot
 //   event:/Weapons/Grenade/Fire                   one-shot
 //   event:/Weapons/Grenade/Detonate               one-shot
+//   event:/Weapons/Missile/Flight    (Speed)      sustain point, stopped with fade-out, never keyed off
+//   event:/Weapons/Missile/Detonate               one-shot
 // Heat is the existing preset; Charge is one preset in [0, 1] shared by both charge events.
 // FirstShot is discrete in [0, 1]: the game sends 1 on the first shot after any firing gap.
+// Speed is a preset in [0, 1]: the missile's speed as a fraction of its homing speed.
 // Every event gets a placeholder instrument from the tracked Unity clips, because an empty event
 // stops on its first update. Idempotent: anything already present is left as the designer has it.
 //
@@ -16,6 +19,11 @@
 // the release at once. Key-offs are reference-counted, so a sustain point at the end of the 10 s
 // rumble clip would hold the release back by the rest of the loop; one at zero would play the
 // whole loop before the release.
+//
+// Missile flight: the launch clip and a looping thruster start at zero, both async, so they keep
+// playing while the cursor holds at a sustain point inside the thruster's short region. The game
+// never keys it off; a fade-out stop ends it through the thruster's AHDSR release. Doppler is on
+// for the velocity FMOD reads from the missile's Rigidbody.
 //
 // Lives outside audio/fmod/Scripts/: Studio evaluates every script there on each project load.
 // Run only while FMOD Studio is closed: the CLI discards the open GUI's unsaved-changes backup.
@@ -26,6 +34,7 @@ var workspace = project.workspace;
 var clipDir = __dirname + "/../../src/Asteroids3D/Assets/Audio/Sfx/Fx/";
 var chargeLoopSeconds = 0.25;
 var sustainLeadSeconds = 0.01;
+var flightHoldSeconds = 0.05;
 
 function childFolder(parent, name) {
     var existing = parent.items.filter(function (item) {
@@ -117,6 +126,26 @@ function ensureChargePlaceholder(event) {
     console.log("placed charge loop, sustain point and release on " + event.getPath());
 }
 
+function ensureFlightPlaceholder(event) {
+    if (event.groupTracks.length > 0) return;
+    var launchClip = audioFile("laserBolt.wav");
+    var launch = placeSound(event, "Launch", launchClip, 0, launchClip.length);
+    launch.isAsync = true;
+    var thruster = placeSound(event, "Thruster", audioFile("engineRumbleLow.wav"), 0, flightHoldSeconds);
+    thruster.isAsync = true;
+    thruster.isCutoff = true;
+    thruster.looping = true;
+    var envelope = thruster.addModulator("ADSRModulator", "volume");
+    envelope.initialValue = -80;
+    envelope.attackTime = 250;
+    envelope.releaseTime = 150;
+    envelope.finalValue = -80;
+    var markers = event.markerTracks.length > 0 ? event.markerTracks[0] : event.addMarkerTrack();
+    markers.addSustainPoint(flightHoldSeconds - sustainLeadSeconds);
+    event.automatableProperties.dopplerEnabled = true;
+    console.log("placed launch, held thruster loop and sustain point on " + event.getPath());
+}
+
 var weaponsFolder = childFolder(workspace.masterEventFolder, "Weapons");
 var weaponsBank = bank("Weapons");
 
@@ -145,7 +174,14 @@ ensureOneShotPlaceholder(grenade, "laserBolt.wav");
 var detonate = event(grenadeFolder, "Grenade", "Detonate");
 ensureOneShotPlaceholder(detonate, "rockExplosion1.wav");
 
-[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate].forEach(function (each) {
+var missileFolder = childFolder(weaponsFolder, "Missile");
+var missileFlight = event(missileFolder, "Missile", "Flight");
+ensureParameter(missileFlight, "Speed", project.parameterType.User);
+ensureFlightPlaceholder(missileFlight);
+var missileDetonate = event(missileFolder, "Missile", "Detonate");
+ensureOneShotPlaceholder(missileDetonate, "rockExplosion1.wav");
+
+[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, missileFlight, missileDetonate].forEach(function (each) {
     ensureBank(each, weaponsBank);
 });
 

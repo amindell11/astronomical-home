@@ -129,8 +129,10 @@ namespace Combat.Projectiles
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             var attackerId = Shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             other?.TakeDamage(new DamageInfo(damage * damageScale, Kind, attackerId,
-                mass, impactVelocity, transform.position));
+                mass, impactVelocity, transform.position, DirectHitBypassesShield));
         }
+
+        protected virtual bool DirectHitBypassesShield => false;
 
         protected bool IsFriendly(IDamageable other)
         {

@@ -13,7 +13,7 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 - **Scaffolds and bank builds run on the primary tree's project**, with Studio closed, so the primary tree stays the one source of the design.
 - **Ship from a slot.** Copy the sound paths into a slot and take them through the normal loop; the evidence tests run there. A clip ships when the project imports it (`audio/fmod/Metadata/AudioFile/`).
 - **After the merge,** `git add` in the primary tree only the shipped paths whose content now equals `origin/main`, then `git pull --ff-only`. Anything that still differs stays the owner's uncommitted edit.
-- **Sound files the session-start check lists as strays are this work in progress**: they wait for the ship.
+- **The session-start check counts untracked sound files as this work in progress**, not strays; they wait for the ship. When main's pull is blocked, it names the colliding paths already equal to `origin/main`, the ones the step above stages.
 
 ## Studio and `fmodstudiocl`
 
@@ -34,7 +34,7 @@ Decline every page and close it. "Disable built in audio" silences every sound n
 - A sustained instance on a moving object is attached with `RuntimeManager.AttachInstanceToGameObject`, so FMOD moves it with the object every frame; `ChargeWeaponAudio` attaches to the weapon and detaches when it stops the instance.
 - Doppler needs a velocity on the instance. Attached through the `Rigidbody` overload, the instance gets that body's `linearVelocity` from `RuntimeManager` every frame (`MissileAudio` passes the missile's); the plain `GameObject` overload sends position and orientation only, and its `nonRigidbodyVelocity` flag derives velocity from frame-to-frame motion, clamped to 20 units/s. A one-shot placed with position-only 3D attributes (`PlayOneShot(event, position)`, `position.To3DAttributes()`) has no velocity.
 - A charge weapon's event is keyed off on the shot (`keyOff`), never stopped: the timeline runs on from its sustain point into the release. Any other return of the charge-up to zero stops it with fade-out.
-- The camera's `StudioListener` attenuates from `ListenerPlaneAnchor`, the point on the game plane beneath the camera, and pans from the camera itself. The camera sits 50 units off the plane and FMOD's default event range is 1–20, so an event measured from the camera is silent; keep attenuation anchored on the plane and author event ranges in plane units.
+- The camera's `StudioListener` sits on `ListenerPanPoint` and attenuates from `ListenerPlaneAnchor`, the point on the game plane beneath the camera. The pan point's height scales with the orthographic zoom, so a sound at the screen's side edge pans the same at every zoom. Event ranges are in plane units: FMOD's default 1–20 silences the zoomed-out screen edge, about 30 units from centre, so a new 3D event takes the weapon events' max distance of 115.
 - Batch `-executeMethod` tooling runs before FMOD's editor startup: call `FMODUnity.EventManager.Startup()` before `EventReference.Find`.
 - Live Update is on in every editor run (port 9264) and cannot be switched off per run: FMOD fixes its init flags before the platform callback handler runs. A port collision restarts FMOD without it, harmlessly.
 - `BatchModeAudioOutput` (the Default platform's callback handler) selects `NOSOUND` in batch mode; `ASTRO_FMOD_OUTPUT=<FMOD.OUTPUTTYPE>` overrides it for one run.
