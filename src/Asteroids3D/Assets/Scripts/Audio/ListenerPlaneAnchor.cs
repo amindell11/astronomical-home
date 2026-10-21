@@ -5,9 +5,8 @@ namespace Audio
 {
     /// <summary>
     /// The point on the game plane beneath its parent, the camera: the camera's StudioListener
-    /// attenuates from here (its attenuation object) while still panning from the camera itself.
-    /// The camera sits a fixed distance off the plane, beyond FMOD's default event range, so
-    /// distances to emitters on the plane are measured in-plane instead.
+    /// attenuates from here (its attenuation object) and pans from <see cref="ListenerPanPoint"/>,
+    /// which sits well off the plane, so distances to emitters on the plane are measured in-plane instead.
     /// </summary>
     public sealed class ListenerPlaneAnchor : MonoBehaviour
     {
