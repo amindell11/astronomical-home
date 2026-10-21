@@ -100,6 +100,46 @@ namespace Tests.PlayMode.Keystones
                 "the direct hit lands in full, past the shield");
         }
 
+        [UnityTest]
+        public IEnumerator Dash_HoldsEveryHullSurfaceWhiteForTheWindow_ThenRestoresIt()
+        {
+            yield return SpawnVanguard();
+            yield return null;
+            var surfaces = ship.VisualRig.Silhouette;
+            Assert.That(surfaces, Is.Not.Empty);
+            var block = new MaterialPropertyBlock();
+            var baseColors = new Color[surfaces.Count];
+            for (var i = 0; i < surfaces.Count; i++)
+            {
+                surfaces[i].GetPropertyBlock(block);
+                baseColors[i] = block.HasColor(BaseColor) ? block.GetColor(BaseColor) : surfaces[i].sharedMaterial.GetColor(BaseColor);
+            }
+
+            yield return Dash();
+            yield return null;
+            foreach (var surface in surfaces)
+            {
+                surface.GetPropertyBlock(block);
+                Assert.That(block.GetFloat(DamageFlash), Is.EqualTo(1f), $"{surface.name}: full flash inside the window");
+                Assert.That(block.GetColor(BaseColor), Is.EqualTo(Color.white), $"{surface.name}: the guard's flash is white");
+            }
+
+            var guard = (GuardDash)ship.Keystone;
+            while (guard.Guarding)
+                yield return new WaitForFixedUpdate();
+            yield return null;
+
+            for (var i = 0; i < surfaces.Count; i++)
+            {
+                surfaces[i].GetPropertyBlock(block);
+                Assert.That(block.GetFloat(DamageFlash), Is.EqualTo(0f), $"{surfaces[i].name}: no flash after the window");
+                Assert.That(block.GetColor(BaseColor), Is.EqualTo(baseColors[i]), $"{surfaces[i].name}: back to its base colour");
+            }
+        }
+
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
+
         private IEnumerator SpawnVanguard()
         {
             var prefab = TestAssets.Load<Ship>(VanguardPrefabPath);
