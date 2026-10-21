@@ -73,6 +73,7 @@ namespace AI.Research
         public float skillNoiseTau = 0.5f;
         public float skillAccelMin = 0.1f;
         public float skillCurve = 1f;
+        public float skillTolGain;
         public int skillSeed = 1;
         private double nextGrenadeOk;
         private float lastGrenadeAimDist;
@@ -165,6 +166,10 @@ namespace AI.Research
             var s = Mathf.Clamp01(skill);
             aimAccelFrac = Mathf.Lerp(skillAccelMin, aimAccelFrac, 1f - SkillError);
             strafeFraction *= s;
+            var widen = 1f + skillTolGain * SkillError;
+            geomTolScale *= widen;
+            if (chargeTolScale > 0f) chargeTolScale *= widen;
+            if (railAbortErr > 0f) railAbortErr *= widen;
         }
 
         /// <summary>Error scale (1-s)^curve: 1 at s = 0, 0 at s = 1.</summary>
