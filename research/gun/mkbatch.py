@@ -159,10 +159,25 @@ def batch_e():
     return runs
 
 
+
+def dial3(noise, reaction):
+    return {"skillReactionMax": reaction, "skillNoiseMax": noise, "skillAccelMin": 0.05, "skillCurve": 0.5,
+            "skillTolGain": 3}
+
+
+def batch_f():
+    runs = []
+    for name, noise, reaction in (("v3a", 15, 0.5), ("v3b", 20, 0.6), ("v3c", 25, 0.7)):
+        for s in (0.0, 0.25, 0.5, 0.75):
+            runs.append(marks(f"t5f-{name}-s{s}", ALL, ["Aggressor"],
+                              doc(FINAL, f"dial-{name}-s{s}", skill=s, **dial3(noise, reaction))))
+    return runs
+
+
 if __name__ == "__main__":
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else "a"
-    runs = {"a": batch_a, "b": batch_b, "c": batch_c, "d": batch_d, "e": batch_e}[which]()
+    runs = {"a": batch_a, "b": batch_b, "c": batch_c, "d": batch_d, "e": batch_e, "f": batch_f}[which]()
     with open(f"tail-{which}.json", "w") as f:
         json.dump({"runs": runs}, f, indent=1)
     print(len(runs), "runs")
