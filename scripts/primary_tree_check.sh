@@ -3,8 +3,9 @@
 # early; .githooks/post-merge runs check 2 after a merge in the primary itself.
 #
 # 1. When the primary's main is behind origin/main and `git pull --ff-only` there would be
-#    refused, the colliding paths are listed in two groups: those already equal to origin/main,
-#    which sync-primary takes, and those that differ, which it replays only when the merge is clean.
+#    refused, the colliding paths are listed in groups: those already equal to origin/main, which
+#    sync-primary takes; tracked edits that differ, which it replays only when the merge is clean;
+#    and untracked files that differ, which it refuses.
 # 2. Clean primary = no untracked files outside SOUND and no ignored files outside ALLOW below.
 #    Untracked SOUND paths are sound work in progress (doc/agents/audio-pipeline.md → Where sound
 #    work happens), counted but not listed. Tracked modifications are never listed as strays.
@@ -75,7 +76,7 @@ worktree_blob() {
 
 report_primary_main() {
   local primary="$1" main path
-  local -a incoming=() equal=() differ=()
+  local -a incoming=() equal=() differ=() occupied=()
   local -A unstaged=() off_head=() off_new=() untracked=()
   [[ "$(git -C "$primary" symbolic-ref -q HEAD)" == refs/heads/main ]] || return 0
   main="$(git rev-parse refs/heads/main)"
@@ -95,12 +96,14 @@ report_primary_main() {
     # Git Bash rewrites origin/main:<dotpath> as a Windows path list, so ls-tree, not rev-parse.
     if [[ "$(worktree_blob "$primary" "$path")" == "$(git ls-tree --full-tree --object-only origin/main -- "$path")" ]]; then
       equal+=("$path")
+    elif [[ ${untracked[$path]+x} ]]; then
+      occupied+=("$path")
     else
       differ+=("$path")
     fi
   done
-  ((${#equal[@]} + ${#differ[@]})) || return 0
-  echo "The primary's main is $(commits "$main..origin/main") behind origin/main, and incoming commits change these uncommitted paths. \`./scripts/agent_worktree_pool.sh sync-primary\` brings it up to origin/main."
+  ((${#equal[@]} + ${#differ[@]} + ${#occupied[@]})) || return 0
+  echo "The primary's main is $(commits "$main..origin/main") behind origin/main, and incoming commits change these uncommitted paths. Sync it with \`./scripts/agent_worktree_pool.sh sync-primary\`."
   if ((${#equal[@]})); then
     echo "Already equal to origin/main, so sync-primary takes them (doc/agents/audio-pipeline.md → Where sound work happens):"
     list "${equal[@]}"
@@ -108,6 +111,10 @@ report_primary_main() {
   if ((${#differ[@]})); then
     echo "Different from origin/main: sync-primary replays these when the merge is clean. If it refuses, tell the owner and leave the edits where they are:"
     list "${differ[@]}"
+  fi
+  if ((${#occupied[@]})); then
+    echo "Untracked, with content other than origin/main's: sync-primary refuses while these sit there. Tell the owner, and leave them where they are:"
+    list "${occupied[@]}"
   fi
 }
 

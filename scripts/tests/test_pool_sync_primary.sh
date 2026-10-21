@@ -147,6 +147,28 @@ expect replayed 0 "a shipped edit and copy beside an owner edit"
 at_main || fail "the shipped replay reaches main"
 [[ "$(git -C "$P" status --porcelain)" == ' M g.txt' ]] || fail "only the owner's edit stays uncommitted"
 
+parked() { find "$P/.git/primary-sync-parked" -type f 2> /dev/null; }
+
+universe
+echo clip > "$P/clip.wav"
+main_adds clip.wav clip
+: > "$P/.git/index.lock"
+sync_from "$P"
+expect failed:git 2 "a fast-forward refused by a held index lock"
+rm "$P/.git/index.lock"
+[[ "$(cat "$P/clip.wav")" == clip && -z "$(parked)" ]] || fail "the failed fast-forward puts the shipped copy back"
+
+# The clean filter rewrites the copy right after its first hash, as a save in that window would.
+universe
+echo clip > "$P/clip.wav"
+main_adds clip.wav clip
+echo 'clip.wav filter=race' >> "$P/.git/info/attributes"
+git -C "$P" config filter.race.clean 'cat; [ -e .git/raced ] || { : > .git/raced; echo saved >> clip.wav; }'
+sync_from "$P"
+expect failed:mismatch 2 "a shipped copy saved after its check"
+[[ "$(cat "$P/clip.wav")" == $'clip\nsaved' && -z "$(parked)" ]] || fail "the copy saved after its check goes back, newer bytes and all"
+! at_main || fail "a copy saved after its check stops the sync before the fast-forward"
+
 universe
 sed -i 's/^35$/thirty-five-owner/' "$P/f.txt"
 git -C "$P" add f.txt
