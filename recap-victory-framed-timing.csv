@@ -1,0 +1,15 @@
+frame,seconds,detailsAlpha,interactable,timeScale
+f_00000.png,0.0178,0.0000,False,0
+f_00001.png,0.2247,0.0000,False,0
+f_00002.png,0.4138,0.0000,False,0
+f_00003.png,0.6102,0.0000,False,0
+f_00004.png,0.8229,0.0000,False,0
+f_00005.png,1.0420,0.0255,False,0
+f_00006.png,1.2677,0.5602,False,0
+f_00007.png,1.4912,0.9996,False,0
+f_00008.png,1.7105,1.0000,True,0
+f_00009.png,1.9396,1.0000,True,0
+f_00010.png,2.1830,1.0000,True,0
+f_00011.png,2.4110,1.0000,True,0
+f_00012.png,2.6456,1.0000,True,0
+f_00013.png,2.8657,1.0000,True,0
