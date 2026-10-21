@@ -19,11 +19,16 @@ namespace Tests.PlayMode.Screens
     public class RunRecapScreensPlayModeTests
     {
         private RunRecapScreen screen;
+        private float timeScale;
+
+        [SetUp]
+        public void SetUp() => timeScale = Time.timeScale;
 
         [TearDown]
         public void TearDown()
         {
             if (screen) Object.Destroy(screen.gameObject);
+            Time.timeScale = timeScale;
         }
 
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
@@ -60,6 +65,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual("SECTOR 02 COMPLETE", TextAt("Recap/Context").text);
             Assert.AreEqual("3:42", TextAt("Recap/Time").text);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard"));
+            Assert.IsNull(screen.transform.Find("OutcomeIntro"));
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(continued);
         }
@@ -84,8 +90,28 @@ namespace Tests.PlayMode.Screens
             var board = new Scoreboard(new[] { new Scoreboard.Row(3, 25, 900, DateTime.UtcNow) },
                 new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow));
             var continued = false;
+            Time.timeScale = 0f;
             screen.ShowRun(victory, kills, cleared, 3, board, () => continued = true);
+            var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            var intro = screen.transform.Find("OutcomeIntro");
+            var headline = intro.Find("Outcome").GetComponent<Text>();
+            var button = screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>();
+            Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", headline.text);
+            Assert.That(headline.fontSize, Is.GreaterThan(TextAt("Recap/Outcome").fontSize * 2));
+            Assert.AreEqual(TextAt("Recap/Outcome").color, headline.color);
+            Assert.AreEqual(0f, details.alpha);
+            Assert.IsFalse(button.IsInteractable());
+            button.OnSubmit(null);
+            Assert.IsFalse(continued, "the opening outcome cannot dismiss the recap");
+            yield return new WaitForSecondsRealtime(.5f);
+            Assert.AreEqual(0f, details.alpha, "hold the outcome before revealing scores");
+            var deadline = Time.realtimeSinceStartup + 3f;
+            while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
             yield return null;
+            Assert.IsFalse(intro, "the outcome fades away even while gameplay is paused");
+            Assert.AreEqual(1f, details.alpha);
+            Assert.IsTrue(button.IsInteractable());
+            Assert.AreEqual(0f, Time.timeScale);
             Canvas.ForceUpdateCanvases();
             var outcome = TextAt("Recap/Outcome");
             Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", outcome.text);
@@ -109,7 +135,7 @@ namespace Tests.PlayMode.Screens
             Assert.Less(scoreBounds.max.y, trophyBounds.min.y);
             Assert.Greater(scoreBounds.min.y, buttonBounds.max.y);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Time"));
-            screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            button.OnSubmit(null);
             Assert.IsTrue(continued);
         }
 
