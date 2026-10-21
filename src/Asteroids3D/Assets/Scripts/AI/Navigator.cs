@@ -60,7 +60,7 @@ namespace AI
         internal Dynamics dynamics;
         private SeedScope navScope;
 
-        /// <summary>Ballistics never cross the decision seam: the host injects our own primary muzzle speed once for the solver's own lead, and the aim servo's lead arrives per step as the Gunner's aim reference.</summary>
+        /// <summary>Ballistics never cross the decision seam: the solver leads with this muzzle speed, the aim servo with the Gunner's aim reference.</summary>
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope,
             float primaryProjectileSpeed)
         {
