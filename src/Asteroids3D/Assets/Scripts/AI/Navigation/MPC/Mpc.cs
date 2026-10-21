@@ -23,6 +23,7 @@ namespace AI.Navigation.MPC
         public ReferentSnapshot referent1;
         public ReferentSnapshot referent2;
         public ReferentSnapshot referent3;
+        public AimReference aimReference;   // live only while the aim servo owns yaw
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
     }
@@ -87,7 +88,7 @@ namespace AI.Navigation.MPC
                     inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
                     inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
-                    inputs.enemyDynamics, inputs.projectileSpeed, inputs.sentence,
+                    inputs.enemyDynamics, inputs.projectileSpeed, inputs.sentence, inputs.aimReference,
                     inputs.referent1, inputs.referent2, inputs.referent3,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     settings.eliteFraction);

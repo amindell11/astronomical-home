@@ -1,5 +1,6 @@
 using System;
 using AI.Context;
+using AI.Navigation.MPC;
 using Combat;
 using Combat.Weapons;
 using Movement;
@@ -78,6 +79,22 @@ namespace AI
             projectileSpeed <= 0f
                 ? targetPos
                 : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
+
+        /// <summary>The bearing from this pose to the primary weapon's aim point, with that bearing's rate; none without a target.</summary>
+        public AimReference PrimaryAimReference()
+        {
+            if (!hasTarget) return AimReference.None;
+
+            var self = pose();
+            var toAim = AimPoint(in self, targetPos, targetVel, weapons.ProjectileSpeed(WeaponSlot.Primary)) - self.pos;
+            var rangeSq = toAim.sqrMagnitude;
+            // On top of the aim point the bearing is undefined.
+            if (rangeSq < 0.01f) return AimReference.None;
+
+            var relVel = targetVel - self.vel;
+            return new AimReference(Mathf.Atan2(-toAim.x, toAim.y),
+                (toAim.x * relVel.y - toAim.y * relVel.x) / rangeSq);
+        }
 
         internal Vector3 AimPointFor(WeaponSlot slot)
         {

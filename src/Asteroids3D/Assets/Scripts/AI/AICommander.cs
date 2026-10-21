@@ -127,7 +127,7 @@ namespace AI
                 Route(Brain.Decide(context));
             }
 
-            var command = Navigator.ComputeCommand();
+            var command = Navigator.ComputeCommand(Gunner ? Gunner.PrimaryAimReference() : AimReference.None);
             command.boost = boost ? 1f : 0f;
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
