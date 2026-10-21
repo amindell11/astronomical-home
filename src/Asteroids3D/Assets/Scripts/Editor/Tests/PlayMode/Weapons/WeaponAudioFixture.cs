@@ -1,10 +1,7 @@
 #if UNITY_EDITOR && ASTRO_FMOD
-using System.Collections;
 using System.Collections.Generic;
 using Combat;
 using Combat.Weapons;
-using FMOD.Studio;
-using FMODUnity;
 using NUnit.Framework;
 using Ships.Registry;
 using Substrate;
@@ -16,11 +13,10 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Weapons
 {
     /// <summary>
-    /// Local FMOD evidence for weapon audio, compiled only against the real package: weapon prefabs
-    /// mounted under a bare shooter, triggers driven directly, and instance state read back from
-    /// Studio after a flushed frame.
+    /// Local FMOD evidence for weapon audio: weapon prefabs mounted under a bare shooter, triggers
+    /// driven directly.
     /// </summary>
-    public abstract class WeaponAudioFixture : PlayModeWorldFixture
+    public abstract class WeaponAudioFixture : FmodEvidenceFixture
     {
         private sealed class TestShooter : MonoBehaviour, IShooter
         {
@@ -74,49 +70,6 @@ namespace Tests.PlayMode.Weapons
 
         protected void Release(WeaponComponent weapon) =>
             weapon.HandleTrigger(new WeaponCommand { pressed = false, held = false }, Projectiles);
-
-        /// <summary>The event's description with every instance earlier tests left released.</summary>
-        protected static EventDescription Fresh(string eventPath)
-        {
-            var description = RuntimeManager.GetEventDescription(eventPath);
-            description.releaseAllInstances();
-            RuntimeManager.StudioSystem.flushCommands();
-            return description;
-        }
-
-        /// <summary>Flushes Studio's command queue and yields a frame, so instance state reflects everything sent.</summary>
-        protected static IEnumerator Flush()
-        {
-            RuntimeManager.StudioSystem.flushCommands();
-            yield return null;
-        }
-
-        protected static EventInstance[] Instances(EventDescription description)
-        {
-            description.getInstanceList(out var instances);
-            return instances;
-        }
-
-        protected static PLAYBACK_STATE State(EventInstance instance)
-        {
-            instance.getPlaybackState(out var state);
-            return state;
-        }
-
-        protected static float Parameter(EventInstance instance, string name)
-        {
-            instance.getParameterByName(name, out var value);
-            return value;
-        }
-
-        protected static Vector3 Position(EventInstance instance)
-        {
-            instance.get3DAttributes(out var attributes);
-            return new Vector3(attributes.position.x, attributes.position.y, attributes.position.z);
-        }
-
-        protected static void AssertPlaying(EventInstance instance, string why) =>
-            Assert.That(State(instance), Is.EqualTo(PLAYBACK_STATE.PLAYING).Or.EqualTo(PLAYBACK_STATE.STARTING), why);
     }
 }
 #endif

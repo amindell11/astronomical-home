@@ -1,8 +1,11 @@
 {0a75aa53-831f-45a5-97ce-8fd31cc4d649} bank:/Master
 {92688a87-f264-09e7-1187-052ded37d0d1} bank:/Master.strings
+{ef52afb7-c95d-4dae-a742-82c852087e4a} bank:/Ships
 {56d0553b-e4a9-4f30-96f1-4d4006cb1b6c} bank:/Weapons
 {2fbb1511-ccb2-4fd2-9a27-eff30263dc28} bus:/
 {b6cda0c2-7027-4991-bd43-4273b51b9f17} bus:/Reverb
+{3feb78c4-655b-4afc-9025-7fed168b1842} event:/Ships/Boost
+{c720fa5a-068b-4d37-92fc-04a6e34bf8f4} event:/Ships/Engine
 {02407836-9e22-442e-ba8f-26cd90bbedaf} event:/Weapons/ChargeLaser/Fire
 {7c08ffa3-bf3c-4e03-ad3c-00e493d15ca3} event:/Weapons/Grenade/Detonate
 {62593044-5f9e-4bae-8319-e2a92c98f95f} event:/Weapons/Grenade/Fire
@@ -17,3 +20,5 @@
 {b4818c81-c170-4f81-9b3a-9c884898f964} parameter:/FirstShot
 {c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat
 {2b74d3f3-0476-47ab-933b-30169960c182} parameter:/Speed
+{a1563732-541d-45d4-911a-965ac4030c5e} parameter:/Strafe
+{9a8ff61d-d974-458e-b449-778fd063bdd1} parameter:/Thrust
