@@ -118,11 +118,11 @@ out="$(check "$W/later")"
 [[ "$out" == *"Fast-forwarded this session worktree 1 commit"* && "$out" != *"re-read AGENTS.md"* ]] ||
   fail "plain range: $out"
 
-# --- post-merge: a pull in the primary, under the owner's pull.rebase, prints strays; a slot merge doesn't ---
+# --- post-merge: a pull in the primary, under the owner's pull settings, prints strays; a slot merge doesn't ---
 git -C "$P" config core.hooksPath "$SCRIPT_DIR/../../.githooks"
 out="$(g -C "$TMP/slot" merge --ff-only origin/main 2>&1)"
 [[ "$out" != *PRIMARY_TREE_DIRTY* ]] || fail "a merge in a slot listed strays: $out"
-out="$(g -C "$P" -c pull.rebase=true pull -q 2>&1)"
+out="$(g -C "$P" -c pull.rebase=true -c rebase.autostash=true pull -q 2>&1)"
 [[ "$out" == *"Triage these now"*"PRIMARY_TREE_DIRTY=2"* ]] || fail "a pull in the primary listed no strays: $out"
 git -C "$P" config --unset core.hooksPath
 
