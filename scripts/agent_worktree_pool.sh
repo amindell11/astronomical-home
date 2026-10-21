@@ -386,7 +386,10 @@ Commands:
       snapshots the edits (git stash create), pins the snapshot at
       refs/primary-sync/<UTC timestamp> (keeping the newest 20), pre-checks
       the merge, fast-forwards with --autostash, and compares the resulting
-      tree with the one merge-tree predicted.
+      tree with the one merge-tree predicted. Just before either
+      fast-forward it deletes each untracked file whose content equals the
+      file main adds at its path (a shipped copy), so the fast-forward
+      writes the same bytes back.
       Stdout trailer: PRIMARY_SYNC=current (already at origin/main), ok
       (fast-forwarded), replayed, refused:<reason> or failed:<reason>.
       Every refusal is decided before any file changes, the reason one of
@@ -396,14 +399,15 @@ Commands:
                    autostash would bring staged edits back unstaged)
         conflict   the edits conflict with main; stderr lists each
                    conflicted file with its conflict-marker line ranges
-        untracked  untracked, non-ignored files sit at paths main adds
-                   (stderr lists them)
+        untracked  untracked, non-ignored files sit at paths main adds,
+                   with content other than main's (stderr lists them)
         fetch      the fetch from origin failed
         busy       another sync still held the lock after the wait
       A failure names the backup ref on stderr, when one was pinned:
         mismatch   the synced tree differs from the prediction, e.g. the
                    owner saved a file mid-sync
         git        a git step failed; stderr names it
+        remove     deleting a shipped copy failed, e.g. a program holds it open
       Exit: 0 current, ok or replayed; 1 refused, or a usage error; 2 failed.
 
   finalize <slot> [base_ref]
@@ -3026,11 +3030,22 @@ sync_primary_backup_note() {
   [[ "$stash_now" == "$stash_before" ]] || echo "sync-primary: git also kept them in the stash as stash@{0}." >&2
 }
 
+# Each copy holds the bytes main adds at its path, so the fast-forward writes it back.
+drop_shipped() {
+  local p="$1" backup="$2" stash_before="$3"
+  shift 3
+  rm -f -- "${@/#/$p/}" && return 0
+  echo "sync-primary: deleting a shipped copy failed; origin/main holds its bytes." >&2
+  sync_primary_backup_note "$p" "$backup" "$stash_before"
+  echo "PRIMARY_SYNC=failed:remove"
+  return 2
+}
+
 # Runs under the sync lock; every refusal returns before any tree or index write.
 sync_primary() {
   local p="$1" branch head target ahead changed added dirty untracked overlap out predicted f ranges
   local snap="" backup="" stash_before="" actual actual_tree rc=0
-  local -a q=(-c core.quotePath=false)
+  local -a q=(-c core.quotePath=false) shipped=() differ=()
   branch="$(git -C "$p" symbolic-ref -q --short HEAD)" || branch=""
   if [[ "$branch" != main ]]; then
     echo "sync-primary: $p is on ${branch:-a detached HEAD}, not main; switching it back is the owner's call." >&2
@@ -3059,15 +3074,24 @@ sync_primary() {
     && dirty="$(git "${q[@]}" -C "$p" diff --name-only --no-renames "$head")" \
     && untracked="$(git "${q[@]}" -C "$p" ls-files --others --exclude-standard)" \
     || { sync_primary_failed "$p" "diff/ls-files"; return 2; }
-  overlap="$(common_lines "$added" "$untracked")"
-  if [[ -n "$overlap" ]]; then
-    echo "sync-primary: main adds files where untracked files sit; moving them is the owner's call:" >&2
-    sed 's/^/  /' <<< "$overlap" >&2
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    # Hashed as git add would store it (eol, LFS), so equal means main holds these bytes.
+    if [[ "$(git -C "$p" hash-object -- "$f")" == "$(git -C "$p" ls-tree --full-tree --object-only "$target" -- "$f")" ]]; then
+      shipped+=("$f")
+    else
+      differ+=("$f")
+    fi
+  done <<< "$(common_lines "$added" "$untracked")"
+  if ((${#differ[@]})); then
+    echo "sync-primary: main adds files where untracked files with other content sit; moving them is the owner's call:" >&2
+    printf '  %s\n' "${differ[@]}" >&2
     echo "PRIMARY_SYNC=refused:untracked"
     return 1
   fi
   overlap="$(common_lines "$dirty" "$changed")"
   if [[ -z "$overlap" ]]; then
+    drop_shipped "$p" "" "" "${shipped[@]}" || return 2
     git -C "$p" merge --ff-only --no-autostash "$target" >&2 || { sync_primary_failed "$p" "merge --ff-only"; return 2; }
     echo "PRIMARY_SYNC=ok"
     return 0
@@ -3106,6 +3130,7 @@ sync_primary() {
   fi
   [[ "$rc" -eq 0 ]] || { sync_primary_failed "$p" merge-tree "$backup" "$stash_before"; return 2; }
 
+  drop_shipped "$p" "$backup" "$stash_before" "${shipped[@]}" || return 2
   git -C "$p" merge --ff-only --autostash "$target" >&2 \
     || { sync_primary_failed "$p" "merge --ff-only --autostash" "$backup" "$stash_before"; return 2; }
   actual="$(git -C "$p" stash create)" && actual_tree="$(git -C "$p" rev-parse "${actual:-HEAD}^{tree}")" \

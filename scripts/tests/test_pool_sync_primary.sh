@@ -3,8 +3,9 @@ set -euo pipefail
 # covers: scripts/agent_worktree_pool.sh
 
 # Regression for 'sync-primary': the primary fast-forwards past owner edits main doesn't touch,
-# replays edits main touches in other hunks, and refuses with the primary byte-identical on a
-# conflict, a staged replay, an untracked collision, a wrong branch, divergence or a held lock.
+# replays edits main touches in other hunks, takes untracked copies of the files main adds, and
+# refuses with the primary byte-identical on a conflict, a staged replay, an untracked file with
+# other content where main adds one, a wrong branch, divergence or a held lock.
 # Every case runs under a global config with the owner's pull.rebase and rebase.autostash.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -116,6 +117,35 @@ main_adds new.txt theirs
 expect_refused untracked "an untracked file where main adds one"
 grep -qx '  new.txt' "$TMP/err" || fail "stderr lists the untracked file"
 [[ "$(cat "$P/new.txt")" == mine ]] || fail "the untracked file keeps its content"
+
+universe
+echo clip > "$P/clip.wav"
+echo mine > "$P/new.txt"
+main_adds clip.wav clip
+main_adds new.txt theirs
+expect_refused untracked "a shipped copy beside an untracked file with other content"
+[[ "$(sed -n '/^  /p' "$TMP/err")" == '  new.txt' ]] || fail "stderr lists only the file with other content"
+[[ "$(cat "$P/clip.wav")" == clip ]] || fail "the refusal keeps the shipped copy"
+
+universe
+echo clip > "$P/clip.wav"
+main_adds clip.wav clip
+sync_from "$P"
+expect ok 0 "an untracked copy of the file main adds"
+at_main || fail "the fast path past a shipped copy reaches main"
+[[ -z "$(git -C "$P" status --porcelain)" ]] || fail "the shipped copy leaves the tree clean"
+
+# A sound ship: main holds the owner's tracked edit and new file, beside an edit it leaves alone.
+universe
+sed -i 's/^5$/five-main/' "$P/f.txt"
+echo clip > "$P/clip.wav"
+echo owner > "$P/g.txt"
+main_edits f.txt 's/^5$/five-main/'
+main_adds clip.wav clip
+sync_from "$P"
+expect replayed 0 "a shipped edit and copy beside an owner edit"
+at_main || fail "the shipped replay reaches main"
+[[ "$(git -C "$P" status --porcelain)" == ' M g.txt' ]] || fail "only the owner's edit stays uncommitted"
 
 universe
 sed -i 's/^35$/thirty-five-owner/' "$P/f.txt"

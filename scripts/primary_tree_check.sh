@@ -4,7 +4,7 @@
 #
 # 1. When the primary's main is behind origin/main and `git pull --ff-only` there would be
 #    refused, the colliding paths are listed in two groups: those already equal to origin/main,
-#    which staging lets through, and those that differ, which wait on the owner.
+#    which sync-primary takes, and those that differ, which it replays only when the merge is clean.
 # 2. Clean primary = no untracked files outside SOUND and no ignored files outside ALLOW below.
 #    Untracked SOUND paths are sound work in progress (doc/agents/audio-pipeline.md → Where sound
 #    work happens), counted but not listed. Tracked modifications are never listed as strays.
@@ -68,7 +68,7 @@ read_set() {
   while IFS= read -r -d '' path; do into[$path]=1; done
 }
 
-# Hashed as `git add` would store it, so equal to origin/main means staging lets the pull through.
+# Hashed as `git add` would store it, so equal to origin/main means main holds these bytes.
 worktree_blob() {
   if [[ -f "$1/$2" ]]; then git -C "$1" hash-object -- "$2"; fi
 }
@@ -100,13 +100,13 @@ report_primary_main() {
     fi
   done
   ((${#equal[@]} + ${#differ[@]})) || return 0
-  echo "The primary's main is $(commits "$main..origin/main") behind origin/main, and \`git pull --ff-only\` there would be refused: incoming commits change these uncommitted paths."
+  echo "The primary's main is $(commits "$main..origin/main") behind origin/main, and incoming commits change these uncommitted paths. \`./scripts/agent_worktree_pool.sh sync-primary\` brings it up to origin/main."
   if ((${#equal[@]})); then
-    echo "Already equal to origin/main, so staging them (\`git add\`) lets the pull through (doc/agents/audio-pipeline.md → Where sound work happens):"
+    echo "Already equal to origin/main, so sync-primary takes them (doc/agents/audio-pipeline.md → Where sound work happens):"
     list "${equal[@]}"
   fi
   if ((${#differ[@]})); then
-    echo "Different from origin/main, so the pull waits on these. Tell the owner, and leave the edits where they are:"
+    echo "Different from origin/main: sync-primary replays these when the merge is clean. If it refuses, tell the owner and leave the edits where they are:"
     list "${differ[@]}"
   fi
 }
