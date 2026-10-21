@@ -1,24 +1,21 @@
 #!/usr/bin/env bash
-# SessionStart hook: start the session from a current base, and surface what needs triage.
+# SessionStart hook: surface what needs triage in the primary tree.
 #
-# 1. An app session worktree (under <primary>/.claude/worktrees/) can start behind origin/main.
-#    With no commits of its own and a clean tree it is fast-forwarded. Claude Code has already
-#    loaded AGENTS.md by then, so the output says when the range changed it.
-# 2. When the primary's main is behind origin/main and `git pull --ff-only` there would be
+# 1. When the primary's main is behind origin/main and `git pull --ff-only` there would be
 #    refused, the colliding paths are listed in two groups: those already equal to origin/main,
 #    which staging lets through, and those that differ, which wait on the owner.
-# 3. Clean primary = no untracked files outside SOUND and no ignored files outside ALLOW below.
+# 2. Clean primary = no untracked files outside SOUND and no ignored files outside ALLOW below.
 #    Untracked SOUND paths are sound work in progress (doc/agents/audio-pipeline.md → Where sound
 #    work happens), counted but not listed. Tracked modifications are never listed as strays.
 # The primary tree is resolved from --git-common-dir, so the checks read the same tree from a
-# slot, a session worktree or the primary itself. Checks 2 and 3 never stage, pull or stash there.
+# slot, a session worktree or the primary itself. They never stage, pull or stash there.
 #
 # Interface: exit 0 always (a hook failure must not block a session).
 #   stdout  prose for the session (Claude Code adds it to context), then the trailer
 #           PRIMARY_TREE_DIRTY=<stray count>; nothing to report prints the trailer alone.
 #   stderr  git errors only.
 # Never runs Unity. One `git fetch origin main`, capped at FETCH_SECONDS; with no origin remote,
-# checks 1 and 2 are skipped.
+# check 1 is skipped.
 set -uo pipefail
 
 ALLOW=(
@@ -69,24 +66,6 @@ read_set() {
 # Hashed as `git add` would store it, so equal to origin/main means staging lets the pull through.
 worktree_blob() {
   if [[ -f "$1/$2" ]]; then git -C "$1" hash-object -- "$2"; fi
-}
-
-fast_forward_session() {
-  local primary="$1" top old new
-  top="$(git rev-parse --show-toplevel)" || return 0
-  [[ "$top" == "$primary/.claude/worktrees/"* ]] || return 0
-  old="$(git rev-parse HEAD)" new="$(git rev-parse origin/main)" || return 0
-  [[ "$old" != "$new" ]] && git merge-base --is-ancestor "$old" "$new" || return 0
-  [[ -z "$(git status --porcelain)" ]] || return 0
-  # App worktrees check out every LFS file as a pointer; skipping the smudge keeps that true.
-  if ! GIT_LFS_SKIP_SMUDGE=1 git merge -q --ff-only "$new" > /dev/null; then
-    echo "Could not fast-forward this session worktree: it is $(commits "$old..$new") behind origin/main."
-    return 0
-  fi
-  echo "Fast-forwarded this session worktree $(commits "$old..$new") to origin/main (${old:0:9}..${new:0:9})."
-  if ! git diff --quiet "$old" "$new" -- AGENTS.md CLAUDE.md; then
-    echo "AGENTS.md changed in that range, and the copy in your context predates it: re-read AGENTS.md before acting."
-  fi
 }
 
 report_primary_main() {
@@ -163,14 +142,12 @@ main() {
   primary="$(dirname "$common")"
   if git remote get-url origin > /dev/null 2>&1; then
     if GIT_TERMINAL_PROMPT=0 timeout "$FETCH_SECONDS" git fetch -q origin main; then
-      fast_forward_session "$primary"
       report_primary_main "$primary"
     else
-      echo "Could not fetch origin main, so this session's base and the primary's main went unchecked."
+      echo "Could not fetch origin main, so the primary's main went unchecked."
     fi
   fi
   report_strays "$primary"
 }
 
-# Bash reads a script as it runs; parsing main whole first lets the fast-forward rewrite this file.
 main "$@"; exit 0

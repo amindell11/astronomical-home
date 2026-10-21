@@ -34,6 +34,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_guard.py\""
           }
         ]
+      },
+      {
+        "matcher": "mcp__ccd_session__start_session",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/app_worktree_guard.py\""
+          }
+        ]
       }
     ]
   }
