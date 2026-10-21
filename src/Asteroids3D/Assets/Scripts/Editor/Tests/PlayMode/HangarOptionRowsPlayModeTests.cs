@@ -174,7 +174,8 @@ namespace Tests.PlayMode
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
-            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing")]
+            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing",
+            "Direct hit skips shields")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
             @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(regen [\d.]+s/round\)", @"Range \d+u")]
         public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
