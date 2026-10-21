@@ -1,0 +1,12 @@
+{
+  "tool": "built-in image_gen",
+  "status": "exploration",
+  "parent": "../02-refinement/b1-broad-bands.png",
+  "parent_sha256": "b35269dd1b223cf90ff7c3ace978af92e96c77902b96c860a44e008ae5ef5ae2",
+  "output": "b1-no-left-spikes.png",
+  "prompt": "Use case: precise-object-edit.\nImage 1 is the selected B1 laser-impact sprite and the ONLY edit target.\nMake one narrow edit: remove ALL of the backward-pointing starburst spikes on the LEFT side of the bright contact core. This includes the upper-left, straight-left, lower-left, and near-vertical teeth immediately to the left of the core. Replace that left-facing starburst silhouette with a compact, blunt, gently rounded or subtly faceted contact cap. The little white core itself should have a clean blunt left edge too, not a starburst. No pointed teeth, detached particles, or rays should project into the empty region left of the contact point.\nPreserve the five long energy lobes fanning to the RIGHT, their directions, their relative lengths, the right-side silhouette and broad electric-blue/cyan/pale-mint/white color bands from Image 1. Preserve the overall size, position, square canvas, padding and genuine transparent background. Keep the center bright but compact. The rightward lobes remain angular and pointed; only remove the left-side spikes.\nDo not add a flat vertical cropping line, shield ring, circular orb, smoke, debris, extra rays, text, background color, checkerboard texture, or any other object. No new stylistic interpretation, global repainting or relighting. Deliver one transparent PNG sprite.",
+  "transparent_background": true,
+  "pixels_modified_after_generation": false,
+  "sha256": "0eb51ba237edc0a04427f49863250b4d234705e9a07e1de12a1da3061c9e6108",
+  "generated_utc": "2026-10-21T21:45:45.6746935Z"
+}
