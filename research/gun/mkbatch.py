@@ -174,10 +174,27 @@ def batch_f():
     return runs
 
 
+
+DIAL4 = {"skillReactionMax": 0.5, "skillNoiseMax": 15, "skillAccelMin": 0.05, "skillCurve": 1.0, "skillTolGain": 3}
+
+
+def batch_g():
+    runs = []
+    base = json.dumps({"label": "base"})
+    mid = doc(FINAL, "dial4-s0.5", skill=0.5, **DIAL4)
+    for s in (0.0, 0.25, 0.5, 0.75, 1.0):
+        dial = doc(FINAL, f"dial4-s{s}", skill=s, **DIAL4)
+        runs.append(marks(f"t5g-s{s}", ALL, ["Aggressor"], dial, episodes=20))
+        for w in GUNS:
+            runs.append(matrix(f"t5gb-s{s}-{w}", [w], dial, base, opponents=[w], seed=7201))
+            runs.append(matrix(f"t5gm-s{s}-{w}", [w], dial, mid, opponents=[w], seed=7501))
+    return runs
+
+
 if __name__ == "__main__":
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else "a"
-    runs = {"a": batch_a, "b": batch_b, "c": batch_c, "d": batch_d, "e": batch_e, "f": batch_f}[which]()
+    runs = {"a": batch_a, "b": batch_b, "c": batch_c, "d": batch_d, "e": batch_e, "f": batch_f, "g": batch_g}[which]()
     with open(f"tail-{which}.json", "w") as f:
         json.dump({"runs": runs}, f, indent=1)
     print(len(runs), "runs")
