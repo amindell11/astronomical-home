@@ -36,9 +36,9 @@ namespace Balance
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
         public static string OfLoadout(Ship ship) => Of(ship);
 
-        /// <summary>The stat fingerprint: the hangar's offer, the sector's spawners and the kill refill.</summary>
-        public static string OfSetting(ItemSubset hangarOffer, Sector sectorPrefab, float killHullRestore) =>
-            Digest(SettingLines(hangarOffer, sectorPrefab, killHullRestore));
+        /// <summary>The stat fingerprint: the hangar's offer, the spawners of the run's sectors and the kill refill.</summary>
+        public static string OfSetting(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs, float killHullRestore) =>
+            Digest(SettingLines(hangarOffer, sectorPrefabs, killHullRestore));
 
         internal static SortedSet<string> Lines(Object item)
         {
@@ -47,13 +47,14 @@ namespace Balance
             return lines;
         }
 
-        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, Sector sectorPrefab,
+        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs,
             float killHullRestore)
         {
             var lines = NewLines();
             var visited = new HashSet<Object>();
             Visit(hangarOffer, lines, visited);
-            Visit(sectorPrefab, lines, visited);
+            foreach (var sectorPrefab in sectorPrefabs)
+                Visit(sectorPrefab, lines, visited);
             lines.Add($"setting/killHullRestore={Format(killHullRestore)}");
             return lines;
         }

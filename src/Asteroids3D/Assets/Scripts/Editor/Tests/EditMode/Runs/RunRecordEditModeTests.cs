@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, and no ship id reaches the text.</summary>
+    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, an extracted run carries no killing blow, and no ship id reaches the text.</summary>
     [Category("Bootstrap")]
     public class RunRecordEditModeTests
     {
@@ -62,11 +62,14 @@ namespace Tests.EditMode.Runs
         }
 
         private RunRecord Compose(DamageLedger ledger, SpawnLog spawns) =>
+            Compose(ledger, spawns, 1, Hit(99f, DamageKind.Laser, Laserer));
+
+        private RunRecord Compose(DamageLedger ledger, SpawnLog spawns, int sectorsCleared, DamageInfo? killingBlow) =>
             RunRecord.Compose(
-                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), "TrialSector",
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, "TrialSector",
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.engines[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
-                new FixedTally(), ledger, spawns, Hit(99f, DamageKind.Laser, Laserer));
+                new FixedTally(), ledger, spawns, killingBlow);
 
         [TearDown]
         public void TearDown()
@@ -90,7 +93,7 @@ namespace Tests.EditMode.Runs
         public void JsonLine_IsOneLineTaggedWithTheSchema()
         {
             StringAssert.DoesNotContain("\n", json);
-            StringAssert.Contains("\"schema\":\"run-record-v1\"", json);
+            StringAssert.Contains("\"schema\":\"run-record-v2\"", json);
             Assert.AreEqual(RunRecord.SchemaId, JsonUtility.FromJson<RunRecord>(json).schema);
         }
 
@@ -100,6 +103,8 @@ namespace Tests.EditMode.Runs
             var read = JsonUtility.FromJson<RunRecord>(json);
 
             Assert.AreEqual("2026-10-01T12:34:56Z", read.endedUtc);
+            Assert.AreEqual(RunRecord.Died, read.outcome);
+            Assert.AreEqual(1, read.sectorsCleared);
             Assert.AreEqual("TrialSector", read.sector);
             Assert.AreEqual("abc123", read.buildIdentity.commit);
             Assert.IsTrue(read.buildIdentity.dirty);
@@ -148,6 +153,22 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(RunRecord.NoSpawn, read.damage[1].spawn, "a non-ship source links to no entry");
             Assert.AreEqual("Laser", read.killingBlow.kind);
             Assert.AreEqual(1, read.killingBlow.spawn);
+        }
+
+        [Test]
+        public void ExtractedRun_CarriesNoKillingBlow()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.End(30f);
+
+            var read = JsonUtility.FromJson<RunRecord>(Compose(new DamageLedger(), spawns, 3, null).ToJsonLine());
+
+            Assert.AreEqual(RunRecord.Extracted, read.outcome);
+            Assert.AreEqual(3, read.sectorsCleared);
+            Assert.AreEqual(string.Empty, read.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
         }
 
         [Test]

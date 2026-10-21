@@ -333,7 +333,7 @@ namespace Tests.PlayMode
             created.Add(arena.Root);
             arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {
-                sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
+                sectors = new[] { new SectorEntry { prefab = sectorPrefab, config = config } },
                 presentation = false,
                 offset = arena.Offset
             });
