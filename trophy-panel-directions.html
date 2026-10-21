@@ -1,0 +1,196 @@
+<style>
+#trophy-directions { width:100%; }
+#trophy-directions .game { --ink:#edf0ec; --soft:#b0bac9; --line:#d6dfed47; --navy:rgba(12,20,39,.89); --paint:#e8e7d9; position:relative; isolation:isolate; width:100%; height:576px; overflow:hidden; color:var(--ink); color-scheme:dark; font-family:Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; font-weight:400; background:#061027; }
+#trophy-directions .game *, #trophy-directions .game *::before, #trophy-directions .game *::after { box-sizing:border-box; }
+#trophy-directions .space { position:absolute; z-index:-2; inset:0; overflow:hidden; background:radial-gradient(ellipse at 91% 72%,#3c3e8177,transparent 40%),radial-gradient(ellipse at 17% 30%,#2e79a45e,transparent 28%),linear-gradient(149deg,#061025 18%,#102348 40%,#266984 44%,#162d59 49%,#080f2b 66%,#1c2859); }
+#trophy-directions .space::before { content:""; position:absolute; inset:-35%; transform:rotate(-24deg); background:radial-gradient(ellipse at 36% 48%,#4fabc94a,transparent 18%),radial-gradient(ellipse at 62% 44%,#7792c73d,transparent 20%); filter:blur(16px); }
+#trophy-directions .star { position:absolute; background:#ecf1f6; border-radius:50%; }
+#trophy-directions .rock { position:absolute; background:linear-gradient(130deg,#c2bca0 0 28%,#79766d 29% 46%,#4b4e60 47% 71%,#30394c 72%); clip-path:polygon(5% 33%,20% 10%,49% 0,72% 9%,94% 35%,100% 69%,76% 92%,41% 100%,12% 79%,0 57%); filter:drop-shadow(4px 5px 0 #020916); }
+#trophy-directions .rock.a { width:112px; height:139px; right:4%; top:3%; transform:rotate(22deg); }
+#trophy-directions .rock.b { width:84px; height:70px; left:23%; bottom:9%; transform:rotate(-38deg); }
+#trophy-directions .rock.c { width:51px; height:72px; right:17%; bottom:25%; transform:rotate(19deg); }
+#trophy-directions .rock.d { width:36px; height:41px; left:9%; top:16%; }
+#trophy-directions .scene-ship { position:absolute; width:48px; height:48px; left:72%; top:36%; transform:rotate(43deg); opacity:.7; background:#a5b7d3; mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
+#trophy-directions .scene-ship::after { content:""; position:absolute; inset:10px 20px; background:#e5a377; }
+#trophy-directions .overlay { position:absolute; --surface-opacity:.89; background:rgba(12,20,39,var(--surface-opacity)); padding:28px 30px 23px; }
+#trophy-directions .eyebrow { margin:0; color:var(--soft); font-size:11px; letter-spacing:2.8px; line-height:1.4; text-transform:uppercase; }
+#trophy-directions .heading { display:flex; align-items:baseline; justify-content:space-between; gap:18px; margin-bottom:22px; }
+#trophy-directions .total { display:flex; align-items:baseline; gap:10px; white-space:nowrap; font-size:30px; letter-spacing:1px; line-height:1; }
+#trophy-directions .total small { font-size:11px; letter-spacing:2px; color:var(--soft); }
+#trophy-directions .trophies { display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:8px 6px; margin:0; }
+#trophy-directions .mark { position:relative; display:grid; place-items:center; padding:0; border:0; background:none; color:var(--paint); height:40px; min-width:0; }
+#trophy-directions .mark::before { content:""; width:100%; max-width:36px; height:36px; background:currentColor; mask-image:var(--ship); mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
+#trophy-directions .mark:hover { color:#fff; }
+#trophy-directions .mark[aria-pressed="true"]::after { content:""; width:12px; height:1px; background:currentColor; position:absolute; bottom:-2px; }
+#trophy-directions .selected { height:18px; font-size:11px; color:var(--soft); letter-spacing:1px; line-height:18px; margin-top:8px; }
+#trophy-directions .trophy-progress { margin-top:12px; }
+#trophy-directions .trophy-progress-label { color:var(--soft); font-size:11px; letter-spacing:1.4px; text-transform:uppercase; margin-bottom:12px; }
+#trophy-directions .route { display:flex; align-items:center; gap:10px; }
+#trophy-directions .node { flex-shrink:0; min-width:27px; height:27px; position:relative; display:grid; place-items:center; font-size:11px; letter-spacing:1px; color:var(--ink); }
+#trophy-directions .node::before { content:""; position:absolute; inset:0; border:1px solid #dce3ed63; border-radius:50%; }
+#trophy-directions .node.done::before { border-color:transparent; background:#a7bbcf20; }
+#trophy-directions .node.current { color:#edba9d; }
+#trophy-directions .node.current::before { border-color:#e2b69588; border-top-color:transparent; transform:rotate(-30deg); }
+#trophy-directions .path { height:1px; flex:1; background:#c4d1e64a; }
+#trophy-directions .footer { display:flex; align-items:center; justify-content:flex-end; margin-top:21px; }
+#trophy-directions .continue { color:var(--ink); background:transparent; border:1px solid #e4e8ec80; padding:9px 17px; display:flex; align-items:center; gap:24px; font:400 11px/1.2 Bahnschrift,"Arial Narrow","Segoe UI",sans-serif; letter-spacing:2px; text-transform:uppercase; min-height:36px; }
+#trophy-directions .continue:hover { background:#d8e1f111; border-color:#edf0ec; }
+#trophy-directions .continue span { font-size:18px; line-height:12px; }
+#trophy-directions .corner { position:absolute; width:16px; height:16px; border-color:#e9edf16e; border-style:solid; }
+#trophy-directions .corner.tl { top:0; left:0; border-width:1px 0 0 1px; }
+#trophy-directions .corner.br { bottom:0; right:0; border-width:0 1px 1px 0; }
+#trophy-directions .glass .overlay { width:440px; left:50%; top:50%; transform:translate(-50%,-50%); }
+#trophy-directions .glass .heading { padding-bottom:18px; border-bottom:1px solid var(--line); }
+#trophy-directions .glass .trophy-progress { border-top:1px solid #d6dfed29; padding-top:17px; }
+#trophy-directions .glass .footer { margin-top:22px; }
+#trophy-directions .open .overlay { width:462px; left:50%; top:50%; transform:translate(-50%,-50%); padding:29px 30px; background:linear-gradient(90deg,#06102600,#081328b8 10%,#081328d9 50%,#081328b8 90%,#06102600); text-align:center; }
+#trophy-directions .open .heading { flex-direction:column; align-items:center; gap:14px; margin-bottom:25px; }
+#trophy-directions .open .total { font-size:22px; }
+#trophy-directions .open .trophies { gap:12px 8px; }
+#trophy-directions .open .selected { text-align:center; }
+#trophy-directions .open .trophy-progress { margin-top:19px; padding:0 31px; }
+#trophy-directions .open .footer { justify-content:center; margin-top:25px; }
+#trophy-directions .open .continue { border-color:transparent; padding:8px 0; border-bottom:1px solid #e4e8ec65; }
+#trophy-directions .strip .overlay { width:82%; max-width:842px; left:50%; bottom:42px; transform:translateX(-50%); padding:20px 27px; }
+#trophy-directions .strip .heading { margin-bottom:15px; }
+#trophy-directions .strip .total { font-size:23px; }
+#trophy-directions .strip .trophies { grid-template-columns:repeat(17,minmax(0,1fr)); gap:4px; }
+#trophy-directions .strip .mark { height:34px; }
+#trophy-directions .strip .mark::before { height:31px; }
+#trophy-directions .strip .selected { margin-top:3px; height:14px; line-height:14px; }
+#trophy-directions .strip .lower { display:flex; gap:40px; align-items:flex-end; border-top:1px solid var(--line); padding-top:13px; margin-top:5px; }
+#trophy-directions .strip .trophy-progress { flex:1; margin:0; display:flex; gap:23px; align-items:center; }
+#trophy-directions .strip .trophy-progress-label { margin:0; flex-shrink:0; letter-spacing:1px; }
+#trophy-directions .strip .route { flex:1; }
+#trophy-directions .strip .footer { margin:0; }
+#trophy-directions .rail .overlay { left:7%; top:50%; transform:translateY(-50%); width:308px; padding:27px; }
+#trophy-directions .rail .heading { display:block; margin-bottom:23px; }
+#trophy-directions .rail .total { margin-top:20px; font-size:30px; }
+#trophy-directions .rail .trophies { grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; }
+#trophy-directions .rail .trophy-progress { border-top:1px solid var(--line); padding-top:19px; margin-top:15px; }
+#trophy-directions .rail .footer { justify-content:flex-start; margin-top:24px; }
+#trophy-directions .chapters .overlay { left:50%; top:53%; transform:translate(-50%,-50%); width:540px; padding:25px 30px; }
+#trophy-directions .chapters .heading { margin-bottom:27px; }
+#trophy-directions .chapter-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:23px; }
+#trophy-directions .chapter { min-width:0; }
+#trophy-directions .chapter .trophies { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; align-content:start; min-height:128px; }
+#trophy-directions .chapter .mark { height:38px; }
+#trophy-directions .chapter .mark::before { height:32px; }
+#trophy-directions .chapter-label { display:flex; justify-content:space-between; align-items:center; padding-top:14px; margin-top:9px; border-top:1px solid var(--line); color:var(--soft); font-size:11px; letter-spacing:1px; }
+#trophy-directions .chapter-label .sector-num { font-size:17px; color:var(--ink); }
+#trophy-directions .chapter:last-child .chapter-label, #trophy-directions .chapter:last-child .sector-num { color:#edba9d; }
+#trophy-directions .chapters .footer { justify-content:space-between; margin-top:16px; }
+#trophy-directions .chapters .trophy-progress-label { margin:0; letter-spacing:1px; }
+#trophy-directions .bands .overlay { width:446px; left:50%; top:50%; transform:translate(-50%,-50%); padding:0; background:none; }
+#trophy-directions .bands .band { padding:21px 27px; background:rgba(12,20,39,var(--surface-opacity)); }
+#trophy-directions .bands .heading { margin-bottom:19px; }
+#trophy-directions .bands .total { font-size:23px; }
+#trophy-directions .bands .selected { margin-bottom:-7px; }
+#trophy-directions .bands .trophy-progress { display:flex; gap:22px; align-items:center; margin-top:8px; padding:17px 27px; background:rgba(12,20,39,var(--surface-opacity)); }
+#trophy-directions .bands .trophy-progress-label { width:76px; flex-shrink:0; line-height:1.6; margin:0; letter-spacing:1px; }
+#trophy-directions .bands .route { flex:1; }
+#trophy-directions .bands .footer { margin-top:17px; }
+#trophy-directions .bands .continue { background:#0d1833b3; }
+@media(max-width:760px) {
+ #trophy-directions .game { height:520px; }
+ #trophy-directions .strip .overlay { width:88%; }
+ #trophy-directions .strip .trophies { grid-template-columns:repeat(9,minmax(0,1fr)); }
+ #trophy-directions .strip .lower { gap:20px; }
+ #trophy-directions .strip .trophy-progress { display:block; }
+ #trophy-directions .strip .trophy-progress-label { margin-bottom:8px; }
+}
+@media(max-width:560px) {
+ #trophy-directions .game { height:594px; }
+ #trophy-directions .overlay, #trophy-directions .glass .overlay, #trophy-directions .open .overlay, #trophy-directions .strip .overlay, #trophy-directions .rail .overlay, #trophy-directions .chapters .overlay, #trophy-directions .bands .overlay { width:calc(100% - 38px); max-width:380px; left:50%; top:50%; bottom:auto; transform:translate(-50%,-50%); }
+ #trophy-directions .overlay, #trophy-directions .glass .overlay, #trophy-directions .open .overlay, #trophy-directions .strip .overlay, #trophy-directions .rail .overlay, #trophy-directions .chapters .overlay { padding:24px 20px; }
+ #trophy-directions .trophies, #trophy-directions .strip .trophies { grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px 2px; }
+ #trophy-directions .mark, #trophy-directions .strip .mark { height:44px; }
+ #trophy-directions .mark::before { height:34px; max-width:34px; }
+ #trophy-directions .heading { margin-bottom:20px; }
+ #trophy-directions .open .trophy-progress { padding:0 10px; }
+ #trophy-directions .strip .lower { display:block; padding-top:15px; }
+ #trophy-directions .strip .footer { margin-top:20px; }
+ #trophy-directions .rail .heading { display:flex; align-items:baseline; }
+ #trophy-directions .rail .total { margin-top:0; }
+ #trophy-directions .chapters .overlay { padding:24px 16px; }
+ #trophy-directions .chapter-grid { gap:12px; }
+ #trophy-directions .chapter .trophies { grid-template-columns:repeat(2,minmax(0,1fr)); min-height:180px; gap:2px; }
+ #trophy-directions .chapter .mark { height:43px; }
+ #trophy-directions .chapter-label { display:block; line-height:1.8; }
+ #trophy-directions .chapter-label .sector-num { display:block; }
+ #trophy-directions .chapters .footer { align-items:flex-start; gap:12px; flex-direction:column; }
+ #trophy-directions .bands .band { padding:24px 20px 19px; }
+ #trophy-directions .bands .trophy-progress { padding:16px 20px; gap:14px; }
+ #trophy-directions .continue { min-height:44px; }
+}
+</style>
+<div id="trophy-directions">
+ <div class="viz-carousel" aria-label="Ship trophy panel directions">
+  <section data-variant="Quiet glass" aria-label="Quiet glass"><div class="game glass" data-design="Quiet glass"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Quiet glass panel"><i class="corner tl" aria-hidden="true"></i><i class="corner br" aria-hidden="true"></i><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="trophies" data-kills="all"></div><div class="selected" aria-live="polite"></div><div class="trophy-progress"><div class="trophy-progress-label">2 sectors cleared</div><div class="route"></div></div><div class="footer"><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></section>
+  <section data-variant="Open frame" aria-label="Open frame" hidden><div class="game open" data-design="Open frame"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Open frame panel"><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="trophies" data-kills="all"></div><div class="selected" aria-live="polite"></div><div class="trophy-progress"><div class="trophy-progress-label">2 sectors cleared</div><div class="route"></div></div><div class="footer"><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></section>
+  <section data-variant="Low strip" aria-label="Low strip" hidden><div class="game strip" data-design="Low strip"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Low strip panel"><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="trophies" data-kills="all"></div><div class="selected" aria-live="polite"></div><div class="lower"><div class="trophy-progress"><div class="trophy-progress-label">2 sectors cleared</div><div class="route"></div></div><div class="footer"><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></div></section>
+  <section data-variant="Hangar side panel" aria-label="Hangar side panel" hidden><div class="game rail" data-design="Hangar side panel"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Hangar side panel"><i class="corner tl" aria-hidden="true"></i><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="trophies" data-kills="all"></div><div class="selected" aria-live="polite"></div><div class="trophy-progress"><div class="trophy-progress-label">2 sectors cleared</div><div class="route"></div></div><div class="footer"><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></section>
+  <section data-variant="Sector chapters" aria-label="Sector chapters" hidden><div class="game chapters" data-design="Sector chapters"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Sector chapters panel"><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="chapter-grid"><div class="chapter"><div class="trophies" data-kills="0:6"></div><div class="chapter-label"><span class="sector-num">01</span><span>Cleared</span></div></div><div class="chapter"><div class="trophies" data-kills="6:14"></div><div class="chapter-label"><span class="sector-num">02</span><span>Cleared</span></div></div><div class="chapter"><div class="trophies" data-kills="14:17"></div><div class="chapter-label"><span class="sector-num">03</span><span>Reached</span></div></div></div><div class="selected" aria-live="polite"></div><div class="footer"><span class="trophy-progress-label">2 sectors cleared</span><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></section>
+  <section data-variant="Floating bands" aria-label="Floating bands" hidden><div class="game bands" data-design="Floating bands"><div class="space" aria-hidden="true"></div><div class="overlay" aria-label="Floating bands panel"><div class="band"><div class="heading"><p class="eyebrow">Ship lost</p><div class="total">17 <small>kills</small></div></div><div class="trophies" data-kills="all"></div><div class="selected" aria-live="polite"></div></div><div class="trophy-progress"><div class="trophy-progress-label">2 sectors<br>cleared</div><div class="route"></div></div><div class="footer"><button class="continue cursor-interaction" type="button">Continue <span aria-hidden="true">›</span></button></div></div></div></section>
+ </div>
+</div>
+<script type="application/json" id="trophy-direction-assets">{"Valis":"data:image/png;base64,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","Crimson":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAGAUlEQVR4Ae2b4XLcIAyEm07f/5XbMBlyhBojQLsC394fOxiQ9O1adq7pr1/6iIAIiIAIiIAIiIAIiIAIiIAIiMA+BP5+fvbJZiyTE3L/PVYSd/YJAHtEdq9hWwPsDq4nfHl951q2NcApAMs8y/OdRS/z3NIAp8ArQfbOd61pOwPsCqonsOX6jrV9WBJnzekB+vj8sHJZiXNSHdt1gBXwWjtO4M/4Et8VvbvFN9oeu5U1R3e1ozpACW4PKf/P4oQcy6xDDXAarBKc13k0gzADRBfuJaDHPpEsQt6qVwuOfm62RD+xrrAO0IKocS4BugFW7xIuHm60CDZUA0QUyJVwPRqbEe17AHZhPSnqfHZ6r0i5sfKhdoCeKKzrtfgp7tUYK5/IOBQD7AT3Lpe7a2yRWLnADcAqhC0QIx6DHdwADFDWGBagljnWeCfMgxoABRO174pgqJxQ++ZaoQbIQXTcl4AMsK82lMzexgAjrXRkLkUlYBCoAVhfZgD5hG+NZgg1QKKHLiBcIWACDHaUr4LLQt6pvc54o2Q1s350DbwDlAlFiT8Td2ZNWevsOTsu1QCzULQOR0AGwLE9YmeaAdit7Qj6jSSZrGgGaNSq4WACxxrAepdY513pYF1rnXcVI3qMYoCTAUUJxGJGMUAURMXtE5AB+owePQNuAGQrQ+5tVR2ZA3LvXB/cADkQ6siA1Mo9MnYrp9Hx4w2QCo4QIiLmqLiW+Y8wANsETxE/cXuMAVgmeJL4iRnln4NTINYnC+T9z6p5X1YdrDjw/x7+VHA0gT6djIwF3Vzi+0jn3c3KrB71DlAWpnMbAVgH0N1vE8A6C9UFIAaQ+FZZx+YhTOBuAIk/JurobG8T6B1gVIGHzXfvAImPugDGJd53f8pSHQCj1TG7QjpAql5dwNcDiLs/ZehuAAnvK3y9m7cRXA0g8Wu5MD97msDFABIeI3RvVw8jLBtA4vdkwl5fNcGSASQ+Vlzr7ismmP410CL+SmLW4p8+z8LQokWL01QHuAt4lXCan8bv1rUSfMfxzKrFssXkan5rbh4fMsCdgL3gd2tzMjq+CKzw7K19RRn4HuBKQGugq7VlEjq/JrDC17rW1AFKAa0bp5LKddclatRCYJa5ZV33j0KTiJaNLIVoDp5AqZVFO1MHmE1bHWCW3M91pag/r6z/NP1r4Hpo7bADARlgBxUCc5ABAuHvEFoG2EGFwBygL4GpLr0IrqmLfAFMmcENkMuXETIJ2xEtfM6CZoAUUCbI2O+PLPFTFlQD5LJlhEzi55EpfI6sl8BM4k2P9A6gu//eaewuQDWAxL8XP19lmkCPgEz9TY8ywJsKn8umPgJSUD0GMvrrI7P9pwzUAa51eJtRagfQ3W/zFbMLqAPYNHnsLBngsdLaCpMBbJweO4v2DqDn/5iHWO8BW3SAVrFpPH/G8MXPznmn41U2rfGrucix7p+FI4OXeycgqUvsAqbMbfW8rGm3Gi/duVrw1frWI6CEc7UujbXWtubvMr5Sm2WtR51bPAI8CtEecwQoBmjdwSyXz6HhrGoxaDHzzopigKukW4XXc1kg6rgeP1tzt7LwyKneI8wAdSL6OYYA5SWwvhNmHF/vEYPLHtWjxpk97Bl+zYR3gFo4RlGjEHaZX7Op2SHyhBvAI2kGCI88yz1OyZlqgNrhJTCdfxFgM6J9E8gurGeoOp+d7tiUGysfaAdgFdET++TraIZQA2Tw9d2Wxy1HNABLDrNzVnJfYTaSL+0RMJJUObcGsQK13Bd1XueLiuO1L9QAp8Hwguq1D4Mf7BGw+53qJRJjHyRLmAEY7r2D7xnfc6+7nFvXkPFhBmgVwxz3AOexB7Pm0VhHGWCkFY7M7UEb2Wtkbi8u4/pRBpgBsnIHr6ydyTVizeMNEAH1pJjHGGCmteY1M3dyXpP3GBF1Zs3I/p5zjzGAZ9Ha60UA+kXQK0z8Wb6jW5n0rrfWnT6uDnC6gov5ywCLAE9fLgOcruBi/pQ/Cl3M8Xv56Nu113M9Ku534ToRAREQAREQAREQAREQAREQAREQAR8C/wCq9FRCFw0NxAAAAABJRU5ErkJggg==","Nightshade":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAGRElEQVR4Ae2c247cOAxEM4v8/y/vxgG0EAyJ5qUolWX2iz0WxcthiW00gvz6VZ8iUASKQBEoAkWgCBSBIlAEikAR+BCBnw/V+rfUf/98pJp//nyk9dPWPlPsU+Pvjf2KED4hAGvzmxi+IILjBeBt/ldEcLQAos3/ggj+aUXW9ZsEjp0AqNPfZHHq+0BNgNbhj16PnADo09+0ceIUqAnQuvvR63ETIOv0N32cNgWOnQDIRiF9NSGxXI+aANmnvzXtJEEcOwFas+oqE3iFADQnW2Mjo9CvamJpbPQR8yzpBdBAtmseCpznlmu74jzjPdELQFPyDtA7YmpYWG2oBXACZPYaaAWgBae1s54Mjb02ttZOExNtQykAZmDeBrDWRCcAVlDexvf7GGv73Se4854RTgaPVifLj0kUE6BByQDO6pOl5u0CiICI7EUJI5JDZC8q/+0CsBTCAOwp3zfk2NewVQBvg9WDQ93vZrBNAN7CvftQDZP8eHPz7pNy0a5tEUC04Oh+LRyLXTSn6H5Lrr3tFgH0CdT9XgLL/0HILqXvxayPvvr3gZoA+t4cabl0AtTp12lo5RSoCaDrybFWyyZAnX6bhlZNgZoAtr4cZ71kAtTp9+lmxRSoCeDrzTG70idAnf6YVrKnQE2AWH9ev7sE8PoWxgpI/Qqo8R9rTtud+TVQE6BR/ug1bQLU6ccqKmsK1ATA9ul13koAr2sZNuEUASDHf9bow2Ice0PmjmTaZ5vyDpCVbJ/4F++Rgmr8UiZAcx69ZhQczcm6n70GagFYYZe9nQCtANhPjgU1cy20ArgAn/AuwV4DpQCYT4zl5Pe2rDXBBcCu+L4pb7vPYAsXAApqRrGo3Kx+mGuhEwDrqLQ2fWTPWBudAEbg6lkegRJAHttXeKYUAPN3prerrDVRCsALufbZCZQA7MyO2vEaAWjfoLV2ni5qfWvtPDmg99AJYPRdeQEdPZ/ByGiAxeeV68jeUsOsNvRzmv8osi9sBK9ff8v9vQ5GAdBNgKu5jKCiomOtiVIAXtj3E+f1I+1bEUOKj147SgA9HGSjkL76HBnuKQVwInDWmigFwHAyvpLD0QJAnDqED2YxQQXA+qbL3ABrbmjGUAFYixnZe0+cd98oh6dn3ljefU/5RNbpBBApZrQ3Aj2yd5QL4zMqAcyAo8feikbMcp7VuCKnUQzKn4JbojOIbZ392vJna3rPDTYBWrG9c8t9JiSPb88ebb1R31HWfZ4wAfROEffIIhH5RHww10IhgOiJiDRn116WmikEgGjCylO2MhaCjeRjuwBWnQRLHIutBPdpbVUcKY/tApgl54Gz4mR6YnhqmXFBP98qgAwwngZpoWb4zmCgreeygwggA8yVnBdORj5en94arvqljzefu0+IAO5ONX9rwWjtUDFXx7vyRsbUcOhttgjAWrDVvi9w1701Z6s9qq4tAkAlP/OTATPD5yz/lc+XC8AL0rtvJcwWy5urd1+L67mGBYB6GdEkrwGksdHEGtlofGtsRr49zxDswwKwJI6Ag/Bhydlii8gN4cOS8zIBrCoMcSpmADN99zFXsbpiLhNAX2D0fiUgba6MOWlyXyKADDiSz4yTKvmUctE0YWST4XMUJyQACUoLtqqQFu+kq4adpgcSk5AAJMcr1iRAUTB9/pIvKYfeB+t9qgBWwJFiSI3TNkTyIcXW+n+yy47hFoAE5qko5PpTHvd1Ceh97b73nvfT+t0+6+9IHm4BPBVzh/lkX+tzApks0wQwL6dWmAi4BPA0cjIVi4A3ym/0DBEL5eMpv6eezPJwCWDmjPH5DFz/vL/va5g9723efg8XwGpokXjX3uvjbWJkrydmRjyzALyjxlNw7bER8PTGLAAppQyFSvG+uIZmbBKApDB0Ypbm7oi9I2ZjIsWWetT291e1AKyO+yC77iVQ2pwQPrSxUHaWXqkFICX3RkhSPW9YQzGHCIABGAqIppaVsTT5RGyOEUAEwpf3hgXAdBpW5LIihlaQiFyo/4sYLYjeDgGl93fdZ/i8x9j1t+lXsPvb5clgdjXEEzfSl/BXgCfh2sNDwC2AOv08TYz0wi0AnvIrkwgBlwAiioskW3vnBKoncza1UgSKQBEoAkWgCBSBIlAEikARKAL/E/gP8mPpbkmVg3MAAAAASUVORK5CYII=","Vanguard":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAEpElEQVR4Ae2a23LjMAxD2/3/f96tp4OOVrVs3UkKyAtjWxcSOKbTNB8fekkBKSAFpIAUkAJSQApIASkgBaQAkQKfRLX+V+rfr1d64vPrlR6zvKcsOjcfZjNCQAdAyXxWCP6gcEVOBag6wNvdDwSYHgU0ANSazwaBHgFwnDRSdIDWux8sMDwK1AHgNmkUAKTGo+zjHwG97f9HoMO/IVQHgNOkUQCQGo+yj34EjLb/H5EOfgyoA8Bl0igASI1H2QIASpDGYz8DzHr+g4tTvxVUB4DDpFEAkBqPsgUAlCCNAoDUeJQtAKAEaRQApMajbAEAJUijACA1HmULAChBGgUAqfEoWwBACdIoAEiNR9kCAEqQRgFAajzKFgBQgjQKAFLjUbYAgBKkUQCQGo+yBQCUII1H/iZw9u8BwcaJvwsM2wFWmQyzW6KnXFryvsaGBACCI7YWPXM8ckCcufaOtcI9AnKh07acX1sl4NOe6bVV+89cNxQAJYMv0UvXZoqVrvW0ZyQIwgCw2+DU7J73USAIAUA08wFMBAhCfgiEwIrjCrjvAFHvfljjvQu4BiC6+REgcAvAKeZ7h8AlAKeZ7xkCdwCcar5XCPRXAJwhja46wOl3Pxjz9JeBOgBcIY1uOgDL3Q/OvHQBdQA4QhoFAKnxKFsAQAnSKABIjUfZAgBKkEYBQGo8yhYAUII0CgBS41G2AIASpNHFN4Fs3wKCNQ/fBqoDwA3SSAFAz53WMyciQxQARDRmV84CYJfSTvcRAE6N2ZWWANiltNN9BIBTY3alRQNAy6f6lrG7jFq1z/EAjJg5MneVYbPXNQeA9VvAy0gPtZsDMEq05V1qufeobpgfHgAUotingADo0+2YWUcDMKNFz1jDMy1HA5ALX2NmzZh83cjHVABENmpV7gJglbJB1jUHgK3lplx4qN0cgEsQD0Kkxux476VmFwCsgGCmwDPXWlHrCLBuAPAmzIioT3Nnw/S0V801VwDUJDw65smAp2uj+3qd7woAD/8cWW2UtxpdAbBafK3/WwE3APTeGb3zfkvRfqZ379557Rm+z3ADwHuqGrFCgbAAXB/YrtcKUVrW/M7CPo+WnNOxLgB4a4nRRK7J963m1KSV710A8FTgJSau1wiLsRYxzy/N3SKfmj1dA1ASsHS+puBVY0o5lc6vyqN1XXMASq3Qu3AtQpdqKdXesvboWHMA7gooCXY3Nso5rzWZAjDjDrAUdsbeMzQYuQlMAbhLfIaoM9bIc5ux5ow18rxGj10B4FGgUYHz+d5qNAMgb33ehMmNm3mc15prMXOvt7XMAEgTywVJr9W8H51fs0c+ZnTP0fl5Pr3HJgCkxHsRolfAkXlp7akmI2u2zjUBAEmmAuAcW7TWwBQAK7PvRL87Z5Xfzn23A4BWxyr4nbnQAtrcjVl1bjsAVyEoeFVREde10mQrABfhVoVGgOLSZncX2ArASvNXrp3Ds3KvlWvndVzHWwG4S0DnbBUQALb6m+8uAMwtsE3gKAB2PD937LETiaMA2CncKXv9/ODylIJq68j/3Drtzq7VQeOkgBSQAlJACkgBKSAFpIAUkAJSgEqBf9h73Za4NQY8AAAAAElFTkSuQmCC","Bulwark":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAEDElEQVR4Ae2b4W7bMBCD26Hv/8pbDx4HL7AFyNNypEj/yKW2Y9+Rn85SkH58ZIsCUSAKRIEoEAWiQBSIAlEgCkQBIwU+d6315/e2srbP723l9ViutVVRq02/M2knGLYA4F3GvwKxAwjyAHSZDxjUIfiBQhI9FZDuAN2jH8god4F0ALhoGmU7AMvoBzeqXSAdAA6aRtkOUH6xdAHV0V8aygLAYn6JWJsqBHkEHP7Zvkp2ALbRD3oUu4AcAKzmq0KQRwCcM41SHYB99IMhpUeBDAAq5qtBkEcAHDONEh1AbfSDJYVHAS0AqqbD/NfICgMlALuZDxgYIaACYFfjAQAiEwg0ALiYzwYBBQBu5jNBkGUg3DCNAcDUeJTd+ghwbf0QH7FzUtgGQMyH/UfsgqAFgJj/t/n4qwOCzAGgvmkMAKbGo+wAACVMYwAwNR5lBwAoYRoDgKnxKPvty8AsASH9dXz3UjAd4NoHm70BwMbq60IDwLUuNnsDgI3V14UGgGtdbPYGABurrwt9+zIQaWQ5CCWO+O7lH+6eDgAlTGMAMDUeZQcAKGEa2+YApXfmAQd1Xc//uns6wOGB7WsAsLX+KDwABABzBczLb50ElvbuE8HOCWDp3w5AJVGbGwjdxh+qkwDgZv4f8b8pwPuumElgl/Ik9w0AJEZ0pREAupQnuW8AIDGiK40A0KU8yX0DAIkRXWkEgC7lSe7bvg6FDm7fBbB8EZQOAAJNYwAwNR5lBwAoYRoDgKnxKDsAQAnTSLMKKP1dVgIsK4DSPB2gVDDeAoCx+VV6ADAHgGoOUF7sPg9gev6X3ukApYLxFgCMza/SA4A5AHRzgPJj13kA2/O/tJbqAIwClojnTSHHc74yAJSwCp2hclSCQAIAJUExulRyppwDlIgY7a9CYj+EZot3+b7uZ8mbFoCRQKwQsJo80vJrdHCXY0+NYQVtpS8Sc4BzwcymMOd21vD8XgoABYEVcpQF4Jz4zPsnpjz5zExOLOfKdAAlQ5RylQGAZcTslkcA2M3RyXoCwKRgu50eAHZzdLKeADAp2G6nB4DdHJ2sJwBMCrbb6QFgN0cn65EAQOmLFeivkrMEABA1cb0CAWC9plJXDABSdq1PNgCs11TqigFAyq71yQaA9ZpKXTEASNm1PtkAsF5TqStaAPDkV8FPPiPl/O9kt/1Z+AoDz9dQ+WZvFsLtADibNivG6HxcdzcQ6P8zaEZwmDQycsUxxpye1mUxB3gqjsPnpAAYjfDRsdVGju41OrY6jxXXo58DqAlapijlLNUB7ojvELzjnnf1/8t+OQCYhWfO7Q4SOQDuCsn+ZwrQzwFGZXWPONx/Zlk4qifHokAUiAJRIApEgSgQBaJAFIgCUSAK/GcFfgH7T9Tx1bYUrgAAAABJRU5ErkJggg=="}</script>
+<script>
+(() => {
+ const root = document.getElementById('trophy-directions');
+ const textures = JSON.parse(document.getElementById('trophy-direction-assets').textContent);
+ const kills = ['Valis','Crimson','Valis','Nightshade','Vanguard','Crimson','Valis','Bulwark','Nightshade','Valis','Vanguard','Crimson','Nightshade','Bulwark','Valis','Crimson','Vanguard'];
+ const saved = window.openai?.widgetState?.modelContent;
+ const selectedByDesign = saved?.selectedByDesign && typeof saved.selectedByDesign === 'object' ? {...saved.selectedByDesign} : {};
+ function persist(design) {
+  const result = window.openai?.setWidgetState?.({modelContent:{selectedByDesign, lastDesign:design},privateContent:null});
+  result?.catch?.(() => {});
+ }
+ function select(game,index,save) {
+  const marks = [...game.querySelectorAll('.mark')];
+  marks.forEach(mark => mark.setAttribute('aria-pressed', String(Number(mark.dataset.index) === index)));
+  game.querySelector('.selected').textContent = Number.isInteger(index) && kills[index] ? kills[index] : '';
+  selectedByDesign[game.dataset.design] = index;
+  if(save) persist(game.dataset.design);
+ }
+ root.querySelectorAll('.game').forEach(game => {
+  const backdrop = game.querySelector('.space');
+  for(let i=0;i<95;i++) {
+   const star = document.createElement('i'); star.className='star';
+   star.style.cssText=`left:${(i*67.31)%100}%;top:${(i*43.77)%100}%;width:${i%13===0?2:1}px;height:${i%13===0?2:1}px;opacity:${.2+(i%5)*.13}`;
+   backdrop.append(star);
+  }
+  ['a','b','c','d'].forEach(name => {const rock=document.createElement('i');rock.className=`rock ${name}`;backdrop.append(rock);});
+  const sceneShip=document.createElement('i');sceneShip.className='scene-ship';sceneShip.style.maskImage=`url("${textures.Valis}")`;backdrop.append(sceneShip);
+  game.querySelectorAll('.trophies').forEach(grid => {
+   const range=grid.dataset.kills==='all'?[0,kills.length]:grid.dataset.kills.split(':').map(Number);
+   for(let index=range[0];index<range[1];index++) {
+    const name=kills[index];const mark=document.createElement('button');mark.type='button';mark.className='mark cursor-interaction';
+    mark.dataset.index=String(index);mark.setAttribute('aria-label',`${name}, trophy ${index+1}`);mark.setAttribute('aria-pressed','false');
+    mark.style.setProperty('--ship',`url("${textures[name]}")`);mark.addEventListener('click',()=>select(game,index,true));grid.append(mark);
+   }
+  });
+  game.querySelectorAll('.route').forEach(route => {
+   ['01','02','03'].forEach((num,index)=>{
+    if(index){const path=document.createElement('span');path.className='path';path.setAttribute('aria-hidden','true');route.append(path);}
+    const node=document.createElement('span');node.className=`node ${index<2?'done':'current'}`;node.textContent=num;node.setAttribute('aria-label',`Sector ${num}, ${index<2?'cleared':'reached'}`);route.append(node);
+   });
+  });
+  game.querySelector('.continue').addEventListener('click',()=>{
+   game.querySelector('.selected').textContent='Returns to the hangar';
+  });
+  if(Number.isInteger(selectedByDesign[game.dataset.design]))select(game,selectedByDesign[game.dataset.design],false);
+  if(globalThis.Tweak){
+   const state={backing:89,paint:'#e8e7d9'};const panel=game.querySelector('.overlay');
+   const tweak=new Tweak({container:panel,onChange:()=>{panel.style.setProperty('--surface-opacity',String(state.backing/100));game.style.setProperty('--paint',state.paint);}});
+   if(!game.classList.contains('open'))tweak.addSlider(state,'backing',{label:'Backing opacity',min:55,max:100,step:1,unit:'%'});
+   tweak.addColorPicker(state,'paint',{label:'Silhouette paint',reference:'--paint'});
+  }
+ });
+ window.addEventListener('openai:set_globals',event=>{
+  const restored=event.detail?.globals?.widgetState?.modelContent?.selectedByDesign;
+  if(!restored)return;
+  root.querySelectorAll('.game').forEach(game=>select(game,Number.isInteger(restored[game.dataset.design])?restored[game.dataset.design]:-1,false));
+ });
+})();
+</script>

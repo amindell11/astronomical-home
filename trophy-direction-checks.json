@@ -1,0 +1,167 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "name": "Quiet glass",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 440,
+      "panelHeight": 389,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Open frame",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 462,
+      "panelHeight": 398.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Low strip",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 839.671875,
+      "panelHeight": 185,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Hangar side panel",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 308,
+      "panelHeight": 509.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Sector chapters",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 540,
+      "panelHeight": 363,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Floating bands",
+      "width": 1024,
+      "height": 576,
+      "panelWidth": 446,
+      "panelHeight": 322.1875,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Quiet glass",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 440,
+      "panelHeight": 389,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Open frame",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 462,
+      "panelHeight": 398.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Low strip",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 647.671875,
+      "panelHeight": 248,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Hangar side panel",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 308,
+      "panelHeight": 509.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Sector chapters",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 540,
+      "panelHeight": 363,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Floating bands",
+      "width": 736,
+      "height": 520,
+      "panelWidth": 446,
+      "panelHeight": 322.1875,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Quiet glass",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 501,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Open frame",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 516.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Low strip",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 447,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Hangar side panel",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 492,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Sector chapters",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 483.390625,
+      "outside": [],
+      "overflow": false
+    },
+    {
+      "name": "Floating bands",
+      "width": 320,
+      "height": 594,
+      "panelWidth": 282,
+      "panelHeight": 438.1875,
+      "outside": [],
+      "overflow": false
+    }
+  ]
+}
