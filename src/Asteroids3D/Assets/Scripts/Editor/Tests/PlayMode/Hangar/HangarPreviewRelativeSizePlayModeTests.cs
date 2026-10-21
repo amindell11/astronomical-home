@@ -29,7 +29,7 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
-        public IEnumerator DoublingAuthoredScale_DoublesOnScreenSize()
+        public IEnumerator DoublingAuthoredScale_KeepsOnScreenSize()
         {
             var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
             Assert.IsNotNull(valis, "Valis prefab loads");
@@ -53,8 +53,8 @@ namespace Tests.PlayMode.Hangar
                 onScreen[i] = hull.lossyScale.x / Vector3.Distance(camera.transform.position, hull.position);
             }
 
-            Assert.That(onScreen[1] / onScreen[0], Is.EqualTo(2f).Within(0.01f),
-                "a ship authored at twice the scale reads twice as large in the hangar preview");
+            Assert.That(onScreen[1] / onScreen[0], Is.EqualTo(1f).Within(0.01f),
+                "every hull is fitted to the same share of the hangar preview, whatever its authored scale");
         }
     }
 }
