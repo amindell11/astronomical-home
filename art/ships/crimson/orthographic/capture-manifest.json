@@ -1,0 +1,14 @@
+{
+  "source": "Crimson.blend",
+  "source_sha256": "6bd214aba52e51095208af223a642d4e84785e75280d20b5de6d8f70c6097dfc",
+  "parts": 39,
+  "views": [
+    "top",
+    "bottom",
+    "side-right",
+    "side-left",
+    "front",
+    "rear",
+    "three-quarter"
+  ]
+}
