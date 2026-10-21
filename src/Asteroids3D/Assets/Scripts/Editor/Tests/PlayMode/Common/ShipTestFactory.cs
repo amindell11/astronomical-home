@@ -32,7 +32,7 @@ public static class ShipTestFactory
         var ship = go.AddComponent<Ship>();
         ship.Movement.enabled = false;
 #if UNITY_EDITOR
-        // Spawns clone this ship, and a clone's Awake instantiates the kit; this live template never initializes.
+        // Awake already ran on this template; the clones spawned from it instantiate the kit.
         var so = new SerializedObject(ship);
         so.FindProperty("keystone").objectReferenceValue = TestAssets.Load<Dash>(VanguardDashPath);
         so.ApplyModifiedPropertiesWithoutUndo();

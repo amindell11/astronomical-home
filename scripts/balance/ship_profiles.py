@@ -2,16 +2,17 @@
 """Derive each ship's handling and durability numbers from the live prefabs and module assets.
 
 Reads the chassis variants under Assets/Prefabs/Ships, the engine and shield assets and the
-keystone kit prefab they point at, and the laser's damage and cadence, and prints one table per ship: the authored stats, then the
-metrics a pilot feels (acceleration, terminal speed against the cap, time to the cap, yaw spin-up,
-re-aim bound, stopping distance, boost delta-v, effective hit points, laser time-to-kill, collision
-delta-v per impulse). Run it against two checkouts to get a before/after delta for a tuning PR:
+keystone kit prefab they point at, and the laser's damage and cadence, and prints one table per
+ship: the authored stats, then the metrics a pilot feels (acceleration, terminal speed against the
+cap, time to the cap, yaw spin-up, re-aim bound, stopping distance, boost delta-v, effective hit
+points, laser time-to-kill, collision delta-v per impulse). Run it against two checkouts to get a
+before/after delta for a tuning PR:
 
     python3 scripts/balance/ship_profiles.py --root <checkout> [--ships Vanguard,Bulwark] [--markdown]
 
 The movement model follows MovementController: forces each fixed step, Rigidbody linear damping as
-an exponential drag, maxLinearVelocity as a hard cap, the Dash keystone as an impulse. Nothing here is a source
-of truth; the owning assets are.
+an exponential drag, maxLinearVelocity as a hard cap, the Dash keystone as an impulse. Nothing here
+is a source of truth; the owning assets are.
 """
 from __future__ import annotations
 

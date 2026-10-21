@@ -117,7 +117,7 @@ namespace AI.Observation
             return new SelfToken(
                 frame.Direction(kin.vel), speedPct, yawRatePct,
                 self.HealthPct, self.ShieldPct,
-                self.BoostAvailable ? 1f : 0f, Mathf.Clamp01(self.BoostCooldownPct));
+                self.BoostAvailable ? 1f : 0f, self.BoostCooldownPct);
         }
 
         internal static TargetToken BuildTarget(EgoFrame frame, Vector2 selfVel, in TargetView target)
