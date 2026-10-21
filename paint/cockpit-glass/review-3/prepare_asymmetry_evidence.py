@@ -30,7 +30,6 @@ def movie(comparison):
     name = 'asymmetry-comparison' if comparison else 'bulwark-slow-preview'
     frames = [frame(i, comparison) for i in range(160)]
     durations = [500 if i in (0, 20, 60, 80, 100, 140) else 100 for i in range(160)]
-    frames[0].save(root / (name + '.gif'), save_all=True, append_images=frames[1:], duration=durations, loop=0, optimize=False)
     width, height = frames[0].size
     command = [imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{width}x{height}', '-r', '10', '-i', '-', '-an', '-c:v', 'libx264', '-crf', '18', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(root / (name + '.mp4'))]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
@@ -39,6 +38,9 @@ def movie(comparison):
             process.stdin.write(image.tobytes())
     process.stdin.close()
     assert process.wait() == 0
+    gif_width = 896 if comparison else 480
+    filters = f'[0:v]scale={gif_width}:-2:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle'
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error', '-y', '-i', str(root / (name + '.mp4')), '-filter_complex', filters, '-loop', '0', str(root / (name + '.gif'))], check=True)
     return {'frames': len(frames), 'duration_seconds': sum(durations) / 1000, 'gif': name + '.gif', 'mp4': name + '.mp4'}
 
 
