@@ -298,6 +298,7 @@ GameObject:
   - component: {fileID: 1078774188}
   - component: {fileID: 1078774190}
   - component: {fileID: 1078774189}
+  - component: {fileID: 1078774191}
   m_Layer: 16
   m_Name: FarNebula
   m_TagString: Untagged
@@ -373,6 +374,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1078774187}
   m_Mesh: {fileID: 4300000, guid: f4d30870e21c8da429a2da47965d6903, type: 2}
+--- !u!114 &1078774191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078774187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af6cc7a2f6c3d2488cc86ab5534a9f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1176899650
 GameObject:
   m_ObjectHideFlags: 0

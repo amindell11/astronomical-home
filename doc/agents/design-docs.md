@@ -48,7 +48,9 @@ why of *decisions* has three homes, none of them under `doc/`:
   before the first implementing slot is acquired. Unbuilt design, open forks
   and user rulings stay on that issue while the arc is open.
 - **The PR description** carries the why of what shipped *and* the alternatives
-  tried and rejected on the way. `git blame` → commit → PR (squash merges keep
+  tried and rejected on the way, in its `## Why` and `## Rejected alternatives`
+  sections (the folded build record, worktree-loop skill → Step 4).
+  `git blame` → commit → PR (squash merges keep
   the number in the subject) is the sanctioned hop from a line to its why;
   make it when you're curious, don't ask for a doc.
 - **The closed issue** carries what shipped nothing: negative results,
@@ -66,8 +68,8 @@ sectioned by question — one `##` per ruling, result, or fork — so a citation
 names a section, not a document.
 
 `doc/Feature_Plans/` and `doc/Postmortems/` no longer exist (migrated to
-`design-record` issues 2026-09-02). Session handoffs ride the spawn-chip
-prompt that starts the fresh session — never memory, repo docs or issues. What remains
+`design-record` issues 2026-09-02). Session handoffs ride the prompt that
+starts the new session — never memory, repo docs or issues. What remains
 under `doc/` — `doc/agents/`, `Glossary.md`, `Diagnosis_Loop_Cookbook.md`, and
 the vault at `doc/design/` — is agent law, vocabulary, and vision, held to the
 same bar: derivable text gets cut in the PR that touches it.

@@ -4,6 +4,9 @@ Shader "Astronomical/Drawn/Surface"
     {
         _BaseMap ("Original Painted Surface", 2D) = "white" {}
         [Toggle(_PAINT_LAYERS)] _PaintLayers ("Separate Paint Layers", Float) = 0
+        [Toggle(_LIGHT_DRIVEN_PAINT)] _LightDrivenPaint ("Light-Driven Hull Paint", Float) = 0
+        _PaintLightingBias ("Authored Shadow Influence", Range(0,2)) = 1.2
+        _PaintDetailMip ("Fixed Brush Detail Scale", Range(0,8)) = 5
         _PaintShadowMap ("Painted Shadow Mask", 2D) = "black" {}
         _PaintLightMap ("Painted Light Mask", 2D) = "black" {}
         _PaintInkMap ("Panel Ink Mask", 2D) = "black" {}
@@ -77,6 +80,7 @@ Shader "Astronomical/Drawn/Surface"
             half4 _OrangeGain, _PaintLightColor, _PaintInkColor;
             half _PaintShadowStrength, _PaintLightStrength, _PaintInkStrength;
             half _PaintSaturation, _PaintEmissionBlend;
+            half _PaintLightingBias, _PaintDetailMip;
             half _PaintRegionCount, _PaintRegionLightLift;
             half4 _PaintRegionColor0, _PaintRegionColor1, _PaintRegionColor2, _PaintRegionColor3;
             half4 _PaintRegionColor4, _PaintRegionColor5, _PaintRegionColor6, _PaintRegionColor7;
@@ -110,6 +114,7 @@ Shader "Astronomical/Drawn/Surface"
             #pragma fragment SurfaceFragment
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _PAINT_LAYERS
+            #pragma shader_feature_local _LIGHT_DRIVEN_PAINT
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
@@ -144,6 +149,7 @@ Shader "Astronomical/Drawn/Surface"
                 half fog : TEXCOORD3;
                 half4 tangentWS : TEXCOORD4;
                 half soot : TEXCOORD5;
+                half paintFacing : TEXCOORD6;
             };
             SurfaceOutput SurfaceVertex(SurfaceInput input)
             {
@@ -157,11 +163,21 @@ Shader "Astronomical/Drawn/Surface"
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.fog = ComputeFogFactor(position.positionCS.z);
                 output.soot = input.color.r;
+                output.paintFacing = input.normalOS.z;
                 return output;
             }
             half4 SurfaceFragment(SurfaceOutput input) : SV_Target
             {
                 clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
+                half3 normal = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
+                #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                    float4 shadowCoord = ComputeScreenPos(TransformWorldToHClip(input.positionWS));
+                #else
+                    float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+                #endif
+                Light light = GetMainLight(shadowCoord);
+                half ndl = dot(normal, light.direction);
+                half paintLighting = 0;
                 half3 painted = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
                 half orange = smoothstep(0.15, 0.3, painted.r - painted.g) * smoothstep(0.06, 0.15, painted.g - painted.b);
                 painted *= lerp(1, _OrangeGain.rgb, orange);
@@ -201,6 +217,23 @@ Shader "Astronomical/Drawn/Surface"
                     }
                     albedo = basePalette * (1 - shadow);
                     albedo = lerp(albedo, lightPalette, saturate(paintedLight));
+                    #if defined(_LIGHT_DRIVEN_PAINT)
+                        half broadShadow = SAMPLE_TEXTURE2D_LOD(_PaintShadowMap, sampler_PaintShadowMap,
+                            input.uv, _PaintDetailMip).r * _PaintShadowStrength;
+                        half broadLight = saturate(SAMPLE_TEXTURE2D_LOD(_PaintLightMap, sampler_PaintLightMap,
+                            input.uv, _PaintDetailMip).r * _PaintLightStrength);
+                        half3 broadPaint = lerp(basePalette * (1 - broadShadow), lightPalette, broadLight);
+                        half3 brush = albedo / max(broadPaint, 0.001h);
+                        half response = ndl + (broadLight - broadShadow) * _PaintLightingBias;
+                        half edge = max(_ShadowSoftness, fwidth(response));
+                        half lit = smoothstep(_ShadowThreshold - edge, _ShadowThreshold + edge, response);
+                        half3 relit = basePalette * lerp(_ShadowColor.rgb, 1, lit);
+                        relit = lerp(relit, lightPalette,
+                            smoothstep(0.7h, 1.0h, response) * saturate(_PaintLightStrength));
+                        // Side-wall darkness stays authored; only the broad hull faces participate.
+                        paintLighting = smoothstep(0.65h, 0.9h, abs(input.paintFacing));
+                        albedo = lerp(albedo, relit * brush, paintLighting);
+                    #endif
                     albedo = lerp(albedo, _PaintInkColor.rgb, saturate(ink));
                     half indicator = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).r;
                     albedo = lerp(albedo, _EmissionColor.rgb, saturate(indicator * _PaintEmissionBlend));
@@ -221,17 +254,11 @@ Shader "Astronomical/Drawn/Surface"
                 albedo = lerp(albedo, _BaseColor.rgb, _DamageFlash);
                 half soot = smoothstep(0.22, 0.72, input.soot) * _SootStrength;
                 albedo = lerp(albedo * (1 - _SootStrength * 0.18), half3(0.065, 0.055, 0.05), soot * 0.88);
-                half3 normal = DrawnWorldNormal(input.normalWS, input.tangentWS, input.uv);
-                #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
-                    float4 shadowCoord = ComputeScreenPos(TransformWorldToHClip(input.positionWS));
-                #else
-                    float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-                #endif
-                Light light = GetMainLight(shadowCoord);
-                half ndl = dot(normal, light.direction);
+
                 half transition = max(_ShadowSoftness, fwidth(ndl));
                 half plane = smoothstep(_ShadowThreshold - transition, _ShadowThreshold + transition, ndl);
                 half3 diffuse = lerp(_ShadowColor.rgb, 1, plane * light.shadowAttenuation);
+                diffuse = lerp(diffuse, lerp(_ShadowColor.rgb, 1, light.shadowAttenuation), paintLighting);
                 diffuse *= lerp(1, light.shadowAttenuation, _CastShadowStrength);
                 half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 half highlight = pow(saturate(dot(normal, SafeNormalize(light.direction + view))), 48);

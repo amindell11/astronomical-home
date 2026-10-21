@@ -83,13 +83,13 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop — the default for any coding task, whether or not the request mentions worktrees, slots, or PRs. Invariants:
 - Scope is confirmed with the user before building.
-- Build and test in a pooled worktree. The primary tree is the owner's: an agent's only writes there are fast-forwarding main (`git pull --ff-only`) and sound work (`doc/agents/audio-pipeline.md` → Where sound work happens). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool; Claude Code's `isolation: "worktree"` / EnterWorktree nests them inside the primary tree. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there.
+- Build and test in a pooled worktree. The primary tree is the owner's: an agent's only writes there are syncing main (`./scripts/agent_worktree_pool.sh sync-primary`) and sound work (`doc/agents/audio-pipeline.md` → Where sound work happens). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool, never from `.claude/worktrees/` inside the primary tree: no `isolation: "worktree"` / EnterWorktree, and `start_session` passes `use_worktree: false`. Hooks in `.claude/settings.json` list primary-tree strays at session start and refuse destructive commands aimed there and session starts that would make an app worktree.
 - The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
 - Merge ONLY through the pool script — `merge <slot>`, or `land <pr>` for a PR no slot holds — and only on an explicit user merge instruction (definition in the skill), or by `land` for a PR in the *auto-merge class* (glossary). For any other PR, `land` needs that instruction recorded (`./scripts/drain_pick.sh instruct <pr>@<sha>`); a recorded instruction survives only an inert delta. Every session is the same GitHub account, so record only an instruction the user gave you. Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
 - Follow-up rounds on an open PR go on that PR's existing slot/branch; acquire a fresh slot only for genuinely independent work.
-- After any pool-script merge, `git pull` main in every live session before its next pool command — a session executing an old script copy is the live hazard.
+- After any pool-script merge, run `sync-primary` before the next pool command — a session executing an old script copy is the live hazard.
 - Chat titles follow the lifecycle grammar (skill → "Chat title lifecycle"): retitle yourself (`set_session_title` with `session_id: "self"`) at every lifecycle transition (claim, PR-open, block, merge); a plain title marks a discussion chat.
 
 `./scripts/worktree_dashboard.sh` gives quick multi-slot visibility; for interactive git exploration, suggest `lazygit` (`w` = worktree panel) over opening additional IDEs.
@@ -116,11 +116,12 @@ Follow these when adding any new dependency; prefer zero new wiring over new sea
 
 - Flag unknowns and ambiguities explicitly on every task.
 - Be colloquial and collaborative: talk through what we're doing together clearly, without becoming stiff or overly formal.
+- Prose a person reads (PR bodies, issue bodies and comments, chat replies, `doc/Glossary.md`) follows `.claude/skills/unslop/SKILL.md`.
 
 ## Session hygiene
 
 Before deleting, force-pushing, or claiming shipped/preserved, check state directly (`git ls-remote`, grep main's tree) — squash merges destroy commit identity, and tracking surfaces record intentions, not outcomes.
 Approvals are per-action and never stretch into standing authorization — re-ask at each consequential step (merge, long-running or expensive launches).
-Past heavy context (~300k tokens), do not merge: write the handoff into a spawn chip and let that fresh session drive the merge.
+A scoped task stays with one session to its finish; a long session compacts instead of handing off. After a compaction, an approval counts only if it is written where it binds (a dated ruling on its issue, a merge instruction recorded with `instruct`); re-ask anything else. The `compact` SessionStart hook restates this.
 Stopping a background monitor orphans its tail.exe/grep.exe children on Windows, and they keep tailed files locked (WinError 32 on delete/rename). taskkill the orphans before relaunching anything that recreates those logs.
 `core.hooksPath` belongs to `scripts/install_hooks.sh` (→ `.githooks`) — never override it, and never reach for `-c core.hooksPath=/dev/null` to skip a hook. git-lfs installs its hooks into whatever that path names, so off Git Bash the value resolves repo-relative and materializes a junk `dev/null/` directory in the tree.
