@@ -10,10 +10,12 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
 using Substrate.Services.Units;
+using UI.Screens;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Tests.PlayMode.Bootstrap
 {
@@ -101,10 +103,43 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual("SectorB", record.sector);
         }
 
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator Recaps_PauseBeforeUnloading_AndFinalExtractionShowsVictoryDirectly()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true);
+            rig.Player.Damage.Health.SetFraction(.4f);
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "sector recap appears");
+            var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            Assert.IsTrue(InSector("SectorA"));
+            Assert.AreEqual(0f, Time.timeScale);
+            var elapsed = rig.Tally.SecondsSurvived;
+            yield return new WaitForSecondsRealtime(.15f);
+            Assert.AreEqual(elapsed, rig.Tally.SecondsSurvived);
+            Assert.IsFalse(File.Exists(recordPath));
+            recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+
+            yield return WaitFor(() => InSector("SectorB") && Mathf.Abs(rig.Player.Damage.Health.Pct - .4f) < 1e-3f,
+                "next sector finishes loading after dismissal");
+            Assert.AreEqual(1f, Time.timeScale);
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "final recap appears");
+            recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            Assert.IsNotNull(recap.transform.Find("Panels/Scoreboard/CurrentRun"));
+            Assert.AreEqual(1, File.ReadAllLines(recordPath).Length);
+            UnityEngine.Object.Destroy(hostGo);
+            yield return null;
+            Assert.AreEqual(1f, Time.timeScale, "tearing down a paused host restores the clock");
+        }
+
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
-        private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt)
+        private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
             templates = new[] { NewSectorTemplate("SectorA"), NewSectorTemplate("SectorB") };
@@ -116,7 +151,7 @@ namespace Tests.PlayMode.Bootstrap
             {
                 sectors = Array.ConvertAll(templates,
                     t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
-                presentation = false
+                presentation = presentation
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);

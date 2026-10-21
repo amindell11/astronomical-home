@@ -25,8 +25,8 @@ namespace Game
     /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
     /// game over it as one straight-line coroutine — compose the session, build the viewport (the
     /// observer and hangar cameras) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, then
-    /// each of the profile's sectors in turn until the player dies or extracts from the last one (hull carries
-    /// from sector to sector), run record, death recap or win screen, unload. It owns the clock, splash, hangar,
+    /// each sector with an extraction recap until death or final victory, then the run scoreboard and unload.
+    /// Hull carries between sectors. Recaps pause play and wait for dismissal. It owns the clock, splash, hangar,
     /// run record, recap, restart, kill refill and the one EventSystem; the session only composes,
     /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer and
     /// hangar cameras), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
@@ -82,11 +82,6 @@ namespace Game
         [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
-        [Header("Death Recap")]
-        [Tooltip("Seconds the death recap or the win screen holds before auto-continuing; the Continue " +
-                 "button skips the wait. The recap shows only under RestartSector; both need presentation on.")]
-        [SerializeField, Min(0f)] private float recapHoldSeconds = 8f;
-
         // Test seams, set before the host activates: null → the default store path and the real source.
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
@@ -95,6 +90,8 @@ namespace Game
         private DamageInfo lastKillingBlow;
         private bool playerDied;
         private bool sectorEnded;
+        private float sectorEndTime;
+        private float? recapTimeScale;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -174,12 +171,18 @@ namespace Game
                 {
                     SetSplashVisible(true);
                     sectorEnded = false;
-                    yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, _ => sectorEnded = true);
+                    if (rigInstance) rigInstance.Spawns.BeginSector();
+                    yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, _ =>
+                    {
+                        sectorEndTime = Time.time;
+                        sectorEnded = true;
+                    });
                     if (index == 0)
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
+                    var sectorStartTime = Time.time;
 
                     // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
                     while (!playerDied && !sectorEnded)
@@ -191,7 +194,11 @@ namespace Game
                     if (rigInstance)
                     {
                         hull = rigInstance.Player.Damage.Health.Pct;
-                        rigInstance.Spawns.EndSector(Time.time);
+                        rigInstance.Spawns.EndSector(sectorEndTime);
+                        if (presentation)
+                            yield return RunRecap((screen, dismiss) => screen.ShowSector(
+                                rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
+                                Mathf.Max(0f, sectorEndTime - sectorStartTime), dismiss));
                     }
                     SetSplashVisible(true);
                     yield return session.UnloadSector();
@@ -201,9 +208,11 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
-                    AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
+                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     if (presentation)
-                        yield return playerDied ? RunDeathRecap(index) : RunWinScreen(index + 1);
+                        yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
+                            rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
+                            sessionProfile.sectors.Length, board, dismiss));
                 }
 
                 SetSplashVisible(true);
@@ -291,12 +300,12 @@ namespace Game
         }
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
-        private void AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
+        private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
         {
             if (!buildIdentity(out var identity, out var failure))
             {
                 Debug.LogError($"Run record skipped, build identity unreadable: {failure}", this);
-                return;
+                return Scoreboard.Read(runRecords.Path, null);
             }
 
             var sectors = Array.ConvertAll(sessionProfile.sectors, entry => entry.prefab);
@@ -304,7 +313,9 @@ namespace Game
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
                 rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
+            var board = Scoreboard.Read(runRecords.Path, record);
             runRecords.Append(record);
+            return board;
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
@@ -328,52 +339,34 @@ namespace Game
             Destroy(screen.gameObject);
         }
 
-        private IEnumerator RunDeathRecap(int sectorsCleared)
+        private IEnumerator RunRecap(Action<RunRecapScreen, Action> show)
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
-
-            var screen = DeathRecapScreen.Create(ui);
+            var screen = RunRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(rigInstance.Tally.Kills, sectorsCleared, () => dismissed = true);
-
-            var deadline = Time.unscaledTime + recapHoldSeconds;
-            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
-
-            Destroy(screen.gameObject);
-            if (overlay) overlay.SetVisible(true);
+            recapTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+            try
+            {
+                show(screen, () => dismissed = true);
+                yield return new WaitUntil(() => dismissed);
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+                RestoreRecapClock();
+                if (overlay) overlay.SetVisible(true);
+            }
         }
 
-        private IEnumerator RunWinScreen(int sectorsCleared)
+        private void RestoreRecapClock()
         {
-            var overlay = rigInstance.Overlay;
-            if (overlay) overlay.SetVisible(false);
-
-            var screen = RunWonScreen.Create(ui);
-            var dismissed = false;
-            screen.Show(rigInstance.Tally.Kills, sectorsCleared, () => dismissed = true);
-
-            var deadline = Time.unscaledTime + recapHoldSeconds;
-            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
-
-            Destroy(screen.gameObject);
-            if (overlay) overlay.SetVisible(true);
+            if (!recapTimeScale.HasValue) return;
+            Time.timeScale = recapTimeScale.Value;
+            recapTimeScale = null;
         }
 
-        private IEnumerator RunWinScreen(int sectorsCleared)
-        {
-            var overlay = rigInstance.Overlay;
-            if (overlay) overlay.SetVisible(false);
-
-            var screen = RunWonScreen.Create(ui);
-            var dismissed = false;
-            screen.Show(rigInstance.Tally, sectorsCleared, () => dismissed = true);
-
-            var deadline = Time.unscaledTime + recapHoldSeconds;
-            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
-
-            Destroy(screen.gameObject);
-            if (overlay) overlay.SetVisible(true);
-        }
+        private void OnDestroy() => RestoreRecapClock();
     }
 }

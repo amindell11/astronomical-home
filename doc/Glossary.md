@@ -882,9 +882,10 @@ Format: **term** — definition. *(authority)*
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
-- **scoreboard**. The minimal run-end result shows kills and sectors cleared.
+- **scoreboard**. Past-run rankings share one board across stat fingerprints.
   A sector counts only after extraction; dying in the first sector shows zero.
-  Run history and damage details stay off the screen. *(ScreenWidgets, GameHost)*
+  Intermediate extraction has no scoreboard; victory and defeat do.
+  *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
   parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
