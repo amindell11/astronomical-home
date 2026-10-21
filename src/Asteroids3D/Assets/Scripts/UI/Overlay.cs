@@ -18,6 +18,7 @@ namespace UI
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
         private UIBoostAudio boostAudio;
+        private UIMissileWarningAudio missileWarningAudio;
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
@@ -33,6 +34,7 @@ namespace UI
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
             boostAudio = GetComponentInChildren<UIBoostAudio>();
+            missileWarningAudio = GetComponentInChildren<UIMissileWarningAudio>();
             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
@@ -69,6 +71,9 @@ namespace UI
 
             if (boostAudio)
                 boostAudio.Initialize(binding.Status);
+
+            if (missileWarningAudio)
+                missileWarningAudio.Initialize(binding.Status);
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);

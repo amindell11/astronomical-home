@@ -1,29 +1,22 @@
 using Combat.Targeting;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 namespace UI.Audio
 {
     /// Plays audio cues driven by LockOnSensor state changes.
-    [RequireComponent(typeof(AudioSource))]
     public class UILockOnAudio : MonoBehaviour
     {
-        [Header("Clips")]
-        [Tooltip("Looping sound that plays while the launcher is locking on a target.")]
-        [SerializeField] private AudioClip lockingLoopClip;
-        [Tooltip("One-shot sound that plays when the launcher has fully locked on a target.")]
-        [SerializeField] private AudioClip lockedClip;
+        [Header("Events")]
+        [Tooltip("Looping FMOD event held while the launcher is locking on a target.")]
+        [SerializeField] private EventReference lockingEvent;
+        [Tooltip("FMOD one-shot played when the launcher has fully locked on a target.")]
+        [SerializeField] private EventReference lockedEvent;
 
-        [Header("Settings")]
-        [Tooltip("Volume for lock-on sound effects.")]
-        [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
-
-        private AudioSource source;
         private ILockStateSource lockStateSource;
-
-        private void Awake()
-        {
-            EnsureSource();
-        }
+        private EventInstance locking;
 
         public void Initialize(LockOnSensor targetingComputer)
         {
@@ -33,12 +26,9 @@ namespace UI.Audio
         public void Initialize(ILockStateSource targetingSource)
         {
             UnsubscribeFromSource();
+            StopLocking();
             lockStateSource = targetingSource;
-            if (lockStateSource == null)
-            {
-                StopAudio();
-                return;
-            }
+            if (lockStateSource == null) return;
 
             if (isActiveAndEnabled)
                 SubscribeToSource();
@@ -55,7 +45,7 @@ namespace UI.Audio
         private void OnDisable()
         {
             UnsubscribeFromSource();
-            StopAudio();
+            StopLocking();
         }
 
         private void OnDestroy()
@@ -77,60 +67,30 @@ namespace UI.Audio
                     PlayLockingLoop();
                     break;
                 case LockState.Locked:
-                    PlayLockedClip();
+                    StopLocking();
+                    RuntimeManager.PlayOneShot(lockedEvent);
                     break;
                 case LockState.Idle:
                 case LockState.Cooldown:
-                default: // Idle, Cooldown, etc.
-                    StopAudio();
+                default:
+                    StopLocking();
                     break;
             }
         }
 
         private void PlayLockingLoop()
         {
-            if (!lockingLoopClip) return;
-            if (!EnsureSource()) return;
-
-            source.loop = true;
-            source.clip = lockingLoopClip;
-            source.volume = volume;
-            if (!source.isPlaying)
-            {
-                source.Play();
-            }
+            if (locking.isValid()) return;
+            locking = RuntimeManager.CreateInstance(lockingEvent);
+            locking.start();
         }
 
-        private void PlayLockedClip()
+        private void StopLocking()
         {
-            // Ensure any looping clip is halted first
-            StopAudio();
-            if (!lockedClip || !EnsureSource())
-                return;
-
-            source.PlayOneShot(lockedClip, volume);
-        }
-
-        private void StopAudio()
-        {
-            if (!EnsureSource()) return;
-            source.loop = false;
-            source.Stop();
-            source.clip = null;
-        }
-
-        private bool EnsureSource()
-        {
-            if (source)
-                return true;
-
-            source = GetComponent<AudioSource>();
-            if (!source)
-                return false;
-
-            source.playOnAwake = false;
-            source.loop = false;
-            return true;
+            if (!locking.isValid()) return;
+            locking.stop(STOP_MODE.ALLOWFADEOUT);
+            locking.release();
+            locking = default;
         }
 
         private void SubscribeToSource()
