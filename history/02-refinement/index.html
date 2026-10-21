@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Directional fan refinements</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101620;color:#e4eaf1;font:15px system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:28px 30px}h1{font-size:27px;font-weight:500;margin:6px 0 10px}h2{font-size:20px;font-weight:500;margin:0 0 8px}p{color:#a8b8cc;line-height:1.5;margin:0}.eyebrow{color:#82a7c5;letter-spacing:1.5px;font-size:12px}.toolbar{display:flex;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid #334050;margin-bottom:22px}label{display:flex;align-items:center;gap:12px}input{accent-color:#7bddfa}output{min-width:42px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.caption{font-size:13px;min-height:40px}.label{font-size:12px;color:#adc0d8;margin:18px 0 8px;letter-spacing:.7px}.large{height:300px;background:#151e2c;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:4px}.large img{height:370px;width:370px;flex-shrink:0}.scene{width:400px;height:250px;max-width:100%;position:relative;background-image:url('../../style-frame.webp');overflow:hidden;border-radius:4px;margin:auto}.ship{background-position:-930px -188px}.asteroid{background-position:-760px -65px}.scene img{position:absolute;max-width:none}.on-dark{height:74px;position:relative;background:#151e2c;border-radius:4px;overflow:hidden}.on-dark img{position:absolute;max-width:none}.footer{font-size:12px;border-top:1px solid #334050;margin-top:23px;padding-top:15px;display:flex;justify-content:space-between;gap:20px}.footer a{color:#8ddcfb}@media(max-width:850px){main{padding:20px 16px}.grid{grid-template-columns:1fr}.scene{width:100%;max-width:400px}.footer{flex-direction:column}}
+</style>
+<main>
+<div class="eyebrow">ASTRONOMICAL · SELECTED DIRECTION B</div>
+<h1>Directional fan: two drawn refinements</h1>
+<p>Same contact shape. Compare the brightness and the edges at small size.</p>
+<div class="toolbar"><label>Solid effect width <input id="size" type="range" min="24" max="72" step="4" value="48"><output id="width">48 px</output></label></div>
+<div class="grid">
+<section data-candidate="0"><h2>B1 · Broad bands</h2><p class="caption">A more continuous bright center and fewer breaks in the color bands.</p><div class="label">ENLARGED SOURCE</div><div class="large"><img src="b1-broad-bands.png" alt="Broad-band directional fan"></div><div class="label">SHIP CONTACT · SCALE PROXY</div><div class="scene ship"><img src="b1-broad-bands.png" alt="Broad-band impact on a ship"></div><div class="label">ASTEROID CONTACT · SCALE PROXY</div><div class="scene asteroid"><img src="b1-broad-bands.png" alt="Broad-band impact on an asteroid"></div><div class="label">ISOLATED AT THE SAME WIDTH</div><div class="on-dark"><img src="b1-broad-bands.png" alt="Broad-band impact at small size"></div></section>
+<section data-candidate="1"><h2>B2 · Torn bands</h2><p class="caption">More jagged breaks, a smaller white center, closer to the procedural sketch.</p><div class="label">ENLARGED SOURCE</div><div class="large"><img src="b2-torn-bands.png" alt="Torn-band directional fan"></div><div class="label">SHIP CONTACT · SCALE PROXY</div><div class="scene ship"><img src="b2-torn-bands.png" alt="Torn-band impact on a ship"></div><div class="label">ASTEROID CONTACT · SCALE PROXY</div><div class="scene asteroid"><img src="b2-torn-bands.png" alt="Torn-band impact on an asteroid"></div><div class="label">ISOLATED AT THE SAME WIDTH</div><div class="on-dark"><img src="b2-torn-bands.png" alt="Torn-band impact at small size"></div></section>
+</div>
+<div class="footer"><span>Static image studies on reference art, not Unity captures.<br>Generated sources are unchanged. Cleanup and animation remain.</span><a href="../../index.html">Original motion comparison</a></div>
+</main>
+<script>
+const sources=[{width:1254,solidWidth:954,core:[377.616,653.772]},{width:1254,solidWidth:1019,core:[353.575,650.079]}];
+function update(){const width=Number(document.getElementById('size').value);document.getElementById('width').textContent=width+' px';document.querySelectorAll('section').forEach((section,i)=>{const s=sources[i],scale=width/s.solidWidth;section.querySelectorAll('.scene img,.on-dark img').forEach(img=>{const parent=img.parentElement;let contact=parent.classList.contains('ship')?[219,131]:parent.classList.contains('asteroid')?[216,145]:[parent.clientWidth/2-12,37];img.style.width=s.width*scale+'px';img.style.left=contact[0]-s.core[0]*scale+'px';img.style.top=contact[1]-s.core[1]*scale+'px';});});}
+document.getElementById('size').addEventListener('input',update);window.addEventListener('resize',update);update();
+</script>
+</html>

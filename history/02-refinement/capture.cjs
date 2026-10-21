@@ -1,0 +1,21 @@
+const {chromium}=require('playwright');
+const fs=require('node:fs');
+const path=require('node:path');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true});
+ const page=await browser.newPage({viewport:{width:1080,height:1250},deviceScaleFactor:1});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('file:///'+path.join(__dirname,'index.html').replaceAll('\\','/'));
+ await page.waitForFunction(()=>Array.from(document.images).every(img=>img.complete&&img.naturalWidth));
+ await page.screenshot({path:path.join(__dirname,'comparison-48px.png'),fullPage:true});
+ await page.locator('#size').fill('32');
+ if(await page.locator('#width').innerText()!=='32 px')throw Error('Size control failed.');
+ await page.screenshot({path:path.join(__dirname,'comparison-32px.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:900});
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+ await browser.close();
+ const result={pageErrors:errors,mobileOverflow:overflow,sliderWidthsChecked:[48,32]};
+ fs.writeFileSync(path.join(__dirname,'browser-checks.json'),JSON.stringify(result,null,2)+'\n');
+ process.stdout.write(JSON.stringify(result)+'\n');
+ if(errors.length||overflow)process.exitCode=1;
+})();

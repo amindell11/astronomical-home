@@ -1,0 +1,24 @@
+{
+  "status": "exploration",
+  "tool": "built-in image_gen",
+  "generated_utc": "2026-10-21T20:11:46.1553004Z",
+  "output": "b2-torn-bands.png",
+  "sha256": "dcb36d61f8e20d61439832c6f4f0082800ef0199041f8a3f4e516596a94c21bf",
+  "transparent_background": true,
+  "prompt": "Use case: stylized-concept.\nAsset type: a single isolated 2D laser contact-impact sprite for an illustrated top-down space game.\nInput images: Image 1 is the USER-SELECTED SHAPE reference, B, the directional fan at 55 ms. Image 2 is the shipped laser bolt, used ONLY for its flat color bands and torn painted edge language, not its elongated projectile silhouette. Image 3 is the game's overall illustrated style reference, used ONLY for graphic confidence and restraint; DO NOT reproduce any ship, asteroid, interface, shield bubble, space backdrop, orange explosion or other object.\nPrimary request: refine Image 1 into a deliberately drawn, clean, readable laser-impact source sprite. Preserve its left-side small contact core and the same five broad tapered energy lobes fanning to the RIGHT, with the longest near-horizontal lobe. The incoming projectile travels right to left; the fan kicks back toward the incoming shot. This is a contact impact, not a projectile or muzzle flash.\nComposition: square image matching Image 1. Contact point at 27.3% from the left and 50% from the top. Keep the whole silhouette inside the canvas, approximately x 10% to 81%, y 22% to 76%, with generous transparent padding. Keep roughly the same overall proportions and lobe directions as Image 1. One connected compact effect, no detached chips or debris.\nColor: exactly four broad flat cel-painted colors, electric blue #0868fa outer shape, cyan #00d6fa middle, pale mint #b8faf4 inner, tiny hot-white #fafcfc contact core. The bands must be large enough to read when the whole silhouette is about 48 screen pixels wide. Crisp edges and clearly separate flat regions, not airbrushed shading. No texture, grain, fine filaments, tiny holes or dense linework. A very restrained soft blue glow immediately around the core only; the solid bands must dominate.\nBackground: genuine transparent alpha, no black or colored rectangle and no checkerboard drawn into the image. No text, labels, borders, panels, drop shadow, objects, shock ring, shield sphere, smoke or persistent mark. Do not add a large symmetric starburst.\nRefinement B2, torn bands: preserve the same five-lobe fan and core position, but use slightly rougher hand-cut angular edges like the shipped bolt. Give each main lobe two or three decisive jagged breaks and more unequal taper lengths. Keep every band chunky and readable, without filigree, particle sprays or an enlarged contact core. This is a modest texture-of-contour variation on B, not a new shape direction.",
+  "references": [
+    {
+      "file": "selected-b.png",
+      "sha256": "c81942791017d662edc27ad04ade5e6245ef421ab9c91d4fa58f68e933c8625c"
+    },
+    {
+      "file": "bolt-flat-reference.webp",
+      "sha256": "45191e13ef4fec3ed40d81a43e293bbdc84c7e72b6e3b78abd9a554c16019c87"
+    },
+    {
+      "file": "../../style-frame.webp",
+      "sha256": "bee059dad5341501bf34345681fedd202b665dd496dc7ed69978548b8bfb5794"
+    }
+  ],
+  "pixels_modified_after_generation": false
+}
