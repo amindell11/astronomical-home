@@ -1,61 +1,97 @@
 {
  "runs": [
   {
-   "tag": "x9-final",
-   "mode": "matrix",
+   "tag": "cs-main",
+   "mode": "crowd",
    "weapons": [
-    "Lasers",
-    "TurboLasers",
-    "Rippers",
-    "ChargeLasers",
-    "Railgun",
-    "Missiles",
-    "Grenades"
+    "Lasers"
    ],
-   "episodes": 20,
-   "seed": 7001,
-   "timeoutSec": 90,
+   "crowd": [
+    1,
+    3
+   ],
+   "episodes": 2,
+   "seed": 9001,
+   "timeoutSec": 60,
+   "spawnInterval": 4.0,
+   "ringRadius": 55,
    "a": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"stand-final\"}"
    },
    "b": {
-    "pilot": "AggressorPilot",
-    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
+    "pilot": "",
+    "doctrine": "{\"label\": \"main\"}"
    }
   },
   {
-   "tag": "h2h",
-   "mode": "matrix",
+   "tag": "cs-servo",
+   "mode": "crowd",
    "weapons": [
-    "Lasers",
-    "TurboLasers",
-    "Rippers",
-    "ChargeLasers",
-    "Railgun",
-    "Missiles",
-    "Grenades"
+    "Lasers"
    ],
-   "opponents": [
-    "Lasers",
-    "TurboLasers",
-    "Rippers",
-    "ChargeLasers",
-    "Railgun",
-    "Missiles",
-    "Grenades"
+   "crowd": [
+    1,
+    3
    ],
-   "ordered": true,
-   "episodes": 20,
-   "seed": 7301,
-   "timeoutSec": 90,
+   "episodes": 2,
+   "seed": 9001,
+   "timeoutSec": 60,
+   "spawnInterval": 4.0,
+   "ringRadius": 55,
    "a": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"final\"}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"stand-final\"}"
    },
    "b": {
+    "pilot": "",
+    "doctrine": "{\"aimLock\": true, \"label\": \"servo\"}"
+   }
+  },
+  {
+   "tag": "cs-dial",
+   "mode": "crowd",
+   "weapons": [
+    "Lasers"
+   ],
+   "crowd": [
+    3
+   ],
+   "episodes": 2,
+   "seed": 9001,
+   "timeoutSec": 60,
+   "spawnInterval": 4.0,
+   "ringRadius": 55,
+   "a": {
     "pilot": "AggressorPilot",
-    "doctrine": "{\"label\": \"base\"}"
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"stand-final\"}"
+   },
+   "b": {
+    "pilot": "",
+    "doctrine": "{\"aimLock\": true, \"skillReactionMax\": 0.5, \"skillNoiseMax\": 15, \"skillAccelMin\": 0.05, \"skillCurve\": 1.0, \"skillTolGain\": 3, \"skill\": 0.5, \"label\": \"dial0.5\"}"
+   }
+  },
+  {
+   "tag": "cs-ea",
+   "mode": "crowd",
+   "weapons": [
+    "Lasers"
+   ],
+   "crowd": [
+    3
+   ],
+   "episodes": 2,
+   "seed": 9001,
+   "timeoutSec": 60,
+   "spawnInterval": 4.0,
+   "ringRadius": 55,
+   "a": {
+    "pilot": "AggressorPilot",
+    "doctrine": "{\"smartTrigger\": true, \"geomTolScale\": 0.8, \"ventTo\": 0.0, \"railAbortErr\": 3.0, \"aimLock\": true, \"aimAuthority\": 10, \"autoProfile\": true, \"rangeMissiles\": 13, \"matchupRange\": true, \"extendGunRange\": true, \"strafeFraction\": 0.4, \"strafePeriod\": 1.2, \"chargeTolScale\": 1.2, \"grenadeMinRange\": 16, \"rangeGrenades\": 20, \"railSteady\": 0.3, \"label\": \"stand-final\"}"
+   },
+   "b": {
+    "pilot": "",
+    "doctrine": "{\"aimLock\": true, \"eaE0\": 20, \"eaT\": 4, \"eaCone\": 30, \"eaJinkAccel\": 8, \"eaJinkReset\": 1.0, \"eaBoostReset\": 1.0, \"label\": \"ea20-4\"}"
    }
   }
  ]

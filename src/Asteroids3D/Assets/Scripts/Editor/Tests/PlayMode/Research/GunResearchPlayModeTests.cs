@@ -78,6 +78,7 @@ namespace Tests.PlayMode.Research
             public int steps;
             public int inRangeSteps;
             public int envelopeSteps;
+            public int inRangeEnvelopeSteps;
             public float inRangeAimErr = -1f;
             public float eaErrAtShot = -1f;
             public float eaProgAtShot = -1f;
@@ -179,9 +180,11 @@ namespace Tests.PlayMode.Research
                 var me = ship.Kinematics;
                 var them = standIn.Kinematics;
                 var aim = Gunner.AimPoint(in me, them.pos, them.vel, weapon.ProjectileSpeed);
-                if (sight.InEnvelope(GamePlane.PlanePointToWorld(aim))) rec.envelopeSteps++;
+                var env = sight.InEnvelope(GamePlane.PlanePointToWorld(aim));
+                if (env) rec.envelopeSteps++;
                 if (Vector2.Distance(me.pos, them.pos) > range) return;
                 rec.inRangeSteps++;
+                if (env) rec.inRangeEnvelopeSteps++;
                 if (rec.firstInRangeT < 0f) rec.firstInRangeT = t - rec.spawnT;
                 aimErrSum += Vector2.Angle(me.Forward, aim - me.pos);
             }
@@ -499,7 +502,7 @@ namespace Tests.PlayMode.Research
                     var row = new CrowdRow
                     {
                         tag = config.tag, n = n, episode = e, drawSeed = drawSeed, timeout = config.timeoutSec,
-                        standIn = config.a.doctrine, enemy = config.b.doctrine, latHist = new int[17],
+                        standIn = config.a.doctrine, enemy = config.b.doctrine, latHist = new int[31],
                     };
                     var lives = new List<LifeTracker>();
                     var next = 0;
@@ -595,7 +598,7 @@ namespace Tests.PlayMode.Research
                                 }
                                 var los = (standIn.Kinematics.pos - l.ship.Kinematics.pos).normalized;
                                 var lat = Mathf.Abs(accel.x * los.y - accel.y * los.x);
-                                row.latHist[Mathf.Min(16, (int)(lat / 2.5f))]++;
+                                row.latHist[Mathf.Min(30, (int)lat)]++;
                             }
                             if (t >= nextSpawnT && alive < n)
                             {

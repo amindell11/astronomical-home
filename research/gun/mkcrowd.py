@@ -26,7 +26,7 @@ def dial(s, **over):
 
 
 def ea(e0, t, label=None, **over):
-    d = {"aimLock": True, "eaE0": e0, "eaT": t, "eaCone": 30, "eaJinkAccel": 8, "eaJinkReset": 1.0,
+    d = {"aimLock": True, "eaE0": e0, "eaT": t, "eaCone": 30, "eaRange": 25, "eaJinkAccel": 5, "eaJinkReset": 1.0,
          "eaBoostReset": 1.0}
     d.update(over)
     d["label"] = label or f"ea{e0}-{t}"
@@ -47,7 +47,15 @@ def smoke():
             crowd("cs-ea", ea(20, 4), ns=(3,), episodes=2, timeout=60)]
 
 
-BATCHES = {"smoke": smoke}
+def r1():
+    runs = [crowd("r-main", MAIN, episodes=20), crowd("r-servo", SERVO, episodes=20),
+            crowd("r-main-weak", MAIN, stand=WEAK, episodes=20), crowd("r-servo-weak", SERVO, stand=WEAK, episodes=20)]
+    runs += [crowd(f"d-{s}", dial(s), episodes=20) for s in (0.0, 0.25, 0.5, 0.75)]
+    runs += [crowd(f"e-{e0}-{t}", ea(e0, t), episodes=20) for e0 in (10, 20, 30) for t in (3, 6)]
+    return runs
+
+
+BATCHES = {"smoke": smoke, "r1": r1}
 
 if __name__ == "__main__":
     for name in sys.argv[1:]:

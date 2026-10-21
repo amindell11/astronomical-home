@@ -218,7 +218,7 @@ namespace AI.Research
 
         private static int AsteroidMask => 1 << Substrate.LayerIds.Asteroid;
 
-        /// <summary>Earned accuracy: a bearing error of RMS E0 x (1 - progress)^curve, where progress grows over eaT seconds of tracking (target inside the nose cone, in range, line of sight clear, no jink under way) and the target's jinks, boosts and broken line of sight knock it back.</summary>
+        /// <summary>Earned accuracy: a bearing error of RMS E0 x (1 - progress)^curve, where progress grows over eaT seconds of tracking (target inside the nose cone, in range, line of sight clear) and the target's jinks, boosts and broken line of sight knock it back.</summary>
         private void EarnedAccuracy(Vector2 selfPos, Vector2 tPos, Vector2 tVel, ref Vector2 pos, ref Vector2 vel)
         {
             var now = Time.fixedTimeAsDouble;
@@ -270,7 +270,7 @@ namespace AI.Research
                 var inCone = Vector2.Angle(fwd, los) <= eaCone;
                 var inRange = eaRange <= 0f || dist <= eaRange;
                 var rate = dt / Mathf.Max(eaT, 1e-3f);
-                if (inCone && inRange && losClear && (eaJinkAccel <= 0f || eaJinkArmed)) eaProgress += rate;
+                if (inCone && inRange && losClear) eaProgress += rate;
                 else if (!inCone) eaProgress -= eaLoseRate * rate;
                 eaProgress = Mathf.Clamp01(eaProgress);
 
