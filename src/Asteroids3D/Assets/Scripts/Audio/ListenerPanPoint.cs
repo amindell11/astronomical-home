@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Audio
 {
     /// <summary>
-    /// The camera's StudioListener, which pans from here: above the plane point beneath the camera, at a
-    /// height that scales with the orthographic zoom, so panning follows screen position. The camera's
-    /// own height is fixed under zoom. Attenuation stays on <see cref="ListenerPlaneAnchor"/>.
+    /// The point the camera's StudioListener sits on and pans from: above the plane point beneath the
+    /// camera, at a height that scales with the orthographic zoom, so panning follows screen position.
+    /// The camera's own height is fixed under zoom. Attenuation stays on <see cref="ListenerPlaneAnchor"/>.
     /// </summary>
     public sealed class ListenerPanPoint : MonoBehaviour
     {
