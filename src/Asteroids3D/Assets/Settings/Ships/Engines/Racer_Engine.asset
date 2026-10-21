@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e8aa7f30404320a5996027a2198c28, type: 3}
   m_Name: Racer_Engine
   m_EditorClassIdentifier: 
+  displayName: Racer Engine
   maxSpeed: 34
   maxYawRate: 240
   forwardForce: 4600

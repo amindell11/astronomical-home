@@ -184,14 +184,13 @@ blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/ship_X.py --
 | `ship_render` | `--set ortho\|turnaround\|sheet\|scale\|compare`, `--size N`, `--before BLEND`, `--textured` | Workbench review renders of the visual roles; `compare` renders `--before` beside the source and counts changed pixels; `--textured` shows each material's active image texture instead of its flat colour. |
 | `ship_export` | `--debris` | Intact: `<Name>.fbx` and `<Name>.export.json`. Debris: `<Name>Breakup.fbx` and `<Name>Breakup.export.json`. |
 | `ship_uv` | | Texel density per part on `PaintUV`; fails when max/min exceeds `uv_density_max_ratio`. |
-| `ship_paint` | `--palette NAME`, `--unity DIR`, or `--brush-only` | Bakes the paint masks beside the source from `paint.json` and `palettes.json` (Paint settings above), keeps owner edits through `layers/baseline/`, and writes `preview/Composite.png` and the Unity bundle `unity/<Name>/` under `--out`. Brush-only writes a separate atlas (below). Needs the geometry lock. |
+| `ship_paint` | `--palette NAME`, `--unity DIR` | Bakes the paint masks beside the source from `paint.json` and `palettes.json` (Paint settings above), keeps owner edits through `layers/baseline/`, and writes `preview/Composite.png` and the Unity bundle `unity/<Name>/` under `--out`. Needs the geometry lock. |
 
 ## Contract
 
 Exit 0 pass, 3 findings or refusal, 1 error (bad arguments, invalid ship.json, crash).
 stdout carries only trailers, written last: `SHIP_VERDICT=pass|fail`, `SHIP_REPORT=<abs json>`
-on exits 0 and 3, plus `SHIP_FBX=` (export), `SHIP_LOCK=` (lock), `SHIP_MASKS=` (paint),
-or `SHIP_BRUSH=` (successful brush-only export).
+on exits 0 and 3, plus `SHIP_FBX=` (export), `SHIP_LOCK=` (lock) and `SHIP_MASKS=` (paint).
 Prose goes to stderr.
 Lines Blender logs before the script starts are outside the tools' control: a child of
 another Blender inherits its `OCIO` variable and logs it on stdout, so launch children
@@ -226,36 +225,11 @@ on the parts whose visual role requests them. Missing, overlapping, empty or non
 groups fail with exit 3. Intact export accepts debris annotations and ignores them.
 The sidecar's `set` is `intact` or `debris`; `roles` keys are section IDs for debris.
 
-### Brush-only export
-
-`ship_paint --brush-only` reads `brush.json` beside the source and needs the same geometry
-lock and independent `PaintUV` sides as signed paint. It does not read `paint.json` or
-`palettes.json`, or create/change a mask baseline. `--palette` and `--unity` are incompatible.
-
-```json
-{
-  "schema_version": 1,
-  "image": "../crimson/textures/painted-brush-source.png",
-  "scale": 0.8,
-  "blend": 0.25,
-  "offset": [0.23, 0.37, 0.0]
-}
-```
-
-The image is linear grayscale; mirrored box projection uses signed symmetry-origin position
-times `scale`, plus the three-coordinate `offset`. `blend` mixes projection axes. Cycles bakes
-the raw pigment into existing PaintUV with edge padding, so UV islands share continuous strokes
-and skinned vertices retain their paint. The consuming material applies contrast around 0.625.
-Only `--out/Brush.png` and `ship_paint.json` are written. The `SHIP_BRUSH` trailer gives the
-absolute output path; the report includes settings, tile hash, geometry/UV hashes and size.
-Copy the returned PNG into the ship's runtime `Paint/Brush.png`, preserving its Unity GUID.
-
 ## Tests
 
 ```bash
 python -m unittest discover -s art/tools/ship/tests -v
 blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/tests/blender_ship_smoke.py -- --out /path/to/scratch
-blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/tests/blender_brush_export.py -- --out /path/to/brush-scratch
 ```
 
 The unit tests cover ship.json, paint.json and palettes.json rejection, role grammar,

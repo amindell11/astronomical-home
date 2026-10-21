@@ -604,6 +604,11 @@ Format: **term** — definition. *(authority)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps it
   loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+- **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
+  `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
+  not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and
+  `_NebulaZoomResponse` at 0; the locale wiring test pins both). `_Seed` picks
+  the tile's cloud layout. *(`CloudBankTile`, #1048)*
 - **palette role** — one of base, primary, secondary or accent: the colours
   Blender exports in a flat background's sidecar `.json`. Scene-linear.
   *(FlatBackgroundSidecar)*
