@@ -39,7 +39,7 @@ namespace UI.Screens
 
         public void ShowSector(IReadOnlyList<string> kills, int sector, float completionSeconds, Action onContinue)
         {
-            var panel = BuildPanel("EXTRACTED", Success, 380f);
+            var panel = BuildPanel("EXTRACTED", Success, 338f, 380f);
             Label(panel, "Context", $"SECTOR {sector:00} COMPLETE", 28, 80, 282, 20, 11, Muted);
             AddTrophies(panel, kills, 110f, 86f);
             Rule(panel, 260f);
@@ -52,42 +52,50 @@ namespace UI.Screens
         public void ShowRun(bool victory, IReadOnlyList<string> kills, int sectorsCleared, int sectorCount,
             Scoreboard scoreboard, Action onContinue)
         {
-            const float height = 518f;
             var outcomeColor = victory ? Success : Loss;
-            var panel = BuildPanel(victory ? "VICTORY" : "SHIP LOST", outcomeColor, height);
-            AddTrophies(panel, kills, 99f, 178f);
-            Rule(panel, 354f);
-            Label(panel, "Progress", $"{sectorsCleared} SECTORS CLEARED", 28, 371, 282, 20, 11, Muted);
-            AddRoute(panel, sectorsCleared, sectorCount);
-            Continue(panel, "RETURN TO HANGAR", 452f, onContinue);
-            AddScoreboard(panel.parent, scoreboard, outcomeColor, height);
+            var panel = BuildPanel(victory ? "VICTORY" : "SHIP LOST", outcomeColor, 360f, 576f);
+            AddTrophies(panel, kills, 82f, 58f, true);
+            Label(panel, "Progress", $"{sectorsCleared} SECTORS CLEARED", 28, 202, 304, 20, 11, Muted);
+            AddRoute(panel, sectorsCleared, sectorCount, 232f);
+            Rule(panel, 274f);
+            AddScoreboard(panel, scoreboard, outcomeColor);
+            Continue(panel, "RETURN TO HANGAR", 510f, onContinue);
         }
 
-        private RectTransform BuildPanel(string title, Color outcomeColor, float height)
+        private RectTransform BuildPanel(string title, Color outcomeColor, float width, float height)
         {
             var blocker = Box(transform, "InputBlocker", 0, 0, 0, 0);
             blocker.anchorMin = Vector2.zero;
             blocker.anchorMax = Vector2.one;
             blocker.offsetMin = blocker.offsetMax = Vector2.zero;
             blocker.gameObject.AddComponent<Image>().color = Color.clear;
-            var group = Box(transform, "Panels", 0, 0, 710f, height);
+            var group = Box(transform, "Panels", 0, 0, width, height);
             group.anchorMin = group.anchorMax = new Vector2(.07f, .5f);
             group.pivot = new Vector2(0f, .5f);
-            var panel = Box(group, "Recap", 0, 0, 338, height);
+            var panel = Box(group, "Recap", 0, 0, width, height);
             Fill(panel, Backing);
             Fill(Box(panel, "CornerTop", 0, 0, 17, 1), Line);
             Fill(Box(panel, "CornerLeft", 0, 0, 1, 17), Line);
-            Label(panel, "Outcome", title, 28, 27, 282, 48, 40, outcomeColor);
+            Label(panel, "Outcome", title, 28, 27, width - 56, 48, 40, outcomeColor);
             return panel;
         }
 
-        private void AddTrophies(RectTransform panel, IReadOnlyList<string> kills, float top, float height)
+        private void AddTrophies(RectTransform panel, IReadOnlyList<string> kills, float top, float height,
+            bool compact = false)
         {
-            Label(panel, "Kills", $"{kills.Count} CONFIRMED KILLS", 28, top, 282, 24, 13, Muted);
-            var detail = Label(panel, "ShipName", "", 28, top + height + 38, 138, 18, 11, Muted);
-            var viewport = Box(panel, "Trophies", 28, top + 36, 282, height);
+            var width = panel.rect.width - 56f;
+            var columns = compact ? 9 : 5;
+            var columnStep = compact ? 34f : 58f;
+            var rowStep = compact ? 30f : 46f;
+            var cellWidth = compact ? 32f : 50f;
+            var cellHeight = compact ? 28f : 40f;
+            var iconSize = compact ? 22f : 34f;
+            Label(panel, "Kills", $"{kills.Count} CONFIRMED KILLS", 28, top, width, 24, 13, Muted);
+            var detail = Label(panel, "ShipName", "", 28, top + height + 38, width - 144, 18, 11, Muted);
+            var viewport = Box(panel, "Trophies", 28, top + 36, width, height);
             viewport.gameObject.AddComponent<RectMask2D>();
-            var content = Box(viewport, "Content", 0, 0, 282, Mathf.Max(0, Mathf.Ceil(kills.Count / 5f) * 46f - 6f));
+            var content = Box(viewport, "Content", 0, 0, width,
+                Mathf.Max(0, Mathf.Ceil(kills.Count / (float)columns) * rowStep - rowStep + cellHeight));
             var scroll = viewport.gameObject.AddComponent<ScrollRect>();
             scroll.viewport = viewport;
             scroll.content = content;
@@ -96,7 +104,7 @@ namespace UI.Screens
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 35f;
             if (scroll.vertical)
-                Label(panel, "ScrollHint", "SCROLL TO VIEW ALL", 166, top + height + 38, 144, 18, 10, Muted,
+                Label(panel, "ScrollHint", "SCROLL TO VIEW ALL", width - 116, top + height + 38, 144, 18, 10, Muted,
                     TextAnchor.MiddleRight);
             var textures = new Dictionary<string, Texture2D>();
             for (var i = 0; i < kills.Count; i++)
@@ -108,9 +116,11 @@ namespace UI.Screens
                     if (!texture) throw new InvalidOperationException($"No recap silhouette for '{chassis}'.");
                     textures.Add(chassis, texture);
                 }
-                var trophy = Box(content, $"Kill{i + 1}_{chassis}", i % 5 * 58f, i / 5 * 46f, 50, 40);
+                var trophy = Box(content, $"Kill{i + 1}_{chassis}", i % columns * columnStep,
+                    i / columns * rowStep, cellWidth, cellHeight);
                 trophy.gameObject.AddComponent<Image>().color = Color.clear;
-                var icon = Box(trophy, "Silhouette", 8, 3, 34, 34).gameObject.AddComponent<RawImage>();
+                var icon = Box(trophy, "Silhouette", (cellWidth - iconSize) / 2, 3, iconSize, iconSize)
+                    .gameObject.AddComponent<RawImage>();
                 icon.texture = texture;
                 icon.color = Paint;
                 icon.raycastTarget = false;
@@ -118,16 +128,16 @@ namespace UI.Screens
             }
         }
 
-        private void AddRoute(RectTransform panel, int cleared, int count)
+        private void AddRoute(RectTransform panel, int cleared, int count, float top)
         {
-            var spacing = count > 1 ? 256f / (count - 1) : 0f;
+            var spacing = count > 1 ? (panel.rect.width - 82f) / (count - 1) : 0f;
             for (var i = 0; i < count; i++)
             {
                 var x = 28 + i * spacing;
                 var reached = i == cleared;
                 var color = reached ? new Color(.93f, .73f, .62f) : i < cleared ? Ink : Muted;
-                if (i > 0) Fill(Box(panel, "Route", x - spacing + 36, 416, spacing - 46, 1), Line);
-                var node = Box(panel, "Sector" + (i + 1), x, 403, 26, 26);
+                if (i > 0) Fill(Box(panel, "Route", x - spacing + 36, top + 13, spacing - 46, 1), Line);
+                var node = Box(panel, "Sector" + (i + 1), x, top, 26, 26);
                 var marker = node.gameObject.AddComponent<RecapSectorMarker>();
                 marker.Reached = reached;
                 marker.color = reached ? new Color(.89f, .71f, .58f, .65f) : new Color(.65f, .73f, .81f, .13f);
@@ -136,26 +146,25 @@ namespace UI.Screens
             }
         }
 
-        private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor, float height)
+        private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor)
         {
-            var panel = Box(parent, "Scoreboard", 350, 0, 360, height);
-            Fill(panel, Backing);
-            Label(panel, "Heading", "SCOREBOARD", 28, 32, 304, 24, 16, Ink);
+            var panel = Box(parent, "Scoreboard", 28, 286, 304, 202);
+            Label(panel, "Heading", "SCOREBOARD", 0, 0, 132, 20, 13, Ink);
             var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
-            Label(panel, "Rank", "Your best runs · " + rank, 28, 62, 304, 18, 11, Muted);
-            ScoreCells(panel, "Columns", 105, "Run", "Sectors", "Kills", "Time", Muted, false);
+            Label(panel, "Rank", "Your best runs · " + rank, 132, 0, 172, 20, 11, Muted, TextAnchor.MiddleRight);
+            ScoreCells(panel, "Columns", 26, "Run", "Sectors", "Kills", "Time", Muted, false);
             var visible = Math.Min(5, board.Rows.Count);
             for (var i = 0; i < visible; i++)
             {
                 var index = i == 4 && board.Rank > 5 ? board.Rank.Value - 1 : i;
                 var row = board.Rows[index];
                 var current = board.Rank == index + 1;
-                var y = 132 + i * 44f;
-                Fill(Box(panel, "Divider", 28, y, 304, 1), Line);
+                var y = 52 + i * 30f;
+                Fill(Box(panel, "Divider", 0, y, 304, 1), Line);
                 if (current)
-                    Fill(Box(panel, "CurrentRun", 28, y, 304, 44),
+                    Fill(Box(panel, "CurrentRun", 0, y, 304, 30),
                         new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
-                ScoreCells(panel, "Row" + (index + 1), y + 10,
+                ScoreCells(panel, "Row" + (index + 1), y + 3,
                     $"{index + 1}   " + (current ? "This run" : row.EndedUtc.ToLocalTime().ToString("MMM d", CultureInfo.InvariantCulture)),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
                     current ? outcomeColor : Ink, true);
@@ -165,7 +174,7 @@ namespace UI.Screens
         private void ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
-            var row = Box(panel, name, 40, y, 280, 24);
+            var row = Box(panel, name, 12, y, 280, 24);
             Label(row, "Run", run, 0, 0, 98, 24, 11, color);
             Label(row, "Sectors", sectors, 110, 0, 58, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
             Label(row, "Kills", kills, 180, 0, 36, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
@@ -191,7 +200,8 @@ namespace UI.Screens
             button.Select();
         }
 
-        private static void Rule(RectTransform parent, float y) => Fill(Box(parent, "Divider", 28, y, 282, 1), Line);
+        private static void Rule(RectTransform parent, float y) =>
+            Fill(Box(parent, "Divider", 28, y, parent.rect.width - 56, 1), Line);
 
         private static void Fill(RectTransform rect, Color color)
         {

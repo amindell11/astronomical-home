@@ -59,13 +59,13 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual("2 CONFIRMED KILLS", TextAt("Recap/Kills").text);
             Assert.AreEqual("SECTOR 02 COMPLETE", TextAt("Recap/Context").text);
             Assert.AreEqual("3:42", TextAt("Recap/Time").text);
-            Assert.IsNull(screen.transform.Find("Panels/Scoreboard"));
+            Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard"));
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(continued);
         }
 
         [UnityTest]
-        public IEnumerator Victory_ShowsGreenOutcomeAndScoreboardAtRecapHeight()
+        public IEnumerator Victory_ShowsGreenOutcomeAndScoreboardOnSameCard()
         {
             yield return RunEnding(true);
         }
@@ -94,12 +94,20 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(17, screen.transform.Find("Panels/Recap/Trophies/Content").childCount);
             foreach (var marker in screen.GetComponentsInChildren<RecapSectorMarker>())
                 Assert.IsNotNull(marker.canvasRenderer, "sector markers need a renderer");
-            Assert.IsTrue(TextAt("Scoreboard/Row2/Run").text.Contains("This run"));
-            Assert.AreEqual(cleared.ToString(), TextAt("Scoreboard/Row2/Sectors").text);
+            Assert.IsTrue(TextAt("Recap/Scoreboard/Row2/Run").text.Contains("This run"));
+            Assert.AreEqual(cleared.ToString(), TextAt("Recap/Scoreboard/Row2/Sectors").text);
             var recap = (RectTransform)screen.transform.Find("Panels/Recap");
-            var scoreboard = (RectTransform)screen.transform.Find("Panels/Scoreboard");
-            Assert.AreEqual(recap.rect.height, scoreboard.rect.height, .01f);
-            Assert.AreEqual(recap.anchoredPosition.y, scoreboard.anchoredPosition.y, .01f);
+            var scoreboard = (RectTransform)recap.Find("Scoreboard");
+            Assert.AreEqual(1, screen.transform.Find("Panels").childCount);
+            Assert.AreSame(recap, scoreboard.parent);
+            Assert.IsNull(scoreboard.GetComponent<Image>());
+            var scoreBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, scoreboard);
+            var trophyBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, recap.Find("Trophies"));
+            var buttonBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, recap.Find("Continue"));
+            Assert.GreaterOrEqual(scoreBounds.min.x, recap.rect.xMin);
+            Assert.LessOrEqual(scoreBounds.max.x, recap.rect.xMax);
+            Assert.Less(scoreBounds.max.y, trophyBounds.min.y);
+            Assert.Greater(scoreBounds.min.y, buttonBounds.max.y);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Time"));
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(continued);
@@ -119,8 +127,8 @@ namespace Tests.PlayMode.Screens
             scroll.verticalNormalizedPosition = 0f;
             yield return null;
             Assert.Greater(scroll.content.anchoredPosition.y, 0f);
-            Assert.IsTrue(TextAt("Scoreboard/Row9/Run").text.Contains("This run"));
-            Assert.AreEqual("57", TextAt("Scoreboard/Row9/Kills").text);
+            Assert.IsTrue(TextAt("Recap/Scoreboard/Row9/Run").text.Contains("This run"));
+            Assert.AreEqual("57", TextAt("Recap/Scoreboard/Row9/Kills").text);
         }
     }
 }

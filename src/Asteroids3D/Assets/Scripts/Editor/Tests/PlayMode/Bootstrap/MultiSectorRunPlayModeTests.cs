@@ -129,7 +129,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "final recap appears");
             recap = hostGo.GetComponentInChildren<RunRecapScreen>();
             Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
-            Assert.IsNotNull(recap.transform.Find("Panels/Scoreboard/CurrentRun"));
+            Assert.IsNotNull(recap.transform.Find("Panels/Recap/Scoreboard/CurrentRun"));
             Assert.AreEqual(1, File.ReadAllLines(recordPath).Length);
             UnityEngine.Object.Destroy(hostGo);
             yield return null;
