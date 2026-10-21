@@ -77,7 +77,7 @@ namespace Tests.PlayMode.Audio
             public Transform Transform => null;
             public Kinematics Kinematics => default;
             public Dynamics Dynamics => default;
-            public float HealthPct => 1f;
+            public float HealthPct { get; set; } = 1f;
             public float ShieldPct => 1f;
             public bool BoostAvailable { get; set; }
             public float BoostCooldownRemaining => 0f;
@@ -301,6 +301,24 @@ namespace Tests.PlayMode.Audio
             yield return Flush();
             Debug.Log($"[FMOD] {IncomingMissileEvent} sounding after the last tracker left = {Sounding(warning)}");
             Assert.AreEqual(0, Sounding(warning), "the last tracker leaving stops the warning");
+        }
+
+        [UnityTest]
+        public IEnumerator IncomingMissile_StopsWhenThePlayerDies()
+        {
+            var warning = Fresh(IncomingMissileEvent);
+            var status = new FakeStatus();
+            NewAuthored<UIMissileWarningAudio>().Initialize(status);
+            status.Trackers.Add(new FakeMissile());
+            yield return null;
+            yield return Flush();
+            Assert.AreEqual(1, Sounding(warning), "a tracker sounds the warning");
+
+            status.HealthPct = 0f;
+            yield return null;
+            yield return Flush();
+            Debug.Log($"[FMOD] {IncomingMissileEvent} sounding after death with a tracker left = {Sounding(warning)}");
+            Assert.AreEqual(0, Sounding(warning), "death stops the warning though the tracker remains");
         }
     }
 }

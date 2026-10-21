@@ -27,7 +27,8 @@ namespace UI.Audio
         {
             if (status == null) return;
 
-            var tracked = status.TrackingMissiles.Count > 0;
+            // Death leaves trackers registered, so the warning also needs a living player.
+            var tracked = status.HealthPct > 0f && status.TrackingMissiles.Count > 0;
             if (tracked && !warning.isValid())
                 Begin();
             else if (!tracked)
