@@ -59,6 +59,7 @@ namespace UI.Hangar
         {
             gameObject.SetActive(false);
             cruise = 0f;
+            entryAge = EntrySeconds;
         }
 
         /// <param name="offset">This ship's index minus the carousel position.</param>
