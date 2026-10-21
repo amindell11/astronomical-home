@@ -109,7 +109,7 @@
       band(ctx,rr,Math.min(9,radius*.26)*(1-t*.6),a,a+span,body,12+i);
       band(ctx,rr-.6,Math.min(4,radius*.15),a+.05,a+span*.6,warm?palette.gold:'#79c8df',20+i);
     }
-    ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke();
+    if(t<.8){ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke()}
     if(t<.26){
       for(let i=0;i<4;i++){const a=i/4*TAU+.3,r=radius*.65;shard(ctx,Math.cos(a)*r,Math.sin(a)*r,a,7*(1-t/.3),2,palette.gold)}
     }
@@ -121,7 +121,7 @@
     const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
     ctx.fillStyle='#0c1421';ctx.fillRect(0,0,width,height);
     const type=canvas.dataset.effect;
-    const leftWidth=width-105,bigScale=Math.min(1.2,(leftWidth-18)/210);
+    const leftWidth=width-105,bigScale=Math.min(type==='pressure'||type==='warm'?.8:1.2,(leftWidth-18)/210);
     for(const item of [[leftWidth/2,123,bigScale],[width-53,125,.43]]){
       ctx.save();ctx.translate(item[0],item[1]);ctx.scale(item[2],item[2]);
       if(type==='compact'||type==='directional')missile(ctx,time,type==='directional');else mine(ctx,time,type==='warm');ctx.restore();

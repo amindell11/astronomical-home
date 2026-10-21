@@ -1897,7 +1897,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       band(ctx,rr,Math.min(9,radius*.26)*(1-t*.6),a,a+span,body,12+i);
       band(ctx,rr-.6,Math.min(4,radius*.15),a+.05,a+span*.6,warm?palette.gold:&#x27;#79c8df&#x27;,20+i);
     }
-    ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke();
+    if(t&lt;.8){ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke()}
     if(t&lt;.26){
       for(let i=0;i&lt;4;i++){const a=i/4*TAU+.3,r=radius*.65;shard(ctx,Math.cos(a)*r,Math.sin(a)*r,a,7*(1-t/.3),2,palette.gold)}
     }
@@ -1909,7 +1909,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const ctx=canvas.getContext(&#x27;2d&#x27;);ctx.scale(dpr,dpr);
     ctx.fillStyle=&#x27;#0c1421&#x27;;ctx.fillRect(0,0,width,height);
     const type=canvas.dataset.effect;
-    const leftWidth=width-105,bigScale=Math.min(1.2,(leftWidth-18)/210);
+    const leftWidth=width-105,bigScale=Math.min(type===&#x27;pressure&#x27;||type===&#x27;warm&#x27;?.8:1.2,(leftWidth-18)/210);
     for(const item of [[leftWidth/2,123,bigScale],[width-53,125,.43]]){
       ctx.save();ctx.translate(item[0],item[1]);ctx.scale(item[2],item[2]);
       if(type===&#x27;compact&#x27;||type===&#x27;directional&#x27;)missile(ctx,time,type===&#x27;directional&#x27;);else mine(ctx,time,type===&#x27;warm&#x27;);ctx.restore();
