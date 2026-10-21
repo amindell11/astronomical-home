@@ -1,0 +1,150 @@
+<div id="weapon-explosion-study">
+  <div class="viz-controls">
+    <button class="btn btn-primary" type="button" id="blast-play">Play all</button>
+    <label class="form-check"><input class="form-check-input" id="blast-slow" type="checkbox"><span class="form-check-label">Quarter speed</span></label>
+    <label class="form-label" for="blast-time">After detonation <output id="blast-clock" class="tabular-nums">160 ms</output><input class="form-range" id="blast-time" type="range" min="0" max="1100" step="10" value="160"></label>
+  </div>
+  <div class="viz-grid blast-grid">
+    <section><h3>Missile A · compact burst</h3><canvas data-effect="compact" role="img" aria-label="Angular warm missile burst, enlarged and at 96 pixels."></canvas><div class="text-small">Brief white core · angular fire · sparse sparks</div></section>
+    <section><h3>Mine A · blue pressure ring</h3><canvas data-effect="pressure" role="img" aria-label="Blue concussion ring with a brief warm ignition, enlarged and at 96 pixels."></canvas><div class="text-small">Warm ignition · pale blue rim · hollow center</div></section>
+    <section><h3>Missile B · forward splinters</h3><canvas data-effect="directional" role="img" aria-label="Warm missile burst with longer splinters along the direction of travel."></canvas><div class="text-small">Same radial blast · forward streaks · short smoke</div></section>
+    <section><h3>Mine B · warm pressure ring</h3><canvas data-effect="warm" role="img" aria-label="Gold concussion ring with torn orange shapes trailing behind its continuous edge."></canvas><div class="text-small">Gold rim · torn orange collar · hollow center</div></section>
+  </div>
+  <div class="text-small text-muted" id="blast-status" aria-live="polite">Motion sketches · enlarged + 96 px readability check · not an in-game capture</div>
+</div>
+<style>
+#weapon-explosion-study .blast-grid{gap:22px 20px;grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0}
+#weapon-explosion-study section{min-width:0}
+#weapon-explosion-study h3{margin:0 0 8px}
+#weapon-explosion-study canvas{display:block;width:100%;height:232px;margin-bottom:8px}
+@media(max-width:580px){#weapon-explosion-study .blast-grid{grid-template-columns:1fr}}
+</style>
+<script>
+(()=>{
+  const root=document.getElementById('weapon-explosion-study');
+  const canvases=[...root.querySelectorAll('canvas')];
+  const slider=root.querySelector('#blast-time'),clock=root.querySelector('#blast-clock');
+  const play=root.querySelector('#blast-play'),slow=root.querySelector('#blast-slow');
+  const status=root.querySelector('#blast-status');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU=Math.PI*2,clamp=(n)=>Math.max(0,Math.min(1,n));
+  const rand=(i)=>{const r=Math.sin(i*127.1+311.7)*43758.5453;return r-Math.floor(r)};
+  let time=.16,frame=0,start=0,playing=false;
+  const palette={ink:'#252b39',smoke:'#404a5d',smokeLight:'#747d8a',red:'#ea4818',orange:'#ff791b',gold:'#ffc849',cream:'#fff2aa',white:'#fffbe5',blue:'#4b99c6',ice:'#b8edf3'};
+  function shape(ctx,pts,color){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+  function burst(ctx,r,seed,sx=1,sy=1){
+    const pts=[];
+    for(let i=0;i<28;i++){
+      const a=(i+.28*(rand(i+seed+4)-.5))/28*TAU,rr=r*(i%2?.43+rand(i+seed)*.32:.63+rand(i+seed)*.37);
+      pts.push([Math.cos(a)*rr*sx,Math.sin(a)*rr*sy]);
+    }
+    return pts;
+  }
+  function scaled(pts,s,dx=0,dy=0){return pts.map(p=>[p[0]*s+dx,p[1]*s+dy])}
+  function shard(ctx,x,y,a,len,width,color){
+    ctx.save();ctx.translate(x,y);ctx.rotate(a);
+    shape(ctx,[[-len*.45,0],[-len*.22,-width*.55],[len*.48,-width*.13],[len*.67,0],[len*.1,width*.45],[-len*.27,width*.28]],color);
+    shape(ctx,[[-len*.15,0],[len*.45,-width*.05],[len*.1,width*.19]],palette.cream);
+    ctx.restore();
+  }
+  function smoke(ctx,t,amount){
+    if(t<.07||t>.58)return;
+    const u=clamp((t-.07)/.5),alpha=(1-u)*.75;
+    for(let i=0;i<amount;i++){
+      const a=i/amount*TAU+.6,dist=14+u*35,r=(12+rand(i+20)*7)*(1-u*.4);
+      ctx.save();ctx.translate(Math.cos(a)*dist,Math.sin(a)*dist);ctx.rotate(a);ctx.globalAlpha=alpha;
+      ctx.fillStyle=palette.ink;ctx.beginPath();ctx.ellipse(0,0,r,r*.7,0,0,TAU);ctx.fill();
+      ctx.fillStyle=palette.smoke;ctx.beginPath();ctx.ellipse(-r*.12,-r*.19,r*.8,r*.55,-.5,0,TAU);ctx.fill();
+      ctx.fillStyle=palette.smokeLight;ctx.beginPath();ctx.ellipse(-r*.29,-r*.35,r*.4,r*.15,-.5,0,TAU);ctx.fill();ctx.restore();
+    }
+  }
+  function missile(ctx,t,directional){
+    smoke(ctx,t,3);
+    const snap=Math.floor(t*24)/24;
+    if(t<.31){
+      const growth=clamp(t/.075),decay=clamp((t-.08)/.23),r=(5+47*Math.pow(growth,.6))*(1-decay*.35);
+      const pts=burst(ctx,r,23+Math.floor(snap*10),directional?1.16:1,directional?.86:1);
+      ctx.save();
+      if(decay>.43){
+        const split=clamp((decay-.43)/.57);
+        for(let i=0;i<5;i++){
+          const a=i/5*TAU+.23,dist=12+split*25,sz=(19+rand(i)*8)*(1-split);
+          ctx.save();ctx.translate(Math.cos(a)*dist,Math.sin(a)*dist);
+          const p=burst(ctx,sz,i+15);shape(ctx,p,palette.red);shape(ctx,scaled(p,.72),palette.orange);shape(ctx,scaled(p,.42),palette.gold);ctx.restore();
+        }
+      }else{
+        shape(ctx,pts,palette.red);shape(ctx,scaled(pts,.83,-2,0),palette.orange);shape(ctx,scaled(pts,.59,-3,0),palette.gold);
+        shape(ctx,scaled(pts,t<.065?.52:.32,-3,0),palette.cream);
+        if(t<.1)shape(ctx,scaled(pts,.18,-3,0),palette.white);
+      }
+      ctx.restore();
+    }
+    for(let i=0;i<7;i++){
+      const delay=rand(i+8)*.035,u=t-delay,life=.25+rand(i+12)*.25;
+      if(u<0||u>life)continue;
+      const a=directional?(i<4?-.5+i*.32:i/7*TAU):i/7*TAU+rand(i+5)*.28;
+      const distance=8+(50+rand(i+3)*45)*Math.pow(clamp(u/.4),.7),k=1-u/life;
+      shard(ctx,Math.cos(a)*distance,Math.sin(a)*distance,a,(directional&&i<4?28:16)*k+2,5*k+1,i%2?palette.gold:palette.orange);
+    }
+  }
+  function band(ctx,r,width,a0,a1,color,seed){
+    const pts=[],n=Math.max(10,Math.ceil((a1-a0)*18));
+    for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;pts.push([Math.cos(a)*r,Math.sin(a)*r])}
+    for(let i=n;i>=0;i--){const a=a0+(a1-a0)*i/n;const inner=r-width*(.55+rand(i+seed)*.7);pts.push([Math.cos(a)*inner,Math.sin(a)*inner])}
+    shape(ctx,pts,color);
+  }
+  function mine(ctx,t,warm){
+    const radius=104*clamp(t/.8);
+    if(t<.16){
+      const r=30*Math.sin(Math.PI*clamp(t/.2))+3,pts=burst(ctx,r,11,1,.78);
+      shape(ctx,pts,palette.orange);shape(ctx,scaled(pts,.72),palette.gold);shape(ctx,scaled(pts,.44),palette.white);
+    }
+    if(t<.015||t>.88)return;
+    const late=clamp((t-.8)/.08),alpha=1-late;
+    ctx.save();ctx.globalAlpha=alpha;
+    const rim=warm?palette.cream:palette.ice,body=warm?palette.orange:palette.blue;
+    for(let i=0;i<7;i++){
+      const a=i/7*TAU+.16,span=.48+rand(i)*.25,rr=radius-2-5*rand(i+1);
+      if(rr<4)continue;
+      band(ctx,rr,Math.min(9,radius*.26)*(1-t*.6),a,a+span,body,12+i);
+      band(ctx,rr-.6,Math.min(4,radius*.15),a+.05,a+span*.6,warm?palette.gold:'#79c8df',20+i);
+    }
+    ctx.beginPath();ctx.arc(0,0,radius,0,TAU);ctx.strokeStyle=rim;ctx.lineWidth=Math.max(1,2.3-t);ctx.stroke();
+    if(t<.26){
+      for(let i=0;i<4;i++){const a=i/4*TAU+.3,r=radius*.65;shard(ctx,Math.cos(a)*r,Math.sin(a)*r,a,7*(1-t/.3),2,palette.gold)}
+    }
+    ctx.restore();
+  }
+  function drawOne(canvas){
+    const width=Math.max(260,canvas.getBoundingClientRect().width),height=232,dpr=Math.min(devicePixelRatio||1,2);
+    canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+    ctx.fillStyle='#0c1421';ctx.fillRect(0,0,width,height);
+    const type=canvas.dataset.effect;
+    const leftWidth=width-105,bigScale=Math.min(1.2,(leftWidth-18)/210);
+    for(const item of [[leftWidth/2,123,bigScale],[width-53,125,.43]]){
+      ctx.save();ctx.translate(item[0],item[1]);ctx.scale(item[2],item[2]);
+      if(type==='compact'||type==='directional')missile(ctx,time,type==='directional');else mine(ctx,time,type==='warm');ctx.restore();
+    }
+    ctx.font='12px system-ui';ctx.fillStyle='#aebac8';ctx.textAlign='center';ctx.fillText('Enlarged',leftWidth/2,213);ctx.fillText('96 px',width-53,213);
+    if(type==='directional'){ctx.fillStyle='#8193a9';ctx.fillText('Travel →',leftWidth/2,25)}
+  }
+  function draw(){canvases.forEach(drawOne);slider.value=Math.round(time*1000);clock.textContent=Math.round(time*1000)+' ms'}
+  function stop(){cancelAnimationFrame(frame);playing=false;play.textContent='Play all'}
+  function save(){if(window.openai&&window.openai.setWidgetState)window.openai.setWidgetState({modelContent:null,privateContent:{milliseconds:Math.round(time*1000),slow:slow.checked}}).catch(()=>{})}
+  slider.addEventListener('input',()=>{stop();time=+slider.value/1000;draw()});slider.addEventListener('change',save);
+  slow.addEventListener('change',()=>{stop();save()});
+  play.addEventListener('click',()=>{
+    if(playing){stop();save();return}
+    if(reduced){time=Math.min(1.1,time+.1);if(time>=1.1)time=0;draw();status.textContent='Reduced motion · use the time slider to inspect each pose';return}
+    playing=true;time=0;start=performance.now();play.textContent='Pause';
+    const tick=(now)=>{time=Math.min(1.1,(now-start)/1000/(slow.checked?4:1));draw();if(time<1.1)frame=requestAnimationFrame(tick);else{stop();save()}};
+    frame=requestAnimationFrame(tick);
+  });
+  function restore(state){const s=state&&state.privateContent;if(!s)return;stop();time=Math.max(0,Math.min(1100,Number(s.milliseconds)||0))/1000;slow.checked=!!s.slow;draw()}
+  if(window.openai)restore(window.openai.widgetState);
+  window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState)});
+  new ResizeObserver(draw).observe(root);
+  draw();
+})();
+</script>
