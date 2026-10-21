@@ -201,9 +201,9 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
-                    AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
+                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     if (presentation)
-                        yield return playerDied ? RunDeathRecap() : RunWinScreen(index + 1);
+                        yield return playerDied ? RunDeathRecap(board) : RunWinScreen(index + 1, board);
                 }
 
                 SetSplashVisible(true);
@@ -291,19 +291,22 @@ namespace Game
         }
 
         // An unreadable build identity is treated like the store's failed write: the run goes unrecorded.
-        private void AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
+        private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
         {
             if (!buildIdentity(out var identity, out var failure))
             {
                 Debug.LogError($"Run record skipped, build identity unreadable: {failure}", this);
-                return;
+                return Scoreboard.Read(runRecords.Path, null);
             }
 
             var sectors = Array.ConvertAll(sessionProfile.sectors, entry => entry.prefab);
             var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
-            runRecords.Append(RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
+            var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
-                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow));
+                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
+            var board = Scoreboard.Read(runRecords.Path, record);
+            runRecords.Append(record);
+            return board;
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
@@ -327,14 +330,14 @@ namespace Game
             Destroy(screen.gameObject);
         }
 
-        private IEnumerator RunDeathRecap()
+        private IEnumerator RunDeathRecap(Scoreboard board)
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
 
             var screen = DeathRecapScreen.Create(ui);
             var dismissed = false;
-            screen.Show(lastKillingBlow, rigInstance.Ledger, rigInstance.Tally, () => dismissed = true);
+            screen.Show(lastKillingBlow, rigInstance.Ledger, rigInstance.Tally, board, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
@@ -343,14 +346,14 @@ namespace Game
             if (overlay) overlay.SetVisible(true);
         }
 
-        private IEnumerator RunWinScreen(int sectorsCleared)
+        private IEnumerator RunWinScreen(int sectorsCleared, Scoreboard board)
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
 
             var screen = RunWonScreen.Create(ui);
             var dismissed = false;
-            screen.Show(rigInstance.Tally, sectorsCleared, () => dismissed = true);
+            screen.Show(rigInstance.Tally, sectorsCleared, board, () => dismissed = true);
 
             var deadline = Time.unscaledTime + recapHoldSeconds;
             yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);

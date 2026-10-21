@@ -79,6 +79,7 @@ namespace Game.Runs
         public const string Died = "died";
         public const string Extracted = "extracted";
         public const int NoSpawn = -1;
+        public const string EndedUtcFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
 
@@ -94,7 +95,7 @@ namespace Game.Runs
             var record = new RunRecord
             {
                 schema = SchemaId,
-                endedUtc = endedUtc.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
+                endedUtc = endedUtc.ToString(EndedUtcFormat, CultureInfo.InvariantCulture),
                 outcome = killingBlow.HasValue ? Died : Extracted,
                 sectorsCleared = sectorsCleared,
                 sector = sector,

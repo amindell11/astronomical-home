@@ -1,5 +1,6 @@
 using System;
 using Game.Player;
+using Game.Runs;
 using UnityEngine;
 using static UI.Screens.ScreenWidgets;
 
@@ -10,13 +11,14 @@ namespace UI.Screens
     {
         public static RunWonScreen Create(Transform parent) => CreateOverlay<RunWonScreen>(parent, "RunWonScreen");
 
-        public void Show(IRunTally tally, int sectorsCleared, Action onContinue)
+        public void Show(IRunTally tally, int sectorsCleared, Scoreboard board, Action onContinue)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var panel = AddPanel(transform);
 
             AddText(panel, "Title", "EXTRACTED", font, 34, new Color(0.45f, 0.95f, 0.55f), FontStyle.Bold);
             AddText(panel, "Tally", $"{TallyBlock(tally)}\nSectors cleared: {sectorsCleared}", font, 22, Color.white);
+            AddScoreboard(panel, font, board);
             AddContinueButton(panel, font, onContinue);
         }
     }

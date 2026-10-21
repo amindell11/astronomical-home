@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using Damage;
 using Game.Player;
+using Game.Runs;
 using NUnit.Framework;
 using Ships.Registry;
 using UI.Screens;
@@ -10,7 +11,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Screens
 {
     /// <summary>
     /// The death recap renders the run tally's kills and time survived as their own lines, and the
@@ -25,6 +26,8 @@ namespace Tests.PlayMode
             public int Kills => 7;
             public float SecondsSurvived => 83.4f;
         }
+
+        private static readonly Scoreboard EmptyBoard = new(System.Array.Empty<Scoreboard.Row>(), null);
 
         private GameObject _root;
 
@@ -41,7 +44,7 @@ namespace Tests.PlayMode
             var screen = DeathRecapScreen.Create(_root.transform);
             var blow = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
 
-            screen.Show(blow, new DamageLedger(), new FixedTally(), null);
+            screen.Show(blow, new DamageLedger(), new FixedTally(), EmptyBoard, null);
             yield return null;
 
             var lines = screen.GetComponentsInChildren<Text>().SelectMany(t => t.text.Split('\n')).ToList();
@@ -59,7 +62,7 @@ namespace Tests.PlayMode
             ledger.Record(new DamageInfo(30f, DamageKind.Missile, new ShipId(9), 0f, Vector3.zero, Vector3.zero), 1f);
             ledger.Record(blow, 2f);
 
-            screen.Show(blow, ledger, new FixedTally(), null);
+            screen.Show(blow, ledger, new FixedTally(), EmptyBoard, null);
             yield return null;
 
             var panel = screen.transform.Find("Dim/Panel");

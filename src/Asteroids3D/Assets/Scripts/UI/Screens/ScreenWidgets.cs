@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Game.Player;
+using Game.Runs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +11,10 @@ namespace UI.Screens
 {
     internal static class ScreenWidgets
     {
+        internal const int BoardRows = 5;
+
+        internal static readonly Color DetailColor = new(0.8f, 0.83f, 0.88f);
+
         public static T CreateOverlay<T>(Transform parent, string name) where T : MonoBehaviour
         {
             var go = new GameObject(name);
@@ -58,6 +66,36 @@ namespace UI.Screens
 
         internal static string TallyBlock(IRunTally tally) =>
             $"Kills: {tally.Kills}\nTime survived: {RunTally.FormatSeconds(tally.SecondsSurvived)}";
+
+        internal static string RankLine(Scoreboard board) =>
+            board.Rank is { } rank ? $"RANK {rank} OF {board.Rows.Count}" : "NOT RANKED";
+
+        // One text per column, each a header and a line per row, so rows line up across columns.
+        public static void AddScoreboard(Transform parent, Font font, Scoreboard board)
+        {
+            AddText(parent, "Rank", RankLine(board), font, 24, Color.white, FontStyle.Bold);
+            if (board.Rows.Count == 0) return;
+
+            var go = new GameObject("Board", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var columns = go.AddComponent<HorizontalLayoutGroup>();
+            columns.spacing = 28f;
+            columns.childControlWidth = true;
+            columns.childControlHeight = true;
+            columns.childForceExpandWidth = false;
+            columns.childForceExpandHeight = false;
+
+            var top = board.Rows.Take(BoardRows).ToList();
+            AddColumn(go.transform, "Place", "#", top.Select((_, i) => $"{i + 1}."), font);
+            AddColumn(go.transform, "Sectors", "SECTORS", top.Select(row => $"{row.SectorsCleared}"), font);
+            AddColumn(go.transform, "Kills", "KILLS", top.Select(row => $"{row.Kills}"), font);
+            AddColumn(go.transform, "Time", "TIME", top.Select(row => RunTally.FormatSeconds(row.SecondsSurvived)), font);
+            AddColumn(go.transform, "Date", "DATE",
+                top.Select(row => row.EndedUtc.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), font);
+        }
+
+        private static void AddColumn(Transform board, string name, string header, IEnumerable<string> cells, Font font) =>
+            AddText(board, name, header + "\n" + string.Join("\n", cells), font, 17, DetailColor);
 
         public static void AddContinueButton(Transform parent, Font font, Action onContinue)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Damage;
 using Game.Player;
+using Game.Runs;
 using UnityEngine;
 using UnityEngine.UI;
 using static UI.Screens.ScreenWidgets;
@@ -10,9 +11,9 @@ using static UI.Screens.ScreenWidgets;
 namespace UI.Screens
 {
     /// <summary>
-    /// Post-death recap panel rendered from the damage ledger and the run tally: what killed you,
-    /// this run's kills and time survived, a burst chart of the life's last seconds, and what hurt
-    /// you this life, aggregated per source. Code-built (no prefab) so headless paths never touch
+    /// Post-death recap panel rendered from the damage ledger, the run tally and the scoreboard: what
+    /// killed you, this run's kills, time survived and rank, a burst chart of the life's last seconds,
+    /// and what hurt you this life, aggregated per source. Code-built (no prefab) so headless paths never touch
     /// it; <see cref="Game.GameHost"/> creates it for the recap hold between death and unload.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
@@ -23,7 +24,6 @@ namespace UI.Screens
         private const float ChartHeight = 120f;
         private const float KillingBlowMarkHeight = 4f;
 
-        private static readonly Color DetailColor = new(0.8f, 0.83f, 0.88f);
         private static readonly Color OtherColor = new(0.55f, 0.57f, 0.62f);
 
         // One per named burst series; the palette's size caps how many sources the chart names.
@@ -39,7 +39,8 @@ namespace UI.Screens
         public static DeathRecapScreen Create(Transform parent) =>
             CreateOverlay<DeathRecapScreen>(parent, "DeathRecapScreen");
 
-        public void Show(in DamageInfo killingBlow, DamageLedger ledger, IRunTally tally, Action onContinue)
+        public void Show(in DamageInfo killingBlow, DamageLedger ledger, IRunTally tally, Scoreboard board,
+            Action onContinue)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -49,6 +50,7 @@ namespace UI.Screens
                 new Color(1f, 0.45f, 0.35f), FontStyle.Bold);
             AddText(panel, "Cause", CauseLine(killingBlow, ledger.Rows), font, 22, Color.white);
             AddText(panel, "Tally", TallyBlock(tally), font, 22, Color.white);
+            AddScoreboard(panel, font, board);
             if (ledger.Hits.Count > 0)
                 AddBurstChart(panel, DamageBurst.From(ledger, SourceColors.Length), font);
             AddText(panel, "Rows", RowsBlock(ledger.Rows), font, 17, DetailColor);

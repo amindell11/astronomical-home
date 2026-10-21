@@ -869,6 +869,12 @@ Format: **term** — definition. *(authority)*
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **scoreboard** — the rank and top-five list the death recap and the win screen
+  show, read from the run-record file at run end. Only v2 run records count, from
+  any stat fingerprint; older v1 records stay in the file and off the board. The
+  file sits under the results root, so the editor and a player build keep separate
+  boards. An unrecorded run shows as not ranked. *(Scoreboard.Compare is the
+  ranking rule · #700)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
   parts by asset name, its loadout stat hash taken at spawn, when it spawned, how
