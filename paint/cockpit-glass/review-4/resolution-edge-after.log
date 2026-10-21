@@ -1,0 +1,8 @@
+{
+  "texture_size": [
+    2048,
+    1024
+  ],
+  "maximum_edge_step_at_512": 0.08667468591283978,
+  "longest_stationary_run_at_512": 0.0
+}

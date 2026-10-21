@@ -1,0 +1,13 @@
+{
+  "texture_size": [
+    1024,
+    512
+  ],
+  "maximum_edge_step_at_512": 2.736231884057986,
+  "longest_stationary_run_at_512": 48.0
+}
+Traceback (most recent call last):
+  File "D:\amind\git\agent-8\scratch\bulwark-glass\check_reflection_edges.py", line 22, in <module>
+    assert report['maximum_edge_step_at_512'] < .6, 'The broad reflection outline has a staircase jump.'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: The broad reflection outline has a staircase jump.

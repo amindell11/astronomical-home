@@ -1,0 +1,22 @@
+{
+  "capture_size": [
+    1280,
+    1280
+  ],
+  "video_size": [
+    1280,
+    1376
+  ],
+  "duration_seconds": 18.4,
+  "fixed_shadow_ink_match_resampled_source": true,
+  "continuous_field_coverage": true,
+  "reflections_off_mean_pixel_difference": 0.021305135091145833,
+  "reflections_off_max_pixel_difference": 51.0,
+  "changed_whole_ship_pixels": 7017,
+  "changed_pixel_bounds_xy": [
+    575,
+    239,
+    704,
+    519
+  ]
+}

@@ -19,3 +19,5 @@ Earlier reviews: [Fitted mounting shoes](detail-model/2026-10-13-r07/README.md) 
 [Corrected cockpit glass, 2026-10-21](paint/cockpit-glass/review-2/README.md). Removes fixed ghost stripes and extends moving highlights beyond the glass boundary.
 
 [Asymmetric cockpit reflections and slower preview, 2026-10-21](paint/cockpit-glass/review-3/README.md). One dominant stroke and a smaller glint, shown in separate roll and pitch passes with a scrub-capable video.
+
+[Smooth cockpit reflection outlines, 2026-10-21](paint/cockpit-glass/review-4/README.md). Editable curves, a 2048×1024 texture, native-pixel comparison and full-resolution motion preview.

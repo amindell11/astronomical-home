@@ -1,0 +1,15 @@
+{
+  "broad": {
+    "width_at_512": 40.0,
+    "rms_center_difference_at_512": 1.2172427215559494
+  },
+  "fine": {
+    "width_at_512": 11.225877952851633,
+    "rms_center_difference_at_512": 1.520760145404254
+  },
+  "texture_size": [
+    2048,
+    1024
+  ],
+  "fixed_channels": "Bilinear resampling of the previous Shadow and Ink channels. Coverage is full for the continuous reflection field."
+}
