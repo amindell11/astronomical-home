@@ -3,9 +3,10 @@ using System.Collections;
 using FMOD.Studio;
 using FMODUnity;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using UnityEngine;
 
-namespace Tests.PlayMode.Common
+namespace Tests.PlayMode.Audio
 {
     /// <summary>
     /// Local FMOD evidence, compiled only against the real package: instance state read back from

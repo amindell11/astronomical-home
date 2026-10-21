@@ -14,7 +14,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace Tests.PlayMode.Presentation
+namespace Tests.PlayMode.Audio
 {
     [Category("Audio")]
     public class EngineAudioPlayModeTests : FmodEvidenceFixture

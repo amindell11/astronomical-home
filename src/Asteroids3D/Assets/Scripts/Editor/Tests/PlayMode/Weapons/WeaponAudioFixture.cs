@@ -5,7 +5,7 @@ using Combat.Weapons;
 using NUnit.Framework;
 using Ships.Registry;
 using Substrate;
-using Tests.PlayMode.Common;
+using Tests.PlayMode.Audio;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
