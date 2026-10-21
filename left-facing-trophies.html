@@ -16,7 +16,7 @@
 #left-facing-trophies .hr-count { color:var(--hr-ink); font-size:17px; letter-spacing:.5px; }
 #left-facing-trophies .hr-trophies { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px 8px; }
 #left-facing-trophies .hr-mark { position:relative; display:grid; place-items:center; height:40px; min-width:0; border:0; padding:0; background:transparent; color:var(--hr-paint); }
-#left-facing-trophies .hr-mark::before { content:""; width:34px; height:34px; background:currentColor; transform:rotate(var(--hr-tilt,-30deg)); mask-image:var(--hr-ship); mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
+#left-facing-trophies .hr-mark::before { content:""; width:34px; height:34px; background:currentColor; transform:rotate(var(--hr-tilt,0deg)); mask-image:var(--hr-ship); mask-size:contain; mask-position:center; mask-repeat:no-repeat; }
 #left-facing-trophies .hr-mark:hover { color:#fff; }
 #left-facing-trophies .hr-mark[aria-pressed="true"] { background:#bbc8df13; }
 #left-facing-trophies .hr-detail { height:17px; margin-top:8px; color:var(--hr-soft); font-size:11px; line-height:17px; letter-spacing:.8px; }
@@ -47,13 +47,13 @@
    <button class="btn" type="button" data-outcome="win" aria-pressed="false">Extracted</button>
   </div>
  </div>
- <div aria-label="Left-facing ship trophies">
-  <section aria-label="Left-facing tally">
-   <div class="hr-game" data-treatment="Left-facing tally">
+ <div aria-label="Upright ship trophies">
+  <section aria-label="Upright tally">
+   <div class="hr-game" data-treatment="Upright tally">
     <div class="hr-space" aria-hidden="true"></div>
-    <div class="hr-panel" aria-label="Left-facing trophy panel">
+    <div class="hr-panel" aria-label="Upright trophy panel">
      <h2 class="hr-outcome" aria-live="polite">SHIP LOST</h2>
-     <div class="hr-tally-label"><span class="hr-count">17</span> SHIPS DESTROYED</div>
+     <div class="hr-tally-label"><span class="hr-count">17</span> CONFIRMED KILLS</div>
      <div class="hr-trophies" aria-label="Destroyed ships"></div>
      <div class="hr-detail" aria-live="polite"></div>
      <div class="hr-progress"><div class="hr-distance">2 SECTORS CLEARED</div><div class="hr-route"></div></div>
@@ -105,7 +105,7 @@
   });
   game.querySelector('.hr-continue').addEventListener('click',()=>game.querySelector('.hr-detail').textContent='Returns to the hangar');
   if(globalThis.Tweak){
-   const panel=game.querySelector('.hr-panel');const state={backing:90,tilt:-30};
+   const panel=game.querySelector('.hr-panel');const state={backing:90,tilt:0};
    const tweak=new Tweak({container:panel,onChange:()=>{panel.style.setProperty('--hr-opacity',String(state.backing/100));panel.style.setProperty('--hr-tilt',state.tilt+'deg');}});
    tweak.addSlider(state,'backing',{label:'Backing opacity',min:55,max:100,step:1,unit:'%'});
    tweak.addSlider(state,'tilt',{label:'Ship tilt',min:-90,max:0,step:5,unit:'°'});
