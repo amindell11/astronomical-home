@@ -1,6 +1,4 @@
 using System;
-using Game.Player;
-using Game.Runs;
 using UnityEngine;
 
 namespace UI.Screens
@@ -11,7 +9,7 @@ namespace UI.Screens
         public static RunWonScreen Create(Transform parent) =>
             ScreenWidgets.CreateOverlay<RunWonScreen>(parent, "RunWonScreen");
 
-        public void Show(IRunTally tally, int sectorsCleared, DamageLedger ledger, Scoreboard board, Action onContinue) =>
-            ScreenWidgets.Show(transform, "EXTRACTED", tally, sectorsCleared, ledger, board, onContinue);
+        public void Show(int kills, int sectorsCleared, Action onContinue) =>
+            ScreenWidgets.Show(transform, "EXTRACTED", kills, sectorsCleared, onContinue);
     }
 }

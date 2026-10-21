@@ -1,7 +1,4 @@
 using System;
-using System.Linq;
-using Game.Player;
-using Game.Runs;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,9 +6,9 @@ namespace UI.Screens
 {
     internal static class ScreenWidgets
     {
-        private static readonly Color Ink = new(0.9f, 0.92f, 0.93f);
-        private static readonly Color Muted = new(0.59f, 0.67f, 0.73f);
-        private static readonly Color HullColor = new(0.94f, 0.64f, 0.5f);
+        private static readonly Color Ink = new(0.9f, 0.93f, 0.95f);
+        private static readonly Color Muted = new(0.6f, 0.69f, 0.75f);
+        private static readonly Color Line = new(0.65f, 0.75f, 0.81f, 0.2f);
 
         public static T CreateOverlay<T>(Transform parent, string name) where T : MonoBehaviour
         {
@@ -28,121 +25,70 @@ namespace UI.Screens
             return go.AddComponent<T>();
         }
 
-        public static void Show(Transform root, string title, IRunTally tally, int sectorsCleared,
-            DamageLedger ledger, Scoreboard board, Action onContinue)
+        public static void Show(Transform root, string title, int kills, int sectorsCleared, Action onContinue)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var dim = Box(root, "Dim");
             Stretch(dim);
-            dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.45f);
+            dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.52f);
 
             var panel = Box(dim, "Panel");
-            panel.sizeDelta = new Vector2(520f, 0f);
-            panel.gameObject.AddComponent<Image>().color = new Color(0.035f, 0.07f, 0.105f, 0.96f);
+            panel.sizeDelta = new Vector2(460f, 0f);
+            panel.gameObject.AddComponent<Image>().color = new Color(0.04f, 0.08f, 0.12f, 0.97f);
+            panel.gameObject.AddComponent<Outline>().effectColor = Line;
             var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(28, 28, 26, 24);
-            layout.spacing = 18f;
+            layout.padding = new RectOffset(32, 32, 30, 28);
+            layout.spacing = 28f;
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
             panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            AddText(panel, "Title", title, font, 28, Ink, TextAnchor.MiddleCenter);
-            AddText(panel, "Tally",
-                $"{sectorsCleared} {(sectorsCleared == 1 ? "sector" : "sectors")} cleared   ·   {tally.Kills} kills   ·   {RunTally.FormatSeconds(tally.SecondsSurvived)}",
-                font, 17, Muted, TextAnchor.MiddleCenter);
-            Divider(panel);
-            AddDamage(panel, font, ledger);
-            Divider(panel);
-            AddFooter(panel, font, board, onContinue);
-        }
+            AddText(panel, "Title", title, font, 20, Muted);
 
-        private static void AddDamage(Transform panel, Font font, DamageLedger ledger)
-        {
-            var shield = ledger.Rows.Sum(row => row.Shield);
-            var hull = ledger.Rows.Sum(row => row.Hull);
-            var totals = Box(panel, "DamageTotals");
-            var layout = totals.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 24f;
-            layout.childControlWidth = layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            AddText(totals, "Shield", $"<size=14>SHIELD ABSORBED</size>\n{shield:0.#} <size=16>pts</size>",
-                font, 26, Muted);
-            AddText(totals, "Hull", $"<size=14>HULL DAMAGE</size>\n{hull:0.#} <size=16>pts</size>",
-                font, 26, hull > 0f ? HullColor : Ink);
+            var stats = Box(panel, "Stats");
+            var statsLayout = stats.gameObject.AddComponent<HorizontalLayoutGroup>();
+            statsLayout.spacing = 18f;
+            statsLayout.childAlignment = TextAnchor.MiddleCenter;
+            statsLayout.childControlWidth = statsLayout.childControlHeight = true;
+            statsLayout.childForceExpandWidth = statsLayout.childForceExpandHeight = false;
+            AddMetric(stats, "Kills", kills, "KILLS", font);
+            var divider = Box(stats, "Divider").gameObject;
+            divider.AddComponent<Image>().color = Line;
+            var dividerSize = divider.AddComponent<LayoutElement>();
+            dividerSize.minWidth = dividerSize.preferredWidth = 1f;
+            dividerSize.preferredHeight = 76f;
+            AddMetric(stats, "Sectors", sectorsCleared, "SECTORS CLEARED", font);
 
-            if (hull == 0f)
-            {
-                AddText(panel, "NoHullDamage", "No hull damage taken", font, 18, Ink, TextAnchor.MiddleCenter);
-                return;
-            }
-
-            var slices = ledger.Rows.GroupBy(row => row.Kind)
-                .Select(group => (Kind: group.Key, Amount: group.Sum(row => row.Hull)))
-                .Where(slice => slice.Amount > 0f)
-                .OrderByDescending(slice => slice.Amount).ThenBy(slice => slice.Kind).ToArray();
-            var breakdown = Box(panel, "HullBreakdown");
-            var rowLayout = breakdown.gameObject.AddComponent<HorizontalLayoutGroup>();
-            rowLayout.spacing = 30f;
-            rowLayout.childAlignment = TextAnchor.MiddleLeft;
-            rowLayout.childControlWidth = rowLayout.childControlHeight = true;
-            rowLayout.childForceExpandWidth = rowLayout.childForceExpandHeight = false;
-
-            var chart = Box(breakdown, "Pie").gameObject;
-            var chartSize = chart.AddComponent<LayoutElement>();
-            chartSize.minWidth = chartSize.preferredWidth = 132f;
-            chartSize.minHeight = chartSize.preferredHeight = 132f;
-            chart.AddComponent<HullDamagePie>().Initialize(slices);
-
-            var legend = Box(breakdown, "Legend");
-            var legendLayout = legend.gameObject.AddComponent<VerticalLayoutGroup>();
-            legendLayout.spacing = 7f;
-            legendLayout.childControlWidth = legendLayout.childControlHeight = true;
-            legendLayout.childForceExpandWidth = true;
-            legendLayout.childForceExpandHeight = false;
-            legend.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-            AddText(legend, "Heading", "HULL DAMAGE BY SOURCE", font, 13, Muted);
-            foreach (var slice in slices)
-            {
-                var row = Box(legend, slice.Kind.ToString());
-                var cells = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-                cells.childControlWidth = cells.childControlHeight = true;
-                cells.childForceExpandWidth = true;
-                cells.childForceExpandHeight = false;
-                var color = ColorUtility.ToHtmlStringRGB(HullDamagePie.ColorFor(slice.Kind));
-                AddText(row, "Weapon", $"<color=#{color}>●</color>  {HullDamagePie.LabelFor(slice.Kind)}", font, 16, Ink);
-                AddText(row, "Points", $"{slice.Amount:0.#} pts", font, 16, Ink, TextAnchor.MiddleRight);
-            }
-        }
-
-        private static void AddFooter(Transform parent, Font font, Scoreboard board, Action onContinue)
-        {
-            var footer = Box(parent, "Footer");
-            var layout = footer.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            layout.childControlWidth = layout.childControlHeight = true;
-            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
-            var rank = AddText(footer, "Rank", board.Rank is { } place ? $"Rank {place} of {board.Rows.Count}" : "Not ranked",
-                font, 14, Muted);
-            rank.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-
+            var footer = Box(panel, "Footer");
+            var footerLayout = footer.gameObject.AddComponent<HorizontalLayoutGroup>();
+            footerLayout.childAlignment = TextAnchor.MiddleCenter;
+            footerLayout.childControlWidth = footerLayout.childControlHeight = true;
+            footerLayout.childForceExpandWidth = footerLayout.childForceExpandHeight = false;
             var button = Box(footer, "Continue").gameObject;
-            button.AddComponent<Image>().color = new Color(0.12f, 0.18f, 0.23f);
-            button.AddComponent<Outline>().effectColor = new Color(0.48f, 0.59f, 0.65f);
-            var size = button.AddComponent<LayoutElement>();
-            size.preferredWidth = 144f;
-            size.preferredHeight = 38f;
-            var label = AddText(button.transform, "Label", "CONTINUE", font, 16, Ink, TextAnchor.MiddleCenter);
+            button.AddComponent<Image>().color = new Color(0.09f, 0.14f, 0.18f);
+            button.AddComponent<Outline>().effectColor = new Color(0.6f, 0.7f, 0.77f, 0.55f);
+            var buttonSize = button.AddComponent<LayoutElement>();
+            buttonSize.preferredWidth = 148f;
+            buttonSize.preferredHeight = 40f;
+            var label = AddText(button.transform, "Label", "CONTINUE", font, 14, Ink);
             Stretch(label.rectTransform);
             button.AddComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
         }
 
-        private static void Divider(Transform parent)
+        private static void AddMetric(Transform parent, string name, int value, string label, Font font)
         {
-            var line = Box(parent, "Divider").gameObject;
-            line.AddComponent<Image>().color = new Color(0.23f, 0.32f, 0.39f, 0.5f);
-            line.AddComponent<LayoutElement>().preferredHeight = 1f;
+            var metric = Box(parent, name);
+            var layout = metric.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 4f;
+            layout.childControlWidth = layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            var size = metric.gameObject.AddComponent<LayoutElement>();
+            size.minWidth = size.preferredWidth = 0f;
+            size.flexibleWidth = 1f;
+            AddText(metric, "Value", value.ToString(), font, 68, Ink);
+            AddText(metric, "Label", label, font, 13, Muted);
         }
 
         private static RectTransform Box(Transform parent, string name)
@@ -159,14 +105,13 @@ namespace UI.Screens
             rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
-        private static Text AddText(Transform parent, string name, string content, Font font,
-            int size, Color color, TextAnchor alignment = TextAnchor.MiddleLeft)
+        private static Text AddText(Transform parent, string name, string content, Font font, int size, Color color)
         {
             var text = Box(parent, name).gameObject.AddComponent<Text>();
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.alignment = alignment;
+            text.alignment = TextAnchor.MiddleCenter;
             text.raycastTarget = false;
             text.text = content;
             return text;
