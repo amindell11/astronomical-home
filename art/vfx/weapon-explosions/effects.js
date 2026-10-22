@@ -37,16 +37,31 @@
     for (let i = 0; i < pixels.data.length; i += 4) {
       const rgb = Array.from(pixels.data.slice(i, i + 3));
       const signal = Math.max(...rgb.map((v, c) => v - background[c]));
-      let alpha = clamp((signal - 9) / 28);
-      const warm = (rgb[0] - rgb[2] > 40 && rgb[0] >= rgb[1] * 0.96) || Math.min(...rgb) > 180;
-      if ((channel === 'fire' && !warm) || (channel === 'smoke' && (warm || Math.max(...rgb) < 65))) alpha = 0;
+      const alpha = clamp(Math.max(...rgb.map((v, c) => (v - background[c]) / (255 - background[c]))))
+        * clamp((signal - 3) / 6);
+      const warm = clamp((rgb[0] - rgb[2] - 25) / 30) * clamp((rgb[0] - rgb[1] * 0.96 + 12) / 24);
+      const heat = Math.max(warm, clamp((Math.min(...rgb) - 165) / 30));
+      const selection = channel === 'fire' ? heat
+        : channel === 'smoke' ? (1 - heat) * clamp((Math.max(...rgb) - 55) / 20) : 1;
       for (let c = 0; c < 3; c++) {
         pixels.data[i + c] = alpha ? Math.max(0, (rgb[c] - background[c] * (1 - alpha)) / alpha) : 0;
       }
-      pixels.data[i + 3] = Math.round(alpha * 255);
+      pixels.data[i + 3] = Math.round(alpha * selection * 255);
     }
     if (channel === 'smoke') pruneSmoke(pixels, width, height);
     ctx.putImageData(pixels, 0, 0);
+    return result;
+  }
+
+  function ignitionCore(flash) {
+    const size = flash.width, result = canvas(size), ctx = result.getContext('2d');
+    const centerHeight = 96, sourceTipHeight = (flash.height - centerHeight) / 2;
+    const tipHeight = (size - centerHeight) / 2;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(flash, 0, 0, size, sourceTipHeight, 0, 0, size, tipHeight);
+    ctx.drawImage(flash, 0, sourceTipHeight, size, centerHeight, 0, tipHeight, size, centerHeight);
+    ctx.drawImage(flash, 0, sourceTipHeight + centerHeight, size, sourceTipHeight,
+      0, tipHeight + centerHeight, size, tipHeight);
     return result;
   }
 
@@ -59,7 +74,7 @@
       for (let radius = center * 0.7; radius < center * 0.98; radius += 0.5) {
         const x = Math.round(center + Math.cos(theta) * radius), y = Math.round(center + Math.sin(theta) * radius);
         const i = (y * width + x) * 4;
-        const brightness = original[i + 1] + original[i + 2];
+        const brightness = (original[i + 1] + original[i + 2]) * original[i + 3];
         if (brightness > brightest) {brightest = brightness; edge = radius;}
       }
       return edge;
@@ -77,14 +92,18 @@
       const a = Math.floor(angle), edge = smoothedRadii[a] * (1 - (angle - a)) + smoothedRadii[(a + 1) % 360] * (angle - a);
       const sx = center + dx / 230.4 * edge, sy = center + dy / 230.4 * edge;
       const ix = Math.floor(sx), iy = Math.floor(sy), fx = sx - ix, fy = sy - iy;
-      for (let c = 0; c < 4; c++) {
-        let value = 0;
-        for (let by = 0; by < 2; by++) for (let bx = 0; bx < 2; bx++) {
-          const px = ix + bx, py = iy + by;
-          if (px >= 0 && py >= 0 && px < width && py < width) value += original[(py * width + px) * 4 + c] * (bx ? fx : 1 - fx) * (by ? fy : 1 - fy);
-        }
-        pixels.data[(y * 512 + x) * 4 + c] = value * (c === 3 ? fade(radius, 1.005, 1.04) : 1);
+      const rgba = [0, 0, 0, 0];
+      for (let by = 0; by < 2; by++) for (let bx = 0; bx < 2; bx++) {
+        const px = ix + bx, py = iy + by;
+        if (px < 0 || py < 0 || px >= width || py >= width) continue;
+        const i = (py * width + px) * 4;
+        const weight = (bx ? fx : 1 - fx) * (by ? fy : 1 - fy) * original[i + 3] / 255;
+        for (let c = 0; c < 3; c++) rgba[c] += original[i + c] * weight;
+        rgba[3] += weight;
       }
+      const target = (y * 512 + x) * 4;
+      for (let c = 0; c < 3; c++) pixels.data[target + c] = rgba[3] ? rgba[c] / rgba[3] : 0;
+      pixels.data[target + 3] = rgba[3] * 255 * fade(radius, 1.005, 1.04);
     }
     ctx.putImageData(pixels, 0, 0);
     return result;
@@ -117,8 +136,8 @@
     layers.smoke = extract(missile, [735, 105, 380, 265], 'smoke');
     layers.embers = extract(missile, [1140, 135, 335, 230], 'fire');
     layers.lateSmoke = extract(missile, [1140, 135, 335, 230], 'smoke');
-    layers.flash = extract(mine, [70, 140, 180, 250]);
-    layers.core = extract(mine, [85, 212, 150, 126]);
+    layers.flash = extract(mine, [68, 144, 180, 264]);
+    layers.core = ignitionCore(layers.flash);
     layers.disc = circularDisc(extract(mine, [964, 536, 348, 348]));
     layers.discFill = discLayer(layers.disc, false);
     layers.discEdge = discLayer(layers.disc, true);
@@ -131,6 +150,7 @@
     ctx.globalAlpha = clamp(opacity);
     ctx.translate(0, y);
     ctx.rotate(angle);
+    ctx.imageSmoothingQuality = 'high';
     const h = size * source.height / source.width;
     ctx.drawImage(source, -size / 2, -h / 2, size, h);
     ctx.restore();
@@ -159,9 +179,10 @@
     if (progress < 0 || progress > 1) return;
     const pulse = 1 + settings.mineCorePulse * 0.16 * Math.sin(progress * Math.PI * 3);
     const expansion = clamp(time / mineIgnitionExpansionSeconds);
-    stamp(ctx, layers.core, size * (0.55 + expansion * 0.5) * pulse,
+    const coreSize = size * 1.2;
+    stamp(ctx, layers.core, coreSize * (0.55 + expansion * 0.5) * pulse,
       0.65 * fade(progress, 0.3, 1), -progress * 0.55);
-    stamp(ctx, layers.core, size * (0.36 + expansion * 0.26) / pulse,
+    stamp(ctx, layers.core, coreSize * (0.36 + expansion * 0.26) / pulse,
       fade(progress, 0.4, 1), progress * 0.4);
     stamp(ctx, layers.flash, size * (0.62 + expansion * 0.25), fade(time, 0.045, 0.14));
   }
@@ -230,13 +251,18 @@
 
   function atlas(painter, seconds, columns, rows, cell, scale, settings, padding = 0.88) {
     const result = canvas(columns * cell, rows * cell);
-    const ctx = result.getContext('2d');
+    const highResolution = canvas(result.width * 2, result.height * 2);
+    const ctx = highResolution.getContext('2d');
+    ctx.scale(2, 2);
     for (let frame = 0; frame < columns * rows; frame++) {
       ctx.save();
       ctx.translate((frame % columns + 0.5) * cell, (Math.floor(frame / columns) + 0.5) * cell);
       painter(ctx, seconds * frame / (columns * rows - 1), cell * padding / scale, settings);
       ctx.restore();
     }
+    const output = result.getContext('2d');
+    output.imageSmoothingQuality = 'high';
+    output.drawImage(highResolution, 0, 0, result.width, result.height);
     return result;
   }
 
