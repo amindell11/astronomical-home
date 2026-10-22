@@ -91,9 +91,7 @@ namespace Tests.PlayMode
                 headless.Register(missile, missile.ReturnToPoolImmediate);
                 yield return null;
 
-                Assert.IsFalse(missile.GetComponent<MissileAudio>().enabled);
-                foreach (var source in missile.GetComponentsInChildren<AudioSource>(true))
-                    Assert.IsFalse(source.enabled, $"audio source '{source.name}' still enabled headless");
+                Assert.IsFalse(missile.GetComponent<MissileAudio>().enabled, "the missile's audio still enabled headless");
                 foreach (var ps in missile.GetComponentsInChildren<ParticleSystem>(true))
                     Assert.IsFalse(ps.isPlaying, $"particle system '{ps.name}' still simulating headless");
                 foreach (var renderer in missile.GetComponentsInChildren<Renderer>(true))

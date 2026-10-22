@@ -1,4 +1,5 @@
 using Damage;
+using FMODUnity;
 using Ships;
 using Ships.Damage;
 using Ships.Presentation;
@@ -8,37 +9,24 @@ using Ships.Registry;
 namespace Ships.Audio
 {
     /// <summary>
-    /// Centralises damage-related SFX for a ship (shield hits, hull hits, death explosion).
-    /// Requires its own <see cref="AudioSource"/> so that volume & EQ can be routed
-    /// independently from weapons or engine sounds. The damage surface is injected via
-    /// <see cref="Bind"/> (see <see cref="IShipVisual"/>).
+    /// A ship's damage one-shots: shield hits, hull hits, and a death sound chosen by the killing
+    /// blow's kind. Each plays at the ship's position, not attached: the ship deactivates in the same
+    /// call that reports its death. The damage surface is injected via <see cref="Bind"/>
+    /// (see <see cref="IShipVisual"/>).
     /// </summary>
-    [RequireComponent(typeof(AudioSource))]
     public sealed class ShipDamageAudio : MonoBehaviour, IShipVisual
     {
-        [Header("Clips")] [SerializeField] private AudioClip shieldHitClip;
-        [SerializeField] private AudioClip hullHitClip;
-        [SerializeField] private AudioClip deathClip;
-        [Tooltip("Death sound when the killing blow was an asteroid collision. Null → deathClip.")]
-        [SerializeField] private AudioClip collisionDeathClip;
+        [Tooltip("FMOD one-shot played at the ship each time its shield drops.")]
+        [SerializeField] private EventReference shieldHitEvent;
+        [Tooltip("FMOD one-shot played at the ship each time its hull health drops.")]
+        [SerializeField] private EventReference hullHitEvent;
+        [Tooltip("FMOD one-shot played where the ship dies, unless a collision killed it.")]
+        [SerializeField] private EventReference deathEvent;
+        [Tooltip("FMOD one-shot played where the ship dies when an asteroid collision killed it.")]
+        [SerializeField] private EventReference collisionDeathEvent;
 
-        [Header("Volumes")] [SerializeField, Range(0f, 1f)]
-        private float shieldVolume = 0.8f;
-
-        [SerializeField, Range(0f, 1f)] private float hullVolume = 1f;
-        [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
-
-        private AudioSource source;
         private IDamageEvents damage;
         private bool subscribed;
-
-        private void Awake()
-        {
-            source = GetComponent<AudioSource>();
-            source.loop = false;
-            source.playOnAwake = false;
-            source.spatialBlend = 1f; // fully 3-D positional
-        }
 
         public void Bind(in ShipView view)
         {
@@ -73,33 +61,18 @@ namespace Ships.Audio
 
         private void HandleShieldChanged(float current, float previous, float max)
         {
-            if (current < previous) PlayShieldHit();
+            if (current < previous) RuntimeManager.PlayOneShot(shieldHitEvent, transform.position);
         }
 
         private void HandleHealthChanged(float current, float previous, float max)
         {
-            if (current < previous) PlayHullHit();
+            if (current < previous) RuntimeManager.PlayOneShot(hullHitEvent, transform.position);
         }
 
         private void HandleDeath(ShipId _victimId, DamageInfo killingBlow)
         {
-            var clip = killingBlow.Kind == DamageKind.Collision && collisionDeathClip
-                ? collisionDeathClip
-                : deathClip;
-            if (clip)
-                global::Audio.PooledAudioSource.PlayClipAtPoint(clip, transform.position, deathVolume);
-        }
-
-        private void PlayShieldHit()
-        {
-            if (shieldHitClip)
-                source.PlayOneShot(shieldHitClip, shieldVolume);
-        }
-
-        private void PlayHullHit()
-        {
-            if (hullHitClip)
-                source.PlayOneShot(hullHitClip, hullVolume);
+            var death = killingBlow.Kind == DamageKind.Collision ? collisionDeathEvent : deathEvent;
+            RuntimeManager.PlayOneShot(death, transform.position);
         }
     }
 }
