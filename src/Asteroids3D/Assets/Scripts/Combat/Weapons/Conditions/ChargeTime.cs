@@ -72,7 +72,6 @@ namespace Combat.Weapons.Conditions
             return false;
         }
 
-        /// <summary>Whether one more held step of <paramref name="dt"/> seconds reaches full charge, the step it auto-fires on.</summary>
         public bool FullAfterHeldStep(float dt) => ChargePct + dt / chargeTime >= 1f - HalfStep / chargeTime;
 
         public override bool CanFire()
