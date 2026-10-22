@@ -1,4 +1,5 @@
 using Movement;
+using UnityEngine;
 
 namespace Ships.Keystones
 {
@@ -10,12 +11,17 @@ namespace Ships.Keystones
         public readonly float SelfMaxSpeed;
         public readonly Kinematics Target;
 
-        public KeystoneContext(in Kinematics self, float selfMass, float selfMaxSpeed, in Kinematics target)
+        /// <summary>The velocity the navigator is asking for, or NaN when it asks for none.</summary>
+        public readonly Vector2 DesiredVelocity;
+
+        public KeystoneContext(in Kinematics self, float selfMass, float selfMaxSpeed, in Kinematics target,
+            Vector2 desiredVelocity = default)
         {
             Self = self;
             SelfMass = selfMass;
             SelfMaxSpeed = selfMaxSpeed;
             Target = target;
+            DesiredVelocity = desiredVelocity;
         }
     }
 }
