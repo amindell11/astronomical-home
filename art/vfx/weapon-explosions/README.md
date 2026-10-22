@@ -1,8 +1,9 @@
 # Weapon explosions
 
 The missile uses a compact warm burst and short smoke curls. The mine uses a blue
-ignition and a filled disc whose edge follows the existing concussion wave.
-The upright core pulses under a brief flare while broken ripples move outward.
+ignition and an oblique filled disc inside a faint circular range ripple.
+The upright core pulses as its vertical spike grows outward, then fades with the
+center. Broken ripples move through the disc.
 
 ## Source and controls
 
@@ -23,7 +24,8 @@ Atlas frames render at double resolution before downsampling. Disc warping and
 Canvas resampling interpolate premultiplied color; exported PNGs use straight alpha.
 
 `settings.json` holds the shared timing and visual controls. The tuner exposes
-missile spread, smoke opacity, mine fill, mine edge, ripple motion and core pulse. Its playback-speed control
+missile spread, smoke opacity, mine fill, mine edge, ripple motion, core pulse,
+disc height and range-ripple opacity. Its playback-speed control
 is for inspection and does not change exported timing. Copy its exported settings
 back to `settings.json` before rebaking.
 
@@ -63,8 +65,10 @@ The Unity baker imports the textures,
 updates the effect materials and prefabs, and assigns the two projectile effects.
 It reads the exported settings alongside the textures.
 
-The mine mesh is in the XY game plane, with its painted rim at 90% of the quad's
-half-width. Its child scale accounts for that padding; the existing wave visual
-scales it with `ConcussionWave.Radius`. The wave's gameplay values stay in its prefab.
+The mine mesh is in the XY game plane, compressed vertically for the oblique look.
+Its painted rim sits at 90% of the quad's half-width. Its child scale accounts for
+that padding; the existing wave visual scales it with `ConcussionWave.Radius`.
+The circular range ripple follows the full damage radius. The camera and the wave's
+gameplay values stay unchanged.
 The disc's 4 by 8 atlas advances with radius divided by maximum radius. Pool checkout
 resets its material progress, and the shader blends adjacent frames in premultiplied color.

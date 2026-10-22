@@ -19,6 +19,8 @@ namespace Combat.Projectiles.Visual
             public float mineIgnitionSeconds;
             public float missileAtlasScale;
             public float mineIgnitionAtlasScale;
+            public float mineDiscAspect;
+            public float mineRangeOpacity;
         }
 
         [MenuItem("Tools/Art/Bake weapon explosions")]
@@ -86,14 +88,17 @@ namespace Combat.Projectiles.Visual
                     disc = quad.transform;
                     disc.SetParent(root.transform, false);
                 }
-                disc.localScale = Vector3.one * (2f / 0.9f);
+                disc.localScale = new Vector3(1f, settings.mineDiscAspect, 1f) * (2f / 0.9f);
                 var renderer = disc.GetComponent<MeshRenderer>();
                 renderer.sharedMaterial = discMaterial;
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
                 visual.FindProperty("disc").objectReferenceValue = renderer;
                 visual.ApplyModifiedPropertiesWithoutUndo();
-                root.GetComponent<LineRenderer>().widthMultiplier = 0.06f;
+                var ring = root.GetComponent<LineRenderer>();
+                ring.widthMultiplier = 0.06f;
+                ring.startColor = new Color(0.6f, 0.9f, 1f, settings.mineRangeOpacity);
+                ring.endColor = ring.startColor;
             });
             AssetDatabase.SaveAssets();
             Debug.Log("Weapon explosion assets baked.");

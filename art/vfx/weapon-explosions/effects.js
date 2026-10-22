@@ -55,13 +55,8 @@
 
   function ignitionCore(flash) {
     const size = flash.width, result = canvas(size), ctx = result.getContext('2d');
-    const centerHeight = 96, sourceTipHeight = (flash.height - centerHeight) / 2;
-    const tipHeight = (size - centerHeight) / 2;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(flash, 0, 0, size, sourceTipHeight, 0, 0, size, tipHeight);
-    ctx.drawImage(flash, 0, sourceTipHeight, size, centerHeight, 0, tipHeight, size, centerHeight);
-    ctx.drawImage(flash, 0, sourceTipHeight + centerHeight, size, sourceTipHeight,
-      0, tipHeight + centerHeight, size, tipHeight);
+    ctx.translate(size / 2, size / 2);
+    stampCore(ctx, flash, size, 1, (size - 96) / (flash.height - 96));
     return result;
   }
 
@@ -174,17 +169,36 @@
       clamp((time - 0.20) / 0.08) * fade(tail, 0.55, 0.93));
   }
 
+  function stampCore(ctx, source, size, opacity, tipScale) {
+    const width = source.width, centerHeight = 96;
+    const sourceTipHeight = (source.height - centerHeight) / 2;
+    const tipHeight = sourceTipHeight * tipScale;
+    ctx.save();
+    ctx.globalAlpha = clamp(opacity);
+    ctx.scale(size / width, size / width);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source, 0, 0, width, sourceTipHeight,
+      -width / 2, -centerHeight / 2 - tipHeight, width, tipHeight);
+    ctx.drawImage(source, 0, sourceTipHeight, width, centerHeight,
+      -width / 2, -centerHeight / 2, width, centerHeight);
+    ctx.drawImage(source, 0, sourceTipHeight + centerHeight, width, sourceTipHeight,
+      -width / 2, centerHeight / 2, width, tipHeight);
+    ctx.restore();
+  }
+
   function ignition(ctx, time, size, settings) {
     const progress = time / settings.mineIgnitionSeconds;
     if (progress < 0 || progress > 1) return;
     const pulse = 1 + settings.mineCorePulse * 0.16 * Math.sin(progress * Math.PI * 3);
     const expansion = clamp(time / mineIgnitionExpansionSeconds);
     const coreSize = size * 1.2;
-    stamp(ctx, layers.core, coreSize * (0.55 + expansion * 0.5) * pulse,
-      0.65 * fade(progress, 0.3, 1));
-    stamp(ctx, layers.core, coreSize * (0.36 + expansion * 0.26) / pulse,
-      fade(progress, 0.4, 1));
-    stamp(ctx, layers.flash, size * (0.62 + expansion * 0.25), fade(time, 0.045, 0.14));
+    const spikeGrowth = clamp((time - 0.02) / 0.16);
+    const spikeLength = 0.2 + 0.8 * spikeGrowth * spikeGrowth * (3 - 2 * spikeGrowth);
+    stampCore(ctx, layers.core, coreSize * (0.55 + expansion * 0.5) * pulse,
+      0.65 * fade(progress, 0.3, 1), spikeLength);
+    stampCore(ctx, layers.core, coreSize * (0.36 + expansion * 0.26) / pulse,
+      fade(progress, 0.4, 1), spikeLength);
+    stampCore(ctx, layers.flash, size * (0.62 + expansion * 0.25), fade(progress, 0.5, 1), spikeLength);
   }
 
   function ribbon(ctx, radius, start, span, width, phase, opacity, color) {
@@ -226,11 +240,20 @@
       settings.mineGlow * (0.88 + 0.12 * Math.sin(progress * 43)) * fade(progress, 0.92, 1));
   }
 
-  function mine(ctx, time, size, settings, pitch = 0.28) {
-    if (time < 0 || time > settings.mineSweepSeconds) return;
+  function mine(ctx, time, size, settings, pitch = settings.mineDiscAspect) {
+    if (time < 0 || time >= settings.mineSweepSeconds) return;
+    const progress = clamp(time / settings.mineSweepSeconds);
+    ctx.save();
+    ctx.globalAlpha = settings.mineRangeOpacity;
+    ctx.strokeStyle = '#99e6ff';
+    ctx.lineWidth = Math.max(0.6, size / 600);
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.45 * progress, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
     ctx.save();
     ctx.scale(1, pitch);
-    disc(ctx, time, size * clamp(time / settings.mineSweepSeconds), settings);
+    disc(ctx, time, size * progress, settings);
     ctx.restore();
     ignition(ctx, time, size * 0.18, settings);
   }
