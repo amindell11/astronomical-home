@@ -13,7 +13,7 @@ namespace AI.Context
     {
         public Kinematics kinematics;   // pos, vel, forward, yaw, yawRate
         public Dynamics dynamics;       // enemy motion model for the MPC rollout
-        public ShipId id;               // invalid for a rock; a change restarts earned accuracy
-        public float boostCooldownRemaining;   // a jump marks a boost, which restarts earned accuracy
+        public ShipId id;               // invalid for a rock
+        public float boostCooldownRemaining;
     }
 }

@@ -114,7 +114,7 @@ namespace AI
                 AimPoint(pose(), targetPos, targetVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores the enemy as perceived, for per-slot firing solutions and the aim reference.</summary>
+        /// <summary>Stores the fire lane's anchor as perceived, for per-slot firing solutions and the aim reference.</summary>
         public void Aim(in EnemyTarget anchor)
         {
             if (pose == null) return;
@@ -124,7 +124,7 @@ namespace AI
             Target = AimPointFor(WeaponSlot.Primary);
         }
 
-        /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
+        /// <summary>The AIM-referent swap's entry: a rock gets the same perception and lead as a ship.</summary>
         public void Aim(Vector2 referentPos, Vector2 referentVel) =>
             Aim(new EnemyTarget { kinematics = new Kinematics(referentPos, referentVel, 0f, 0f, 0f) });
 

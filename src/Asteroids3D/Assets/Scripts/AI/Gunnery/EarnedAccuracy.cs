@@ -48,7 +48,6 @@ namespace AI.Gunnery
             Progress = 0f;
         }
 
-        /// <summary>This tick's bearing error in degrees, from the true target.</summary>
         public float ErrorDeg(in Kinematics self, in EnemyTarget sighted, double now)
         {
             if (settings.startingError <= 0f) return 0f;
@@ -86,7 +85,7 @@ namespace AI.Gunnery
         private void ObserveJink(Vector2 vel, Vector2 losHat, float dt)
         {
             if (haveVel && dt > 0f)
-                accel = Vector2.Lerp(accel, (vel - lastVel) / dt, Mathf.Clamp01(dt / Mathf.Max(AccelSmoothing, dt)));
+                accel = Vector2.Lerp(accel, (vel - lastVel) / dt, dt / AccelSmoothing);
             lastVel = vel;
             haveVel = true;
 
