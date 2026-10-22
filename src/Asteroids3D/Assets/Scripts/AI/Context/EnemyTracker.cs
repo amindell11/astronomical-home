@@ -24,7 +24,7 @@ namespace AI.Context
         }
 
         public Ship Enemy => cachedEnemy;
-        public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy;
+        public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy && !cachedEnemy.Lock.IsConcealed;
         public bool InCombat => HasEnemy || TimeSinceCombat < combatExitDelay;
         public float TimeSinceCombat { get; private set; } = float.MaxValue;
 
@@ -40,7 +40,7 @@ namespace AI.Context
         {
             simTime += deltaTime;
 
-            if (cachedEnemy == null || !cachedEnemy.gameObject.activeInHierarchy)
+            if (!HasEnemy)
             {
                 cachedEnemy = null;
                 AcquireEnemy();
