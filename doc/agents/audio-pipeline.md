@@ -21,6 +21,7 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 - **Agent scripts live in `audio/tools/`, never `audio/fmod/Scripts/`.** Studio runs every script in that folder on each project load; `audio/tools/scaffold_laser_fire.js` is the model.
 - **`-script` persists only what `project.save()` writes.** A script that throws before the save leaves the project untouched: validate first, save last.
 - **Banks are built by the CLI and committed.** A *new* bank also needs an editor bank refresh and a commit of `Assets/Resources/FMOD/FMODStudioSettings.asset`: the runtime loads banks from the `MasterBanks`/`Banks` name lists stored there, so an unlisted bank silently never loads in fresh slots and CI.
+- **`-build` leaves `Build/GUIDs.txt` as it was.** Regenerate it after the build with a `-script` that calls `studio.project.exportGUIDs()`.
 - **Pre-create events and parameters with `-script`**, so code and Studio agree on event paths and parameter names before the owner designs the sound.
 
 ## The FMOD Setup Wizard
