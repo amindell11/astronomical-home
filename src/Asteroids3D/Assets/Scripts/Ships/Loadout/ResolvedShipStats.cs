@@ -32,8 +32,6 @@ namespace Ships.Loadout
         public float minStrafeForce = 4000f;
         public float maxStrafeForce = 5000f;
         public float linearDrag = .5f;
-        public float boostImpulse = 14000f;
-        public float boostCooldown = 3f;
 
         // ── Shield-owned ──
         public float maxShield = 50f;
@@ -69,8 +67,6 @@ namespace Ships.Loadout
                 r.minStrafeForce = engine.minStrafeForce;
                 r.maxStrafeForce = engine.maxStrafeForce;
                 r.linearDrag = engine.linearDrag;
-                r.boostImpulse = engine.boostImpulse;
-                r.boostCooldown = engine.boostCooldown;
             }
 
             if (shield)
@@ -101,8 +97,6 @@ namespace Ships.Loadout
             bankTorque: bankTorque,
             bankDamping: bankDamping,
             maxBankAngleRad: maxBankAngle * Mathf.Deg2Rad,
-            boostImpulse: boostImpulse,
-            boostCooldown: boostCooldown,
             shipRadius: shipRadius
         );
     }

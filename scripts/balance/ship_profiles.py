@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """Derive each ship's handling and durability numbers from the live prefabs and module assets.
 
-Reads the chassis variants under Assets/Prefabs/Ships, the engine and shield assets they point at,
-and the laser's damage and cadence, and prints one table per ship: the authored stats, then the
-metrics a pilot feels (acceleration, terminal speed against the cap, time to the cap, yaw spin-up,
-re-aim bound, stopping distance, boost delta-v, effective hit points, laser time-to-kill, collision
-delta-v per impulse). Run it against two checkouts to get a before/after delta for a tuning PR:
+Reads the chassis variants under Assets/Prefabs/Ships, the engine and shield assets and the
+keystone kit prefab they point at, and the laser's damage and cadence, and prints one table per
+ship: the authored stats, then the metrics a pilot feels (acceleration, terminal speed against the
+cap, time to the cap, yaw spin-up, re-aim bound, stopping distance, boost delta-v, effective hit
+points, laser time-to-kill, collision delta-v per impulse). Run it against two checkouts to get a
+before/after delta for a tuning PR:
 
     python3 scripts/balance/ship_profiles.py --root <checkout> [--ships Vanguard,Bulwark] [--markdown]
 
 The movement model follows MovementController: forces each fixed step, Rigidbody linear damping as
-an exponential drag, maxLinearVelocity as a hard cap, boost as an impulse. Nothing here is a source
-of truth; the owning assets are.
+an exponential drag, maxLinearVelocity as a hard cap, the Dash keystone as an impulse. Nothing here
+is a source of truth; the owning assets are.
 """
 from __future__ import annotations
 
@@ -27,8 +28,8 @@ LASER_PREFAB = ASSETS / "Prefabs/Weapons/Projectiles/Laser.prefab"
 LASER_WEAPON = ASSETS / "Prefabs/Weapons/Lasers.prefab"
 
 ENGINE_FIELDS = ["maxSpeed", "maxYawRate", "forwardForce", "reverseForce", "yawTorque", "angularDrag",
-                 "bankTorque", "bankDamping", "minStrafeForce", "maxStrafeForce", "linearDrag",
-                 "boostImpulse", "boostCooldown"]
+                 "bankTorque", "bankDamping", "minStrafeForce", "maxStrafeForce", "linearDrag"]
+DASH_FIELDS = ["impulse", "cooldown"]
 SHIELD_FIELDS = ["maxShield", "shieldRegenDelay", "shieldRegenRate"]
 CHASSIS_FIELDS = ["mass", "maxHealth", "maxBankAngle"]
 
@@ -55,9 +56,9 @@ class Module:
     fields: dict[str, float]
 
 
-def load_modules(root: Path, folder: str, names: list[str]) -> dict[str, Module]:
+def load_modules(root: Path, folder: str, names: list[str], pattern: str = "*.asset") -> dict[str, Module]:
     mods = {}
-    for p in sorted((root / ASSETS / "Settings/Ships" / folder).glob("*.asset")):
+    for p in sorted((root / ASSETS / folder).glob(pattern)):
         mods[guid_of(p)] = Module(p.stem, guid_of(p), scalar_fields(p.read_text(), names))
     return mods
 
@@ -68,6 +69,7 @@ class Ship:
     chassis: dict[str, float]
     engine: Module
     shield: Module
+    keystone: Module
     inertia_z: float
     root_scale: float
     notes: list[str] = field(default_factory=list)
@@ -102,8 +104,9 @@ def modifications(text: str) -> list[tuple[str, str, str, str]]:
 
 
 def load_ships(root: Path, names: list[str]) -> list[Ship]:
-    engines = load_modules(root, "Engines", ENGINE_FIELDS)
-    shields = load_modules(root, "Shields", SHIELD_FIELDS)
+    engines = load_modules(root, "Settings/Ships/Engines", ENGINE_FIELDS)
+    shields = load_modules(root, "Settings/Ships/Shields", SHIELD_FIELDS)
+    keystones = load_modules(root, "Prefabs/Keystones", DASH_FIELDS, "*.prefab")
     base = (root / ASSETS / "Prefabs/Ships/ShipBase.prefab").read_text()
     ship_id, rb_id = base_component_ids(base)
     base_chassis = scalar_fields(base, CHASSIS_FIELDS)
@@ -113,7 +116,7 @@ def load_ships(root: Path, names: list[str]) -> list[Ship]:
     for name in names:
         text = (root / ASSETS / "Prefabs/Ships" / f"{name}.prefab").read_text()
         chassis = dict(base_chassis)
-        engine, shield, inertia_z, scale = base_engine, base_shield, None, 1.0
+        engine, shield, keystone, inertia_z, scale = base_engine, base_shield, None, None, 1.0
         for target, prop, value, ref in modifications(text):
             if target == ship_id and prop in CHASSIS_FIELDS:
                 chassis[prop] = float(value)
@@ -121,13 +124,17 @@ def load_ships(root: Path, names: list[str]) -> list[Ship]:
                 engine = ref
             elif target == ship_id and prop == "shield" and ref:
                 shield = ref
+            elif target == ship_id and prop == "keystone" and ref:
+                keystone = ref
             elif prop == "m_InertiaTensor.z":
                 inertia_z = float(value)
         notes = []
         if inertia_z is None:
             notes.append("inertia not pinned: Unity derives it from the collider")
             inertia_z = chassis["mass"]
-        ships.append(Ship(name, chassis, engines[engine], shields[shield], inertia_z, scale, notes))
+        if keystone is None:
+            raise SystemExit(f"{name}.prefab: no keystone wired")
+        ships.append(Ship(name, chassis, engines[engine], shields[shield], keystones[keystone], inertia_z, scale, notes))
     return ships
 
 
@@ -166,7 +173,7 @@ def time_to_speed(target: float, a: float, drag: float) -> float:
 
 
 def metrics(s: Ship, w: dict[str, float]) -> dict[str, float]:
-    e, sh, c = s.engine.fields, s.shield.fields, s.chassis
+    e, sh, k, c = s.engine.fields, s.shield.fields, s.keystone.fields, s.chassis
     m, drag = c["mass"], e["linearDrag"]
     a_fwd, a_rev = e["forwardForce"] / m, e["reverseForce"] / m
     cap = e["maxSpeed"]
@@ -194,8 +201,8 @@ def metrics(s: Ship, w: dict[str, float]) -> dict[str, float]:
         "yaw cap (deg/s)": e["maxYawRate"],
         "yaw spin-up to cap (s)": spin_up,
         "90° re-aim bound (s)": reaim_90,
-        "boost Δv (u/s)": e["boostImpulse"] / m,
-        "boost cooldown (s)": e["boostCooldown"],
+        "boost Δv (u/s)": k["impulse"] / m,
+        "boost cooldown (s)": k["cooldown"],
         "momentum at top (kg·u/s)": m * v_top,
         "hull": c["maxHealth"],
         "shield": sh["maxShield"],
@@ -245,8 +252,9 @@ def main() -> None:
     w = laser(root)
     rows = {s.name: metrics(s, w) for s in ships}
     authored = {s.name: {**{k: s.chassis[k] for k in CHASSIS_FIELDS}, "engine": s.engine.name,
-                         "shield": s.shield.name, "yaw inertia (pinned)": s.inertia_z,
+                         "shield": s.shield.name, "keystone": s.keystone.name, "yaw inertia (pinned)": s.inertia_z,
                          **{f"engine.{k}": v for k, v in s.engine.fields.items()},
+                         **{f"keystone.{k}": v for k, v in s.keystone.fields.items()},
                          **{f"shield.{k}": v for k, v in s.shield.fields.items()}} for s in ships}
     print(f"laser: {w['damage']:g} dmg every {w['fireRate']:g} s, {w['heatPerShot']:g} heat/shot of {w['maxHeat']:g}, "
           f"cooling {w['coolingRate']:g}/s after {w['coolDownDelay']:g} s; drag and caps per engine asset")

@@ -15,7 +15,7 @@ types]]:
 
 | Category | Slot | What it changes | Status |
 |---|---|---|---|
-| **Engines** | Engine | thrust, top speed, boost, handling | **built**, locked to the chassis — the engine comes with the ship, not as an upgrade (#1028) |
+| **Engines** | Engine | thrust, top speed, handling | **built**, locked to the chassis — the engine comes with the ship, not as an upgrade (#1028) |
 | **Shield** | Shield | max shield, regen delay/rate, (later) shape | **built** |
 | **[[Weapons]]** | Weapon ×2 | what each mount fires | **exists** (two mounts) |
 | **Ship Passives** | Passive / Keystone / Utility | always-on effects, signature ability, situational tools | **designed, deferred** |

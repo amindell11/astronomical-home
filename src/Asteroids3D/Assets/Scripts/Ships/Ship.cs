@@ -7,6 +7,7 @@ using Combat.Weapons;
 using Ships.Command;
 using Utils;
 using Ships.Damage;
+using Ships.Keystones;
 using Ships.Loadout;
 using Ships.Movement;
 using Ships.Presentation;
@@ -47,6 +48,9 @@ namespace Ships
                  "Null → the ship is unarmed.")]
         [Stat, SerializeField] private WeaponsController weapons;
 
+        [Tooltip("The ship's keystone kit prefab: its locked ability, instantiated on the ship. Required.")]
+        [Stat, SerializeField] private Keystone keystone;
+
         [Header("Visuals")]
         [Tooltip("The ship's visual rig, wired on the prefab so the prefab asset reaches its hull without a lookup. " +
                  "Null → the ship has no visuals.")]
@@ -59,6 +63,11 @@ namespace Ships
 
         /// <summary>Null if the ship has no visual rig.</summary>
         public ShipVisualRig VisualRig => visualRig;
+
+        public Keystone KeystonePrefab => keystone;
+
+        /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
+        public Keystone Keystone { get; private set; }
 
         public ResolvedShipStats Stats { get; private set; }
 
@@ -91,9 +100,9 @@ namespace Ships
         public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
-        public bool BoostAvailable => Movement && Movement.BoostAvailable;
-        public float BoostCooldownRemaining => Movement ? Movement.BoostCooldownRemaining : 0f;
-        public float BoostCooldownPct => Movement ? Movement.BoostCooldownPct : 0f;
+        public bool BoostAvailable => Keystone && Keystone.Ready;
+        public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
+        public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
         public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
@@ -115,6 +124,7 @@ namespace Ships
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
             if (weapons) weapons.Initialize(() => Kinematics);
+            if (keystone) Keystone = Instantiate(keystone, transform);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -188,11 +198,13 @@ namespace Ships
         public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles)
         {
             if (isInitialized) return;
+            if (!keystone)
+                throw new InvalidOperationException($"Ship '{name}' has no keystone: every ship carries a keystone kit prefab.");
             teamNumber = team;
             DecisionSeed = decisionSeed;
             this.projectiles = projectiles;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -266,6 +278,7 @@ namespace Ships
         {
             Weapons?.ResetSystem();
             Movement.ResetMovement();
+            Keystone.ResetKeystone();
             Damage.ResetDamageState();
             KinematicsPoller?.Poll();
             gameObject.SetActive(true);

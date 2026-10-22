@@ -168,11 +168,12 @@ namespace UI.Hangar
         private static string Describe(Ship ship) =>
             $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
             $"Kit: {(ship.Shield ? ship.Shield.DisplayName : "no shield")}\n" +
-            $"Engine: {ship.Engine.DisplayName}   |   {Describe(ship.Engine)}";
+            $"Engine: {ship.Engine.DisplayName}   |   {Describe(ship.Engine)}\n" +
+            $"Keystone: {ship.KeystonePrefab.DisplayName} ({ship.KeystonePrefab.Cooldown:0.#} s)";
 
         private static string Describe(EngineModule engine) =>
             $"Top speed {engine.maxSpeed:0}   |   Turn {engine.maxYawRate:0} deg/s   |   Thrust {engine.forwardForce:0}   |   " +
-            $"Strafe {engine.maxStrafeForce:0}   |   Boost {engine.boostImpulse:0} ({engine.boostCooldown:0.#}s cooldown)";
+            $"Strafe {engine.maxStrafeForce:0}";
 
         private static string Describe(ShieldModule shield) =>
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
