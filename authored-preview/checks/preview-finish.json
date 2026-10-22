@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-8/scratch/capture/finish_jump_preview_check.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "playbackTime": 0.255764782,
+        "scrubbedTime": 1.7,
+        "paused": true,
+        "resourcesSurvivedPlayMode": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\amind\\git\\agent-8\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

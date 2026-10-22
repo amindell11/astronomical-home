@@ -1,0 +1,31 @@
+{
+  "issue": 1099,
+  "scope": "Adjustable preview first; no hangar or sector Continue integration",
+  "testedProject": "D:/amind/git/agent-8/src/Asteroids3D",
+  "unityVersion": "6000.1.8f1",
+  "preAuthoredCommit": "1ec67fdb4859a7b00742c2b9222026088d97c8b3",
+  "priorBaselineCommit": "475829a379b342b293bc3d2f83ffa42ec226743e",
+  "captureFrames": 202,
+  "captureFps": 50,
+  "durationSeconds": 4.04,
+  "files": [
+    "Assets/Scripts/Editor/Game/Travel.meta",
+    "Assets/Scripts/Editor/Game/Travel/SectorJumpPreviewWindow.cs",
+    "Assets/Scripts/Editor/Game/Travel/SectorJumpPreviewWindow.cs.meta",
+    "Assets/Scripts/Game/Travel/SectorJumpPreview.cs",
+    "Assets/Scripts/Game/Travel/SectorJumpPreview.cs.meta",
+    "Assets/Scripts/Game/Travel/SectorJumpProfile.cs",
+    "Assets/Scripts/Game/Travel/SectorJumpProfile.cs.meta",
+    "Assets/Settings/Game/SectorJumpProfile.asset",
+    "Assets/Settings/Game/SectorJumpProfile.asset.meta",
+    "Assets/Visuals/Travel.meta",
+    "Assets/Visuals/Travel/LocaleFrom.png",
+    "Assets/Visuals/Travel/LocaleFrom.png.meta",
+    "Assets/Visuals/Travel/LocaleTo.png",
+    "Assets/Visuals/Travel/LocaleTo.png.meta",
+    "Assets/Visuals/Travel/SectorJump.shader",
+    "Assets/Visuals/Travel/SectorJump.shader.meta",
+    "Assets/Visuals/Travel/Ship.png",
+    "Assets/Visuals/Travel/Ship.png.meta"
+  ]
+}
