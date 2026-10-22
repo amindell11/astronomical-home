@@ -184,7 +184,7 @@ namespace AI
 
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
-            keystone && hasAnchor && (engagePrimary || engageSecondary)
+            keystone && control.Ship != Combat.Projectiles.SelfHitDebug.Shooter && hasAnchor && (engagePrimary || engageSecondary)
             && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
                 Desired(Navigator.CostVelocityReference), Navigator.PlanEnd));
 
