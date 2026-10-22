@@ -25,6 +25,7 @@ namespace Ships.Visuals.Breakup
         private float age;
 
         public int PoseCount => poseRoots.Length;
+        public float EndsAt { get; private set; }
 
         private void Awake()
         {
@@ -45,7 +46,8 @@ namespace Ships.Visuals.Breakup
             for (var i = 0; i < poseRoots.Length; i++)
                 poseRoots[i].localRotation = sourcePose[i].localRotation;
             motion.Play();
-            SimplePool<PooledVFX>.Get(explosionPrefab, transform.position, Quaternion.identity);
+            var explosion = SimplePool<PooledVFX>.Get(explosionPrefab, transform.position, Quaternion.identity);
+            EndsAt = Mathf.Max(Time.time + lifetime, explosion.EndsAt);
         }
 
         private void Update()

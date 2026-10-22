@@ -9,6 +9,7 @@ using UI.Screens;
 using Ships;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -16,19 +17,24 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Screens
 {
     [Category("UI")]
-    public class RunRecapScreensPlayModeTests
+    public class RunRecapScreensPlayModeTests : InputTestFixture
     {
         private RunRecapScreen screen;
         private float timeScale;
+        private Keyboard keyboard;
 
-        [SetUp]
-        public void SetUp() => timeScale = Time.timeScale;
+        public override void Setup()
+        {
+            base.Setup();
+            timeScale = Time.timeScale;
+            keyboard = InputSystem.AddDevice<Keyboard>();
+        }
 
-        [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
             if (screen) Object.Destroy(screen.gameObject);
             Time.timeScale = timeScale;
+            base.TearDown();
         }
 
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
@@ -91,6 +97,8 @@ namespace Tests.PlayMode.Screens
                 new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow));
             var continued = false;
             Time.timeScale = 0f;
+            Press(keyboard.spaceKey);
+            Press(keyboard.wKey);
             screen.ShowRun(victory, kills, cleared, 3, board, () => continued = true);
             var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
             var intro = screen.transform.Find("OutcomeIntro");
@@ -103,8 +111,23 @@ namespace Tests.PlayMode.Screens
             Assert.IsFalse(button.IsInteractable());
             button.OnSubmit(null);
             Assert.IsFalse(continued, "the opening outcome cannot dismiss the recap");
+            Assert.AreEqual(0f, intro.GetComponent<CanvasGroup>().alpha);
+            yield return new WaitForSecondsRealtime(1.2f);
+            Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha);
+            Assert.AreEqual(0f, details.alpha, "a combat key held through the banner cannot advance it");
+            Release(keyboard.wKey);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha,
+                "releasing one combat key while another stays held is not a fresh press");
+            Release(keyboard.spaceKey);
+            yield return null;
             yield return new WaitForSecondsRealtime(.5f);
-            Assert.AreEqual(0f, details.alpha, "hold the outcome before revealing scores");
+            Assert.AreEqual(0f, details.alpha, "releasing the held key does not advance the banner");
+            Press(keyboard.spaceKey);
+            yield return null;
+            Release(keyboard.spaceKey);
+            yield return new WaitForSecondsRealtime(.85f);
+            Assert.AreEqual(0f, details.alpha, "the banner fades out before the breakdown begins");
             var deadline = Time.realtimeSinceStartup + 3f;
             while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
             yield return null;
