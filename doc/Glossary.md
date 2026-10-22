@@ -677,9 +677,9 @@ Format: **term** — definition. *(authority)*
   `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
   release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
-  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
-  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`, `EngineAudio`; #1012)*
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
@@ -828,20 +828,19 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **shield bypass** — a hit's damage skips the shield and goes straight to hull.
+- **shield bypass**. A hit's damage skips the shield and goes straight to hull.
   Only a missile's direct hit carries it; its splash stays shield-first with
   bleed-through. The producer sets the flag, and `DamageController` routes on it,
-  never on `DamageKind` (direct hit and splash share one kind). A bypass hit
-  doesn't restart the shield's regen delay.
+  never on `DamageKind`. A bypass hit doesn't restart the shield's regen delay.
   *(`DamageInfo.BypassesShield`)*
-- **DamageInfo** — the per-hit context struct every damage producer builds at
+- **DamageInfo**. The per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
-  event-side the *applied* damage (shield + hull, the locked bleed-through
+  `AppliedDamage.Info.Amount` is the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life record of the player's received DamageInfo: every
-  hit stamped with game time, and the hits aggregated per source —
-  consumer-side recorder owned by the player rig, never sim state. Source names
+- **damage ledger**. Records received shield and hull damage across the whole run,
+  including repairs and sector changes. A consumer-side recorder owned by the
+  player rig, never sim state. Source names
   are captured at event time because the attacker may despawn before the recap
   reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
@@ -872,16 +871,21 @@ Format: **term** — definition. *(authority)*
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
-- **run record** — one JSON line appended when a run ends, extracted from its last
+- **run record**. One JSON line appended when a run ends, extracted from its last
   sector or dead: what it was played on (build identity, stat fingerprint), its
   outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
   seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
-  spawn log. Quitting mid-run writes nothing.
+  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
+  measured shield/hull points from older v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **scoreboard**. Past-run rankings share one board across stat fingerprints.
+  A sector counts only after extraction; dying in the first sector shows zero.
+  Intermediate extraction has no scoreboard; victory and defeat do.
+  *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
   parts by asset name, its loadout stat hash taken at spawn, when it spawned, how

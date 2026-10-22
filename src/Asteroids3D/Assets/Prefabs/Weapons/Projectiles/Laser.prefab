@@ -66,14 +66,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a5b5fd1366a4c79a889e7f4307f39a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitClips:
-  - {fileID: 8300000, guid: 8a95be80cb8b23a49af698e854f34040, type: 3}
-  - {fileID: 8300000, guid: df6324045c168ba47b7e949b0558b755, type: 3}
-  - {fileID: 8300000, guid: e54810986cad9c04d9306be9ba86e0ea, type: 3}
-  - {fileID: 8300000, guid: 2e704dd44e7fd444492a8878a2fae6fe, type: 3}
-  - {fileID: 8300000, guid: 95d3b8c85913d26498542c1f93381680, type: 3}
-  - {fileID: 8300000, guid: 78276942be13656419eb567cea33c940, type: 3}
-  hitVolume: 0.817
+  impactEvent:
+    Guid:
+      Data1: 1571087945
+      Data2: 1223959675
+      Data3: 212334735
+      Data4: -1548429800
+    Path: event:/Weapons/Laser/Impact
 --- !u!114 &2222222222222222222
 MonoBehaviour:
   m_ObjectHideFlags: 0
