@@ -17,7 +17,6 @@ namespace Ships.Audio
     public sealed class ShipDamageAudio : MonoBehaviour, IShipVisual
     {
         [Header("Clips")] [SerializeField] private AudioClip shieldHitClip;
-        [SerializeField] private AudioClip shieldDepletedClip;
         [SerializeField] private AudioClip hullHitClip;
         [SerializeField] private AudioClip deathClip;
         [Tooltip("Death sound when the killing blow was an asteroid collision. Null → deathClip.")]
@@ -26,7 +25,6 @@ namespace Ships.Audio
         [Header("Volumes")] [SerializeField, Range(0f, 1f)]
         private float shieldVolume = 0.8f;
 
-        [SerializeField, Range(0f, 1f)] private float shieldDepletedVolume = 0.9f;
         [SerializeField, Range(0f, 1f)] private float hullVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
 
@@ -76,7 +74,6 @@ namespace Ships.Audio
         private void HandleShieldChanged(float current, float previous, float max)
         {
             if (current < previous) PlayShieldHit();
-            if (previous > 0f && current <= 0f) PlayShieldDepleted();
         }
 
         private void HandleHealthChanged(float current, float previous, float max)
@@ -91,12 +88,6 @@ namespace Ships.Audio
                 : deathClip;
             if (clip)
                 global::Audio.PooledAudioSource.PlayClipAtPoint(clip, transform.position, deathVolume);
-        }
-
-        private void PlayShieldDepleted()
-        {
-            if (shieldDepletedClip)
-                source.PlayOneShot(shieldDepletedClip, shieldDepletedVolume);
         }
 
         private void PlayShieldHit()

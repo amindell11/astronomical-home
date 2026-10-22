@@ -1,9 +1,20 @@
+{b2a8ad1a-94b9-443a-a319-4cb9ed82488f} bank:/HUD
 {0a75aa53-831f-45a5-97ce-8fd31cc4d649} bank:/Master
 {92688a87-f264-09e7-1187-052ded37d0d1} bank:/Master.strings
 {ef52afb7-c95d-4dae-a742-82c852087e4a} bank:/Ships
 {56d0553b-e4a9-4f30-96f1-4d4006cb1b6c} bank:/Weapons
 {2fbb1511-ccb2-4fd2-9a27-eff30263dc28} bus:/
+{471d796d-640c-40db-aece-e2c3fd28edd3} bus:/HUD
+{155ae6f8-838c-4aa4-9038-9c33d489d246} bus:/Music
 {b6cda0c2-7027-4991-bd43-4273b51b9f17} bus:/Reverb
+{57133508-ab15-4f89-848d-aab93f0763d7} bus:/World
+{12bde00b-506c-4cdd-9805-15582e95f52f} event:/HUD/BoostReady
+{ee19c7fc-82ab-4207-b43e-1446485422a5} event:/HUD/IncomingMissile
+{799ac7ce-f1b7-4fa6-9a9c-87de76e0b684} event:/HUD/LockOn/Locked
+{dc973f23-8d74-4f7e-8bcf-75e062ec415f} event:/HUD/LockOn/Locking
+{8379b9de-a453-4a54-ab33-b7fe8e955f73} event:/HUD/LowHealth
+{f433dc01-5853-499e-8966-cddc3914df43} event:/HUD/Overheat
+{7fa9d96b-2619-473f-9f3c-419ebc11bf4a} event:/HUD/ShieldDepleted
 {3feb78c4-655b-4afc-9025-7fed168b1842} event:/Ships/Boost
 {c720fa5a-068b-4d37-92fc-04a6e34bf8f4} event:/Ships/Engine
 {02407836-9e22-442e-ba8f-26cd90bbedaf} event:/Weapons/ChargeLaser/Fire
@@ -22,3 +33,4 @@
 {2b74d3f3-0476-47ab-933b-30169960c182} parameter:/Speed
 {a1563732-541d-45d4-911a-965ac4030c5e} parameter:/Strafe
 {9a8ff61d-d974-458e-b449-778fd063bdd1} parameter:/Thrust
+{7ac48dae-71f2-4f55-b9e7-93899b872b5e} snapshot:/LowHealth
