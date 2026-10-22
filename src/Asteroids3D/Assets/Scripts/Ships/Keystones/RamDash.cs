@@ -42,9 +42,10 @@ namespace Ships.Keystones
             if (range < 1e-3f) return false;
             var toward = offset / range;
             if (Vector2.Dot(context.Self.Forward, toward) < Mathf.Cos(sightAngle * Mathf.Deg2Rad)) return false;
-            var closing = Vector2.Dot(context.Self.vel - context.Target.vel, toward);
-            if (closing < 0f) return false;
-            return range <= (closing + Impulse / context.SelfMass) * window;
+            if (Vector2.Dot(context.Self.vel - context.Target.vel, toward) < 0f) return false;
+            // The rigidbody clamps to the speed cap, so a dash at the cap adds no closing speed.
+            var dashed = Vector2.ClampMagnitude(context.Self.vel + context.Self.Forward * (Impulse / context.SelfMass), context.SelfMaxSpeed);
+            return range <= Vector2.Dot(dashed - context.Target.vel, toward) * window;
         }
 
         public override void OnContact(in KeystoneContact contact)
