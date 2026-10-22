@@ -43,7 +43,10 @@ namespace Game.Audio
         {
             phases = null;
             foreach (var module in sector.Modules)
-                if (module is PhaseSpineModule spine) phases = spine;
+            {
+                var spine = module as PhaseSpineModule;
+                if (spine) phases = spine;
+            }
             Set(State.Combat);
         }
 
