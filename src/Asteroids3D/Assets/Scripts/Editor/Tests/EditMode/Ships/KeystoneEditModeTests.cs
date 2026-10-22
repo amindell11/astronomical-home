@@ -5,6 +5,7 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
+using Ships.Keystones.Kits;
 using Ships.Loadout;
 using Ships.Registry;
 using UnityEditor;

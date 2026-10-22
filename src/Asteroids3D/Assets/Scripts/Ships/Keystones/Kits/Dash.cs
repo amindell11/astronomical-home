@@ -2,7 +2,7 @@ using Balance;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     public class Dash : Keystone
     {

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
+using Ships.Keystones.Kits;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;

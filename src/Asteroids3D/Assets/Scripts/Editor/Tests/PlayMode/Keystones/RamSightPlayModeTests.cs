@@ -7,6 +7,7 @@ using NUnit.Framework;
 using RL.Opponents;
 using Ships;
 using Ships.Keystones;
+using Ships.Keystones.Kits;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
