@@ -44,6 +44,12 @@ namespace Ships.Visuals
         private Color baseColor;
         private bool flashActive;
         private float flashElapsed;
+        private PooledVFX pooledExplosion;
+        private PooledVFX pooledCollisionExplosion;
+        private float deathEffectEndAt;
+        private GameObject unpooledDeathEffect;
+
+        public bool DeathEffectPlaying => Time.time < deathEffectEndAt || unpooledDeathEffect;
 
         private readonly List<Renderer> surfaces = new();
         private readonly List<Color> surfaceBase = new();
@@ -52,6 +58,8 @@ namespace Ships.Visuals
         private void Awake()
         {
             block = new MaterialPropertyBlock();
+            if (explosionPrefab) pooledExplosion = explosionPrefab.GetComponent<PooledVFX>();
+            if (collisionExplosionPrefab) pooledCollisionExplosion = collisionExplosionPrefab.GetComponent<PooledVFX>();
             var rig = GetComponentInParent<ShipVisualRig>(true);
             if (rig) surfaces.AddRange(rig.Silhouette);
             if (hull && !surfaces.Contains(hull)) surfaces.Add(hull);
@@ -116,11 +124,11 @@ namespace Ships.Visuals
                 ? collisionExplosionPrefab
                 : explosionPrefab;
             if (!prefab) return;
-            var pooled = prefab.GetComponent<PooledVFX>();
+            var pooled = prefab == collisionExplosionPrefab ? pooledCollisionExplosion : pooledExplosion;
             if (pooled)
-                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
+                deathEffectEndAt = SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity).EndsAt;
             else
-                Instantiate(prefab, transform.position, Quaternion.identity);
+                unpooledDeathEffect = Instantiate(prefab, transform.position, Quaternion.identity);
         }
 
         private void OnHealthChanged(float current, float previous, float max)

@@ -14,16 +14,16 @@ using UI.Screens;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
 namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
-    /// A real host with presentation off over a two-sector run: extracting from the first sector loads
-    /// the second without the hangar, keeping the run clock and the hull; extracting from the last
-    /// records a won run and starts the next run at the first sector; dying in a later sector records
-    /// the sectors cleared.
+    /// A real host over two sectors checks run records, carried hull and the return to play.
+    /// Graphics cases cover recap timing, death effects, HUD visibility and camera restoration.
     /// </summary>
     [Category("Bootstrap")]
     public class MultiSectorRunPlayModeTests : PlayModeWorldFixture
@@ -126,6 +126,8 @@ namespace Tests.PlayMode.Bootstrap
                 "next sector finishes loading after dismissal");
             Assert.AreEqual(1f, Time.timeScale);
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => File.Exists(recordPath), "victory is recorded");
+            Assert.AreEqual(0f, Time.timeScale, "victory freezes combat before fading the HUD");
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "final recap appears");
             recap = hostGo.GetComponentInChildren<RunRecapScreen>();
             Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
@@ -139,6 +141,58 @@ namespace Tests.PlayMode.Bootstrap
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator Death_FadesHudAndFinishesEffectsBeforePausing_ThenRestoresTheNextRun()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true);
+            var observer = hostGo.GetComponentInChildren<ObserverCam>();
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                TestDamage.Kill(rig.Player);
+                yield return null;
+                var cameraPosition = observer.transform.position;
+                Assert.IsTrue(rig.Player.VisualRig.DeathEffectsPlaying, "the real death effects started");
+                yield return new WaitForSecondsRealtime(.4f);
+                Assert.AreEqual(0f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
+                Assert.IsFalse(observer.enabled);
+                Assert.AreEqual(cameraPosition, observer.transform.position);
+                Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
+                Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
+                var deadline = Time.realtimeSinceStartup + 15f;
+                while (rig.Player.VisualRig.DeathEffectsPlaying && Time.realtimeSinceStartup < deadline)
+                {
+                    Assert.AreEqual(1f, Time.timeScale);
+                    Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
+                    yield return null;
+                }
+                Assert.IsFalse(rig.Player.VisualRig.DeathEffectsPlaying);
+                yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "death recap appears");
+                var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+                Assert.AreEqual(0f, Time.timeScale);
+                yield return new WaitForSecondsRealtime(1.2f);
+                var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+                Assert.AreEqual(0f, details.alpha);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Enter));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                yield return WaitFor(() => details.interactable, "keypress reveals the breakdown");
+                recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+                yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
+                    "the next run starts");
+                Assert.AreEqual(1f, Time.timeScale);
+                Assert.IsTrue(observer.enabled);
+                Assert.AreEqual(1f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
+                Assert.IsTrue(rig.Overlay.GetComponent<Canvas>().enabled);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+            }
+        }
+
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
@@ -146,6 +200,7 @@ namespace Tests.PlayMode.Bootstrap
 
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
+            foreach (var template in templates) template.transform.SetParent(hostGo.transform);
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {

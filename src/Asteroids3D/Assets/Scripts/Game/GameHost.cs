@@ -22,17 +22,12 @@ using Substrate.Services.Objectives;
 namespace Game
 {
     /// <summary>
-    /// The interactive game's host: the scene object that wraps one <see cref="Session"/> and runs the
-    /// game over it as one straight-line coroutine — compose the session, build the viewport (the
-    /// observer and hangar cameras) and the optional <see cref="PlayerRig"/>, then loops over runs: hangar, then
-    /// each sector with an extraction recap until death or final victory, then the run scoreboard and unload.
-    /// Hull carries between sectors. Recaps pause play and wait for dismissal. It owns the clock, splash, hangar,
-    /// run record, recap, restart, kill refill and the one EventSystem; the session only composes,
-    /// loads and unloads. It builds three child roots and hands them down: <c>Viewport</c> (observer and
-    /// hangar cameras), <c>UI</c> (screens, HUD) and <c>Arena</c> (the session root, at the frame offset). Presentation
-    /// is read from the profile once, beside the session's own snapshot, and handed down to each step.
-    /// The hangar, recap and restart stand in for Home Base and player progress;
-    /// why the host grows in place: https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
+    /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
+    /// Owns the player rig, viewport, UI, run records and clock; the session composes, loads and unloads.
+    /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
+    /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
+    /// The hangar, recap and restart stand in for Home Base and player progress.
+    /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
     [RequireComponent(typeof(UnitService))]
     [RequireComponent(typeof(ObjectiveService))]
@@ -210,9 +205,7 @@ namespace Game
                     if (!playerDied) EndRun();
                     var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     if (presentation)
-                        yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
-                            rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
-                            sessionProfile.sectors.Length, board, dismiss));
+                        yield return RunOutcomeRecap(board, index);
                 }
 
                 SetSplashVisible(true);
@@ -338,14 +331,47 @@ namespace Game
             Destroy(screen.gameObject);
         }
 
+        private IEnumerator RunOutcomeRecap(Scoreboard board, int index)
+        {
+            if (!playerDied) PauseRecapClock();
+            var cameraEnabled = observer.enabled;
+            observer.enabled = false;
+            try
+            {
+                var elapsed = 0f;
+                do
+                {
+                    var t = Mathf.Clamp01(elapsed / .3f);
+                    SetGameplayOpacity(1f - t * t * t * (t * (t * 6f - 15f) + 10f));
+                    yield return null;
+                    elapsed += Time.unscaledDeltaTime;
+                } while (elapsed < .3f || playerDied && rigInstance.Player.VisualRig.DeathEffectsPlaying);
+                SetGameplayOpacity(0f);
+                yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
+                    rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
+                    sessionProfile.sectors.Length, board, dismiss));
+            }
+            finally
+            {
+                observer.enabled = cameraEnabled;
+                SetGameplayOpacity(1f);
+            }
+        }
+
+        private void SetGameplayOpacity(float opacity)
+        {
+            if (rigInstance.Overlay) rigInstance.Overlay.SetOpacity(opacity);
+            foreach (var ship in session.Units.ActiveRegistry.ActiveShips)
+                if (ship.VisualRig) ship.VisualRig.SetHudOpacity(opacity);
+        }
+
         private IEnumerator RunRecap(Action<RunRecapScreen, Action> show)
         {
             var overlay = rigInstance.Overlay;
             if (overlay) overlay.SetVisible(false);
             var screen = RunRecapScreen.Create(ui);
             var dismissed = false;
-            recapTimeScale = Time.timeScale;
-            Time.timeScale = 0f;
+            PauseRecapClock();
             try
             {
                 show(screen, () => dismissed = true);
@@ -357,6 +383,12 @@ namespace Game
                 RestoreRecapClock();
                 if (overlay) overlay.SetVisible(true);
             }
+        }
+
+        private void PauseRecapClock()
+        {
+            recapTimeScale ??= Time.timeScale;
+            Time.timeScale = 0f;
         }
 
         private void RestoreRecapClock()

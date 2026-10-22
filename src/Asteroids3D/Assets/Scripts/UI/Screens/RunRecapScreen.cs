@@ -5,6 +5,7 @@ using System.Globalization;
 using Game.Player;
 using Game.Runs;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UI.Screens
@@ -88,21 +89,36 @@ namespace UI.Screens
             headline.rectTransform.anchorMin = headline.rectTransform.anchorMax = new Vector2(.5f, .5f);
             headline.rectTransform.pivot = new Vector2(.5f, .5f);
             var announcement = intro.gameObject.AddComponent<CanvasGroup>();
-
-            yield return new WaitForSecondsRealtime(1f);
-            for (var elapsed = 0f; elapsed < .5f; elapsed += Time.unscaledDeltaTime)
-            {
-                var blend = Mathf.SmoothStep(0f, 1f, elapsed / .5f);
-                announcement.alpha = 1f - blend;
-                details.alpha = blend;
-                yield return null;
-            }
-
+            announcement.alpha = 0f;
+            yield return Fade(announcement, 0f, 1f, .8f);
+            var prompt = Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
+                TextAnchor.MiddleCenter);
+            using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
+            advance.AddBinding("<Mouse>/leftButton");
+            advance.AddBinding("<Gamepad>/buttonSouth");
+            var requested = false;
+            advance.performed += _ => requested = true;
+            advance.Enable();
+            yield return new WaitUntil(() => requested);
+            advance.Disable();
+            prompt.gameObject.SetActive(false);
+            yield return Fade(announcement, 1f, 0f, .7f);
             Destroy(intro.gameObject);
-            details.alpha = 1f;
+            yield return new WaitForSecondsRealtime(.3f);
+            yield return Fade(details, 0f, 1f, .8f);
             details.interactable = true;
             details.blocksRaycasts = true;
             button.Select();
+        }
+
+        private static IEnumerator Fade(CanvasGroup group, float from, float to, float duration)
+        {
+            for (var elapsed = 0f; elapsed < duration; elapsed += Time.unscaledDeltaTime)
+            {
+                group.alpha = Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, elapsed / duration));
+                yield return null;
+            }
+            group.alpha = to;
         }
 
         private RectTransform BuildPanel(string title, Color outcomeColor, float width, float height,
