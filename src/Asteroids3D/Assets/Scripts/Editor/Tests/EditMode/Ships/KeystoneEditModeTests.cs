@@ -229,6 +229,67 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void Valis_CarriesOverdrive()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var overdrive = catalog.Chassis.Single(c => c.name == "Valis").KeystonePrefab as Overdrive;
+            Assert.That(overdrive, Is.Not.Null, "Valis's kit is Overdrive");
+            Assert.That(overdrive.name, Is.EqualTo("Valis_Overdrive"));
+            Assert.That(overdrive.Cooldown, Is.EqualTo(8f));
+            Assert.That(overdrive.Window, Is.EqualTo(3f));
+            Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.35f));
+            Assert.That(overdrive.PeakThrustScale, Is.EqualTo(1.5f));
+            Assert.That(overdrive.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        private Overdrive NewOverdrive()
+        {
+            host = new GameObject("Overdrive");
+            var kit = host.AddComponent<Overdrive>();
+            var so = new SerializedObject(kit);
+            so.FindProperty("cooldown").floatValue = 8f;
+            so.FindProperty("window").floatValue = 3f;
+            so.FindProperty("speedScale").floatValue = 1.35f;
+            so.FindProperty("thrustScale").floatValue = 1.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return kit;
+        }
+
+        [Test]
+        public void Overdrive_ScalesForItsWindow_ThenReleases_AndPaysOnlyAboveTheBaseCap()
+        {
+            var kit = NewOverdrive();
+            var slow = new Kinematics(Vector2.zero, new Vector2(0f, 20f), 0f, 0f, 0f);
+            var fast = new Kinematics(Vector2.zero, new Vector2(0f, 35f), 0f, 0f, 0f);
+            Assert.That(kit.SpeedScale, Is.EqualTo(1f));
+
+            Assert.That(kit.Step(in slow, 1f, Dt, out var activated, 32f), Is.EqualTo(Vector2.zero), "no impulse");
+            Assert.That(activated, Is.True);
+            Assert.That(kit.SpeedScale, Is.EqualTo(1.35f));
+            Assert.That(kit.ThrustScale, Is.EqualTo(1.5f));
+            Assert.That(kit.PaidActivations, Is.EqualTo(0), "under the base cap pays nothing");
+
+            kit.Step(in fast, 0f, Dt, out _, 32f);
+            Assert.That(kit.PaidActivations, Is.EqualTo(1), "flying past the base cap pays");
+
+            while (kit.Active) kit.Step(in slow, 0f, Dt, out _, 32f);
+            Assert.That(kit.SpeedScale, Is.EqualTo(1f));
+            Assert.That(kit.ThrustScale, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void OverdriveSight_FiresOnlyWhenSaturated()
+        {
+            var kit = NewOverdrive();
+            KeystoneContext Ctx(float speed, Vector2 desired) =>
+                new(new Kinematics(Vector2.zero, new Vector2(0f, speed), 0f, 0f, 0f), 650f, 32f, default, desired);
+            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(0f, 32f))), Is.True, "asking for the cap while at it");
+            Assert.That(kit.ShouldActivate(Ctx(20f, new Vector2(0f, 32f))), Is.False, "still accelerating");
+            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(0f, 15f))), Is.False, "asking for less than the cap");
+            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(float.NaN, float.NaN))), Is.False, "no velocity request");
+        }
+
+        [Test]
         public void Vanguard_CarriesTheGuardDash()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
@@ -240,7 +301,6 @@ namespace Tests.EditMode.Ships
 
         [TestCase("Vanguard", 9000f, 5f)]
         [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Valis", 8000f, 4f)]
         [TestCase("Crimson", 7000f, 4f)]
         [TestCase("Nightshade", 8500f, 4.5f)]
         [TestCase("Junker_1", 13000f, 7f)]
