@@ -32,7 +32,7 @@ namespace Tests.PlayMode.Audio
 
         private sealed class InertTarget : MonoBehaviour, IDamageable
         {
-            public void TakeDamage(in DamageInfo hit) { }
+            public float TakeDamage(in DamageInfo hit) => 0f;
         }
 
         private readonly List<GameObject> spawned = new();

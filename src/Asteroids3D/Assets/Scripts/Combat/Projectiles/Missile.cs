@@ -196,10 +196,11 @@ namespace Combat.Projectiles
             base.OnHit(other);
         }
 
-        public void TakeDamage(in DamageInfo hit)
+        public float TakeDamage(in DamageInfo hit)
         {
             Explode(null);
             Dispose();
+            return 0f;
         }
 
         private void ApplySplashDamage(Vector3 pos, float radius, int layerMask, IDamageable directHitTarget)

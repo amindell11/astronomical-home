@@ -43,7 +43,11 @@ namespace Tests.PlayMode
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
         {
             public readonly List<DamageInfo> Hits = new();
-            public void TakeDamage(in DamageInfo hit) => Hits.Add(hit);
+            public float TakeDamage(in DamageInfo hit)
+            {
+                Hits.Add(hit);
+                return 0f;
+            }
         }
 
         public override void TearDown()

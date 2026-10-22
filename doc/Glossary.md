@@ -828,6 +828,11 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **overkill** — the damage a hit has left after killing its target.
+  `TakeDamage` returns it so the railgun beam can carry it to the next target
+  behind. It is not bleed-through. The "§C3 overkill PR" above used the word
+  for the shield-to-hull remainder on a single target.
+  *(`IDamageable.TakeDamage`)*
 - **shield bypass**. A hit's damage skips the shield and goes straight to hull.
   Only a missile's direct hit carries it; its splash stays shield-first with
   bleed-through. The producer sets the flag, and `DamageController` routes on it,

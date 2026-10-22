@@ -82,6 +82,7 @@ MonoBehaviour:
   displayName: Railgun
   damage: 45
   range: 60
+  beamRadius: 0.5
   impactSpeed: 120
   impactMass: 0.05
   hitMask:
