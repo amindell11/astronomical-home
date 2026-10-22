@@ -262,4 +262,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   burstPrefab: {fileID: 927978074046358983, guid: 1bb6e4718e9199f41a53cf31f1db865b,
     type: 3}
+  disc: {fileID: 5856540958127899850}
   segments: 64

@@ -118,6 +118,7 @@
     layers.embers = extract(missile, [1140, 135, 335, 230], 'fire');
     layers.lateSmoke = extract(missile, [1140, 135, 335, 230], 'smoke');
     layers.flash = extract(mine, [70, 140, 180, 250]);
+    layers.core = extract(mine, [85, 212, 150, 126]);
     layers.disc = circularDisc(extract(mine, [964, 536, 348, 348]));
     layers.discFill = discLayer(layers.disc, false);
     layers.discEdge = discLayer(layers.disc, true);
@@ -156,30 +157,84 @@
   function ignition(ctx, time, size, settings) {
     const progress = time / settings.mineIgnitionSeconds;
     if (progress < 0 || progress > 1) return;
-    stamp(ctx, layers.flash, size * (0.62 + clamp(time / mineIgnitionExpansionSeconds) * 0.25), fade(progress, 0.24, 1));
+    const pulse = 1 + settings.mineCorePulse * 0.16 * Math.sin(progress * Math.PI * 3);
+    const expansion = clamp(time / mineIgnitionExpansionSeconds);
+    stamp(ctx, layers.core, size * (0.55 + expansion * 0.5) * pulse,
+      0.65 * fade(progress, 0.3, 1), -progress * 0.55);
+    stamp(ctx, layers.core, size * (0.36 + expansion * 0.26) / pulse,
+      fade(progress, 0.4, 1), progress * 0.4);
+    stamp(ctx, layers.flash, size * (0.62 + expansion * 0.25), fade(time, 0.045, 0.14));
   }
 
-  function disc(ctx, size, settings) {
-    stamp(ctx, layers.discFill, size, settings.mineFill);
-    stamp(ctx, layers.discEdge, size, settings.mineGlow);
+  function ribbon(ctx, radius, start, span, width, phase, opacity, color) {
+    if (opacity <= 0) return;
+    const count = 28;
+    const point = (step, side) => {
+      const u = step / count, angle = start + span * u;
+      const ripple = 1 + 0.025 * Math.sin(angle * 13 + phase) + 0.014 * Math.sin(angle * 29 - phase);
+      const r = radius * ripple - side * width * Math.sin(Math.PI * u);
+      return [Math.cos(angle) * r, Math.sin(angle) * r];
+    };
+    ctx.save(); ctx.globalAlpha = clamp(opacity); ctx.fillStyle = color;
+    ctx.beginPath(); ctx.moveTo(...point(0, 0));
+    for (let step = 1; step <= count; step++) ctx.lineTo(...point(step, 0));
+    for (let step = count; step >= 0; step--) ctx.lineTo(...point(step, 1));
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  function disc(ctx, time, size, settings) {
+    const progress = time / settings.mineSweepSeconds;
+    if (progress < 0 || progress >= 1) return;
+    const radius = size * 0.45;
+    const dissolve = fade(progress, 0.55, 1);
+    stamp(ctx, layers.discFill, size, settings.mineFill * (0.8 - progress * 0.3) * dissolve);
+    stamp(ctx, layers.discFill, size * (0.68 + progress * 0.25),
+      settings.mineFill * 0.5 * dissolve, -0.5 + progress * 0.7);
+    for (let i = 0; i < 3; i++) {
+      const age = clamp((progress - i * 0.11) / (1 - i * 0.11));
+      const r = radius * (0.12 + 0.81 * Math.sqrt(age));
+      const alpha = Math.sin(age * Math.PI) * settings.mineMotion;
+      for (let arc = 0; arc < 3; arc++) {
+        const start = arc * 2.09 + i * 0.7 + Math.sin(age * 5 + i) * 0.13;
+        const span = 0.8 + 0.35 * Math.sin(arc * 2 + i);
+        ribbon(ctx, r, start, span, radius * 0.1 * (1 - age), age * 8 + i, alpha * 0.42, '#168dde');
+        ribbon(ctx, r, start, span * 0.86, radius * 0.018, age * 8 + i, alpha * 0.65, '#7ae8ff');
+      }
+    }
+    for (let i = 0; i < 7; i++) {
+      const age = clamp((progress - 0.035 * (i % 3)) / 0.85);
+      const angle = i * 2.399 + Math.sin(age * 5 + i) * 0.14;
+      const r = radius * (0.2 + 0.63 * Math.sqrt(age));
+      const alpha = Math.sin(age * Math.PI) * settings.mineMotion * 0.7;
+      ctx.save(); ctx.rotate(angle);
+      ctx.globalAlpha = clamp(alpha); ctx.fillStyle = i % 2 ? '#2cace9' : '#59d7f6';
+      ctx.beginPath(); ctx.moveTo(r, 0);
+      ctx.lineTo(r - radius * 0.09, radius * 0.035);
+      ctx.lineTo(r - radius * 0.22, radius * 0.018);
+      ctx.lineTo(r - radius * 0.43, -radius * 0.055 * Math.sin(age * 7 + i));
+      ctx.lineTo(r - radius * 0.15, -radius * 0.016);
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    stamp(ctx, layers.discEdge, size,
+      settings.mineGlow * (0.88 + 0.12 * Math.sin(progress * 43)) * fade(progress, 0.92, 1));
   }
 
   function mine(ctx, time, size, settings, pitch = 0.28) {
     if (time < 0 || time > settings.mineSweepSeconds) return;
     ctx.save();
     ctx.scale(1, pitch);
-    disc(ctx, size * clamp(time / settings.mineSweepSeconds), settings);
+    disc(ctx, time, size * clamp(time / settings.mineSweepSeconds), settings);
     ctx.restore();
     ignition(ctx, time, size * 0.18, settings);
   }
 
-  function atlas(painter, seconds, columns, rows, cell, scale, settings) {
+  function atlas(painter, seconds, columns, rows, cell, scale, settings, padding = 0.88) {
     const result = canvas(columns * cell, rows * cell);
     const ctx = result.getContext('2d');
     for (let frame = 0; frame < columns * rows; frame++) {
       ctx.save();
       ctx.translate((frame % columns + 0.5) * cell, (Math.floor(frame / columns) + 0.5) * cell);
-      painter(ctx, seconds * frame / (columns * rows - 1), cell * 0.88 / scale, settings);
+      painter(ctx, seconds * frame / (columns * rows - 1), cell * padding / scale, settings);
       ctx.restore();
     }
     return result;
@@ -194,7 +249,7 @@
     return {
       Missile: atlas(missile, settings.missileTailSeconds, 4, 8, 256, scale.missileAtlasScale, settings),
       MineIgnition: atlas(ignition, settings.mineIgnitionSeconds, 4, 4, 256, scale.mineIgnitionAtlasScale, settings),
-      MineDisc: layers.disc
+      MineDisc: atlas(disc, settings.mineSweepSeconds, 4, 8, 256, 1, settings, 1)
     };
   }
 

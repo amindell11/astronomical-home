@@ -3,8 +3,7 @@ Shader "Astronomical/Vfx/Painted Seismic Disc"
     Properties
     {
         _BaseMap ("Painted disc", 2D) = "white" {}
-        _FillOpacity ("Fill opacity", Range(0,1)) = 0.38
-        _EdgeGain ("Edge brightness", Range(0,2)) = 1
+        _WaveProgress ("Wave progress", Range(0,1)) = 0
     }
     SubShader
     {
@@ -20,8 +19,7 @@ Shader "Astronomical/Vfx/Painted Seismic Disc"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
             CBUFFER_START(UnityPerMaterial)
-                float _FillOpacity;
-                float _EdgeGain;
+                float _WaveProgress;
             CBUFFER_END
             struct Input { float4 position:POSITION; float2 uv:TEXCOORD0; };
             struct Varying { float4 position:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -29,13 +27,17 @@ Shader "Astronomical/Vfx/Painted Seismic Disc"
             {
                 Varying o; o.position=TransformObjectToHClip(v.position.xyz); o.uv=v.uv; return o;
             }
+            half4 Frame(float2 uv, float frame)
+            {
+                float2 cell=float2(fmod(frame,4),7-floor(frame/4));
+                half4 c=SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,(cell+uv)/float2(4,8));
+                c.rgb*=c.a;
+                return c;
+            }
             half4 Frag(Varying i):SV_Target
             {
-                half4 c=SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,i.uv);
-                float edge=smoothstep(0.92,0.98,length(i.uv-0.5)/0.45);
-                c.a*=lerp(_FillOpacity,saturate(_EdgeGain),edge);
-                c.rgb*=c.a*lerp(1,max(1,_EdgeGain),edge);
-                return c;
+                float frame=saturate(_WaveProgress)*31;
+                return lerp(Frame(i.uv,floor(frame)),Frame(i.uv,min(floor(frame)+1,31)),frac(frame));
             }
             ENDHLSL
         }

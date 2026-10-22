@@ -31,6 +31,7 @@ Material:
     m_Floats:
     - _EdgeGain: 1
     - _FillOpacity: 0.38
+    - _WaveProgress: 0
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -7,14 +7,14 @@ async function main() {
   const settingsPath = process.argv[2] || path.join(__dirname, 'settings.json');
   const output = path.resolve(process.argv[3] || path.join(__dirname, 'out'));
   const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-  for (const key of ['missileFireSeconds', 'missileTailSeconds', 'mineSweepSeconds', 'mineIgnitionSeconds', 'missileSpread', 'smokeOpacity', 'mineFill', 'mineGlow']) {
+  for (const key of ['missileFireSeconds', 'missileTailSeconds', 'mineSweepSeconds', 'mineIgnitionSeconds', 'missileSpread', 'smokeOpacity', 'mineFill', 'mineGlow', 'mineMotion', 'mineCorePulse']) {
     if (typeof settings[key] !== 'number' || !Number.isFinite(settings[key]) || settings[key] < 0)
       throw new Error(`Invalid numeric setting: ${key}`);
   }
   for (const key of ['missileFireSeconds', 'missileTailSeconds', 'mineSweepSeconds', 'mineIgnitionSeconds', 'missileSpread']) {
     if (settings[key] === 0) throw new Error(`Setting must be positive: ${key}`);
   }
-  for (const key of ['smokeOpacity', 'mineFill', 'mineGlow']) {
+  for (const key of ['smokeOpacity', 'mineFill', 'mineGlow', 'mineMotion', 'mineCorePulse']) {
     if (settings[key] > 1) throw new Error(`Opacity must not exceed one: ${key}`);
   }
   const sources = Object.fromEntries(['missile', 'mine'].map(name => [name,

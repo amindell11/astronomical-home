@@ -6,5 +6,7 @@
   "missileSpread": 1,
   "smokeOpacity": 0.72,
   "mineFill": 0.38,
-  "mineGlow": 1
+  "mineGlow": 1,
+  "mineMotion": 0.9,
+  "mineCorePulse": 0.85
 }

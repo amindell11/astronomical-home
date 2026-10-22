@@ -17,8 +17,6 @@ namespace Combat.Projectiles.Visual
         {
             public float missileTailSeconds;
             public float mineIgnitionSeconds;
-            public float mineFill;
-            public float mineGlow;
             public float missileAtlasScale;
             public float mineIgnitionAtlasScale;
         }
@@ -66,9 +64,6 @@ namespace Combat.Projectiles.Visual
             var missileMaterial = Material("Missile", burstShader, "Missile");
             var ignitionMaterial = Material("MineIgnition", burstShader, "MineIgnition");
             var discMaterial = Material("MineDisc", AssetDatabase.LoadAssetAtPath<Shader>($"{Root}/Materials/SeismicDisc.shader"), "MineDisc");
-            discMaterial.SetFloat("_FillOpacity", settings.mineFill);
-            discMaterial.SetFloat("_EdgeGain", settings.mineGlow);
-            EditorUtility.SetDirty(discMaterial);
             var missileBurst = Burst("MissileExplosion", missileMaterial, settings.missileTailSeconds, 6f * settings.missileAtlasScale, 8);
             var mineBurst = Burst("MineIgnition", ignitionMaterial, settings.mineIgnitionSeconds, 5f * settings.mineIgnitionAtlasScale, 4);
 
@@ -82,7 +77,6 @@ namespace Combat.Projectiles.Visual
             {
                 var visual = new SerializedObject(root.GetComponent<ConcussionWaveVisual>());
                 visual.FindProperty("burstPrefab").objectReferenceValue = mineBurst;
-                visual.ApplyModifiedPropertiesWithoutUndo();
                 var disc = root.transform.Find("SeismicDisc");
                 if (!disc)
                 {
@@ -97,6 +91,8 @@ namespace Combat.Projectiles.Visual
                 renderer.sharedMaterial = discMaterial;
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
+                visual.FindProperty("disc").objectReferenceValue = renderer;
+                visual.ApplyModifiedPropertiesWithoutUndo();
                 root.GetComponent<LineRenderer>().widthMultiplier = 0.06f;
             });
             AssetDatabase.SaveAssets();

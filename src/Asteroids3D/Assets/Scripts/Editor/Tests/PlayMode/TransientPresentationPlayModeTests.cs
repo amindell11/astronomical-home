@@ -158,6 +158,48 @@ namespace Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        public IEnumerator ConcussionWaveDisc_FollowsRadius_AndRestartsOnReuse()
+        {
+            var prefab = LoadProjectilePrefab<ConcussionWave>(ConcussionWavePrefabPath);
+            var wave = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+            try
+            {
+                Projectiles.Register(wave, wave.ReturnToPoolImmediate);
+                var disc = wave.GetComponentInChildren<MeshRenderer>();
+                var properties = new MaterialPropertyBlock();
+                wave.Begin(new Ships.Registry.ShipId(1));
+                yield return new WaitForFixedUpdate();
+                yield return null;
+
+                disc.GetPropertyBlock(properties);
+                var progress = properties.GetFloat("_WaveProgress");
+                Assert.Greater(progress, 0f);
+                Assert.AreEqual(wave.transform.localScale.x / wave.MaxRadius, progress, 0.0001f);
+
+                wave.ReturnToPoolImmediate();
+                var reused = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+                Assert.AreSame(wave, reused);
+                disc.GetPropertyBlock(properties);
+                Assert.AreEqual(0f, properties.GetFloat("_WaveProgress"));
+                Assert.AreEqual(Vector3.zero, reused.transform.localScale);
+
+                Projectiles.Register(reused, reused.ReturnToPoolImmediate);
+                reused.Begin(new Ships.Registry.ShipId(1));
+                yield return new WaitForFixedUpdate();
+                yield return null;
+                disc.GetPropertyBlock(properties);
+                Assert.Greater(properties.GetFloat("_WaveProgress"), 0f);
+                Assert.AreEqual(reused.transform.localScale.x / reused.MaxRadius,
+                    properties.GetFloat("_WaveProgress"), 0.0001f);
+                reused.ReturnToPoolImmediate();
+            }
+            finally
+            {
+                SimplePool<ConcussionWave>.Clear();
+            }
+        }
+
         private static int ActiveVfxCount() =>
             Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None).Length;
     }
