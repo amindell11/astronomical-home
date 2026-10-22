@@ -78,7 +78,7 @@ namespace Tests.PlayMode.Keystones
         {
             yield return SpawnVanguard();
             var guard = (GuardDash)ship.Keystone;
-            var applied = new List<DamageInfo>();
+            var applied = new List<AppliedDamage>();
             ship.Damage.OnDamaged += applied.Add;
 
             yield return Dash();

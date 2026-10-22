@@ -87,7 +87,7 @@ namespace Tests.PlayMode.Keystones
             yield return SpawnBulwark();
             target = Object.Instantiate(TestAssets.Load<Ship>(VanguardPath), Nose * 4.5f, GamePlane.PlanePose(GamePlane.Normal, -Nose));
             target.Initialize(1, 0, Projectiles);
-            var hits = new List<DamageInfo>();
+            var hits = new List<AppliedDamage>();
             target.Damage.OnDamaged += hits.Add;
             yield return new WaitForFixedUpdate();
 
@@ -96,9 +96,9 @@ namespace Tests.PlayMode.Keystones
                 yield return new WaitForFixedUpdate();
 
             Assert.That(hits, Has.Count.EqualTo(1), "one ram, one hit");
-            Assert.That(hits[0].Kind, Is.EqualTo(DamageKind.Collision));
-            Assert.That(hits[0].AttackerId, Is.EqualTo(bulwark.Id), "the ram carries the Bulwark's id");
-            Assert.That(hits[0].Amount, Is.InRange(ram.ShipDamage * 0.8f, ram.ShipDamage), "a near head-on hit deals near full damage");
+            Assert.That(hits[0].Info.Kind, Is.EqualTo(DamageKind.Collision));
+            Assert.That(hits[0].Info.AttackerId, Is.EqualTo(bulwark.Id), "the ram carries the Bulwark's id");
+            Assert.That(hits[0].Info.Amount, Is.InRange(ram.ShipDamage * 0.8f, ram.ShipDamage), "a near head-on hit deals near full damage");
             Assert.That(ram.PaidActivations, Is.EqualTo(1), "landing on a ship pays");
         }
 
