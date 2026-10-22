@@ -33,18 +33,23 @@ namespace UI.Hangar
         [SerializeField] private Text statsText;
 
         [Header("Ship preview")]
-        [Tooltip("Displays the preview stage's render texture. Null → no 3D preview.")]
-        [SerializeField] private RawImage previewImage;
+        [Tooltip("Displays the preview stage's render texture across the area ships fly through. Null → no 3D preview.")]
+        [SerializeField] internal RawImage previewImage;
+        [Tooltip("The square inside the preview image where the selected ship settles.")]
+        [SerializeField] internal RectTransform previewFrame;
 
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
         private readonly Vector3[] previewCorners = new Vector3[4];
+        private readonly Vector3[] frameCorners = new Vector3[4];
         private Func<string> hoveredStats;
 
         private void OnValidate()
         {
             if (previewImage && previewImage.raycastTarget)
                 throw new InvalidOperationException("HangarScreen previewImage must ignore pointer hits.");
+            if (previewImage && !previewFrame)
+                throw new InvalidOperationException("HangarScreen previewImage needs a previewFrame to settle the ship in.");
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
@@ -53,7 +58,8 @@ namespace UI.Hangar
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
-                previewStage = HangarPreviewStage.Create(transform.parent, PreviewPixels(),
+                var (surface, frame) = PreviewLayout();
+                previewStage = HangarPreviewStage.Create(transform.parent, surface, frame,
                     offer ? offer.ships : Array.Empty<Ship>());
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout, backwards: false);
@@ -91,16 +97,20 @@ namespace UI.Hangar
         private void LateUpdate()
         {
             if (!previewStage) return;
-            previewStage.Resize(PreviewPixels());
+            var (surface, frame) = PreviewLayout();
+            previewStage.Resize(surface, frame);
             previewImage.texture = previewStage.Texture;
         }
 
         // Overlay canvas: world corners are screen pixels.
-        private int PreviewPixels()
+        private (Vector2Int surface, Rect frame) PreviewLayout()
         {
             previewImage.rectTransform.GetWorldCorners(previewCorners);
-            var size = previewCorners[2] - previewCorners[0];
-            return Mathf.CeilToInt(Mathf.Max(size.x, size.y));
+            previewFrame.GetWorldCorners(frameCorners);
+            var size = (Vector2)(previewCorners[2] - previewCorners[0]);
+            var min = (Vector2)(frameCorners[0] - previewCorners[0]) / size;
+            var max = (Vector2)(frameCorners[2] - previewCorners[0]) / size;
+            return (Vector2Int.CeilToInt(size), Rect.MinMaxRect(min.x, min.y, max.x, max.y));
         }
 
         private void BindRow<T>(OptionCycler row, IReadOnlyList<T> offered, Func<T> getCurrent, Action<T, int> setCurrent,

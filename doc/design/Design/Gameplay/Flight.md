@@ -6,7 +6,7 @@ Astronomical uses 2.5D top-down, Newtonian flight.
 - **WASD**: thrust forward/back/left/right.
 - Hold **Right Mouse**: point the ship’s facing direction.
 - **Strafing** left/right also **rolls** the ship.
-- **Forward boost**: a strong impulse on a cooldown (currently 3s).
+- **Forward boost**: a strong impulse on a per-engine cooldown.
 
 ## Intended skill expression
 - Dodging via strafing/rolling and momentum management.

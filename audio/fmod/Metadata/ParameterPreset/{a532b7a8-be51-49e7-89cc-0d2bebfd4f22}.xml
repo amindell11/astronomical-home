@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="ParameterPreset" id="{a532b7a8-be51-49e7-89cc-0d2bebfd4f22}">
+		<property name="name">
+			<value>Strafe</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ba6fc2da-c10e-42c1-9b47-a8debcc6fe5e}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{a1563732-541d-45d4-911a-965ac4030c5e}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{a1563732-541d-45d4-911a-965ac4030c5e}" />
+</objects>

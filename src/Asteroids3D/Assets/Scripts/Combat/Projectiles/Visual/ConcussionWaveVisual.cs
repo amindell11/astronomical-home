@@ -1,3 +1,4 @@
+using System;
 using Substrate.Presentation;
 using UnityEngine;
 using Utils;
@@ -6,21 +7,25 @@ using Substrate;
 namespace Combat.Projectiles.Visual
 {
     /// <summary>
-    /// Renders the wave's frontier as a ring in the game plane — the ring is the readable damage
-    /// boundary, so it tracks <see cref="ConcussionWave.Radius"/> exactly (unit circle scaled by
-    /// the transform).
+    /// The boundary ring and animated disc follow the damage radius in the game plane.
+    /// Disc playback uses radius progress so pooled detonations restart without a separate animation clock.
     /// </summary>
     [RequireComponent(typeof(ConcussionWave), typeof(LineRenderer))]
     public sealed class ConcussionWaveVisual : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private PooledVFX burstPrefab;
+        [SerializeField] private MeshRenderer disc;
         [SerializeField, Min(8)] private int segments = 64;
 
+        private static readonly int WaveProgressId = Shader.PropertyToID("_WaveProgress");
         private ConcussionWave wave;
         private LineRenderer ring;
+        private MaterialPropertyBlock discProperties;
 
         private void Awake()
         {
+            if (!disc) throw new InvalidOperationException("ConcussionWaveVisual requires its seismic disc renderer.");
+            discProperties = new MaterialPropertyBlock();
             wave = GetComponent<ConcussionWave>();
             ring = GetComponent<LineRenderer>();
             ring.loop = true;
@@ -36,6 +41,7 @@ namespace Combat.Projectiles.Visual
         private void OnEnable()
         {
             transform.localScale = Vector3.zero;
+            SetDiscProgress(0f);
             wave.Begun += SpawnBurst;
         }
 
@@ -56,6 +62,13 @@ namespace Combat.Projectiles.Visual
         private void Update()
         {
             transform.localScale = Vector3.one * wave.Radius;
+            SetDiscProgress(Mathf.Clamp01(wave.Radius / wave.MaxRadius));
+        }
+
+        private void SetDiscProgress(float progress)
+        {
+            discProperties.SetFloat(WaveProgressId, progress);
+            disc.SetPropertyBlock(discProperties);
         }
     }
 }

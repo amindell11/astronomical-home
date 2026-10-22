@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Combat.Weapons;
+using Damage;
 using Ships;
+using Ships.Keystones;
 using Ships.Command;
 using UnityEngine;
 using Combat.Weapons.Conditions;
@@ -228,6 +230,28 @@ namespace RL.Probes
         }
     }
 
+    // An activation pays once, on the first hit its keystone blocks.
+    internal sealed class KeystonePaidCounter
+    {
+        private readonly Keystone keystone;
+        private int credited;
+
+        public int Paid { get; private set; }
+
+        public KeystonePaidCounter(Keystone keystone)
+        {
+            this.keystone = keystone;
+            credited = keystone.Activations;
+        }
+
+        public void OnBlocked(DamageInfo _)
+        {
+            if (keystone.Activations == credited) return;
+            credited = keystone.Activations;
+            Paid++;
+        }
+    }
+
     /// <summary>Regen events off Shield.OnValueChanged: a rising tick is regen (damage only falls), routed by engagement state.</summary>
     internal sealed class RegenSplit
     {
@@ -253,7 +277,7 @@ namespace RL.Probes
         }
     }
 
-    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over the episode loop's <see cref="IStepSnapshotSource"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, polled boost availability, and each side's paid activations as its keystone counts them. Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
+    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over the episode loop's <see cref="IStepSnapshotSource"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, polled boost availability, and each side's blocked hits (paid activations). Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
     public sealed class CombatTelemetrySampler : IDisposable
     {
         private readonly Ship agent;
@@ -267,8 +291,8 @@ namespace RL.Probes
         private readonly WeaponComponent[] oppWeapons;
         private readonly BoostEdgeDetector agentBoostEdge;
         private readonly BoostEdgeDetector oppBoostEdge;
-        private readonly int agentPaidBefore;
-        private readonly int oppPaidBefore;
+        private readonly KeystonePaidCounter agentPaid;
+        private readonly KeystonePaidCounter oppPaid;
         private readonly EngagementTracker tracker = new();
         private readonly RegenSplit agentRegen = new();
         private readonly RegenSplit oppRegen = new();
@@ -308,8 +332,10 @@ namespace RL.Probes
             baseline.Damage.Shield.OnValueChanged += OnOppShieldChanged;
             agentBoostEdge = new BoostEdgeDetector(agent.BoostAvailable);
             oppBoostEdge = new BoostEdgeDetector(baseline.BoostAvailable);
-            agentPaidBefore = agent.Keystone.PaidActivations;
-            oppPaidBefore = baseline.Keystone.PaidActivations;
+            agentPaid = new KeystonePaidCounter(agent.Keystone);
+            oppPaid = new KeystonePaidCounter(baseline.Keystone);
+            agent.Damage.OnBlocked += agentPaid.OnBlocked;
+            baseline.Damage.OnBlocked += oppPaid.OnBlocked;
         }
 
         internal static int BandIndex(float normalizedRange) =>
@@ -375,8 +401,8 @@ namespace RL.Probes
                 oppRegenAmountDisengaged = oppRegen.DisengagedAmount,
                 agentBoostsTrailingGap = agentBoostsGap,
                 oppBoostsTrailingGap = oppBoostsGap,
-                agentBoostsPaid = agent.Keystone.PaidActivations - agentPaidBefore,
-                oppBoostsPaid = baseline.Keystone.PaidActivations - oppPaidBefore,
+                agentBoostsPaid = agentPaid.Paid,
+                oppBoostsPaid = oppPaid.Paid,
             };
         }
 
@@ -388,6 +414,8 @@ namespace RL.Probes
                 if (weapon) weapon.OnFire -= CountOppShot;
             if (agent) agent.Damage.Shield.OnValueChanged -= OnAgentShieldChanged;
             if (baseline) baseline.Damage.Shield.OnValueChanged -= OnOppShieldChanged;
+            if (agent) agent.Damage.OnBlocked -= agentPaid.OnBlocked;
+            if (baseline) baseline.Damage.OnBlocked -= oppPaid.OnBlocked;
         }
 
         private void OpenEngagement(float time, in CombatSnapshot snapshot)

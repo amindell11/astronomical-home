@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, and no ship id reaches the text.</summary>
+    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, an extracted run carries no killing blow, and no ship id reaches the text.</summary>
     [Category("Bootstrap")]
     public class RunRecordEditModeTests
     {
@@ -53,20 +53,23 @@ namespace Tests.EditMode.Runs
             spawns.End(42.5f);
 
             var ledger = new DamageLedger();
-            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 3f);
-            ledger.Record(Hit(15f, DamageKind.Laser, Laserer), 4f);
-            ledger.Record(Hit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 3f);
+            ledger.Record(AppliedHit(15f, DamageKind.Laser, Laserer), 4f);
+            ledger.Record(AppliedHit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
 
             record = Compose(ledger, spawns);
             json = record.ToJsonLine();
         }
 
         private RunRecord Compose(DamageLedger ledger, SpawnLog spawns) =>
+            Compose(ledger, spawns, 1, Hit(99f, DamageKind.Laser, Laserer));
+
+        private RunRecord Compose(DamageLedger ledger, SpawnLog spawns, int sectorsCleared, DamageInfo? killingBlow) =>
             RunRecord.Compose(
-                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), "TrialSector",
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, "TrialSector",
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
-                new FixedTally(), ledger, spawns, Hit(99f, DamageKind.Laser, Laserer));
+                new FixedTally(), ledger, spawns, killingBlow);
 
         [TearDown]
         public void TearDown()
@@ -86,11 +89,14 @@ namespace Tests.EditMode.Runs
         private static DamageInfo Hit(float amount, DamageKind kind, ShipId attacker) =>
             new(amount, kind, attacker, 0f, Vector3.zero, Vector3.zero);
 
+        private static AppliedDamage AppliedHit(float amount, DamageKind kind, ShipId attacker) =>
+            new(Hit(amount, kind, attacker), amount * 0.4f, amount * 0.6f);
+
         [Test]
         public void JsonLine_IsOneLineTaggedWithTheSchema()
         {
             StringAssert.DoesNotContain("\n", json);
-            StringAssert.Contains("\"schema\":\"run-record-v1\"", json);
+            StringAssert.Contains("\"schema\":\"run-record-v2\"", json);
             Assert.AreEqual(RunRecord.SchemaId, JsonUtility.FromJson<RunRecord>(json).schema);
         }
 
@@ -100,6 +106,8 @@ namespace Tests.EditMode.Runs
             var read = JsonUtility.FromJson<RunRecord>(json);
 
             Assert.AreEqual("2026-10-01T12:34:56Z", read.endedUtc);
+            Assert.AreEqual(RunRecord.Died, read.outcome);
+            Assert.AreEqual(1, read.sectorsCleared);
             Assert.AreEqual("TrialSector", read.sector);
             Assert.AreEqual("abc123", read.buildIdentity.commit);
             Assert.IsTrue(read.buildIdentity.dirty);
@@ -151,6 +159,37 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void DamageSplit_RoundTripsActualPoints_AndMarksOlderRecordsAsUnmeasured()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(json);
+            Assert.IsTrue(read.hasDamageSplit);
+            Assert.AreEqual(10f, read.damage[0].shield, 1e-4f);
+            Assert.AreEqual(15f, read.damage[0].hull, 1e-4f);
+            Assert.AreEqual(16f, read.damage[1].shield, 1e-4f);
+            Assert.AreEqual(24f, read.damage[1].hull, 1e-4f);
+
+            var old = JsonUtility.FromJson<RunRecord>("{\"schema\":\"run-record-v2\",\"damage\":[{\"total\":25}]}");
+            Assert.IsFalse(old.hasDamageSplit);
+            Assert.AreEqual(25f, old.damage[0].total);
+        }
+
+        [Test]
+        public void ExtractedRun_CarriesNoKillingBlow()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.End(30f);
+
+            var read = JsonUtility.FromJson<RunRecord>(Compose(new DamageLedger(), spawns, 3, null).ToJsonLine());
+
+            Assert.AreEqual(RunRecord.Extracted, read.outcome);
+            Assert.AreEqual(3, read.sectorsCleared);
+            Assert.AreEqual(string.Empty, read.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        [Test]
         public void DamageRows_SplitByTheAttackersLife()
         {
             var spawns = new SpawnLog();
@@ -162,9 +201,9 @@ namespace Tests.EditMode.Runs
             spawns.End(30f);
 
             var ledger = new DamageLedger();
-            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 5f);
-            ledger.Record(Hit(20f, DamageKind.Laser, Laserer), 20f);
-            ledger.Record(Hit(30f, DamageKind.Laser, Laserer), 25f);
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 5f);
+            ledger.Record(AppliedHit(20f, DamageKind.Laser, Laserer), 20f);
+            ledger.Record(AppliedHit(30f, DamageKind.Laser, Laserer), 25f);
 
             var damage = Compose(ledger, spawns).damage;
 

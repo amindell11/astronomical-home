@@ -91,9 +91,7 @@ namespace Tests.PlayMode
                 headless.Register(missile, missile.ReturnToPoolImmediate);
                 yield return null;
 
-                Assert.IsFalse(missile.GetComponent<MissileAudio>().enabled);
-                foreach (var source in missile.GetComponentsInChildren<AudioSource>(true))
-                    Assert.IsFalse(source.enabled, $"audio source '{source.name}' still enabled headless");
+                Assert.IsFalse(missile.GetComponent<MissileAudio>().enabled, "the missile's audio still enabled headless");
                 foreach (var ps in missile.GetComponentsInChildren<ParticleSystem>(true))
                     Assert.IsFalse(ps.isPlaying, $"particle system '{ps.name}' still simulating headless");
                 foreach (var renderer in missile.GetComponentsInChildren<Renderer>(true))
@@ -151,6 +149,48 @@ namespace Tests.PlayMode
 
                 Assert.Greater(ActiveVfxCount(), before,
                     "test premise: a presenting session pools a burst VFX on detonation");
+            }
+            finally
+            {
+                SimplePool<ConcussionWave>.Clear();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ConcussionWaveDisc_FollowsRadius_AndRestartsOnReuse()
+        {
+            var prefab = LoadProjectilePrefab<ConcussionWave>(ConcussionWavePrefabPath);
+            var wave = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+            try
+            {
+                Projectiles.Register(wave, wave.ReturnToPoolImmediate);
+                var disc = wave.GetComponentInChildren<MeshRenderer>();
+                var properties = new MaterialPropertyBlock();
+                wave.Begin(new Ships.Registry.ShipId(1));
+                yield return new WaitForFixedUpdate();
+                yield return null;
+
+                disc.GetPropertyBlock(properties);
+                var progress = properties.GetFloat("_WaveProgress");
+                Assert.Greater(progress, 0f);
+                Assert.AreEqual(wave.transform.localScale.x / wave.MaxRadius, progress, 0.0001f);
+
+                wave.ReturnToPoolImmediate();
+                var reused = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+                Assert.AreSame(wave, reused);
+                disc.GetPropertyBlock(properties);
+                Assert.AreEqual(0f, properties.GetFloat("_WaveProgress"));
+                Assert.AreEqual(Vector3.zero, reused.transform.localScale);
+
+                Projectiles.Register(reused, reused.ReturnToPoolImmediate);
+                reused.Begin(new Ships.Registry.ShipId(1));
+                yield return new WaitForFixedUpdate();
+                yield return null;
+                disc.GetPropertyBlock(properties);
+                Assert.Greater(properties.GetFloat("_WaveProgress"), 0f);
+                Assert.AreEqual(reused.transform.localScale.x / reused.MaxRadius,
+                    properties.GetFloat("_WaveProgress"), 0.0001f);
+                reused.ReturnToPoolImmediate();
             }
             finally
             {

@@ -94,7 +94,7 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             var eventDamage = 0f;
-            dc.OnDamaged += hit => eventDamage = hit.Amount;
+            dc.OnDamaged += hit => eventDamage = hit.Info.Amount;
             var died = false;
             dc.OnDeath += (_, _) => died = true;
 
@@ -105,6 +105,36 @@ namespace Tests.EditMode
             Assert.IsTrue(died, "A single hit exceeding shield + hull kills");
             Assert.AreEqual(150f, eventDamage, 0.001f,
                 "OnDamaged reports total absorbed, capped at shield + hull");
+        }
+
+        [Test]
+        public void TakeDamage_KillingBlow_ReturnsTheDamageBeyondShieldAndHull()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            Assert.AreEqual(50f, dc.TakeDamage(Hit(200f)), 0.001f, "200 into 50 shield + 100 hull leaves 50 over");
+        }
+
+        [Test]
+        public void TakeDamage_Survivor_ReturnsNoOverkill()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            Assert.AreEqual(0f, dc.TakeDamage(Hit(149f)), "one point of hull left: nothing passes on");
+        }
+
+        [Test]
+        public void TakeDamage_Invulnerable_ReturnsNoOverkill()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            dc.SetInvulnerability(10f);
+            Assert.AreEqual(0f, dc.TakeDamage(Hit(500f)), "an invulnerable ship absorbs the whole hit");
+        }
+
+        [Test]
+        public void TakeDamage_AlreadyDead_PassesTheWholeHitOn()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            dc.TakeDamage(Hit(150f));
+            Assert.AreEqual(40f, dc.TakeDamage(Hit(40f)), 0.001f, "a dead ship no longer soaks damage");
         }
 
         [Test]
@@ -127,7 +157,7 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             var eventDamage = 0f;
-            dc.OnDamaged += hit => eventDamage = hit.Amount;
+            dc.OnDamaged += hit => eventDamage = hit.Info.Amount;
 
             dc.TakeDamage(Hit(35f, DamageKind.Missile, bypassesShield: true));
 

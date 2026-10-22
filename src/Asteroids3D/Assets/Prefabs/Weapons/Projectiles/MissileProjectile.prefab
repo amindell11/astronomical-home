@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 5555555555555555555}
   - component: {fileID: 4444444444444444444}
   - component: {fileID: 4664427866684414092}
-  - component: {fileID: 8872551713227938681}
   - component: {fileID: 7310584162907163219}
   - component: {fileID: 8040663769741657070}
   m_Layer: 6
@@ -161,7 +160,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12c33cbfe9ba4b188aacac0fd55b0a14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explosionPrefab: {fileID: 1348244713221931572, guid: f2996a623a527754b92cee330859cd26,
+  explosionPrefab: {fileID: 3373917595837276650, guid: 5b588d256bcbdfd44a6a60994466243f,
     type: 3}
 --- !u!114 &4444444444444444444
 MonoBehaviour:
@@ -175,16 +174,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d17ed7d4b5e44a08894a03265c624d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  launchClip: {fileID: 8300000, guid: 16464fb04ce769340a41ab92bfee321f, type: 3}
-  engineLoopClip: {fileID: 8300000, guid: 5f5f1c8b4076b384cb0cab85275dc42d, type: 3}
-  detonationClip: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
-  engineStartDelay: 0.15
-  engineFadeInTime: 0.25
-  launchVolume: 0.709
-  engineVolume: 0.7
-  detonationVolume: 0.817
-  minEnginePitch: 0.9
-  maxEnginePitch: 1.1
+  flightEvent:
+    Guid:
+      Data1: 684577342
+      Data2: 1248393520
+      Data3: -820898944
+      Data4: 1242890396
+    Path: event:/Weapons/Missile/Flight
+  detonateEvent:
+    Guid:
+      Data1: -1867546031
+      Data2: 1092276327
+      Data3: -2127032165
+      Data4: -581191371
+    Path: event:/Weapons/Missile/Detonate
 --- !u!136 &4664427866684414092
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -208,104 +211,6 @@ CapsuleCollider:
   m_Height: 1.1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!82 &8872551713227938681
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3744751405240154114}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: -4398537627550300033, guid: 4ed3698785d83114aa13f7dac441a859,
-    type: 2}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 0
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 2.82
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0.804
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0.1388889
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &7310584162907163219
 MonoBehaviour:
   m_ObjectHideFlags: 0

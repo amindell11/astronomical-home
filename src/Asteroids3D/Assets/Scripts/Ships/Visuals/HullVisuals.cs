@@ -148,8 +148,9 @@ namespace Ships.Visuals
                 smoke.gameObject.SetActive(showSmoke);
         }
 
-        private void SpawnSparks(DamageInfo hit)
+        private void SpawnSparks(AppliedDamage damage)
         {
+            var hit = damage.Info;
             if (!sparksPrefab || hit.Amount <= 0f) return;
 
             SimplePool<PooledVFX>.Get(sparksPrefab, hit.HitPoint, Quaternion.identity);
@@ -174,8 +175,9 @@ namespace Ships.Visuals
             }
         }
 
-        private void TriggerFlash(DamageInfo hit)
+        private void TriggerFlash(AppliedDamage damage)
         {
+            var hit = damage.Info;
             if (hit.Amount <= 0f || !hull || flashHeld) return;
             flashActive = true;
             flashElapsed = 0f;

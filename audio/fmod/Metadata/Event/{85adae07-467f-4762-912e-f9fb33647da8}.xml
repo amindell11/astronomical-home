@@ -56,10 +56,16 @@
 			<destination>{8acf36c4-2fca-48aa-88ca-926a595027c8}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{2fbb1511-ccb2-4fd2-9a27-eff30263dc28}</destination>
+			<destination>{57133508-ab15-4f89-848d-aab93f0763d7}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{496ec519-164e-4e3f-8a8d-7258ad1bc189}">
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
+		<property name="dopplerScale">
+			<value>30</value>
+		</property>
 		<property name="maximumDistance">
 			<value>115</value>
 		</property>
