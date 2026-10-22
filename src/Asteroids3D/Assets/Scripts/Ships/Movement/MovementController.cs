@@ -15,6 +15,7 @@ namespace Ships.Movement
         private Keystone keystone;
         internal ResolvedShipStats settings;
         private PilotCommand currentCommand;
+        private float speedCap;
         public Kinematics Kinematics => getKinematics();
         private Func<Kinematics> getKinematics;
         /// <summary>The piloting command applied on the most recent step (read by visuals/audio).</summary>
@@ -51,7 +52,7 @@ namespace Ships.Movement
         private void ApplySettings(ResolvedShipStats s)
         {
             if (!rb) return;
-            rb.maxLinearVelocity = s.maxSpeed;
+            rb.maxLinearVelocity = speedCap = s.maxSpeed;
             // Rigidbody.maxAngularVelocity is in radians/second, but Settings.maxYawRate is in degrees/second.
             rb.maxAngularVelocity = s.maxYawRate * Mathf.Deg2Rad;
             rb.linearDamping = s.linearDrag;
@@ -63,19 +64,30 @@ namespace Ships.Movement
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+            rb.maxLinearVelocity = speedCap = settings.maxSpeed;
             currentCommand = default;
         }
 
         private void FixedUpdate()
         {
             var kinematics = Kinematics;
-            var boost = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated);
+            var boost = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated, settings.maxSpeed);
             currentCommand.boost = activated ? 1f : 0f;
-            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings);
-            ApplyForces(outs.thrust, outs.strafe, boost, outs.yawTorque, outs.bank);
+            ApplySpeedCap(Time.fixedDeltaTime);
+            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
+            var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
+            ApplyForces(thrust, outs.strafe, boost, outs.yawTorque, outs.bank);
             ConstrainRotation();
         }
 
+
+        // A raised cap takes effect at once; a lowered one bleeds down at the rate drag alone sheds the base cap.
+        private void ApplySpeedCap(float dt)
+        {
+            var target = settings.maxSpeed * keystone.SpeedScale;
+            speedCap = target >= speedCap ? target : Mathf.Max(target, speedCap - settings.maxSpeed * settings.linearDrag * dt);
+            rb.maxLinearVelocity = speedCap;
+        }
 
         private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank)
         {

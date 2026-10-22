@@ -92,6 +92,8 @@ namespace AI
         {
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
             var kin = context.Kinematics;
+            dynamics = context.Dynamics;
+            mpc.SetDynamics(in dynamics);
             if (ShouldIdle())
                 return currentCommand = default;
 
