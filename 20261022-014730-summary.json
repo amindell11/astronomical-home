@@ -1,0 +1,136 @@
+{
+    "generatedAt":  "2026-10-22T01:53:51.2194777-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-10\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "CameraUtils|ObserverCamInputHandler|CameraFollow|MinimapWiring|GameHostRig|LocaleSky|FlatBackground",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  36,
+                   "passed":  35,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  8.737
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-10\\results\\unity-tests-agent\\20261022-014730-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-10\\results\\unity-tests-agent\\20261022-014730-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  30,
+                     "passed":  30,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  5.817651,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "CameraUtils|ObserverCamInputHandler|CameraFollow|MinimapWiring|GameHostRig|LocaleSky|FlatBackground",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-22 08:53:22Z",
+                     "finishedAt":  "2026-10-22 08:53:28Z"
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-10\\results\\unity-tests-agent\\20261022-014730-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-10\\results\\unity-tests-agent\\20261022-014730-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "unknown",
+                     "total":  6,
+                     "passed":  5,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  2.9193464,
+                     "failures":  [
+                                      {
+                                          "name":  "F6_CyclesViews_WithAlignedAimAndIndependentMinimap",
+                                          "fullName":  "Tests.PlayMode.Cameras.ObserverCamInputHandlerPlayModeTests.F6_CyclesViews_WithAlignedAimAndIndependentMinimap",
+                                          "durationSec":  0.813024,
+                                          "message":  "Unhandled log message: \u0027[Error] RenderTexture.Create failed\u0027. Use UnityEngine.TestTools.LogAssert.Expect",
+                                          "topStack":  "UnityEngine.Rendering.RenderPipelineManager:DoRenderLoop_Internal (UnityEngine.Rendering.RenderPipelineAsset,intptr,UnityEngine.Object,Unity.Collections.LowLevel.Unsafe.AtomicSafetyHandle)"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "CameraUtils|ObserverCamInputHandler|CameraFollow|MinimapWiring|GameHostRig|LocaleSky|FlatBackground",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-22 08:53:38Z",
+                     "finishedAt":  "2026-10-22 08:53:41Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  381.126,
+                       "startupToFirstTestSec":  343.616,
+                       "executionSec":  9,
+                       "remainingSec":  28.511,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  10472,
+                                         "rootPeakPrivateGB":  2.546,
+                                         "rootPeakWorkingSetGB":  2.312,
+                                         "treePeakSampledPrivateGB":  2.914,
+                                         "treePeakSampledWorkingSetGB":  2.775,
+                                         "treeSumOfPeaksPrivateGB":  5.81,
+                                         "commitHeadroomAtLaunchGB":  19.94,
+                                         "commitHeadroomMinGB":  9.44,
+                                         "availablePhysicalAtLaunchGB":  5.06,
+                                         "availablePhysicalMinGB":  0.04,
+                                         "bootLaneReleasedAtSec":  12.452,
+                                         "treePeakAtSec":  291.403,
+                                         "samples":  44,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
