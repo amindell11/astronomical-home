@@ -54,8 +54,10 @@ namespace Combat.Weapons.Arsenal
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
+            var trackedBefore = live.Count;
             var charge = (Grenade)base.Fire(targetPoint, projectiles);
             if (!charge) return null;
+            SelfHitDebug.Log($"fire charge={charge.GetInstanceID()} trackerLiveBefore={trackedBefore} requested={SelfHitDebug.P(targetPoint)}");
             Track(charge);
             Launched?.Invoke(charge);
             return charge;

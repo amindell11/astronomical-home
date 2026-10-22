@@ -31,8 +31,13 @@ namespace Combat.Projectiles
         private float radius;
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
+        internal int dbgChargeId;
+        internal string dbgCause;
+        internal Rigidbody dbgShooterBody;
+        internal global::Ships.Ship dbgShooter;
 
         public float Radius => radius;
+        internal float DbgExpand => expandSpeed;
         public float MaxRadius => maxRadius;
         public float MaxDamage => maxDamage;
 
@@ -56,6 +61,8 @@ namespace Combat.Projectiles
             radius = 0f;
             resolved.Clear();
             swept.Clear();
+            SelfHitDebug.LiveWaves.Add(this);
+            SelfHitDebug.Log($"wave-begin wave={GetInstanceID()} charge={dbgChargeId} centre={SelfHitDebug.P(transform.position)} attacker={attackerId} maxRadius={maxRadius:F1} expand={expandSpeed:F1} dShooter={SelfHitDebug.Dist(transform.position, dbgShooter):F2} dTarget={SelfHitDebug.Dist(transform.position, SelfHitDebug.Target):F2}");
             Begun?.Invoke();
         }
 
@@ -71,6 +78,8 @@ namespace Combat.Projectiles
         /// <summary>Immediately returns this wave to its pool, ending the sweep (episode/scene flush).</summary>
         public void ReturnToPoolImmediate()
         {
+            if (SelfHitDebug.LiveWaves.Remove(this))
+                SelfHitDebug.Log($"wave-end wave={GetInstanceID()} charge={dbgChargeId} radius={radius:F2}");
             Released?.Invoke();
             SimplePool<ConcussionWave>.Release(this);
         }
@@ -101,6 +110,9 @@ namespace Combat.Projectiles
 
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
+                var dbgSelf = buffer[i].attachedRigidbody && buffer[i].attachedRigidbody == dbgShooterBody;
+                SelfHitDebug.Log($"wave-hit wave={GetInstanceID()} charge={dbgChargeId} cause={dbgCause} radius={radius:F2} victim={target.gameObject.name} collider={buffer[i].name} self={dbgSelf} dmg={maxDamage * damageFalloff:F1} centre={SelfHitDebug.P(transform.position)} hitPoint={SelfHitDebug.P(hitPoint)} dHitPoint={Vector3.Distance(transform.position, hitPoint):F2}");
+                if (dbgSelf) SelfHitDebug.Log("SELF-HIT " + SelfHitDebug.Dump());
                 Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
                 target.TakeDamage(new DamageInfo(maxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
                     waveMass, outward * expandSpeed, hitPoint));

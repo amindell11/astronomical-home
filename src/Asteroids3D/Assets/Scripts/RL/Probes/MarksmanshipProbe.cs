@@ -130,6 +130,8 @@ namespace RL.Probes
             target = context.draw.archetype;
             seed = context.spec.runSeed;
             episodeIndex = context.episodeIndex;
+            Combat.Projectiles.SelfHitDebug.Episode = $"{label}/s{seed}/e{episodeIndex}";
+            Combat.Projectiles.SelfHitDebug.T0 = Time.fixedTime;
             sampler = new MarksmanshipSampler(context.pair.Agent, context.pair.Baseline);
         }
 
@@ -156,6 +158,7 @@ namespace RL.Probes
                 order.Add(label);
             }
             rows.Add(row);
+            Combat.Projectiles.SelfHitDebug.Log($"episode-end outcome={result.outcome} endKind={result.endKind} sim={result.simSeconds:F2} selfHits={row.tally.selfHits} fired={row.tally.fired} hits={row.tally.hits}");
             sampler.Dispose();
             sampler = null;
             return row.ToJsonLine();

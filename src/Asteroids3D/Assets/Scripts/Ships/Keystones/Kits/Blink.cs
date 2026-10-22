@@ -42,7 +42,11 @@ namespace Ships.Keystones.Kits
             trackedAtJump.Clear();
             trackedAtJump.AddRange(Host.Lock.Trackers);
             var aim = target ?? kinematics.pos + kinematics.Forward * range;
-            return new KeystoneEffect(Vector2.zero, ClearJump(kinematics.pos, Vector2.ClampMagnitude(aim - kinematics.pos, range)));
+            var dbgJump = ClearJump(kinematics.pos, Vector2.ClampMagnitude(aim - kinematics.pos, range));
+            var dbgLanding = kinematics.pos + dbgJump;
+            var dbgIsShooter = Combat.Projectiles.SelfHitDebug.Shooter && Host.Body == Combat.Projectiles.SelfHitDebug.Shooter.Body;
+            Combat.Projectiles.SelfHitDebug.Log($"blink isShooter={dbgIsShooter} from=({kinematics.pos.x:F2},{kinematics.pos.y:F2}) vel=({kinematics.vel.x:F2},{kinematics.vel.y:F2}) target={(target.HasValue ? $"({target.Value.x:F2},{target.Value.y:F2})" : "none")} targetDist={(target.HasValue ? Vector2.Distance(target.Value, kinematics.pos) : -1f):F2} jump=({dbgJump.x:F2},{dbgJump.y:F2}) jumpLen={dbgJump.magnitude:F2} landing=({dbgLanding.x:F2},{dbgLanding.y:F2}) " + Combat.Projectiles.SelfHitDebug.VsTransients(dbgLanding) + " " + Combat.Projectiles.SelfHitDebug.Dump());
+            return new KeystoneEffect(Vector2.zero, dbgJump);
         }
 
         protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)

@@ -137,8 +137,15 @@ namespace RL.Opponents
             {
                 case OpponentArchetype.Aggressor:
                 case OpponentArchetype.Kiter:
-                    return Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, target.Kinematics,
-                        ctx.HoldRange ?? shape.desiredRange, shape.speedFraction * maxSpeed), engages: true);
+                {
+                    var dbgHold = ctx.HoldRange ?? shape.desiredRange;
+                    var dbgLaw = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, dbgHold, shape.speedFraction * maxSpeed);
+                    var dbgDecision = Pack(ctx.Self, dbgLaw, engages: true);
+                    var dbgCmd = dbgDecision.nav.planarVelocity;
+                    Combat.Projectiles.SelfHitDebug.LastBrain = $"t={Combat.Projectiles.SelfHitDebug.T:F2} hold={dbgHold:F1} ctxHold={(ctx.HoldRange.HasValue ? ctx.HoldRange.Value.ToString("F1") : "none")} dist={Vector2.Distance(self.pos, target.Kinematics.pos):F2} selfPos=({self.pos.x:F2},{self.pos.y:F2}) selfVel=({self.vel.x:F2},{self.vel.y:F2}) fwd=({self.Forward.x:F2},{self.Forward.y:F2}) law=({dbgLaw.x:F2},{dbgLaw.y:F2}) cmd=({dbgCmd.x:F2},{dbgCmd.y:F2}) maxSpeed={maxSpeed:F1}";
+                    Combat.Projectiles.SelfHitDebug.Log("brain " + Combat.Projectiles.SelfHitDebug.LastBrain);
+                    return dbgDecision;
+                }
                 case OpponentArchetype.Evader:
                     if (recomputes++ % jukeEveryRecomputes == 0)
                         jukeSign = rng.Next(2) == 0 ? -1 : 1;

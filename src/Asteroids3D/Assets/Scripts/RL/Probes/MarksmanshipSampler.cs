@@ -66,6 +66,10 @@ namespace RL.Probes
                 hasCharge = charge != null,
             };
 
+            Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+            Combat.Projectiles.SelfHitDebug.Shooter = shooter;
+            Combat.Projectiles.SelfHitDebug.Target = target;
+            Combat.Projectiles.SelfHitDebug.Log($"episode-begin shooter[{Combat.Projectiles.SelfHitDebug.ShipState(shooter)}] target[{Combat.Projectiles.SelfHitDebug.ShipState(target)}] shooterId={shooter.Id} targetId={target.Id}");
             weapon.OnFire += OnFired;
             target.Damage.OnDamaged += OnTargetDamaged;
             target.Damage.OnDeath += OnTargetDeath;
@@ -150,6 +154,7 @@ namespace RL.Probes
         private void OnTargetDamaged(AppliedDamage damage)
         {
             var hit = damage.Info;
+            Combat.Projectiles.SelfHitDebug.Log($"target-damaged applied={hit.Amount:F2} kind={hit.Kind} attacker={hit.AttackerId} target[{Combat.Projectiles.SelfHitDebug.ShipState(target)}]");
             if (!IsWeaponHit(in hit)) return;
             tally.hits++;
             tally.damageDealt += hit.Amount;
@@ -160,6 +165,7 @@ namespace RL.Probes
         private void OnShooterDamaged(AppliedDamage damage)
         {
             var hit = damage.Info;
+            Combat.Projectiles.SelfHitDebug.Log($"shooter-damaged applied={hit.Amount:F2} kind={hit.Kind} attacker={hit.AttackerId} counted={IsWeaponHit(in hit)} hitPoint={Combat.Projectiles.SelfHitDebug.P(hit.HitPoint)} hitVel=({hit.HitVelocity.x:F1},{hit.HitVelocity.y:F1},{hit.HitVelocity.z:F1}) " + Combat.Projectiles.SelfHitDebug.Dump());
             if (IsWeaponHit(in hit)) tally.selfHits++;
         }
 
