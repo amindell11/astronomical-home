@@ -1,0 +1,76 @@
+{
+    "schema": "duel-summary-v1",
+    "seeds": [
+        3001,
+        3002,
+        3003
+    ],
+    "episodesPerSeed": 2,
+    "timeoutDecisions": 300,
+    "blocks": [
+        {
+            "label": "Lasers-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Lasers-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "TurboLasers-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "TurboLasers-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "ChargeLasers-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "ChargeLasers-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "Missiles-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Missiles-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "Rippers-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Rippers-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "Railgun-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Railgun-Orbiter",
+            "episodes": 6
+        },
+        {
+            "label": "Grenades-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Grenades-Orbiter",
+            "episodes": 6
+        }
+    ],
+    "episodesJsonl": "D:\\amind\\git\\agent-5\\results\\duel-mines-ai\\duel-all-20261022-163009-163736\\20261022-163036-duel-custom.jsonl",
+    "probes": [
+        {
+            "name": "marksmanship",
+            "jsonl": "D:\\amind\\git\\agent-5\\results\\duel-mines-ai\\duel-all-20261022-163009-163736\\20261022-163036-duel-custom-marksmanship.jsonl",
+            "summary": "D:\\amind\\git\\agent-5\\results\\duel-mines-ai\\duel-all-20261022-163009-163736\\20261022-163036-duel-custom-marksmanship-probe.json"
+        }
+    ]
+}
