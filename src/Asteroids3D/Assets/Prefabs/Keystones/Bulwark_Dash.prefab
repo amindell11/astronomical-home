@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2984417602718356061}
   - component: {fileID: 5512903418735166201}
+  - component: {fileID: 3361187402269917645}
   m_Layer: 0
   m_Name: Bulwark_Dash
   m_TagString: Untagged
@@ -41,8 +42,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 7781260934417810432}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 09bc9df99c834f3c99dc84ba43a961ee, type: 3}
+  m_Script: {fileID: 11500000, guid: 61b524559ff147f4b055de280d9770a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cooldown: 7
   impulse: 13500
+  window: 0.6
+  shipDamage: 60
+--- !u!114 &3361187402269917645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f18e88eeca4b609d49135ae0f732bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  color: {r: 1, g: 0.6, b: 0.1, a: 1}

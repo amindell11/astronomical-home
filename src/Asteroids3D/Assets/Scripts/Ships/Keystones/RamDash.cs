@@ -1,0 +1,61 @@
+using Asteroids;
+using Balance;
+using Damage;
+using Movement;
+using UnityEngine;
+
+namespace Ships.Keystones
+{
+    /// <summary>
+    /// Bulwark's kit: a dash that is a live ram for a short window or until its first contact,
+    /// immune to collision damage meanwhile. The first contact resolves it: a ship takes ram damage
+    /// scaled by how square the hit is, a lighter rock shatters, a heavier one just stops the ship.
+    /// That contact's own step stays immune, so the rock's collision damage on it is dropped too.
+    /// </summary>
+    public sealed class RamDash : Dash
+    {
+        [Tooltip("Seconds after activation during which the dash is a live ram, until its first contact.")]
+        [Stat, SerializeField] private float window = 0.6f;
+
+        [Tooltip("Damage a head-on ram deals a ship; a glancing hit deals less.")]
+        [Stat, SerializeField] private float shipDamage = 60f;
+
+        private bool resolved;
+        private float resolvedAt;
+
+        public override string DisplayName => "Ram";
+        public float Window => window;
+        public float ShipDamage => shipDamage;
+        public bool RamLive => SinceActivation < window && (!resolved || SinceActivation == resolvedAt);
+        public override bool Active => RamLive;
+
+        public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
+
+        public override void OnContact(in KeystoneContact contact)
+        {
+            if (!RamLive || resolved) return;
+            resolved = true;
+            resolvedAt = SinceActivation;
+
+            var target = contact.Other.GetComponentInParent<IDamageable>();
+            if (target == null) return;
+            if (target is AsteroidDamage)
+            {
+                if (!contact.OtherBody || contact.OtherBody.mass >= contact.SelfMass) return;
+                target.TakeDamage(Hit(float.MaxValue, in contact));
+            }
+            else
+                target.TakeDamage(Hit(shipDamage * contact.ClosingFraction, in contact));
+            CreditActivation();
+        }
+
+        protected override Vector2 Activate(in Kinematics kinematics)
+        {
+            resolved = false;
+            return base.Activate(in kinematics);
+        }
+
+        private static DamageInfo Hit(float amount, in KeystoneContact contact) =>
+            new(amount, DamageKind.Collision, contact.Self, contact.SelfMass, contact.SelfVelocity, contact.Point);
+    }
+}

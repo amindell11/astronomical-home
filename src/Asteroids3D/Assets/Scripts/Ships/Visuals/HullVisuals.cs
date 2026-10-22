@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Damage;
 using Ships.Damage;
 using Ships.Presentation;
@@ -7,6 +8,12 @@ using Ships.Registry;
 
 namespace Ships.Visuals
 {
+    /// <summary>
+    /// The hull's damage feedback (flash, sparks, smoke, death VFX) and the single owner of the hull
+    /// flash: <see cref="HoldFlash"/> holds every hull surface in a keystone tell's colour, and the
+    /// damage flash yields to it. The hold works while this component is disabled, as it is on the
+    /// illustrated hulls until their damage feedback returns.
+    /// </summary>
     public class HullVisuals : MonoBehaviour, IShipVisual
     {
         [SerializeField] private Renderer hull;
@@ -44,11 +51,24 @@ namespace Ships.Visuals
 
         public bool DeathEffectPlaying => Time.time < deathEffectEndAt || unpooledDeathEffect;
 
+        private readonly List<Renderer> surfaces = new();
+        private readonly List<Color> surfaceBase = new();
+        private bool flashHeld;
+
         private void Awake()
         {
             block = new MaterialPropertyBlock();
             if (explosionPrefab) pooledExplosion = explosionPrefab.GetComponent<PooledVFX>();
             if (collisionExplosionPrefab) pooledCollisionExplosion = collisionExplosionPrefab.GetComponent<PooledVFX>();
+            var rig = GetComponentInParent<ShipVisualRig>(true);
+            if (rig) surfaces.AddRange(rig.Silhouette);
+            if (hull && !surfaces.Contains(hull)) surfaces.Add(hull);
+            foreach (var surface in surfaces)
+            {
+                surface.GetPropertyBlock(block);
+                surfaceBase.Add(block.HasColor(Color) ? block.GetColor(Color)
+                    : surface.sharedMaterial.HasProperty(Color) ? surface.sharedMaterial.GetColor(Color) : UnityEngine.Color.white);
+            }
             if (!hull) return;
             supportsDamageFlash = hull.sharedMaterial.HasProperty(DamageFlash);
             hull.GetPropertyBlock(block);
@@ -144,10 +164,29 @@ namespace Ships.Visuals
             SimplePool<PooledVFX>.Get(sparksPrefab, hit.HitPoint, Quaternion.identity);
         }
 
+        public void HoldFlash(Color color) => SetHold(true, color);
+
+        public void ReleaseFlash() => SetHold(false, default);
+
+        private void SetHold(bool held, Color color)
+        {
+            flashHeld = held;
+            flashActive = false;
+            for (var i = 0; i < surfaces.Count; i++)
+            {
+                var surface = surfaces[i];
+                if (!surface) continue;
+                surface.GetPropertyBlock(block);
+                block.SetColor(Color, held ? color : surfaceBase[i]);
+                block.SetFloat(DamageFlash, held ? 1f : 0f);
+                surface.SetPropertyBlock(block);
+            }
+        }
+
         private void TriggerFlash(AppliedDamage damage)
         {
             var hit = damage.Info;
-            if (hit.Amount <= 0f || !hull) return;
+            if (hit.Amount <= 0f || !hull || flashHeld) return;
             flashActive = true;
             flashElapsed = 0f;
             ApplyFlashColor(0f);
