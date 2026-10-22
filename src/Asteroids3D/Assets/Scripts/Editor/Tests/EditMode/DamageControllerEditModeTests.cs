@@ -94,7 +94,7 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             var eventDamage = 0f;
-            dc.OnDamaged += hit => eventDamage = hit.Amount;
+            dc.OnDamaged += hit => eventDamage = hit.Info.Amount;
             var died = false;
             dc.OnDeath += (_, _) => died = true;
 
@@ -157,7 +157,7 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             var eventDamage = 0f;
-            dc.OnDamaged += hit => eventDamage = hit.Amount;
+            dc.OnDamaged += hit => eventDamage = hit.Info.Amount;
 
             dc.TakeDamage(Hit(35f, DamageKind.Missile, bypassesShield: true));
 

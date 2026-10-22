@@ -52,7 +52,6 @@ namespace Ships
                  "Null → the ship has no visuals.")]
         [SerializeField] private ShipVisualRig visualRig;
 
-        /// <summary>Change via <see cref="Reequip"/>, not by writing the field.</summary>
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
@@ -135,11 +134,9 @@ namespace Ships
         /// <summary>Resolve stats without instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        /// <summary>Between-run full-build swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
-        public void Reequip(EngineModule newEngine, ShieldModule newShield,
-            WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        /// <summary>Between-run module swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
+        public void Reequip(ShieldModule newShield, WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
         {
-            engine = newEngine;
             shield = newShield;
 
             if (Weapons)

@@ -21,7 +21,6 @@ namespace UI.Hangar
     {
         [Header("Option rows")]
         [SerializeField] internal OptionCycler shipRow;
-        [SerializeField] internal OptionCycler engineRow;
         [SerializeField] internal OptionCycler shieldRow;
         [SerializeField] internal OptionCycler primaryWeaponRow;
         [SerializeField] internal OptionCycler secondaryWeaponRow;
@@ -72,14 +71,12 @@ namespace UI.Hangar
                 BindRow(shipRow, offer.ships, () => loadout.Ship, (s, step) =>
                 {
                     loadout.Ship = s;
-                    loadout.Engine = s.Engine;
                     loadout.Shield = s.Shield;
                     var mounts = s.Weapons;
                     loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
                     loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout, backwards: step < 0);
                 }, Describe);
-                BindRow(engineRow, offer.engines, () => loadout.Engine, (m, _) => loadout.Engine = m, Describe, ModuleLabel);
                 BindRow(shieldRow, offer.shields, () => loadout.Shield, (m, _) => loadout.Shield = m, Describe, ModuleLabel);
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
@@ -170,7 +167,8 @@ namespace UI.Hangar
 
         private static string Describe(Ship ship) =>
             $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
-            $"Kit: {(ship.Engine ? ship.Engine.DisplayName : "no engine")} + {(ship.Shield ? ship.Shield.DisplayName : "no shield")}";
+            $"Kit: {(ship.Shield ? ship.Shield.DisplayName : "no shield")}\n" +
+            $"Engine: {ship.Engine.DisplayName}   |   {Describe(ship.Engine)}";
 
         private static string Describe(EngineModule engine) =>
             $"Top speed {engine.maxSpeed:0}   |   Turn {engine.maxYawRate:0} deg/s   |   Thrust {engine.forwardForce:0}   |   " +

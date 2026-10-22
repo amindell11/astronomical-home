@@ -1,85 +1,78 @@
 using System;
+using FMOD.Studio;
+using FMODUnity;
 using Ships.Command;
 using Ships.Presentation;
 using UnityEngine;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 namespace Ships.Audio
 {
     /// <summary>
-    /// Engine audio system that plays separate loops for thrust and strafe movements.
-    /// Thrust audio plays at reduced volume when in reverse.
-    /// AudioSources should have their clips assigned directly in the Inspector.
-    /// The live pilot command is injected via <see cref="Bind"/> (see <see cref="IShipVisual"/>).
+    /// A ship's engine: one sustained sound fed the live pilot command, plus a one-shot each time the
+    /// boost fires, read as the boost-ready state falling. Nothing sounds until the rig is bound, so
+    /// an unbound rig (the hangar preview) stays silent.
     /// </summary>
     public sealed class EngineAudio : MonoBehaviour, IShipVisual
     {
-        [Header("Audio Sources")]
-        [SerializeField] private AudioSource thrustSource;
-        [SerializeField] private AudioSource strafeSource;
+        private const string ThrustParameter = "Thrust";
+        private const string StrafeParameter = "Strafe";
 
-        [Header("Volume Settings")]
-        [SerializeField, Range(0f, 1f)] private float thrustVolume = 1f;
-        [SerializeField, Range(0f, 1f)] private float strafeVolume = 1f;
-        [SerializeField, Range(0f, 1f)] private float reverseVolumeMultiplier = 0.5f;
-
-        [Header("Pitch Modulation")]
-        [Tooltip("Optional pitch modulation based on input intensity (0-1 -> pitch)")]
-        [SerializeField] private AnimationCurve inputToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
+        [Tooltip("Looping FMOD event fed the command's signed thrust and its strafe magnitude.")]
+        [SerializeField] private EventReference engineEvent;
+        [Tooltip("FMOD one-shot played on the ship each time its boost fires.")]
+        [SerializeField] private EventReference boostEvent;
 
         private Func<PilotCommand> command;
-        private bool audioInitialized;
+        private Func<bool> boostAvailable;
+        private Rigidbody body;
+        private bool wasBoostAvailable;
+        private EventInstance engine;
 
-        public void Bind(in ShipView view) => command = view.Command;
+        public void Bind(in ShipView view)
+        {
+            command = view.Command;
+            boostAvailable = view.BoostAvailable;
+            body = view.Body;
+            if (isActiveAndEnabled) Begin();
+        }
 
         private void OnEnable()
         {
-            // Initialize audio sources but don't play yet
-            InitializeAudioSource(thrustSource);
-            InitializeAudioSource(strafeSource);
-            audioInitialized = true;
+            if (command != null) Begin();
         }
 
-        private void InitializeAudioSource(AudioSource source)
-        {
-            if (!source) return;
-            source.loop = true;
-            source.playOnAwake = false;
-            source.spatialBlend = 1f; // 3-D positional
-            source.volume = 0f; // Start silent
-            if (source.clip)
-                source.Play(); // Play but at zero volume
-        }
+        private void OnDisable() => Stop();
 
         private void Update()
         {
-            if (!audioInitialized || command == null || !thrustSource || !strafeSource)
-                return;
+            if (!engine.isValid()) return;
 
             var cmd = command();
-            var thrust = cmd.thrust;
-            var strafe = cmd.strafe;
+            engine.setParameterByName(ThrustParameter, cmd.thrust);
+            engine.setParameterByName(StrafeParameter, Mathf.Abs(cmd.strafe));
 
-            // Calculate thrust volume (reduced for reverse)
-            var thrustIntensity = Mathf.Abs(thrust);
-            var finalThrustVolume = thrustIntensity * thrustVolume;
-            if (thrust < 0f) // Reverse thrust
-            {
-                finalThrustVolume *= reverseVolumeMultiplier;
-            }
+            var available = boostAvailable();
+            if (wasBoostAvailable && !available)
+                RuntimeManager.PlayOneShotAttached(boostEvent, gameObject);
+            wasBoostAvailable = available;
+        }
 
-            // Calculate strafe volume
-            var strafeIntensity = Mathf.Abs(strafe);
-            var finalStrafeVolume = strafeIntensity * strafeVolume;
+        private void Begin()
+        {
+            wasBoostAvailable = boostAvailable();
+            engine = RuntimeManager.CreateInstance(engineEvent);
+            RuntimeManager.AttachInstanceToGameObject(engine, gameObject, body);
+            engine.start();
+        }
 
-            // Apply volumes
-            thrustSource.volume = finalThrustVolume;
-            strafeSource.volume = finalStrafeVolume;
-
-            // Apply pitch modulation based on combined movement intensity
-            var combinedIntensity = Mathf.Clamp01(thrustIntensity + strafeIntensity);
-            var pitch = Mathf.Clamp(inputToPitch.Evaluate(combinedIntensity), 0.1f, 3f);
-            thrustSource.pitch = pitch;
-            strafeSource.pitch = pitch;
+        private void Stop()
+        {
+            if (!engine.isValid()) return;
+            RuntimeManager.DetachInstanceFromGameObject(engine);
+            engine.stop(STOP_MODE.ALLOWFADEOUT);
+            engine.release();
+            engine = default;
         }
     }
 }

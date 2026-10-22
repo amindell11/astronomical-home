@@ -74,6 +74,7 @@ namespace Game.Player
         private const string CloneSuffix = "(Clone)";
 
         private readonly List<Spawn> spawns = new();
+        private int sectorStart;
         private IUnitService units;
         private Func<ShipId> playerId;
         private float startTime;
@@ -101,6 +102,7 @@ namespace Game.Player
         public void Reset()
         {
             spawns.Clear();
+            sectorStart = 0;
             running = false;
             startTime = endTime = 0f;
         }
@@ -109,6 +111,16 @@ namespace Game.Player
         {
             startTime = now;
             running = true;
+        }
+
+        public void BeginSector() => sectorStart = spawns.Count;
+
+        public List<string> KilledShips(bool currentSector = false)
+        {
+            var kills = new List<string>();
+            for (var i = currentSector ? sectorStart : 0; i < spawns.Count; i++)
+                if (spawns[i].KilledByPlayer) kills.Add(spawns[i].Chassis);
+            return kills;
         }
 
         public void End(float now)

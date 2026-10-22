@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System.Collections;
-using Audio;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
@@ -13,15 +12,14 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Presentation
 {
     /// <summary>
     /// The unit service governs ship presentation the way the projectile service governs transients:
     /// what it wires is darkened or lit whole, weapon mounts included. Headless leaves no renderer,
-    /// audio source, particle or part live under the ship, and no death one-shot reaches the pool —
-    /// paired with the presenting case, without which a ship that simply never died would pass.
+    /// audio, particle or part live under the ship, so its damage and death play no one-shot —
+    /// paired with the presenting case, without which a rig whose audio never went live would pass.
     /// </summary>
     [Category("Presentation")]
     public class ShipSpawnPresentationPlayModeTests : PlayModeWorldFixture
@@ -32,7 +30,6 @@ namespace Tests.PlayMode
 
         private GameObject servicesHost;
         private UnitService units;
-        private AudioClip syntheticDeathClip;
 
         public override void TearDown()
         {
@@ -40,9 +37,6 @@ namespace Tests.PlayMode
             units = null;
             DestroyTestObject(servicesHost);
             servicesHost = null;
-            DestroyPooledAudio();
-            if (syntheticDeathClip) Object.DestroyImmediate(syntheticDeathClip);
-            syntheticDeathClip = null;
             base.TearDown();
         }
 
@@ -59,8 +53,10 @@ namespace Tests.PlayMode
 
             foreach (var renderer in ship.GetComponentsInChildren<Renderer>(true))
                 Assert.IsFalse(renderer.enabled, $"renderer '{renderer.name}' still enabled");
-            foreach (var source in ship.GetComponentsInChildren<AudioSource>(true))
-                Assert.IsFalse(source.enabled, $"audio source '{source.name}' still enabled");
+            foreach (var audio in ship.GetComponentsInChildren<EngineAudio>(true))
+                Assert.IsFalse(audio.isActiveAndEnabled, $"engine audio '{audio.name}' still live");
+            foreach (var audio in ship.GetComponentsInChildren<ShipDamageAudio>(true))
+                Assert.IsFalse(audio.isActiveAndEnabled, $"damage audio '{audio.name}' still live");
             foreach (var ps in ship.GetComponentsInChildren<ParticleSystem>(true))
                 Assert.IsFalse(ps.isPlaying, $"particle system '{ps.name}' still simulating");
             foreach (var part in ship.GetComponentsInChildren<IPresentationPart>(true))
@@ -80,47 +76,14 @@ namespace Tests.PlayMode
 
             var rig = ship.GetComponentInChildren<ShipVisualRig>(true);
             Assert.IsTrue(rig.gameObject.activeInHierarchy, "test premise: a presenting rig stays live");
+            var engineAudio = ship.GetComponentInChildren<EngineAudio>(true);
+            var damageAudio = ship.GetComponentInChildren<ShipDamageAudio>(true);
+            Assert.IsTrue(engineAudio && damageAudio, "test premise: Vanguard embeds engine and damage audio");
+            Assert.IsTrue(engineAudio.isActiveAndEnabled, "a presenting ship's engine audio is live");
+            Assert.IsTrue(damageAudio.isActiveAndEnabled, "a presenting ship's damage audio hears its hits and death");
             Assert.IsTrue(beam.enabled, "the mounted beam visual listens for shots");
             Assert.IsFalse(beam.GetComponent<LineRenderer>().enabled,
                 "the beam owns its line against the sweep: only a shot lights it");
-        }
-
-        [UnityTest]
-        public IEnumerator HeadlessShipDeath_ChecksOutNoPooledAudio()
-        {
-            var ship = SpawnShip(presentationEnabled: false);
-            yield return null;
-
-            var before = ActivePooledAudioCount();
-            TestDamage.Kill(ship);
-            yield return null;
-
-            Assert.AreEqual(before, ActivePooledAudioCount(),
-                "a headless ship's death must pool no one-shot");
-        }
-
-        [UnityTest]
-        public IEnumerator PresentingShipDeath_ChecksOutPooledAudio()
-        {
-            var ship = SpawnShip(presentationEnabled: true);
-            yield return null;
-
-            var damageAudio = ship.GetComponentInChildren<ShipDamageAudio>(true);
-            Assert.IsNotNull(damageAudio, "test premise: Vanguard embeds damage audio");
-            // The checkout may lack the authored clip; one second outlives the pool's clip.length release.
-            const int sampleRate = 44100;
-            syntheticDeathClip = AudioClip.Create("SyntheticDeath", sampleRate, 1, sampleRate, false);
-            Assert.IsTrue(syntheticDeathClip, "test premise: the audio system creates the synthetic clip");
-            var serialized = new SerializedObject(damageAudio);
-            serialized.FindProperty("deathClip").objectReferenceValue = syntheticDeathClip;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-
-            var before = ActivePooledAudioCount();
-            TestDamage.Kill(ship);
-            yield return null;
-
-            Assert.Greater(ActivePooledAudioCount(), before,
-                "test premise: a presenting ship's death plays its pooled death clip");
         }
 
         // Re-equip mid-life is the moment the seam must reach a ship's swapped-in mounts.
@@ -130,7 +93,7 @@ namespace Tests.PlayMode
             var missiles = AssetDatabase.LoadAssetAtPath<WeaponComponent>(MissilesPath);
             Assert.IsTrue(railgun && missiles, "test premise: both mount prefabs load");
 
-            ship.Reequip(null, null, railgun, missiles);
+            ship.Reequip(null, railgun, missiles);
             units.WireShipDependencies(ship, Field);
 
             var beam = ship.GetComponentInChildren<RailBeamVisual>(true);
@@ -149,22 +112,6 @@ namespace Tests.PlayMode
             var ship = units.SpawnShip(prefab, null, team: 0, Vector3.zero, Quaternion.identity, Field);
             Assert.IsNotNull(ship, "the unit service spawned the ship");
             return ship;
-        }
-
-        private static int ActivePooledAudioCount()
-        {
-            var count = 0;
-            foreach (var source in Object.FindObjectsByType<PooledAudioSource>(FindObjectsSortMode.None))
-                if (source.gameObject.activeInHierarchy) count++;
-            return count;
-        }
-
-        // The pool's Clear destroys only stacked instances; a checked-out one-shot would outlive this fixture.
-        private static void DestroyPooledAudio()
-        {
-            foreach (var source in Object.FindObjectsByType<PooledAudioSource>(FindObjectsSortMode.None))
-                if (source.gameObject.activeInHierarchy) Object.DestroyImmediate(source.gameObject);
-            SimplePool<PooledAudioSource>.Clear();
         }
     }
 }

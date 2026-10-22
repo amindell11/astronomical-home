@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using Ships.Audio;
 using Ships.Presentation;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -60,8 +61,10 @@ namespace Tests.PlayMode
 
             Assert.Greater(rig.GetComponentsInChildren<ParticleSystem>(true).Length, 0,
                 "Rig should carry the thruster/reactor particles");
-            Assert.Greater(rig.GetComponentsInChildren<AudioSource>(true).Length, 0,
-                "Rig should carry the engine/damage audio sources");
+            Assert.IsNotNull(rig.GetComponentInChildren<EngineAudio>(true),
+                "Rig should carry the engine audio");
+            Assert.IsNotNull(rig.GetComponentInChildren<ShipDamageAudio>(true),
+                "Rig should carry the damage audio");
             Assert.Greater(rig.GetComponentsInChildren<Canvas>(true).Length, 0,
                 "Rig should carry the shield/lock UI canvases");
             Assert.Greater(rig.GetComponentsInChildren<MeshRenderer>(true).Length, 0,

@@ -1,3 +1,4 @@
+using FMODUnity;
 using Substrate.Presentation;
 using UnityEngine;
 
@@ -6,8 +7,8 @@ namespace Asteroids.Audio
     [RequireComponent(typeof(AsteroidController))]
     public sealed class AsteroidAudio : MonoBehaviour, IPresentationPart
     {
-        [SerializeField] private AudioClip explosionSound;
-        [SerializeField, Range(0f, 1f)] private float explosionVolume = 0.7f;
+        [Tooltip("FMOD one-shot played where the asteroid breaks.")]
+        [SerializeField] private EventReference breakEvent;
 
         private AsteroidController asteroid;
 
@@ -30,10 +31,6 @@ namespace Asteroids.Audio
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        private void HandleDestroyed(Vector3 position)
-        {
-            if (!explosionSound) return;
-            global::Audio.PooledAudioSource.PlayClipAtPoint(explosionSound, position, explosionVolume);
-        }
+        private void HandleDestroyed(Vector3 position) => RuntimeManager.PlayOneShot(breakEvent, position);
     }
 }

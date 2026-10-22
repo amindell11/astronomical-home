@@ -46,10 +46,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f77245b3e9d4050ba60c42e28390f99, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  maxRadius: 12
+  maxRadius: 10
   expandSpeed: 15
   maxDamage: 35
-  damageFalloffPower: 0.4
+  damageFalloffPower: 0.7
   impulse: 8000
   impulseFalloffPower: 1
   waveMass: 2
