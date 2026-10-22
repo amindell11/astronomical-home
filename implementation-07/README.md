@@ -20,4 +20,13 @@ twice through the game camera. The pointed upright core and later circular disc
 were visually checked. The recording verifies appearance and pooled replay; it
 does not exercise missile flight or audio. Main's FMOD debug overlay is visible.
 
-The full merge-check results will be appended after the run completes.
+The hosted full suite passed all 1,115 tests on the same commit, with 850 EditMode
+and 265 PlayMode tests, zero failures and zero skips. ReSharper reported zero
+blocking findings; five findings elsewhere in touched files remain outside the
+changed lines. The merge workflow accepted both checks for the exact landing tree.
+The source NUnit XML and ReSharper summary are included here.
+
+Run: https://github.com/amindell11/astronomical-home/actions/runs/39753159964
+
+PR #1091 merged on 2026-10-22 as `4e5f136a7b7f17e6f18d405ab27e2b09250635ee`.
+Main was synced after the merge.

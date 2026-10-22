@@ -1,0 +1,26 @@
+From github.com:amindell11/astronomical-home
+ * branch                main       -> FETCH_HEAD
+Already on 'agent-2'
+Your branch is up to date with 'origin/task/weapon-explosions'.
+Landing commit b4da449a74a2554aadc214b7ea1ec5d543ab210e carries a green merge-proof/headless status for tree 716c78855882716357c3d4bcd445f9de83e7e09e — remote proof, skipping the run.
+Landing commit b4da449a74a2554aadc214b7ea1ec5d543ab210e carries a green merge-proof/resharper status for this tree and base — hosted ratchet accepted, no local ratchet run.
+Everything up-to-date
+From github.com:amindell11/astronomical-home
+ * branch                main       -> FETCH_HEAD
+
+PR #1091 squash-merged. Next: finalize the slot and sync local main:
+  ./scripts/agent_worktree_pool.sh finalize agent-2 origin/main
+GATE=merged
+
+agent-2 merge -> origin/main   started 2026-10-22T09:22:13Z   merged in 19m42s
+  ok  turn-wait      18m55s   OVER BUDGET 15m00s (+26%)
+  ok  preflight          3s   PR #1091 task/weapon-explosions -> main
+  ok  fetch              8s
+  ok  base-merge         1s   already current with origin/main
+  ok  proof-check        5s
+  ok  tests              1s   skipped - remote proof on the landing commit
+  ok  resharper          6s   hosted ratchet accepted on the landing commit
+  ok  push               9s
+  ok  base-recheck       4s
+  ok  gh-merge           9s
+  1 phase(s) over budget.

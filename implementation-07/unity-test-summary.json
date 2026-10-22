@@ -1,0 +1,16 @@
+{
+  "source": "GitHub Actions NUnit result XML",
+  "runUrl": "https://github.com/amindell11/astronomical-home/actions/runs/39753159964",
+  "commit": "b4da449a74a2554aadc214b7ea1ec5d543ab210e",
+  "tree": "716c78855882716357c3d4bcd445f9de83e7e09e",
+  "mergeCommit": "4e5f136a7b7f17e6f18d405ab27e2b09250635ee",
+  "status": "passed",
+  "totals": {
+    "total": 1115.0,
+    "failed": 0.0,
+    "skipped": 0.0,
+    "passed": 1115.0
+  },
+  "editModePassed": 850,
+  "playModePassed": 265
+}
