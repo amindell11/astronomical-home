@@ -106,6 +106,32 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         [UnityTest]
+        public IEnumerator UnwritableStore_DoesNotRankTheCurrentRun()
+        {
+            PlayerRig rig = null;
+            yield return BootToARunningSector(AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                (out BuildIdentity identity, out string failure) =>
+                {
+                    identity = new BuildIdentity { commit = TestCommit };
+                    failure = null;
+                    return true;
+                }, built => rig = built);
+
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(recordPath, string.Empty);
+            using var readLock = new FileStream(recordPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            LogAssert.Expect(LogType.Error, new Regex("Run record not written to '" + Regex.Escape(recordPath) + "'"));
+            var append = typeof(GameHost).GetMethod("AppendRunRecord",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var board = (Scoreboard)append.Invoke(hostGo.GetComponent<GameHost>(),
+                new object[] { StatHash.OfLoadout(rig.Player), 0, null });
+
+            Assert.IsNull(board.Rank, "an unsaved run must not be ranked");
+            Assert.IsEmpty(board.Rows);
+            Assert.AreEqual(0, readLock.Length);
+        }
+
+        [UnityTest]
         public IEnumerator UnreadableBuildIdentity_SkipsTheRecord_AndTheRunLoopGoesOn()
         {
             PlayerRig rig = null;
@@ -135,10 +161,13 @@ namespace Tests.PlayMode.Bootstrap
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectorEntry = new SectorEntry
+                sectors = new[]
                 {
-                    prefab = sectorPrefab,
-                    config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
+                    new SectorEntry
+                    {
+                        prefab = sectorPrefab,
+                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
+                    }
                 },
                 presentation = false
             };

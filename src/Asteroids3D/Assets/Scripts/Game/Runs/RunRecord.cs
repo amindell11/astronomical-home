@@ -27,6 +27,8 @@ namespace Game.Runs
     {
         public string kind;
         public float total;
+        public float shield;
+        public float hull;
         public int hits;
         public string source;
         public int spawn;
@@ -51,9 +53,11 @@ namespace Game.Runs
 
     /// <summary>
     /// One finished run as one JSON line: what it was played on (build identity, stat fingerprint),
-    /// what the player flew, how it went, what hurt the player, and every ship that spawned.
+    /// what the player flew, how it went, what hurt the player, and every ship that spawned. A run
+    /// ends extracted from its last sector or dead; only a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
+    /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero damage.
     /// What a record holds and why: https://github.com/amindell11/astronomical-home/issues/772#issuecomment-5905712068
     /// </summary>
     [Serializable]
@@ -61,6 +65,9 @@ namespace Game.Runs
     {
         public string schema;
         public string endedUtc;
+        public string outcome;
+        public int sectorsCleared;
+        /// <summary>The sector the run ended in.</summary>
         public string sector;
         public BuildIdentity buildIdentity;
         public string statFingerprint;
@@ -68,17 +75,23 @@ namespace Game.Runs
         public int kills;
         public float secondsSurvived;
         public List<DamageRow> damage;
+        public bool hasDamageSplit;
         public KillingBlowRow killingBlow;
         public List<SpawnRow> spawns;
 
-        public const string SchemaId = "run-record-v1";
+        public const string SchemaId = "run-record-v2";
+        public const string Died = "died";
+        public const string Extracted = "extracted";
         public const int NoSpawn = -1;
+        public const string EndedUtcFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
 
-        public static RunRecord Compose(DateTime endedUtc, string sector, BuildIdentity buildIdentity,
-            string statFingerprint, ShipLoadout playerLoadout, string playerLoadoutStatHash, IRunTally tally,
-            DamageLedger ledger, SpawnLog spawnLog, DamageInfo killingBlow)
+        /// <summary>A null <paramref name="killingBlow"/> is a run that extracted from its last sector.</summary>
+        public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, string sector,
+            BuildIdentity buildIdentity, string statFingerprint, ShipLoadout playerLoadout,
+            string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger, SpawnLog spawnLog,
+            DamageInfo? killingBlow)
         {
             var entries = spawnLog.Entries();
             int SpawnOf(ShipId attacker) => entries.FindLastIndex(entry => entry.Id == attacker);
@@ -86,7 +99,9 @@ namespace Game.Runs
             var record = new RunRecord
             {
                 schema = SchemaId,
-                endedUtc = endedUtc.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
+                endedUtc = endedUtc.ToString(EndedUtcFormat, CultureInfo.InvariantCulture),
+                outcome = killingBlow.HasValue ? Died : Extracted,
+                sectorsCleared = sectorsCleared,
                 sector = sector,
                 buildIdentity = buildIdentity,
                 statFingerprint = statFingerprint,
@@ -102,11 +117,10 @@ namespace Game.Runs
                 kills = tally.Kills,
                 secondsSurvived = tally.SecondsSurvived,
                 damage = new List<DamageRow>(ledger.Rows.Count),
-                killingBlow = new KillingBlowRow
-                {
-                    kind = killingBlow.Kind.ToString(),
-                    spawn = SpawnOf(killingBlow.AttackerId),
-                },
+                hasDamageSplit = true,
+                killingBlow = killingBlow is { } blow
+                    ? new KillingBlowRow { kind = blow.Kind.ToString(), spawn = SpawnOf(blow.AttackerId) }
+                    : new KillingBlowRow { kind = string.Empty, spawn = NoSpawn },
                 spawns = new List<SpawnRow>(entries.Count),
             };
 
@@ -128,6 +142,8 @@ namespace Game.Runs
                 }
                 var row = record.damage[i];
                 row.total += hit.Amount;
+                row.shield += hit.Shield;
+                row.hull += hit.Hull;
                 row.hits++;
                 record.damage[i] = row;
             }

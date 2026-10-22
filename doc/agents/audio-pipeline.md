@@ -12,8 +12,8 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 - **C# compiles in a slot first**, then is copied in: the owner's editor recompiles on focus, and a compile error there blocks play mode.
 - **Scaffolds and bank builds run on the primary tree's project**, with Studio closed, so the primary tree stays the one source of the design.
 - **Ship from a slot.** Copy the sound paths into a slot and take them through the normal loop; the evidence tests run there. A clip ships when the project imports it (`audio/fmod/Metadata/AudioFile/`).
-- **After the merge,** `git add` in the primary tree only the shipped paths whose content now equals `origin/main`, then `git pull --ff-only`. Anything that still differs stays the owner's uncommitted edit.
-- **The session-start check counts untracked sound files as this work in progress**, not strays; they wait for the ship. When main's pull is blocked, it names the colliding paths already equal to `origin/main`, the ones the step above stages.
+- **After the merge,** run `./scripts/agent_worktree_pool.sh sync-primary`. Anything that still differs from main stays the owner's uncommitted edit.
+- **The stray report after each sync counts untracked sound files as this work in progress**, not strays; they wait for the ship.
 
 ## Studio and `fmodstudiocl`
 

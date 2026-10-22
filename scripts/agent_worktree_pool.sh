@@ -386,7 +386,12 @@ Commands:
       snapshots the edits (git stash create), pins the snapshot at
       refs/primary-sync/<UTC timestamp> (keeping the newest 20), pre-checks
       the merge, fast-forwards with --autostash, and compares the resulting
-      tree with the one merge-tree predicted.
+      tree with the one merge-tree predicted. Just before either
+      fast-forward it moves each untracked file whose content equals the
+      file main adds at its path (a shipped copy) under the git dir's
+      primary-sync-parked/ and hashes it again there; the fast-forward
+      writes the same bytes back, and the parked copies are deleted. On a
+      failure they go back to their paths.
       Stdout trailer: PRIMARY_SYNC=current (already at origin/main), ok
       (fast-forwarded), replayed, refused:<reason> or failed:<reason>.
       Every refusal is decided before any file changes, the reason one of
@@ -396,14 +401,17 @@ Commands:
                    autostash would bring staged edits back unstaged)
         conflict   the edits conflict with main; stderr lists each
                    conflicted file with its conflict-marker line ranges
-        untracked  untracked, non-ignored files sit at paths main adds
-                   (stderr lists them)
+        untracked  untracked, non-ignored files sit at paths main adds,
+                   with content other than main's (stderr lists them)
         fetch      the fetch from origin failed
         busy       another sync still held the lock after the wait
       A failure names the backup ref on stderr, when one was pinned:
-        mismatch   the synced tree differs from the prediction, e.g. the
-                   owner saved a file mid-sync
+        mismatch   the synced tree differs from the prediction, or a shipped
+                   copy changed after its check; e.g. the owner saved a file
+                   mid-sync
         git        a git step failed; stderr names it
+        remove     moving a shipped copy aside failed, e.g. a program holds
+                   it open
       Exit: 0 current, ok or replayed; 1 refused, or a usage error; 2 failed.
 
   finalize <slot> [base_ref]
@@ -3026,11 +3034,53 @@ sync_primary_backup_note() {
   [[ "$stash_now" == "$stash_before" ]] || echo "sync-primary: git also kept them in the stash as stash@{0}." >&2
 }
 
+# Parked copies sit where no program writes, so their re-hash catches a save after the check.
+ff_past_shipped() {
+  local p="$1" target="$2" backup="$3" stash_before="$4" autostash="$5" dir f
+  shift 5
+  dir="$(git -C "$p" rev-parse --absolute-git-dir)/primary-sync-parked/$(date -u +%Y%m%dT%H%M%S.%NZ)"
+  for f in "$@"; do
+    if ! { mkdir -p "$dir/$(dirname "$f")" && mv -- "$p/$f" "$dir/$f"; }; then
+      unpark_shipped "$p" "$dir" "$@"
+      echo "sync-primary: moving the shipped copy $f out of the tree failed." >&2
+      sync_primary_backup_note "$p" "$backup" "$stash_before"
+      echo "PRIMARY_SYNC=failed:remove"
+      return 2
+    fi
+    if [[ "$(git -C "$p" hash-object --path="$f" -- "$dir/$f")" != "$(git -C "$p" ls-tree --full-tree --object-only "$target" -- "$f")" ]]; then
+      unpark_shipped "$p" "$dir" "$@"
+      echo "sync-primary: $f changed after the check, e.g. saved mid-sync; nothing was synced." >&2
+      sync_primary_backup_note "$p" "$backup" "$stash_before"
+      echo "PRIMARY_SYNC=failed:mismatch"
+      return 2
+    fi
+  done
+  if ! git -C "$p" merge --ff-only "$autostash" "$target" >&2; then
+    unpark_shipped "$p" "$dir" "$@"
+    sync_primary_failed "$p" "merge --ff-only $autostash" "$backup" "$stash_before"
+    return 2
+  fi
+  rm -rf -- "$dir" || echo "sync-primary: could not delete $dir, which holds copies main already has." >&2
+}
+
+unpark_shipped() {
+  local p="$1" dir="$2" f
+  shift 2
+  for f in "$@"; do
+    if [[ -e "$dir/$f" && ! -e "$p/$f" ]]; then mv -- "$dir/$f" "$p/$f"; fi
+  done
+  if find "$dir" -type f -print -quit 2> /dev/null | grep -q .; then
+    echo "sync-primary: a file reappeared at a parked path; the parked copy stays under $dir." >&2
+  else
+    rm -rf -- "$dir"
+  fi
+}
+
 # Runs under the sync lock; every refusal returns before any tree or index write.
 sync_primary() {
   local p="$1" branch head target ahead changed added dirty untracked overlap out predicted f ranges
   local snap="" backup="" stash_before="" actual actual_tree rc=0
-  local -a q=(-c core.quotePath=false)
+  local -a q=(-c core.quotePath=false) shipped=() differ=()
   branch="$(git -C "$p" symbolic-ref -q --short HEAD)" || branch=""
   if [[ "$branch" != main ]]; then
     echo "sync-primary: $p is on ${branch:-a detached HEAD}, not main; switching it back is the owner's call." >&2
@@ -3059,16 +3109,24 @@ sync_primary() {
     && dirty="$(git "${q[@]}" -C "$p" diff --name-only --no-renames "$head")" \
     && untracked="$(git "${q[@]}" -C "$p" ls-files --others --exclude-standard)" \
     || { sync_primary_failed "$p" "diff/ls-files"; return 2; }
-  overlap="$(common_lines "$added" "$untracked")"
-  if [[ -n "$overlap" ]]; then
-    echo "sync-primary: main adds files where untracked files sit; moving them is the owner's call:" >&2
-    sed 's/^/  /' <<< "$overlap" >&2
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    # Hashed as git add would store it (eol, LFS), so equal means main holds these bytes.
+    if [[ "$(git -C "$p" hash-object -- "$f")" == "$(git -C "$p" ls-tree --full-tree --object-only "$target" -- "$f")" ]]; then
+      shipped+=("$f")
+    else
+      differ+=("$f")
+    fi
+  done <<< "$(common_lines "$added" "$untracked")"
+  if ((${#differ[@]})); then
+    echo "sync-primary: main adds files where untracked files with other content sit; moving them is the owner's call:" >&2
+    printf '  %s\n' "${differ[@]}" >&2
     echo "PRIMARY_SYNC=refused:untracked"
     return 1
   fi
   overlap="$(common_lines "$dirty" "$changed")"
   if [[ -z "$overlap" ]]; then
-    git -C "$p" merge --ff-only --no-autostash "$target" >&2 || { sync_primary_failed "$p" "merge --ff-only"; return 2; }
+    ff_past_shipped "$p" "$target" "" "" --no-autostash "${shipped[@]}" || return 2
     echo "PRIMARY_SYNC=ok"
     return 0
   fi
@@ -3106,8 +3164,7 @@ sync_primary() {
   fi
   [[ "$rc" -eq 0 ]] || { sync_primary_failed "$p" merge-tree "$backup" "$stash_before"; return 2; }
 
-  git -C "$p" merge --ff-only --autostash "$target" >&2 \
-    || { sync_primary_failed "$p" "merge --ff-only --autostash" "$backup" "$stash_before"; return 2; }
+  ff_past_shipped "$p" "$target" "$backup" "$stash_before" --autostash "${shipped[@]}" || return 2
   actual="$(git -C "$p" stash create)" && actual_tree="$(git -C "$p" rev-parse "${actual:-HEAD}^{tree}")" \
     || { sync_primary_failed "$p" "stash create (post-check)" "$backup" "$stash_before"; return 2; }
   if [[ "$actual_tree" != "$predicted" ]]; then
