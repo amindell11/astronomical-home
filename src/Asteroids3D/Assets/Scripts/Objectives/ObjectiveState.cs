@@ -2,7 +2,7 @@ using System;
 
 namespace Objectives
 {
-    public enum ObjectiveType { Explore, KeyAcquired, ExtractionChallenge, Extracted, Failed, Completed, ClearHostiles }
+    public enum ObjectiveType { Explore, KeyAcquired, ExtractionChallenge, Extracted, Failed, Completed, ClearHostiles, Survive }
 
     public abstract class ObjectiveState
     {
@@ -22,5 +22,8 @@ namespace Objectives
         public virtual void Exit() { }
 
         public abstract bool IsComplete { get; }
+
+        /// <summary>One HUD line for the player while this state runs; null shows nothing.</summary>
+        public virtual string StatusLine => null;
     }
 }

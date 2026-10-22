@@ -13,8 +13,7 @@ namespace Ships.Damage
     /// </summary>
     public interface IDamageEvents
     {
-        /// <summary>Per-hit context; <see cref="DamageInfo.Amount"/> is the applied damage (absorbed by shield + hull).</summary>
-        event Action<DamageInfo> OnDamaged;
+        event Action<AppliedDamage> OnDamaged;
 
         /// <summary>Victim id and the killing blow. Fires once per life.</summary>
         event Action<ShipId, DamageInfo> OnDeath;

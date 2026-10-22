@@ -58,7 +58,7 @@ namespace Tests.PlayMode
             sessionRoot = new GameObject("CaptureScenarioSession");
             session = TestSession.Create(sessionRoot, new SessionProfile
             {
-                sectorEntry = sectorEntry,
+                sectors = sectorEntry != null ? new[] { sectorEntry } : null,
                 presentation = GizmoCaptureProfiles.PresentationFor(scenario.Profile),
             });
             yield return session.Compose();

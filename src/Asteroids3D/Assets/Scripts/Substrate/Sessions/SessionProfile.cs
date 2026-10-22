@@ -11,8 +11,8 @@ namespace Substrate.Sessions
     [System.Serializable]
     public class SessionProfile
     {
-        [Tooltip("The sector to load. (Single-sector today; the future home for sector sequencing.)")]
-        public SectorEntry sectorEntry;
+        [Tooltip("The sectors to load, in order; the host decides when to move to the next.")]
+        public SectorEntry[] sectors;
 
         [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps it loaded. " +
                  "Unassigned → the boot scene, which carries no sky.")]
