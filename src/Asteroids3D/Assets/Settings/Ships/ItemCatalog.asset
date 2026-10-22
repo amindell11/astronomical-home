@@ -23,11 +23,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
   - {fileID: 11400000, guid: 10ec8e4942e547f6bcc00b2007781243, type: 2}
   - {fileID: 11400000, guid: b63b46134abb483586d8c315401f3d4a, type: 2}
+  - {fileID: 11400000, guid: 181a834995a6454bbb47dc7480fb44c5, type: 2}
+  - {fileID: 11400000, guid: d3531f882afd41e9b6d41310e4d056a9, type: 2}
+  - {fileID: 11400000, guid: 38dc83ab82ec4474b14ad0c81115379e, type: 2}
+  - {fileID: 11400000, guid: 81527ef314cf47fc9524319339327b05, type: 2}
+  - {fileID: 11400000, guid: ff5d94223b064b2e944b2ff08d25c3e4, type: 2}
   shields:
   - {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}
   - {fileID: 11400000, guid: 7febe5b6ce0a40599f8ca461fed3a61a, type: 2}
   - {fileID: 11400000, guid: 1899585b4124451e90d1c53e17324d7b, type: 2}
   - {fileID: 11400000, guid: 1df67c0d876d4885bb8b12c532765350, type: 2}
+  - {fileID: 11400000, guid: 023994e7134f495aa5c87427e4dcd986, type: 2}
   weapons:
   - {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
   - {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
