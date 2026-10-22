@@ -27,11 +27,6 @@ using UnityEngine.UI;
 
 namespace Tests.PlayMode.Audio
 {
-    /// <summary>
-    /// GameMusic against the real Music bank: each state lands on the Studio label of its name, the
-    /// spine's extract step sets Extract, Phase follows the survive phase, a presenting host walks one
-    /// instance through its run steps, and a host with presentation off builds none.
-    /// </summary>
     [Category("Audio")]
     public class GameMusicPlayModeTests : FmodEvidenceFixture
     {
@@ -249,7 +244,7 @@ namespace Tests.PlayMode.Audio
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
-        // The load parents the sector under a holder and moves it to the sector root as its last step.
+        // The sector loads under a holder, moving to the sector root as its last step.
         private bool Loaded(string templateName) =>
             InSector(templateName) && host.ActiveSector.transform.parent.name == "Sector";
 
