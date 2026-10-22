@@ -53,14 +53,14 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
-        public void Append_ThatCannotLand_LogsThePathAndDoesNotThrow()
+        public void Append_ThatCannotLand_LogsThePathAndReportsIt()
         {
             var blocker = Path.Combine(dir, "blocker");
             File.WriteAllText(blocker, "a file where the store wants a folder");
             var store = new RunRecordStore(Path.Combine(blocker, "run-records.jsonl"));
 
             LogAssert.Expect(LogType.Error, new Regex("Run record not written to '" + Regex.Escape(store.Path) + "'"));
-            Assert.DoesNotThrow(() => store.Append(Record(1)));
+            Assert.IsFalse(store.Append(Record(1)), "a write that cannot land returns false instead of throwing");
         }
     }
 }

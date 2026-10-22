@@ -66,9 +66,9 @@ put "$P/results/run.json" run
 
 out="$(check "$W/fresh")"
 [[ "$(head_of "$W/fresh")" == "$base_head" ]] || fail "the check moved the app worktree: $out"
-[[ "$out" == *"The primary's main is 1 commit behind origin/main, and \`git pull --ff-only\` there would be refused"* ]] ||
+[[ "$out" == *"The primary's main is 1 commit behind origin/main, and incoming commits change these uncommitted paths. Sync it with \`./scripts/agent_worktree_pool.sh sync-primary\`."* ]] ||
   fail "blocked pull not reported: $out"
-[[ "$out" == *$'lets the pull through'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt' ]] ||
+[[ "$out" == *$'sync-primary takes them'*$'\n  audio/fmod/Assets/clip.wav\nDifferent from origin/main'*$'\n  .edited.txt' ]] ||
   fail "collisions not split into equal and different: $out"
 [[ "$out" != *"  staged.txt"* && "$out" != *"  other.txt"* ]] || fail "a path git lets through was listed: $out"
 out="$(check "$W/fresh" strays)"
@@ -90,13 +90,21 @@ out="$(check "$P")"
   fail "staged equal path still listed, or the differing edit dropped: $out"
 put "$P/.edited.txt" shipped                         # equal now, but unstaged: git still refuses it
 out="$(check "$P")"
-[[ "$out" == *$'lets the pull through'*$'\n  .edited.txt' && "$out" != *"Different from origin/main"* ]] ||
+[[ "$out" == *$'sync-primary takes them'*$'\n  .edited.txt' && "$out" != *"Different from origin/main"* ]] ||
   fail "unstaged equal edit not listed as equal: $out"
 g -C "$P" add .edited.txt
 out="$(check "$P")"
-[[ "$out" != *"would be refused"* ]] || fail "a pull git would take reported as refused: $out"
+[[ "$out" != *"incoming commits change"* ]] || fail "a pull git would take reported as refused: $out"
 g -C "$P" -c pull.rebase=false merge -q --ff-only origin/main || fail "git refused a pull the check called clean"
 [[ "$(git -C "$P" show HEAD:other.txt)" == base && "$(cat "$P/other.txt")" == owner ]] || fail "unrelated edit lost"
+
+# --- an untracked file with other content where main adds one: sync-primary refuses it ---
+ship "ship a take" audio/fmod/Assets/take.wav main
+put "$P/audio/fmod/Assets/take.wav" owner
+out="$(check "$P")"
+[[ "$out" == *$'sync-primary refuses while these sit there'*$'\n  audio/fmod/Assets/take.wav' && "$out" != *"Different from origin/main"* ]] ||
+  fail "an untracked file with other content not listed as refused: $out"
+rm "$P/audio/fmod/Assets/take.wav"
 
 # --- post-merge: a pull in the primary, under the owner's pull settings, prints strays; an app-worktree merge doesn't ---
 ship "for the hook" other3.txt y

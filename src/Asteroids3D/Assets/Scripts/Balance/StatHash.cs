@@ -36,9 +36,9 @@ namespace Balance
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
         public static string OfLoadout(Ship ship) => Of(ship);
 
-        /// <summary>The stat fingerprint: the hangar's offer, the sector's spawners and the kill refill.</summary>
-        public static string OfSetting(ItemSubset hangarOffer, Sector sectorPrefab, float killHullRestore) =>
-            Digest(SettingLines(hangarOffer, sectorPrefab, killHullRestore));
+        /// <summary>The stat fingerprint: the hangar's offer, the spawners of the run's sectors in order, and the kill refill.</summary>
+        public static string OfSetting(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs, float killHullRestore) =>
+            Digest(SettingLines(hangarOffer, sectorPrefabs, killHullRestore));
 
         internal static SortedSet<string> Lines(Object item)
         {
@@ -47,13 +47,22 @@ namespace Balance
             return lines;
         }
 
-        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, Sector sectorPrefab,
+        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs,
             float killHullRestore)
         {
             var lines = NewLines();
-            var visited = new HashSet<Object>();
-            Visit(hangarOffer, lines, visited);
-            Visit(sectorPrefab, lines, visited);
+            Visit(hangarOffer, lines, new HashSet<Object>());
+
+            // Keyed by position, so the run's order and its repeats are part of the setting.
+            var index = 0;
+            foreach (var sectorPrefab in sectorPrefabs)
+            {
+                var sectorLines = NewLines();
+                Visit(sectorPrefab, sectorLines, new HashSet<Object>());
+                foreach (var line in sectorLines)
+                    lines.Add($"sector[{index}]/{line}");
+                index++;
+            }
             lines.Add($"setting/killHullRestore={Format(killHullRestore)}");
             return lines;
         }
@@ -68,15 +77,17 @@ namespace Balance
             var asset = AssetName(source);
             var type = source.GetType();
             foreach (var field in StatFields(type))
-                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(source), lines, visited);
+                Read($"{asset}/{type.Name}.{field.Name}", field.GetValue(source), lines, visited,
+                    field.GetCustomAttribute<StatAttribute>().Ordered);
         }
 
-        private static void Read(string key, object value, ISet<string> lines, ISet<Object> visited)
+        private static void Read(string key, object value, ISet<string> lines, ISet<Object> visited,
+            bool ordered = false)
         {
             if (value is IList items)
             {
-                foreach (var item in items)
-                    Read(key, item, lines, visited);
+                for (var i = 0; i < items.Count; i++)
+                    Read(ordered ? $"{key}[{i}]" : key, items[i], lines, visited);
                 return;
             }
 

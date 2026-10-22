@@ -6,16 +6,18 @@ using AI.Scanning;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Units;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Continuous producer for the survival trial: an opening wave on the first tick, then one spawn
-    /// per interval while fewer than the alive cap live, interval and cap easing linearly from their
-    /// start to end values over the ramp. Ships ring the hero just off screen, facing it, on the
-    /// first angle clear of asteroids, each spawned with a build drawn from the loadout pool.
+    /// Continuous producer for the survival trial, paced by a table of sector phases: each phase
+    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The lull
+    /// before each later phase spawns nothing, and once the table is done the last phase's pacing
+    /// holds, so the hero leaves under pursuit. Ships ring the hero just off screen, facing it, on the
+    /// first angle clear of asteroids, each spawned with a build drawn from its phase's loadout pool.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
@@ -33,17 +35,15 @@ namespace Substrate.Sectors.Elements
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
         [Tooltip("Engine, shield and weapon pool each spawn draws its build from; the chassis stays the roster's. " +
-                 "Unset → products fly their template's authored build.")]
+                 "A phase may name its own pool. Unset → products fly their template's authored build.")]
         [Stat, SerializeField] private ItemSubset loadouts;
         [SerializeField] private int team = 1;
 
-        [Header("Escalation")]
-        [Stat, SerializeField, Min(0.1f)] private float startInterval = 6f;
-        [Stat, SerializeField, Min(0.1f)] private float endInterval = 2f;
-        [Stat, SerializeField, Min(0)] private int startCap = 2;
-        [Stat, SerializeField, Min(0)] private int endCap = 8;
-        [Tooltip("Seconds from Build until interval and cap reach their end values.")]
-        [Stat, SerializeField, Min(1f)] private float rampSeconds = 240f;
+        [Header("Sector phases")]
+        [Tooltip("Phases in run order; the clock starts on the first tick with an active hero.")]
+        [Stat(Ordered = true), SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
+        [Tooltip("Seconds between one phase's end and the next phase's opening, with nothing spawning.")]
+        [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
@@ -58,9 +58,16 @@ namespace Substrate.Sectors.Elements
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
+        private SectorPhaseSchedule schedule;
         private float startTime;
         private float nextSpawnTime;
-        private bool opened;
+        private bool started;
+        private int openedPhase;
+
+        /// <summary>Where the phase table stands as of the last tick.</summary>
+        public SectorPhaseMark Phase { get; private set; }
+
+        public int PhaseCount => phases.Length;
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
@@ -73,14 +80,16 @@ namespace Substrate.Sectors.Elements
                 yield break;
             }
 
-            if (loadouts && (IsEmpty(loadouts.engines) || IsEmpty(loadouts.shields) || IsEmpty(loadouts.weapons)))
-                throw new InvalidOperationException(
-                    $"WaveDirector on '{name}': loadout pool '{loadouts.name}' needs at least one engine, shield and weapon.");
+            RequireComplete(loadouts);
+            foreach (var phase in phases)
+                RequireComplete(phase.loadouts);
+            BuildSchedule();
 
             units = ctx.Units;
             field = ctx.Field;
             hero = ctx.Hero;
-            opened = false;
+            started = false;
+            Phase = schedule.At(0f);
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
@@ -98,40 +107,67 @@ namespace Substrate.Sectors.Elements
             if (!hero || !hero.gameObject.activeInHierarchy) return;
 
             var now = Time.time;
-            if (!opened)
+            if (!started)
             {
-                opened = true;
+                started = true;
                 BeginSchedule(now);
-                for (var i = 0; i < CapAt(0f); i++)
-                    TrySpawn();
-                return;
             }
 
             DespawnDead();
-            if (SpawnDue(now, products.Count) && TrySpawn())
+            Advance(now);
+            if (Phase.InLull) return;
+
+            var row = phases[Phase.Index];
+            if (OpensPhase())
+            {
+                for (var i = products.Count; i < row.cap; i++)
+                    TrySpawn(row);
+                ScheduleNext(now);
+                return;
+            }
+
+            if (SpawnDue(now, products.Count) && TrySpawn(row))
                 ScheduleNext(now);
         }
+
+        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds);
 
         internal void BeginSchedule(float now)
         {
             startTime = now;
-            ScheduleNext(now);
+            openedPhase = -1;
+            Phase = schedule.At(0f);
+        }
+
+        internal void Advance(float now) => Phase = schedule.At(now - startTime);
+
+        /// <summary>True once, on the first tick of each phase; a lull or the done table opens nothing.</summary>
+        internal bool OpensPhase()
+        {
+            if (Phase.Done || Phase.InLull || Phase.Index == openedPhase) return false;
+            openedPhase = Phase.Index;
+            return true;
         }
 
         internal bool SpawnDue(float now, int alive) =>
-            now >= nextSpawnTime && alive < CapAt(now - startTime);
+            !Phase.InLull && now >= nextSpawnTime && alive < phases[Phase.Index].cap;
 
-        internal void ScheduleNext(float now) => nextSpawnTime = now + IntervalAt(now - startTime);
+        internal void ScheduleNext(float now) => nextSpawnTime = now + phases[Phase.Index].interval;
 
-        internal float IntervalAt(float elapsed) => Mathf.Lerp(startInterval, endInterval, elapsed / rampSeconds);
-
-        internal int CapAt(float elapsed) => Mathf.RoundToInt(Mathf.Lerp(startCap, endCap, elapsed / rampSeconds));
+        internal ItemSubset PoolFor(SectorPhase row) => row.loadouts ? row.loadouts : loadouts;
 
         /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
-        internal ShipLoadout Draw(Ship chassis) =>
-            new(chassis, Pick(loadouts.engines), Pick(loadouts.shields), Pick(loadouts.weapons), null);
+        internal static ShipLoadout Draw(Ship chassis, ItemSubset pool) =>
+            new(chassis, Pick(pool.engines), Pick(pool.shields), Pick(pool.weapons), null);
 
         private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
+
+        private void RequireComplete(ItemSubset pool)
+        {
+            if (pool && (IsEmpty(pool.engines) || IsEmpty(pool.shields) || IsEmpty(pool.weapons)))
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}': loadout pool '{pool.name}' needs at least one engine, shield and weapon.");
+        }
 
         private static bool IsEmpty<T>(T[] pool) => pool == null || pool.Length == 0;
 
@@ -146,7 +182,7 @@ namespace Substrate.Sectors.Elements
             }
         }
 
-        private bool TrySpawn()
+        private bool TrySpawn(SectorPhase row)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
@@ -158,25 +194,24 @@ namespace Substrate.Sectors.Elements
 
                 var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
+                var pool = PoolFor(row);
                 products.Add(units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field,
-                    loadouts ? Draw(entry.template) : null));
+                    pool ? Draw(entry.template, pool) : null));
                 return true;
             }
             return false;
         }
 
 #if UNITY_EDITOR
-        internal void Configure(RosterEntry[] roster, float startInterval, float endInterval,
-            int startCap, int endCap, float rampSeconds, float spawnRadius = 55f, ItemSubset loadouts = null)
+        internal void Configure(RosterEntry[] roster, SectorPhase[] phases, float lullSeconds = 5f,
+            float spawnRadius = 55f, ItemSubset loadouts = null)
         {
             this.roster = roster;
             this.loadouts = loadouts;
-            this.startInterval = startInterval;
-            this.endInterval = endInterval;
-            this.startCap = startCap;
-            this.endCap = endCap;
-            this.rampSeconds = rampSeconds;
+            this.phases = phases;
+            this.lullSeconds = lullSeconds;
             this.spawnRadius = spawnRadius;
+            BuildSchedule();
         }
 #endif
     }

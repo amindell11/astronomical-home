@@ -35,7 +35,7 @@ namespace Tests.PlayMode.Audio
 
         private sealed class FakeDamage : IDamageEvents
         {
-            public event Action<DamageInfo> OnDamaged { add { } remove { } }
+            public event Action<AppliedDamage> OnDamaged { add { } remove { } }
             public event Action<ShipId, DamageInfo> OnDeath;
             public Resource Health { get; } = new Resource(100f);
             public RegenResource Shield { get; } = new RegenResource(100f, 0f, 999f);

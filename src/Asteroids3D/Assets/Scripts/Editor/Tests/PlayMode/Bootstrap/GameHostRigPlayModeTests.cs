@@ -47,10 +47,13 @@ namespace Tests.PlayMode.Bootstrap
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectorEntry = new SectorEntry
+                sectors = new[]
                 {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
+                    new SectorEntry
+                    {
+                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
+                    }
                 },
                 presentation = false
             };

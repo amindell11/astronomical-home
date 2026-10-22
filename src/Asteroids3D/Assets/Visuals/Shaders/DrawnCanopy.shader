@@ -9,7 +9,7 @@ Shader "Astronomical/Drawn/Canopy"
         _ReflectionColor ("Reflection Color", Color) = (0.42,0.54,0.64,1)
         _ReflectionEdgeColor ("Glint Color", Color) = (0.56,0.64,0.67,1)
         [Toggle(_AUTHORED_REFLECTION)] _AuthoredReflection ("Authored Reflection", Float) = 0
-        [NoScaleOffset] _ReflectionMap ("Reflection Drawing (+Z / -Z)", 2D) = "black" {}
+        _ReflectionMap ("Reflection Drawing (+Z / -Z)", 2D) = "black" {}
         [Enum(Color Drawing,0,Painted Glass,1)] _ReflectionArtwork ("Reflection Artwork", Float) = 0
         _ReflectionVerticalRange ("Stripe Sampling Height Range", Vector) = (0,1,0,0)
         _SecondaryGlintLeft ("Left Glint Center / Scale / Strength", Vector) = (0.5,0.5,1,0)
@@ -33,7 +33,7 @@ Shader "Astronomical/Drawn/Canopy"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
         CBUFFER_START(UnityPerMaterial)
             half4 _BaseColor, _GlassColor, _ReflectionColor, _ReflectionEdgeColor, _ReflectionInkColor, _ShadowColor;
-            float4 _ReflectionBounds, _ReflectionMap_TexelSize, _ReflectionLayerStrengths;
+            float4 _ReflectionBounds, _ReflectionMap_TexelSize, _ReflectionMap_ST, _ReflectionLayerStrengths;
             float4 _ReflectionVerticalRange, _SecondaryGlintLeft, _SecondaryGlintRight;
             half _DrawnReflectionStrength, _ReflectionArtwork, _ReflectionSaturation;
             half _ShadowThreshold, _ShadowSoftness, _CastShadowStrength, _AmbientStrength;
@@ -170,6 +170,8 @@ Shader "Astronomical/Drawn/Canopy"
                 half response = smoothstep(0.35, 0.88, lightFacing);
                 response *= facing * _DrawnReflectionStrength * lerp(0.15, 1, light.shadowAttenuation);
                 #if defined(_AUTHORED_REFLECTION)
+                    uv = TRANSFORM_TEX(uv, _ReflectionMap);
+                    uv.y = clamp(uv.y, _ReflectionVerticalRange.x, _ReflectionVerticalRange.y);
                     half3 reflection;
                     if (_ReflectionArtwork > 0.5)
                     {
@@ -178,7 +180,6 @@ Shader "Astronomical/Drawn/Canopy"
                     }
                     else
                     {
-                        uv.y = clamp(uv.y, _ReflectionVerticalRange.x, _ReflectionVerticalRange.y);
                         half4 drawing = SampleReflection(uv, input.localFacing);
                         reflection = max(drawing.rgb - glass, 0) * drawing.a;
                     }
