@@ -80,8 +80,8 @@ namespace Tests.PlayMode.Keystones
             var landed = Plane(crimson.Rigidbody.position);
             Assert.That(landed.x - start.x, Is.GreaterThan(1f), "it still jumps");
             Assert.That(landed.x - start.x, Is.LessThan(blink.Range - 1f), "but lands short of the rock");
-            var overlapping = Physics.OverlapSphere(crimson.Rigidbody.position, crimson.ShipRadius, LayerMask.GetMask("Asteroid"));
-            Assert.That(overlapping, Is.Empty, "and not inside it");
+            var overlapping = Physics.OverlapSphereNonAlloc(crimson.Rigidbody.position, crimson.ShipRadius, new Collider[4], LayerMask.GetMask("Asteroid"));
+            Assert.That(overlapping, Is.Zero, "and not inside it");
             Assert.That(rock.gameObject.activeSelf, Is.True);
         }
 
