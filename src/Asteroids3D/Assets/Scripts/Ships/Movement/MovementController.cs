@@ -71,15 +71,29 @@ namespace Ships.Movement
         private void FixedUpdate()
         {
             var kinematics = Kinematics;
-            var boost = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated, settings.maxSpeed);
+            var effect = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated,
+                settings.maxSpeed, currentCommand.abilityTarget);
             currentCommand.boost = activated ? 1f : 0f;
+            if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);
             ApplySpeedCap(Time.fixedDeltaTime);
             var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
             var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
-            ApplyForces(thrust, outs.strafe, boost, outs.yawTorque, outs.bank);
+            ApplyForces(thrust, outs.strafe, effect.Impulse, outs.yawTorque, outs.bank);
             ConstrainRotation();
         }
 
+
+        // The respawn teleport, keeping velocity: sync the transform for same-step queries, then write the body with interpolation off so it doesn't smear the jump.
+        private void Jump(Vector2 displacement)
+        {
+            var to = rb.position + GamePlane.PlaneDirToWorld(displacement);
+            transform.position = to;
+            Physics.SyncTransforms();
+            var interpolation = rb.interpolation;
+            rb.interpolation = RigidbodyInterpolation.None;
+            rb.position = to;
+            rb.interpolation = interpolation;
+        }
 
         // A raised cap takes effect at once; a lowered one bleeds down at the rate drag alone sheds the base cap.
         private void ApplySpeedCap(float dt)

@@ -38,7 +38,7 @@ namespace Ships.Keystones
             return !float.IsNaN(desired.x) && desired.magnitude >= sightSaturation * context.SelfMaxSpeed;
         }
 
-        protected override Vector2 Activate(in Kinematics kinematics) => Vector2.zero;
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => default;
 
         protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)
         {

@@ -44,7 +44,7 @@ namespace Tests.EditMode
             public override string DisplayName => "Scripted";
             public override bool SeeksContact => seeks;
             public override bool ShouldActivate(in KeystoneContext context) => sight;
-            protected override Vector2 Activate(in Kinematics kinematics) => Vector2.zero;
+            protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => default;
         }
 
         private GameObject host;
