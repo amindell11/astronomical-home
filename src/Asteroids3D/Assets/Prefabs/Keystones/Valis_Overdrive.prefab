@@ -49,6 +49,7 @@ MonoBehaviour:
   window: 3
   speedScale: 1.35
   thrustScale: 1.5
+  sightSaturation: 0.8
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0
