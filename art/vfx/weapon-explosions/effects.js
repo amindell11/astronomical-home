@@ -240,20 +240,11 @@
       settings.mineGlow * (0.88 + 0.12 * Math.sin(progress * 43)) * fade(progress, 0.92, 1));
   }
 
-  function mine(ctx, time, size, settings, pitch = settings.mineDiscAspect) {
-    if (time < 0 || time >= settings.mineSweepSeconds) return;
-    const progress = clamp(time / settings.mineSweepSeconds);
-    ctx.save();
-    ctx.globalAlpha = settings.mineRangeOpacity;
-    ctx.strokeStyle = '#99e6ff';
-    ctx.lineWidth = Math.max(0.6, size / 600);
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.45 * progress, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
+  function mine(ctx, time, size, settings, pitch = 1) {
+    if (time < 0 || time > settings.mineSweepSeconds) return;
     ctx.save();
     ctx.scale(1, pitch);
-    disc(ctx, time, size * progress, settings);
+    disc(ctx, time, size * clamp(time / settings.mineSweepSeconds), settings);
     ctx.restore();
     ignition(ctx, time, size * 0.18, settings);
   }

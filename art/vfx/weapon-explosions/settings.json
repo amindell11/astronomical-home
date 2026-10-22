@@ -8,7 +8,5 @@
   "mineFill": 0.38,
   "mineGlow": 1,
   "mineMotion": 0.9,
-  "mineCorePulse": 0.85,
-  "mineDiscAspect": 0.28,
-  "mineRangeOpacity": 0.28
+  "mineCorePulse": 0.85
 }
