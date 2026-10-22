@@ -23,9 +23,5 @@ namespace Ships.Loadout
         [Stat] public float minStrafeForce = 4000f;
         [Stat] public float maxStrafeForce = 5000f;
         [Stat] public float linearDrag = .5f;
-
-        [Header("Boost")]
-        [Stat] public float boostImpulse = 14000f;
-        [Stat] public float boostCooldown = 3f;
     }
 }

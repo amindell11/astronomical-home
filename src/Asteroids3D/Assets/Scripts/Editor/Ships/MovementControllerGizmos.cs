@@ -6,7 +6,7 @@ using Substrate;
 
 namespace Ships.Movement
 {
-    /// <summary>Applied translational forces as arrows scaled by their settings maximum, and yaw torque as a nose ray plus swept arc. Head shape separates thrust from strafe where color alone would not.</summary>
+    /// <summary>Applied translational forces as arrows scaled by their settings maximum (the boost arrow at full length), and yaw torque as a nose ray plus swept arc. Head shape separates thrust from strafe where color alone would not.</summary>
     [InitializeOnLoad]
     internal static class MovementControllerGizmos
     {
@@ -38,7 +38,7 @@ namespace Ships.Movement
                     SuperGizmos.HeadType.Cube, Color.yellow);
 
             if (mover.dbgBoost.sqrMagnitude > MinForce)
-                Arrow(origin, Fraction(mover.dbgBoost, settings?.boostImpulse ?? 0f) * scale * 1.5f,
+                Arrow(origin, mover.dbgBoost.normalized * scale * 1.5f,
                     SuperGizmos.HeadType.Sphere, Color.cyan);
 
             if (Mathf.Abs(mover.dbgYaw) > MinForce)

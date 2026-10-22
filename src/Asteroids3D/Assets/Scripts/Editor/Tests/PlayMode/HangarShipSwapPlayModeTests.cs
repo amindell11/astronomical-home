@@ -74,7 +74,6 @@ namespace Tests.PlayMode
             Assert.AreNotEqual("Vanguard(Clone)", oldShip.name, "test premise: rig does not start on Vanguard");
 
             rig.Loadout.Ship = vanguard;
-            rig.Loadout.Engine = vanguard.Engine;
             rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 
@@ -109,7 +108,6 @@ namespace Tests.PlayMode
 
             var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
             rig.Loadout.Ship = vanguard;
-            rig.Loadout.Engine = vanguard.Engine;
             rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 

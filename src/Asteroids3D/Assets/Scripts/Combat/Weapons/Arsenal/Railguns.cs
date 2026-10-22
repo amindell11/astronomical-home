@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using System.Collections.Generic;
 using Combat.Projectiles;
 using Damage;
 using UnityEngine;
@@ -9,14 +10,21 @@ using Substrate;
 
 namespace Combat.Weapons.Arsenal
 {
-    /// <summary>Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).</summary>
+    /// <summary>
+    /// Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).
+    /// The beam is a capsule swept along the game plane that pierces: it strikes targets nearest-first,
+    /// and each kill's overkill (the return of <see cref="IDamageable.TakeDamage"/>) carries on to the
+    /// next target until a survivor, or a collider that takes no damage, stops it.
+    /// </summary>
     public class Railguns : WeaponComponent
     {
         [Header("Beam")]
-        [Tooltip("Damage applied to the first thing the beam hits.")]
+        [Tooltip("Damage the beam carries. It pierces: each target it kills passes the leftover damage on to the next one behind it.")]
         [Stat, SerializeField, Min(0f)] private float damage = 45f;
         [Tooltip("Max beam length.")]
         [Stat, SerializeField, Min(0f)] private float range = 60f;
+        [Tooltip("Beam half-width: the beam strikes any collider within this distance of its line.")]
+        [Stat, SerializeField, Min(0f)] private float beamRadius = 0.5f;
         [Tooltip("Impact speed the beam reports on hit; with impactMass it sets the momentum share and impact direction when the beam breaks an asteroid.")]
         [SerializeField, Min(0f)] private float impactSpeed = 120f;
         [Tooltip("Impact mass the beam reports on hit; with impactSpeed it sets how much momentum fragments take when the beam breaks an asteroid.")]
@@ -43,6 +51,7 @@ namespace Combat.Weapons.Arsenal
         public ChargeTime Charge => charge;
         public float Damage => damage;
         public float BeamRange => range;
+        public float BeamRadius => beamRadius;
 
         public override float ProjectileSpeed => 0f;
 
@@ -86,33 +95,44 @@ namespace Combat.Weapons.Arsenal
         // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
         public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
 
-        private static readonly RaycastHit[] beamHits = new RaycastHit[16];
+        private static RaycastHit[] beamHits = new RaycastHit[32];
+        private static readonly IComparer<RaycastHit> nearestFirst =
+            Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
+        private static readonly HashSet<IDamageable> struck = new();
 
         private void FireBeam()
         {
-            var origin = firePoint.position;
-            var direction = firePoint.up;
+            var origin = GamePlane.PlanePointToWorld(GamePlane.WorldPointToPlane(firePoint.position));
+            var direction = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(firePoint.up).normalized);
             var end = origin + direction * range;
+
+            // A full buffer may have dropped the nearest hits, so grow it and cast again.
+            int count;
+            while ((count = Physics.SphereCastNonAlloc(origin, beamRadius, direction, beamHits, range, hitMask)) == beamHits.Length)
+                beamHits = new RaycastHit[beamHits.Length * 2];
+            Array.Sort(beamHits, 0, count, nearestFirst);
 
             // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
-            var count = Physics.RaycastNonAlloc(origin, direction, beamHits, range, hitMask);
-            var bestIndex = -1;
+            var attackerId = shooter?.Id ?? Ships.Registry.ShipId.Invalid;
+            var remaining = damage;
+            struck.Clear();
             for (var i = 0; i < count; i++)
             {
-                if (shooterBody && beamHits[i].rigidbody == shooterBody) continue;
-                if (bestIndex < 0 || beamHits[i].distance < beamHits[bestIndex].distance)
-                    bestIndex = i;
-            }
-
-            if (bestIndex >= 0)
-            {
-                var hit = beamHits[bestIndex];
-                end = hit.point;
+                var hit = beamHits[i];
+                if (shooterBody && hit.rigidbody == shooterBody) continue;
                 var damageable = hit.collider.GetComponentInParent<IDamageable>();
-                damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.Registry.ShipId.Invalid,
-                    impactMass, firePoint.up * impactSpeed, hit.point));
-                Hit?.Invoke(hit.point, damageable);
+                if (damageable != null && !struck.Add(damageable)) continue;
+
+                // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
+                var point = hit.distance > 0f ? hit.point : hit.collider.ClosestPoint(origin);
+                remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
+                    impactMass, direction * impactSpeed, point)) ?? 0f;
+                Hit?.Invoke(point, damageable);
+                if (remaining > 0f) continue;
+
+                end = origin + direction * Mathf.Max(0f, Vector3.Dot(point - origin, direction));
+                break;
             }
 
             OnBeamFired?.Invoke(origin, end);

@@ -63,7 +63,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -677,9 +677,9 @@ Format: **term** — definition. *(authority)*
   `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
   release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
-  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
-  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`, `EngineAudio`; #1012)*
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
@@ -800,6 +800,12 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **keystone** — the locked ability in a ship's keystone slot, one kit per ship
+  (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
+  instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
+  later its windows) that a shared module asset cannot. The boost names stay —
+  `PilotCommand.boost`, `IShipStatus.BoostAvailable` — and mean "activate the
+  keystone". Always "keystone slot", never bare "slot". *(Keystone, Ship)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
   `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
@@ -828,20 +834,24 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **shield bypass** — a hit's damage skips the shield and goes straight to hull.
+- **overkill** — the damage a hit has left after killing its target.
+  `TakeDamage` returns it so the railgun beam can carry it to the next target
+  behind. It is not bleed-through. The "§C3 overkill PR" above used the word
+  for the shield-to-hull remainder on a single target.
+  *(`IDamageable.TakeDamage`)*
+- **shield bypass**. A hit's damage skips the shield and goes straight to hull.
   Only a missile's direct hit carries it; its splash stays shield-first with
   bleed-through. The producer sets the flag, and `DamageController` routes on it,
-  never on `DamageKind` (direct hit and splash share one kind). A bypass hit
-  doesn't restart the shield's regen delay.
+  never on `DamageKind`. A bypass hit doesn't restart the shield's regen delay.
   *(`DamageInfo.BypassesShield`)*
-- **DamageInfo** — the per-hit context struct every damage producer builds at
+- **DamageInfo**. The per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
-  event-side the *applied* damage (shield + hull, the locked bleed-through
+  `AppliedDamage.Info.Amount` is the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life record of the player's received DamageInfo: every
-  hit stamped with game time, and the hits aggregated per source —
-  consumer-side recorder owned by the player rig, never sim state. Source names
+- **damage ledger**. Records received shield and hull damage across the whole run,
+  including repairs and sector changes. A consumer-side recorder owned by the
+  player rig, never sim state. Source names
   are captured at event time because the attacker may despawn before the recap
   reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
@@ -872,16 +882,21 @@ Format: **term** — definition. *(authority)*
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
-- **run record** — one JSON line appended when a run ends, extracted from its last
+- **run record**. One JSON line appended when a run ends, extracted from its last
   sector or dead: what it was played on (build identity, stat fingerprint), its
   outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
   seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
-  spawn log. Quitting mid-run writes nothing.
+  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
+  measured shield/hull points from older v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **scoreboard**. Past-run rankings share one board across stat fingerprints.
+  A sector counts only after extraction; dying in the first sector shows zero.
+  Intermediate extraction has no scoreboard; victory and defeat do.
+  *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
   parts by asset name, its loadout stat hash taken at spawn, when it spawned, how

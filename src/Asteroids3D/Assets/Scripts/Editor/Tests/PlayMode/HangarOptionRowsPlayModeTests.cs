@@ -57,14 +57,13 @@ namespace Tests.PlayMode
 
             catalog = ScriptableObject.CreateInstance<ItemSubset>();
             catalog.ships = new[] { vanguard };
-            catalog.engines = new EngineModule[0];
             catalog.shields = new ShieldModule[0];
             var weapons = new WeaponComponent[WeaponPaths.Length];
             for (var i = 0; i < WeaponPaths.Length; i++)
                 weapons[i] = Load<WeaponComponent>(WeaponPaths[i]);
             catalog.weapons = weapons;
 
-            var loadout = new ShipLoadout(vanguard, vanguard.Engine, vanguard.Shield, null, null);
+            var loadout = new ShipLoadout(vanguard, vanguard.Shield, null, null);
             Show(catalog, loadout);
             return loadout;
         }
@@ -192,7 +191,7 @@ namespace Tests.PlayMode
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            Show(offer, new ShipLoadout(first, first.Engine, first.Shield, null, null));
+            Show(offer, new ShipLoadout(first, first.Shield, null, null));
             Assert.AreEqual(first.name, screen.shipRow.label.text, "the ship row opens on the loadout's ship");
 
             for (var i = 1; i <= offer.ships.Length; i++)
@@ -204,18 +203,12 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void RealCatalog_ModuleRowsAndKitLine_ShowDisplayNames()
+        public void RealCatalog_ShieldRowAndShipKit_ShowDisplayNames()
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            var loadout = new ShipLoadout(first, first.Engine, first.Shield, null, null);
+            var loadout = new ShipLoadout(first, first.Shield, null, null);
             Show(offer, loadout);
-
-            for (var i = 0; i < offer.engines.Length; i++)
-            {
-                Next(screen.engineRow);
-                AssertDisplayName(loadout.Engine.DisplayName, screen.engineRow.label.text, $"engine step {i + 1}");
-            }
 
             for (var i = 0; i < offer.shields.Length; i++)
             {
@@ -228,9 +221,13 @@ namespace Tests.PlayMode
             for (var i = 0; i < offer.ships.Length; i++)
             {
                 Next(screen.shipRow);
-                var kit = $"Kit: {loadout.Ship.Engine.DisplayName} + {loadout.Ship.Shield.DisplayName}";
-                StringAssert.EndsWith(kit, stats.text, $"ship step {i + 1} hover names the authored kit");
-                StringAssert.DoesNotContain("_", kit, $"ship step {i + 1} kit shows authored names");
+                var lines = stats.text.Split('\n');
+                var kit = $"Kit: {loadout.Ship.Shield.DisplayName}";
+                var engine = $"Engine: {loadout.Ship.Engine.DisplayName}";
+                StringAssert.EndsWith(kit, lines[0], $"ship step {i + 1} hover names the authored shield as the kit");
+                StringAssert.StartsWith(engine, lines[1], $"ship step {i + 1} hover names the chassis's engine under the ship");
+                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[2], $"ship step {i + 1} hover names the chassis's keystone");
+                StringAssert.DoesNotContain("_", kit + engine, $"ship step {i + 1} kit shows authored names");
             }
         }
 

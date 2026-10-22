@@ -19,9 +19,10 @@ using Substrate;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The concussion charge flies straight at its target point (clamped to max range), brakes to
-    /// rest there and detonates on arrival, on contact (never the owner's hull) or when shot — the
-    /// owner's fire included. Its wave sweeps outward hitting everything once, the shooter included,
+    /// The concussion charge flies straight at its target point (clamped to max range) and brakes to
+    /// rest there. Being shot detonates it at once — the owner's fire included. Once armed it also
+    /// detonates on arrival, on contact or with a ship inside its proximity radius — never the
+    /// owner's hull. Its wave sweeps outward hitting everything once, the shooter included,
     /// with damage and push falling off toward the rim; the push lands where the wave meets each hull.
     /// </summary>
     [Category("Weapons")]
@@ -53,9 +54,10 @@ namespace Tests.PlayMode
         {
             public float TotalDamage { get; private set; }
 
-            public void TakeDamage(in DamageInfo hit)
+            public float TakeDamage(in DamageInfo hit)
             {
                 TotalDamage += hit.Amount;
+                return 0f;
             }
         }
 
@@ -103,6 +105,13 @@ namespace Tests.PlayMode
             return go.AddComponent<DamageRecorder>();
         }
 
+        private DamageRecorder CreateRock(Vector3 position)
+        {
+            var rock = CreateTarget(position, "Rock");
+            rock.gameObject.layer = LayerIds.Asteroid;
+            return rock;
+        }
+
         private static Rigidbody AddBody(Component target)
         {
             var body = target.gameObject.AddComponent<Rigidbody>();
@@ -121,6 +130,33 @@ namespace Tests.PlayMode
             for (var i = 0; i < maxSteps && charge.gameObject.activeSelf; i++)
                 yield return new WaitForFixedUpdate();
         }
+
+        private sealed class Flight
+        {
+            public int Steps;
+            public Vector3? DetonatedAt;
+            public float Seconds => Steps * Time.fixedDeltaTime;
+        }
+
+        private static IEnumerator FlyUntilGone(Grenade grenade, Flight flight, int maxSteps, System.Action beforeEachStep = null)
+        {
+            grenade.OnDetonated += at => flight.DetonatedAt = at;
+            while (flight.Steps < maxSteps && grenade.gameObject.activeSelf)
+            {
+                beforeEachStep?.Invoke();
+                yield return new WaitForFixedUpdate();
+                flight.Steps++;
+            }
+        }
+
+        private static int StepsToArm(Grenade grenade) => Mathf.CeilToInt(grenade.armingTime / Time.fixedDeltaTime);
+
+        /// <summary>Keeps <paramref name="ship"/> abeam of the flying charge, half its proximity radius off, never touching it.</summary>
+        private static System.Action Alongside(Component ship, Grenade grenade) => () =>
+        {
+            ship.transform.position = grenade.transform.position + Plane(1f, 0f) * (grenade.proximityRadius * 0.5f);
+            Physics.SyncTransforms();
+        };
 
         private static IEnumerator SweepFullWave()
         {
@@ -187,7 +223,7 @@ namespace Tests.PlayMode
 
             yield return StepUntilGone(grenade, 200);
 
-            Assert.IsTrue(detonatedAt.HasValue, "The charge detonates on arrival — there is no fuse.");
+            Assert.IsTrue(detonatedAt.HasValue, "The charge detonates on arrival.");
             Assert.Less(Vector3.Distance(detonatedAt.Value, point), 0.1f, "The charge brakes to rest on its target point.");
             Assert.IsNotNull(FindActiveWave(), "Arrival spawns the wave.");
         }
@@ -206,20 +242,87 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ContactBeforeArrival_Detonates()
+        public IEnumerator PointBlankCharge_HoldsInPlace_AndDetonatesTheMomentItArms()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position, Projectiles) as Grenade;
+            var launchedAt = grenade.transform.position;
+            var flight = new Flight();
+
+            yield return FlyUntilGone(grenade, flight, 200);
+
+            Assert.IsTrue(flight.DetonatedAt.HasValue, "The charge detonates once armed.");
+            Assert.GreaterOrEqual(flight.Seconds, grenade.armingTime - 0.001f, "Arriving at once, it still waits out the arming time.");
+            Assert.LessOrEqual(flight.Steps, StepsToArm(grenade) + 1, "It detonates the moment it arms.");
+            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, launchedAt), 0.1f, "It held on its point until then.");
+        }
+
+        [UnityTest]
+        public IEnumerator ContactBeforeArming_DoesNotDetonate()
         {
             var weapon = MountWeapon(out _);
             var origin = weapon.firePoint.position;
-            var blocker = CreateTarget(origin + Plane(0f, 5f), "Blocker");
+            var point = origin + Plane(0f, 20f);
+            CreateRock(origin + Plane(0f, 3f));
 
-            var grenade = weapon.Fire(origin + Plane(0f, 20f), Projectiles) as Grenade;
-            Vector3? detonatedAt = null;
-            grenade.OnDetonated += at => detonatedAt = at;
-            yield return StepUntilGone(grenade, 60);
+            var grenade = weapon.Fire(point, Projectiles) as Grenade;
+            var flight = new Flight();
+            yield return FlyUntilGone(grenade, flight, 200);
 
-            Assert.IsTrue(detonatedAt.HasValue, "Contact detonated the charge.");
-            Assert.Less(Vector3.Distance(detonatedAt.Value, blocker.transform.position), 1.5f,
-                "It blew on the blocker, short of its target point.");
+            Assert.IsTrue(flight.DetonatedAt.HasValue);
+            Assert.GreaterOrEqual(flight.Seconds, grenade.armingTime - 0.001f, "Contact before arming did not set it off.");
+            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, point), 0.1f, "It flew through the rock and on to its point.");
+        }
+
+        [UnityTest]
+        public IEnumerator ContactAfterArming_Detonates()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 100f), Projectiles) as Grenade;
+            for (var i = 0; i <= StepsToArm(grenade); i++)
+                yield return new WaitForFixedUpdate();
+
+            var ahead = grenade.TargetPoint - grenade.transform.position;
+            Assume.That(ahead.magnitude, Is.GreaterThan(3f), "The armed charge is still in flight.");
+            var rock = CreateRock(grenade.transform.position + ahead.normalized * 1.5f);
+            var flight = new Flight();
+            yield return FlyUntilGone(grenade, flight, 60);
+
+            Assert.IsTrue(flight.DetonatedAt.HasValue, "Contact detonated the armed charge.");
+            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, rock.transform.position), 1.5f,
+                "It blew on the rock, short of its target point.");
+        }
+
+        [UnityTest]
+        public IEnumerator EnemyShipInProximityRadius_DetonatesTheChargeOnArming_WithoutContact()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 100f), Projectiles) as Grenade;
+            var enemy = CreateTarget(grenade.transform.position, "Enemy");
+            var flight = new Flight();
+
+            yield return FlyUntilGone(grenade, flight, 200, Alongside(enemy, grenade));
+
+            Assert.IsTrue(flight.DetonatedAt.HasValue, "The enemy alongside set the charge off.");
+            Assert.GreaterOrEqual(flight.Seconds, grenade.armingTime - 0.001f, "Not before it armed, though the enemy was in range from launch.");
+            Assert.LessOrEqual(flight.Steps, StepsToArm(grenade) + 1, "An enemy already inside the radius detonates it the moment it arms.");
+            Assert.Greater(Vector3.Distance(flight.DetonatedAt.Value, grenade.TargetPoint), 1f, "It blew in flight, not on arrival.");
+        }
+
+        [UnityTest]
+        public IEnumerator OwnerShipInProximityRadius_NeverDetonatesTheCharge()
+        {
+            var weapon = MountWeapon(out var shooter);
+            shooter.gameObject.AddComponent<SphereCollider>().radius = 0.5f;
+            shooter.gameObject.AddComponent<DamageRecorder>();
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 100f), Projectiles) as Grenade;
+            var flight = new Flight();
+
+            yield return FlyUntilGone(grenade, flight, 200, Alongside(shooter, grenade));
+
+            Assert.IsTrue(flight.DetonatedAt.HasValue);
+            Assert.Less(Vector3.Distance(flight.DetonatedAt.Value, grenade.TargetPoint), 0.1f,
+                "Only arrival set it off — its owner's hull alongside never did.");
         }
 
         [UnityTest]
@@ -264,7 +367,7 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void Grenade_Shot_DetonatesImmediately()
+        public void Grenade_ShotBeforeArming_DetonatesImmediately()
         {
             var weapon = MountWeapon(out _);
             var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 20f), Projectiles) as Grenade;

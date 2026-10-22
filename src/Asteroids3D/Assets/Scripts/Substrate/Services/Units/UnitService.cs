@@ -66,7 +66,7 @@ namespace Substrate.Services.Units
                 {
                     // An AI commander captures dynamics and muzzle speed when wired, so the equip lands first.
                     if (loadout != null)
-                        spawned.Reequip(loadout.Engine, loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
+                        spawned.Reequip(loadout.Shield, loadout.PrimaryWeapon, loadout.SecondaryWeapon);
                     WireShipDependencies(spawned, field);
                 });
 

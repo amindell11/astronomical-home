@@ -264,12 +264,6 @@ namespace UI.Hangar
             foreach (var minimap in rig.GetComponentsInChildren<MinimapShipMarker>(true))
                 if (minimap && minimap.gameObject != rig.gameObject)
                     DestroyImmediate(minimap.gameObject);
-            // Disable, don't destroy: sources may be [RequireComponent]-pinned by their binders.
-            foreach (var audio in rig.GetComponentsInChildren<AudioSource>(true))
-            {
-                audio.playOnAwake = false;
-                audio.enabled = false;
-            }
         }
 
         private static void SetLayerRecursive(Transform root, int layer)

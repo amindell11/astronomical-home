@@ -15,7 +15,7 @@ types]]:
 
 | Category | Slot | What it changes | Status |
 |---|---|---|---|
-| **Engines** | Engine | thrust, top speed, boost, handling | **built** |
+| **Engines** | Engine | thrust, top speed, handling | **built**, locked to the chassis — the engine comes with the ship, not as an upgrade (#1028) |
 | **Shield** | Shield | max shield, regen delay/rate, (later) shape | **built** |
 | **[[Weapons]]** | Weapon ×2 | what each mount fires | **exists** (two mounts) |
 | **Ship Passives** | Passive / Keystone / Utility | always-on effects, signature ability, situational tools | **designed, deferred** |
@@ -24,12 +24,14 @@ types]]:
 
 Per [[Ships]]' **disjoint-ownership** rule, a module *owns* its stats outright —
 so an upgrade is a **whole-module replacement**, not a stacked bonus. A better
-engine is a different Engine module that fully defines thrust/speed/boost;
-slotting it *replaces* the old one. No arithmetic, no modifier stack (for now).
+shield is a different Shield module that fully defines capacity/regen; slotting
+it *replaces* the old one (the engine comes with the ship, #1028). No arithmetic,
+no modifier stack (for now).
 
 This means early upgrades are **sidegrades and identity choices**, not "+numbers"
-— a nimble racing engine vs a heavy long-boost engine, a fast-regen light shield
-vs a big slow-regen shield. That fits the [[Combat Depth]] philosophy (every
+— a fast-regen light shield vs a big slow-regen shield, a railgun vs a ripper;
+the racing-vs-hauler engine contrast is a chassis choice, not a module (#1028).
+That fits the [[Combat Depth]] philosophy (every
 strong option costs you on another axis) better than a pure power ladder.
 
 ### Later: the boon/modifier layer
@@ -59,7 +61,8 @@ differs. This keeps loot, crafting, and the hangar unified over one model.
 ## Where upgrades are chosen
 
 - **[[Home Base]] hangar** — assemble your starting build for a run from
-  permanent modules ("choose your engine, etc.").
+  permanent modules ("choose your shield, your weapons"; the engine comes with
+  the ship, #1028).
 - **Mid-run** — swap in run-scoped modules found as loot (subject to which slots
   a run allows swapping; see open question).
 - **Simulated drill field** ([[Home Base]]) — test a build against the AI
@@ -67,8 +70,9 @@ differs. This keeps loot, crafting, and the hangar unified over one model.
 
 ## Open questions
 
-- **Which slots swap mid-run vs lock at the hangar?** (The chassis/hull likely
-  locks for a run; engine/shield/weapons maybe swappable at POIs.) Ties to
+- **Which slots swap mid-run vs lock at the hangar?** (The chassis/hull, and with
+  it the engine (#1028), likely locks for a run; shield/weapons maybe swappable at
+  POIs.) Ties to
   [[Rogue-like]] pacing.
 - **Do enemies drop the exact module they were using**, or from a loot table?
   (Enemies use the same chassis + Modules — see [[Ships]].)

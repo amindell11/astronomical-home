@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6e8aa7f30404320a5996027a2198c28, type: 3}
+  m_Name: Bulwark_Engine
+  m_EditorClassIdentifier: 
+  displayName: Bulwark Engine
+  maxSpeed: 21
+  maxYawRate: 140
+  forwardForce: 8100
+  reverseForce: 3600
+  yawTorque: 18000
+  angularDrag: 3
+  bankTorque: 28000
+  bankDamping: 2800
+  minStrafeForce: 3900
+  maxStrafeForce: 4800
+  linearDrag: 0.3
