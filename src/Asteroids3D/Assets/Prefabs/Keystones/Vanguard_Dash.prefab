@@ -60,4 +60,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46f18e88eeca4b609d49135ae0f732bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  guard: {fileID: 5512903418735166201}
+  keystone: {fileID: 5512903418735166201}
+  color: {r: 1, g: 1, b: 1, a: 1}

@@ -83,6 +83,38 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void GuardDash_PaysOnce_ForAHitBlockedInsideItsWindow()
+        {
+            var guard = NewKit<GuardDash>();
+            var kin = Facing(0f);
+            guard.NotifyBlocked(AnyHit);
+            Assert.That(guard.PaidActivations, Is.EqualTo(0), "a block before any activation pays nothing");
+
+            guard.Step(in kin, 1f, Dt, out _);
+            guard.NotifyBlocked(AnyHit);
+            guard.NotifyBlocked(AnyHit);
+            Assert.That(guard.PaidActivations, Is.EqualTo(1), "one activation pays once");
+        }
+
+        [Test]
+        public void RamDash_BlocksOnlyCollisions_WhileLive()
+        {
+            var ram = NewKit<RamDash>();
+            var kin = Facing(0f);
+            var collision = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
+            Assert.That(ram.Blocks(in collision), Is.False, "not live before activating");
+
+            ram.Step(in kin, 1f, Dt, out _);
+            Assert.That(ram.Active, Is.True);
+            Assert.That(ram.Blocks(in collision), Is.True, "collision damage is dropped while the ram is live");
+            Assert.That(ram.Blocks(in AnyHit), Is.False, "a missile still lands on a charging Bulwark");
+
+            while (ram.RamLive)
+                ram.Step(in kin, 0f, Dt, out _);
+            Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
+        }
+
+        [Test]
         public void PlainDash_BlocksNothing_EvenRightAfterActivating()
         {
             var dash = NewDash();
@@ -152,13 +184,24 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void Bulwark_CarriesTheRam()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
+            Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
+            Assert.That(ram.Window, Is.EqualTo(0.6f));
+            Assert.That(ram.ShipDamage, Is.EqualTo(60f));
+            Assert.That(ram.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        [Test]
         public void Vanguard_CarriesTheGuardDash()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var guard = catalog.Chassis.Single(c => c.name == "Vanguard").KeystonePrefab as GuardDash;
             Assert.That(guard, Is.Not.Null, "Vanguard's kit is the Guard Dash");
             Assert.That(guard.Window, Is.EqualTo(0.4f));
-            Assert.That(guard.GetComponent<GuardFlash>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
         [TestCase("Vanguard", 9000f, 5f)]

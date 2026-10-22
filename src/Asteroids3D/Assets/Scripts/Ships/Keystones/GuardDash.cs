@@ -13,6 +13,13 @@ namespace Ships.Keystones
         public float Window => window;
         public bool Guarding => SinceActivation < window;
 
+        public override bool Active => Guarding;
+
         public override bool Blocks(in DamageInfo hit) => Guarding;
+
+        public override void NotifyBlocked(DamageInfo hit)
+        {
+            if (Guarding) CreditActivation();
+        }
     }
 }

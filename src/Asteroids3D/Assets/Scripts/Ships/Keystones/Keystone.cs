@@ -10,7 +10,8 @@ namespace Ships.Keystones
     /// prefab and hands the instance to <see cref="Ships.Movement.MovementController"/>, which steps it
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
-    /// effects beyond the activation impulse are state on the kit that other systems observe.
+    /// effects beyond the activation impulse are state on the kit that other systems observe; the
+    /// ship hands it what it owns (contacts, blocked hits), and the kit decides what pays.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
     /// </summary>
     public abstract class Keystone : MonoBehaviour
@@ -21,6 +22,7 @@ namespace Ships.Keystones
         private float clock;
         private float readyAt;
         private float activatedAt = float.NegativeInfinity;
+        private int creditedActivation;
 
         public abstract string DisplayName { get; }
         public float Cooldown => cooldown;
@@ -28,6 +30,10 @@ namespace Ships.Keystones
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
+        public int PaidActivations { get; private set; }
+
+        /// <summary>The kit's active state, which its tell shows.</summary>
+        public virtual bool Active => false;
 
         protected float SinceActivation => clock - activatedAt;
 
@@ -48,10 +54,23 @@ namespace Ships.Keystones
             readyAt = 0f;
             activatedAt = float.NegativeInfinity;
             Activations = 0;
+            PaidActivations = 0;
+            creditedActivation = 0;
         }
 
         public virtual bool Blocks(in DamageInfo hit) => false;
 
+        public virtual void NotifyBlocked(DamageInfo hit) { }
+
+        public virtual void OnContact(in KeystoneContact contact) { }
+
         protected abstract Vector2 Activate(in Kinematics kinematics);
+
+        protected void CreditActivation()
+        {
+            if (creditedActivation == Activations) return;
+            creditedActivation = Activations;
+            PaidActivations++;
+        }
     }
 }
