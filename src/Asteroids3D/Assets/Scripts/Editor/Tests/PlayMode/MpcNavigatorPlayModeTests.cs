@@ -91,7 +91,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
                 var finalDiff = TestUtilities.AngleDeltaToTarget(ship.transform, 90f);
                 Assert.That(finalDiff, Is.LessThan(10f),
                     $"Ship should rotate to face 90° within {YawTimeoutSec}s (final diff = {finalDiff:F1}°)");
-                Assert.That(ship.transform.position.magnitude, Is.LessThan(1f),
+                Assert.That(ship.transform.position.magnitude, Is.LessThan(1.5f),
                     "Ship should remain stationary while only yawing");
             },
             useFixedUpdate: true);

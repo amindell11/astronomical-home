@@ -94,6 +94,31 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: impactEvent.Guid.Data1
+      value: -59491752
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: impactEvent.Guid.Data2
+      value: 1128604289
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: impactEvent.Guid.Data3
+      value: 2084146065
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: impactEvent.Guid.Data4
+      value: 1414402970
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: impactEvent.Path
+      value: event:/Weapons/TurboLaser/Impact
+      objectReference: {fileID: 0}
     - target: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: m_Name

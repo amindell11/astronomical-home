@@ -139,6 +139,26 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void SectorTrophies_ExcludeEarlierKillsAndOtherAttackers()
+        {
+            var hull = NewHull();
+            log.Begin(0f);
+            log.Log(Enemy, hull, 0f);
+            log.MarkDead(Enemy, BlowFrom(Player), 1f);
+            log.EndSector(2f);
+            log.BeginSector();
+            log.Log(Enemy, hull, 2f);
+            log.Log(OtherEnemy, hull, 2f);
+            log.MarkDead(Enemy, BlowFrom(Player), 3f);
+            log.MarkDead(OtherEnemy, BlowFrom(Enemy), 4f);
+            Assert.AreEqual(2, log.KilledShips().Count);
+            CollectionAssert.AreEqual(new[] { hull.name.Replace("(Clone)", string.Empty) },
+                log.KilledShips(currentSector: true));
+            log.Reset();
+            Assert.IsEmpty(log.KilledShips(currentSector: true));
+        }
+
+        [Test]
         public void CurrentPlayersEntry_IsLeftOut()
         {
             log.Begin(0f);

@@ -464,6 +464,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: mass
+      value: 650
+      objectReference: {fileID: 0}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: maxHealth
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: engine
+      value: 
+      objectReference: {fileID: 11400000, guid: 38dc83ab82ec4474b14ad0c81115379e, type: 2}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_ImplicitTensor
@@ -472,17 +487,17 @@ PrefabInstance:
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.x
-      value: 279
+      value: 226.6875
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.y
-      value: 38
+      value: 30.875
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.z
-      value: 295
+      value: 239.6875
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

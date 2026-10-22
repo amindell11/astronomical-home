@@ -1,43 +1,37 @@
+using FMOD.Studio;
+using FMODUnity;
 using Ships.Damage;
 using UnityEngine;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 namespace UI.Audio
 {
     /// Plays audio cues driven by DamageController health/shield events.
-    [RequireComponent(typeof(AudioSource))]
     public class UIHealthAudio : MonoBehaviour
     {
-        [Header("Clips")]
-        [Tooltip("Looping alarm sound that plays when health drops below the critical threshold.")]
-        [SerializeField] private AudioClip lowHealthAlarmClip;
+        [Header("Events")]
+        [Tooltip("Looping FMOD alarm held while health and shield are both critical.")]
+        [SerializeField] private EventReference lowHealthEvent;
+        [Tooltip("FMOD one-shot played when the player's shield reaches zero.")]
+        [SerializeField] private EventReference shieldDepletedEvent;
 
         [Header("Settings")]
         [Tooltip("Health percentage threshold below which the alarm will play (0.0 to 1.0).")]
         [SerializeField, Range(0f, 1f)] private float criticalHealthThreshold = 0.25f;
         [Tooltip("Shield percentage threshold below which the alarm will play (0.0 to 1.0).")]
         [SerializeField, Range(0f, 1f)] private float criticalShieldThreshold = 0.1f;
-        [Tooltip("Volume for health alarm sound effects.")]
-        [SerializeField, Range(0f, 1f)] private float volume = 0.6f;
 
-        private AudioSource source;
         private IDamageEvents damage;
-        private bool isAlarmPlaying;
+        private EventInstance alarm;
 
-        // Cache current values to avoid redundant calculations
         private float currentHealthPercentage = 1.0f;
         private float currentShieldPercentage = 1.0f;
-
-        private void Awake()
-        {
-            source = GetComponent<AudioSource>();
-            source.playOnAwake = false;
-            source.loop        = false;
-        }
 
         public void Initialize(IDamageEvents damageEvents)
         {
             // Re-bindable: the persistent HUD re-Initializes when the hangar rebuilds the player.
             UnsubscribeFromEvents();
+            StopAlarm();
             damage = damageEvents;
             SubscribeToEvents();
             InitializeCurrentValues();
@@ -59,6 +53,8 @@ namespace UI.Audio
         private void OnShieldChanged(float current, float previous, float max)
         {
             currentShieldPercentage = max > 0f ? current / max : 0f;
+            if (previous > 0f && current <= 0f)
+                RuntimeManager.PlayOneShot(shieldDepletedEvent);
             CheckAlarmCondition();
         }
 
@@ -94,11 +90,11 @@ namespace UI.Audio
             var shieldCritical = currentShieldPercentage <= criticalShieldThreshold;
             var shouldPlayAlarm = healthCritical && shieldCritical;
 
-            if (shouldPlayAlarm && !isAlarmPlaying)
+            if (shouldPlayAlarm && !alarm.isValid())
             {
                 PlayLowHealthAlarm();
             }
-            else if (!shouldPlayAlarm && isAlarmPlaying)
+            else if (!shouldPlayAlarm)
             {
                 StopAlarm();
             }
@@ -107,24 +103,16 @@ namespace UI.Audio
         /* ----------------- Audio Control ----------------- */
         private void PlayLowHealthAlarm()
         {
-            if (!lowHealthAlarmClip) return;
-
-            source.loop = true;
-            source.clip = lowHealthAlarmClip;
-            source.volume = volume;
-            if (!source.isPlaying)
-            {
-                source.Play();
-            }
-            isAlarmPlaying = true;
+            alarm = RuntimeManager.CreateInstance(lowHealthEvent);
+            alarm.start();
         }
 
         private void StopAlarm()
         {
-            source.loop = false;
-            source.Stop();
-            source.clip = null;
-            isAlarmPlaying = false;
+            if (!alarm.isValid()) return;
+            alarm.stop(STOP_MODE.ALLOWFADEOUT);
+            alarm.release();
+            alarm = default;
         }
 
         private void UnsubscribeFromEvents()
@@ -135,4 +123,4 @@ namespace UI.Audio
             damage.OnDeath -= OnPlayerDeath;
         }
     }
-} 
+}

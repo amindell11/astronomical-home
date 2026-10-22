@@ -53,9 +53,9 @@ namespace Tests.EditMode.Runs
             spawns.End(42.5f);
 
             var ledger = new DamageLedger();
-            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 3f);
-            ledger.Record(Hit(15f, DamageKind.Laser, Laserer), 4f);
-            ledger.Record(Hit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 3f);
+            ledger.Record(AppliedHit(15f, DamageKind.Laser, Laserer), 4f);
+            ledger.Record(AppliedHit(40f, DamageKind.Collision, ShipId.Invalid), 5f);
 
             record = Compose(ledger, spawns);
             json = record.ToJsonLine();
@@ -88,6 +88,9 @@ namespace Tests.EditMode.Runs
 
         private static DamageInfo Hit(float amount, DamageKind kind, ShipId attacker) =>
             new(amount, kind, attacker, 0f, Vector3.zero, Vector3.zero);
+
+        private static AppliedDamage AppliedHit(float amount, DamageKind kind, ShipId attacker) =>
+            new(Hit(amount, kind, attacker), amount * 0.4f, amount * 0.6f);
 
         [Test]
         public void JsonLine_IsOneLineTaggedWithTheSchema()
@@ -156,6 +159,21 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void DamageSplit_RoundTripsActualPoints_AndMarksOlderRecordsAsUnmeasured()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(json);
+            Assert.IsTrue(read.hasDamageSplit);
+            Assert.AreEqual(10f, read.damage[0].shield, 1e-4f);
+            Assert.AreEqual(15f, read.damage[0].hull, 1e-4f);
+            Assert.AreEqual(16f, read.damage[1].shield, 1e-4f);
+            Assert.AreEqual(24f, read.damage[1].hull, 1e-4f);
+
+            var old = JsonUtility.FromJson<RunRecord>("{\"schema\":\"run-record-v2\",\"damage\":[{\"total\":25}]}");
+            Assert.IsFalse(old.hasDamageSplit);
+            Assert.AreEqual(25f, old.damage[0].total);
+        }
+
+        [Test]
         public void ExtractedRun_CarriesNoKillingBlow()
         {
             var spawns = new SpawnLog();
@@ -183,9 +201,9 @@ namespace Tests.EditMode.Runs
             spawns.End(30f);
 
             var ledger = new DamageLedger();
-            ledger.Record(Hit(10f, DamageKind.Laser, Laserer), 5f);
-            ledger.Record(Hit(20f, DamageKind.Laser, Laserer), 20f);
-            ledger.Record(Hit(30f, DamageKind.Laser, Laserer), 25f);
+            ledger.Record(AppliedHit(10f, DamageKind.Laser, Laserer), 5f);
+            ledger.Record(AppliedHit(20f, DamageKind.Laser, Laserer), 20f);
+            ledger.Record(AppliedHit(30f, DamageKind.Laser, Laserer), 25f);
 
             var damage = Compose(ledger, spawns).damage;
 
