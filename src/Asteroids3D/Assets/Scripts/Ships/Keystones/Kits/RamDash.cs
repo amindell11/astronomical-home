@@ -4,7 +4,7 @@ using Damage;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     /// <summary>
     /// Bulwark's kit: a dash that is a live ram for a short window or until its first contact,
