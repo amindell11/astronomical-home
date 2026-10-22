@@ -69,16 +69,16 @@
     for (let i = 0; i < pixels.data.length; i += 4) {
       const rgb = Array.from(pixels.data.slice(i, i + 3));
       const signal = Math.max(...rgb.map((v, c) => v - background[c]));
-      let alpha = clamp(Math.max(...rgb.map((v, c) => (v - background[c]) / (255 - background[c]))))
+      const alpha = clamp(Math.max(...rgb.map((v, c) => (v - background[c]) / (255 - background[c]))))
         * clamp((signal - 3) / 6);
       const warm = clamp((rgb[0] - rgb[2] - 25) / 30) * clamp((rgb[0] - rgb[1] * 0.96 + 12) / 24);
       const heat = Math.max(warm, clamp((Math.min(...rgb) - 165) / 30));
-      if (channel === 'fire') alpha *= heat;
-      if (channel === 'smoke') alpha *= (1 - heat) * clamp((Math.max(...rgb) - 55) / 20);
+      const selection = channel === 'fire' ? heat
+        : channel === 'smoke' ? (1 - heat) * clamp((Math.max(...rgb) - 55) / 20) : 1;
       for (let c = 0; c < 3; c++) {
         pixels.data[i + c] = alpha ? Math.max(0, (rgb[c] - background[c] * (1 - alpha)) / alpha) : 0;
       }
-      pixels.data[i + 3] = Math.round(alpha * 255);
+      pixels.data[i + 3] = Math.round(alpha * selection * 255);
     }
     if (channel === 'smoke') pruneSmoke(pixels, width, height);
     ctx.putImageData(pixels, 0, 0);
@@ -87,14 +87,13 @@
 
   function ignitionCore(flash) {
     const size = flash.width, result = canvas(size), ctx = result.getContext('2d');
-    ctx.drawImage(flash, 0, (size - flash.height) / 2);
-    const pixels = ctx.getImageData(0, 0, size, size);
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      const radius = Math.hypot((x + 0.5 - size / 2) / 76, (y + 0.5 - size / 2) / 65);
-      const t = clamp((radius - 0.8) / 0.35);
-      pixels.data[(y * size + x) * 4 + 3] *= 1 - t * t * (3 - 2 * t);
-    }
-    ctx.putImageData(pixels, 0, 0);
+    const centerHeight = 96, sourceTipHeight = (flash.height - centerHeight) / 2;
+    const tipHeight = (size - centerHeight) / 2;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(flash, 0, 0, size, sourceTipHeight, 0, 0, size, tipHeight);
+    ctx.drawImage(flash, 0, sourceTipHeight, size, centerHeight, 0, tipHeight, size, centerHeight);
+    ctx.drawImage(flash, 0, sourceTipHeight + centerHeight, size, sourceTipHeight,
+      0, tipHeight + centerHeight, size, tipHeight);
     return result;
   }
 
