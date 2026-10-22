@@ -13,5 +13,7 @@ namespace FMODUnity
         public static void DetachInstanceFromGameObject(FMOD.Studio.EventInstance instance) { }
 
         public static void PlayOneShot(EventReference eventReference, Vector3 position = new Vector3()) { }
+
+        public static void PlayOneShotAttached(EventReference eventReference, GameObject gameObject) { }
     }
 }
