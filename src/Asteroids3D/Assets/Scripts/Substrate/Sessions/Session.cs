@@ -13,7 +13,7 @@ namespace Substrate.Sessions
 {
     /// <summary>
     /// One game session, orchestrating its own lifecycle over the substrate it is handed: it composes
-    /// its services once, loads and unloads the profile's sector any number of times, and
+    /// its services once, loads and unloads the profile's sectors any number of times, and
     /// tears everything down. It owns no player and no policy — a host (<c>GameHost</c> for the
     /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
     /// player it built to each load. The RL harness composes the same per-ship services
@@ -80,18 +80,19 @@ namespace Substrate.Sessions
         }
 
         /// <summary>
-        /// Load the profile's sector, inject the host's hero into it, subscribe
+        /// Load the profile's sector at <paramref name="index"/>, inject the host's hero into it, subscribe
         /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
         /// sector's declared start. The hero is the main character the sector lays out around — the
         /// player today, possibly an AI; the sector side still names it the player. Every argument is
-        /// optional: a headless session loads with none.
+        /// optional: a headless session loads its first sector with none.
         /// </summary>
-        public IEnumerator LoadSector(Ship hero = null, Action<SectorResult> onSectorComplete = null)
+        public IEnumerator LoadSector(int index = 0, Ship hero = null, Action<SectorResult> onSectorComplete = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
-            var entry = profile.sectorEntry;
+            var sectors = profile.sectors;
+            var entry = sectors != null && index >= 0 && index < sectors.Length ? sectors[index] : null;
             if (!entry?.prefab)
-                throw new InvalidOperationException("No sector entry configured on the session profile.");
+                throw new InvalidOperationException($"No sector entry {index} configured on the session profile.");
 
             // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
             if (presentation)

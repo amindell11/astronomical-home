@@ -4,6 +4,7 @@ using UI.Audio;
 using UI.Markers;
 using UI.PlayerState;
 using Combat.Weapons.Conditions;
+using Substrate.Services.Objectives;
 
 namespace UI
 {
@@ -18,6 +19,7 @@ namespace UI
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
         private UIBoostAudio boostAudio;
+        private UIMissileWarningAudio missileWarningAudio;
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
@@ -33,6 +35,7 @@ namespace UI
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
             boostAudio = GetComponentInChildren<UIBoostAudio>();
+            missileWarningAudio = GetComponentInChildren<UIMissileWarningAudio>();
             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
@@ -70,6 +73,9 @@ namespace UI
             if (boostAudio)
                 boostAudio.Initialize(binding.Status);
 
+            if (missileWarningAudio)
+                missileWarningAudio.Initialize(binding.Status);
+
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
 
@@ -87,6 +93,14 @@ namespace UI
 
             if (lockOnAudio)
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+        }
+
+        public void BindObjectives(IObjectiveService objectives)
+        {
+            if (ObjectiveMarker)
+                ObjectiveMarker.BindObjectiveService(objectives);
+
+            ObjectiveStatusReadout.Create(transform).Initialize(objectives);
         }
     }
 }

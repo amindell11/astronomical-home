@@ -8,9 +8,8 @@ using UnityEngine;
 namespace Game.Player
 {
     /// <summary>
-    /// Per-life record of the player's received hits — each hit stamped with game time, and their
-    /// aggregate per damage source — consumer-side recorder, never sim state. Source names are
-    /// captured at event time because the attacker may despawn before the death recap reads the row.
+    /// Records received shield and hull damage across the run, including sector changes and repairs.
+    /// Source names are captured before attackers despawn. The recorder never changes combat state.
     /// </summary>
     public sealed class DamageLedger
     {
@@ -19,15 +18,18 @@ namespace Game.Player
             public readonly ShipId AttackerId;
             public readonly DamageKind Kind;
             public readonly string SourceName;
-            public readonly float Total;
+            public readonly float Shield;
+            public readonly float Hull;
+            public float Total => Shield + Hull;
             public readonly int Hits;
 
-            public Row(ShipId attackerId, DamageKind kind, string sourceName, float total, int hits)
+            public Row(ShipId attackerId, DamageKind kind, string sourceName, float shield, float hull, int hits)
             {
                 AttackerId = attackerId;
                 Kind = kind;
                 SourceName = sourceName;
-                Total = total;
+                Shield = shield;
+                Hull = hull;
                 Hits = hits;
             }
         }
@@ -35,16 +37,19 @@ namespace Game.Player
         public readonly struct Hit
         {
             public readonly float Time;
-            public readonly float Amount;
+            public readonly float Shield;
+            public readonly float Hull;
+            public float Amount => Shield + Hull;
             public readonly DamageKind Kind;
             public readonly ShipId AttackerId;
 
-            public Hit(float time, float amount, DamageKind kind, ShipId attackerId)
+            public Hit(float time, in AppliedDamage damage)
             {
                 Time = time;
-                Amount = amount;
-                Kind = kind;
-                AttackerId = attackerId;
+                Shield = damage.Shield;
+                Hull = damage.Hull;
+                Kind = damage.Info.Kind;
+                AttackerId = damage.Info.AttackerId;
             }
         }
 
@@ -83,22 +88,23 @@ namespace Game.Player
             _ => kind.ToString(),
         };
 
-        private void OnDamaged(DamageInfo hit) => Record(hit, Time.time);
+        private void OnDamaged(AppliedDamage damage) => Record(damage, Time.time);
 
-        internal void Record(in DamageInfo hit, float now)
+        internal void Record(in AppliedDamage damage, float now)
         {
-            hits.Add(new Hit(now, hit.Amount, hit.Kind, hit.AttackerId));
+            var hit = damage.Info;
+            hits.Add(new Hit(now, damage));
 
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
                 if (row.AttackerId != hit.AttackerId || row.Kind != hit.Kind) continue;
                 rows[i] = new Row(row.AttackerId, row.Kind, row.SourceName,
-                    row.Total + hit.Amount, row.Hits + 1);
+                    row.Shield + damage.Shield, row.Hull + damage.Hull, row.Hits + 1);
                 return;
             }
 
-            rows.Add(new Row(hit.AttackerId, hit.Kind, ResolveName(hit), hit.Amount, 1));
+            rows.Add(new Row(hit.AttackerId, hit.Kind, ResolveName(hit), damage.Shield, damage.Hull, 1));
         }
 
         private string ResolveName(in DamageInfo hit)

@@ -6,21 +6,22 @@ append, and this script never looks for the store itself.
 
     python scripts/balance/run_summary.py <run-records.jsonl> [<more.jsonl> ...]
 
-Accepted schema: "run-record-v1" (RunRecord.SchemaId), one JSON object per line.
+Accepted schemas: "run-record-v2" (RunRecord.SchemaId) and "run-record-v1", one JSON object per
+line. A v1 record predates multi-sector runs and reads as a death with no sector cleared.
 
 Output, on stdout, is for reading and carries no machine contract:
-  - one Runs table per stat fingerprint, with min / median / max of kills and of
-    seconds survived below it, each on its own line. A run is marked mixed when
-    one named loadout shows two loadout stat hashes inside it;
+  - one Runs table per stat fingerprint, with each run's outcome and min / median /
+    max of kills and of seconds survived below it, each on its own line. A run is
+    marked mixed when one named loadout shows two loadout stat hashes inside it;
   - three tables pooled over every record handed in, keyed by loadout stat hash:
-    damage taken, killing blows, ships spawned. "Runs seen" counts the records
+    damage taken, killing blows (deaths only), ships spawned. "Runs seen" counts the records
     whose spawn log holds that hash.
 No number combines two metrics.
 
 Exit codes:
   0  the tables were printed.
   1  refused, nothing on stdout: stderr names the file and line whose schema tag
-     is not the accepted one, or says the files held no record.
+     is not an accepted one, or says the files held no record.
   2  usage error, or a file could not be read.
 """
 import argparse
@@ -29,7 +30,9 @@ import statistics
 import sys
 from collections import defaultdict
 
-SCHEMA = "run-record-v1"
+SCHEMAS = ("run-record-v2", "run-record-v1")
+V1 = "run-record-v1"
+EXTRACTED = "extracted"
 NO_SPAWN = -1
 PARTS = ("chassis", "engine", "shield", "primary", "secondary")
 
@@ -49,11 +52,14 @@ def read_records(paths):
                 tag = record.get("schema")
             except (ValueError, AttributeError):
                 record, tag = None, None
-            if tag != SCHEMA:
-                print("run_summary: refused %s:%d: schema tag %s, accepted \"%s\""
-                      % (path, line_number, "unreadable" if record is None else json.dumps(tag), SCHEMA),
+            if tag not in SCHEMAS:
+                print("run_summary: refused %s:%d: schema tag %s, accepted %s"
+                      % (path, line_number, "unreadable" if record is None else json.dumps(tag),
+                         ", ".join(json.dumps(schema) for schema in SCHEMAS)),
                       file=sys.stderr)
                 sys.exit(1)
+            if tag == V1:
+                record.update(outcome="died", sectorsCleared=0)
             records.append(record)
     return records
 
@@ -87,6 +93,8 @@ def mixed_loadouts(record):
 
 
 def killing_blow(record):
+    if record["outcome"] == EXTRACTED:
+        return "-"
     blow = record["killingBlow"]
     if blow["spawn"] == NO_SPAWN:
         return "%s (no ship)" % blow["kind"]
@@ -104,6 +112,7 @@ def runs_section(fingerprint, records):
             record["endedUtc"],
             identity["commit"][:8] + ("+dirty" if identity["dirty"] else ""),
             "%s [%s]" % (label(record["player"]), record["player"]["statHash"]),
+            "%s (%d cleared)" % (record["outcome"], record["sectorsCleared"]),
             record["kills"],
             number(record["secondsSurvived"]),
             killing_blow(record),
@@ -114,8 +123,8 @@ def runs_section(fingerprint, records):
     return "\n".join([
         "## Runs on stat fingerprint %s (%s)" % (fingerprint, ", ".join(sectors)),
         "",
-        table(["Ended (UTC)", "Build identity", "Player loadout", "Kills", "Seconds survived", "Killing blow",
-               "Mixed"], rows),
+        table(["Ended (UTC)", "Build identity", "Player loadout", "Outcome", "Kills", "Seconds survived",
+               "Killing blow", "Mixed"], rows),
         "",
         spread("kills", [record["kills"] for record in records]),
         spread("seconds survived", [record["secondsSurvived"] for record in records]),
@@ -148,6 +157,8 @@ def pooled_sections(records):
             entry = damage[attacker(record, row["spawn"], row["source"]) + (row["kind"],)]
             entry[0] += row["total"]
             entry[1] += row["hits"]
+        if record["outcome"] == EXTRACTED:
+            continue
         blow = record["killingBlow"]
         blows[attacker(record, blow["spawn"], "") + (blow["kind"],)] += 1
 

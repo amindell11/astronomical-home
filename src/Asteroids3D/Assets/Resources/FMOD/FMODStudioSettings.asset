@@ -562,6 +562,8 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
+  - HUD
+  - Ships
   - Weapons
   BanksToLoad: []
   LiveUpdatePort: 9264
