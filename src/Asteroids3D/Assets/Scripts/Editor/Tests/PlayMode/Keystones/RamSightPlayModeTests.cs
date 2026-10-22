@@ -38,8 +38,8 @@ namespace Tests.PlayMode.Keystones
             spawned.Add(target);
             target.Initialize(1, 0, Projectiles);
             registry.ActiveShips.Add(target);
-            var rammed = new List<DamageInfo>();
-            target.Damage.OnDamaged += hit => { if (hit.Kind == DamageKind.Collision) rammed.Add(hit); };
+            var rammed = new List<AppliedDamage>();
+            target.Damage.OnDamaged += hit => { if (hit.Info.Kind == DamageKind.Collision) rammed.Add(hit); };
 
             var bulwark = ShipTestFactory.CreateShip(TestAssets.Load<Ship>(BulwarkPath), TestAssets.LoadTestPilotMpc(), Projectiles,
                 team: 0, position: Vector3.zero, rotation: GamePlane.Rotation);
@@ -65,7 +65,7 @@ namespace Tests.PlayMode.Keystones
 
             Assert.That(ram.Activations, Is.GreaterThan(0), "the sight fired the ram with no brain request (no missile threat)");
             Assert.That(rammed, Is.Not.Empty, "a ram landed on the target");
-            Assert.That(rammed[0].AttackerId, Is.EqualTo(bulwark.Id));
+            Assert.That(rammed[0].Info.AttackerId, Is.EqualTo(bulwark.Id));
             Assert.That(ram.PaidActivations, Is.GreaterThan(0));
             Assert.That(exemptWhileLive, Is.True, "the navigator left the target out of its obstacles while the ram was live");
         }
