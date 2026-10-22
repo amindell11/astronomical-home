@@ -54,12 +54,12 @@
       ctx.fillStyle = `rgba(160,195,224,${0.12 + (i % 3) * 0.06})`;
       ctx.fillRect((i * 317 + 51) % 1024, (i * 137 + 32) % 500, 1, 1);
     }
-    label('MISSILE', 245, 35); label('MINE · OBLIQUE', 745, 35);
+    label('MISSILE', 245, 35); label('MINE · CIRCULAR', 745, 35);
     ctx.save(); ctx.translate(245, 180); WeaponExplosions.missile(ctx, time, 280, settings); ctx.restore();
-    ctx.save(); ctx.translate(745, 180); WeaponExplosions.mine(ctx, time, 510, settings); ctx.restore();
+    ctx.save(); ctx.translate(745, 180); WeaponExplosions.mine(ctx, time, 280, settings); ctx.restore();
     label('Game scale', 245, 320, 14); label('Game scale', 630, 320, 14); label('Oblique comparison', 865, 320, 14);
     ctx.save(); ctx.translate(245, 395); WeaponExplosions.missile(ctx, time, 110, settings); ctx.restore();
-    ctx.save(); ctx.translate(630, 395); WeaponExplosions.mine(ctx, time, 200, settings); ctx.restore();
+    ctx.save(); ctx.translate(630, 395); WeaponExplosions.mine(ctx, time, 145, settings); ctx.restore();
     ctx.save(); ctx.translate(865, 395); WeaponExplosions.mine(ctx, time, 145, settings, 0.28); ctx.restore();
     label(`${Math.round(time * 1000)} ms`, 965, 475, 14);
     scrub.value = Math.min(time, 0.8) * 1000;
