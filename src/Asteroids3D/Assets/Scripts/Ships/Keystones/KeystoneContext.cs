@@ -7,12 +7,14 @@ namespace Ships.Keystones
     {
         public readonly Kinematics Self;
         public readonly float SelfMass;
+        public readonly float SelfMaxSpeed;
         public readonly Kinematics Target;
 
-        public KeystoneContext(in Kinematics self, float selfMass, in Kinematics target)
+        public KeystoneContext(in Kinematics self, float selfMass, float selfMaxSpeed, in Kinematics target)
         {
             Self = self;
             SelfMass = selfMass;
+            SelfMaxSpeed = selfMaxSpeed;
             Target = target;
         }
     }

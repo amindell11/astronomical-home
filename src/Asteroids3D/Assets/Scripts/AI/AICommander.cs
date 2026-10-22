@@ -184,7 +184,7 @@ namespace AI
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
             keystone && hasAnchor && (engagePrimary || engageSecondary)
-            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, anchorTarget.kinematics));
+            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.MaxSpeed, anchorTarget.kinematics));
 
         /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
         private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)
