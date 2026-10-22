@@ -33,10 +33,12 @@ namespace Combat.Weapons.Arsenal
         [SerializeField] private LayerMask hitMask = -1;
 
         [Header("AI Firing")]
-        [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Max distance at which an AI gunner charges. Leaving it mid-charge aborts the shot.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
-        [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
-        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Tooltip("Max aim error (degrees) on the charge's last step. Past it, an AI gunner aborts the shot.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 3f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner commits to a charge. Once committed, it holds through the charge.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float commitCone = 30f;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
@@ -92,8 +94,13 @@ namespace Combat.Weapons.Arsenal
             && context.distanceToTarget <= fireDistance
             && context.angleToTarget <= fireAngleTolerance;
 
-        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
-        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
+        // The authored charge fires only when full, so releasing early aborts the shot.
+        public override bool HoldTrigger(TargetingContext context)
+        {
+            if (context.distanceToTarget > fireDistance) return false;
+            if (charge.ChargePct <= 0f) return context.angleToTarget <= commitCone;
+            return !charge.FullAfterHeldStep(Time.fixedDeltaTime) || context.angleToTarget <= fireAngleTolerance;
+        }
 
         private static RaycastHit[] beamHits = new RaycastHit[32];
         private static readonly IComparer<RaycastHit> nearestFirst =

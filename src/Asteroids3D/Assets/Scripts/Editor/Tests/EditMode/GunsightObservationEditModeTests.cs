@@ -28,7 +28,7 @@ namespace Tests.EditMode
 
             public override bool InEnvelope(in TargetingContext context) => context.hasLineOfSight;
 
-            public override bool ShouldFire(TargetingContext context)
+            public override bool HoldTrigger(TargetingContext context)
             {
                 LastFireLos = context.hasLineOfSight;
                 return context.hasLineOfSight;

@@ -74,7 +74,7 @@ namespace Combat.Weapons.Arsenal
             && context.angleToTarget <= fallbackAngleTolerance;
 
         // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
-        public override bool ShouldFire(TargetingContext context)
+        public override bool HoldTrigger(TargetingContext context)
         {
             // Readiness drops the solution after each launch, so the gunner's press edge re-arms.
             if (!CanFire())

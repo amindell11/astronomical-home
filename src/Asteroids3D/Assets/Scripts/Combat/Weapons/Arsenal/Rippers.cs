@@ -37,7 +37,7 @@ namespace Combat.Weapons.Arsenal
             && context.distanceToTarget <= fireDistance
             && context.angleToTarget <= fireAngleTolerance;
 
-        public override bool ShouldFire(TargetingContext context) =>
+        public override bool HoldTrigger(TargetingContext context) =>
             Rounds && Rounds.CanFire() && InEnvelope(in context);
     }
 }
