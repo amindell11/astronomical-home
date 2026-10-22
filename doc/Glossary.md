@@ -677,9 +677,9 @@ Format: **term** — definition. *(authority)*
   `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
   release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
-  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
-  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`, `EngineAudio`; #1012)*
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
