@@ -5,6 +5,7 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
+using Ships.Keystones.Kits;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;

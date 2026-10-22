@@ -2,7 +2,7 @@ using Balance;
 using Damage;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     public sealed class GuardDash : Dash
     {

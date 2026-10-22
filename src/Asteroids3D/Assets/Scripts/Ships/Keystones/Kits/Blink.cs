@@ -5,7 +5,7 @@ using Movement;
 using Substrate;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     /// <summary>
     /// Crimson's kit: a jump toward the pilot's target point, clamped to range, keeping the ship's

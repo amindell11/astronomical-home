@@ -2,7 +2,7 @@ using Balance;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     /// <summary>
     /// Valis's kit: no impulse, a window in which the ship's speed cap and forward thrust are raised.
