@@ -106,7 +106,7 @@ namespace Game.Player
         {
             if (registry != null && registry.TryGetShip(hit.AttackerId, out var ship))
                 return ship.name.Replace("(Clone)", "");
-            return hit.Kind == DamageKind.Collision ? "asteroid" : "unknown";
+            return hit.Kind == DamageKind.Collision && !hit.AttackerId.IsValid ? "asteroid" : "unknown";
         }
     }
 }
