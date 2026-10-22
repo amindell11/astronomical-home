@@ -33,7 +33,8 @@ namespace Ships.Movement
             return -input * maxBankAngle;
         }
 
-        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ResolvedShipStats sets)
+        /// <param name="speedScale">A keystone's live multiplier on the cap, so strafe authority falls off against the cap the solver plans with.</param>
+        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ResolvedShipStats sets, float speedScale = 1f)
         {
             if (sets == null)
             {
@@ -42,7 +43,7 @@ namespace Ships.Movement
 
             return new Outputs(
                 Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),
-                Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
+                Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed * speedScale),
                 YawTorque(kin, cmd.yawTorque, sets.yawTorque),
                 Bank(cmd.strafe, sets.maxBankAngle)
             );
