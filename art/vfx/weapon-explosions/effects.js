@@ -181,9 +181,9 @@
     const expansion = clamp(time / mineIgnitionExpansionSeconds);
     const coreSize = size * 1.2;
     stamp(ctx, layers.core, coreSize * (0.55 + expansion * 0.5) * pulse,
-      0.65 * fade(progress, 0.3, 1), -progress * 0.55);
+      0.65 * fade(progress, 0.3, 1));
     stamp(ctx, layers.core, coreSize * (0.36 + expansion * 0.26) / pulse,
-      fade(progress, 0.4, 1), progress * 0.4);
+      fade(progress, 0.4, 1));
     stamp(ctx, layers.flash, size * (0.62 + expansion * 0.25), fade(time, 0.045, 0.14));
   }
 
@@ -221,20 +221,6 @@
         ribbon(ctx, r, start, span, radius * 0.1 * (1 - age), age * 8 + i, alpha * 0.42, '#168dde');
         ribbon(ctx, r, start, span * 0.86, radius * 0.018, age * 8 + i, alpha * 0.65, '#7ae8ff');
       }
-    }
-    for (let i = 0; i < 7; i++) {
-      const age = clamp((progress - 0.035 * (i % 3)) / 0.85);
-      const angle = i * 2.399 + Math.sin(age * 5 + i) * 0.14;
-      const r = radius * (0.2 + 0.63 * Math.sqrt(age));
-      const alpha = Math.sin(age * Math.PI) * settings.mineMotion * 0.7;
-      ctx.save(); ctx.rotate(angle);
-      ctx.globalAlpha = clamp(alpha); ctx.fillStyle = i % 2 ? '#2cace9' : '#59d7f6';
-      ctx.beginPath(); ctx.moveTo(r, 0);
-      ctx.lineTo(r - radius * 0.09, radius * 0.035);
-      ctx.lineTo(r - radius * 0.22, radius * 0.018);
-      ctx.lineTo(r - radius * 0.43, -radius * 0.055 * Math.sin(age * 7 + i));
-      ctx.lineTo(r - radius * 0.15, -radius * 0.016);
-      ctx.closePath(); ctx.fill(); ctx.restore();
     }
     stamp(ctx, layers.discEdge, size,
       settings.mineGlow * (0.88 + 0.12 * Math.sin(progress * 43)) * fade(progress, 0.92, 1));

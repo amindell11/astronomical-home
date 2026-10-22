@@ -2,7 +2,7 @@
 
 The missile uses a compact warm burst and short smoke curls. The mine uses a blue
 ignition and a filled disc whose edge follows the existing concussion wave.
-The core pulses under a brief flare while broken ripples and wisps move outward.
+The upright core pulses under a brief flare while broken ripples move outward.
 
 ## Source and controls
 
