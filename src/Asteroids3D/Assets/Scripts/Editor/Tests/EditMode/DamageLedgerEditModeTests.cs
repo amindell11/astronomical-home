@@ -143,6 +143,17 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void CauseLine_CollisionWithAnAttacker_ReadsAsARam()
+        {
+            var ledger = NewBoundLedger(out var dc);
+            dc.TakeDamage(Hit(500f, DamageKind.Collision, 7));
+
+            var line = DeathRecapScreen.CauseLine(Hit(500f, DamageKind.Collision, 7), ledger.Rows);
+            StringAssert.Contains("ram", line);
+            StringAssert.DoesNotContain("asteroid", line);
+        }
+
+        [Test]
         public void CauseLine_ShipKill_NamesTheKillerFromItsRow()
         {
             var ledger = NewBoundLedger(out var dc);

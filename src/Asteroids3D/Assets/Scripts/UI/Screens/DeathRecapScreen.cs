@@ -80,7 +80,7 @@ namespace UI.Screens
 
         internal static string CauseLine(in DamageInfo killingBlow, IReadOnlyList<DamageLedger.Row> rows)
         {
-            if (killingBlow.Kind == DamageKind.Collision)
+            if (killingBlow.Kind == DamageKind.Collision && !killingBlow.AttackerId.IsValid)
                 return "You flew into an asteroid.";
 
             var name = SourceNameFor(killingBlow, rows);
