@@ -149,8 +149,9 @@ namespace RL.Probes
             if (previous == LockState.Locked && next == LockState.Cooldown) tally.guidedLaunches++;
         }
 
-        private void OnTargetDamaged(DamageInfo hit)
+        private void OnTargetDamaged(AppliedDamage damage)
         {
+            var hit = damage.Info;
             if (!IsWeaponHit(in hit)) return;
             tally.hits++;
             tally.damageDealt += hit.Amount;
@@ -158,8 +159,9 @@ namespace RL.Probes
 
         private void OnTargetDeath(ShipId victim, DamageInfo killingBlow) => tally.kill = IsWeaponHit(in killingBlow);
 
-        private void OnShooterDamaged(DamageInfo hit)
+        private void OnShooterDamaged(AppliedDamage damage)
         {
+            var hit = damage.Info;
             if (IsWeaponHit(in hit)) tally.selfHits++;
         }
 

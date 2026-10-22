@@ -23,8 +23,8 @@ namespace Tests.EditMode.Bootstrap
             Assert.IsFalse(host.sessionProfile.presentation, "presentation is off from the first compose");
             Assert.IsTrue(host.playerRig, "player rig assigned");
             Assert.IsTrue(host.observerCamPrefab, "observer camera assigned");
-            Assert.IsTrue(host.sessionProfile.sectorEntry.prefab, "sector prefab assigned");
-            Assert.IsTrue(host.sessionProfile.sectorEntry.config, "sector config assigned");
+            Assert.IsTrue(host.sessionProfile.sectors[0].prefab, "sector prefab assigned");
+            Assert.IsTrue(host.sessionProfile.sectors[0].config, "sector config assigned");
         }
     }
 }

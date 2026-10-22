@@ -23,7 +23,8 @@ namespace Game.Runs
                 ? System.IO.Path.Combine(ResultsRoot.Folder(Folder), FileName)
                 : pathOverride;
 
-        public void Append(in RunRecord record)
+        /// <summary>False when the record did not land; the failure is logged.</summary>
+        public bool Append(in RunRecord record)
         {
             try
             {
@@ -33,10 +34,11 @@ namespace Game.Runs
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 Debug.LogError($"Run record not written to '{Path}': {e.Message}");
-                return;
+                return false;
             }
 
             Debug.Log($"Run record appended to '{Path}'.");
+            return true;
         }
     }
 }

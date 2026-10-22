@@ -112,6 +112,21 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void SectorEnd_StopsItsSurvivorsClocks_AndTheRunGoesOn()
+        {
+            log.Begin(0f);
+            log.Log(Enemy, NewHull(), 2f);
+            log.EndSector(10f);
+            log.Log(OtherEnemy, NewHull(), 12f);
+            log.End(30f);
+
+            var entries = log.Entries();
+            Assert.AreEqual(8f, entries[0].AliveSeconds, 1e-4f, "a survivor of an earlier sector lived until its unload");
+            Assert.IsFalse(entries[0].KilledByPlayer);
+            Assert.AreEqual(18f, entries[1].AliveSeconds, 1e-4f, "the next sector's ship lives to the run's end");
+        }
+
+        [Test]
         public void SpawnBeforeBegin_ReadsAsSecondZero()
         {
             log.Log(Enemy, NewHull(), 4f);
@@ -121,6 +136,26 @@ namespace Tests.EditMode.Runs
             var entry = log.Entries()[0];
             Assert.AreEqual(0f, entry.SpawnSeconds, 1e-4f);
             Assert.AreEqual(10f, entry.AliveSeconds, 1e-4f);
+        }
+
+        [Test]
+        public void SectorTrophies_ExcludeEarlierKillsAndOtherAttackers()
+        {
+            var hull = NewHull();
+            log.Begin(0f);
+            log.Log(Enemy, hull, 0f);
+            log.MarkDead(Enemy, BlowFrom(Player), 1f);
+            log.EndSector(2f);
+            log.BeginSector();
+            log.Log(Enemy, hull, 2f);
+            log.Log(OtherEnemy, hull, 2f);
+            log.MarkDead(Enemy, BlowFrom(Player), 3f);
+            log.MarkDead(OtherEnemy, BlowFrom(Enemy), 4f);
+            Assert.AreEqual(2, log.KilledShips().Count);
+            CollectionAssert.AreEqual(new[] { hull.name.Replace("(Clone)", string.Empty) },
+                log.KilledShips(currentSector: true));
+            log.Reset();
+            Assert.IsEmpty(log.KilledShips(currentSector: true));
         }
 
         [Test]
