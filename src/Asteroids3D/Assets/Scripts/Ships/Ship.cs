@@ -205,6 +205,7 @@ namespace Ships
             this.projectiles = projectiles;
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
+            Damage.Initialize(Keystone);
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
