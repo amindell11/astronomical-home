@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Ships.Keystones
 {
-    public class Dash : Keystone
+    public sealed class Dash : Keystone
     {
         [Tooltip("Forward impulse applied on activation (N·s).")]
         [Stat, SerializeField] private float impulse = 9000f;

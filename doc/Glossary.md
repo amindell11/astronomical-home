@@ -69,7 +69,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
 | **rung / tier** | fix-ladder rung · curriculum ladder · screening ladder (Tier 0–3) | "Rung" is fix-ladder-only. The curriculum has *lessons*; screening has *tiers*. |
 | **archetype** | opponent archetype (Aggressor/Evader/Orbiter/Kiter/Dummy) · chassis archetype · ship-prefab archetype | Qualify — the first two both feed the matchup matrix. |
-| **spine** | sector spine (`SectorSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
+| **spine** | sector spine (`SectorSpineModule`, `PhaseSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
 | **adopt** | sector adoption (the placed object IS the runtime object) · coordinator Adopt (seize an orphan process) | Qualify: "sector-adopt" / "coordinator Adopt". |
 | **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
 | **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
@@ -80,7 +80,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **driver** | Python drivers (`training/rl/`) · `RLDriver` · `EpisodeLoopDriver` | Qualify. "Driver:" is retired as a doc-header word. The interactive game's driver is a *host* (`GameHost`), not a driver. |
 | **harness** | RL harness (`RL`) · determinism/sweep/ram-bench harness · test harness | Bare "harness" = RL harness; qualify the others. |
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
-| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage* — five schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. |
+| **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage*, *sector phase* — six schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. Bare "phase" = sector phase inside `WaveDirector` and `Substrate/Sectors/Elements/Phases/` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
@@ -546,8 +546,9 @@ Format: **term** — definition. *(authority)*
   client: the *game host* (`GameHost`, `Game/`) builds the viewport (the
   observer camera, with the starfield backdrop and reverb zone riding it, and
   the hangar camera that stands in for it behind the hangar) and
-  the optional *player rig*, and owns the clock, hangar, death recap and reset
-  policy over one `Session`; the *harness host* (`HarnessHost`) sequences
+  the optional *player rig*, and owns the clock, hangar, sector chaining, hull
+  carry-over, death recap, win screen and reset policy over one `Session`; the
+  *harness host* (`HarnessHost`) sequences
   compositions and episode blocks for a lane client; the *training host*
   (`TrainingHost`) fans arenas out and drives one episode loop each while
   mlagents-learn attaches. Always qualified — bare "host" also names the pool
@@ -575,9 +576,10 @@ Format: **term** — definition. *(authority)*
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
   *(Sector.cs)*
-- **sector spine** — the sector's main objective chain; step names ARE the bus
-  tokens (`spine:ready-to-extract`). Distinct from the **reward spine**, the
-  sparse ±1 outcome term. *(SectorSpineModule.cs)*
+- **sector spine** — the sector's main objective chain, set by its spine module.
+  `SectorSpineModule`'s step names ARE the bus tokens (`spine:ready-to-extract`);
+  `PhaseSpineModule` latches none. Distinct from the **reward spine**, the
+  sparse ±1 outcome term. *(SectorSpineModule.cs, PhaseSpineModule.cs)*
 - **activation rule / term / latch** — `predicate(terms) → effect`; terms are
   AND-ed, evaluated as a standing *level* rather than an enter-edge, and latched
   Active on first satisfaction. *(ActivationRule.cs)*
@@ -587,13 +589,17 @@ Format: **term** — definition. *(authority)*
   local objective + on-complete events. A thin rule on a fixture is not an
   encounter.
 - **wave director** — the continuous sector spawner: ships ringing the hero
-  just off screen on an escalating interval under an escalating alive cap,
-  dead products despawned as it goes. Content, not a sector module, so product
-  ownership and teardown stay the spawner's. *(WaveDirector)*
-- **survival trial** — the sector whose only goal is surviving: a wave director
-  and an asteroid field, no sector module, never raising a sector end — the
-  game host's player-death path is its only exit, and the run tally is its
-  score. *(TrialSector prefab)*
+  just off screen, paced by its sector phases, dead products despawned as it
+  goes. Content, not a sector module, so product ownership and teardown stay
+  the spawner's. *(WaveDirector)*
+- **sector phase** — one timed row of a wave director's pacing table. Bare
+  *phase* is the RL run segment (§2) outside the wave director's code (§1
+  *stage / phase* row). The player-facing HUD says "PHASE". *(SectorPhase)*
+- **survival trial** — a sector whose goal is surviving its sector phases and
+  then reaching the extraction zone (`PhaseSpineModule`). A run chains three,
+  each faster-paced: extracting moves the run on, extracting from the last wins
+  it, and the game host's player-death path ends it.
+  *(TrialSector, TrialSector2, TrialSector3 prefabs)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -671,9 +677,9 @@ Format: **term** — definition. *(authority)*
   `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
   release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
-  changes, feeds parameters and stops itself (the charge-up; engines next), as
+  changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
-  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`; #1012)*
+  sound; `WeaponFireAudio` is one-shots only by ruling. *(`ChargeWeaponAudio`, `EngineAudio`; #1012)*
 - **engage** (fire lane) — the per-slot bool a brain emits: strategic weapons-free,
   never trigger timing. The Gunner owns the firing instant (envelope + lead) at
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
@@ -832,27 +838,32 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
-- **shield bypass** — a hit's damage skips the shield and goes straight to hull.
+- **overkill** — the damage a hit has left after killing its target.
+  `TakeDamage` returns it so the railgun beam can carry it to the next target
+  behind. It is not bleed-through. The "§C3 overkill PR" above used the word
+  for the shield-to-hull remainder on a single target.
+  *(`IDamageable.TakeDamage`)*
+- **shield bypass**. A hit's damage skips the shield and goes straight to hull.
   Only a missile's direct hit carries it; its splash stays shield-first with
   bleed-through. The producer sets the flag, and `DamageController` routes on it,
-  never on `DamageKind` (direct hit and splash share one kind). A bypass hit
-  doesn't restart the shield's regen delay.
+  never on `DamageKind`. A bypass hit doesn't restart the shield's regen delay.
   *(`DamageInfo.BypassesShield`)*
-- **DamageInfo** — the per-hit context struct every damage producer builds at
+- **DamageInfo**. The per-hit context struct every damage producer builds at
   its call site. Non-obvious: producer-side `Amount` is the *incoming* damage,
-  event-side the *applied* damage (shield + hull, the locked bleed-through
+  `AppliedDamage.Info.Amount` is the *applied* damage (shield + hull, the locked bleed-through
   reading); `AttackerId` is `ShipId.Invalid` when no ship caused the hit;
   `OnDeath` is latched to fire once per life. *(DamageInfo, DamageController)*
-- **damage ledger** — per-life record of the player's received DamageInfo: every
-  hit stamped with game time, and the hits aggregated per source —
-  consumer-side recorder owned by the player rig, never sim state. Source names
+- **damage ledger**. Records received shield and hull damage across the whole run,
+  including repairs and sector changes. A consumer-side recorder owned by the
+  player rig, never sim state. Source names
   are captured at event time because the attacker may despawn before the recap
   reads the row. *(DamageLedger)*
 - **run tally** — kills and time survived for one run: a consumer-side recorder
   on the player rig beside the damage ledger, never sim state. A kill is a death
   whose killing blow came from the current player (id read at event time — the
   hangar can rebuild the player); only deaths between the game host's clock
-  stamps count (begin after the sector load, end at player death). Raises
+  stamps count (begin after the run's first sector load, end at player death or
+  the last extraction). Raises
   `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
 - **kill refill** — the fraction of max hull the game host restores to the
   player each time the run tally counts a kill; hull only (ammo or heat on a kill
@@ -868,21 +879,28 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, the sector's wave director (its pacing, its roster and
+  what the hangar offers, each run sector's wave director in run order (its pacing, its roster and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
-  can reach does not move it, and neither does list order or listing a part twice.
+  can reach does not move it, and neither does list order or listing a part twice,
+  except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
-- **run record** — one JSON line appended when a run ends in the player's death:
-  what it was played on (build identity, stat fingerprint), the player's loadout,
-  kills, seconds survived, the damage-ledger rows, the killing blow and the spawn
-  log. Player death is the only exit that writes; quitting mid-run writes nothing.
+- **run record**. One JSON line appended when a run ends, extracted from its last
+  sector or dead: what it was played on (build identity, stat fingerprint), its
+  outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
+  seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
+  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
+  measured shield/hull points from older v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
   that run goes unrecorded. Rows name a ship by its position in the record's spawn
   list, never by instance id. *(RunRecord, RunRecordStore, GameHost.AppendRunRecord · #772)*
+- **scoreboard**. Past-run rankings share one board across stat fingerprints.
+  A sector counts only after extraction; dying in the first sector shows zero.
+  Intermediate extraction has no scoreboard; victory and defeat do.
+  *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
   parts by asset name, its loadout stat hash taken at spawn, when it spawned, how

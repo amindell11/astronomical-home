@@ -37,7 +37,9 @@ namespace Ships.Presentation
                 ship.Damage,
                 () => ship.Movement.CurrentCommand,
                 ship.Lock,
-                ship.CompareTag(TagNames.Player)));
+                ship.CompareTag(TagNames.Player),
+                ship.Body,
+                () => ship.BoostAvailable));
         }
 
         public void Bind(in ShipView view)

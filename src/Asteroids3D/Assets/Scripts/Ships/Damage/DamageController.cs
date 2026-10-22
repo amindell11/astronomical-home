@@ -9,7 +9,7 @@ namespace Ships.Damage
 {
     public class DamageController : MonoBehaviour, IDamageable, IDamageEvents
     {
-        public event Action<DamageInfo> OnDamaged; // amount = applied (absorbed by shield + hull)
+        public event Action<AppliedDamage> OnDamaged;
         public event Action<ShipId, DamageInfo> OnDeath; // victimId, killing blow
         public event Action<DamageInfo> OnBlocked; // dropped by invulnerability or the keystone
 
@@ -45,26 +45,26 @@ namespace Ships.Damage
 
         public void Initialize(Keystone keystone) => this.keystone = keystone;
 
-        public void TakeDamage(in DamageInfo hit)
+        public float TakeDamage(in DamageInfo hit)
         {
-            if (hit.Amount <= 0) return;
+            if (hit.Amount <= 0) return 0f;
             if (IsInvulnerable || keystone && keystone.Blocks(in hit))
             {
                 OnBlocked?.Invoke(hit);
-                return;
+                return 0f;
             }
             var shieldAbsorbed = hit.BypassesShield ? 0f : Shield.ApplyDamage(hit.Amount);
-            var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
-            var applied = hit.WithAmount(appliedDamage);
-            if (appliedDamage > 0)
+            var hullDamage = Health.ApplyDamage(hit.Amount - shieldAbsorbed);
+            var applied = new AppliedDamage(hit, shieldAbsorbed, hullDamage);
+            if (applied.Info.Amount > 0)
             {
                 OnDamaged?.Invoke(applied);
             }
 
-            if (Health.CurrentValue <= 0f)
-            {
-                BroadcastDeath(applied);
-            }
+            if (Health.CurrentValue > 0f) return 0f;
+
+            BroadcastDeath(applied.Info);
+            return hit.Amount - applied.Info.Amount;
         }
 
         private void BroadcastDeath(in DamageInfo killingBlow)
