@@ -90,7 +90,10 @@ namespace Ships
         public ShipId Id { get; private set; }
         public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
-        public Dynamics Dynamics { get; private set; }
+        /// <summary>The motion model as it stands this step: the base model with any keystone scaling applied.</summary>
+        public Dynamics Dynamics => Keystone ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale) : baseDynamics;
+
+        private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
@@ -169,7 +172,7 @@ namespace Ships
             if (resetVitals)
                 Damage?.PopulateSettings(Stats);
             if (isInitialized)
-                Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+                baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
         }
 
         private void OnSettingsChanged() => ReResolve(resetVitals: false);
@@ -220,7 +223,7 @@ namespace Ships
 
             Stats.shipRadius = DeriveShipRadius();
 
-            Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+            baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
             if (Damage)
                 Damage.OnDeath += (_, _) => HandleShipDeath();

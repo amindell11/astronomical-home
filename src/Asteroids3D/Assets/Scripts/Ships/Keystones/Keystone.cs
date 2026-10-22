@@ -39,17 +39,31 @@ namespace Ships.Keystones
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
 
+        /// <summary>Multipliers on the ship's speed cap and forward thrust this step; 1 leaves them alone.</summary>
+        public virtual float SpeedScale => 1f;
+        public virtual float ThrustScale => 1f;
+
+        /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
+        public virtual float PeakSpeedScale => 1f;
+        public virtual float PeakThrustScale => 1f;
+
         protected float SinceActivation => clock - activatedAt;
 
-        public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated)
+        public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated,
+            float baseMaxSpeed = float.PositiveInfinity)
         {
             clock += dt;
             activated = Ready && input != 0f;
-            if (!activated) return Vector2.zero;
-            readyAt = clock + cooldown;
-            activatedAt = clock;
-            Activations++;
-            return Activate(in kinematics);
+            var impulse = Vector2.zero;
+            if (activated)
+            {
+                readyAt = clock + cooldown;
+                activatedAt = clock;
+                Activations++;
+                impulse = Activate(in kinematics);
+            }
+            Sustain(in kinematics, baseMaxSpeed);
+            return impulse;
         }
 
         public void ResetKeystone()
@@ -72,6 +86,8 @@ namespace Ships.Keystones
         public virtual void OnContact(in KeystoneContact contact) { }
 
         protected abstract Vector2 Activate(in Kinematics kinematics);
+
+        protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
 
         protected void CreditActivation()
         {

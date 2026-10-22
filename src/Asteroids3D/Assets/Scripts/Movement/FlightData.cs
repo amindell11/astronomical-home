@@ -57,6 +57,12 @@ namespace Movement
             this.shipRadius = shipRadius;
         }
 
+        /// <summary>This model with its speed cap and forward thrust scaled, everything else unchanged.</summary>
+        public Dynamics Scaled(float speedScale, float thrustScale) => new(
+            mass, forwardAcc * thrustScale, reverseAcc, maxStrafeAcc, minStrafeAcc,
+            maxSpeed * speedScale, maxYawRate, yawTorque, angularDrag, linearDrag,
+            yawInertia, bankTorque, bankDamping, maxBankAngleRad, shipRadius);
+
         public static readonly Dynamics Default = new(
             mass: 200, forwardAcc: 8f, reverseAcc: 4f, maxStrafeAcc: 6f, minStrafeAcc: 4f,
             maxSpeed: 20f, maxYawRate: 10f, yawTorque: 1f, angularDrag: 0.1f, linearDrag: 0.1f,
