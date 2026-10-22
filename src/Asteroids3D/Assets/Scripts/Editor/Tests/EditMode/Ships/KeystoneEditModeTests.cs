@@ -163,7 +163,7 @@ namespace Tests.EditMode.Ships
             var dash = NewDash();
             var kin = Facing(90f);
 
-            var impulse = dash.Step(in kin, 1f, Dt, out var activated);
+            var impulse = dash.Step(in kin, 1f, Dt, out var activated).Impulse;
             Assert.That(activated, Is.True);
             Assert.That(Vector2.Distance(impulse, kin.Forward * Impulse), Is.LessThan(1e-3f));
             Assert.That(dash.Ready, Is.False);
@@ -172,7 +172,7 @@ namespace Tests.EditMode.Ships
             var steps = 0;
             do
             {
-                impulse = dash.Step(in kin, 1f, Dt, out activated);
+                impulse = dash.Step(in kin, 1f, Dt, out activated).Impulse;
                 if (!activated) Assert.That(impulse, Is.EqualTo(Vector2.zero), "held input does not re-fire inside the cooldown");
                 steps++;
             } while (!activated && steps < 1000);
@@ -187,7 +187,7 @@ namespace Tests.EditMode.Ships
             var kin = Facing(0f);
             for (var i = 0; i < 10; i++)
             {
-                Assert.That(dash.Step(in kin, 0f, Dt, out var activated), Is.EqualTo(Vector2.zero));
+                Assert.That(dash.Step(in kin, 0f, Dt, out var activated).Impulse, Is.EqualTo(Vector2.zero));
                 Assert.That(activated, Is.False);
             }
             Assert.That(dash.Ready, Is.True);
@@ -264,7 +264,7 @@ namespace Tests.EditMode.Ships
             var fast = new Kinematics(Vector2.zero, new Vector2(0f, 35f), 0f, 0f, 0f);
             Assert.That(kit.SpeedScale, Is.EqualTo(1f));
 
-            Assert.That(kit.Step(in slow, 1f, Dt, out var activated, 32f), Is.EqualTo(Vector2.zero), "no impulse");
+            Assert.That(kit.Step(in slow, 1f, Dt, out var activated, 32f).Impulse, Is.EqualTo(Vector2.zero), "no impulse");
             Assert.That(activated, Is.True);
             Assert.That(kit.SpeedScale, Is.EqualTo(1.35f));
             Assert.That(kit.ThrustScale, Is.EqualTo(1.5f));
@@ -291,6 +291,18 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void Crimson_CarriesBlink()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var blink = catalog.Chassis.Single(c => c.name == "Crimson").KeystonePrefab as Blink;
+            Assert.That(blink, Is.Not.Null, "Crimson's kit is Blink");
+            Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
+            Assert.That(blink.Range, Is.EqualTo(12f));
+            Assert.That(blink.Cooldown, Is.EqualTo(6f));
+            Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        [Test]
         public void Vanguard_CarriesTheGuardDash()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
@@ -302,7 +314,6 @@ namespace Tests.EditMode.Ships
 
         [TestCase("Vanguard", 9000f, 5f)]
         [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Crimson", 7000f, 4f)]
         [TestCase("Nightshade", 8500f, 4.5f)]
         [TestCase("Junker_1", 13000f, 7f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)

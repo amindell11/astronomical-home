@@ -66,10 +66,10 @@ namespace Ships.Keystones
             CreditActivation();
         }
 
-        protected override Vector2 Activate(in Kinematics kinematics)
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target)
         {
             resolved = false;
-            return base.Activate(in kinematics);
+            return base.Activate(in kinematics, target);
         }
 
         private static DamageInfo Hit(float amount, in KeystoneContact contact) =>

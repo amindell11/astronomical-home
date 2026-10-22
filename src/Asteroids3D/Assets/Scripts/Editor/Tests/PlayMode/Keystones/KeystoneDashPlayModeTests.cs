@@ -24,12 +24,12 @@ namespace Tests.PlayMode.Keystones
         [UnityTest]
         public IEnumerator Dash_AppliesItsImpulseAlongTheNose_OncePerCooldown_AndRespawnReadiesIt()
         {
-            ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            ship = Object.Instantiate(TestAssets.Load<Ship>("Assets/Prefabs/Ships/Nightshade.prefab"), Vector3.zero, GamePlane.Rotation);
             ship.Initialize(0, 0, Projectiles);
             yield return new WaitForFixedUpdate();
 
             var dash = ship.Keystone as Dash;
-            Assert.That(dash, Is.Not.Null, "Crimson's live keystone is its Dash");
+            Assert.That(dash, Is.Not.Null, "Nightshade's live keystone is its Dash");
             Assert.That(ship.BoostAvailable, Is.True);
             var nose = ship.Kinematics.Forward;
             var before = GamePlane.WorldDirToPlane(ship.Rigidbody.linearVelocity);

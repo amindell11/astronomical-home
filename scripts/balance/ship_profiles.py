@@ -29,7 +29,7 @@ LASER_WEAPON = ASSETS / "Prefabs/Weapons/Lasers.prefab"
 
 ENGINE_FIELDS = ["maxSpeed", "maxYawRate", "forwardForce", "reverseForce", "yawTorque", "angularDrag",
                  "bankTorque", "bankDamping", "minStrafeForce", "maxStrafeForce", "linearDrag"]
-DASH_FIELDS = ["impulse", "cooldown", "window", "shipDamage", "speedScale", "thrustScale"]
+DASH_FIELDS = ["impulse", "cooldown", "window", "shipDamage", "speedScale", "thrustScale", "range"]
 SHIELD_FIELDS = ["maxShield", "shieldRegenDelay", "shieldRegenRate"]
 CHASSIS_FIELDS = ["mass", "maxHealth", "maxBankAngle"]
 
