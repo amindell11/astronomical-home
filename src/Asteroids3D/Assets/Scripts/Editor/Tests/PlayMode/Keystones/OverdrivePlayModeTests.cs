@@ -68,5 +68,20 @@ namespace Tests.PlayMode.Keystones
             }
             Assert.That(valis.Kinematics.Speed, Is.LessThanOrEqualTo(baseCap + 0.05f), "and settles back at the base cap");
         }
+
+        [UnityTest]
+        public IEnumerator ResetDuringOverdrive_RestoresTheBaseCap()
+        {
+            valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
+            valis.Initialize(0, 0, Projectiles);
+            yield return new WaitForFixedUpdate();
+            valis.Movement.Drive(new PilotCommand { thrust = 1f, boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(valis.Rigidbody.maxLinearVelocity, Is.GreaterThan(valis.Stats.maxSpeed), "overdrive raised the cap");
+
+            valis.ResetShip();
+
+            Assert.That(valis.Rigidbody.maxLinearVelocity, Is.EqualTo(valis.Stats.maxSpeed), "an in-place respawn starts at the base cap");
+        }
     }
 }
