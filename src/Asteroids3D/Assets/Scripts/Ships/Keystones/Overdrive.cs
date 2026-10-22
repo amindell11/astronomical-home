@@ -11,8 +11,6 @@ namespace Ships.Keystones
     /// </summary>
     public sealed class Overdrive : Keystone
     {
-        private const float SaturatedFraction = 0.95f;
-
         [Tooltip("Seconds after activation during which the cap and thrust stay raised.")]
         [Stat, SerializeField] private float window = 3f;
 
@@ -22,6 +20,9 @@ namespace Ships.Keystones
         [Tooltip("Multiplier on forward thrust during the window; must lift drag-limited top speed past the raised cap.")]
         [Stat, SerializeField] private float thrustScale = 1.5f;
 
+        [Tooltip("Fraction of the cap the navigator must ask for before an AI fires.")]
+        [Stat, SerializeField] private float sightSaturation = 0.8f;
+
         public override string DisplayName => "Overdrive";
         public float Window => window;
         public override bool Active => SinceActivation < window;
@@ -30,13 +31,11 @@ namespace Ships.Keystones
         public override float PeakSpeedScale => speedScale;
         public override float PeakThrustScale => thrustScale;
 
-        // Saturated: the navigator asks for the cap and the ship is already flying at it.
+        // Saturated: the navigator asks for (nearly) all the speed the cap allows.
         public override bool ShouldActivate(in KeystoneContext context)
         {
             var desired = context.DesiredVelocity;
-            if (float.IsNaN(desired.x)) return false;
-            var near = SaturatedFraction * context.SelfMaxSpeed;
-            return desired.magnitude >= near && context.Self.Speed >= near;
+            return !float.IsNaN(desired.x) && desired.magnitude >= sightSaturation * context.SelfMaxSpeed;
         }
 
         protected override Vector2 Activate(in Kinematics kinematics) => Vector2.zero;

@@ -251,6 +251,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("window").floatValue = 3f;
             so.FindProperty("speedScale").floatValue = 1.35f;
             so.FindProperty("thrustScale").floatValue = 1.5f;
+            so.FindProperty("sightSaturation").floatValue = 0.8f;
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
         }
@@ -283,9 +284,9 @@ namespace Tests.EditMode.Ships
             var kit = NewOverdrive();
             KeystoneContext Ctx(float speed, Vector2 desired) =>
                 new(new Kinematics(Vector2.zero, new Vector2(0f, speed), 0f, 0f, 0f), 650f, 32f, default, desired);
-            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(0f, 32f))), Is.True, "asking for the cap while at it");
-            Assert.That(kit.ShouldActivate(Ctx(20f, new Vector2(0f, 32f))), Is.False, "still accelerating");
-            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(0f, 15f))), Is.False, "asking for less than the cap");
+            Assert.That(kit.ShouldActivate(Ctx(27f, new Vector2(0f, 27f))), Is.True, "cruising at 85% of the cap and asking to stay there");
+            Assert.That(kit.ShouldActivate(Ctx(5f, new Vector2(0f, 32f))), Is.True, "asking for the cap from low speed");
+            Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(0f, 15f))), Is.False, "asking for well under the cap");
             Assert.That(kit.ShouldActivate(Ctx(31f, new Vector2(float.NaN, float.NaN))), Is.False, "no velocity request");
         }
 
