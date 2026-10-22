@@ -58,6 +58,20 @@ namespace Combat.Targeting
         /// <summary>Called when a lock is cancelled, expired, or the missile is launched.</summary>
         public event Action Released;
 
+        /// <summary>Raised the moment the target conceals itself; locks and seekers drop it on the spot.</summary>
+        public event Action Concealed;
+
+        public bool IsConcealed { get; private set; }
+
+        public void Conceal()
+        {
+            if (IsConcealed) return;
+            IsConcealed = true;
+            Concealed?.Invoke();
+        }
+
+        public void Reveal() => IsConcealed = false;
+
         public void RaiseProgress(float value)
         {
             Progress?.Invoke(value);

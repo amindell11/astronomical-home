@@ -22,7 +22,7 @@ namespace AI.Scanning
             {
                 var id = shipIds[i];
                 if (!registry.IsHostile(self, id)) continue;
-                if (!registry.TryGetShip(id, out var ship)) continue;
+                if (!registry.TryGetShip(id, out var ship) || ship.Lock.IsConcealed) continue;
                 var dist = Vector3.Distance(pos, ship.transform.position);
                 if (!(dist < nearestDist)) continue;
                 nearestDist = dist;

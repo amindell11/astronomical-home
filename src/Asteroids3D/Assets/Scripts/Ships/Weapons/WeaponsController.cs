@@ -39,12 +39,17 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
+        /// <summary>Raised when either mount fires a shot.</summary>
+        public event Action Fired;
+
         private WeaponContext context;
 
         private void Awake()
         {
             if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
             if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
+            if (Primary) Primary.OnFire += RaiseFired;
+            if (Secondary) Secondary.OnFire += RaiseFired;
             Sensor = FindMountSensor();
         }
 
@@ -96,16 +101,22 @@ namespace Ships.Weapons
             }
         }
 
+        private void RaiseFired() => Fired?.Invoke();
+
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
         {
             if (current)
             {
                 // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
+                current.OnFire -= RaiseFired;
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
 
-            return prefab ? Instantiate(prefab, ResolveMount(slot)) : null;
+            if (!prefab) return null;
+            var mounted = Instantiate(prefab, ResolveMount(slot));
+            mounted.OnFire += RaiseFired;
+            return mounted;
         }
 
         /// <summary>The first mounted weapon's lock sensor (mount-scoped; sensors ride the mounts).</summary>

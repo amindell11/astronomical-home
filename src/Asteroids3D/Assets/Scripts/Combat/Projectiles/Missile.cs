@@ -50,6 +50,7 @@ namespace Combat.Projectiles
             target = tgt.TargetPoint;
             targetChannel = tgt.Lock;
             targetChannel.AddTracker(this);
+            targetChannel.Concealed += LoseTrack;
             TrackingChanged?.Invoke();
         }
 
@@ -131,6 +132,7 @@ namespace Combat.Projectiles
         private void LoseTrack()
         {
             target = null;
+            targetChannel.Concealed -= LoseTrack;
             targetChannel.RemoveTracker(this);
             targetChannel = null;
             TrackingChanged?.Invoke();
@@ -227,7 +229,11 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
-            targetChannel?.RemoveTracker(this);
+            if (targetChannel != null)
+            {
+                targetChannel.Concealed -= LoseTrack;
+                targetChannel.RemoveTracker(this);
+            }
             targetChannel = null;
             target = null;
             hasLos = false;
