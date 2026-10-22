@@ -1,0 +1,11 @@
+var window = UnityEditor.EditorWindow.GetWindow<Game.Travel.SectorJumpPreviewWindow>();
+var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+var type = window.GetType();
+var material = (UnityEngine.Material)type.GetField("material", flags).GetValue(window);
+var target = (UnityEngine.RenderTexture)type.GetField("target", flags).GetValue(window);
+if (!material || !target) throw new System.Exception("Preview lost its owned rendering resources");
+type.GetField("time", flags).SetValue(window, 1f);
+type.GetField("previousTime", flags).SetValue(window, UnityEditor.EditorApplication.timeSinceStartup);
+type.GetField("playing", flags).SetValue(window, true);
+window.Repaint();
+return new { materialFlags=material.hideFlags.ToString(), targetFlags=target.hideFlags.ToString(), playbackStartedAt=1f };
