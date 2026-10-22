@@ -685,6 +685,12 @@ Format: **term** — definition. *(authority)*
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
   "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
   2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **hold range** (AI) — the distance from its target that a weapon asks an AI
+  pilot to fly at, in place of the pilot's own range, as a mine carrier holds
+  outside its own blast. Only the primary weapon's counts, and
+  it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
+  how the AI uses a weapon, not a fact about the ship. Not a firing range.
+  *(`WeaponComponent.HoldRange`; #1139)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).

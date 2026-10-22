@@ -107,6 +107,12 @@ namespace Ships.Command
         /// <summary>Muzzle speed of the slot's projectile (for AI intercept lead). 0 = hitscan/no lead.</summary>
         float ProjectileSpeed(WeaponSlot slot);
 
+        /// <summary>Where an AI gunner aims the slot's weapon at a target, by the weapon's own flight (<see cref="WeaponComponent.AimPoint"/>).</summary>
+        Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel);
+
+        /// <summary>The distance the slot's weapon asks an AI pilot to hold from its target; null when it declares none.</summary>
+        float? HoldRange(WeaponSlot slot);
+
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
         Gunsight Sight(WeaponSlot slot);
     }

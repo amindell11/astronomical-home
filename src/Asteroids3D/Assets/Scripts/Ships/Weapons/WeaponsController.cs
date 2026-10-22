@@ -201,6 +201,18 @@ namespace Ships.Weapons
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
 
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.AimPoint(in shooter, targetPos, targetVel) : targetPos;
+            }
+
+            public float? HoldRange(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HoldRange : null;
+            }
+
             public Gunsight Sight(WeaponSlot slot) => slot switch
             {
                 WeaponSlot.Primary => primarySight,

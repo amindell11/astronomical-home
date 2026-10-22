@@ -224,6 +224,9 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => slot == WeaponSlot.Primary ? PrimarySpeed : SecondarySpeed;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) =>
+                AI.Gunner.AimPoint(in shooter, targetPos, targetVel, ProjectileSpeed(slot));
+            public float? HoldRange(WeaponSlot slot) => null;
             public Combat.Weapons.Gunsight Sight(WeaponSlot slot) => null;
         }
 

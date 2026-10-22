@@ -74,6 +74,8 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => weapon.CanFire();
             public float ProjectileSpeed(WeaponSlot slot) => 0f;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) => targetPos;
+            public float? HoldRange(WeaponSlot slot) => null;
             public Gunsight Sight(WeaponSlot slot) => sight;
 
             public void Fire(WeaponSlot slot, in WeaponCommand cmd)
