@@ -96,7 +96,7 @@ namespace Combat.Projectiles
             if (TryGetHitTarget(other, out var target)) OnHit(target);
         }
 
-        private bool TryGetHitTarget(Collider other, out IDamageable target)
+        protected bool TryGetHitTarget(Collider other, out IDamageable target)
         {
             target = other.GetComponentInParent<IDamageable>();
             var shooterComponent = Shooter as Component;
