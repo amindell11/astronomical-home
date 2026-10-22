@@ -10,17 +10,21 @@ namespace Objectives.States
     public class ExtractionChallengeState : ObjectiveState
     {
         private readonly IExtractionZone zone;
+        private readonly string statusLine;
 
         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
 
-        public ExtractionChallengeState(IExtractionZone zone, Action onEnter = null)
+        public ExtractionChallengeState(IExtractionZone zone, Action onEnter = null, string statusLine = null)
             : base(onEnter)
         {
             this.zone = zone ?? throw new ArgumentNullException(nameof(zone));
+            this.statusLine = statusLine;
         }
 
         public override void Tick(float deltaTime) { }
 
         public override bool IsComplete => zone.IsPlayerInZone;
+
+        public override string StatusLine => statusLine;
     }
 }

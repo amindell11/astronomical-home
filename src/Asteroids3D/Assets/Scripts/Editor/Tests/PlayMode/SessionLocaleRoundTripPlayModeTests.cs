@@ -128,10 +128,13 @@ namespace Tests.PlayMode
             root = new GameObject("SessionRoot");
             return TestSession.Create(root, new SessionProfile
             {
-                sectorEntry = new SectorEntry
+                sectors = new[]
                 {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    config = config
+                    new SectorEntry
+                    {
+                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                        config = config
+                    }
                 },
                 idleLocale = SceneReferenceTo(idleLocale),
                 presentation = true
