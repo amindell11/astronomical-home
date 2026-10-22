@@ -85,9 +85,16 @@ namespace AI
 
         /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
-            projectileSpeed <= 0f
-                ? targetPos
-                : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
+            AimPoint(in shooterPose, targetPos, targetVel, projectileSpeed, out _);
+
+        private static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed,
+            out Vector2 aimVel)
+        {
+            if (projectileSpeed > 0f)
+                return TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed, out aimVel);
+            aimVel = targetVel;
+            return targetPos;
+        }
 
         /// <summary>Bearing to the primary weapon's aim point and its rate; none without a target.</summary>
         public AimReference PrimaryAimReference()
@@ -95,12 +102,13 @@ namespace AI
             if (!hasTarget) return AimReference.None;
 
             var self = pose();
-            var toAim = AimPoint(in self, targetPos, targetVel, weapons.ProjectileSpeed(WeaponSlot.Primary)) - self.pos;
+            var toAim = AimPoint(in self, targetPos, targetVel, weapons.ProjectileSpeed(WeaponSlot.Primary),
+                out var aimVel) - self.pos;
             var rangeSq = toAim.sqrMagnitude;
             // On top of the aim point the bearing is undefined.
             if (rangeSq < 0.01f) return AimReference.None;
 
-            var relVel = targetVel - self.vel;
+            var relVel = aimVel - self.vel;
             return new AimReference(Mathf.Atan2(-toAim.x, toAim.y),
                 (toAim.x * relVel.y - toAim.y * relVel.x) / rangeSq);
         }

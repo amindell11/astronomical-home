@@ -178,6 +178,38 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void AimReference_Rate_IsTheTimeDerivativeOfTheBearingToTheMovingIntercept()
+        {
+            var host = new GameObject("Gunner");
+            try
+            {
+                var self = new Kinematics(new Vector2(1f, -2f), new Vector2(0f, 4f), 20f, 0f, 0f);
+                var targetPos = new Vector2(12f, 9f);
+                var targetVel = new Vector2(-3f, 2f);
+                var weapons = new StubWeaponContext();
+                var gunner = host.AddComponent<Gunner>();
+                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1));
+                gunner.Aim(targetPos, targetVel);
+
+                // Both ships coast and the shooter keeps its heading; the lead time still changes with range.
+                float BearingAt(float time)
+                {
+                    var shooter = new Kinematics(self.pos + self.vel * time, self.vel, self.yaw, 0f, 0f);
+                    var toAim = Gunner.AimPoint(in shooter, targetPos + targetVel * time, targetVel,
+                        weapons.ProjectileSpeed(WeaponSlot.Primary)) - shooter.pos;
+                    return Mathf.Atan2(-toAim.x, toAim.y);
+                }
+
+                const float h = 0.01f;
+                Assert.AreEqual((BearingAt(h) - BearingAt(-h)) / (2f * h), gunner.PrimaryAimReference().rate, 1e-3f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(host);
+            }
+        }
+
+        [Test]
         public void AimReference_Rate_IsTheBearingRate_SignedCcw()
         {
             var host = new GameObject("Gunner");
