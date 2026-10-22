@@ -206,6 +206,7 @@ namespace Ships
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
             Damage.Initialize(Keystone);
+            Damage.OnBlocked += Keystone.NotifyBlocked;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -226,6 +227,16 @@ namespace Ships
 
             isInitialized = true;
             Commander?.Initialize(BuildShipControl());
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (!isInitialized) return;
+            var contact = collision.GetContact(0);
+            var relative = collision.relativeVelocity;
+            var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, contact.normal)) : 0f;
+            Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
+                collision.collider, collision.rigidbody, contact.point, closing));
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.

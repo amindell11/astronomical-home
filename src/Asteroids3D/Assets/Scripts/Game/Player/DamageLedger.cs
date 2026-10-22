@@ -73,8 +73,9 @@ namespace Game.Player
             hits.Clear();
         }
 
-        public static string DescribeKind(DamageKind kind) => kind switch
+        public static string DescribeKind(DamageKind kind, ShipId attacker) => kind switch
         {
+            DamageKind.Collision when attacker.IsValid => "ram",
             DamageKind.Laser => "laser fire",
             DamageKind.Railgun => "railgun",
             DamageKind.Missile => "missile",

@@ -85,8 +85,8 @@ namespace UI.Screens
 
             var name = SourceNameFor(killingBlow, rows);
             return name != null
-                ? $"Destroyed by {name} — {DamageLedger.DescribeKind(killingBlow.Kind)}."
-                : $"Destroyed by {DamageLedger.DescribeKind(killingBlow.Kind)}.";
+                ? $"Destroyed by {name} — {DamageLedger.DescribeKind(killingBlow.Kind, killingBlow.AttackerId)}."
+                : $"Destroyed by {DamageLedger.DescribeKind(killingBlow.Kind, killingBlow.AttackerId)}.";
         }
 
         internal static string TallyBlock(IRunTally tally) =>
@@ -125,7 +125,7 @@ namespace UI.Screens
         }
 
         private static string SourceLabel(DamageLedger.Row row) =>
-            $"{row.SourceName} — {DamageLedger.DescribeKind(row.Kind)}";
+            $"{row.SourceName} — {DamageLedger.DescribeKind(row.Kind, row.AttackerId)}";
 
         private static Color SeriesColor(DamageBurst burst, int series) =>
             series < burst.Sources.Count ? SourceColors[series] : OtherColor;
