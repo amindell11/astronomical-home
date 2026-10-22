@@ -166,9 +166,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sessionProfile:
-    sectorEntry:
-      config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
+    sectors:
+    - config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
       prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+    - config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
+      prefab: {fileID: 2953836036986906632, guid: bec7b7260051bcf4a820bf8a41c799e4,
+        type: 3}
+    - config: {fileID: 11400000, guid: 07bed28b12fe4f8498c73815a78790a6, type: 2}
+      prefab: {fileID: 7692005886971173018, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
     idleLocale:
       sceneName: Locale_3

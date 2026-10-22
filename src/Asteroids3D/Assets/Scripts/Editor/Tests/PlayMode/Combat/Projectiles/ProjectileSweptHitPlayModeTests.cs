@@ -46,7 +46,11 @@ namespace Tests.PlayMode
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
         {
             public int Hits { get; private set; }
-            public void TakeDamage(in DamageInfo hit) => Hits++;
+            public float TakeDamage(in DamageInfo hit)
+            {
+                Hits++;
+                return 0f;
+            }
         }
 
         public override void TearDown()

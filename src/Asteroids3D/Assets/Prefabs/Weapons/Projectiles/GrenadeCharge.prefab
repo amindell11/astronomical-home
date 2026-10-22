@@ -101,6 +101,8 @@ MonoBehaviour:
   maxDistance: 25
   mass: 0.5
   launchSpeed: 40
+  armingTime: 0.6
+  proximityRadius: 4
   wavePrefab: {fileID: 1100000000000000102, guid: 07872014d0f2483cbe5d4223faa4d2ca,
     type: 3}
 --- !u!33 &1100000000000000006

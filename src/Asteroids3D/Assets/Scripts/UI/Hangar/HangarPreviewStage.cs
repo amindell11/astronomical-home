@@ -8,9 +8,10 @@ using UnityEngine;
 namespace UI.Hangar
 {
     /// <summary>
-    /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig for flight motion
-    /// and renders it to a RenderTexture on the isolated ShipPreview layer. Every offered
-    /// ship is framed from one camera distance — the largest ship's fit — so hull sizes compare.
+    /// Offscreen 3D preview for the hangar: renders pooled clones of each ship's visual rig to a RenderTexture
+    /// on the isolated ShipPreview layer. The texture spans the whole surface ships fly across; an off-axis camera
+    /// holds the settled ship inside a framing square on it. The camera never moves; each clone is scaled to one
+    /// framing sphere, so every hull fills the same share of the square. A <see cref="HangarCarousel"/> places the clones.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -24,39 +25,35 @@ namespace UI.Hangar
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
+        private const float FramedRadius = 1f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
+        private readonly Dictionary<Ship, HangarPreviewFlight> clones = new();
+        private HangarCarousel carousel;
         private Camera stageCamera;
         private Transform anchor;
         private RenderTexture texture;
-        private HangarPreviewFlight current;
-        private HangarPreviewFlight retiring;
-        private float sharedCameraDistance;
+        private float inkFramePixels;
+        private bool showing;
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create(Transform parent, int texturePixels,
+        public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
             IEnumerable<Ship> offeredShips)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
-            stage.BuildStage(texturePixels);
-            stage.sharedCameraDistance = stage.LargestFramingDistance(offeredShips);
-            return stage;
-        }
-
-        private float LargestFramingDistance(IEnumerable<Ship> ships)
-        {
-            var largest = 0f;
-            foreach (var ship in ships)
+            stage.BuildStage(surfacePixels, frame);
+            var offered = 0;
+            foreach (var ship in offeredShips)
             {
-                var rigTemplate = ship.VisualRig;
-                if (!rigTemplate) continue;
-                var bounds = MeasureFramedBounds(rigTemplate);
-                largest = Mathf.Max(largest, SolveFraming(bounds, anchor.position, CameraFovDeg).distance);
+                if (!ship) continue;
+                offered++;
+                stage.CloneOf(ship);
             }
-            return largest;
+            stage.carousel = new HangarCarousel(offered);
+            return stage;
         }
 
         private static int PreviewLayer()
@@ -70,7 +67,7 @@ namespace UI.Hangar
             return layer;
         }
 
-        private void BuildStage(int texturePixels)
+        private void BuildStage(Vector2Int surfacePixels, Rect frame)
         {
             var layer = PreviewLayer();
             gameObject.layer = layer;
@@ -87,7 +84,10 @@ namespace UI.Hangar
             stageCamera.fieldOfView = CameraFovDeg;
             stageCamera.clearFlags = CameraClearFlags.SolidColor;
             stageCamera.backgroundColor = Color.clear;
-            Resize(texturePixels);
+            var direction = new Vector3(0f, 0.55f, -1f).normalized;
+            stageCamera.transform.position = anchor.position + direction * CameraDistance(FramedRadius, CameraFovDeg);
+            stageCamera.transform.LookAt(anchor.position);
+            Resize(surfacePixels, frame);
 
             var lightGo = new GameObject("PreviewLight");
             lightGo.layer = layer;
@@ -99,26 +99,45 @@ namespace UI.Hangar
             light.intensity = 1.6f;
         }
 
-        /// <summary>Re-renders at <paramref name="pixels"/> square, capped at <see cref="MaxTextureSize"/>; past the
-        /// cap the UI draws the preview upscaled. Replaces <see cref="Texture"/> when the size changes.</summary>
-        public void Resize(int pixels)
+        /// <summary>Renders a <paramref name="surface"/>-pixel target, long side capped at <see cref="MaxTextureSize"/>
+        /// (past the cap the UI draws it upscaled), with the framing square at <paramref name="frame"/> in normalized
+        /// surface coordinates. Replaces <see cref="Texture"/> when the size changes.</summary>
+        public void Resize(Vector2Int surface, Rect frame)
         {
-            var size = Mathf.Min(pixels, MaxTextureSize);
-            if (texture && texture.width == size) return;
+            var fit = Mathf.Min(1f, (float)MaxTextureSize / Mathf.Max(surface.x, surface.y));
+            var width = Mathf.Max(1, Mathf.RoundToInt(surface.x * fit));
+            var height = Mathf.Max(1, Mathf.RoundToInt(surface.y * fit));
+            Project(frame);
+            var framePixels = frame.width * width;
+            if (texture && texture.width == width && texture.height == height && framePixels == inkFramePixels) return;
 
-            stageCamera.targetTexture = null;
-            ReleaseTexture();
-            texture = new RenderTexture(size, size, 24) { name = "HangarPreviewRT", antiAliasing = TextureMsaa };
-            stageCamera.targetTexture = texture;
-            ScaleInk(current);
-            ScaleInk(retiring);
+            inkFramePixels = framePixels;
+            if (!texture || texture.width != width || texture.height != height)
+            {
+                stageCamera.targetTexture = null;
+                ReleaseTexture();
+                texture = new RenderTexture(width, height, 24) { name = "HangarPreviewRT", antiAliasing = TextureMsaa };
+                stageCamera.targetTexture = texture;
+            }
+            foreach (var clone in clones.Values)
+                ScaleInk(clone);
         }
 
-        // Contour width is in render-target pixels; scaling with the texture holds on-screen ink weight.
+        // Off-axis frustum: the framing square keeps a CameraFovDeg view wherever it sits on the surface.
+        private void Project(Rect frame)
+        {
+            var near = stageCamera.nearClipPlane;
+            var half = near * Mathf.Tan(CameraFovDeg * .5f * Mathf.Deg2Rad);
+            var left = -half - 2f * half * frame.x / frame.width;
+            var bottom = -half - 2f * half * frame.y / frame.height;
+            stageCamera.projectionMatrix = Matrix4x4.Frustum(left, left + 2f * half / frame.width,
+                bottom, bottom + 2f * half / frame.height, near, stageCamera.farClipPlane);
+        }
+
+        // Contour width is in render-target pixels; scaling with the framing square holds on-screen ink weight.
         private void ScaleInk(Component rig)
         {
-            if (!rig) return;
-            var scale = texture.width / InkReferenceTextureSize;
+            var scale = inkFramePixels / InkReferenceTextureSize;
             var block = new MaterialPropertyBlock();
             foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
             {
@@ -133,16 +152,43 @@ namespace UI.Hangar
             }
         }
 
+        /// <summary>The first call plays the entry swoop; later calls step the carousel toward the new pick.</summary>
         public void Show(ShipLoadout loadout, bool backwards)
         {
-            if (retiring) Destroy(retiring.gameObject);
-            retiring = current;
-            if (retiring) retiring.Depart(backwards);
-            current = null;
-
             var ship = loadout?.Ship;
+            if (!showing)
+            {
+                showing = true;
+                carousel.Start(ship);
+                var clone = CloneOf(ship);
+                if (clone) clone.Enter();
+                return;
+            }
+            carousel.Step(ship, backwards ? -1 : 1);
+        }
+
+        private void Update()
+        {
+            if (!showing) return;
+            var dt = Time.deltaTime;
+            carousel.Advance(dt);
+            var nearest = Mathf.FloorToInt(carousel.Position);
+            var behind = carousel.Position - nearest < HangarCarousel.PathEnd ? CloneOf(carousel.At(nearest)) : null;
+            var ahead = nearest + 1 - carousel.Position < HangarCarousel.PathEnd
+                ? CloneOf(carousel.At(nearest + 1)) : null;
+            foreach (var clone in clones.Values)
+                if (clone != behind && clone != ahead && clone.gameObject.activeSelf)
+                    clone.Hide();
+            if (behind) behind.Place(nearest - carousel.Position, carousel.Velocity, dt);
+            if (ahead) ahead.Place(nearest + 1 - carousel.Position, carousel.Velocity, dt);
+        }
+
+        // Built once per ship and kept: a burst of presses never instantiates or destroys a clone.
+        private HangarPreviewFlight CloneOf(Ship ship)
+        {
             var rigTemplate = ship ? ship.VisualRig : null;
-            if (!rigTemplate) return;
+            if (!rigTemplate) return null;
+            if (clones.TryGetValue(ship, out var pooled)) return pooled;
 
             var clone = Instantiate(rigTemplate, anchor, false);
             var root = clone.transform;
@@ -151,26 +197,16 @@ namespace UI.Hangar
             SetLayerRecursive(root, gameObject.layer);
             ScaleInk(root);
 
-            // Include the prefab root's scale, which the visual-only clone leaves behind.
-            root.localScale = rigTemplate.transform.lossyScale;
+            // The prefab root's scale, which the visual-only clone leaves behind, fitted to the framing sphere.
+            var ownDistance = SolveFraming(MeasureFramedBounds(rigTemplate), anchor.position, CameraFovDeg).distance;
+            root.localScale = rigTemplate.transform.lossyScale
+                * (CameraDistance(FramedRadius, CameraFovDeg) / ownDistance);
 
-            FrameCamera(rigTemplate);
-
-            current = root.gameObject.AddComponent<HangarPreviewFlight>();
-            var radius = Vector3.Distance(stageCamera.transform.position, anchor.position)
-                * Mathf.Sin(CameraFovDeg * .5f * Mathf.Deg2Rad) / FramingMargin;
-            current.Initialize(radius, BaseOrientation, retiring, backwards);
-        }
-
-        private void FrameCamera(ShipVisualRig rigTemplate)
-        {
-            var bounds = MeasureFramedBounds(rigTemplate);
-            var (focus, ownDistance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
-            // A ship outside the offer is never framed closer than its own fit.
-            var distance = Mathf.Max(ownDistance, sharedCameraDistance);
-            var direction = new Vector3(0f, 0.55f, -1f).normalized;
-            stageCamera.transform.position = focus + direction * distance;
-            stageCamera.transform.LookAt(focus);
+            var flight = root.gameObject.AddComponent<HangarPreviewFlight>();
+            flight.Initialize(FramedRadius, BaseOrientation);
+            flight.Hide();
+            clones[ship] = flight;
+            return flight;
         }
 
         private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
@@ -213,9 +249,11 @@ namespace UI.Hangar
             var radius = Mathf.Max(
                 Mathf.Sqrt(planarRadiusSq + Mathf.Pow(Mathf.Abs(bounds.center.y - anchorPosition.y) + bounds.extents.y, 2f)),
                 MinFramedRadius);
-            var distance = radius * FramingMargin / Mathf.Sin(fovDeg * 0.5f * Mathf.Deg2Rad);
-            return (anchorPosition, distance);
+            return (anchorPosition, CameraDistance(radius, fovDeg));
         }
+
+        private static float CameraDistance(float radius, float fovDeg) =>
+            radius * FramingMargin / Mathf.Sin(fovDeg * 0.5f * Mathf.Deg2Rad);
 
         // Thrusters remain dormant; only wings receive preview flight input.
         private static void StripNonHull(ShipVisualRig rig)
@@ -226,12 +264,6 @@ namespace UI.Hangar
             foreach (var minimap in rig.GetComponentsInChildren<MinimapShipMarker>(true))
                 if (minimap && minimap.gameObject != rig.gameObject)
                     DestroyImmediate(minimap.gameObject);
-            // Disable, don't destroy: sources may be [RequireComponent]-pinned by their binders.
-            foreach (var audio in rig.GetComponentsInChildren<AudioSource>(true))
-            {
-                audio.playOnAwake = false;
-                audio.enabled = false;
-            }
         }
 
         private static void SetLayerRecursive(Transform root, int layer)

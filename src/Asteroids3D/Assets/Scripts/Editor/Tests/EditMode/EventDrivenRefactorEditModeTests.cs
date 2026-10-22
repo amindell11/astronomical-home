@@ -4,7 +4,6 @@ using System.Reflection;
 using Combat.Targeting;
 using NUnit.Framework;
 using UI;
-using UI.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 using Combat.Weapons.Conditions;
@@ -62,34 +61,6 @@ namespace Tests.EditMode
                 Assert.That(events.Count, Is.EqualTo(2));
                 Assert.That(events[0], Is.EqualTo(0.25f).Within(0.0001f));
                 Assert.That(events[1], Is.EqualTo(0f).Within(0.0001f));
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(go);
-            }
-        }
-
-        [Test]
-        public void UILockOnAudio_RespondsToLockStateEventsWithoutPolling()
-        {
-            var go = new GameObject("UILockOnAudioTest");
-            try
-            {
-                var source = go.AddComponent<AudioSource>();
-                var uiAudio = go.AddComponent<UILockOnAudio>();
-                SetPrivateField(uiAudio, "lockingLoopClip", CreateTestClip("locking"));
-                SetPrivateField(uiAudio, "lockedClip", CreateTestClip("locked"));
-
-                var lockSource = new TestLockStateSource();
-                uiAudio.Initialize(lockSource);
-
-                lockSource.SetState(LockState.Locking);
-                Assert.IsTrue(source.loop, "Locking should start looping clip");
-                Assert.IsNotNull(source.clip, "Locking should assign looping clip");
-
-                lockSource.SetState(LockState.Cooldown);
-                Assert.IsFalse(source.loop, "Cooldown should stop looping audio");
-                Assert.IsNull(source.clip, "Cooldown should clear looping clip");
             }
             finally
             {
@@ -191,11 +162,6 @@ namespace Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(heatGo);
                 UnityEngine.Object.DestroyImmediate(uiGo);
             }
-        }
-
-        private static AudioClip CreateTestClip(string name)
-        {
-            return AudioClip.Create(name, 128, 1, 44100, false);
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

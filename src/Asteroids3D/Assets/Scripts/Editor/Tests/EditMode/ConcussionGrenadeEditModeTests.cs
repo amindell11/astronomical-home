@@ -1,5 +1,6 @@
 using Combat.Projectiles;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -79,6 +80,23 @@ namespace Tests.EditMode
         public void BrakingDeceleration_AtZeroDistance_IsFinite()
         {
             Assert.IsFalse(float.IsInfinity(Grenade.BrakingDeceleration(40f, 0f, 0.02f)));
+        }
+
+        // ── Charge fuse ──
+
+        [Test]
+        public void ChargePrefab_ProximityFuseReachesPastTheHitbox_WithoutBeingACollider()
+        {
+            var charge = AssetDatabase.LoadAssetAtPath<Grenade>("Assets/Prefabs/Weapons/Projectiles/GrenadeCharge.prefab");
+            Assert.IsNotNull(charge, "The charge prefab loads.");
+
+            var colliders = charge.GetComponentsInChildren<Collider>(true);
+            Assert.AreEqual(1, colliders.Length,
+                "The shootable hitbox is the charge's only collider: a proximity collider would be something shots hit.");
+            var hitbox = (SphereCollider)colliders[0];
+            Assert.Greater(charge.proximityRadius, hitbox.radius * charge.transform.lossyScale.x,
+                "The proximity fuse reaches past the hitbox.");
+            Assert.Greater(charge.armingTime, 0f, "The charge arms after launch, not on it.");
         }
     }
 }

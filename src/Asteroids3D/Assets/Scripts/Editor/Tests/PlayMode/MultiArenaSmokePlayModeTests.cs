@@ -208,7 +208,7 @@ namespace Tests.PlayMode
         private sealed class CombatLog
         {
             private readonly Dictionary<ArenaUnderTest, int> combatDamage = new();
-            private readonly List<(DamageController damage, System.Action<Damage.DamageInfo> handler)> subscriptions = new();
+            private readonly List<(DamageController damage, System.Action<Damage.AppliedDamage> handler)> subscriptions = new();
             public readonly List<string> CrossArenaHits = new();
 
             public CombatLog(ArenaUnderTest a, ArenaUnderTest b)
@@ -233,9 +233,9 @@ namespace Tests.PlayMode
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
                 var otherRegistry = other.Session.Units.Registry;
-                void Handler(Damage.DamageInfo hit)
+                void Handler(Damage.AppliedDamage hit)
                 {
-                    var attackerId = hit.AttackerId;
+                    var attackerId = hit.Info.AttackerId;
                     if (!attackerId.IsValid) return;
                     combatDamage[own]++;
                     if (otherRegistry.TryGetShip(attackerId, out var attacker))
@@ -333,7 +333,7 @@ namespace Tests.PlayMode
             created.Add(arena.Root);
             arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {
-                sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
+                sectors = new[] { new SectorEntry { prefab = sectorPrefab, config = config } },
                 presentation = false,
                 offset = arena.Offset
             });

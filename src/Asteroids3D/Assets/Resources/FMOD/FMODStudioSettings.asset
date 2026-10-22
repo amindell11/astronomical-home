@@ -562,7 +562,10 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
+  - HUD
+  - Ships
   - Weapons
+  - World
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0

@@ -58,16 +58,18 @@ namespace Asteroids
             Health = MaxHealth * Mathf.Clamp01(fraction);
         }
 
-        public void TakeDamage(in DamageInfo hit)
+        public float TakeDamage(in DamageInfo hit)
         {
-            if (!controller) return;
-            if (isDestroyed) return;
+            if (!controller) return 0f;
+            // Already broken up: a later hit in the same step passes straight through.
+            if (isDestroyed) return hit.Amount;
 
             Health -= hit.Amount;
-            if (Health > 0f) return;
+            if (Health > 0f) return 0f;
 
             isDestroyed = true;
             controller.HandleDestroyed(new HitData(hit.HitMass, hit.HitVelocity, hit.HitPoint));
+            return -Health;
         }
 
         public void HandleCollision(Collision collision)

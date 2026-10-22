@@ -11,7 +11,8 @@ namespace Ships.Presentation
     /// <see cref="ShipControl"/>. Assembled by the game-tier presentation installer and injected into
     /// the rig; visual components read it instead of discovering the ship via GetComponentInParent.
     /// Carries only what visuals consume: the follow anchor, the damage push-surface, the live pilot
-    /// command (thruster/engine intensity) and the lock channel (lock indicator).
+    /// command (thruster/engine intensity), the lock channel (lock indicator), and the body and live
+    /// boost readiness (engine audio). A binder with no ship leaves the last two null.
     /// </summary>
     public readonly struct ShipView
     {
@@ -30,13 +31,20 @@ namespace Ships.Presentation
         /// <summary>Whether this is the local player's ship (drives player-vs-enemy presentation, e.g. minimap layer).</summary>
         public readonly bool IsPlayer;
 
-        public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock, bool isPlayer)
+        public readonly Rigidbody Body;
+
+        public readonly Func<bool> BoostAvailable;
+
+        public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock, bool isPlayer,
+            Rigidbody body = null, Func<bool> boostAvailable = null)
         {
             Root = root;
             Damage = damage;
             Command = command;
             Lock = @lock;
             IsPlayer = isPlayer;
+            Body = body;
+            BoostAvailable = boostAvailable;
         }
     }
 }
