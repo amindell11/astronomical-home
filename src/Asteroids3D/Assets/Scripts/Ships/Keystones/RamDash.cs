@@ -20,6 +20,9 @@ namespace Ships.Keystones
         [Tooltip("Damage a head-on ram deals a ship; a glancing hit deals less.")]
         [Stat, SerializeField] private float shipDamage = 60f;
 
+        [Tooltip("How far off the nose, in degrees, an enemy may sit for an AI to fire the ram at it.")]
+        [Stat, SerializeField] private float sightAngle = 15f;
+
         private bool resolved;
         private float resolvedAt;
 
@@ -28,8 +31,21 @@ namespace Ships.Keystones
         public float ShipDamage => shipDamage;
         public bool RamLive => SinceActivation < window && (!resolved || SinceActivation == resolvedAt);
         public override bool Active => RamLive;
+        public override bool SeeksContact => RamLive;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
+
+        public override bool ShouldActivate(in KeystoneContext context)
+        {
+            var offset = context.Target.pos - context.Self.pos;
+            var range = offset.magnitude;
+            if (range < 1e-3f) return false;
+            var toward = offset / range;
+            if (Vector2.Dot(context.Self.Forward, toward) < Mathf.Cos(sightAngle * Mathf.Deg2Rad)) return false;
+            var closing = Vector2.Dot(context.Self.vel - context.Target.vel, toward);
+            if (closing < 0f) return false;
+            return range <= (closing + Impulse / context.SelfMass) * window;
+        }
 
         public override void OnContact(in KeystoneContact contact)
         {

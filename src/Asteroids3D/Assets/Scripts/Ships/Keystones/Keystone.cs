@@ -11,7 +11,8 @@ namespace Ships.Keystones
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
     /// effects beyond the activation impulse are state on the kit that other systems observe; the
-    /// ship hands it what it owns (contacts, blocked hits), and the kit decides what pays.
+    /// ship hands it what it owns (contacts, blocked hits), and the kit decides what pays. An AI
+    /// commander also reads the kit's sight, which can fire it beside the brain's own request.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
     /// </summary>
     public abstract class Keystone : MonoBehaviour
@@ -34,6 +35,9 @@ namespace Ships.Keystones
 
         /// <summary>The kit's active state, which its tell shows.</summary>
         public virtual bool Active => false;
+
+        /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
+        public virtual bool SeeksContact => false;
 
         protected float SinceActivation => clock - activatedAt;
 
@@ -59,6 +63,9 @@ namespace Ships.Keystones
         }
 
         public virtual bool Blocks(in DamageInfo hit) => false;
+
+        /// <summary>The kit's sight: whether an engaged AI should fire it now, beside any brain request.</summary>
+        public virtual bool ShouldActivate(in KeystoneContext context) => false;
 
         public virtual void NotifyBlocked(DamageInfo hit) { }
 

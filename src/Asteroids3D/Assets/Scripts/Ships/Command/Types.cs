@@ -4,6 +4,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using Movement;
 using UnityEngine;
+using Ships.Keystones;
 using Ships.Registry;
 using Utils;
 
@@ -153,14 +154,18 @@ namespace Ships.Command
         /// </summary>
         public readonly SeedScope DecisionSeed;
 
+        /// <summary>The ship's keystone kit, whose sight and contact state an AI commander reads; null when the ship has none.</summary>
+        public readonly Keystone Keystone;
+
         public ShipControl(IShipStatus ship, IPilot pilot, SeedScope decisionSeed,
-            IWeaponContext weapons = null, IWeapons weaponActuator = null)
+            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null)
         {
             Ship = ship;
             Pilot = pilot;
             DecisionSeed = decisionSeed;
             Weapons = weapons;
             WeaponActuator = weaponActuator;
+            Keystone = keystone;
         }
 
         /// <summary>True when both the weapon context and actuator are present.</summary>

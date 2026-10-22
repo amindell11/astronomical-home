@@ -3,6 +3,7 @@ using Movement;
 using AI.Navigation.MPC;
 using AI.Context;
 using Ships.Command;
+using Ships.Registry;
 using Utils;
 using Unity.Mathematics;
 using UnityEngine;
@@ -75,11 +76,17 @@ namespace AI
         public void ResetState()
         {
             ResetNavigation();
+            AvoidanceExempt = ShipId.Invalid;
             currentCommand = default;
             lastSolveFixedTime = double.NaN;
             mpc?.Dispose();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
         }
+
+        /// <summary>The ship the solver must not steer around this tick, or invalid for none.</summary>
+        public ShipId AvoidanceExempt { get; private set; }
+
+        public void ExemptFromAvoidance(ShipId ship) => AvoidanceExempt = ship;
 
         public PilotCommand ComputeCommand()
         {
@@ -88,7 +95,7 @@ namespace AI
             if (ShouldIdle())
                 return currentCommand = default;
 
-            var scan = scout.ObstacleScan;
+            var scan = AvoidanceExempt.IsValid ? scout.ObstacleScanWithout(AvoidanceExempt) : scout.ObstacleScan;
 
             // Idle gaps skip solves, so dt spans whole ticks since the last solve — tick-counted
             // from the double clock so absolute session time never perturbs the float dt — capped
