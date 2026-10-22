@@ -114,6 +114,40 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
         }
 
+        private RamDash NewRam()
+        {
+            var ram = NewKit<RamDash>();
+            var so = new SerializedObject(ram);
+            so.FindProperty("impulse").floatValue = 13500f;
+            so.FindProperty("window").floatValue = 0.6f;
+            so.FindProperty("sightAngle").floatValue = 15f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return ram;
+        }
+
+        private static KeystoneContext Sight(Vector2 targetPos, Vector2 targetVel = default, Vector2 selfVel = default) =>
+            new(new Kinematics(Vector2.zero, selfVel, 0f, 0f, 0f), 1200f, 21f, new Kinematics(targetPos, targetVel, 0f, 0f, 0f));
+
+        [Test]
+        public void RamSight_FiresOnlyWhenAlignedNotOpeningAndInReach()
+        {
+            var ram = NewRam();
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f))), Is.True, "on the nose, still, inside the 6.75 u a dash covers in the window");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(5f, 5f))), Is.False, "45 degrees off the nose");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), targetVel: new Vector2(0f, 10f))), Is.False, "pulling away");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f))), Is.False, "out of reach from a standstill");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f), selfVel: new Vector2(0f, 10f))), Is.True, "closing speed extends the reach");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 6f), targetVel: new Vector2(0f, 21f), selfVel: new Vector2(0f, 21f))), Is.False,
+                "at the speed cap the dash adds no closing speed, so a matched-speed target ahead is out of reach");
+        }
+
+        [Test]
+        public void OtherKits_HaveNoSight()
+        {
+            Assert.That(NewDash().ShouldActivate(Sight(new Vector2(0f, 2f))), Is.False);
+            Assert.That(NewKit<GuardDash>().ShouldActivate(Sight(new Vector2(0f, 2f))), Is.False);
+        }
+
         [Test]
         public void PlainDash_BlocksNothing_EvenRightAfterActivating()
         {
