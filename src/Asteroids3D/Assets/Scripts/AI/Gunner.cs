@@ -1,5 +1,6 @@
 using System;
 using AI.Context;
+using AI.Gunnery;
 using AI.Navigation.MPC;
 using Combat;
 using Combat.Weapons;
@@ -8,6 +9,7 @@ using Ships.Command;
 using UnityEngine;
 using Combat.Targeting;
 using Substrate;
+using Utils;
 
 namespace AI
 {
@@ -17,6 +19,7 @@ namespace AI
         internal IWeaponContext weapons;
         private IWeapons actuator;
         private Func<Kinematics> pose;
+        private AimPerception perception;
 
         private Vector2 targetPos;
         private Vector2 targetVel;
@@ -32,11 +35,16 @@ namespace AI
         public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;
         private void ClearTarget() => Target = Vector3.zero;
 
-        public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc)
+        public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc,
+            AimSettings aimSettings, SeedScope aimScope)
         {
+            if (!aimSettings)
+                throw new ArgumentNullException(nameof(aimSettings),
+                    $"{name}: an armed AI pilot needs AimSettings, assigned on its AICommander.");
             this.weapons = weapons;
             this.actuator = actuator;
             pose = poseFunc;
+            perception = new AimPerception(aimSettings, aimScope);
         }
 
         /// <summary>Drops the tracked target and aim point, restoring the freshly-initialized gunner.</summary>
@@ -47,6 +55,7 @@ namespace AI
             targetVel = default;
             prevPrimaryHeld = false;
             prevSecondaryHeld = false;
+            perception?.Reset();
             ClearTarget();
         }
 
@@ -105,19 +114,19 @@ namespace AI
                 AimPoint(pose(), targetPos, targetVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void Aim(in EnemyTarget anchor) => Aim(anchor.kinematics.pos, anchor.kinematics.vel);
-
-        /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
-        public void Aim(Vector2 referentPos, Vector2 referentVel)
+        /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores the enemy as perceived, for per-slot firing solutions and the aim reference.</summary>
+        public void Aim(in EnemyTarget anchor)
         {
             if (pose == null) return;
 
-            targetPos = referentPos;
-            targetVel = referentVel;
+            perception.Perceive(pose(), in anchor, Time.fixedTimeAsDouble, out targetPos, out targetVel);
             hasTarget = true;
             Target = AimPointFor(WeaponSlot.Primary);
         }
+
+        /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
+        public void Aim(Vector2 referentPos, Vector2 referentVel) =>
+            Aim(new EnemyTarget { kinematics = new Kinematics(referentPos, referentVel, 0f, 0f, 0f) });
 
         /// <summary>Drops the aim without dropping the weapons: the slots stay the gunner's, it just has nothing to shoot at.</summary>
         public void HoldFire()

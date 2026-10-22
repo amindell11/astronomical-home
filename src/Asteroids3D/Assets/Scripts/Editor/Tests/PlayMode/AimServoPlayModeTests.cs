@@ -23,7 +23,8 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator FullAuthorityAim_HoldsTheNoseOnAStillTarget_WithinASecond()
         {
-            var (shooter, cmdr) = CreateAIShip(Vector3.zero, team: 0);
+            // The servo is under test, so the Gunner sees the true target.
+            var (shooter, cmdr) = CreateAIShip(Vector3.zero, team: 0, aimSettings: TestAimSettings.Perfect);
             var (target, _) = CreateAIShip(new Vector3(12f, 4f, 0f), team: 1);
 
             cmdr.InstallBrain<ScriptedBrain>().decision = new BrainDecision(

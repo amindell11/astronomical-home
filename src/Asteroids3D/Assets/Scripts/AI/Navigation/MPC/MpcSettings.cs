@@ -63,8 +63,9 @@ namespace AI.Navigation.MPC
         public float wFacingPrior = 0f;
 
         [Header("Aim Servo")]
-        [Tooltip("Fraction of the engine's yaw acceleration the servo plans its approach with; the remainder is torque headroom for its rate loop.")]
-        public float aimServoAccelFraction = 0.7f;
+        [Tooltip("Turn acceleration: the fraction of the engine's yaw acceleration the servo plans its approach with, " +
+                 "so how fast it swings the nose onto the aim reference. The remainder is torque headroom for its rate loop.")]
+        public float aimServoAccelFraction = 0.21f;
         [Tooltip("Seconds over which the servo closes its yaw-rate error.")]
         public float aimServoTau = 0.06f;
         [Tooltip("Proportional gain (1/s) that caps the approach rate near the aim reference, so the nose settles instead of chattering.")]

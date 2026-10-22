@@ -12,6 +12,7 @@ using Ships.Command;
 using Tests.Common;
 using UnityEditor;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -153,7 +154,7 @@ namespace Tests.EditMode
                 var self = new Kinematics(new Vector2(1f, -2f), new Vector2(0f, 4f), 20f, 0f, 0f);
                 var weapons = new StubWeaponContext();
                 var gunner = host.AddComponent<Gunner>();
-                gunner.Initialize(weapons, null, () => self);
+                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1));
                 Assert.IsFalse(gunner.PrimaryAimReference().live, "no target, no reference");
 
                 var targetPos = new Vector2(12f, 9f);
@@ -184,7 +185,7 @@ namespace Tests.EditMode
             {
                 var gunner = host.AddComponent<Gunner>();
                 gunner.Initialize(new HitscanContext(), null,
-                    () => new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f));
+                    () => new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f), TestAimSettings.Perfect, new SeedScope(1));
                 gunner.Aim(new Vector2(0f, 10f), new Vector2(-5f, 0f));
 
                 var reference = gunner.PrimaryAimReference();

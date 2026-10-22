@@ -10,9 +10,11 @@ using Movement;
 using NUnit.Framework;
 using Ships.Command;
 using Substrate.Services.Projectiles;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Utils;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -91,7 +93,7 @@ namespace Tests.PlayMode
             spawned.Add(go);
             var gunner = go.AddComponent<Gunner>();
             mount = new PrimaryMount(weapon, NoseUpAtOrigin, Projectiles);
-            gunner.Initialize(mount, mount, NoseUpAtOrigin);
+            gunner.Initialize(mount, mount, NoseUpAtOrigin, TestAimSettings.Perfect, new SeedScope(1));
             return gunner;
         }
 

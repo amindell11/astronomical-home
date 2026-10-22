@@ -30,7 +30,7 @@ MonoBehaviour:
   wFacing: 1
   facingWidth: 1.5
   wFacingPrior: 0
-  aimServoAccelFraction: 0.7
+  aimServoAccelFraction: 0.21
   aimServoTau: 0.06
   aimServoKp: 8
   aimServoEngageWeight: 0.9
