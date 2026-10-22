@@ -19,15 +19,6 @@ MonoBehaviour:
   - {fileID: -3142211812614329419, guid: 6a1f3c13144deb54cb174d2197b87e9b, type: 3}
   - {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
   - {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
-  engines:
-  - {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
-  - {fileID: 11400000, guid: 10ec8e4942e547f6bcc00b2007781243, type: 2}
-  - {fileID: 11400000, guid: b63b46134abb483586d8c315401f3d4a, type: 2}
-  - {fileID: 11400000, guid: 181a834995a6454bbb47dc7480fb44c5, type: 2}
-  - {fileID: 11400000, guid: d3531f882afd41e9b6d41310e4d056a9, type: 2}
-  - {fileID: 11400000, guid: 38dc83ab82ec4474b14ad0c81115379e, type: 2}
-  - {fileID: 11400000, guid: 81527ef314cf47fc9524319339327b05, type: 2}
-  - {fileID: 11400000, guid: ff5d94223b064b2e944b2ff08d25c3e4, type: 2}
   shields:
   - {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}
   - {fileID: 11400000, guid: 7febe5b6ce0a40599f8ca461fed3a61a, type: 2}

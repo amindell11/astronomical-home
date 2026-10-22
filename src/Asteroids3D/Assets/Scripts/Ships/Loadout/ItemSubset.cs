@@ -8,7 +8,7 @@ namespace Ships.Loadout
     /// An authored subset of the <see cref="ItemCatalog"/>: the items one consumer chooses from, per
     /// loadout slot. Two assets use it: the hangar's offer, which the player picks a
     /// <see cref="ShipLoadout"/> from, and the enemy loadout pool, which a wave director draws each
-    /// spawn's engine, shield and weapon from (its ships stay empty). Loot/ownership (which items
+    /// spawn's shield and weapon from (its ships stay empty). Loot/ownership (which items
     /// the player has actually earned) is a later layer that would filter the hangar's offer.
     /// </summary>
     [CreateAssetMenu(fileName = "ItemSubset", menuName = "Ship/Item Subset")]
@@ -16,9 +16,6 @@ namespace Ships.Loadout
     {
         [Tooltip("Ship prefabs selectable in the hangar's Ship slot (the chassis choice).")]
         [Stat] public Ship[] ships;
-
-        [Tooltip("Engine modules selectable in the hangar's Engine slot.")]
-        [Stat] public EngineModule[] engines;
 
         [Tooltip("Shield modules selectable in the hangar's Shield slot.")]
         [Stat] public ShieldModule[] shields;
