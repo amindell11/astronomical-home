@@ -14,9 +14,13 @@ namespace Ships.Keystones
         /// <summary>The velocity the navigator is asking for, or NaN when it asks for none.</summary>
         public readonly Vector2 DesiredVelocity;
 
+        /// <summary>Where the navigator's current plan ends, or null with no plan.</summary>
+        public readonly Vector2? Destination;
+
         public KeystoneContext(in Kinematics self, float selfMass, float selfMaxSpeed, in Kinematics target,
-            Vector2 desiredVelocity = default)
+            Vector2 desiredVelocity = default, Vector2? destination = null)
         {
+            Destination = destination;
             Self = self;
             SelfMass = selfMass;
             SelfMaxSpeed = selfMaxSpeed;
