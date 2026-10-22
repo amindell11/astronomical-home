@@ -35,6 +35,8 @@ namespace AI
 
         // Merged buffer: static obstacles + 360° ship detections, so the MPC sees nearby ships regardless of bearing.
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
+        private readonly ShipId[] mergedShipIds = new ShipId[128];
+        private readonly DetectedObstacle[] exemptScan = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
         public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext,
@@ -82,7 +84,10 @@ namespace AI
                 var src = obstacleScanner.DetectedBuffer;
                 var srcCount = obstacleScanner.DetectedCount;
                 for (var i = 0; i < srcCount && mergedObstacleCount < mergedObstacles.Length; i++)
+                {
+                    mergedShipIds[mergedObstacleCount] = ShipId.Invalid;
                     mergedObstacles[mergedObstacleCount++] = src[i];
+                }
             }
 
             if (shipScanner == null || Registry == null) return;
@@ -95,6 +100,7 @@ namespace AI
                     var col = (ship.Colliders != null && ship.Colliders.Length > 0) ? ship.Colliders[0] : null;
                     if (!col) continue;
                     var radius = ship.Stats != null ? ship.ShipRadius : col.bounds.extents.magnitude * 0.5f;
+                    mergedShipIds[mergedObstacleCount] = id;
                     mergedObstacles[mergedObstacleCount++] =
                         new DetectedObstacle(ship.transform.position, radius, col, ship.Kinematics.vel);
                 }
@@ -102,6 +108,15 @@ namespace AI
         }
 
         public ObstacleScan ObstacleScan => new(mergedObstacles, mergedObstacleCount);
+
+        /// <summary>The merged scan without one ship, for a keystone that must reach it.</summary>
+        public ObstacleScan ObstacleScanWithout(ShipId ship)
+        {
+            var count = 0;
+            for (var i = 0; i < mergedObstacleCount; i++)
+                if (mergedShipIds[i] != ship) exemptScan[count++] = mergedObstacles[i];
+            return new ObstacleScan(exemptScan, count);
+        }
         /// <summary>Raw asteroid-only scanner view (no ship detections) — the RL obstacle-token source.</summary>
         public ObstacleScan AsteroidScan => new(obstacleScanner.DetectedBuffer, obstacleScanner.DetectedCount);
         public ShipScanResult? ShipScan => shipScanner?.LastResult;

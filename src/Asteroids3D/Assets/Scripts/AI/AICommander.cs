@@ -5,6 +5,7 @@ using Movement;
 using AI.Navigation.MPC;
 using Ships;
 using Ships.Command;
+using Ships.Keystones;
 using Unity.Mathematics;
 using UnityEngine;
 using Ships.Registry;
@@ -40,6 +41,9 @@ namespace AI
         private bool engageSecondary;
         // The ability lane, latched beside the triggers.
         private bool boost;
+        private bool hasAnchor;
+        private ShipId anchorId;
+        private EnemyTarget anchorTarget;
 
         internal AIContext context;
 
@@ -113,6 +117,7 @@ namespace AI
             engagePrimary = false;
             engageSecondary = false;
             boost = false;
+            hasAnchor = false;
             context = new AIContext(control.Ship, Scout, combatExitDelay);
             if (Brain) Brain.ResetState();
         }
@@ -127,8 +132,13 @@ namespace AI
                 Route(Brain.Decide(context));
             }
 
+            var keystone = control.Keystone;
+            var seeking = keystone && hasAnchor && keystone.SeeksContact;
+            Navigator.ExemptFromAvoidance(seeking ? anchorId : ShipId.Invalid);
             var command = Navigator.ComputeCommand();
-            command.boost = boost ? 1f : 0f;
+            // A live ram commits: the solver would brake to hold its range and stop the ram short.
+            if (seeking) command.thrust = 1f;
+            command.boost = boost || SightFires(keystone) ? 1f : 0f;
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }
@@ -143,6 +153,7 @@ namespace AI
                 engagePrimary = true;
                 engageSecondary = true;
                 boost = false;
+                hasAnchor = false;
                 return;
             }
 
@@ -153,6 +164,8 @@ namespace AI
             engagePrimary = decided.engagePrimary;
             engageSecondary = decided.engageSecondary;
             boost = decided.boost;
+            hasAnchor = nav.TryGetAnchorId(out anchorId);
+            anchorTarget = anchor;
 
             if (!Gunner) return;
             var aim = nav.sentence.aim;
@@ -167,6 +180,11 @@ namespace AI
             else if (nav.hasAnchor) Gunner.Aim(anchor);
             else Gunner.HoldFire();
         }
+
+        // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
+        private bool SightFires(Keystone keystone) =>
+            keystone && hasAnchor && (engagePrimary || engageSecondary)
+            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, anchorTarget.kinematics));
 
         /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
         private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)

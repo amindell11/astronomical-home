@@ -7,6 +7,8 @@ using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Ships.Keystones;
+using Movement;
 using Utils;
 using Tests.Common;
 using UnityEditor;
@@ -35,8 +37,20 @@ namespace Tests.EditMode
             public void Fire(WeaponSlot slot, in WeaponCommand cmd) { }
         }
 
+        private sealed class ScriptedKeystone : Keystone
+        {
+            public bool sight;
+            public bool seeks;
+            public override string DisplayName => "Scripted";
+            public override bool SeeksContact => seeks;
+            public override bool ShouldActivate(in KeystoneContext context) => sight;
+            protected override Vector2 Activate(in Kinematics kinematics) => Vector2.zero;
+        }
+
         private GameObject host;
         private GameObject anchorHost;
+        private GameObject kitHost;
+        private ScriptedKeystone kit;
         private TestableCommander commander;
         private ScriptedBrain brain;
         private SpyPilot pilot;
@@ -62,8 +76,10 @@ namespace Tests.EditMode
             pilot = new SpyPilot();
             var status = new StubShipStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
             commander.SetSensing(registry, null);
+            kitHost = new GameObject("Kit");
+            kit = kitHost.AddComponent<ScriptedKeystone>();
             commander.Initialize(new ShipControl(status, pilot, new SeedScope(1),
-                new StubWeaponContext(), new NoWeapons()));
+                new StubWeaponContext(), new NoWeapons(), kit));
             createdSettings = commander.Navigator.mpcSettings;
         }
 
@@ -72,14 +88,55 @@ namespace Tests.EditMode
         {
             if (host) Object.DestroyImmediate(host);
             if (anchorHost) Object.DestroyImmediate(anchorHost);
+            if (kitHost) Object.DestroyImmediate(kitHost);
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
         private static BrainDecision Drifting(bool boost) =>
             new(NavObjective.Planar(Vector2.zero), boost: boost);
 
-        private static BrainDecision Anchored() =>
-            new(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f).Facing(0f, 1f));
+        private static BrainDecision Anchored(bool engage = false, bool boost = false) =>
+            new(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f).Facing(0f, 1f), engagePrimary: engage, boost: boost);
+
+        [Test]
+        public void KeystoneSight_AddsAnActivation_WhenEngagedOnAnAnchor()
+        {
+            kit.sight = true;
+            Assert.AreEqual(1f, StepBoost(Anchored(engage: true)));
+        }
+
+        [Test]
+        public void KeystoneSight_StaysSilent_WithoutEngage()
+        {
+            kit.sight = true;
+            Assert.AreEqual(0f, StepBoost(Anchored(engage: false)));
+        }
+
+        [Test]
+        public void KeystoneSight_StaysSilent_WithoutAnAnchor()
+        {
+            kit.sight = true;
+            Assert.AreEqual(0f, StepBoost(new BrainDecision(NavObjective.Planar(Vector2.zero), engagePrimary: true)));
+        }
+
+        [Test]
+        public void KeystoneSight_NeverVetoesTheBrain()
+        {
+            kit.sight = false;
+            Assert.AreEqual(1f, StepBoost(Anchored(engage: true, boost: true)), "an escape dash passes whatever the sight says");
+        }
+
+        [Test]
+        public void SeekingContact_ExemptsTheAnchorFromAvoidance_OnlyWhileItLasts()
+        {
+            kit.seeks = true;
+            StepBoost(Anchored());
+            Assert.AreEqual(AnchorId, commander.Navigator.AvoidanceExempt);
+
+            kit.seeks = false;
+            StepBoost(Anchored());
+            Assert.IsFalse(commander.Navigator.AvoidanceExempt.IsValid);
+        }
 
         private float StepBoost(BrainDecision? decision)
         {
