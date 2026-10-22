@@ -1,0 +1,130 @@
+{
+  "samples": [
+    {
+      "time": 0,
+      "alpha": 54429
+    },
+    {
+      "time": 0.04,
+      "alpha": 1048791
+    },
+    {
+      "time": 0.12,
+      "alpha": 1178176
+    },
+    {
+      "time": 0.3,
+      "alpha": 379761
+    },
+    {
+      "time": 0.57,
+      "alpha": 17042
+    },
+    {
+      "time": 0.59,
+      "alpha": 0
+    }
+  ],
+  "mineSamples": [
+    {
+      "time": 0.04,
+      "alpha": 2400759
+    },
+    {
+      "time": 0.14,
+      "alpha": 2001650
+    },
+    {
+      "time": 0.26,
+      "alpha": 1256405
+    },
+    {
+      "time": 0.36,
+      "alpha": 438271
+    },
+    {
+      "time": 0.4,
+      "alpha": 0
+    }
+  ],
+  "atlasChecks": [
+    {
+      "spread": 0.7,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 0.7,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 0.7,
+      "name": "MineDisc",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1,
+      "name": "MineDisc",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1.3,
+      "name": "Missile",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1.3,
+      "name": "MineIgnition",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    },
+    {
+      "spread": 1.3,
+      "name": "MineDisc",
+      "borderAlpha": 0,
+      "finalAlpha": 0
+    }
+  ],
+  "motionDifferences": [
+    5193,
+    15832
+  ],
+  "dimensions": {
+    "Missile": [
+      1024,
+      2048
+    ],
+    "MineIgnition": [
+      1024,
+      1024
+    ],
+    "MineDisc": [
+      1024,
+      2048
+    ]
+  },
+  "widths": [
+    320,
+    736,
+    1120
+  ],
+  "tunerPassed": true
+}
