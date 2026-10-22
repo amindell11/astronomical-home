@@ -88,6 +88,9 @@ namespace AI
 
         public void ExemptFromAvoidance(ShipId ship) => AvoidanceExempt = ship;
 
+        /// <summary>Where the current plan ends, or null before the first plan.</summary>
+        public Vector2? PlanEnd => mpc?.PredictedStates is { Length: > 0 } plan ? new Vector2(plan[^1].pos.x, plan[^1].pos.y) : null;
+
         public PilotCommand ComputeCommand()
         {
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
@@ -255,6 +258,7 @@ namespace AI
         internal Config config => mpc != null ? mpc.Config : default;
         internal Control[] bestSequence => mpc?.BestSequence;
         internal State[] predictedStates => mpc?.PredictedStates;
+
         internal State lastInitialState => mpc != null ? mpc.LastInitialState : default;
         internal Control lastControl => mpc != null ? mpc.LastControl : default;
 

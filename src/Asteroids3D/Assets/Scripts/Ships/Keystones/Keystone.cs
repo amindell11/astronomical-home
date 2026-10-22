@@ -48,22 +48,26 @@ namespace Ships.Keystones
         public virtual float PeakThrustScale => 1f;
 
         protected float SinceActivation => clock - activatedAt;
+        protected KeystoneHost Host { get; private set; }
 
-        public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated,
-            float baseMaxSpeed = float.PositiveInfinity)
+        public void Initialize(in KeystoneHost host) => Host = host;
+
+        /// <param name="target">Where the pilot points the ability, as a plane point; null means straight ahead.</param>
+        public KeystoneEffect Step(in Kinematics kinematics, float input, float dt, out bool activated,
+            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null)
         {
             clock += dt;
             activated = Ready && input != 0f;
-            var impulse = Vector2.zero;
+            var effect = default(KeystoneEffect);
             if (activated)
             {
                 readyAt = clock + cooldown;
                 activatedAt = clock;
                 Activations++;
-                impulse = Activate(in kinematics);
+                effect = Activate(in kinematics, target);
             }
             Sustain(in kinematics, baseMaxSpeed);
-            return impulse;
+            return effect;
         }
 
         public void ResetKeystone()
@@ -85,7 +89,7 @@ namespace Ships.Keystones
 
         public virtual void OnContact(in KeystoneContact contact) { }
 
-        protected abstract Vector2 Activate(in Kinematics kinematics);
+        protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
 
         protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
 

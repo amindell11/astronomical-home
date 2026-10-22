@@ -2,7 +2,7 @@ using Balance;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     /// <summary>
     /// Valis's kit: no impulse, a window in which the ship's speed cap and forward thrust are raised.
@@ -38,7 +38,7 @@ namespace Ships.Keystones
             return !float.IsNaN(desired.x) && desired.magnitude >= sightSaturation * context.SelfMaxSpeed;
         }
 
-        protected override Vector2 Activate(in Kinematics kinematics) => Vector2.zero;
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => default;
 
         protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)
         {

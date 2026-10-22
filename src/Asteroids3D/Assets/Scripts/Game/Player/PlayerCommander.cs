@@ -113,6 +113,7 @@ namespace Game.Player
                 strafe = strafeInput,
                 boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
                 yawTorque = wantsRotate ? GetMouseRotationTorque() : 0f,
+                abilityTarget = hasScreenProjector ? (Vector2?)GamePlane.WorldPointToPlane(cursorPoint) : null,
             };
             boostInput = false;
             pilot.Drive(cmd);

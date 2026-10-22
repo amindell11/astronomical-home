@@ -222,6 +222,7 @@ namespace Ships
             if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
 
             Stats.shipRadius = DeriveShipRadius();
+            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));
 
             baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
