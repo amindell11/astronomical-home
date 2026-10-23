@@ -1,0 +1,110 @@
+{
+    "generatedAt":  "2026-10-22T20:26:27.0759829-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "RunRecapScreensPlayModeTests|MultiSectorRunPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  7,
+                   "passed":  5,
+                   "failed":  2,
+                   "skipped":  0,
+                   "durationSec":  6.564
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261022-202240-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261022-202240-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  7,
+                     "passed":  5,
+                     "failed":  2,
+                     "skipped":  0,
+                     "durationSec":  6.5640289,
+                     "failures":  [
+                                      {
+                                          "name":  "Defeat_ShowsRedOutcomeAndOnlyClearedSectors",
+                                          "fullName":  "Tests.PlayMode.Screens.RunRecapScreensPlayModeTests.Defeat_ShowsRedOutcomeAndOnlyClearedSectors",
+                                          "durationSec":  1.828364,
+                                          "message":  "Continue reveals the breakdown immediately Expected: 1.0f But was: 0.0f",
+                                          "topStack":  "at Tests.PlayMode.Screens.RunRecapScreensPlayModeTests+\u003cRunEnding\u003ed__10.MoveNext () [0x00439] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Screens\\RunRecapScreensPlayModeTests.cs:128"
+                                      },
+                                      {
+                                          "name":  "Victory_ShowsGreenOutcomeAndScoreboardOnSameCard",
+                                          "fullName":  "Tests.PlayMode.Screens.RunRecapScreensPlayModeTests.Victory_ShowsGreenOutcomeAndScoreboardOnSameCard",
+                                          "durationSec":  0.481043,
+                                          "message":  "Expected: 1.0f But was: 0.620972097f",
+                                          "topStack":  "at Tests.PlayMode.Screens.RunRecapScreensPlayModeTests+\u003cRunEnding\u003ed__10.MoveNext () [0x002bb] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Screens\\RunRecapScreensPlayModeTests.cs:116"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "RunRecapScreensPlayModeTests|MultiSectorRunPlayModeTests",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-23 03:25:56Z",
+                     "finishedAt":  "2026-10-23 03:26:02Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  227.712,
+                       "startupToFirstTestSec":  175.306,
+                       "executionSec":  6,
+                       "remainingSec":  46.406,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  59432,
+                                         "rootPeakPrivateGB":  2.172,
+                                         "rootPeakWorkingSetGB":  2.007,
+                                         "treePeakSampledPrivateGB":  2.315,
+                                         "treePeakSampledWorkingSetGB":  2.175,
+                                         "treeSumOfPeaksPrivateGB":  2.674,
+                                         "commitHeadroomAtLaunchGB":  9.77,
+                                         "commitHeadroomMinGB":  9.38,
+                                         "availablePhysicalAtLaunchGB":  2.74,
+                                         "availablePhysicalMinGB":  0.71,
+                                         "bootLaneReleasedAtSec":  19.292,
+                                         "treePeakAtSec":  190.394,
+                                         "samples":  21,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

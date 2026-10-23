@@ -1,0 +1,99 @@
+{
+    "generatedAt":  "2026-10-22T22:06:48.5574951-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "CaptureScenarioPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  "RecapResponseScenario"
+                  },
+    "status":  "infra_error",
+    "totals":  {
+                   "total":  1,
+                   "passed":  1,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  430.694
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261022-205458-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261022-205458-PlayMode.log",
+                     "unityExitCode":  124,
+                     "status":  "infra_error",
+                     "total":  1,
+                     "passed":  1,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  430.6936079,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "RecapResponseScenario",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "CaptureScenarioPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-23 03:58:00Z",
+                     "finishedAt":  "2026-10-23 04:05:11Z",
+                     "logTail":  "UnityEngine.StackTraceUtility:ExtractStackTrace () UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object) UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[]) UnityEngine.Logger:Log (UnityEngine.LogType,object) UnityEngine.Debug:LogWarning (object) FMODUnity.RuntimeUtils:DebugLogWarning (string) (at ./Library/PackageCache/com.fmod.fmod-for-unity.v204@0266b99900e5/src/RuntimeUtils.cs:556) FMODUnity.RuntimeManager:DEBUG_CALLBACK (FMOD.DEBUG_FLAGS,intptr,int,intptr,intptr) (at ./Library/PackageCache/com.fmod.fmod-for-unity.v204@0266b99900e5/src/RuntimeManager.cs:113) (Filename: ./Library/PackageCache/com.fmod.fmod-for-unity.v204@0266b99900e5/src/RuntimeUtils.cs Line: 556) [Capture] 79 frames -\u003e D:\\amind\\git\\agent-4\\results\\capture\\frames\\20261022-205815-recap-response UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string) UnityEngine.StackTraceUtility:ExtractStackTrace () UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object) UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[]) UnityEngine.Logger:Log (UnityEngine.LogType,object) UnityEngine.Debug:Log (object) Tests.PlayMode.CaptureScenarioPlayModeTests/\u003cRunsRequestedScenario\u003ed__4:MoveNext () (at Assets/Scripts/Editor/Tests/PlayMode/CaptureScenarioPlayModeTests.cs:87) UnityEngine.TestTools.TestEnumerator/\u003cExecute\u003ed__7:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44) UnityEngine.TestTools.EnumerableTestMethodCommand/\u003cExecuteEnumerableAndRecordExceptions\u003ed__4:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableTestMethodCommand.cs:79) UnityEngine.TestTools.EnumerableTestMethodCommand:AdvanceEnumerator (System.Collections.IEnumerator) (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableTestMethodCommand.cs:64) UnityEngine.TestTools.EnumerableTestMethodCommand/\u003cExecuteEnumerable\u003ed__2:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableTestMethodCommand.cs:47) UnityEngine.TestRunner.NUnitExtensions.Runner.UnityLogCheckDelegatingCommand/\u003cExecuteEnumerable\u003ed__3:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Runner/UnityLogCheckDelegatingCommand.cs:48) UnityEngine.TestTools.BeforeAfterTestCommandBase`1/\u003cExecuteEnumerable\u003ed__16\u003cNUnit.Framework.ITestAction\u003e:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/BeforeAfterTestCommandBase.cs:212) UnityEngine.TestTools.BeforeAfterTestCommandBase`1/\u003cExecuteEnumerable\u003ed__16\u003cSystem.Reflection.MethodInfo\u003e:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/BeforeAfterTestCommandBase.cs:212) UnityEngine.TestTools.BeforeAfterTestCommandBase`1/\u003cExecuteEnumerable\u003ed__16\u003cSystem.Reflection.MethodInfo\u003e:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/BeforeAfterTestCommandBase.cs:212) UnityEngine.TestTools.BeforeAfterTestCommandBase`1/\u003cExecuteEnumerable\u003ed__16\u003cUnityEngine.TestTools.IOuterUnityTestAction\u003e:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/BeforeAfterTestCommandBase.cs:212) UnityEngine.TestTools.RetryCommand/\u003cExecuteEnumerable\u003ed__2:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/RetryCommand.cs:37) UnityEngine.TestTools.RepeatCommand/\u003cExecuteEnumerable\u003ed__2:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/RepeatCommand.cs:36) UnityEngine.TestTools.EnumerableApplyChangesToContextCommand/\u003cExecuteEnumerable\u003ed__1:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/EnumerableApplyChangesToContextCommand.cs:23) UnityEngine.TestTools.IgnoreTestCommand/\u003cExecuteEnumerable\u003ed__3:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/IgnoreTestCommand.cs:42) UnityEngine.TestTools.StrictCheckCommand/\u003cExecuteEnumerable\u003ed__2:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/NUnitExtensions/Commands/StrictCheckCommand.cs:29) UnityEngine.TestTools.Utils.CoroutineRunner/\u003cWrapEnumeratorForChecks\u003ed__8:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@7056e7f856e9/UnityEngine.TestRunner/Utils/CoroutineRu...",
+                     "note":  "Unity test run timed out after 1800 seconds and was terminated (pid=63108)."
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  4314.56,
+                       "startupToFirstTestSec":  148.603,
+                       "executionSec":  431,
+                       "remainingSec":  3734.957,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=infra_error"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  63108,
+                                         "rootPeakPrivateGB":  7.924,
+                                         "rootPeakWorkingSetGB":  4.478,
+                                         "treePeakSampledPrivateGB":  9.38,
+                                         "treePeakSampledWorkingSetGB":  5.7,
+                                         "treeSumOfPeaksPrivateGB":  10.282,
+                                         "commitHeadroomAtLaunchGB":  14.67,
+                                         "commitHeadroomMinGB":  2.31,
+                                         "availablePhysicalAtLaunchGB":  6.23,
+                                         "availablePhysicalMinGB":  0.29,
+                                         "bootLaneReleasedAtSec":  36.469,
+                                         "treePeakAtSec":  445.384,
+                                         "samples":  50,
+                                         "samplesFailed":  1,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
