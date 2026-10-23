@@ -59,9 +59,9 @@ namespace Tests.PlayMode.Weapons
         private static float GetFloat(Object target, string field) =>
             new SerializedObject(target).FindProperty(field).floatValue;
 
-        private static TargetingContext Target(float angle) => new()
+        private static TargetingContext Target(float angle, float distance = 10f) => new()
         {
-            distanceToTarget = 10f,
+            distanceToTarget = distance,
             angleToTarget = angle,
             hasLineOfSight = true,
         };
@@ -123,22 +123,58 @@ namespace Tests.PlayMode.Weapons
                 "No release below the minimum, where it would drop the charge.");
         }
 
-        [TestCase(1f, 1, TestName = "Railgun_OnTargetOnTheLastStep_Fires")]
-        [TestCase(20f, 0, TestName = "Railgun_OffTargetOnTheLastStep_Aborts")]
-        public void Railgun_CommitsInsideTheCone_AndHoldsThroughTheCharge(float lastStepAngle, int expectedShots)
+        private void ChargeToTheCommitPoint(Railguns railgun)
+        {
+            var commitPoint = GetFloat(railgun, "commitPoint");
+            Assert.IsTrue(Step(railgun, Target(5f)), "Within the start angle, the plan starts a charge.");
+            for (var i = 0; i < MaxSteps && railgun.Charge.ChargePct < commitPoint; i++)
+                Assert.IsTrue(Step(railgun, Target(25f)), "Before the commit point, the plan keeps charging within the break angle.");
+        }
+
+        [Test]
+        public void Railgun_StartsOnlyWithinTheStartAngle_AndKeepsChargingWithinTheBreakAngle()
+        {
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
+
+            Assert.IsFalse(railgun.HoldTrigger(Target(15f)), "Outside the start angle, no charge starts.");
+            ChargeToTheCommitPoint(railgun);
+            Assert.GreaterOrEqual(railgun.Charge.ChargePct, GetFloat(railgun, "commitPoint"));
+        }
+
+        [Test]
+        public void Railgun_BeforeTheCommitPoint_DropsPastTheBreakAngle()
+        {
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
+
+            Assert.IsTrue(Step(railgun, Target(5f)));
+            Assert.IsFalse(Step(railgun, Target(35f)), "Past the break angle, the plan releases.");
+            Assert.AreEqual(0f, railgun.Charge.ChargePct, "The release drops the charge.");
+        }
+
+        [Test]
+        public void Railgun_PastTheCommitPoint_FiresWhateverTheAngle()
         {
             var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             var shots = 0;
             railgun.OnFire += () => shots++;
 
-            Assert.IsFalse(railgun.HoldTrigger(Target(40f)), "Outside the commit cone, no charge starts.");
-            Assert.IsTrue(Step(railgun, Target(20f)), "Inside the commit cone, the plan commits to a charge.");
-            for (var i = 0; i < MaxSteps && !railgun.Charge.FullAfterHeldStep(Time.fixedDeltaTime); i++)
-                Assert.IsTrue(Step(railgun, Target(20f)), "Committed, the plan holds through the charge off target.");
+            ChargeToTheCommitPoint(railgun);
+            for (var i = 0; i < MaxSteps && shots == 0; i++)
+                Assert.IsTrue(Step(railgun, Target(45f)), "Past the commit point, the plan holds whatever the angle.");
+            Assert.AreEqual(1, shots, "The committed charge fires at full.");
+        }
 
-            Assert.AreEqual(expectedShots == 1, Step(railgun, Target(lastStepAngle)), "The last step holds only on target.");
-            Assert.AreEqual(expectedShots, shots);
-            Assert.AreEqual(0f, railgun.Charge.ChargePct, "The last step spends the charge or drops it.");
+        [Test]
+        public void Railgun_LeavingRange_DropsTheShotEvenPastTheCommitPoint()
+        {
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
+            var shots = 0;
+            railgun.OnFire += () => shots++;
+
+            ChargeToTheCommitPoint(railgun);
+            Assert.IsFalse(Step(railgun, Target(0f, GetFloat(railgun, "fireDistance") + 1f)), "Out of range, the plan releases.");
+            Assert.AreEqual(0, shots);
+            Assert.AreEqual(0f, railgun.Charge.ChargePct, "The release drops the charge.");
         }
 
         [TestCase(TurboLasersPrefabPath, true, TestName = "TurboLasers_VentToColdBeforeFiringAgain")]
@@ -165,10 +201,10 @@ namespace Tests.PlayMode.Weapons
         public void Reset_ClearsPlanState()
         {
             var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
-            Step(railgun, Target(20f));
-            Assert.IsTrue(railgun.HoldTrigger(Target(40f)), "A committed railgun holds outside the commit cone.");
+            Step(railgun, Target(5f));
+            Assert.IsTrue(railgun.HoldTrigger(Target(25f)), "A started railgun keeps charging outside the start angle.");
             railgun.Reset();
-            Assert.IsFalse(railgun.HoldTrigger(Target(40f)), "Reset drops the railgun's commitment.");
+            Assert.IsFalse(railgun.HoldTrigger(Target(25f)), "Reset drops the railgun's charge.");
 
             var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
             Step(laser, Target(20f));

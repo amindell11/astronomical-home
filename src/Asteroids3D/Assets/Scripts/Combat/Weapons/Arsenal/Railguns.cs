@@ -35,10 +35,14 @@ namespace Combat.Weapons.Arsenal
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner charges. Leaving it mid-charge aborts the shot.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
-        [Tooltip("Max aim error (degrees) on the charge's last step. Past it, an AI gunner aborts the shot.")]
-        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 3f;
-        [Tooltip("Max aim error (degrees) at which an AI gunner commits to a charge. Once committed, it holds through the charge.")]
-        [Stat, SerializeField, Range(0f, 180f)] private float commitCone = 30f;
+        [Tooltip("Max aim error (degrees) of the firing envelope. The AI's fire plan uses startAngle, breakAngle and commitPoint instead.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner starts a charge.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float startAngle = 10f;
+        [Tooltip("Max aim error (degrees) an AI gunner allows before the commit point. Past it, the charge drops.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float breakAngle = 30f;
+        [Tooltip("Charge fraction from which an AI gunner ignores its aim and holds through to the shot at full. Leaving fireDistance still drops it.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float commitPoint = 2f / 3f;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
@@ -98,8 +102,8 @@ namespace Combat.Weapons.Arsenal
         public override bool HoldTrigger(TargetingContext context)
         {
             if (context.distanceToTarget > fireDistance) return false;
-            if (charge.ChargePct <= 0f) return context.angleToTarget <= commitCone;
-            return !charge.FullAfterHeldStep(Time.fixedDeltaTime) || context.angleToTarget <= fireAngleTolerance;
+            if (charge.ChargePct <= 0f) return context.angleToTarget <= startAngle;
+            return charge.ChargePct >= commitPoint || context.angleToTarget <= breakAngle;
         }
 
         private static RaycastHit[] beamHits = new RaycastHit[32];
