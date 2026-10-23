@@ -17,6 +17,10 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
 
+        [Header("AI Firing")]
+        [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
+        [Stat, SerializeField, Min(0f)] private float holdRange = 13f;
+
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock). Keep it inside the distance the scripted pilots hold from their target: a pilot hovering on this edge launches unguided.")]
         [Stat, SerializeField, Min(0f)] private float fallbackRange = 7f;
@@ -34,6 +38,7 @@ namespace Combat.Weapons.Arsenal
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;
+        public override float? HoldRange => holdRange;
 
         protected override void Awake()
         {

@@ -33,6 +33,8 @@ namespace Combat.Weapons.Arsenal
         [SerializeField] private LayerMask hitMask = -1;
 
         [Header("AI Firing")]
+        [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
+        [Stat, SerializeField, Min(0f)] private float holdRange = 30f;
         [Tooltip("Max distance at which an AI gunner charges. Leaving it mid-charge aborts the shot.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
         [Tooltip("Max aim error (degrees) of the firing envelope. The AI's fire plan uses startAngle, breakAngle and commitPoint instead.")]
@@ -62,6 +64,7 @@ namespace Combat.Weapons.Arsenal
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
+        public override float? HoldRange => holdRange;
 
         protected override void Awake()
         {

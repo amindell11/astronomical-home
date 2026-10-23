@@ -54,6 +54,7 @@ MonoBehaviour:
   targetingComputer: {fileID: 941428023342471022}
   rounds: {fileID: 8865327791154650922}
   cooldown: {fileID: 7892887138566842922}
+  holdRange: 13
   fallbackRange: 7
   fallbackAngleTolerance: 15
 --- !u!114 &8865327791154650922
