@@ -4,7 +4,7 @@ using Damage;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     /// <summary>
     /// Bulwark's kit: a dash that is a live ram for a short window or until its first contact,
@@ -20,6 +20,9 @@ namespace Ships.Keystones
         [Tooltip("Damage a head-on ram deals a ship; a glancing hit deals less.")]
         [Stat, SerializeField] private float shipDamage = 60f;
 
+        [Tooltip("How far off the nose, in degrees, an enemy may sit for an AI to fire the ram at it.")]
+        [Stat, SerializeField] private float sightAngle = 15f;
+
         private bool resolved;
         private float resolvedAt;
 
@@ -28,8 +31,22 @@ namespace Ships.Keystones
         public float ShipDamage => shipDamage;
         public bool RamLive => SinceActivation < window && (!resolved || SinceActivation == resolvedAt);
         public override bool Active => RamLive;
+        public override bool SeeksContact => RamLive;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
+
+        public override bool ShouldActivate(in KeystoneContext context)
+        {
+            var offset = context.Target.pos - context.Self.pos;
+            var range = offset.magnitude;
+            if (range < 1e-3f) return false;
+            var toward = offset / range;
+            if (Vector2.Dot(context.Self.Forward, toward) < Mathf.Cos(sightAngle * Mathf.Deg2Rad)) return false;
+            if (Vector2.Dot(context.Self.vel - context.Target.vel, toward) < 0f) return false;
+            // The rigidbody clamps to the speed cap, so a dash at the cap adds no closing speed.
+            var dashed = Vector2.ClampMagnitude(context.Self.vel + context.Self.Forward * (Impulse / context.SelfMass), context.SelfMaxSpeed);
+            return range <= Vector2.Dot(dashed - context.Target.vel, toward) * window;
+        }
 
         public override void OnContact(in KeystoneContact contact)
         {
@@ -49,10 +66,10 @@ namespace Ships.Keystones
             CreditActivation();
         }
 
-        protected override Vector2 Activate(in Kinematics kinematics)
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target)
         {
             resolved = false;
-            return base.Activate(in kinematics);
+            return base.Activate(in kinematics, target);
         }
 
         private static DamageInfo Hit(float amount, in KeystoneContact contact) =>

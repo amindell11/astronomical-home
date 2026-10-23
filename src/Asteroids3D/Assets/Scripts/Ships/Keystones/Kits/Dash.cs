@@ -2,7 +2,7 @@ using Balance;
 using Movement;
 using UnityEngine;
 
-namespace Ships.Keystones
+namespace Ships.Keystones.Kits
 {
     public class Dash : Keystone
     {
@@ -12,6 +12,6 @@ namespace Ships.Keystones
         public override string DisplayName => "Dash";
         public float Impulse => impulse;
 
-        protected override Vector2 Activate(in Kinematics kinematics) => kinematics.Forward * impulse;
+        protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => kinematics.Forward * impulse;
     }
 }

@@ -60,6 +60,20 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Strafe_FallsOffAgainstTheLiveCap()
+        {
+            var settings = CreateTestSettings();
+            var atBaseCap = CreateKinematics(Vector2.zero, new Vector2(0f, settings.maxSpeed), 0f);
+            var cmd = CreateCommand(strafe: 1f);
+
+            var baseStrafe = Forces.ComputeOutputs(atBaseCap, cmd, settings).strafe.magnitude;
+            var raisedStrafe = Forces.ComputeOutputs(atBaseCap, cmd, settings, speedScale: 1.5f).strafe.magnitude;
+
+            Assert.AreEqual(settings.minStrafeForce, baseStrafe, 1e-3f, "at the cap, strafe is at its floor");
+            Assert.Greater(raisedStrafe, baseStrafe, "with the cap raised, the same speed keeps more strafe authority");
+        }
+
+        [Test]
         public void ComputeOutputs_ComputesForces_FromCommandAndKinematics()
         {
             var settings = CreateTestSettings();
