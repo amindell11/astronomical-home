@@ -8,9 +8,11 @@ using Damage;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using Substrate;
 using UnityEngine;
+using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -224,6 +226,10 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => slot == WeaponSlot.Primary ? PrimarySpeed : SecondarySpeed;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) =>
+                AI.Gunner.AimPoint(in shooter, targetPos, targetVel, ProjectileSpeed(slot));
+            public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Combat.Weapons.Gunsight Sight(WeaponSlot slot) => null;
         }
 
@@ -241,7 +247,7 @@ namespace Tests.PlayMode
             var gunner = go.AddComponent<AI.Gunner>();
 
             Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose);
+            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose, TestAimSettings.Perfect, new SeedScope(1));
             gunner.Aim(new AI.Context.EnemyTarget
             {
                 kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
@@ -261,7 +267,7 @@ namespace Tests.PlayMode
             var context = new FakeWeaponContext();
             var recorder = new CommandRecorder();
             Kinematics Pose() => new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(context, recorder, Pose);
+            gunner.Initialize(context, recorder, Pose, TestAimSettings.Perfect, new SeedScope(1));
 
             var enemyPos = new Vector2(10f, 0f);
             var enemyVel = new Vector2(0f, 5f);

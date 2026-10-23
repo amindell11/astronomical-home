@@ -28,7 +28,6 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private SectorSettings _config;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -43,8 +42,6 @@ namespace Tests.PlayMode
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
-
-            _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
 
         [TearDown]
@@ -55,8 +52,6 @@ namespace Tests.PlayMode
             foreach (var go in _created)
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
-
-            if (_config != null) { Object.DestroyImmediate(_config); _config = null; }
 
             base.TearDown();
         }
@@ -121,7 +116,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_unitService, _objectives, true, _config, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player);
             return (sector, key, zone, player, chaser);
         }
 
