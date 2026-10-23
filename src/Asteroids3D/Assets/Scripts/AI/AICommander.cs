@@ -142,8 +142,8 @@ namespace AI
             var keystone = control.Keystone;
             var seeking = keystone && hasAnchor && keystone.SeeksContact;
             Navigator.ExemptFromAvoidance(seeking ? anchorId : ShipId.Invalid);
-            // A live ram commits: full thrust, and the aim servo does not yaw it off the dash.
-            var command = Navigator.ComputeCommand(seeking || !Gunner
+            // A ram flies the navigator's heading; the aim servo would yaw the dash off the sight.
+            var command = Navigator.ComputeCommand(keystone && keystone.FliesNavigatorHeading || !Gunner
                 ? AimReference.None
                 : Gunner.PrimaryAimReference());
             if (seeking) command.thrust = 1f;
