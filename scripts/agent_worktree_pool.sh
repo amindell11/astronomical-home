@@ -81,14 +81,20 @@ Commands:
       optional key being absent.
 
   acquire [lease_id] [slot]
-      Lock and return an available slot. Auto-pick prefers genuinely
-      free slots over stale-lock reclaims. Naming a slot is strict:
-      if it isn't free (or safely reclaimable) acquire FAILS — no
-      silent fallback to auto-pick.
+      Lock and return an available slot. The pool is the worktrees on
+      branches agent-1 through agent-8. Auto-pick prefers a free slot,
+      then a stale lock whose tree is safe to reset, then parks the
+      longest-idle leased slot that has no Unity editor and no merge
+      gate. Parking runs hold --local: the work stays on held/<lease>
+      in this clone, and the slot is prepared at origin/main for the
+      new lease. Park messages, including the HELD= line, go to stderr.
+      Naming a slot is strict: if it isn't free (or safely reclaimable)
+      acquire fails, with no fallback to another slot.
       A free slot is handed back prepared at origin/main (as prepare,
       keeping ignored dirs); when prepare refuses (the slot holds unpushed
-      work) acquire releases the slot untouched and fails - auto-pick does
-      not move on to another slot. A reclaimed stale slot is not prepared.
+      work) acquire releases the slot untouched and fails. Auto-pick does
+      not move on to another slot in that case. A reclaimed stale slot
+      is not prepared.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
@@ -459,7 +465,7 @@ slots_tsv() {
       path = substr($0, 10)
       next
     }
-    /^branch refs\/heads\/agent-[0-9]+$/ {
+    /^branch refs\/heads\/agent-[1-8]$/ {
       branch = $0
       sub(/^branch refs\/heads\//, "", branch)
       print branch "\t" path
@@ -978,6 +984,65 @@ claim_prepared_slot() {
   echo "$out"
 }
 
+# Unset asks the coordinator. "none" is the test double for an idle project.
+slot_unity_busy() {
+  local path="$1" owner
+  if [[ -n "${WORKTREE_POOL_UNITY_OWNER+x}" ]]; then
+    [[ "$WORKTREE_POOL_UNITY_OWNER" == "none" ]] && return 1
+    return 0
+  fi
+  owner="$(project_owner "$path")" || return 0
+  [[ -n "$owner" ]]
+}
+
+slot_merge_busy() {
+  local slot="$1" rc=0
+  with_flock "$LOCK_ROOT/$slot.merge" 0 "" true || rc=$?
+  [[ "$rc" -ne 0 ]]
+}
+
+park_hold_slot() {
+  cmd_hold "$1" --local >&2
+}
+
+# A full pool parks the longest-idle slot so the next lease reuses it.
+park_one_idle_slot() {
+  local new_lease="$1" list age slot path ldir lease age_s
+  list="$(mktemp)"
+  {
+    while IFS=$'\t' read -r slot path; do
+      ldir="$(lock_dir_for "$slot")"
+      [[ -d "$ldir" ]] || continue
+      lease="$(lease_for "$slot")"
+      [[ -n "$lease" ]] || continue
+      age_s="$(lock_age_seconds "$ldir")"
+      printf '%s\t%s\t%s\n' "$age_s" "$slot" "$path"
+    done < <(slots_tsv)
+  } | sort -nr > "$list"
+  while IFS=$'\t' read -r age slot path; do
+    [[ -n "${slot:-}" ]] || continue
+    if slot_unity_busy "$path"; then
+      echo "acquire: leaving $slot; a Unity editor is using it." >&2
+      continue
+    fi
+    if slot_merge_busy "$slot"; then
+      echo "acquire: leaving $slot; a merge gate is running there." >&2
+      continue
+    fi
+    echo "acquire: parking $slot (idle ${age}s) for $new_lease." >&2
+    if ! with_flock "$LOCK_ROOT/$slot.merge" 0 "" park_hold_slot "$slot"; then
+      echo "acquire: could not park $slot." >&2
+      continue
+    fi
+    if claim_prepared_slot "$slot" "$new_lease" "$path"; then
+      rm -f "$list"
+      return 0
+    fi
+  done < "$list"
+  rm -f "$list"
+  return 1
+}
+
 # resume claims lock-only: it resets the slot to its held snapshot itself.
 lock_slot() {
   local lease="$1" wanted="$2" claim="$3"
@@ -1001,7 +1066,10 @@ lock_slot() {
     try_reclaim_slot "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
 
-  echo "No free slots" >&2
+  if park_one_idle_slot "$lease"; then
+    return 0
+  fi
+  echo "acquire: no free slot. agent-1 through agent-8 stay leased while a Unity editor or a merge gate is using them." >&2
   return 1
 }
 
