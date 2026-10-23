@@ -3,7 +3,6 @@ using AI.Scanning;
 using AI.Scanning.Sensors;
 using Movement;
 using Ships;
-using Ships.Command;
 using UnityEngine;
 using Ships.Registry;
 
@@ -31,7 +30,6 @@ namespace AI
         public ShipId ShipId => shipId;
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
-        private IShipStatus shipContext;
 
         // Merged buffer: static obstacles + 360° ship detections, so the MPC sees nearby ships regardless of bearing.
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
@@ -39,14 +37,13 @@ namespace AI
         private readonly DetectedObstacle[] exemptScan = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
-        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext,
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics,
             IShipRegistry registry, IObstacleField field)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
             Registry = registry;
-            this.shipContext = shipContext;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
