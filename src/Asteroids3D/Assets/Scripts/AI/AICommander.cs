@@ -102,7 +102,7 @@ namespace AI
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field, control.Weapons);
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), registry, field, control.Weapons);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
@@ -169,8 +169,10 @@ namespace AI
 
             var decided = decision.Value;
             var nav = decided.nav;
-            Navigator.ApplyObjective(nav, anchor,
-                ResolveRock(nav.rockSeat1), ResolveRock(nav.rockSeat2), ResolveRock(nav.rockSeat3));
+            var seat1 = ResolveRock(nav.rockSeat1);
+            var seat2 = ResolveRock(nav.rockSeat2);
+            var seat3 = ResolveRock(nav.rockSeat3);
+            Navigator.ApplyObjective(nav, anchor, seat1, seat2, seat3);
             engagePrimary = decided.engagePrimary;
             engageSecondary = decided.engageSecondary;
             boost = decided.boost;
@@ -182,8 +184,15 @@ namespace AI
             if (aim.armed && aim.referent != 0)
             {
                 // A dead rock holds fire until the next decision; its nav slot is already weight 0.
-                if (nav.RockSeat(aim.referent).TryResolve(out var rockPos, out var rockVel))
-                    Gunner.Aim(rockPos, rockVel);
+                var snapshot = aim.referent switch
+                {
+                    1 => seat1,
+                    2 => seat2,
+                    3 => seat3,
+                    _ => default,
+                };
+                if (snapshot.valid)
+                    Gunner.Aim(new Vector2(snapshot.pos.x, snapshot.pos.y), new Vector2(snapshot.vel.x, snapshot.vel.y));
                 else
                     Gunner.HoldFire();
             }
