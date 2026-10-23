@@ -1,4 +1,5 @@
 using AI.Context;
+using AI.Gunnery;
 using AI.Scanning;
 using System;
 using Movement;
@@ -21,6 +22,7 @@ namespace AI
     public class AICommander : Commander
     {
         private const uint NavStream = 1;
+        private const uint GunnerStream = 2;
 
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
@@ -29,6 +31,10 @@ namespace AI
         [Header("Combat")]
         [Tooltip("Seconds after losing an enemy before exiting combat state.")]
         [SerializeField] private float combatExitDelay = 3f;
+
+        [Header("Gunnery")]
+        [Tooltip("How well this pilot's Gunner sees its target. An armed pilot without one fails at spawn.")]
+        [SerializeField] internal AimSettings aimSettings;
 
         protected ShipControl control;
         protected IShipRegistry registry;
@@ -100,7 +106,8 @@ namespace AI
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
-                Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
+                Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
+                    seed.Derive(GunnerStream));
 
             context = new AIContext(self, Scout, combatExitDelay);
 
@@ -135,7 +142,7 @@ namespace AI
             var keystone = control.Keystone;
             var seeking = keystone && hasAnchor && keystone.SeeksContact;
             Navigator.ExemptFromAvoidance(seeking ? anchorId : ShipId.Invalid);
-            var command = Navigator.ComputeCommand();
+            var command = Navigator.ComputeCommand(Gunner ? Gunner.PrimaryAimReference() : AimReference.None);
             // A live ram commits: the solver would brake to hold its range and stop the ram short.
             if (seeking) command.thrust = 1f;
             command.abilityTarget = Navigator.PlanEnd;
@@ -201,7 +208,13 @@ namespace AI
             if (!nav.TryGetAnchorId(out var id)) return true;
             if (!Scout.Registry.TryGetShip(id, out var ship) || !ship) return false;
 
-            anchor = new EnemyTarget { kinematics = ship.Kinematics, dynamics = ship.Dynamics };
+            anchor = new EnemyTarget
+            {
+                kinematics = ship.Kinematics,
+                dynamics = ship.Dynamics,
+                id = id,
+                boostCooldownRemaining = ship.BoostCooldownRemaining,
+            };
             return true;
         }
 

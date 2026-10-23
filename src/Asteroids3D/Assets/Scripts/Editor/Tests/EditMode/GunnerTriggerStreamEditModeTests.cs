@@ -6,7 +6,9 @@ using Movement;
 using NUnit.Framework;
 using Ships.Command;
 using Substrate.Services.Projectiles;
+using Tests.Common;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -53,7 +55,8 @@ namespace Tests.EditMode
                 Kinematics Pose() => new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
                 var recorder = new CommandRecorder();
                 var gunner = host.AddComponent<Gunner>();
-                gunner.Initialize(new PrimarySlotContext { sight = new Gunsight(weapon, Pose) }, recorder, Pose);
+                gunner.Initialize(new PrimarySlotContext { sight = new Gunsight(weapon, Pose) }, recorder, Pose,
+                    TestAimSettings.Perfect, new SeedScope(1));
                 gunner.Aim(new Vector2(0f, 10f), Vector2.zero);
 
                 for (var i = 0; i < solution.Length; i++)

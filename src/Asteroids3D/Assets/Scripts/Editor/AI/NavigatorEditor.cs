@@ -65,7 +65,7 @@ namespace AI
             var input = nav.solver.BuildCostInput(nav.CostVelocityReference,
                 nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate,
                 nav.projectileSpeed, nav.lastInitialState.vel, nav.sentence,
-                nav.referent1, nav.referent2, nav.referent3);
+                nav.referent1, nav.referent2, nav.referent3, nav.costAimReference);
             return Cost.EvaluateTrajectoryBreakdown(nav.lastInitialState, seq, input, nav.config, nav.dynamics, nav.lastControl);
         }
 

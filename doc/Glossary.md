@@ -688,6 +688,36 @@ Format: **term** — definition. *(authority)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
+- **aim reference** — the heading a ship's primary weapon needs this step and
+  that heading's rate, or none, published by the Gunner. It parallels the
+  velocity reference. The Gunner computes it from the target as it perceives it
+  (see aim settings), with the same lead it fires with, and the AICommander
+  hands it to the Navigator as a value on each `ComputeCommand` call, so no
+  weapon fact enters the Navigator.
+  *(AimReference, Gunner.PrimaryAimReference)*
+- **aim servo** — the Navigator's yaw controller that turns the ship onto the
+  aim reference within the engine's yaw torque. It replaces only the MPC's yaw
+  torque, and the Navigator stays the single author of the pilot command. The
+  AIM slot's weight switches it in and out with hysteresis rather than blending
+  torques, because #871's research found continuous blending flip-flops. An
+  obstacle threat hands yaw back to the MPC, which keeps it for a short hold
+  after the threat clears. It exists because the MPC's facing cost cannot aim:
+  its sampling noise held aim error near 20° whatever the facing cost's shape
+  or weight (#409). *(AimServo, YawHandover)*
+- **aim settings** — one armed AI pilot's aim knobs, a `ScriptableObject` beside
+  `MpcSettings`: its perception (a reaction delay and a wandering aim error with
+  its correlation time) and its earned accuracy, each off at 0. The AICommander
+  hands it to the Gunner at `Initialize`, and the Gunner reads it every tick, so
+  inspector edits apply live in Play. An armed AI pilot without one fails at
+  spawn. The servo's turn acceleration stays on `MpcSettings`. These are raw
+  knobs by ruling, not a 0 to 1 skill dial; how they map onto difficulty is
+  open (#1057). *(AimSettings, AimPerception)*
+- **earned accuracy** — a Gunner bearing error that starts loose when it picks
+  up a target and tightens to 0 while the target stays in its nose cone, in
+  range and in line of sight. A new target, a jink, a boost or a lost line of
+  sight restarts it. #409's calibration found it is rarely earned against a
+  moving target: a jink threshold low enough to see a strafe also fires on
+  ordinary flight. *(EarnedAccuracy)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
   yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
@@ -695,7 +725,7 @@ Format: **term** — definition. *(authority)*
   fires — hull overlap (`Cost.Collides`) or collision-course turn-away
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
-  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
+  *(Cost.ObstacleCosts, Cost.ObstacleThreat)*
 - **intent sentence** — the decision-varying slice of the MPC cost as a fixed
   set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
   pinned to the enemy, FIELD a class slot binding none), each with a signed
