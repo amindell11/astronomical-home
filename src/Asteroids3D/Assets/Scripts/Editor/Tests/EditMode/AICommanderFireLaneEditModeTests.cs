@@ -54,6 +54,7 @@ namespace Tests.EditMode
 
             weapons = new SpyWeapons();
             var status = new StubShipStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
+            commander.aimSettings = TestAimSettings.Perfect;
             commander.SetSensing(new StubShipRegistry(), null);
             commander.Initialize(new ShipControl(status, new StubPilot(), new SeedScope(1),
                 new StubWeaponContext(), weapons));
