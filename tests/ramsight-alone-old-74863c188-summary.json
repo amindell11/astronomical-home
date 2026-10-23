@@ -1,0 +1,103 @@
+{
+    "generatedAt":  "2026-10-22T23:35:57.6380388-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-13\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "RamSightPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  0,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  23.553
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-13\\results\\unity-tests-agent\\20261022-232246-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-13\\results\\unity-tests-agent\\20261022-232246-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  23.5529626,
+                     "failures":  [
+                                      {
+                                          "name":  "ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive",
+                                          "fullName":  "Tests.PlayMode.Keystones.RamSightPlayModeTests.ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive",
+                                          "durationSec":  23.482783,
+                                          "message":  "a ram landed on the target Expected: not \u003cempty\u003e But was: \u003cempty\u003e",
+                                          "topStack":  "at Tests.PlayMode.Keystones.RamSightPlayModeTests+\u003cScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive\u003ed__5.MoveNext () [0x002a7] in D:\\amind\\git\\agent-13\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Keystones\\R..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "RamSightPlayModeTests",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-23 06:34:06Z",
+                     "finishedAt":  "2026-10-23 06:34:29Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  792.646,
+                       "startupToFirstTestSec":  597.414,
+                       "executionSec":  23,
+                       "remainingSec":  172.232,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  11956,
+                                         "rootPeakPrivateGB":  2.946,
+                                         "rootPeakWorkingSetGB":  2.607,
+                                         "treePeakSampledPrivateGB":  3.034,
+                                         "treePeakSampledWorkingSetGB":  2.728,
+                                         "treeSumOfPeaksPrivateGB":  4.418,
+                                         "commitHeadroomAtLaunchGB":  15.9,
+                                         "commitHeadroomMinGB":  11.38,
+                                         "availablePhysicalAtLaunchGB":  3.86,
+                                         "availablePhysicalMinGB":  0.93,
+                                         "bootLaneReleasedAtSec":  31.825,
+                                         "treePeakAtSec":  613.054,
+                                         "samples":  52,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

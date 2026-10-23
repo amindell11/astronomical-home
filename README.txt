@@ -27,3 +27,7 @@ layout:
   compare.md                    the four-cell table
   duel-lane/<cell>/             probe json/md/jsonl, lane summary, episode jsonl, editor.log
   tests/<build>-summary.json    Weapons;AI category run (-Mode Both) per build, with the PlayMode xml
+
+RamSightPlayModeTests alone (-Mode PlayMode -TestFilter RamSightPlayModeTests):
+  main c84645f6f passes 1/1; old-low 74863c188 (main + #1062) fails 1/1, "a ram landed on the target".
+  tests/ramsight-alone-*-summary.json
