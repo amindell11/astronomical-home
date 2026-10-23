@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4958b8fdb8bc4325b4d0c417f64c67ab, type: 3}
   m_Name: AimSettings_AIPilot
   m_EditorClassIdentifier:
-  reactionDelay: 0.375
-  wanderSize: 11.25
+  reactionDelay: 0
+  wanderSize: 0
   wanderCorrelationTime: 0.5
   startingError: 0
   timeToTighten: 6
