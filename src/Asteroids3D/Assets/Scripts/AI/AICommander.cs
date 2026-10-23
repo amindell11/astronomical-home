@@ -96,7 +96,7 @@ namespace AI
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry, field);
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
@@ -138,6 +138,7 @@ namespace AI
             var command = Navigator.ComputeCommand();
             // A live ram commits: the solver would brake to hold its range and stop the ram short.
             if (seeking) command.thrust = 1f;
+            command.abilityTarget = Navigator.PlanEnd;
             command.boost = boost || SightFires(keystone) ? 1f : 0f;
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
@@ -184,7 +185,14 @@ namespace AI
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
             keystone && hasAnchor && (engagePrimary || engageSecondary)
-            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.MaxSpeed, anchorTarget.kinematics));
+            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
+                Desired(Navigator.CostVelocityReference), Navigator.PlanEnd));
+
+        // The scout sizes its look-ahead once, so it must cover the keystone's raised cap.
+        private Dynamics PeakDynamics(IShipStatus self) =>
+            control.Keystone ? self.Dynamics.Scaled(control.Keystone.PeakSpeedScale, control.Keystone.PeakThrustScale) : self.Dynamics;
+
+        private static Vector2 Desired(float2 velocity) => new(velocity.x, velocity.y);
 
         /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
         private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)

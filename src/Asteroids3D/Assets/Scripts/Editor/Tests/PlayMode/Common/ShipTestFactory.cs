@@ -6,6 +6,7 @@ using Substrate.Services.Projectiles;
 using Substrate;
 #if UNITY_EDITOR
 using Ships.Keystones;
+using Ships.Keystones.Kits;
 using UnityEditor;
 #endif
 

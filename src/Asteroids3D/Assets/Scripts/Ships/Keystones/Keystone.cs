@@ -39,17 +39,35 @@ namespace Ships.Keystones
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
 
-        protected float SinceActivation => clock - activatedAt;
+        /// <summary>Multipliers on the ship's speed cap and forward thrust this step; 1 leaves them alone.</summary>
+        public virtual float SpeedScale => 1f;
+        public virtual float ThrustScale => 1f;
 
-        public Vector2 Step(in Kinematics kinematics, float input, float dt, out bool activated)
+        /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
+        public virtual float PeakSpeedScale => 1f;
+        public virtual float PeakThrustScale => 1f;
+
+        protected float SinceActivation => clock - activatedAt;
+        protected KeystoneHost Host { get; private set; }
+
+        public void Initialize(in KeystoneHost host) => Host = host;
+
+        /// <param name="target">Where the pilot points the ability, as a plane point; null means straight ahead.</param>
+        public KeystoneEffect Step(in Kinematics kinematics, float input, float dt, out bool activated,
+            float baseMaxSpeed = float.PositiveInfinity, Vector2? target = null)
         {
             clock += dt;
             activated = Ready && input != 0f;
-            if (!activated) return Vector2.zero;
-            readyAt = clock + cooldown;
-            activatedAt = clock;
-            Activations++;
-            return Activate(in kinematics);
+            var effect = default(KeystoneEffect);
+            if (activated)
+            {
+                readyAt = clock + cooldown;
+                activatedAt = clock;
+                Activations++;
+                effect = Activate(in kinematics, target);
+            }
+            Sustain(in kinematics, baseMaxSpeed);
+            return effect;
         }
 
         public void ResetKeystone()
@@ -71,7 +89,9 @@ namespace Ships.Keystones
 
         public virtual void OnContact(in KeystoneContact contact) { }
 
-        protected abstract Vector2 Activate(in Kinematics kinematics);
+        protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
+
+        protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
 
         protected void CreditActivation()
         {

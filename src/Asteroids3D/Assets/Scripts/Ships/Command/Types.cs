@@ -30,6 +30,9 @@ namespace Ships.Command
 
         /// <summary>Desired yaw rate input in the range [-1, 1].</summary>
         public float yawTorque;
+
+        /// <summary>Where the pilot points the keystone, as a plane point; null aims straight ahead.</summary>
+        public Vector2? abilityTarget;
     }
 
     /// <summary>Identifies a single weapon mount on a ship.</summary>
