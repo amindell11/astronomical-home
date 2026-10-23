@@ -24,24 +24,35 @@ namespace UI.Recap
                     yield return null;
                 }
                 if (continued()) yield break;
-                apply(sequence.StateAt(i, span.Seconds));
+                var held = sequence.StateAt(i, span.Seconds);
+                apply(held);
                 switch (span.Hold)
                 {
                     case RecapHold.DeathEffects:
-                        while (deathEffectsPlaying() && !continued()) yield return null;
+                        yield return Hold(held, apply, () => !deathEffectsPlaying() || continued());
                         break;
                     case RecapHold.Press:
-                        yield return WaitForPress(continued);
+                        yield return WaitForPress(held, apply, continued);
                         break;
                     case RecapHold.Continue:
-                        while (!continued()) yield return null;
+                        yield return Hold(held, apply, continued);
                         break;
                 }
             }
         }
 
+        // Reapplied every frame: a ship spawned mid-hold gets the held state too.
+        private static IEnumerator Hold(RecapState held, Action<RecapState> apply, Func<bool> released)
+        {
+            while (!released())
+            {
+                apply(held);
+                yield return null;
+            }
+        }
+
         // A key held from before the banner reads unpressed until pressed afresh (no initial state check).
-        private static IEnumerator WaitForPress(Func<bool> continued)
+        private static IEnumerator WaitForPress(RecapState held, Action<RecapState> apply, Func<bool> continued)
         {
             using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
             advance.AddBinding("<Mouse>/leftButton");
@@ -49,7 +60,7 @@ namespace UI.Recap
             var requested = false;
             advance.performed += _ => requested = true;
             advance.Enable();
-            while (!requested && !continued()) yield return null;
+            yield return Hold(held, apply, () => requested || continued());
             advance.Disable();
         }
     }
