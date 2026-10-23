@@ -1,0 +1,53 @@
+{
+    "schema": "marksmanship-summary-v1",
+    "blocks": [
+        {
+            "block": "Grenades-Dummy",
+            "weapon": "Grenades",
+            "target": "Dummy",
+            "episodes": 12,
+            "kills": 3,
+            "meanTimeToKill": 42.05998229980469,
+            "simSeconds": 625.8197631835938,
+            "fired": 143,
+            "hits": 143,
+            "hitRate": 1.0,
+            "damageDealt": 4148.07861328125,
+            "envelopeShare": 0.15814369916915894,
+            "meanCrossingSpeed": 1.283342719078064,
+            "selfHits": 1,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": false,
+            "fullChargeShots": 0,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 0
+        },
+        {
+            "block": "Grenades-Orbiter",
+            "weapon": "Grenades",
+            "target": "Orbiter",
+            "episodes": 12,
+            "kills": 6,
+            "meanTimeToKill": 49.6766471862793,
+            "simSeconds": 658.0597534179688,
+            "fired": 133,
+            "hits": 117,
+            "hitRate": 0.8796992301940918,
+            "damageDealt": 3616.93017578125,
+            "envelopeShare": 0.09976593405008316,
+            "meanCrossingSpeed": 8.044462203979493,
+            "selfHits": 0,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": false,
+            "fullChargeShots": 0,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 0
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "schema": "duel-summary-v1",
+    "seeds": [
+        3002
+    ],
+    "episodesPerSeed": 2,
+    "timeoutDecisions": 300,
+    "blocks": [
+        {
+            "label": "Rippers-Dummy",
+            "episodes": 2
+        },
+        {
+            "label": "Rippers-Orbiter",
+            "episodes": 2
+        }
+    ],
+    "episodesJsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\ctl-newhead-rippers\\duel-rippers-20261022-202539-799053\\20261022-202802-duel-custom.jsonl",
+    "probes": [
+        {
+            "name": "marksmanship",
+            "jsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\ctl-newhead-rippers\\duel-rippers-20261022-202539-799053\\20261022-202802-duel-custom-marksmanship.jsonl",
+            "summary": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\ctl-newhead-rippers\\duel-rippers-20261022-202539-799053\\20261022-202802-duel-custom-marksmanship-probe.json"
+        }
+    ]
+}

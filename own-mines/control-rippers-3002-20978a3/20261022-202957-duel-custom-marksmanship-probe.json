@@ -1,0 +1,53 @@
+{
+    "schema": "marksmanship-summary-v1",
+    "blocks": [
+        {
+            "block": "Rippers-Dummy",
+            "weapon": "Rippers",
+            "target": "Dummy",
+            "episodes": 2,
+            "kills": 2,
+            "meanTimeToKill": 33.52998733520508,
+            "simSeconds": 67.05997467041016,
+            "fired": 87,
+            "hits": 64,
+            "hitRate": 0.7356321811676025,
+            "damageDealt": 376.44000244140627,
+            "envelopeShare": 0.10832587629556656,
+            "meanCrossingSpeed": 0.0,
+            "selfHits": 0,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": false,
+            "fullChargeShots": 0,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 0
+        },
+        {
+            "block": "Rippers-Orbiter",
+            "weapon": "Rippers",
+            "target": "Orbiter",
+            "episodes": 2,
+            "kills": 2,
+            "meanTimeToKill": 32.47998809814453,
+            "simSeconds": 64.95997619628906,
+            "fired": 91,
+            "hits": 61,
+            "hitRate": 0.6703296899795532,
+            "damageDealt": 364.199951171875,
+            "envelopeShare": 0.12168823182582855,
+            "meanCrossingSpeed": 6.477096080780029,
+            "selfHits": 0,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": false,
+            "fullChargeShots": 0,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 0
+        }
+    ]
+}

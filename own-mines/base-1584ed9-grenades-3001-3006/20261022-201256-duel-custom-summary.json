@@ -1,0 +1,31 @@
+{
+    "schema": "duel-summary-v1",
+    "seeds": [
+        3001,
+        3002,
+        3003,
+        3004,
+        3005,
+        3006
+    ],
+    "episodesPerSeed": 2,
+    "timeoutDecisions": 300,
+    "blocks": [
+        {
+            "label": "Grenades-Dummy",
+            "episodes": 12
+        },
+        {
+            "label": "Grenades-Orbiter",
+            "episodes": 12
+        }
+    ],
+    "episodesJsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\base-gren\\duel-grenades-20261022-200742-848033\\20261022-201256-duel-custom.jsonl",
+    "probes": [
+        {
+            "name": "marksmanship",
+            "jsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\base-gren\\duel-grenades-20261022-200742-848033\\20261022-201256-duel-custom-marksmanship.jsonl",
+            "summary": "C:\\Users\\amind\\AppData\\Local\\Temp\\mines-ai-avoid\\base-gren\\duel-grenades-20261022-200742-848033\\20261022-201256-duel-custom-marksmanship-probe.json"
+        }
+    ]
+}
