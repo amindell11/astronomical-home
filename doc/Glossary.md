@@ -689,6 +689,12 @@ Format: **term** — definition. *(authority)*
   trigger. Any state it keeps, such as a charge in progress or a heat vent,
   lives in the weapon, so the Gunner never learns what a trigger means to it.
   *(`WeaponComponent.HoldTrigger`; #1133)*
+- **hold range** (AI) — the distance from its target that a weapon asks an AI
+  pilot to fly at, in place of the pilot's own range, as a mine carrier holds
+  outside its own blast. Only the primary weapon's counts, and
+  it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
+  how the AI uses a weapon, not a fact about the ship. Not a firing range.
+  *(`WeaponComponent.HoldRange`; #1139)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).

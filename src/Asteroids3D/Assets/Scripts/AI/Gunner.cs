@@ -73,7 +73,7 @@ namespace AI
             actuator.Fire(slot, cmd);
         }
 
-        /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
+        /// <summary>The default intercept lead from a muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
             projectileSpeed <= 0f
                 ? targetPos
@@ -84,8 +84,7 @@ namespace AI
             if (pose == null)
                 return GamePlane.PlanePointToWorld(targetPos);
 
-            return GamePlane.PlanePointToWorld(
-                AimPoint(pose(), targetPos, targetVel, weapons.ProjectileSpeed(slot)));
+            return GamePlane.PlanePointToWorld(weapons.AimPoint(slot, pose(), targetPos, targetVel));
         }
 
         /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>

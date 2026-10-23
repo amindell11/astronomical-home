@@ -138,7 +138,7 @@ namespace RL.Opponents
                 case OpponentArchetype.Aggressor:
                 case OpponentArchetype.Kiter:
                     return Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, target.Kinematics,
-                        shape.desiredRange, shape.speedFraction * maxSpeed), engages: true);
+                        ctx.HoldRange ?? shape.desiredRange, shape.speedFraction * maxSpeed), engages: true);
                 case OpponentArchetype.Evader:
                     if (recomputes++ % jukeEveryRecomputes == 0)
                         jukeSign = rng.Next(2) == 0 ? -1 : 1;

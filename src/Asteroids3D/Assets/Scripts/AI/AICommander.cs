@@ -96,13 +96,13 @@ namespace AI
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field);
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field, control.Weapons);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
-            context = new AIContext(self, Scout, combatExitDelay);
+            context = new AIContext(self, Scout, PrimaryHoldRange(), combatExitDelay);
 
             systemsInitialized = true;
         }
@@ -118,7 +118,7 @@ namespace AI
             engageSecondary = false;
             boost = false;
             hasAnchor = false;
-            context = new AIContext(control.Ship, Scout, combatExitDelay);
+            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay);
             if (Brain) Brain.ResetState();
         }
 
@@ -187,6 +187,8 @@ namespace AI
             keystone && hasAnchor && (engagePrimary || engageSecondary)
             && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
                 Desired(Navigator.CostVelocityReference), Navigator.PlanEnd));
+
+        private float? PrimaryHoldRange() => control.Weapons?.HoldRange(WeaponSlot.Primary);
 
         // The scout sizes its look-ahead once, so it must cover the keystone's raised cap.
         private Dynamics PeakDynamics(IShipStatus self) =>
