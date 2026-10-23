@@ -77,7 +77,7 @@ namespace Combat.Weapons.Arsenal
             && context.distanceToTarget >= MinLobDistance;
 
         // A charge launched into a live charge's blast detonates there, by the launcher.
-        public override bool ShouldFire(TargetingContext context) =>
+        public override bool HoldTrigger(TargetingContext context) =>
             live.Count == 0 && CanFire() && InEnvelope(in context);
 
         // A charge may detonate short of its stop point, so its circle adds the lob margin.

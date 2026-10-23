@@ -59,7 +59,7 @@ namespace Tests.PlayMode.Weapons
         /// <summary>One Gunner step toward a target <paramref name="distance"/> away along <paramref name="direction"/>; returns the charge it launched, if any.</summary>
         private Grenade Step(Grenades launcher, float distance, Vector2 direction, bool lineOfSight = true)
         {
-            var held = launcher.ShouldFire(At(distance, lineOfSight));
+            var held = launcher.HoldTrigger(At(distance, lineOfSight));
             var pressed = held && !prevHeld;
             prevHeld = held;
 
@@ -137,11 +137,11 @@ namespace Tests.PlayMode.Weapons
             Assert.IsNotNull(old);
             ConcussionWave oldBlast = null;
             old.Spawned += (child, _) => oldBlast = child as ConcussionWave;
-            Assert.IsFalse(launcher.ShouldFire(At(far)), "a live charge holds the plan");
+            Assert.IsFalse(launcher.HoldTrigger(At(far)), "a live charge holds the plan");
 
             launcher.Reset();
             prevHeld = false;
-            Assert.IsTrue(launcher.ShouldFire(At(far)), "Reset forgets the live charge");
+            Assert.IsTrue(launcher.HoldTrigger(At(far)), "Reset forgets the live charge");
 
             // The opposite way and farther, so it lands after the old blast and clear of it.
             var current = Step(launcher, far, Vector2.left);
@@ -155,7 +155,7 @@ namespace Tests.PlayMode.Weapons
                 yield return new WaitForFixedUpdate();
                 if (Live(old) || Live(oldBlast) || !oldBlast) continue;
                 Assert.IsTrue(Live(current) || Live(currentBlast), "the new charge or its blast is still live");
-                Assert.IsFalse(launcher.ShouldFire(At(far)), "the old charge ending leaves the new charge's hold standing");
+                Assert.IsFalse(launcher.HoldTrigger(At(far)), "the old charge ending leaves the new charge's hold standing");
                 checkedAfterOldEnded = true;
             }
 
