@@ -22,10 +22,7 @@ namespace Combat.Weapons
         {
             // An untracked projectile could outlive its context; a deliberate null is refused before conditions consume charge/ammo.
             if (projectiles == null) throw new ArgumentNullException(nameof(projectiles));
-            if (!CanFire()) return null;
-
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            if (!TrySpendFireConditions()) return null;
 
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);

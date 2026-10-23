@@ -81,10 +81,7 @@ namespace Combat.Weapons.Arsenal
         // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            if (!CanFire()) return null;
-
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            if (!TrySpendFireConditions()) return null;
 
             FireBeam();
             InvokeOnFire();
@@ -94,9 +91,7 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
         // The authored charge fires only when full, so releasing early aborts the shot.
         public override bool HoldTrigger(TargetingContext context)

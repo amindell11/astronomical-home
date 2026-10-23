@@ -33,9 +33,7 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
         public override bool HoldTrigger(TargetingContext context) =>
             Rounds && Rounds.CanFire() && InEnvelope(in context);
