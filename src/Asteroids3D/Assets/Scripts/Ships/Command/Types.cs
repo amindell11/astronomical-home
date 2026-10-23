@@ -4,6 +4,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using Movement;
 using UnityEngine;
+using Ships.Keystones;
 using Ships.Registry;
 using Utils;
 
@@ -29,6 +30,9 @@ namespace Ships.Command
 
         /// <summary>Desired yaw rate input in the range [-1, 1].</summary>
         public float yawTorque;
+
+        /// <summary>Where the pilot points the keystone, as a plane point; null aims straight ahead.</summary>
+        public Vector2? abilityTarget;
     }
 
     /// <summary>Identifies a single weapon mount on a ship.</summary>
@@ -153,14 +157,18 @@ namespace Ships.Command
         /// </summary>
         public readonly SeedScope DecisionSeed;
 
+        /// <summary>The ship's keystone kit, whose sight and contact state an AI commander reads; null when the ship has none.</summary>
+        public readonly Keystone Keystone;
+
         public ShipControl(IShipStatus ship, IPilot pilot, SeedScope decisionSeed,
-            IWeaponContext weapons = null, IWeapons weaponActuator = null)
+            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null)
         {
             Ship = ship;
             Pilot = pilot;
             DecisionSeed = decisionSeed;
             Weapons = weapons;
             WeaponActuator = weaponActuator;
+            Keystone = keystone;
         }
 
         /// <summary>True when both the weapon context and actuator are present.</summary>

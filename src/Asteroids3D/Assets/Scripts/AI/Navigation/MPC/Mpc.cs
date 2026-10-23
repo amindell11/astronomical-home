@@ -40,7 +40,7 @@ namespace AI.Navigation.MPC
     public class Mpc : IDisposable
     {
         private readonly MpcSettings settings;
-        private readonly Dynamics dynamics;
+        private Dynamics dynamics;
         private readonly SolverBuffers solver;
 
         private Config config;
@@ -63,6 +63,9 @@ namespace AI.Navigation.MPC
         }
 
         /// <summary>Solve for one step and return the first control of the best sequence.</summary>
+        /// <summary>Swaps the motion model the next plan uses, for a ship whose limits change in flight.</summary>
+        public void SetDynamics(in Dynamics live) => dynamics = live;
+
         public MpcResult Plan(in MpcInputs inputs)
         {
             var mpcState = ToMpcState(inputs.kinematics);
