@@ -62,6 +62,21 @@ namespace AI.Navigation.MPC
                  "only wins when the commanded facing abstains. 0 disables (production default).")]
         public float wFacingPrior = 0f;
 
+        [Header("Aim Servo")]
+        [Tooltip("Turn acceleration: the fraction of the engine's yaw acceleration the servo plans its approach with, " +
+                 "so how fast it swings the nose onto the aim reference. The remainder is torque headroom for its rate loop.")]
+        public float aimServoAccelFraction = 0.21f;
+        [Tooltip("Seconds over which the servo closes its yaw-rate error.")]
+        public float aimServoTau = 0.06f;
+        [Tooltip("Proportional gain (1/s) that caps the approach rate near the aim reference, so the nose settles instead of chattering.")]
+        public float aimServoKp = 8f;
+        [Tooltip("AIM authority at or above which the servo takes yaw from the MPC.")]
+        public float aimServoEngageWeight = 0.9f;
+        [Tooltip("AIM authority below which the servo returns yaw to the MPC. The gap below the engage weight is the hysteresis.")]
+        public float aimServoReleaseWeight = 0.8f;
+        [Tooltip("Seconds the MPC keeps yaw after an obstacle threat clears.")]
+        public float aimServoVetoHold = 0.2f;
+
         [Header("Position")]
         [Tooltip("POS ceiling: the sentence slot's signed authority multiplies this weight. The term is " +
                  "normalized 0-1 (saturating), so the ceiling is what trades it off against wFacing/wVelTrack. " +

@@ -6,7 +6,9 @@ using Movement;
 using NUnit.Framework;
 using Ships.Command;
 using Substrate.Services.Projectiles;
+using Tests.Common;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -32,6 +34,9 @@ namespace Tests.EditMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => 0f;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) => targetPos;
+            public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Gunsight Sight(WeaponSlot slot) => sight;
         }
 
@@ -53,7 +58,8 @@ namespace Tests.EditMode
                 Kinematics Pose() => new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
                 var recorder = new CommandRecorder();
                 var gunner = host.AddComponent<Gunner>();
-                gunner.Initialize(new PrimarySlotContext { sight = new Gunsight(weapon, Pose) }, recorder, Pose);
+                gunner.Initialize(new PrimarySlotContext { sight = new Gunsight(weapon, Pose) }, recorder, Pose,
+                    TestAimSettings.Perfect, new SeedScope(1));
                 gunner.Aim(new Vector2(0f, 10f), Vector2.zero);
 
                 for (var i = 0; i < solution.Length; i++)
