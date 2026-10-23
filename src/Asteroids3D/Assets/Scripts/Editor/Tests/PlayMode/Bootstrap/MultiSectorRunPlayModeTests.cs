@@ -6,6 +6,7 @@ using Cameras;
 using Game;
 using Game.Runs;
 using NUnit.Framework;
+using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
@@ -15,7 +16,6 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -38,10 +38,12 @@ namespace Tests.PlayMode.Bootstrap
         private GameObject[] templates;
         private string dir;
         private string recordPath;
+        private readonly InputTestFixture input = new();
 
         public override void SetUp()
         {
             base.SetUp();
+            input.Setup();
             dir = Path.Combine(Path.GetTempPath(), "multi-sector-run-" + Guid.NewGuid().ToString("N"));
             recordPath = Path.Combine(dir, "run-records.jsonl");
         }
@@ -54,6 +56,7 @@ namespace Tests.PlayMode.Bootstrap
                 foreach (var template in templates) DestroyTestObject(template);
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
             base.TearDown();
+            input.TearDown();
         }
 
         [UnityTest]
@@ -143,42 +146,62 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
-        public IEnumerator Death_FadesHudAndFinishesEffectsBeforePausing_ThenRestoresTheNextRun()
+        public IEnumerator Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun()
         {
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true);
             var observer = hostGo.GetComponentInChildren<ObserverCam>();
+            var units = hostGo.GetComponent<UnitService>();
+            var enemy = units.SpawnShip(TestAssets.LoadCrimsonPrefab(), null, 1,
+                rig.Player.transform.position + GamePlane.Right * 50f, GamePlane.Rotation, null);
+            var deathPosition = rig.Player.transform.position;
+            observer.transform.position = deathPosition + GamePlane.Right * 30f - GamePlane.Normal * 10f;
+            var initialZoom = observer.Cam.orthographicSize;
             var keyboard = InputSystem.AddDevice<Keyboard>();
             try
             {
                 TestDamage.Kill(rig.Player);
                 yield return null;
-                var cameraPosition = observer.transform.position;
-                Assert.IsTrue(rig.Player.VisualRig.DeathEffectsPlaying, "the real death effects started");
                 yield return new WaitForSecondsRealtime(.4f);
                 Assert.AreEqual(0f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
-                Assert.IsFalse(observer.enabled);
-                Assert.AreEqual(cameraPosition, observer.transform.position);
+                Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                    GamePlane.WorldPointToPlane(deathPosition)), 9f, "the camera moves onto the death location");
                 Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
                 Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
-                var deadline = Time.realtimeSinceStartup + 15f;
-                while (rig.Player.VisualRig.DeathEffectsPlaying && Time.realtimeSinceStartup < deadline)
-                {
-                    Assert.AreEqual(1f, Time.timeScale);
-                    Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
-                    yield return null;
-                }
-                Assert.IsFalse(rig.Player.VisualRig.DeathEffectsPlaying);
-                yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "death recap appears");
+                yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<RunRecapScreen>(), 1.1f,
+                    "the banner starts shortly after the explosion, before long particle tails finish");
                 var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-                Assert.AreEqual(0f, Time.timeScale);
-                yield return new WaitForSecondsRealtime(1.2f);
+                Assert.AreEqual(1f, Time.timeScale);
+                yield return new WaitForSecondsRealtime(.45f);
+                Assert.AreEqual(1f, recap.transform.Find("OutcomeIntro").GetComponent<CanvasGroup>().alpha);
+                Assert.AreEqual(initialZoom, observer.Cam.orthographicSize, .1f);
+                Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                    GamePlane.WorldPointToPlane(deathPosition)), .1f);
+                enemy.Body.linearVelocity = GamePlane.Right * 10f;
+                var enemyPosition = enemy.transform.position;
+                yield return new WaitForSecondsRealtime(.25f);
+                Assert.Greater(Vector3.Distance(enemyPosition, enemy.transform.position), .5f,
+                    "surviving ships keep flying behind the banner");
                 var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
                 Assert.AreEqual(0f, details.alpha);
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Enter));
+                input.Press(keyboard.enterKey);
                 yield return null;
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                Assert.AreEqual(1f, details.alpha, "Continue reveals the breakdown immediately");
+                Assert.IsFalse(details.interactable, "the submit press is consumed before enabling the button");
+                input.Release(keyboard.enterKey);
                 yield return WaitFor(() => details.interactable, "keypress reveals the breakdown");
+                Assert.AreEqual(1f, Time.timeScale);
+                enemy.Body.linearVelocity = GamePlane.Right * 10f;
+                enemyPosition = enemy.transform.position;
+                yield return new WaitForSecondsRealtime(.25f);
+                Assert.Greater(Vector3.Distance(enemyPosition, enemy.transform.position), .5f,
+                    "surviving ships keep flying behind the breakdown");
+                TestDamage.Kill(enemy);
+                observer.transform.position += GamePlane.Right * 5f;
+                yield return new WaitForSecondsRealtime(.5f);
+                Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                    GamePlane.WorldPointToPlane(deathPosition)), .1f,
+                    "death focus still works with no active subjects");
                 recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
                 yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
                     "the next run starts");
