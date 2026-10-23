@@ -10,12 +10,12 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
 using Substrate.Services.Units;
+using UI.Recap;
 using UI.Screens;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -31,6 +31,7 @@ namespace Tests.PlayMode.Bootstrap
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
         private GameObject hostGo;
@@ -141,6 +142,16 @@ namespace Tests.PlayMode.Bootstrap
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
+        // The screen exists before the HUD fades; showing means a visible banner or card.
+        private bool RecapShowing()
+        {
+            var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            if (!recap) return false;
+            var banner = recap.transform.Find("OutcomeIntro");
+            return recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha > 0f
+                   || banner && banner.gameObject.activeSelf;
+        }
+
         [UnityTest]
         [Category("RequiresGraphics")]
         public IEnumerator Death_FadesHudAndFinishesEffectsBeforePausing_ThenRestoresTheNextRun()
@@ -148,6 +159,9 @@ namespace Tests.PlayMode.Bootstrap
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true);
             var observer = hostGo.GetComponentInChildren<ObserverCam>();
+            // An isolated input fixture, so editor focus and real devices cannot swallow the press.
+            var input = new InputTestFixture();
+            input.Setup();
             var keyboard = InputSystem.AddDevice<Keyboard>();
             try
             {
@@ -160,24 +174,24 @@ namespace Tests.PlayMode.Bootstrap
                 Assert.IsFalse(observer.enabled);
                 Assert.AreEqual(cameraPosition, observer.transform.position);
                 Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
-                Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
+                Assert.IsFalse(RecapShowing(), "nothing of the recap shows while the explosion plays");
                 var deadline = Time.realtimeSinceStartup + 15f;
                 while (rig.Player.VisualRig.DeathEffectsPlaying && Time.realtimeSinceStartup < deadline)
                 {
                     Assert.AreEqual(1f, Time.timeScale);
-                    Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
+                    Assert.IsFalse(RecapShowing());
                     yield return null;
                 }
                 Assert.IsFalse(rig.Player.VisualRig.DeathEffectsPlaying);
-                yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "death recap appears");
+                yield return WaitFor(() => Time.timeScale == 0f, "the recap pauses play once the effects end");
                 var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-                Assert.AreEqual(0f, Time.timeScale);
+                Assert.IsTrue(recap, "death recap appears");
                 yield return new WaitForSecondsRealtime(1.2f);
                 var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
                 Assert.AreEqual(0f, details.alpha);
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Enter));
+                input.Press(keyboard.enterKey);
                 yield return null;
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                input.Release(keyboard.enterKey);
                 yield return WaitFor(() => details.interactable, "keypress reveals the breakdown");
                 recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
                 yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
@@ -189,7 +203,7 @@ namespace Tests.PlayMode.Bootstrap
             }
             finally
             {
-                InputSystem.RemoveDevice(keyboard);
+                input.TearDown();
             }
         }
 
@@ -210,6 +224,7 @@ namespace Tests.PlayMode.Bootstrap
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             host.runRecordPath = recordPath;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
             {

@@ -194,6 +194,7 @@ MonoBehaviour:
   hangarCameraPrefab: {fileID: 6203917458810452105, guid: 6921a06a3ac74e6dac3d7c4325ce02d9,
     type: 3}
   hangarOffer: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
+  recapFeel: {fileID: 11400000, guid: a4963326513141e3bf43fabd747f3bf5, type: 2}
   deathBehavior: 2
   killHullRestore: 0.25
   recapHoldSeconds: 8
