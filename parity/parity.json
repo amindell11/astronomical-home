@@ -1,0 +1,186 @@
+{
+ "baseline": "20261023-105244",
+ "host": "20261023-110302",
+ "rows": [
+  {
+   "state": "extracted",
+   "size": "1280x720",
+   "full": 0.9998773871527777,
+   "full_pixels": 921600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 875400,
+   "region": 1.0,
+   "region_pixels": 128440,
+   "region_rect": [
+    89,
+    170,
+    427,
+    550
+   ],
+   "max_channel_diff": 194,
+   "pass": true
+  },
+  {
+   "state": "extracted",
+   "size": "1920x1080",
+   "full": 0.9999729938271605,
+   "full_pixels": 2073600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 2027400,
+   "region": 1.0,
+   "region_pixels": 288990,
+   "region_rect": [
+    134,
+    255,
+    641,
+    825
+   ],
+   "max_channel_diff": 194,
+   "pass": true
+  },
+  {
+   "state": "victory-banner",
+   "size": "1280x720",
+   "full": 0.9998741319444444,
+   "full_pixels": 921600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 875400,
+   "region": 1.0,
+   "region_pixels": 160720,
+   "region_rect": [
+    230,
+    262,
+    1050,
+    458
+   ],
+   "max_channel_diff": 194,
+   "pass": true
+  },
+  {
+   "state": "victory-banner",
+   "size": "1920x1080",
+   "full": 0.9999450231481481,
+   "full_pixels": 2073600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 2027400,
+   "region": 1.0,
+   "region_pixels": 361620,
+   "region_rect": [
+    345,
+    393,
+    1575,
+    687
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "victory-card",
+   "size": "1280x720",
+   "full": 0.9999381510416666,
+   "full_pixels": 921600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 875400,
+   "region": 1.0,
+   "region_pixels": 276480,
+   "region_rect": [
+    400,
+    72,
+    880,
+    648
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "victory-card",
+   "size": "1920x1080",
+   "full": 0.9999450231481481,
+   "full_pixels": 2073600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 2027400,
+   "region": 1.0,
+   "region_pixels": 622080,
+   "region_rect": [
+    600,
+    108,
+    1320,
+    972
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "defeat-banner",
+   "size": "1280x720",
+   "full": 0.9999381510416666,
+   "full_pixels": 921600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 875400,
+   "region": 1.0,
+   "region_pixels": 160720,
+   "region_rect": [
+    230,
+    262,
+    1050,
+    458
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "defeat-banner",
+   "size": "1920x1080",
+   "full": 0.9999725115740741,
+   "full_pixels": 2073600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 2027400,
+   "region": 1.0,
+   "region_pixels": 361620,
+   "region_rect": [
+    345,
+    393,
+    1575,
+    687
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "defeat-card",
+   "size": "1280x720",
+   "full": 0.9999381510416666,
+   "full_pixels": 921600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 875400,
+   "region": 1.0,
+   "region_pixels": 276480,
+   "region_rect": [
+    400,
+    72,
+    880,
+    648
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  },
+  {
+   "state": "defeat-card",
+   "size": "1920x1080",
+   "full": 0.9999725115740741,
+   "full_pixels": 2073600,
+   "overlay_masked": 1.0,
+   "masked_pixels": 2027400,
+   "region": 1.0,
+   "region_pixels": 622080,
+   "region_rect": [
+    600,
+    108,
+    1320,
+    972
+   ],
+   "max_channel_diff": 174,
+   "pass": true
+  }
+ ]
+}
