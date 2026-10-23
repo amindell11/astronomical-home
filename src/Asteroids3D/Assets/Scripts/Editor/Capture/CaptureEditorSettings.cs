@@ -7,9 +7,8 @@ using UnityEngine.Rendering;
 namespace Capture.GameView
 {
     /// <summary>
-    /// Editor settings the capture transaction touches and puts back: quality level, ambient
-    /// light, and the FMOD play-in-editor debug overlay. The overlay is re-read from the
-    /// platform every editor Update, so clearing its override is what hides the panel.
+    /// The FMOD play-in-editor overlay is re-read from the platform every editor Update,
+    /// so clearing its override is what hides the panel.
     /// </summary>
     internal static class CaptureEditorSettings
     {

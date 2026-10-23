@@ -109,7 +109,6 @@ def write_concat_list(list_path, frames, durations):
 
 
 def decode_clip(ffmpeg_exe, clip_path):
-    """Decoded frame count and container duration, or the reason ffmpeg failed."""
     cmd = [ffmpeg_exe, "-hide_banner", "-nostats", "-i", clip_path, "-map", "0:v:0", "-f", "null", "-"]
     result = subprocess.run(cmd, capture_output=True)
     stderr = result.stderr.decode(errors="replace")
@@ -174,7 +173,6 @@ def assemble_mp4(frame_dir, frames, durations, scale, crf, check_duration):
 
 
 def subject_channel_error(source, decoded):
-    """Mean per-channel absolute error over small saturated subject pixels, or None."""
     if source.size != decoded.size:
         from PIL import Image
         source = source.resize(decoded.size, Image.LANCZOS)

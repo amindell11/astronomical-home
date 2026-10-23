@@ -12,8 +12,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Scenarios
 {
     /// <summary>
-    /// Films the current run-recap outcome banner. The banner fades on unscaled time while the
-    /// sim clock is paused, which is the recap the game already runs.
+    /// The game's outcome banner fades on unscaled time while the sim clock is paused.
     /// </summary>
     public sealed class HudRecapPresetScenario : CaptureScenario
     {

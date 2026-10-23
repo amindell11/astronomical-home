@@ -2,10 +2,8 @@
 set -euo pipefail
 # covers: scripts/capture/assemble.py
 
-# #1103: suggestedFps 50.00001907348633 with --step 2 used to truncate each GIF frame to
-# 39 ms, and Pillow then stored 30 ms (2850 ms across 95 frames). Quantising to GIF's
-# 10 ms unit yields 40 ms and 3800 ms. #1104: the peak frame on evidence/sector-jump
-# keeps its red paint under maximum-coverage quantisation.
+# suggestedFps 50.00001907348633 with --step 2 quantises to 40 ms per GIF frame,
+# 3800 ms across 95 frames. The peak fixture must keep its red paint.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ASSEMBLE="$SCRIPT_DIR/../capture/assemble.py"

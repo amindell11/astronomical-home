@@ -3,9 +3,9 @@ using System;
 namespace Capture
 {
     /// <summary>
-    /// The three capture presets. Names are the provenance source. Observer numbers are the
-    /// authored Main Camera prefab, not the camera class defaults; an EditMode test fails
-    /// if that prefab drifts. Lineup numbers are the ship-lineup neutral key.
+    /// Preset names are the provenance source. Observer numbers are the authored Main Camera
+    /// prefab, not the camera class defaults; an EditMode test fails if that prefab drifts.
+    /// Lineup numbers are the ship-lineup neutral key.
     /// </summary>
     public static class CapturePreset
     {
