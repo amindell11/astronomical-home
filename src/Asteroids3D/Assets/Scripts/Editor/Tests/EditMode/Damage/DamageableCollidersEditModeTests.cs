@@ -60,7 +60,7 @@ namespace Tests.EditMode.Damage
         {
             if (!fake) return;
             DamageableColliders.Unregister(fake);
-            Object.DestroyImmediate(fake.gameObject);
+            UnityEngine.Object.DestroyImmediate(fake.gameObject);
         }
     }
 }
