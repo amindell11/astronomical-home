@@ -23,6 +23,8 @@ namespace UI
 
             if (source && self.orthographic)
                 self.orthographicSize = source.orthographicSize;
+            if (source && !self.orthographic)
+                self.fieldOfView = source.fieldOfView;
         }
     }
 }
