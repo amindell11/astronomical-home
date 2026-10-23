@@ -3,6 +3,7 @@ using System.Collections;
 using Balance;
 using Cameras;
 using Damage;
+using Game.Audio;
 using Game.Runs;
 using Substrate;
 using Substrate.Presentation;
@@ -23,7 +24,7 @@ namespace Game
 {
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
-    /// Owns the player rig, viewport, UI, run records and clock; the session composes, loads and unloads.
+    /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
     /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
     /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
     /// The hangar, recap and restart stand in for Home Base and player progress.
@@ -53,6 +54,11 @@ namespace Game
         [Tooltip("Full-screen splash shown over the non-interactive steps (boot, session compose, " +
                  "sector load/unload). Optional; skipped when presentation is off (headless/RL).")]
         [SerializeField] private LoadingSplash splashPrefab;
+
+        [Header("Music")]
+        [Tooltip("The run's music, built once for the session and told each run step's state. Optional; " +
+                 "skipped when presentation is off (headless/RL).")]
+        [SerializeField] internal GameMusic musicPrefab;
 
         [Header("Hangar")]
         [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
@@ -96,6 +102,7 @@ namespace Game
         private DriftCam hangarCamera;
         private PlayerRig rigInstance;
         private LoadingSplash splash;
+        private GameMusic music;
 
         private Transform viewport;
         private Transform ui;
@@ -128,6 +135,11 @@ namespace Game
                 BuildEventSystem(ui);
             if (splashPrefab && presentation)
                 splash = Instantiate(splashPrefab, ui);
+            if (musicPrefab && presentation)
+            {
+                music = Instantiate(musicPrefab, transform);
+                music.Initialize(objectiveService);
+            }
 
             SetSplashVisible(true);
             yield return null;
@@ -153,6 +165,7 @@ namespace Game
                 SetSplashVisible(false);
                 if (rigInstance)
                 {
+                    SetMusic(GameMusic.State.Hangar);
                     SetHangarViewVisible(true);
                     yield return RunHangar(rigInstance, presentation, ui);
                     SetHangarViewVisible(false);
@@ -177,6 +190,7 @@ namespace Game
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
+                    if (music) music.EnterSector(session.ActiveSector);
                     var sectorStartTime = Time.time;
 
                     // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
@@ -190,6 +204,7 @@ namespace Game
                     {
                         hull = rigInstance.Player.Damage.Health.Pct;
                         rigInstance.Spawns.EndSector(sectorEndTime);
+                        SetMusic(GameMusic.State.Recap);
                         if (presentation)
                             yield return RunRecap((screen, dismiss) => screen.ShowSector(
                                 rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
@@ -204,6 +219,7 @@ namespace Game
                 {
                     if (!playerDied) EndRun();
                     var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
+                    SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
                     if (presentation)
                         yield return RunOutcomeRecap(board, index);
                 }
@@ -231,6 +247,11 @@ namespace Game
         private void SetSplashVisible(bool visible)
         {
             if (splash) splash.SetVisible(visible);
+        }
+
+        private void SetMusic(GameMusic.State state)
+        {
+            if (music) music.Set(state);
         }
 
         private void SetHangarViewVisible(bool visible)
