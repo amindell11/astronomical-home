@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Balance;
 using Combat.Projectiles;
 using Movement;
+using Substrate;
 using UnityEngine;
 using Combat.Weapons.Conditions;
 using Substrate.Services.Projectiles;
@@ -18,7 +20,7 @@ namespace Combat.Weapons.Arsenal
     /// <summary>
     /// Concussion charge launcher: semi-auto, each charge flies to the trigger's target point (see <see cref="Grenade.Launch"/>).
     /// An AI gunner aims it by the charge's braked flight and launches only clear of its own blast,
-    /// never while one of its own charges or blasts is still live.
+    /// never while one of its own charges or blasts is still live; its AI pilot keeps out of both.
     /// </summary>
     public class Grenades : WeaponBase<Grenade>, IChargeLaunchReadout
     {
@@ -77,6 +79,20 @@ namespace Combat.Weapons.Arsenal
         // A charge launched into a live charge's blast detonates there, by the launcher.
         public override bool ShouldFire(TargetingContext context) =>
             live.Count == 0 && CanFire() && InEnvelope(in context);
+
+        // A charge may detonate short of its stop point, so its circle adds the lob margin.
+        public override int KeepOutCircles(Span<DetectedObstacle.PlaneCircle> circles)
+        {
+            var count = 0;
+            foreach (var transient in live.Keys)
+            {
+                var charge = transient as Grenade;
+                circles[count++] = charge
+                    ? new DetectedObstacle.PlaneCircle(GamePlane.WorldPointToPlane(charge.TargetPoint), MinLobDistance)
+                    : new DetectedObstacle.PlaneCircle(GamePlane.WorldPointToPlane(transient.transform.position), BlastRadius);
+            }
+            return count;
+        }
 
         public override void Reset()
         {

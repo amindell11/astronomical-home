@@ -96,7 +96,7 @@ namespace AI
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field);
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field, control.Weapons);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)

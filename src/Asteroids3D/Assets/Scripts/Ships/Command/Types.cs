@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
@@ -112,6 +114,9 @@ namespace Ships.Command
 
         /// <summary>The distance the slot's weapon asks an AI pilot to hold from its target; null when it declares none.</summary>
         float? HoldRange(WeaponSlot slot);
+
+        /// <summary>Writes the circles the slot's weapon asks an AI pilot to keep out of right now; returns how many it wrote.</summary>
+        int KeepOutCircles(WeaponSlot slot, Span<DetectedObstacle.PlaneCircle> circles);
 
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
         Gunsight Sight(WeaponSlot slot);

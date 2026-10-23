@@ -34,6 +34,7 @@ namespace Tests.EditMode
             public float ProjectileSpeed(WeaponSlot slot) => 0f;
             public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) => targetPos;
             public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Gunsight Sight(WeaponSlot slot) => sight;
         }
 
