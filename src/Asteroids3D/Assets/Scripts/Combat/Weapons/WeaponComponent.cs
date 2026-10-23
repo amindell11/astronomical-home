@@ -19,6 +19,9 @@ namespace Combat.Weapons
         public float distanceToTarget;
         public float angleToTarget;
         public bool hasLineOfSight;
+
+        public bool Within(float maxDistance, float maxAngle) =>
+            hasLineOfSight && distanceToTarget <= maxDistance && angleToTarget <= maxAngle;
     }
 
     public abstract class WeaponComponent : MonoBehaviour
@@ -73,6 +76,14 @@ namespace Combat.Weapons
         public virtual bool CanFire()
         {
             return conditions.All(c => c.CanFire());
+        }
+
+        protected bool TrySpendFireConditions()
+        {
+            if (!CanFire()) return false;
+            foreach (var condition in conditions)
+                condition.ProcessFire();
+            return true;
         }
 
         /// <summary>Name shown on this weapon's HUD readout panel.</summary>

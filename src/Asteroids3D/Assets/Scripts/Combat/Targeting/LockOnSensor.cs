@@ -12,7 +12,7 @@ using Substrate;
 
 namespace Combat.Targeting
 {
-    public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
+    public class LockOnSensor : MonoBehaviour, ILockStateSource
     {
         private const float ScanInterval = 0.1f;
         private const float FanRayStepDeg = 5f;

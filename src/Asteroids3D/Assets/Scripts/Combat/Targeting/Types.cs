@@ -8,12 +8,6 @@ namespace Combat.Targeting
 {
     public enum LockState { Idle, Locking, Locked, Cooldown }
 
-    public interface ILockProvider
-    {
-        LockState State { get; }
-        ITargetable ConsumeLock();
-    }
-
     /// <summary>Lock state as displayable weapon state: a lock readout on the owning weapon's HUD panel.</summary>
     public interface ILockStateSource : IWeaponReadout
     {
