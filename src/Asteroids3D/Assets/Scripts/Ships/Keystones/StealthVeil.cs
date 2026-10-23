@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Ships.Visuals;
 using Substrate;
 using Substrate.Presentation;
-using UI.PlayerState;
 using UnityEngine;
 
 namespace Ships.Keystones
 {
     /// <summary>
     /// Stealth's tell: while the kit is active the hull dithers out through the hull shader's dissolve,
-    /// to half for the pilot's own ship and nearly gone for an enemy, whose minimap marker and status
-    /// bars also hide, so the player loses what the AI loses.
+    /// to half for the pilot's own ship and nearly gone for an enemy. An enemy's minimap marker and
+    /// status bars hide themselves off the same concealment flag.
     /// </summary>
     public sealed class StealthVeil : MonoBehaviour, IPresentationPart
     {
@@ -27,7 +25,6 @@ namespace Ships.Keystones
 
         private Ship ship;
         private IReadOnlyList<Renderer> hull = Array.Empty<Renderer>();
-        private readonly List<GameObject> enemyMarks = new();
         private MaterialPropertyBlock block;
         private bool veiled;
 
@@ -37,8 +34,6 @@ namespace Ships.Keystones
             ship = GetComponentInParent<Ship>();
             if (!ship || !ship.VisualRig) return;
             hull = ship.VisualRig.Silhouette;
-            foreach (var marker in ship.VisualRig.GetComponentsInChildren<MinimapShipMarker>(true)) enemyMarks.Add(marker.gameObject);
-            foreach (var bar in ship.VisualRig.GetComponentsInChildren<StatusBarUI>(true)) enemyMarks.Add(bar.gameObject);
         }
 
         public void ApplyPresentation(bool visible) => enabled = visible;
@@ -51,8 +46,7 @@ namespace Ships.Keystones
         {
             if (on == veiled || !ship) return;
             veiled = on;
-            var isPlayer = ship.CompareTag(TagNames.Player);
-            var visibility = on ? (isPlayer ? ownVisibility : enemyVisibility) : 1f;
+            var visibility = on ? (ship.CompareTag(TagNames.Player) ? ownVisibility : enemyVisibility) : 1f;
             foreach (var renderer in hull)
             {
                 if (!renderer) continue;
@@ -60,9 +54,6 @@ namespace Ships.Keystones
                 block.SetFloat(Visibility, visibility);
                 renderer.SetPropertyBlock(block);
             }
-            if (isPlayer) return;
-            foreach (var mark in enemyMarks)
-                if (mark) mark.SetActive(!on);
         }
     }
 }
