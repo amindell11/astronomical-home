@@ -32,7 +32,6 @@ namespace AI
         public ShipId ShipId => shipId;
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
-        private IShipStatus shipContext;
         private IWeaponContext weapons;
 
         // Merged buffer: own keep-outs + static obstacles + 360° ship detections, so the MPC sees ships at any bearing.
@@ -42,14 +41,13 @@ namespace AI
         private readonly DetectedObstacle.PlaneCircle[] keepOuts = new DetectedObstacle.PlaneCircle[8];
         private int mergedObstacleCount;
 
-        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext,
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics,
             IShipRegistry registry, IObstacleField field, IWeaponContext weapons)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
             Registry = registry;
-            this.shipContext = shipContext;
             this.weapons = weapons;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);

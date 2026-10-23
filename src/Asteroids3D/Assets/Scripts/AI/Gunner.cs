@@ -31,8 +31,6 @@ namespace AI
         internal Vector3 Target { get; private set; }
         public bool HasTarget => hasTarget;
 
-        /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>
-        public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;
         private void ClearTarget() => Target = Vector3.zero;
 
         public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc,
