@@ -57,6 +57,27 @@ namespace Tests.PlayMode
         }
 
         [Test]
+        public void FirePointTiltedOutOfPlane_LaunchesInThePlaneAtFullSpeed()
+        {
+            var ripper = InstantiateWeapon<Rippers>(RippersPrefabPath);
+            var aim = GamePlane.PlaneDirToWorld(Vector2.up);
+            var across = GamePlane.PlaneDirToWorld(Vector2.right);
+            ripper.transform.SetPositionAndRotation(GamePlane.Normal * 0.8f,
+                Quaternion.AngleAxis(30f, across) * GamePlane.Rotation);
+            Assume.That(Vector3.Angle(ripper.firePoint.up, aim), Is.EqualTo(30f).Within(0.01f),
+                "the fire point tilts out of the plane");
+
+            var proj = ripper.Fire(ripper.FireOrigin + aim, Projectiles);
+            Assert.IsNotNull(proj, "the shot launched");
+
+            Assert.AreEqual(0f, Vector3.Dot(proj.transform.position - GamePlane.Origin, GamePlane.Normal), 0.001f,
+                "the projectile spawns in the plane");
+            var velocity = proj.GetComponent<Rigidbody>().linearVelocity;
+            Assert.That(Vector3.Distance(velocity, aim * ripper.ProjectileSpeed), Is.LessThan(0.001f),
+                "velocity lies in the plane at full speed along the aim");
+        }
+
+        [Test]
         public void AutoWeapon_FiresOnHeld_WithoutAPress()
         {
             var ripper = InstantiateWeapon<Rippers>(RippersPrefabPath);

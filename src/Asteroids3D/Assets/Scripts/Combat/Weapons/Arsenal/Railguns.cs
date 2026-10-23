@@ -102,8 +102,8 @@ namespace Combat.Weapons.Arsenal
 
         private void FireBeam()
         {
-            var origin = GamePlane.PlanePointToWorld(GamePlane.WorldPointToPlane(firePoint.position));
-            var direction = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(firePoint.up).normalized);
+            var origin = FireOrigin;
+            var direction = FireDirection;
             var end = origin + direction * range;
 
             // A full buffer may have dropped the nearest hits, so grow it and cast again.

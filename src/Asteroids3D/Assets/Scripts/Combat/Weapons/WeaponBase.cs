@@ -27,10 +27,10 @@ namespace Combat.Weapons
             foreach (var condition in conditions)
                 condition.ProcessFire();
 
-            var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+            var proj = SimplePool<TProj>.Get(projectilePrefab, FireOrigin, firePoint.rotation);
             proj.Initialize(shooter);
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
-            proj.Launch(firePoint.up, targetPoint);
+            proj.Launch(FireDirection, targetPoint);
             InvokeOnFire();
 
             return proj;
