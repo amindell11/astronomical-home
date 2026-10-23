@@ -1,0 +1,12 @@
+{
+  "commit": "0b738d87",
+  "base": "74bc0672a",
+  "review": "combined scoped quality pass",
+  "actionableFindings": [],
+  "checked": [
+    "correctness and scoped simplification",
+    "comment hygiene in changed hunks",
+    "Unity code conventions"
+  ],
+  "limitation": "Bottom-center label placement changed after HUD captures."
+}
