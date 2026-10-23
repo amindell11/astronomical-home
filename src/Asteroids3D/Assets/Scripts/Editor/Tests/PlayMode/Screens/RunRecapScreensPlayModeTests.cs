@@ -112,7 +112,7 @@ namespace Tests.PlayMode.Screens
             button.OnSubmit(null);
             Assert.IsFalse(continued, "the opening outcome cannot dismiss the recap");
             Assert.AreEqual(0f, intro.GetComponent<CanvasGroup>().alpha);
-            yield return new WaitForSecondsRealtime(1.2f);
+            yield return new WaitForSecondsRealtime(.45f);
             Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual(0f, details.alpha, "a combat key held through the banner cannot advance it");
             Release(keyboard.wKey);
@@ -125,13 +125,13 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(0f, details.alpha, "releasing the held key does not advance the banner");
             Press(keyboard.spaceKey);
             yield return null;
+            Assert.AreEqual(1f, details.alpha, "Continue reveals the breakdown immediately");
+            Assert.IsFalse(continued, "the same press cannot return to the hangar");
             Release(keyboard.spaceKey);
-            yield return new WaitForSecondsRealtime(.85f);
-            Assert.AreEqual(0f, details.alpha, "the banner fades out before the breakdown begins");
-            var deadline = Time.realtimeSinceStartup + 3f;
+            var deadline = Time.realtimeSinceStartup + .2f;
             while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
             yield return null;
-            Assert.IsFalse(intro, "the outcome fades away even while gameplay is paused");
+            Assert.IsFalse(intro, "Continue removes the banner even while gameplay is paused");
             Assert.AreEqual(1f, details.alpha);
             Assert.IsTrue(button.IsInteractable());
             Assert.AreEqual(0f, Time.timeScale);

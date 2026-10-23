@@ -90,8 +90,8 @@ namespace UI.Screens
             headline.rectTransform.pivot = new Vector2(.5f, .5f);
             var announcement = intro.gameObject.AddComponent<CanvasGroup>();
             announcement.alpha = 0f;
-            yield return Fade(announcement, 0f, 1f, .8f);
-            var prompt = Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
+            yield return Fade(announcement, 0f, 1f, .3f);
+            Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
                 TextAnchor.MiddleCenter);
             using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
             advance.AddBinding("<Mouse>/leftButton");
@@ -100,12 +100,11 @@ namespace UI.Screens
             advance.performed += _ => requested = true;
             advance.Enable();
             yield return new WaitUntil(() => requested);
-            advance.Disable();
-            prompt.gameObject.SetActive(false);
-            yield return Fade(announcement, 1f, 0f, .7f);
+            intro.gameObject.SetActive(false);
             Destroy(intro.gameObject);
-            yield return new WaitForSecondsRealtime(.3f);
-            yield return Fade(details, 0f, 1f, .8f);
+            details.alpha = 1f;
+            yield return new WaitUntil(() => !advance.IsPressed());
+            advance.Disable();
             details.interactable = true;
             details.blocksRaycasts = true;
             button.Select();

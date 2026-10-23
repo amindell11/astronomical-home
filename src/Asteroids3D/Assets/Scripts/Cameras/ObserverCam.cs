@@ -6,7 +6,7 @@ namespace Cameras
 {
     /// <summary>
     /// Multi-target camera that follows all active ships with optional player-lock modes.
-    /// Extends CameraFollowBase with configurable focus and zoom behaviors.
+    /// Manual framing remains available after the last ship deactivates.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -35,6 +35,12 @@ namespace Cameras
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
+            if (manualCenter.HasValue)
+            {
+                desiredCenter = manualCenter.Value;
+                desiredSize = manualZoom.HasValue ? ClampZoom(manualZoom.Value) : Cam.orthographicSize;
+                return;
+            }
             if (!TryGetBoundaryAroundAllSubjects(out var min2D, out var max2D))
             {
                 desiredCenter = null;
@@ -48,8 +54,6 @@ namespace Cameras
 
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
-            if (manualCenter.HasValue)
-                return manualCenter.Value;
             if (lockCameraToSubject && subject)
                 return GamePlane.WorldPointToPlane(subject.position);
             return CameraUtils.BoundsCenter(boundsMin, boundsMax);

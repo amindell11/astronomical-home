@@ -25,8 +25,8 @@ namespace Game
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
-    /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
-    /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
+    /// Hull carries between sectors. Death recaps keep combat running and frame the death location;
+    /// extraction and victory pause play. Presentation is read once alongside the session's snapshot.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -89,6 +89,7 @@ namespace Game
 
         private RunRecordStore runRecords;
         private DamageInfo lastKillingBlow;
+        private Vector2 deathPosition;
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
@@ -206,9 +207,12 @@ namespace Game
                         rigInstance.Spawns.EndSector(sectorEndTime);
                         SetMusic(GameMusic.State.Recap);
                         if (presentation)
+                        {
+                            PauseRecapClock();
                             yield return RunRecap((screen, dismiss) => screen.ShowSector(
                                 rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
                                 Mathf.Max(0f, sectorEndTime - sectorStartTime), dismiss));
+                        }
                     }
                     SetSplashVisible(true);
                     yield return session.UnloadSector();
@@ -291,6 +295,7 @@ namespace Game
                     {
                         EndRun();
                         lastKillingBlow = killingBlow;
+                        deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
                     };
                 case PlayerDeathBehavior.None:
@@ -356,7 +361,12 @@ namespace Game
         {
             if (!playerDied) PauseRecapClock();
             var cameraEnabled = observer.enabled;
-            observer.enabled = false;
+            if (playerDied)
+            {
+                observer.SetManualCenter(deathPosition);
+                observer.SetManualZoom(observer.Cam.orthographicSize);
+            }
+            else observer.enabled = false;
             try
             {
                 var elapsed = 0f;
@@ -366,7 +376,7 @@ namespace Game
                     SetGameplayOpacity(1f - t * t * t * (t * (t * 6f - 15f) + 10f));
                     yield return null;
                     elapsed += Time.unscaledDeltaTime;
-                } while (elapsed < .3f || playerDied && rigInstance.Player.VisualRig.DeathEffectsPlaying);
+                } while (elapsed < (playerDied ? 1f : .3f));
                 SetGameplayOpacity(0f);
                 yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
                     rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
@@ -374,6 +384,8 @@ namespace Game
             }
             finally
             {
+                observer.SetManualCenter(null);
+                observer.SetManualZoom(null);
                 observer.enabled = cameraEnabled;
                 SetGameplayOpacity(1f);
             }
@@ -392,7 +404,6 @@ namespace Game
             if (overlay) overlay.SetVisible(false);
             var screen = RunRecapScreen.Create(ui);
             var dismissed = false;
-            PauseRecapClock();
             try
             {
                 show(screen, () => dismissed = true);

@@ -7,7 +7,6 @@ namespace Utils
     {
         private ParticleSystem[] systems;
         private float cachedMaxDuration = -1f;
-        public float EndsAt { get; private set; }
 
         private void Awake()  => systems = GetComponentsInChildren<ParticleSystem>(true);
 
@@ -22,7 +21,6 @@ namespace Utils
                 CalculateMaxDuration();
             }
 
-            EndsAt = Time.time + cachedMaxDuration;
             Invoke(nameof(ReturnToPool), cachedMaxDuration);
         }
 

@@ -16,7 +16,6 @@ namespace Ships.Visuals.Breakup
         private Rigidbody body;
         private IDamageEvents source;
         private bool subscribed;
-        public float DeathEffectsEndAt { get; private set; }
 
         private void Awake()
         {
@@ -67,7 +66,6 @@ namespace Ships.Visuals.Breakup
             SceneManager.MoveGameObjectToScene(debris.gameObject, gameObject.scene);
             debris.transform.localScale = hull.lossyScale;
             debris.Initialize(body.linearVelocity, poseSources);
-            DeathEffectsEndAt = debris.EndsAt;
             hull.gameObject.SetActive(false);
         }
     }
