@@ -108,7 +108,7 @@ namespace Substrate.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Units, Objectives, presentation, entry.config, Frame, hero);
+            sector.Initialize(Units, Objectives, presentation, Frame, hero);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
