@@ -15,11 +15,19 @@ namespace Capture
         Team,
     }
 
+    public enum CaptureFramingMode
+    {
+        Subjects,
+        Observer,
+    }
+
     [Serializable]
     public sealed class CaptureConfig
     {
         public string outputRoot = "results/capture";
         public string clipName = "clip";
+        public string preset;
+        public CaptureFramingMode framing = CaptureFramingMode.Subjects;
         /// <summary>Shared across clips of one run; null → stamped when the episode begins.</summary>
         public string runStamp;
         public int width = 960;

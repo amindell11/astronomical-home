@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -9,8 +12,14 @@ namespace Capture
     public sealed class CaptureArtifacts
     {
         private static readonly Regex SafeName = new("^[A-Za-z0-9_-]+$");
+        private static readonly Regex PhaseColumn = new("^[A-Za-z_][A-Za-z0-9_]*$");
 
         private readonly Manifest manifest;
+        private readonly List<string> phaseColumns = new();
+        private readonly List<float> unscaledSeconds = new();
+        private readonly List<float> simSeconds = new();
+        private readonly List<Dictionary<string, float>> phaseRows = new();
+        private Dictionary<string, float> pendingPhase;
 
         public string FrameDir { get; }
 
@@ -41,6 +50,26 @@ namespace Capture
                 suggestedFps = 1f / (Time.fixedDeltaTime * config.everyFixedSteps),
             };
             WriteManifest();
+            WriteProvenance(config);
+            WritePhases();
+        }
+
+        public void RecordPhase(string column, float value)
+        {
+            if (string.IsNullOrEmpty(column) || !PhaseColumn.IsMatch(column))
+                throw new ArgumentException($"[Capture] phase column must match [A-Za-z_][A-Za-z0-9_]* , got '{column}'.");
+            if (!phaseColumns.Contains(column)) phaseColumns.Add(column);
+            pendingPhase ??= new Dictionary<string, float>();
+            pendingPhase[column] = value;
+        }
+
+        public void CommitFrame()
+        {
+            unscaledSeconds.Add(Time.unscaledTime);
+            simSeconds.Add(Time.time);
+            phaseRows.Add(pendingPhase ?? new Dictionary<string, float>());
+            pendingPhase = null;
+            WritePhases();
         }
 
         public void Complete(CaptureCost cost)
@@ -50,6 +79,7 @@ namespace Capture
             manifest.meanStepMs = cost.MeanMs();
             manifest.medianStepMs = cost.MedianMs();
             WriteManifest();
+            WritePhases();
         }
 
         private static void Validate(CaptureConfig config)
@@ -75,6 +105,68 @@ namespace Capture
         private void WriteManifest() =>
             File.WriteAllText(Path.Combine(FrameDir, "manifest.json"), JsonUtility.ToJson(manifest, true));
 
+        private void WriteProvenance(CaptureConfig config)
+        {
+            var names = QualitySettings.names;
+            var level = QualitySettings.GetQualityLevel();
+            var provenance = new Provenance
+            {
+                source = string.IsNullOrEmpty(config.preset) ? "capture" : config.preset,
+                size = config.width + "x" + config.height,
+                dataKind = "frames",
+                timingBasis = "unscaled",
+                qualityLevel = level >= 0 && level < names.Length ? names[level] : level.ToString(CultureInfo.InvariantCulture),
+                commit = ReadCommit(),
+            };
+            File.WriteAllText(Path.Combine(FrameDir, "provenance.json"), JsonUtility.ToJson(provenance, true));
+        }
+
+        private void WritePhases()
+        {
+            var csv = new StringBuilder();
+            csv.Append("frame,unscaled_seconds,sim_seconds");
+            foreach (var column in phaseColumns) csv.Append(',').Append(column);
+            csv.Append('\n');
+            for (var i = 0; i < unscaledSeconds.Count; i++)
+            {
+                csv.Append(i.ToString(CultureInfo.InvariantCulture)).Append(',');
+                csv.Append(unscaledSeconds[i].ToString("R", CultureInfo.InvariantCulture)).Append(',');
+                csv.Append(simSeconds[i].ToString("R", CultureInfo.InvariantCulture));
+                var row = phaseRows[i];
+                foreach (var column in phaseColumns)
+                {
+                    csv.Append(',');
+                    if (row.TryGetValue(column, out var value))
+                        csv.Append(value.ToString("R", CultureInfo.InvariantCulture));
+                }
+                csv.Append('\n');
+            }
+            File.WriteAllText(Path.Combine(FrameDir, "phases.csv"), csv.ToString());
+        }
+
+        private static string ReadCommit()
+        {
+            var root = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
+            var start = new ProcessStartInfo("git", "rev-parse HEAD")
+            {
+                WorkingDirectory = root,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var process = Process.Start(start);
+            if (process == null)
+                throw new InvalidOperationException($"[Capture] git rev-parse HEAD did not start in {root}.");
+            var sha = process.StandardOutput.ReadToEnd().Trim();
+            var error = process.StandardError.ReadToEnd().Trim();
+            process.WaitForExit();
+            if (process.ExitCode != 0 || sha.Length != 40)
+                throw new InvalidOperationException(
+                    $"[Capture] git rev-parse HEAD failed in {root} (exit {process.ExitCode}): {error}");
+            return sha;
+        }
+
         [Serializable]
         private sealed class Manifest
         {
@@ -86,6 +178,17 @@ namespace Capture
             public int steps;
             public float meanStepMs;
             public float medianStepMs;
+        }
+
+        [Serializable]
+        private sealed class Provenance
+        {
+            public string source;
+            public string size;
+            public string dataKind;
+            public string timingBasis;
+            public string qualityLevel;
+            public string commit;
         }
     }
 }

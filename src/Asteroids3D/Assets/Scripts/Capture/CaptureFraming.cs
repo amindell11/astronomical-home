@@ -13,6 +13,11 @@ namespace Capture
         {
             if (!camera) throw new ArgumentNullException(nameof(camera));
             ValidateSubjects(subjects);
+            if (config != null && config.framing == CaptureFramingMode.Observer)
+            {
+                ApplyObserver(camera, config, subjects);
+                return;
+            }
 
             var min = subjects[0];
             var max = subjects[0];
@@ -32,6 +37,34 @@ namespace Capture
 
             camera.transform.position = GamePlane.PlanePointToWorld(center) - GamePlane.Normal * CameraHeight;
             camera.transform.rotation = GamePlane.Rotation;
+            camera.orthographicSize = halfHeight;
+        }
+
+        private static void ApplyObserver(Camera camera, CaptureConfig config, IReadOnlyList<Vector2> subjects)
+        {
+            var min = subjects[0];
+            var max = subjects[0];
+            for (var i = 1; i < subjects.Count; i++)
+            {
+                min = Vector2.Min(min, subjects[i]);
+                max = Vector2.Max(max, subjects[i]);
+            }
+
+            var center = 0.5f * (min + max);
+            var xExtent = 0.5f * (max.x - min.x);
+            var yExtent = 0.5f * (max.y - min.y);
+            var padding = CapturePreset.ObserverPadding;
+            var halfHeight = Mathf.Max(
+                yExtent + padding,
+                (xExtent + padding) * config.height / config.width);
+            halfHeight = Mathf.Clamp(halfHeight, CapturePreset.ObserverMinZoom, CapturePreset.ObserverMaxZoom);
+
+            var offset = CapturePreset.ObserverPlaneOffset;
+            var worldOffset = GamePlane.Right * offset.x
+                + GamePlane.Forward * offset.y
+                + GamePlane.Normal * offset.z;
+            camera.transform.position = GamePlane.PlanePointToWorld(center) + worldOffset;
+            camera.transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
             camera.orthographicSize = halfHeight;
         }
 

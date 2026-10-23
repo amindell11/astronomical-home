@@ -13,6 +13,16 @@ namespace Capture.GameView
         public bool runInBackground;
         public bool renderGraphCompatibilityMode;
         public bool renderPipelineSettingsDirty;
+        public bool hasEditorExtras;
+        public int qualityLevel;
+        public int ambientMode;
+        public float ambientR;
+        public float ambientG;
+        public float ambientB;
+        public float ambientA;
+        public bool overlayFound;
+        public int overlayValue;
+        public bool overlayHasValue;
         public GameViewState gameView;
         public GizmoState[] gizmos;
 
@@ -106,6 +116,7 @@ namespace Capture.GameView
             Attempt(() => UrpGizmoCaptureAdapter.Restore(state.renderGraphCompatibilityMode), failures);
             Attempt(() => UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(
                 state.renderPipelineSettingsDirty), failures);
+            Attempt(() => CaptureEditorSettings.Restore(state), failures);
             if (failures.Count > 0)
                 throw new AggregateException("Native gizmo capture recovery was incomplete; journal retained.", failures);
             Delete();
