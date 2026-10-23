@@ -30,7 +30,6 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private SectorSettings _config;
         private ItemSubset _pool;
         private EngineModule _chassisEngine;
         private readonly List<GameObject> _created = new();
@@ -44,7 +43,6 @@ namespace Tests.PlayMode
             _unitService = unitServiceGO.AddComponent<UnitService>();
             _objectives = TrackGO(new GameObject("ObjectiveService")).AddComponent<ObjectiveService>();
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
-            _config = ScriptableObject.CreateInstance<SectorSettings>();
             _chassisEngine = ScriptableObject.CreateInstance<EngineModule>();
             _pool = ScriptableObject.CreateInstance<ItemSubset>();
             _pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>() };
@@ -60,7 +58,6 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
-            if (_config != null) { Object.DestroyImmediate(_config); _config = null; }
             if (_chassisEngine != null) { Object.DestroyImmediate(_chassisEngine); _chassisEngine = null; }
             if (_pool != null)
             {
@@ -93,7 +90,7 @@ namespace Tests.PlayMode
             director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
                 new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }, spawnRadius: SpawnRadius, loadouts: _pool);
             sector.SetManifest(null, new SectorSpawner[] { director }, null);
-            sector.Initialize(_unitService, _objectives, true, _config, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player);
             return director;
         }
 
