@@ -1,0 +1,487 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-amind" at "2026-10-23T06:01:22.3240792Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 25796, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              8819a1719898493cbe788b92eef95d13
+  Correlation Id:          8e3a49cabb29ee499310b6a60be7eccd
+  External correlation Id: 1348334665593517594
+  Machine Id:              V9+mLXnp3reVDdboj2LuTfxScEc=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-amind" (connect: 0.00s, validation: 0.02s, handshake: 0.09s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-amind-notifications" at "2026-10-23T06:01:22.4325236Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Serial number assigned to: "1375767455228-UnityPersXXXX"
+[Licensing::Client] Successfully updated license, isAync: True, time: 0.07
+Built from '6000.1/staging' branch; Version is '6000.1.8f1 (2a5b1522e5ab) revision 2775829'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) 64bit Professional' Language: 'en' Physical Memory: 32265 MB
+[Licensing::Client] Successfully resolved entitlement details
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+Date: 2026-10-23T06:01:22Z
+
+COMMAND LINE ARGUMENTS:
+D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe
+-projectPath
+D:\amind\git\agent-13\src\Asteroids3D
+-batchmode
+-nographics
+-executeMethod
+RL.Hosts.TrainingBootstrap.RunHarness
+-logFile
+C:\Users\amind\AppData\Local\Temp\railgun-skill\new-high\duel-railgun-20261022-230117-611192\editor.log
+Successfully changed project path to: D:\amind\git\agent-13\src\Asteroids3D
+D:/amind/git/agent-13/src/Asteroids3D
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [27628]  Target information:
+
+Player connection [27628]  * "[IP] 192.168.1.68 [Port] 55504 [Flags] 2 [Guid] 1381059950 [EditorId] 1381059950 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [27628]  * "[IP] 172.30.16.1 [Port] 55504 [Flags] 2 [Guid] 1381059950 [EditorId] 1381059950 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [27628]  * "[IP] 100.123.209.37 [Port] 55504 [Flags] 2 [Guid] 1381059950 [EditorId] 1381059950 [Version] 1048832 [Id] WindowsEditor(7,MORDECHAI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [27628] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [27628] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-28036" after 0.4 seconds.
+Library Redirect Path: Library/
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 66 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.burst@1.8.21 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.burst@59eb6f11d242)
+    com.unity.dedicated-server@1.5.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.dedicated-server@dca6cdc970c8)
+    com.unity.ide.rider@3.0.36 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ide.rider@4d374c7eb6db)
+    com.unity.ide.visualstudio@2.0.23 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ide.visualstudio@198cdf337d13)
+    com.unity.ide.vscode@1.2.5 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ide.vscode@82e68656b7bd)
+    com.unity.inputsystem@1.14.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.inputsystem@7fe8299111a7)
+    com.unity.mathematics@1.3.2 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.mathematics@8017b507cc74)
+    com.unity.memoryprofiler@1.1.6 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.memoryprofiler@a81a96b9c9bd)
+    com.unity.ml-agents@4.0.3 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ml-agents@f1016d3568fd)
+    com.unity.postprocessing@3.4.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.postprocessing@026b2a0827a4)
+    com.unity.recorder@5.1.2 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.recorder@979a3db2a781)
+    com.unity.timeline@1.8.7 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.timeline@c58b4ee65782)
+    com.unity.pipeline@0.7.0-exp.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74)
+    com.unity.nuget.mono-cecil@1.11.6 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.nuget.newtonsoft-json@3.2.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.nuget.newtonsoft-json@74deb55db2a0)
+    com.unity.searcher@4.9.3 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.searcher@1e17ce91558d)
+    com.unity.collections@2.5.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.collections@56bff8827a7e)
+    com.unity.bindings.openimageio@1.0.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.bindings.openimageio@3229d2aa5c76)
+    com.unity.ai.inference@2.6.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ai.inference@9a123aee5df7)
+    com.unity.profiling.core@1.0.2 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.profiling.core@aac7b93912bc)
+    com.unity.editorcoroutines@1.0.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.editorcoroutines@7d48783e7b8c)
+    com.unity.test-framework.performance@3.1.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.test-framework.performance@92d1d09a72ed)
+    com.unity.dt.app-ui@1.3.6 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.dt.app-ui@3bbd9e4c5c92)
+  Built-in packages:
+    com.unity.ext.nunit@2.0.5 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ext.nunit@031a54704bff)
+    com.unity.render-pipelines.core@17.1.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.core@71b4bdac1964)
+    com.unity.render-pipelines.universal@17.1.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.universal@a19b2562c494)
+    com.unity.shadergraph@17.1.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.shadergraph@e5d3455aa133)
+    com.unity.test-framework@1.5.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.test-framework@7056e7f856e9)
+    com.unity.ugui@2.0.0 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.ugui@57cef44123c7)
+    com.unity.modules.accessibility@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.accessibility)
+    com.unity.modules.ai@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.screencapture)
+    com.unity.modules.subsystems@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.subsystems)
+    com.unity.modules.terrain@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.xr)
+    com.unity.modules.hierarchycore@1.0.0 (location: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.hierarchycore)
+    com.unity.render-pipelines.universal-config@17.0.3 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.render-pipelines.universal-config@8dc1aab4af1d)
+    com.unity.rendering.light-transport@1.0.1 (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.unity.rendering.light-transport@e647573c7d2a)
+  Local Tarball packages:
+    com.fmod.fmod-for-unity.v204@file:D:\amind\git\vendor\fmod\fmodstudio20400.tgz (location: D:\amind\git\agent-13\src\Asteroids3D\Library\PackageCache\com.fmod.fmod-for-unity.v204@0266b99900e5)
+[Package Manager] com.unity.ide.vscode is deprecated: Visual Studio Code package is not supported anymore. You can continue to use it, but we won't provide any update anymore.
+Unable to parse file ProjectSettings/TagManager.asset: [Parser Failure at line 52: Expect ':' between key and value within mapping]
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+[Subsystems] No new subsystems found in resolved package list.
+Package Manager log level set to [2]
+[Package Manager] Done registering packages in 0.30 seconds
+Artifact Garbage Collection - Removed 1 unused hashed content files
+Refreshing native plugins compatible for Editor in 43.84 ms, found 9 plugins.
+Preloading 1 native plugins for Editor in 0.98 ms.
+Initialize engine version: 6000.1.8f1 (2a5b1522e5ab)
+[Subsystems] Discovering subsystems at path D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/amind/git/agent-13/src/Asteroids3D/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+[Licensing::Client] Successfully resolved entitlement details
+Initialize mono
+Mono path[0] = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/Managed'
+Mono path[1] = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56036
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.002371 seconds.
+- Loaded All Assemblies, in  0.515 seconds
+Native extension for WindowsStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.516 seconds
+Domain Reload Profiling: 1029ms
+	BeginReloadAssembly (187ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (1ms)
+	RebuildCommonClasses (44ms)
+	RebuildNativeTypeToScriptingClass (19ms)
+	initialDomainReloadingComplete (69ms)
+	LoadAllAssembliesAndSetupDomain (194ms)
+		LoadAssemblies (182ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (190ms)
+			TypeCache.Refresh (188ms)
+				TypeCache.ScanAssembly (169ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (517ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (467ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (78ms)
+			SetLoadedEditorAssemblies (5ms)
+			BeforeProcessingInitializeOnLoad (110ms)
+			ProcessInitializeOnLoadAttributes (189ms)
+			ProcessInitializeOnLoadMethodAttributes (85ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+Starting: D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: D:/amind/git/agent-13/src/Asteroids3D
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 1s122ms
+[ 908/1188  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (0.73 seconds), 1 items updated, 1188 evaluated
+AssetDatabase: script compilation time: 1.868518s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.351 seconds
+Refreshing native plugins compatible for Editor in 20.42 ms, found 9 plugins.
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 18.32 ms, found 9 plugins.
+Start HTTP server: port:7800
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  4.842 seconds
+Domain Reload Profiling: 6186ms
+	BeginReloadAssembly (348ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (18ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (138ms)
+	RebuildCommonClasses (51ms)
+	RebuildNativeTypeToScriptingClass (16ms)
+	initialDomainReloadingComplete (91ms)
+	LoadAllAssembliesAndSetupDomain (837ms)
+		LoadAssemblies (553ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (428ms)
+			TypeCache.Refresh (324ms)
+				TypeCache.ScanAssembly (307ms)
+			BuildScriptInfoCaches (79ms)
+			ResolveRequiredComponents (18ms)
+	FinalizeReload (4843ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (4491ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (30ms)
+			SetLoadedEditorAssemblies (7ms)
+			BeforeProcessingInitializeOnLoad (260ms)
+			ProcessInitializeOnLoadAttributes (3947ms)
+			ProcessInitializeOnLoadMethodAttributes (241ms)
+			AfterProcessingInitializeOnLoad (6ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (16ms)
+Start importing Assets/Settings/AI/Aim/AimSettings_AIPilot.asset using Guid(422a8f35adcc471699e62938dbdf3cc2) (NativeFormatImporter) -> (artifact id: '39f8bf73dbbc5a93526cbdbac13416ba') in 0.0124459 seconds
+Refreshing native plugins compatible for Editor in 13.47 ms, found 9 plugins.
+Preloading 1 native plugins for Editor in 0.11 ms.
+Asset Pipeline Refresh (id=477081d67dbdb114c9de99f977376807): Total: 10.252 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=3 ms, native=6575 ms
+		Asset DB Callback time: managed=286 ms, native=72 ms
+		Scripting: domain reloads=1, domain reload time=1352 ms, compile time=1871 ms, other=90 ms
+		Project Asset Count: scripts=1746, non-scripts=3294
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 309.945ms
+	ApplyChangesToAssetFolders: 0.634ms
+	Scan: 870.457ms
+	OnSourceAssetsModified: 1.620ms
+	CategorizeAssetsWithTransientArtifact: 61.902ms
+	ProcessAssetsWithTransientArtifactChanges: 122.915ms
+	CategorizeAssets: 84.960ms
+	ImportOutOfDateAssets: 4933.486ms (3044.915ms without children)
+		ImportManagerImport: 14.610ms (1.639ms without children)
+			ImportInProcess: 12.972ms
+		CompileScripts: 1870.639ms
+		ReloadNativeAssets: 0.074ms
+		UnloadImportedAssets: 1.038ms
+		ReloadImportedAssets: 0.000ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.441ms
+		InitializingProgressBar: 0.012ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 0.755ms
+	PostProcessAllAssets: 291.675ms
+	Hotreload: 16.148ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.001ms
+	UnloadStreamsBegin: 3.250ms
+	PersistCurrentRevisions: 0.255ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 5.820ms
+	Untracked: 3554.274ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 31.679ms
+Initializing Unity extensions:
+[Licensing::Client] Successfully resolved entitlement details
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Astronomical
+Unloading 113 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7370 unused Assets / (12.1 MB). Loaded Objects now: 7924.
+Memory consumption went from 228.3 MB to 216.2 MB.
+Total: 19.006500 ms (FindLiveObjects: 1.457400 ms CreateObjectMapping: 1.247600 ms MarkObjects: 11.483700 ms  DeleteObjects: 4.815400 ms)
+
+Unloading 118 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 2043 unused Assets / (453.1 KB). Loaded Objects now: 7929.
+Memory consumption went from 238.5 MB to 238.1 MB.
+Total: 11.853700 ms (FindLiveObjects: 0.561400 ms CreateObjectMapping: 0.273900 ms MarkObjects: 9.496800 ms  DeleteObjects: 1.519800 ms)
+
+Microsoft Media Foundation video decoding to texture disabled: graphics device is Null, only Direct3D 11 and Direct3D 12 (only on desktop) are supported for hardware-accelerated video decoding.
+[Project] Loading completed in 15.688 seconds
+	Project init time: 				14.692 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.350 seconds
+		Asset Database init time: 		0.630 seconds
+		Global illumination init time: 	0.005 seconds
+		Assemblies load time: 			1.057 seconds
+		Unity extensions init time: 	0.014 seconds
+		Asset Database refresh time: 	10.252 seconds
+	Scene opening time: 			0.554 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1792735297993,"processId":28036,"projectLoad":15.687570500000002,"projectInit":14.6917167,"templateInit":0.0,"packageManagerInit":0.3502206,"assetDatabaseInit":0.6299809,"globalIlluminationInit":0.0048376,"assembliesLoad":1.0565558,"unityExtensionsInit":0.0144691,"assetDatabaseRefresh":10.2517099,"sceneOpening":0.5539539}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1792735297993,"processId":28036,"editorVersion":"6000.1.8f1 (2a5b1522e5ab)","branch":"6000.1/staging","buildType":"Release","platform":"Windows"}
+Reloading assemblies for play mode.
+Reloading assemblies after forced synchronous recompile.
+Begin MonoManager ReloadAssembly
+23:01:38.231 |V| RiderPlugin                    | :1                             | AppDomain.CurrentDomain.DomainUnload lifetimeDefinition.Terminate
+- Loaded All Assemblies, in  1.124 seconds
+Refreshing native plugins compatible for Editor in 17.94 ms, found 9 plugins.
+Native extension for WindowsStandalone target not found
+Start HTTP server: port:7800
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.687 seconds
+Domain Reload Profiling: 2806ms
+	BeginReloadAssembly (606ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (27ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (388ms)
+	RebuildCommonClasses (42ms)
+	RebuildNativeTypeToScriptingClass (13ms)
+	initialDomainReloadingComplete (63ms)
+	LoadAllAssembliesAndSetupDomain (395ms)
+		LoadAssemblies (236ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (285ms)
+			TypeCache.Refresh (8ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (256ms)
+			ResolveRequiredComponents (14ms)
+	FinalizeReload (1687ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1244ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (30ms)
+			SetLoadedEditorAssemblies (5ms)
+			BeforeProcessingInitializeOnLoad (261ms)
+			ProcessInitializeOnLoadAttributes (718ms)
+			ProcessInitializeOnLoadMethodAttributes (223ms)
+			AfterProcessingInitializeOnLoad (7ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (70ms)
+Asset Pipeline Refresh (id=2a2d88d7efa66d3479df5b87a4c5a10b): Total: 3.318 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=2080 ms
+		Asset DB Callback time: managed=32 ms, native=54 ms
+		Scripting: domain reloads=1, domain reload time=1147 ms, compile time=2 ms, other=0 ms
+		Project Asset Count: scripts=1746, non-scripts=3294
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 255.534ms
+	ApplyChangesToAssetFolders: 0.512ms
+	Scan: 0.001ms
+	OnSourceAssetsModified: 0.002ms
+	CategorizeAssetsWithTransientArtifact: 0.004ms
+	ProcessAssetsWithTransientArtifactChanges: 6.762ms
+	CategorizeAssets: 86.250ms
+	ImportOutOfDateAssets: 1737.849ms (1728.268ms without children)
+		CompileScripts: 2.447ms
+		CollectScriptTypesHashes: 4.011ms
+		ReloadNativeAssets: 1.449ms
+		UnloadImportedAssets: 0.153ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.072ms
+		InitializingProgressBar: 0.000ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.449ms
+	PostProcessAllAssets: 32.573ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.262ms
+	UnloadStreamsBegin: 0.862ms
+	PersistCurrentRevisions: 0.187ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 7.885ms
+	Untracked: 1196.779ms
+
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            0.697 ms
+	Integration:            1476.850 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.026 ms
+	Total Operation Time:   1477.576 ms
+Asset Pipeline Refresh (id=e673c8bcff9b36d49953e87bc5445243): Total: 0.064 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+Created GICache directory at C:/Users/amind/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.038s, timestamps: [20.794 - 20.832]
+[DuelLane] Railgun-Dummy: episodes=6
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+RL.Hosts.Lanes.DuelLane/<RunLane>d__8:MoveNext () (at Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs:102)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs Line: 102)
+
+[DuelLane] Railgun-Orbiter: episodes=6
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+RL.Hosts.Lanes.DuelLane/<RunLane>d__8:MoveNext () (at Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs:102)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs Line: 102)
+
+[DuelLane] summary → C:\Users\amind\AppData\Local\Temp\railgun-skill\new-high\duel-railgun-20261022-230117-611192\20261022-230142-duel-custom-summary.json
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+RL.Hosts.Lanes.DuelLane/<RunLane>d__8:MoveNext () (at Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs:103)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+(Filename: Assets/Scripts/RL/Hosts/Lanes/DuelLane.cs Line: 103)
+
+Pipeline Server stopped
+[Physics::Module] Cleanup current backned.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-amind-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-amind channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+23:01:46.745 |V| RiderPlugin                    | :1                             | AppDomain.CurrentDomain.DomainUnload lifetimeDefinition.Terminate
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1792735306994,"processId":28036,"allocatedMemory":14874731,"memoryLabels":[{"Default":26077},{"Permanent":15412},{"NewDelete":69185},{"Thread":4230344},{"Manager":33690},{"VertexData":8},{"Geometry":816},{"VFX":-104},{"Texture":568},{"Shader":78803},{"Material":24},{"GfxDevice":55208},{"Animation":328},{"Audio":4040},{"FontEngine":256},{"Physics":1241},{"Serialization":880},{"Input":14824},{"JobScheduler":35760},{"TextLib":160},{"Mono":32},{"ScriptingNativeRuntime":155060},{"BaseObject":1619952},{"Resource":1304},{"Renderer":2928},{"Transform":4646},{"File":1016},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":14275},{"DynamicArray":118583},{"HashMap":113680},{"Utility":2666358},{"Curl":48},{"PoolAlloc":2680},{"AI":40},{"TypeTree":5005},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7824},{"Director":8240},{"CloudService":7784},{"WebRequest":808},{"VR":46058},{"SceneManager":496},{"Video":64},{"LazyScriptCache":32},{"NativeArray":8},{"Camera":17},{"Secure":1},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":560},{"Hierarchy":272},{"Gui":80},{"EditorUtility":119319},{"VersionControl":4},{"Undo":947},{"AssetDatabase":4992035},{"EditorGi":328},{"UnityConnect":24536},{"Upm":1972},{"DrivenProperties":72},{"LocalIPC":260},{"ProfilerEditor":9738},{"CoreBusinessMetrics":15019},{"Licensing":3624},{"AssetReference":32},{"IPCStream":32}]}

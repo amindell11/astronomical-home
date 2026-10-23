@@ -1,0 +1,28 @@
+{
+    "schema": "duel-summary-v1",
+    "seeds": [
+        3001,
+        3002,
+        3003
+    ],
+    "episodesPerSeed": 2,
+    "timeoutDecisions": 300,
+    "blocks": [
+        {
+            "label": "Railgun-Dummy",
+            "episodes": 6
+        },
+        {
+            "label": "Railgun-Orbiter",
+            "episodes": 6
+        }
+    ],
+    "episodesJsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\railgun-skill\\old-low\\duel-railgun-20261022-225122-445531\\20261022-225157-duel-custom.jsonl",
+    "probes": [
+        {
+            "name": "marksmanship",
+            "jsonl": "C:\\Users\\amind\\AppData\\Local\\Temp\\railgun-skill\\old-low\\duel-railgun-20261022-225122-445531\\20261022-225157-duel-custom-marksmanship.jsonl",
+            "summary": "C:\\Users\\amind\\AppData\\Local\\Temp\\railgun-skill\\old-low\\duel-railgun-20261022-225122-445531\\20261022-225157-duel-custom-marksmanship-probe.json"
+        }
+    ]
+}

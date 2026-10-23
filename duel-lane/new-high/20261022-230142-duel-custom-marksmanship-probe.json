@@ -1,0 +1,53 @@
+{
+    "schema": "marksmanship-summary-v1",
+    "blocks": [
+        {
+            "block": "Railgun-Dummy",
+            "weapon": "Railgun",
+            "target": "Dummy",
+            "episodes": 6,
+            "kills": 6,
+            "meanTimeToKill": 4.57999849319458,
+            "simSeconds": 27.479991912841798,
+            "fired": 18,
+            "hits": 18,
+            "hitRate": 1.0,
+            "damageDealt": 689.9999389648438,
+            "envelopeShare": 0.8706140518188477,
+            "meanCrossingSpeed": 0.0,
+            "selfHits": 0,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": true,
+            "fullChargeShots": 18,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 0
+        },
+        {
+            "block": "Railgun-Orbiter",
+            "weapon": "Railgun",
+            "target": "Orbiter",
+            "episodes": 6,
+            "kills": 6,
+            "meanTimeToKill": 5.379998683929443,
+            "simSeconds": 32.279991149902347,
+            "fired": 21,
+            "hits": 19,
+            "hitRate": 0.9047619104385376,
+            "damageDealt": 710.8799438476563,
+            "envelopeShare": 0.8208954930305481,
+            "meanCrossingSpeed": 6.882755279541016,
+            "selfHits": 0,
+            "hasLock": false,
+            "guidedLaunches": 0,
+            "unguidedLaunches": 0,
+            "hasCharge": true,
+            "fullChargeShots": 21,
+            "earlyShots": 0,
+            "meanEarlyCharge": 0.0,
+            "droppedCharges": 1
+        }
+    ]
+}

@@ -1,0 +1,1136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="129" result="Failed(Child)" total="129" passed="128" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:52Z" duration="33.5842089">
+  <test-suite type="TestSuite" id="1481" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="360" result="Failed" site="Child" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:52Z" duration="33.584209" total="129" passed="128" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1459" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-13/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="356" result="Failed" site="Child" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:52Z" duration="33.570289" total="129" passed="128" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="46620" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1460" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="356" result="Failed" site="Child" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:52Z" duration="33.568053" total="129" passed="128" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1461" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="356" result="Failed" site="Child" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:52Z" duration="33.566190" total="129" passed="128" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1001" name="AgentDecisionSeedPlayModeTests" fullname="Tests.PlayMode.AgentDecisionSeedPlayModeTests" classname="Tests.PlayMode.AgentDecisionSeedPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:19Z" duration="0.329082" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1003" name="EpisodeReset_ViaClear_ReproducesDecisionSeeds" fullname="Tests.PlayMode.AgentDecisionSeedPlayModeTests.EpisodeReset_ViaClear_ReproducesDecisionSeeds" methodname="EpisodeReset_ViaClear_ReproducesDecisionSeeds" classname="Tests.PlayMode.AgentDecisionSeedPlayModeTests" runstate="Runnable" seed="561253270" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:19Z" duration="0.252791" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="SpawnedAgents_HaveDistinctNonzeroDecisionSeeds" fullname="Tests.PlayMode.AgentDecisionSeedPlayModeTests.SpawnedAgents_HaveDistinctNonzeroDecisionSeeds" methodname="SpawnedAgents_HaveDistinctNonzeroDecisionSeeds" classname="Tests.PlayMode.AgentDecisionSeedPlayModeTests" runstate="Runnable" seed="893312170" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:19Z" duration="0.022871" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="SpawnOrder_ReproducesDecisionSeeds_AcrossReconstructedSessions" fullname="Tests.PlayMode.AgentDecisionSeedPlayModeTests.SpawnOrder_ReproducesDecisionSeeds_AcrossReconstructedSessions" methodname="SpawnOrder_ReproducesDecisionSeeds_AcrossReconstructedSessions" classname="Tests.PlayMode.AgentDecisionSeedPlayModeTests" runstate="Runnable" seed="940608807" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:19Z" duration="0.032539" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1005" name="AiCommanderDeterminismPlayModeTests" fullname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests" classname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:20Z" duration="1.053596" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+              <property name="Category" value="Slow" />
+            </properties>
+            <test-case id="1007" name="CombatExit_TimerAdvancesOnSimTime_NotWallClock" fullname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests.CombatExit_TimerAdvancesOnSimTime_NotWallClock" methodname="CombatExit_TimerAdvancesOnSimTime_NotWallClock" classname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests" runstate="Runnable" seed="544668664" result="Passed" start-time="2026-10-23 05:59:19Z" end-time="2026-10-23 05:59:20Z" duration="1.032102" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+            </test-case>
+            <test-case id="1006" name="CommanderPath_SameDecisionSeed_DistinctShips_PlanIdentically" fullname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests.CommanderPath_SameDecisionSeed_DistinctShips_PlanIdentically" methodname="CommanderPath_SameDecisionSeed_DistinctShips_PlanIdentically" classname="Tests.PlayMode.AiCommanderDeterminismPlayModeTests" runstate="Runnable" seed="460343683" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.014059" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1008" name="AimServoPlayModeTests" fullname="Tests.PlayMode.AimServoPlayModeTests" classname="Tests.PlayMode.AimServoPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.091770" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1009" name="FullAuthorityAim_HoldsTheNoseOnAStillTarget_WithinASecond" fullname="Tests.PlayMode.AimServoPlayModeTests.FullAuthorityAim_HoldsTheNoseOnAStillTarget_WithinASecond" methodname="FullAuthorityAim_HoldsTheNoseOnAStillTarget_WithinASecond" classname="Tests.PlayMode.AimServoPlayModeTests" runstate="Runnable" seed="895493083" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.089423" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1020" name="ChargeTargetMarkersPlayModeTests" fullname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" classname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.048000" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1023" name="HiddenOverlay_HidesLiveAndNewMarkers" fullname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests.HiddenOverlay_HidesLiveAndNewMarkers" methodname="HiddenOverlay_HidesLiveAndNewMarkers" classname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" runstate="Runnable" seed="1733407341" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.010140" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="Launch_AddsAMarkerAtTheTargetPoint_UntilTheChargeEnds" fullname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests.Launch_AddsAMarkerAtTheTargetPoint_UntilTheChargeEnds" methodname="Launch_AddsAMarkerAtTheTargetPoint_UntilTheChargeEnds" classname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" runstate="Runnable" seed="1887839840" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.003990" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1024" name="OverlayPrefab_CarriesTheChargeMarkers" fullname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests.OverlayPrefab_CarriesTheChargeMarkers" methodname="OverlayPrefab_CarriesTheChargeMarkers" classname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" runstate="Runnable" seed="552440807" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.027491" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1022" name="Rebind_DropsTheOldSourcesAndTheirMarkers" fullname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests.Rebind_DropsTheOldSourcesAndTheirMarkers" methodname="Rebind_DropsTheOldSourcesAndTheirMarkers" classname="Tests.PlayMode.ChargeTargetMarkersPlayModeTests" runstate="Runnable" seed="1582391882" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:20Z" duration="0.003326" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1043" name="ConcussionGrenadePlayModeTests" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:28Z" duration="7.772386" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1047" name="Charge_ComesToRestOnTheTargetPoint_AndDetonatesThere" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Charge_ComesToRestOnTheTargetPoint_AndDetonatesThere" methodname="Charge_ComesToRestOnTheTargetPoint_AndDetonatesThere" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="857365985" result="Passed" start-time="2026-10-23 05:59:20Z" end-time="2026-10-23 05:59:21Z" duration="0.778668" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1051" name="ContactAfterArming_Detonates" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.ContactAfterArming_Detonates" methodname="ContactAfterArming_Detonates" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="691566971" result="Passed" start-time="2026-10-23 05:59:21Z" end-time="2026-10-23 05:59:22Z" duration="0.668240" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1050" name="ContactBeforeArming_DoesNotDetonate" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.ContactBeforeArming_DoesNotDetonate" methodname="ContactBeforeArming_DoesNotDetonate" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="45329041" result="Passed" start-time="2026-10-23 05:59:22Z" end-time="2026-10-23 05:59:23Z" duration="0.999749" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1061" name="Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt" methodname="Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1074970564" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:23Z" duration="0.006627" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1052" name="EnemyShipInProximityRadius_DetonatesTheChargeOnArming_WithoutContact" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.EnemyShipInProximityRadius_DetonatesTheChargeOnArming_WithoutContact" methodname="EnemyShipInProximityRadius_DetonatesTheChargeOnArming_WithoutContact" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1988077909" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:23Z" duration="0.612910" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1044" name="EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst" methodname="EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="359179077" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:23Z" duration="0.001338" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1056" name="Grenade_ShotBeforeArming_DetonatesImmediately" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Grenade_ShotBeforeArming_DetonatesImmediately" methodname="Grenade_ShotBeforeArming_DetonatesImmediately" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1963641789" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:23Z" duration="0.001904" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1045" name="Launch_HeadsStraightAtTheTargetPoint_WithoutTheShooterVelocity" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Launch_HeadsStraightAtTheTargetPoint_WithoutTheShooterVelocity" methodname="Launch_HeadsStraightAtTheTargetPoint_WithoutTheShooterVelocity" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1471858295" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:23Z" duration="0.001451" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1046" name="Launch_IsAnnouncedOnTheWeaponReadouts_UntilTheChargeEnds" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Launch_IsAnnouncedOnTheWeaponReadouts_UntilTheChargeEnds" methodname="Launch_IsAnnouncedOnTheWeaponReadouts_UntilTheChargeEnds" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="251539493" result="Passed" start-time="2026-10-23 05:59:23Z" end-time="2026-10-23 05:59:24Z" duration="0.613639" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1055" name="OwnerFire_DetonatesTheCharge" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.OwnerFire_DetonatesTheCharge" methodname="OwnerFire_DetonatesTheCharge" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1359280540" result="Passed" start-time="2026-10-23 05:59:24Z" end-time="2026-10-23 05:59:24Z" duration="0.082234" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1054" name="OwnerHull_DoesNotDetonateTheCharge" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.OwnerHull_DoesNotDetonateTheCharge" methodname="OwnerHull_DoesNotDetonateTheCharge" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1120309850" result="Passed" start-time="2026-10-23 05:59:24Z" end-time="2026-10-23 05:59:24Z" duration="0.037222" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1053" name="OwnerShipInProximityRadius_NeverDetonatesTheCharge" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.OwnerShipInProximityRadius_NeverDetonatesTheCharge" methodname="OwnerShipInProximityRadius_NeverDetonatesTheCharge" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="672840234" result="Passed" start-time="2026-10-23 05:59:24Z" end-time="2026-10-23 05:59:25Z" duration="1.280219" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1049" name="PointBlankCharge_HoldsInPlace_AndDetonatesTheMomentItArms" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.PointBlankCharge_HoldsInPlace_AndDetonatesTheMomentItArms" methodname="PointBlankCharge_HoldsInPlace_AndDetonatesTheMomentItArms" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1490693934" result="Passed" start-time="2026-10-23 05:59:25Z" end-time="2026-10-23 05:59:26Z" duration="0.619585" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1048" name="TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires" methodname="TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="733538986" result="Passed" start-time="2026-10-23 05:59:26Z" end-time="2026-10-23 05:59:26Z" duration="0.002194" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1059" name="Wave_ChainDetonatesAnotherCharge" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Wave_ChainDetonatesAnotherCharge" methodname="Wave_ChainDetonatesAnotherCharge" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1934270996" result="Passed" start-time="2026-10-23 05:59:26Z" end-time="2026-10-23 05:59:26Z" duration="0.021444" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1057" name="Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff" methodname="Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="918133991" result="Passed" start-time="2026-10-23 05:59:26Z" end-time="2026-10-23 05:59:27Z" duration="0.675313" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1058" name="Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere_NorItsBroadphaseVolume" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere_NorItsBroadphaseVolume" methodname="Wave_PushesAtTheHullPoint_SpinningAClippedLongHull_NotASquareOnSphere_NorItsBroadphaseVolume" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="39658434" result="Passed" start-time="2026-10-23 05:59:27Z" end-time="2026-10-23 05:59:27Z" duration="0.679659" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1060" name="Wave_SweepsMoreTargetsThanTheQueryBuffer" fullname="Tests.PlayMode.ConcussionGrenadePlayModeTests.Wave_SweepsMoreTargetsThanTheQueryBuffer" methodname="Wave_SweepsMoreTargetsThanTheQueryBuffer" classname="Tests.PlayMode.ConcussionGrenadePlayModeTests" runstate="Runnable" seed="1089507118" result="Passed" start-time="2026-10-23 05:59:27Z" end-time="2026-10-23 05:59:28Z" duration="0.680451" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1062" name="DuelLanePlayModeTests" fullname="Tests.PlayMode.DuelLanePlayModeTests" classname="Tests.PlayMode.DuelLanePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:28Z" end-time="2026-10-23 05:59:29Z" duration="0.993306" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1063" name="DuelBlock_RunsHeadlessAndTheMarksmanshipProbeCountsShotsAndHits" fullname="Tests.PlayMode.DuelLanePlayModeTests.DuelBlock_RunsHeadlessAndTheMarksmanshipProbeCountsShotsAndHits" methodname="DuelBlock_RunsHeadlessAndTheMarksmanshipProbeCountsShotsAndHits" classname="Tests.PlayMode.DuelLanePlayModeTests" runstate="Runnable" seed="1129695203" result="Passed" start-time="2026-10-23 05:59:28Z" end-time="2026-10-23 05:59:29Z" duration="0.978510" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1064" name="Sampler_CountsOnlyTheShootersNonCollisionDamageAsHits" fullname="Tests.PlayMode.DuelLanePlayModeTests.Sampler_CountsOnlyTheShootersNonCollisionDamageAsHits" methodname="Sampler_CountsOnlyTheShootersNonCollisionDamageAsHits" classname="Tests.PlayMode.DuelLanePlayModeTests" runstate="Runnable" seed="891535632" result="Passed" start-time="2026-10-23 05:59:29Z" end-time="2026-10-23 05:59:29Z" duration="0.011219" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1098" name="HeatOverheatStressPlayModeTests" fullname="Tests.PlayMode.HeatOverheatStressPlayModeTests" classname="Tests.PlayMode.HeatOverheatStressPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:29Z" end-time="2026-10-23 05:59:29Z" duration="0.335956" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1099" name="Weapon_OverheatsThenRecovers_ThroughRealFireFlow" fullname="Tests.PlayMode.HeatOverheatStressPlayModeTests.Weapon_OverheatsThenRecovers_ThroughRealFireFlow" methodname="Weapon_OverheatsThenRecovers_ThroughRealFireFlow" classname="Tests.PlayMode.HeatOverheatStressPlayModeTests" runstate="Runnable" seed="691408725" result="Passed" start-time="2026-10-23 05:59:29Z" end-time="2026-10-23 05:59:29Z" duration="0.333688" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1100" name="InferencePilotPlayModeTests" fullname="Tests.PlayMode.InferencePilotPlayModeTests" classname="Tests.PlayMode.InferencePilotPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:29Z" end-time="2026-10-23 05:59:34Z" duration="4.646082" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1101" name="InferenceBrain_SelfHosts_AndDecidesAtTrainedCadence" fullname="Tests.PlayMode.InferencePilotPlayModeTests.InferenceBrain_SelfHosts_AndDecidesAtTrainedCadence" methodname="InferenceBrain_SelfHosts_AndDecidesAtTrainedCadence" classname="Tests.PlayMode.InferencePilotPlayModeTests" runstate="Runnable" seed="23773817" result="Passed" start-time="2026-10-23 05:59:29Z" end-time="2026-10-23 05:59:34Z" duration="4.616952" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Registered Communicator in Agent.
+Couldn't connect to trainer on port 5004 using API version 1.5.0. Will perform inference instead.
+[InferencePilot warm-up] cold init to first decision: 4.531s realtime over 3 fixed steps
+]]></output>
+            </test-case>
+            <test-case id="1102" name="InferenceBrain_TornDownBeforeFirstBoundary_DoesNotThrow" fullname="Tests.PlayMode.InferencePilotPlayModeTests.InferenceBrain_TornDownBeforeFirstBoundary_DoesNotThrow" methodname="InferenceBrain_TornDownBeforeFirstBoundary_DoesNotThrow" classname="Tests.PlayMode.InferencePilotPlayModeTests" runstate="Runnable" seed="1121395784" result="Passed" start-time="2026-10-23 05:59:34Z" end-time="2026-10-23 05:59:34Z" duration="0.026697" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[InferencePilot warm-up] cold init to first decision: 0.013s realtime over 3 fixed steps
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestSuite" id="1467" name="Keystones" fullname="Tests.PlayMode.Keystones" runstate="Runnable" testcasecount="14" result="Failed" site="Child" start-time="2026-10-23 05:59:34Z" end-time="2026-10-23 05:59:36Z" duration="2.333786" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1397" name="RamSightPlayModeTests" fullname="Tests.PlayMode.Keystones.RamSightPlayModeTests" classname="Tests.PlayMode.Keystones.RamSightPlayModeTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-10-23 05:59:34Z" end-time="2026-10-23 05:59:36Z" duration="2.332313" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="AI" />
+              </properties>
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1398" name="ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive" fullname="Tests.PlayMode.Keystones.RamSightPlayModeTests.ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive" methodname="ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive" classname="Tests.PlayMode.Keystones.RamSightPlayModeTests" runstate="Runnable" seed="627811566" result="Failed" start-time="2026-10-23 05:59:34Z" end-time="2026-10-23 05:59:36Z" duration="2.330085" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  a ram landed on the target
+  Expected: not <empty>
+  But was:  <empty>
+]]></message>
+                  <stack-trace><![CDATA[at Tests.PlayMode.Keystones.RamSightPlayModeTests+<ScriptedBulwark_RamsThroughItsSight_AndFliesAtTheTargetWhileTheRamIsLive>d__5.MoveNext () [0x002a7] in D:\amind\git\agent-13\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\Keystones\RamSightPlayModeTests.cs:68
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1160" name="MissileEvasionPlayModeTests" fullname="Tests.PlayMode.MissileEvasionPlayModeTests" classname="Tests.PlayMode.MissileEvasionPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 05:59:36Z" end-time="2026-10-23 05:59:37Z" duration="0.138398" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1162" name="EvasionOff_TrackingMissile_LeavesTheLaw" fullname="Tests.PlayMode.MissileEvasionPlayModeTests.EvasionOff_TrackingMissile_LeavesTheLaw" methodname="EvasionOff_TrackingMissile_LeavesTheLaw" classname="Tests.PlayMode.MissileEvasionPlayModeTests" runstate="Runnable" seed="1738778530" result="Passed" start-time="2026-10-23 05:59:36Z" end-time="2026-10-23 05:59:37Z" duration="0.059384" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1161" name="EvasionOn_AfterReactionDelay_BlendsTowardEscapeEasesFacingAndBoosts" fullname="Tests.PlayMode.MissileEvasionPlayModeTests.EvasionOn_AfterReactionDelay_BlendsTowardEscapeEasesFacingAndBoosts" methodname="EvasionOn_AfterReactionDelay_BlendsTowardEscapeEasesFacingAndBoosts" classname="Tests.PlayMode.MissileEvasionPlayModeTests" runstate="Runnable" seed="2029995434" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.036138" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1163" name="LostTrack_ReturnsToTheLaw" fullname="Tests.PlayMode.MissileEvasionPlayModeTests.LostTrack_ReturnsToTheLaw" methodname="LostTrack_ReturnsToTheLaw" classname="Tests.PlayMode.MissileEvasionPlayModeTests" runstate="Runnable" seed="2058243738" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.037617" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1120" name="MissileGuidancePlayModeTests" fullname="Tests.PlayMode.MissileGuidancePlayModeTests" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.117018" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1131" name="CloseRangeLock_NoOvershootOrbit" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.CloseRangeLock_NoOvershootOrbit" methodname="CloseRangeLock_NoOvershootOrbit" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="171951551" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.009299" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1124" name="CrossingTarget_LeavesSeekerCone_LosesTrack" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.CrossingTarget_LeavesSeekerCone_LosesTrack" methodname="CrossingTarget_LeavesSeekerCone_LosesTrack" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1772811113" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.007854" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1130" name="DetonationWhileTracking_RemovesMissileFromTrackers" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.DetonationWhileTracking_RemovesMissileFromTrackers" methodname="DetonationWhileTracking_RemovesMissileFromTrackers" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="262911281" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.005137" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1126" name="Dumbfire_TintsBodyRed" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.Dumbfire_TintsBodyRed" methodname="Dumbfire_TintsBodyRed" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="982062159" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.002844" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1127" name="LockedLaunch_TintsBodyRedOnlyAfterLosingTrack" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.LockedLaunch_TintsBodyRedOnlyAfterLosingTrack" methodname="LockedLaunch_TintsBodyRedOnlyAfterLosingTrack" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1848090593" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.005850" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1129" name="LostTrack_RemovesMissileFromTrackersOnce" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.LostTrack_RemovesMissileFromTrackersOnce" methodname="LostTrack_RemovesMissileFromTrackersOnce" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1277773122" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.005830" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1122" name="MovingShooter_MovingTarget_Tracks" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.MovingShooter_MovingTarget_Tracks" methodname="MovingShooter_MovingTarget_Tracks" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1023569738" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.015565" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1125" name="RockOnLineOfSight_LosesTrack" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.RockOnLineOfSight_LosesTrack" methodname="RockOnLineOfSight_LosesTrack" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="965844369" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.013850" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1128" name="SetTarget_AddsMissileToTargetTrackers" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.SetTarget_AddsMissileToTargetTrackers" methodname="SetTarget_AddsMissileToTargetTrackers" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1105209276" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.001805" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1121" name="StationaryFire_DistantTarget_Converges" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.StationaryFire_DistantTarget_Converges" methodname="StationaryFire_DistantTarget_Converges" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="1141207364" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.024736" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1123" name="TargetBehind_LosesTrackAndFliesStraight" fullname="Tests.PlayMode.MissileGuidancePlayModeTests.TargetBehind_LosesTrackAndFliesStraight" methodname="TargetBehind_LosesTrackAndFliesStraight" classname="Tests.PlayMode.MissileGuidancePlayModeTests" runstate="Runnable" seed="85856586" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.017557" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1025" name="MissileLaunchPlayModeTests" fullname="Tests.PlayMode.MissileLaunchPlayModeTests" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.020155" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1030" name="FlyingForwardFasterThanHoming_IsCappedAtHomingSpeedNextStep" fullname="Tests.PlayMode.MissileLaunchPlayModeTests.FlyingForwardFasterThanHoming_IsCappedAtHomingSpeedNextStep" methodname="FlyingForwardFasterThanHoming_IsCappedAtHomingSpeedNextStep" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" seed="589556846" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.008736" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[speed after one physics step=25.00
+]]></output>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1029" name="Launch_InheritsOnlyTheShooterMotionAlongTheAim" fullname="Tests.PlayMode.MissileLaunchPlayModeTests.Launch_InheritsOnlyTheShooterMotionAlongTheAim" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.008634" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1026" name="Strafing_LaunchesAlongTheAim" fullname="Tests.PlayMode.MissileLaunchPlayModeTests.Strafing_LaunchesAlongTheAim" methodname="Launch_InheritsOnlyTheShooterMotionAlongTheAim" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" seed="993270290" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.002827" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[shooter=(25,0) launch: along=1.00 across=0.00
+]]></output>
+              </test-case>
+              <test-case id="1027" name="DriftingBackward_LaunchesForwardAtInitialSpeed" fullname="Tests.PlayMode.MissileLaunchPlayModeTests.DriftingBackward_LaunchesForwardAtInitialSpeed" methodname="Launch_InheritsOnlyTheShooterMotionAlongTheAim" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" seed="836105005" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.001612" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[shooter=(0,-25) launch: along=1.00 across=0.00
+]]></output>
+              </test-case>
+              <test-case id="1028" name="FlyingForward_AddsTheShooterSpeed" fullname="Tests.PlayMode.MissileLaunchPlayModeTests.FlyingForward_AddsTheShooterSpeed" methodname="Launch_InheritsOnlyTheShooterMotionAlongTheAim" classname="Tests.PlayMode.MissileLaunchPlayModeTests" runstate="Runnable" seed="775394051" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.001331" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[shooter=(0,34) launch: along=35.00 across=0.00
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1031" name="MissileShieldBypassPlayModeTests" fullname="Tests.PlayMode.MissileShieldBypassPlayModeTests" classname="Tests.PlayMode.MissileShieldBypassPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.030677" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1032" name="DirectHit_ArrivesFlagged_SplashOnABystander_Unflagged" fullname="Tests.PlayMode.MissileShieldBypassPlayModeTests.DirectHit_ArrivesFlagged_SplashOnABystander_Unflagged" methodname="DirectHit_ArrivesFlagged_SplashOnABystander_Unflagged" classname="Tests.PlayMode.MissileShieldBypassPlayModeTests" runstate="Runnable" seed="1605018513" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.028559" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1141" name="ObstacleFieldQueryPlayModeTests" fullname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" classname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.509366" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1144" name="DensityScale_ScalesGeneratedCount" fullname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests.DensityScale_ScalesGeneratedCount" methodname="DensityScale_ScalesGeneratedCount" classname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" runstate="Runnable" seed="1240188653" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.229802" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1145" name="HostExclusionVolumes_CarveClearings_AtRebuild" fullname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests.HostExclusionVolumes_CarveClearings_AtRebuild" methodname="HostExclusionVolumes_CarveClearings_AtRebuild" classname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" runstate="Runnable" seed="1908943677" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.143034" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1143" name="QueryObstacles_EveryRockCarriesItsBakedLobes_SingleLobeIncluded" fullname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests.QueryObstacles_EveryRockCarriesItsBakedLobes_SingleLobeIncluded" methodname="QueryObstacles_EveryRockCarriesItsBakedLobes_SingleLobeIncluded" classname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" runstate="Runnable" seed="1747108016" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.079548" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1142" name="QueryObstacles_ReturnsLiveAsteroids_AndDropsDestroyed" fullname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests.QueryObstacles_ReturnsLiveAsteroids_AndDropsDestroyed" methodname="QueryObstacles_ReturnsLiveAsteroids_AndDropsDestroyed" classname="Tests.PlayMode.ObstacleFieldQueryPlayModeTests" runstate="Runnable" seed="867827469" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:37Z" duration="0.052871" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1146" name="OpponentArchetypePlayModeTests" fullname="Tests.PlayMode.OpponentArchetypePlayModeTests" classname="Tests.PlayMode.OpponentArchetypePlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:39Z" duration="1.881553" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1147" name="Smoke_EachArchetype_ProducesIntentsAndTerminates" fullname="Tests.PlayMode.OpponentArchetypePlayModeTests.Smoke_EachArchetype_ProducesIntentsAndTerminates" methodname="Smoke_EachArchetype_ProducesIntentsAndTerminates" classname="Tests.PlayMode.OpponentArchetypePlayModeTests" runstate="Runnable" seed="1247156425" result="Passed" start-time="2026-10-23 05:59:37Z" end-time="2026-10-23 05:59:39Z" duration="1.879720" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1148" name="ParentedEntityIdentityPlayModeTests" fullname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests" classname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.040815" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1151" name="LineOfSight_UnderSharedArenaRoot_OccluderIsNotTargetTransparent" fullname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests.LineOfSight_UnderSharedArenaRoot_OccluderIsNotTargetTransparent" methodname="LineOfSight_UnderSharedArenaRoot_OccluderIsNotTargetTransparent" classname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests" runstate="Runnable" seed="1306010638" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.004050" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1150" name="Projectile_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" fullname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests.Projectile_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" methodname="Projectile_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" classname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests" runstate="Runnable" seed="1156919575" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.025276" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1149" name="RailgunBeam_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" fullname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests.RailgunBeam_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" methodname="RailgunBeam_UnderSharedArenaRoot_SkipsSelfAndHitsEnemy" classname="Tests.PlayMode.ParentedEntityIdentityPlayModeTests" runstate="Runnable" seed="732148868" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.008389" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1033" name="ProjectileSweptHitPlayModeTests" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.031755" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1035" name="LaserPathJustOutsideTheCombinedRadius_Misses" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.LaserPathJustOutsideTheCombinedRadius_Misses" methodname="LaserPathJustOutsideTheCombinedRadius_Misses" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="1714880173" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.010383" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1034" name="LaserStepStraddlingAThinTarget_HitsItAtTheContactPose" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.LaserStepStraddlingAThinTarget_HitsItAtTheContactPose" methodname="LaserStepStraddlingAThinTarget_HitsItAtTheContactPose" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="1658002538" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.004546" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[hit at along=-0.243
+]]></output>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1039" name="MissileHitbox_AcrossTheAxis" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.MissileHitbox_AcrossTheAxis" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.006118" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1037" name="MissileHitbox_ProbeJustInsideTheRadius_Overlaps" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.MissileHitbox_ProbeJustInsideTheRadius_Overlaps" methodname="MissileHitbox_AcrossTheAxis" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="2100818421" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.003069" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1038" name="MissileHitbox_ProbeJustOutsideTheRadius_DoesNot" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.MissileHitbox_ProbeJustOutsideTheRadius_DoesNot" methodname="MissileHitbox_AcrossTheAxis" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="580309485" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.001608" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1040" name="MissileHitbox_ProbeNearTheTip_Overlaps" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.MissileHitbox_ProbeNearTheTip_Overlaps" methodname="MissileHitbox_ProbeNearTheTip_Overlaps" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="1687984374" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.001398" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1036" name="TargetOnALayerTheShotIgnores_IsNeverHit" fullname="Tests.PlayMode.ProjectileSweptHitPlayModeTests.TargetOnALayerTheShotIgnores_IsNeverHit" methodname="TargetOnALayerTheShotIgnores_IsNeverHit" classname="Tests.PlayMode.ProjectileSweptHitPlayModeTests" runstate="Runnable" seed="1127666377" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.005955" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1164" name="RLAgentPlayModeTests" fullname="Tests.PlayMode.RLAgentPlayModeTests" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:44Z" duration="4.583748" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1166" name="AutoStep_PrimedBoundaryAction_MovesAgentExactlyOneTickLater" fullname="Tests.PlayMode.RLAgentPlayModeTests.AutoStep_PrimedBoundaryAction_MovesAgentExactlyOneTickLater" methodname="AutoStep_PrimedBoundaryAction_MovesAgentExactlyOneTickLater" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" seed="1890849295" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:39Z" duration="0.211986" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1168" name="CheckpointEvaluator_SmallRun_AggregatesOutcomesAndWritesArtifacts" fullname="Tests.PlayMode.RLAgentPlayModeTests.CheckpointEvaluator_SmallRun_AggregatesOutcomesAndWritesArtifacts" methodname="CheckpointEvaluator_SmallRun_AggregatesOutcomesAndWritesArtifacts" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" seed="1156301166" result="Passed" start-time="2026-10-23 05:59:39Z" end-time="2026-10-23 05:59:42Z" duration="2.505006" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[ArchetypeGateProbe] Aggressor teacher: agentHPlost=62 % oppHPlost=0 % oppShots=4.5 meanRange=10.4 borderHug=0 % maxDisp=12 survived=2/2
+[ArchetypeGateProbe] Evader teacher: agentHPlost=0 % oppHPlost=0 % oppShots=0.0 meanRange=20.9 borderHug=0 % maxDisp=9 survived=2/2
+[ArchetypeGateProbe] Orbiter teacher: agentHPlost=72 % oppHPlost=0 % oppShots=4.5 meanRange=7.2 borderHug=0 % maxDisp=19 survived=2/2
+[ArchetypeGateProbe] Kiter teacher: agentHPlost=41 % oppHPlost=0 % oppShots=4.5 meanRange=17.7 borderHug=0 % maxDisp=4 survived=2/2
+[ArchetypeGateProbe] Dummy teacher: agentHPlost=0 % oppHPlost=0 % oppShots=0.0 meanRange=18.3 borderHug=0 % maxDisp=0 survived=2/2
+[CheckpointEvaluator] ShipCombat-smoke vs Aggressor: episodes=2 W/L/D=0/0/2 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke vs Evader: episodes=2 W/L/D=0/0/2 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke vs Orbiter: episodes=2 W/L/D=0/0/2 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke vs Kiter: episodes=2 W/L/D=0/0/2 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke vs Dummy: episodes=2 W/L/D=0/0/2 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke: summary → D:\amind\git\agent-13\results\rl-eval\20261022-225939-test-eval-summary.json
+[CheckpointEvaluator] ShipCombat-smoke vs Mirror: episodes=1 W/L/D=0/0/1 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke: summary → D:\amind\git\agent-13\results\rl-eval\20261022-225941-test-eval-mirror-summary.json
+[CheckpointEvaluator] ShipCombat-smoke vs ShipCombat-smoke: episodes=1 W/L/D=0/0/1 winRate=0.000 wilsonLB95=0.000
+[CheckpointEvaluator] ShipCombat-smoke: summary → D:\amind\git\agent-13\results\rl-eval\20261022-225942-test-eval-slot2-summary.json
+]]></output>
+            </test-case>
+            <test-case id="1165" name="HeuristicOnly_FullEpisodes_AgentRewardMatchesRunner" fullname="Tests.PlayMode.RLAgentPlayModeTests.HeuristicOnly_FullEpisodes_AgentRewardMatchesRunner" methodname="HeuristicOnly_FullEpisodes_AgentRewardMatchesRunner" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" seed="1830532992" result="Passed" start-time="2026-10-23 05:59:42Z" end-time="2026-10-23 05:59:43Z" duration="0.622725" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1169" name="HeuristicOnly_Timeout_TruncatesAndSurvivesIntoTheNextEpisode" fullname="Tests.PlayMode.RLAgentPlayModeTests.HeuristicOnly_Timeout_TruncatesAndSurvivesIntoTheNextEpisode" methodname="HeuristicOnly_Timeout_TruncatesAndSurvivesIntoTheNextEpisode" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" seed="845413038" result="Passed" start-time="2026-10-23 05:59:43Z" end-time="2026-10-23 05:59:43Z" duration="0.402683" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1167" name="InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode" fullname="Tests.PlayMode.RLAgentPlayModeTests.InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode" methodname="InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode" classname="Tests.PlayMode.RLAgentPlayModeTests" runstate="Runnable" seed="1361979933" result="Passed" start-time="2026-10-23 05:59:43Z" end-time="2026-10-23 05:59:44Z" duration="0.838347" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1175" name="RLEpisodePlayModeTests" fullname="Tests.PlayMode.RLEpisodePlayModeTests" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-23 05:59:44Z" end-time="2026-10-23 05:59:47Z" duration="3.616407" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1176" name="EpisodeLoop_Smoke_BackToBackEpisodesTerminateLegally" fullname="Tests.PlayMode.RLEpisodePlayModeTests.EpisodeLoop_Smoke_BackToBackEpisodesTerminateLegally" methodname="EpisodeLoop_Smoke_BackToBackEpisodesTerminateLegally" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="1059813386" result="Passed" start-time="2026-10-23 05:59:44Z" end-time="2026-10-23 05:59:44Z" duration="0.643650" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1179" name="FieldColliders_AnchorlessFieldKeepsDetailedCollidersLive" fullname="Tests.PlayMode.RLEpisodePlayModeTests.FieldColliders_AnchorlessFieldKeepsDetailedCollidersLive" methodname="FieldColliders_AnchorlessFieldKeepsDetailedCollidersLive" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="834174405" result="Passed" start-time="2026-10-23 05:59:44Z" end-time="2026-10-23 05:59:45Z" duration="0.079712" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1180" name="ObstacleTokens_FieldEnabled_BuildProducesNearestNonZeroTokens" fullname="Tests.PlayMode.RLEpisodePlayModeTests.ObstacleTokens_FieldEnabled_BuildProducesNearestNonZeroTokens" methodname="ObstacleTokens_FieldEnabled_BuildProducesNearestNonZeroTokens" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="725554116" result="Passed" start-time="2026-10-23 05:59:45Z" end-time="2026-10-23 05:59:45Z" duration="0.133683" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[FieldReset] episode 0: RebuildField took 0.0 ms
+]]></output>
+            </test-case>
+            <test-case id="1181" name="Telescoping_SumsMatchPoolSwingAndStartPotential" fullname="Tests.PlayMode.RLEpisodePlayModeTests.Telescoping_SumsMatchPoolSwingAndStartPotential" methodname="Telescoping_SumsMatchPoolSwingAndStartPotential" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="31063790" result="Passed" start-time="2026-10-23 05:59:45Z" end-time="2026-10-23 05:59:45Z" duration="0.272562" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1182" name="Telescoping_TruncationKeepsFinalPotential" fullname="Tests.PlayMode.RLEpisodePlayModeTests.Telescoping_TruncationKeepsFinalPotential" methodname="Telescoping_TruncationKeepsFinalPotential" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="2064878169" result="Passed" start-time="2026-10-23 05:59:45Z" end-time="2026-10-23 05:59:45Z" duration="0.120980" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1178" name="TrajectoryEquivalence_FieldEnabled_PairResetRestoresFreshFieldAndSpawnState" fullname="Tests.PlayMode.RLEpisodePlayModeTests.TrajectoryEquivalence_FieldEnabled_PairResetRestoresFreshFieldAndSpawnState" methodname="TrajectoryEquivalence_FieldEnabled_PairResetRestoresFreshFieldAndSpawnState" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="86752384" result="Passed" start-time="2026-10-23 05:59:45Z" end-time="2026-10-23 05:59:47Z" duration="1.541940" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[FieldReset] episode 0: RebuildField took 15.4 ms
+[FieldReset] episode 1: RebuildField took 17.7 ms
+[FieldReset] episode 0: RebuildField took 18.8 ms
+]]></output>
+            </test-case>
+            <test-case id="1177" name="TrajectoryEquivalence_PairResetRestoresFreshSpawnState" fullname="Tests.PlayMode.RLEpisodePlayModeTests.TrajectoryEquivalence_PairResetRestoresFreshSpawnState" methodname="TrajectoryEquivalence_PairResetRestoresFreshSpawnState" classname="Tests.PlayMode.RLEpisodePlayModeTests" runstate="Runnable" seed="417315654" result="Passed" start-time="2026-10-23 05:59:47Z" end-time="2026-10-23 05:59:47Z" duration="0.817550" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1183" name="RLMultiArenaPlayModeTests" fullname="Tests.PlayMode.RLMultiArenaPlayModeTests" classname="Tests.PlayMode.RLMultiArenaPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:47Z" end-time="2026-10-23 05:59:50Z" duration="2.391033" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1184" name="TwoArenas_IsolatedDecorrelatedConfined_BothComplete" fullname="Tests.PlayMode.RLMultiArenaPlayModeTests.TwoArenas_IsolatedDecorrelatedConfined_BothComplete" methodname="TwoArenas_IsolatedDecorrelatedConfined_BothComplete" classname="Tests.PlayMode.RLMultiArenaPlayModeTests" runstate="Runnable" seed="134536621" result="Passed" start-time="2026-10-23 05:59:47Z" end-time="2026-10-23 05:59:50Z" duration="2.388165" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1185" name="RLSelfPlayPlayModeTests" fullname="Tests.PlayMode.RLSelfPlayPlayModeTests" classname="Tests.PlayMode.RLSelfPlayPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:50Z" end-time="2026-10-23 05:59:51Z" duration="1.041069" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1186" name="SelfPlay_FullEpisodes_BothAgentsRewardedFromTheirOwnRunner" fullname="Tests.PlayMode.RLSelfPlayPlayModeTests.SelfPlay_FullEpisodes_BothAgentsRewardedFromTheirOwnRunner" methodname="SelfPlay_FullEpisodes_BothAgentsRewardedFromTheirOwnRunner" classname="Tests.PlayMode.RLSelfPlayPlayModeTests" runstate="Runnable" seed="1401058417" result="Passed" start-time="2026-10-23 05:59:50Z" end-time="2026-10-23 05:59:51Z" duration="1.038900" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1187" name="RLSentencePlayModeTests" fullname="Tests.PlayMode.RLSentencePlayModeTests" classname="Tests.PlayMode.RLSentencePlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:51Z" end-time="2026-10-23 05:59:52Z" duration="0.732793" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1188" name="SentenceBlock_RunsHeadlessAndTheControllerProbeSamplesTheSolver" fullname="Tests.PlayMode.RLSentencePlayModeTests.SentenceBlock_RunsHeadlessAndTheControllerProbeSamplesTheSolver" methodname="SentenceBlock_RunsHeadlessAndTheControllerProbeSamplesTheSolver" classname="Tests.PlayMode.RLSentencePlayModeTests" runstate="Runnable" seed="803617141" result="Passed" start-time="2026-10-23 05:59:51Z" end-time="2026-10-23 05:59:52Z" duration="0.729932" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1189" name="ScannerPlayModeTests" fullname="Tests.PlayMode.ScannerPlayModeTests" classname="Tests.PlayMode.ScannerPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.019152" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="AI" />
+            </properties>
+            <test-case id="1190" name="ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" fullname="Tests.PlayMode.ScannerPlayModeTests.ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" methodname="ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" classname="Tests.PlayMode.ScannerPlayModeTests" runstate="Runnable" seed="960247727" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.017087" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1213" name="SemiAutoGunneryPlayModeTests" fullname="Tests.PlayMode.SemiAutoGunneryPlayModeTests" classname="Tests.PlayMode.SemiAutoGunneryPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.051762" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1214" name="Missiles_DumbfireWindow_IsPointBlankAndNeedsLineOfSight" fullname="Tests.PlayMode.SemiAutoGunneryPlayModeTests.Missiles_DumbfireWindow_IsPointBlankAndNeedsLineOfSight" methodname="Missiles_DumbfireWindow_IsPointBlankAndNeedsLineOfSight" classname="Tests.PlayMode.SemiAutoGunneryPlayModeTests" runstate="Runnable" seed="740697574" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003080" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1215" name="Missiles_TargetHeldInTheWindow_LaunchesBothRoundsACooldownApart" fullname="Tests.PlayMode.SemiAutoGunneryPlayModeTests.Missiles_TargetHeldInTheWindow_LaunchesBothRoundsACooldownApart" methodname="Missiles_TargetHeldInTheWindow_LaunchesBothRoundsACooldownApart" classname="Tests.PlayMode.SemiAutoGunneryPlayModeTests" runstate="Runnable" seed="1515715272" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.045221" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1265" name="WeaponCommandDispatchPlayModeTests" fullname="Tests.PlayMode.WeaponCommandDispatchPlayModeTests" classname="Tests.PlayMode.WeaponCommandDispatchPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.073707" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1266" name="FireCommands_DispatchToBothWeapons_OnFireIsRaised" fullname="Tests.PlayMode.WeaponCommandDispatchPlayModeTests.FireCommands_DispatchToBothWeapons_OnFireIsRaised" methodname="FireCommands_DispatchToBothWeapons_OnFireIsRaised" classname="Tests.PlayMode.WeaponCommandDispatchPlayModeTests" runstate="Runnable" seed="1360740783" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.071716" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1267" name="WeaponHudBindingPlayModeTests" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.045629" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1268" name="DefaultLoadout_BuildsPanelPerSlot_WidgetPerReadout" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.DefaultLoadout_BuildsPanelPerSlot_WidgetPerReadout" methodname="DefaultLoadout_BuildsPanelPerSlot_WidgetPerReadout" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="839224583" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.019712" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1270" name="DisplayName_FallsBackToPrefabName" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.DisplayName_FallsBackToPrefabName" methodname="DisplayName_FallsBackToPrefabName" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="173475751" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001404" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1272" name="NullOrUnarmedContext_BuildsNothing" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.NullOrUnarmedContext_BuildsNothing" methodname="NullOrUnarmedContext_BuildsNothing" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="2035584817" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001032" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1273" name="OverlayPrefab_WiresReadoutBuilderPrefabs" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.OverlayPrefab_WiresReadoutBuilderPrefabs" methodname="OverlayPrefab_WiresReadoutBuilderPrefabs" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="2068877763" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001012" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1271" name="Rebuild_ReplacesPreviousPanels" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.Rebuild_ReplacesPreviousPanels" methodname="Rebuild_ReplacesPreviousPanels" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="311471809" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003631" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1269" name="RipperLoadout_BuildsTwoAmmoCounters_AndNoHeatGauge" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.RipperLoadout_BuildsTwoAmmoCounters_AndNoHeatGauge" methodname="RipperLoadout_BuildsTwoAmmoCounters_AndNoHeatGauge" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="1283245867" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003022" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1274" name="RipperPrefab_CarriesMagazineCooldownAndSlug" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.RipperPrefab_CarriesMagazineCooldownAndSlug" methodname="RipperPrefab_CarriesMagazineCooldownAndSlug" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="1974998771" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001342" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1275" name="RipperWeapon_FiresSlug_AndSpendsAmmo" fullname="Tests.PlayMode.WeaponHudBindingPlayModeTests.RipperWeapon_FiresSlug_AndSpendsAmmo" methodname="RipperWeapon_FiresSlug_AndSpendsAmmo" classname="Tests.PlayMode.WeaponHudBindingPlayModeTests" runstate="Runnable" seed="216274682" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.006707" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1276" name="WeaponReequipPlayModeTests" fullname="Tests.PlayMode.WeaponReequipPlayModeTests" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.157555" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1279" name="Reequip_EmptyWeaponSlots_IsAValidBuild" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_EmptyWeaponSlots_IsAValidBuild" methodname="Reequip_EmptyWeaponSlots_IsAValidBuild" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="942550016" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.015961" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1278" name="Reequip_TargetingCache_FollowsTheMissileMount" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_TargetingCache_FollowsTheMissileMount" methodname="Reequip_TargetingCache_FollowsTheMissileMount" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="29112814" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.024586" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1282" name="Reequip_UnarmedChassis_IgnoresWeaponSlots" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_UnarmedChassis_IgnoresWeaponSlots" methodname="Reequip_UnarmedChassis_IgnoresWeaponSlots" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="1267257499" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.020592" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1280" name="Reequip_UnchangedModules_KeepsMountInstances" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_UnchangedModules_KeepsMountInstances" methodname="Reequip_UnchangedModules_KeepsMountInstances" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="834664886" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.025913" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1277" name="Reequip_Weapons_ReplacesMounts_AndContextSurvivesInPlace" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_Weapons_ReplacesMounts_AndContextSurvivesInPlace" methodname="Reequip_Weapons_ReplacesMounts_AndContextSurvivesInPlace" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="1675078256" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.034483" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1281" name="Reequip_WhileInactive_AwakesCleanlyOnRevive" fullname="Tests.PlayMode.WeaponReequipPlayModeTests.Reequip_WhileInactive_AwakesCleanlyOnRevive" methodname="Reequip_WhileInactive_AwakesCleanlyOnRevive" classname="Tests.PlayMode.WeaponReequipPlayModeTests" runstate="Runnable" seed="901702864" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.031182" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestSuite" id="1462" name="Weapons" fullname="Tests.PlayMode.Weapons" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.433411" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1296" name="FirePlanPlayModeTests" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.152532" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Weapons" />
+              </properties>
+              <test-case id="1297" name="ChargeLasers_OnSolution_ReleaseAtTheReleaseCharge_AndWaitOutTheCooldown" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.ChargeLasers_OnSolution_ReleaseAtTheReleaseCharge_AndWaitOutTheCooldown" methodname="ChargeLasers_OnSolution_ReleaseAtTheReleaseCharge_AndWaitOutTheCooldown" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="569236426" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.085305" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1298" name="ChargeLasers_ReleaseChargeUnderTheMinimum_ReleaseWaitsForTheMinimum" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.ChargeLasers_ReleaseChargeUnderTheMinimum_ReleaseWaitsForTheMinimum" methodname="ChargeLasers_ReleaseChargeUnderTheMinimum_ReleaseWaitsForTheMinimum" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="809607233" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002665" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1305" name="HeatWeapon_AtTheOverheatBrink_HoldsFireUntilItsVentPoint" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.HeatWeapon_AtTheOverheatBrink_HoldsFireUntilItsVentPoint" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.011297" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1303" name="TurboLasers_VentToColdBeforeFiringAgain" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.TurboLasers_VentToColdBeforeFiringAgain" methodname="HeatWeapon_AtTheOverheatBrink_HoldsFireUntilItsVentPoint" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="703481494" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003816" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1304" name="Lasers_FireAgainOnceTheNextShotFits" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Lasers_FireAgainOnceTheNextShotFits" methodname="HeatWeapon_AtTheOverheatBrink_HoldsFireUntilItsVentPoint" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="326807597" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001077" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1300" name="Railgun_BeforeTheCommitPoint_DropsPastTheBreakAngle" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Railgun_BeforeTheCommitPoint_DropsPastTheBreakAngle" methodname="Railgun_BeforeTheCommitPoint_DropsPastTheBreakAngle" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="1809118570" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001769" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1302" name="Railgun_LeavingRange_DropsTheShotEvenPastTheCommitPoint" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Railgun_LeavingRange_DropsTheShotEvenPastTheCommitPoint" methodname="Railgun_LeavingRange_DropsTheShotEvenPastTheCommitPoint" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="1870463265" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002276" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1301" name="Railgun_PastTheCommitPoint_FiresWhateverTheAngle" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Railgun_PastTheCommitPoint_FiresWhateverTheAngle" methodname="Railgun_PastTheCommitPoint_FiresWhateverTheAngle" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="1633957960" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002144" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1299" name="Railgun_StartsOnlyWithinTheStartAngle_AndKeepsChargingWithinTheBreakAngle" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Railgun_StartsOnlyWithinTheStartAngle_AndKeepsChargingWithinTheBreakAngle" methodname="Railgun_StartsOnlyWithinTheStartAngle_AndKeepsChargingWithinTheBreakAngle" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="1318742609" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002017" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1306" name="Reset_ClearsPlanState" fullname="Tests.PlayMode.Weapons.FirePlanPlayModeTests.Reset_ClearsPlanState" methodname="Reset_ClearsPlanState" classname="Tests.PlayMode.Weapons.FirePlanPlayModeTests" runstate="Runnable" seed="929164051" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003557" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1313" name="RailgunBeamPlayModeTests" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.034439" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Weapons" />
+              </properties>
+              <test-case id="1320" name="FirePointTiltedOutOfPlane_StillHitsAnInPlaneTarget" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.FirePointTiltedOutOfPlane_StillHitsAnInPlaneTarget" methodname="FirePointTiltedOutOfPlane_StillHitsAnInPlaneTarget" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="1657499219" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.009155" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1317" name="InvulnerableShip_BlocksTheTargetBehind" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.InvulnerableShip_BlocksTheTargetBehind" methodname="InvulnerableShip_BlocksTheTargetBehind" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="1058498995" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003247" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1314" name="KillingBlow_CarriesTheOverkillToTheTargetBehind" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.KillingBlow_CarriesTheOverkillToTheTargetBehind" methodname="KillingBlow_CarriesTheOverkillToTheTargetBehind" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="953765208" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002589" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1315" name="KillingTheLastTarget_DrawsTheBeamToFullRange" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.KillingTheLastTarget_DrawsTheBeamToFullRange" methodname="KillingTheLastTarget_DrawsTheBeamToFullRange" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="590729796" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003325" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1318" name="MultiColliderTarget_CountsOnce" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.MultiColliderTarget_CountsOnce" methodname="MultiColliderTarget_CountsOnce" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="297454178" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002413" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1316" name="Survivor_BlocksTheTargetBehind_AndEndsTheBeam" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.Survivor_BlocksTheTargetBehind_AndEndsTheBeam" methodname="Survivor_BlocksTheTargetBehind_AndEndsTheBeam" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="260194415" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001722" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1319" name="TargetBesideTheLine_IsHitWithinBeamRadius_MissedBeyondIt" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.TargetBesideTheLine_IsHitWithinBeamRadius_MissedBeyondIt" methodname="TargetBesideTheLine_IsHitWithinBeamRadius_MissedBeyondIt" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="1653671390" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002355" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1321" name="TargetOverlappingTheMuzzle_IsHitAtItsClosestPoint" fullname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests.TargetOverlappingTheMuzzle_IsHitAtItsClosestPoint" methodname="TargetOverlappingTheMuzzle_IsHitAtItsClosestPoint" classname="Tests.PlayMode.Weapons.RailgunBeamPlayModeTests" runstate="Runnable" seed="179402387" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002345" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1322" name="WeaponConditionTimingPlayModeTests" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.231384" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Weapons" />
+              </properties>
+              <test-case id="1325" name="Charge_FiresOnTheAuthoredSteps" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Charge_FiresOnTheAuthoredSteps" methodname="Charge_FiresOnTheAuthoredSteps" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1345859542" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.101350" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[ChargeLasers launched at: 1, 2
+ChargeLasers launched at: 0.519989, 1.039993
+]]></output>
+              </test-case>
+              <test-case id="1324" name="Heat_OverheatsAndRecoversOnTheAuthoredSteps" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Heat_OverheatsAndRecoversOnTheAuthoredSteps" methodname="Heat_OverheatsAndRecoversOnTheAuthoredSteps" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1145350404" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.060578" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Lasers launched at: 0.02000427, 0.1199951, 0.2200012, 0.3200073, 1.820007, 1.919998, 2.020004, 2.119995
+]]></output>
+              </test-case>
+              <test-case id="1323" name="Magazine_DumpsAndReloadsOnTheAuthoredSteps" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Magazine_DumpsAndReloadsOnTheAuthoredSteps" methodname="Magazine_DumpsAndReloadsOnTheAuthoredSteps" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="2120649682" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.066280" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Rippers launched at: 0.02000427, 0.2200012, 0.4200134, 0.6200104, 1.62001, 1.820007
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1283" name="WeaponTriggerSemanticsPlayModeTests" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.025886" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Weapons" />
+            </properties>
+            <test-case id="1284" name="AutoWeapon_FiresOnHeld_WithoutAPress" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.AutoWeapon_FiresOnHeld_WithoutAPress" methodname="AutoWeapon_FiresOnHeld_WithoutAPress" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="2002912934" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.002493" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1286" name="ChargeWeapon_ChargesWhileHeld_AndAutoFiresAtFull" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.ChargeWeapon_ChargesWhileHeld_AndAutoFiresAtFull" methodname="ChargeWeapon_ChargesWhileHeld_AndAutoFiresAtFull" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="83147345" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001769" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1287" name="ChargeWeapon_ReleaseFires_WithChargeScaledDamage" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.ChargeWeapon_ReleaseFires_WithChargeScaledDamage" methodname="ChargeWeapon_ReleaseFires_WithChargeScaledDamage" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="178075020" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001753" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1292" name="Gunner_AimsEachSlotWithItsOwnBallistics_HitscanGetsNoLead" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.Gunner_AimsEachSlotWithItsOwnBallistics_HitscanGetsNoLead" methodname="Gunner_AimsEachSlotWithItsOwnBallistics_HitscanGetsNoLead" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="377422320" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.003304" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1291" name="Gunner_ValidTargetAtWorldOrigin_HasTarget" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.Gunner_ValidTargetAtWorldOrigin_HasTarget" methodname="Gunner_ValidTargetAtWorldOrigin_HasTarget" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="45144393" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001409" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1290" name="Railgun_BeamSkipsItsOwnShip" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.Railgun_BeamSkipsItsOwnShip" methodname="Railgun_BeamSkipsItsOwnShip" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="1468848497" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.005145" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1288" name="Railgun_FullCharge_DamagesFirstThingTheBeamHits" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.Railgun_FullCharge_DamagesFirstThingTheBeamHits" methodname="Railgun_FullCharge_DamagesFirstThingTheBeamHits" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="338549613" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001974" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1289" name="Railgun_PrefabAuthoredChargeTime_ReachesFullAndFires" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.Railgun_PrefabAuthoredChargeTime_ReachesFullAndFires" methodname="Railgun_PrefabAuthoredChargeTime_ReachesFullAndFires" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="790973222" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001842" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1285" name="SemiAutoWeapon_FiresOnPressOnly" fullname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests.SemiAutoWeapon_FiresOnPressOnly" methodname="SemiAutoWeapon_FiresOnPressOnly" classname="Tests.PlayMode.WeaponTriggerSemanticsPlayModeTests" runstate="Runnable" seed="1327751406" result="Passed" start-time="2026-10-23 05:59:52Z" end-time="2026-10-23 05:59:52Z" duration="0.001671" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: D:\amind\git\agent-13\results\unity-tests-agent\20261022-225500-PlayMode.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
