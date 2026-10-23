@@ -110,11 +110,11 @@ namespace Tests.PlayMode
         {
             var missiles = InstantiateWeapon<Missiles>(MissilesPrefabPath);
 
-            Assert.IsFalse(missiles.ShouldFire(OnTheNose(8f, lineOfSight: true)),
+            Assert.IsFalse(missiles.HoldTrigger(OnTheNose(8f, lineOfSight: true)),
                 "8 u is outside the window: no unguided launch from the pilots' hold distance.");
-            Assert.IsTrue(missiles.ShouldFire(OnTheNose(5f, lineOfSight: true)),
+            Assert.IsTrue(missiles.HoldTrigger(OnTheNose(5f, lineOfSight: true)),
                 "5 u with a clear line is inside the window.");
-            Assert.IsFalse(missiles.ShouldFire(OnTheNose(5f, lineOfSight: false)),
+            Assert.IsFalse(missiles.HoldTrigger(OnTheNose(5f, lineOfSight: false)),
                 "A blocked line closes the window.");
         }
 

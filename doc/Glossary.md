@@ -685,6 +685,10 @@ Format: **term** — definition. *(authority)*
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
   "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
   2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **fire plan** — a weapon's own AI decision, each step, whether to hold its
+  trigger. Any state it keeps, such as a charge in progress or a heat vent,
+  lives in the weapon, so the Gunner never learns what a trigger means to it.
+  *(`WeaponComponent.HoldTrigger`; #1133)*
 - **hold range** (AI) — the distance from its target that a weapon asks an AI
   pilot to fly at, in place of the pilot's own range, as a mine carrier holds
   outside its own blast. Only the primary weapon's counts, and

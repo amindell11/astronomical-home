@@ -1,6 +1,7 @@
 {b2a8ad1a-94b9-443a-a319-4cb9ed82488f} bank:/HUD
 {0a75aa53-831f-45a5-97ce-8fd31cc4d649} bank:/Master
 {92688a87-f264-09e7-1187-052ded37d0d1} bank:/Master.strings
+{35f84793-2977-425d-a9e4-ca50f64f4a4e} bank:/Music
 {ef52afb7-c95d-4dae-a742-82c852087e4a} bank:/Ships
 {56d0553b-e4a9-4f30-96f1-4d4006cb1b6c} bank:/Weapons
 {38c15247-0bf3-47e1-b24b-c09ff269bcb7} bank:/World
@@ -16,6 +17,7 @@
 {8379b9de-a453-4a54-ab33-b7fe8e955f73} event:/HUD/LowHealth
 {f433dc01-5853-499e-8966-cddc3914df43} event:/HUD/Overheat
 {7fa9d96b-2619-473f-9f3c-419ebc11bf4a} event:/HUD/ShieldDepleted
+{ba5c4b18-d151-4f71-bd3b-1226138a8257} event:/Music/Game
 {3feb78c4-655b-4afc-9025-7fed168b1842} event:/Ships/Boost
 {19c92f81-7f0e-467b-b37f-6e2d0da8accb} event:/Ships/CollisionDeath
 {7c0c63f8-f749-4942-9fe7-e92086f2a826} event:/Ships/Death
@@ -41,6 +43,8 @@
 {9b0393d6-205e-4eb0-a426-7add98b47136} parameter:/Charge
 {b4818c81-c170-4f81-9b3a-9c884898f964} parameter:/FirstShot
 {c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat
+{303379ac-80b9-4b94-b728-bd8a2c4f601c} parameter:/MusicState
+{abf02dd0-22ab-4c05-b625-ad9ccc1f925b} parameter:/Phase
 {2b74d3f3-0476-47ab-933b-30169960c182} parameter:/Speed
 {a1563732-541d-45d4-911a-965ac4030c5e} parameter:/Strafe
 {9a8ff61d-d974-458e-b449-778fd063bdd1} parameter:/Thrust
