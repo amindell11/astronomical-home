@@ -9,7 +9,7 @@ using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {
-    /// <summary>Target geometry fed to <see cref="WeaponComponent.InEnvelope"/>/<see cref="WeaponComponent.ShouldFire"/>.</summary>
+    /// <summary>Target geometry fed to <see cref="WeaponComponent.InEnvelope"/>/<see cref="WeaponComponent.HoldTrigger"/>.</summary>
     public struct TargetingContext
     {
         public Vector2 targetPosition;
@@ -91,8 +91,8 @@ namespace Combat.Weapons
         /// <summary>Geometric firing envelope only (distance/angle/LOS) — readiness (heat/charge/lock/ammo) excluded.</summary>
         public virtual bool InEnvelope(in TargetingContext context) => false;
 
-        /// <summary>AI fire decision: the geometric envelope gated by this weapon's readiness.</summary>
-        public virtual bool ShouldFire(TargetingContext context)
+        /// <summary>The weapon's fire plan, called once per engaged step; its state clears in <see cref="Reset"/>.</summary>
+        public virtual bool HoldTrigger(TargetingContext context)
         {
             return false;
         }

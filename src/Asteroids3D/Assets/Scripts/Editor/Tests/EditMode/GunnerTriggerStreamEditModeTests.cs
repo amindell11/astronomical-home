@@ -19,7 +19,7 @@ namespace Tests.EditMode
             public bool[] solution;
             private int step;
 
-            public override bool ShouldFire(TargetingContext context) => solution[step++];
+            public override bool HoldTrigger(TargetingContext context) => solution[step++];
 
             public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles) => null;
         }

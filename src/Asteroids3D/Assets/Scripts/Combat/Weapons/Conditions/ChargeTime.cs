@@ -22,8 +22,8 @@ namespace Combat.Weapons.Conditions
     /// each physics step via <see cref="HandleTrigger"/>, which implements the shared charge
     /// semantics: charge accumulates while the trigger is held, the weapon fires on release at
     /// or above <see cref="minChargeToFire"/>, or automatically the moment full charge is
-    /// reached while still held — which is also how the AI fires charge weapons, since it
-    /// holds rather than timing a release. An unfired release drops the charge; firing
+    /// reached while still held. An AI gunner times its release through the weapon's fire plan
+    /// (<see cref="WeaponComponent.HoldTrigger"/>). An unfired release drops the charge; firing
     /// consumes it (<see cref="ProcessFire"/>).
     /// </summary>
     public class ChargeTime : WeaponCondition, IChargeReadout
@@ -59,8 +59,7 @@ namespace Combat.Weapons.Conditions
 
             if (held)
             {
-                var charge = ChargePct + dt / chargeTime;
-                SetCharge(charge >= 1f - HalfStep / chargeTime ? 1f : charge);
+                SetCharge(FullAfterHeldStep(dt) ? 1f : ChargePct + dt / chargeTime);
                 return ChargePct >= 1f;
             }
 
@@ -72,6 +71,8 @@ namespace Combat.Weapons.Conditions
                 SetCharge(0f);
             return false;
         }
+
+        public bool FullAfterHeldStep(float dt) => ChargePct + dt / chargeTime >= 1f - HalfStep / chargeTime;
 
         public override bool CanFire()
         {
