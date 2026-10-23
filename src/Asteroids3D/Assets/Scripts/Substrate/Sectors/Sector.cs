@@ -36,7 +36,6 @@ namespace Substrate.Sectors
         protected IUnitService Units { get; private set; }
         protected IObjectiveService Objectives { get; private set; }
         protected bool PresentationEnabled { get; private set; }
-        protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
         protected SectorBuildContext Context { get; private set; }
 
@@ -57,12 +56,11 @@ namespace Substrate.Sectors
             GamePlane.WorldPointToPlane((startPointMarker ? startPointMarker.transform : transform).position);
 
         public void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            SectorSettings config, SessionFrame frame, Ship hero)
+            SessionFrame frame, Ship hero)
         {
             Units = units ?? throw new ArgumentNullException(nameof(units));
             Objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
             PresentationEnabled = presentationEnabled;
-            Config = config ?? throw new ArgumentNullException(nameof(config));
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero);
         }
 

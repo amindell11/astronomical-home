@@ -80,8 +80,8 @@ namespace Tests.EditMode
             return brain;
         }
 
-        private AIContext Ctx(Kinematics self) =>
-            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>());
+        private AIContext Ctx(Kinematics self, float? holdRange = null) =>
+            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange);
 
         [TestCase(OpponentArchetype.Aggressor)]
         [TestCase(OpponentArchetype.Kiter)]
@@ -113,6 +113,25 @@ namespace Tests.EditMode
             Assert.IsTrue(decision.Value.nav.TryGetAnchorId(out _));
             Assert.AreEqual(archetype != OpponentArchetype.Evader, decision.Value.engagePrimary,
                 "only the Evader never fires");
+        }
+
+        [TestCase(OpponentArchetype.Aggressor, 18f)]
+        [TestCase(OpponentArchetype.Kiter, 18f)]
+        [TestCase(OpponentArchetype.Aggressor, null)]
+        public void Decide_RangedArchetype_HoldsTheWeaponsDeclaredRange_ElseItsOwn(OpponentArchetype archetype, float? holdRange)
+        {
+            var target = targetHost.AddComponent<Ship>();
+            var brain = NewBrain(archetype, target);
+            var self = new Kinematics(new Vector2(3f, -4f), new Vector2(1f, 2f), 0f, 0f, 0f);
+            var shape = Shape();
+
+            var decision = brain.Decide(Ctx(self, holdRange));
+
+            var expected = RangerBrain.HoldRangeVelocity(in self, target.Kinematics, holdRange ?? shape.desiredRange,
+                shape.speedFraction * Dynamics.Default.maxSpeed);
+            Assert.AreNotEqual(18f, shape.desiredRange, "the authored range must differ for the cases to discriminate");
+            Assert.IsTrue(decision.HasValue);
+            Assert.AreEqual(expected, decision.Value.nav.planarVelocity);
         }
 
         [Test]
