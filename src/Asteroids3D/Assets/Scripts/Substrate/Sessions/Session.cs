@@ -93,10 +93,13 @@ namespace Substrate.Sessions
             var entry = sectors != null && index >= 0 && index < sectors.Length ? sectors[index] : null;
             if (!entry?.prefab)
                 throw new InvalidOperationException($"No sector entry {index} configured on the session profile.");
+            if (!entry.config)
+                throw new InvalidOperationException($"Sector entry {index} has no settings.");
 
             // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
+            // A headless config may leave its locale scene unassigned.
             if (presentation)
-                yield return locale.ApplyLocaleAsync(entry.config ? entry.config.Locale?.SceneName : null);
+                yield return locale.ApplyLocaleAsync(entry.config.Locale?.SceneName);
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
