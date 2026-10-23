@@ -6,6 +6,7 @@ using Movement;
 using AI.Navigation.MPC;
 using Ships;
 using Ships.Command;
+using Ships.Keystones;
 using Unity.Mathematics;
 using UnityEngine;
 using Ships.Registry;
@@ -46,6 +47,9 @@ namespace AI
         private bool engageSecondary;
         // The ability lane, latched beside the triggers.
         private bool boost;
+        private bool hasAnchor;
+        private ShipId anchorId;
+        private EnemyTarget anchorTarget;
 
         internal AIContext context;
 
@@ -98,14 +102,14 @@ namespace AI
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
-            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry, field);
+            Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), self, registry, field, control.Weapons);
             Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
                     seed.Derive(GunnerStream));
 
-            context = new AIContext(self, Scout, combatExitDelay);
+            context = new AIContext(self, Scout, PrimaryHoldRange(), combatExitDelay);
 
             systemsInitialized = true;
         }
@@ -120,7 +124,8 @@ namespace AI
             engagePrimary = false;
             engageSecondary = false;
             boost = false;
-            context = new AIContext(control.Ship, Scout, combatExitDelay);
+            hasAnchor = false;
+            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay);
             if (Brain) Brain.ResetState();
         }
 
@@ -134,8 +139,14 @@ namespace AI
                 Route(Brain.Decide(context));
             }
 
+            var keystone = control.Keystone;
+            var seeking = keystone && hasAnchor && keystone.SeeksContact;
+            Navigator.ExemptFromAvoidance(seeking ? anchorId : ShipId.Invalid);
             var command = Navigator.ComputeCommand(Gunner ? Gunner.PrimaryAimReference() : AimReference.None);
-            command.boost = boost ? 1f : 0f;
+            // A live ram commits: the solver would brake to hold its range and stop the ram short.
+            if (seeking) command.thrust = 1f;
+            command.abilityTarget = Navigator.PlanEnd;
+            command.boost = boost || SightFires(keystone) ? 1f : 0f;
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }
@@ -150,6 +161,7 @@ namespace AI
                 engagePrimary = true;
                 engageSecondary = true;
                 boost = false;
+                hasAnchor = false;
                 return;
             }
 
@@ -160,6 +172,8 @@ namespace AI
             engagePrimary = decided.engagePrimary;
             engageSecondary = decided.engageSecondary;
             boost = decided.boost;
+            hasAnchor = nav.TryGetAnchorId(out anchorId);
+            anchorTarget = anchor;
 
             if (!Gunner) return;
             var aim = nav.sentence.aim;
@@ -174,6 +188,20 @@ namespace AI
             else if (nav.hasAnchor) Gunner.Aim(anchor);
             else Gunner.HoldFire();
         }
+
+        // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
+        private bool SightFires(Keystone keystone) =>
+            keystone && hasAnchor && (engagePrimary || engageSecondary)
+            && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
+                Desired(Navigator.CostVelocityReference), Navigator.PlanEnd));
+
+        private float? PrimaryHoldRange() => control.Weapons?.HoldRange(WeaponSlot.Primary);
+
+        // The scout sizes its look-ahead once, so it must cover the keystone's raised cap.
+        private Dynamics PeakDynamics(IShipStatus self) =>
+            control.Keystone ? self.Dynamics.Scaled(control.Keystone.PeakSpeedScale, control.Keystone.PeakThrustScale) : self.Dynamics;
+
+        private static Vector2 Desired(float2 velocity) => new(velocity.x, velocity.y);
 
         /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
         private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)

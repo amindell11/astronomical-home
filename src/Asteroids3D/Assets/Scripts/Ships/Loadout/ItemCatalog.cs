@@ -17,12 +17,10 @@ namespace Ships.Loadout
         public const string AssetPath = "Assets/Settings/Ships/ItemCatalog.asset";
 
         [SerializeField] private Ship[] chassis;
-        [SerializeField] private EngineModule[] engines;
         [SerializeField] private ShieldModule[] shields;
         [SerializeField] private WeaponComponent[] weapons;
 
         public IReadOnlyList<Ship> Chassis => chassis;
-        public IReadOnlyList<EngineModule> Engines => engines;
         public IReadOnlyList<ShieldModule> Shields => shields;
         public IReadOnlyList<WeaponComponent> Weapons => weapons;
     }

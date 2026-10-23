@@ -27,10 +27,6 @@ namespace Tests.EditMode
             AssertGroupMatchesProject("chassis", catalog.Chassis, PrefabsWithRoot<Ship>());
 
         [Test]
-        public void Engines_ListEveryEngineModuleAsset() =>
-            AssertGroupMatchesProject("engines", catalog.Engines, AssetsOfType<EngineModule>());
-
-        [Test]
         public void Shields_ListEveryShieldModuleAsset() =>
             AssertGroupMatchesProject("shields", catalog.Shields, AssetsOfType<ShieldModule>());
 

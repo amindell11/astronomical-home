@@ -563,6 +563,7 @@ MonoBehaviour:
   - Master
   Banks:
   - HUD
+  - Music
   - Ships
   - Weapons
   - World

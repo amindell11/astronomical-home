@@ -21,7 +21,7 @@ namespace Tests.EditMode
             public bool[] solution;
             private int step;
 
-            public override bool ShouldFire(TargetingContext context) => solution[step++];
+            public override bool HoldTrigger(TargetingContext context) => solution[step++];
 
             public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles) => null;
         }
@@ -34,6 +34,9 @@ namespace Tests.EditMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => 0f;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) => targetPos;
+            public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Gunsight Sight(WeaponSlot slot) => sight;
         }
 

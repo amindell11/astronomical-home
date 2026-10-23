@@ -15,6 +15,7 @@ namespace UI
         [SerializeField] private RectTransform minimapRect;
 
         private Canvas[] canvases;
+        private CanvasGroup visibility;
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
@@ -31,6 +32,7 @@ namespace UI
         private void Awake()
         {
             canvases = GetComponentsInChildren<Canvas>(true);
+            visibility = gameObject.AddComponent<CanvasGroup>();
             lockOnAudio = GetComponentInChildren<UILockOnAudio>();
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
@@ -56,10 +58,17 @@ namespace UI
         /// </summary>
         public void SetVisible(bool visible)
         {
+            if (visible) SetOpacity(1f);
             foreach (var c in canvases)
                 c.enabled = visible;
             if (chargeMarkers)
                 chargeMarkers.SetVisible(visible);
+        }
+
+        public void SetOpacity(float opacity)
+        {
+            visibility.alpha = opacity;
+            if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
         }
 
         public void Initialize(in HudBinding binding)

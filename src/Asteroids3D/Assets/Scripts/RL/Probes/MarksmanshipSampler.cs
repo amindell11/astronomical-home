@@ -1,5 +1,4 @@
 using System;
-using AI;
 using Combat.Targeting;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
@@ -97,9 +96,8 @@ namespace RL.Probes
 
             var shooterKin = shooter.Kinematics;
             var targetKin = target.Kinematics;
-            // Evaluate at the intercept lead the gunner fires this weapon at, not the target's center.
-            var aimWorld = GamePlane.PlanePointToWorld(Gunner.AimPoint(
-                in shooterKin, targetKin.pos, targetKin.vel, weapon.ProjectileSpeed));
+            // Evaluate at the aim point the gunner fires this weapon at, not the target's center.
+            var aimWorld = GamePlane.PlanePointToWorld(weapon.AimPoint(in shooterKin, targetKin.pos, targetKin.vel));
             if (sight.InEnvelope(aimWorld)) tally.envelopeSteps++;
 
             var sightLine = (targetKin.pos - shooterKin.pos).normalized;

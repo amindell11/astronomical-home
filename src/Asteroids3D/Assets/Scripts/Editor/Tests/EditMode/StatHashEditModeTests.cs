@@ -136,7 +136,6 @@ namespace Tests.EditMode
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
             Array.Reverse(reordered.ships);
-            Array.Reverse(reordered.engines);
             Array.Reverse(reordered.shields);
             Array.Reverse(reordered.weapons);
             var reversedRoster = RosterOf(offer.ships.Reverse());

@@ -335,6 +335,11 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 81527ef314cf47fc9524319339327b05, type: 2}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
+      propertyPath: keystone
+      value: 
+      objectReference: {fileID: 5512903418735166201, guid: 9a04567fb6d14e59bee770c95783f69b, type: 3}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
       propertyPath: shield
       value: 
       objectReference: {fileID: 11400000, guid: 7febe5b6ce0a40599f8ca461fed3a61a, type: 2}

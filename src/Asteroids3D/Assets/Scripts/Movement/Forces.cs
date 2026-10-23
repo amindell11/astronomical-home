@@ -7,13 +7,6 @@ namespace Ships.Movement
 {
     public struct Forces
     {
-        private static Vector2 Boost(Kinematics kin, float input, float strength)
-        {
-            if (input < 0f) return Vector2.zero;
-            var boostForce = kin.Forward * (strength * Mathf.Clamp01(input));
-            return boostForce;
-        }
-
         private static Vector2 Thrust(Kinematics kin, float input, float forwardAccl, float revAccl)
         {
             var mag = input >= 0 ? forwardAccl : revAccl;
@@ -40,7 +33,8 @@ namespace Ships.Movement
             return -input * maxBankAngle;
         }
 
-        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ResolvedShipStats sets)
+        /// <param name="speedScale">A keystone's live multiplier on the cap, so strafe authority falls off against the cap the solver plans with.</param>
+        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ResolvedShipStats sets, float speedScale = 1f)
         {
             if (sets == null)
             {
@@ -49,8 +43,7 @@ namespace Ships.Movement
 
             return new Outputs(
                 Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),
-                Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
-                Boost(kin, cmd.boost, sets.boostImpulse),
+                Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed * speedScale),
                 YawTorque(kin, cmd.yawTorque, sets.yawTorque),
                 Bank(cmd.strafe, sets.maxBankAngle)
             );

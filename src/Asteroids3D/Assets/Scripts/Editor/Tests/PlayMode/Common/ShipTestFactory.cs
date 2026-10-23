@@ -4,6 +4,11 @@ using Ships;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Substrate;
+#if UNITY_EDITOR
+using Ships.Keystones;
+using Ships.Keystones.Kits;
+using UnityEditor;
+#endif
 
 namespace Tests.PlayMode.Common
 {
@@ -11,6 +16,8 @@ namespace Tests.PlayMode.Common
 /// <summary>Creates ships with common PlayMode-test configurations.</summary>
 public static class ShipTestFactory
 {
+    private const string VanguardDashPath = "Assets/Prefabs/Keystones/Vanguard_Dash.prefab";
+
     public static Ship CreateKinematicPrimitiveShipAt(Vector2 planePosition)
     {
         var go = new GameObject("Kinematic Primitive Test Ship");
@@ -25,6 +32,12 @@ public static class ShipTestFactory
 
         var ship = go.AddComponent<Ship>();
         ship.Movement.enabled = false;
+#if UNITY_EDITOR
+        // Awake already ran on this template; the clones spawned from it instantiate the kit.
+        var so = new SerializedObject(ship);
+        so.FindProperty("keystone").objectReferenceValue = TestAssets.Load<Dash>(VanguardDashPath);
+        so.ApplyModifiedPropertiesWithoutUndo();
+#endif
         return ship;
     }
 

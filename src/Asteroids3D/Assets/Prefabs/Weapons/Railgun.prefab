@@ -63,9 +63,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66a2ea484ed844bc8971ac8a1cb255ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 1.5
+  chargeTime: 1.1
   minChargeToFire: 1
-  autoFireAtFull: 1
 --- !u!114 &-8301958025146036882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82,6 +81,7 @@ MonoBehaviour:
   displayName: Railgun
   damage: 45
   range: 60
+  beamRadius: 0.5
   impactSpeed: 120
   impactMass: 0.05
   hitMask:
@@ -89,10 +89,14 @@ MonoBehaviour:
     m_Bits: 4294967295
   fireDistance: 45
   fireAngleTolerance: 2
+  startAngle: 10
+  breakAngle: 30
+  commitPoint: 0.6666667
   charge: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!120 &1200000000000000001
 LineRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -193,10 +197,10 @@ LineRenderer:
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
+  m_MaskInteraction: 0
   m_UseWorldSpace: 1
   m_Loop: 0
-  m_ApplyActiveColorSpace: 1
-  m_MaskInteraction: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!114 &1200000000000000002
 MonoBehaviour:
   m_ObjectHideFlags: 0

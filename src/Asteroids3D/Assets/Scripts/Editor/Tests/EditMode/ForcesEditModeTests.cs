@@ -22,8 +22,6 @@ namespace Tests.EditMode
                 yawTorque = 300f,
                 maxBankAngle = 45f,
                 bankTorque = 5000f,
-                boostImpulse = 2000f,
-                boostCooldown = 1.0f,
             };
         }
 
@@ -57,9 +55,22 @@ namespace Tests.EditMode
             var outs = Forces.ComputeOutputs(kin, cmd, null);
             Assert.AreEqual(Outputs.Zero.thrust, outs.thrust);
             Assert.AreEqual(Outputs.Zero.strafe, outs.strafe);
-            Assert.AreEqual(Outputs.Zero.boost, outs.boost);
             Assert.AreEqual(Outputs.Zero.yawTorque, outs.yawTorque);
             Assert.AreEqual(Outputs.Zero.bank, outs.bank);
+        }
+
+        [Test]
+        public void Strafe_FallsOffAgainstTheLiveCap()
+        {
+            var settings = CreateTestSettings();
+            var atBaseCap = CreateKinematics(Vector2.zero, new Vector2(0f, settings.maxSpeed), 0f);
+            var cmd = CreateCommand(strafe: 1f);
+
+            var baseStrafe = Forces.ComputeOutputs(atBaseCap, cmd, settings).strafe.magnitude;
+            var raisedStrafe = Forces.ComputeOutputs(atBaseCap, cmd, settings, speedScale: 1.5f).strafe.magnitude;
+
+            Assert.AreEqual(settings.minStrafeForce, baseStrafe, 1e-3f, "at the cap, strafe is at its floor");
+            Assert.Greater(raisedStrafe, baseStrafe, "with the cap raised, the same speed keeps more strafe authority");
         }
 
         [Test]
@@ -73,7 +84,6 @@ namespace Tests.EditMode
 
             Assert.Greater(outs.thrust.magnitude, 0f);
             Assert.Greater(outs.strafe.magnitude, 0f);
-            Assert.AreEqual(0f, outs.boost.magnitude);
             Assert.Greater(outs.yawTorque, 0f);
         }
     }

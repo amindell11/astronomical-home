@@ -56,7 +56,8 @@ not stacking a bonus.
 |---|---|
 | hull (`maxHealth`), lives, `mass`, `maxBankAngle`, slot layout | **Ship (chassis)** |
 | physical size (root scale) → collision radius (derived from colliders) | **Ship prefab geometry** |
-| thrust / reverse / strafe forces, top speed, yaw torque + rate, boost impulse + cooldown, linear + angular drag, roll torque + damping | **Engine** |
+| thrust / reverse / strafe forces, top speed, yaw torque + rate, linear + angular drag, roll torque + damping | **Engine** |
+| boost impulse + cooldown (the Dash) | **Keystone** |
 | max shield, shield regen delay, shield regen rate | **Shield** |
 
 Notes on the judgement calls:
@@ -75,11 +76,11 @@ Notes on the judgement calls:
 
 | Slot | Count | Fills with | Status |
 |---|---|---|---|
-| **Engine** | 1 | engine module | **built** |
+| **Engine** | 1 | the chassis's own engine module — locked to the ship, not a hangar pick (#1028) | **built** |
 | **Shield** | 1 | shield module | **built** |
 | **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
-| **Keystone** | 1 | a keystone ability | **designed, deferred** |
+| **Keystone** | 1 | the chassis's own keystone kit — locked to the ship; every ship carries a Dash today (#1028) | **built** |
 | **Passive** | 1 | a passive | **designed, deferred** |
 
 **Weapon count** is meant to be a big archetype differentiator (some frames
@@ -109,8 +110,8 @@ pairs). A locked slot is just an open slot with its choice pinned in data.
 
 The *architecture* (slots) is decided because it's expensive to change later;
 the *fun knob* (fixed vs chosen) stays in data because we'll retune it every
-playtest. There is **no ability system in code yet** — keystone/passive are
-designed as slots but unbuilt. See [[Combat Depth]] §5: pin the slot/keystone
+playtest. The keystone slot is built, locked on every ship so far (#1028); the
+passive slot is designed but unbuilt. See [[Combat Depth]] §5: pin the slot/keystone
 contract before the [[Ai plans to move to RL|RL]] observation space freezes, so
 build identity is an observable.
 

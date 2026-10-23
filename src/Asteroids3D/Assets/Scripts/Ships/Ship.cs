@@ -7,6 +7,7 @@ using Combat.Weapons;
 using Ships.Command;
 using Utils;
 using Ships.Damage;
+using Ships.Keystones;
 using Ships.Loadout;
 using Ships.Movement;
 using Ships.Presentation;
@@ -47,12 +48,14 @@ namespace Ships
                  "Null → the ship is unarmed.")]
         [Stat, SerializeField] private WeaponsController weapons;
 
+        [Tooltip("The ship's keystone kit prefab: its locked ability, instantiated on the ship. Required.")]
+        [Stat, SerializeField] private Keystone keystone;
+
         [Header("Visuals")]
         [Tooltip("The ship's visual rig, wired on the prefab so the prefab asset reaches its hull without a lookup. " +
                  "Null → the ship has no visuals.")]
         [SerializeField] private ShipVisualRig visualRig;
 
-        /// <summary>Change via <see cref="Reequip"/>, not by writing the field.</summary>
         public EngineModule Engine => engine;
 
         /// <summary>Null if the ship carries no shield.</summary>
@@ -60,6 +63,11 @@ namespace Ships
 
         /// <summary>Null if the ship has no visual rig.</summary>
         public ShipVisualRig VisualRig => visualRig;
+
+        public Keystone KeystonePrefab => keystone;
+
+        /// <summary>The live kit instance; null until Awake, or when the prefab carries none.</summary>
+        public Keystone Keystone { get; private set; }
 
         public ResolvedShipStats Stats { get; private set; }
 
@@ -82,7 +90,10 @@ namespace Ships
         public ShipId Id { get; private set; }
         public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
-        public Dynamics Dynamics { get; private set; }
+        /// <summary>The motion model as it stands this step: the base model with any keystone scaling applied.</summary>
+        public Dynamics Dynamics => Keystone ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale) : baseDynamics;
+
+        private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
@@ -92,9 +103,9 @@ namespace Ships
         public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
-        public bool BoostAvailable => Movement && Movement.BoostAvailable;
-        public float BoostCooldownRemaining => Movement ? Movement.BoostCooldownRemaining : 0f;
-        public float BoostCooldownPct => Movement ? Movement.BoostCooldownPct : 0f;
+        public bool BoostAvailable => Keystone && Keystone.Ready;
+        public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
+        public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
         public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
@@ -116,6 +127,7 @@ namespace Ships
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
             if (weapons) weapons.Initialize(() => Kinematics);
+            if (keystone) Keystone = Instantiate(keystone, transform);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -135,11 +147,9 @@ namespace Ships
         /// <summary>Resolve stats without instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        /// <summary>Between-run full-build swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
-        public void Reequip(EngineModule newEngine, ShieldModule newShield,
-            WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        /// <summary>Between-run module swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
+        public void Reequip(ShieldModule newShield, WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
         {
-            engine = newEngine;
             shield = newShield;
 
             if (Weapons)
@@ -162,7 +172,7 @@ namespace Ships
             if (resetVitals)
                 Damage?.PopulateSettings(Stats);
             if (isInitialized)
-                Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+                baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
         }
 
         private void OnSettingsChanged() => ReResolve(resetVitals: false);
@@ -191,11 +201,15 @@ namespace Ships
         public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles)
         {
             if (isInitialized) return;
+            if (!keystone)
+                throw new InvalidOperationException($"Ship '{name}' has no keystone: every ship carries a keystone kit prefab.");
             teamNumber = team;
             DecisionSeed = decisionSeed;
             this.projectiles = projectiles;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
+            Damage.Initialize(Keystone);
+            Damage.OnBlocked += Keystone.NotifyBlocked;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -208,14 +222,25 @@ namespace Ships
             if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
 
             Stats.shipRadius = DeriveShipRadius();
+            Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));
 
-            Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+            baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
             if (Damage)
                 Damage.OnDeath += (_, _) => HandleShipDeath();
 
             isInitialized = true;
             Commander?.Initialize(BuildShipControl());
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (!isInitialized) return;
+            var contact = collision.GetContact(0);
+            var relative = collision.relativeVelocity;
+            var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, contact.normal)) : 0f;
+            Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
+                collision.collider, collision.rigidbody, contact.point, closing));
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.
@@ -232,8 +257,8 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles))
-                : new(this, Movement, new SeedScope(DecisionSeed));
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone)
+                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone);
 
         private void SetCommander(Commander commander)
         {
@@ -269,6 +294,7 @@ namespace Ships
         {
             Weapons?.ResetSystem();
             Movement.ResetMovement();
+            Keystone.ResetKeystone();
             Damage.ResetDamageState();
             KinematicsPoller?.Poll();
             gameObject.SetActive(true);

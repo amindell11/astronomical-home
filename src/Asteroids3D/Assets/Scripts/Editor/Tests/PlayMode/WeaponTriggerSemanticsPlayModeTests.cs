@@ -129,9 +129,10 @@ namespace Tests.PlayMode
         {
             public float TotalDamage { get; private set; }
 
-            public void TakeDamage(in DamageInfo hit)
+            public float TakeDamage(in DamageInfo hit)
             {
                 TotalDamage += hit.Amount;
+                return 0f;
             }
         }
 
@@ -225,6 +226,10 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => slot == WeaponSlot.Primary ? PrimarySpeed : SecondarySpeed;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) =>
+                AI.Gunner.AimPoint(in shooter, targetPos, targetVel, ProjectileSpeed(slot));
+            public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Combat.Weapons.Gunsight Sight(WeaponSlot slot) => null;
         }
 

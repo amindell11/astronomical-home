@@ -4,6 +4,7 @@ using AI.Scanning.Sensors;
 using Movement;
 using Ships;
 using Ships.Command;
+using Substrate;
 using UnityEngine;
 using Ships.Registry;
 
@@ -32,19 +33,24 @@ namespace AI
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
         private IShipStatus shipContext;
+        private IWeaponContext weapons;
 
-        // Merged buffer: static obstacles + 360° ship detections, so the MPC sees nearby ships regardless of bearing.
+        // Merged buffer: own keep-outs + static obstacles + 360° ship detections, so the MPC sees ships at any bearing.
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
+        private readonly ShipId[] mergedShipIds = new ShipId[128];
+        private readonly DetectedObstacle[] exemptScan = new DetectedObstacle[128];
+        private readonly DetectedObstacle.PlaneCircle[] keepOuts = new DetectedObstacle.PlaneCircle[8];
         private int mergedObstacleCount;
 
         public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext,
-            IShipRegistry registry, IObstacleField field)
+            IShipRegistry registry, IObstacleField field, IWeaponContext weapons)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
             Registry = registry;
             this.shipContext = shipContext;
+            this.weapons = weapons;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
@@ -76,13 +82,17 @@ namespace AI
         private void BuildMergedObstacles()
         {
             mergedObstacleCount = 0;
+            AddKeepOuts();
 
             if (obstacleScanner != null)
             {
                 var src = obstacleScanner.DetectedBuffer;
                 var srcCount = obstacleScanner.DetectedCount;
                 for (var i = 0; i < srcCount && mergedObstacleCount < mergedObstacles.Length; i++)
+                {
+                    mergedShipIds[mergedObstacleCount] = ShipId.Invalid;
                     mergedObstacles[mergedObstacleCount++] = src[i];
+                }
             }
 
             if (shipScanner == null || Registry == null) return;
@@ -95,13 +105,40 @@ namespace AI
                     var col = (ship.Colliders != null && ship.Colliders.Length > 0) ? ship.Colliders[0] : null;
                     if (!col) continue;
                     var radius = ship.Stats != null ? ship.ShipRadius : col.bounds.extents.magnitude * 0.5f;
+                    mergedShipIds[mergedObstacleCount] = id;
                     mergedObstacles[mergedObstacleCount++] =
                         new DetectedObstacle(ship.transform.position, radius, col, ship.Kinematics.vel);
                 }
             }
         }
 
+        // Written first: the solver truncates at its row cap, so rocks and ships drop before keep-outs.
+        private void AddKeepOuts()
+        {
+            if (weapons == null) return;
+            var slots = weapons.Slots;
+            for (var s = 0; s < slots.Count; s++)
+            {
+                var count = weapons.KeepOutCircles(slots[s], keepOuts);
+                for (var i = 0; i < count; i++)
+                {
+                    mergedShipIds[mergedObstacleCount] = ShipId.Invalid;
+                    mergedObstacles[mergedObstacleCount++] =
+                        new DetectedObstacle(GamePlane.PlanePointToWorld(keepOuts[i].center), keepOuts[i].radius, null);
+                }
+            }
+        }
+
         public ObstacleScan ObstacleScan => new(mergedObstacles, mergedObstacleCount);
+
+        /// <summary>The merged scan without one ship, for a keystone that must reach it.</summary>
+        public ObstacleScan ObstacleScanWithout(ShipId ship)
+        {
+            var count = 0;
+            for (var i = 0; i < mergedObstacleCount; i++)
+                if (mergedShipIds[i] != ship) exemptScan[count++] = mergedObstacles[i];
+            return new ObstacleScan(exemptScan, count);
+        }
         /// <summary>Raw asteroid-only scanner view (no ship detections) — the RL obstacle-token source.</summary>
         public ObstacleScan AsteroidScan => new(obstacleScanner.DetectedBuffer, obstacleScanner.DetectedCount);
         public ShipScanResult? ShipScan => shipScanner?.LastResult;

@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AI;
+using AI.Scanning;
 using Combat.Projectiles;
 using Combat.Targeting;
+using Movement;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
 namespace Combat.Weapons
 {
-    /// <summary>Target geometry fed to <see cref="WeaponComponent.InEnvelope"/>/<see cref="WeaponComponent.ShouldFire"/>.</summary>
+    /// <summary>Target geometry fed to <see cref="WeaponComponent.InEnvelope"/>/<see cref="WeaponComponent.HoldTrigger"/>.</summary>
     public struct TargetingContext
     {
         public Vector2 targetPosition;
@@ -46,6 +49,16 @@ namespace Combat.Weapons
 
         /// <summary>Max distance at which an AI gunner engages with this weapon, for diagnostics/telemetry. 0 if not distance-gated.</summary>
         public virtual float FireRange => 0f;
+
+        /// <summary>Where an AI gunner aims this weapon at a target: by default the intercept lead for <see cref="ProjectileSpeed"/>.</summary>
+        public virtual Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel) =>
+            Gunner.AimPoint(in shooterPose, targetPos, targetVel, ProjectileSpeed);
+
+        /// <summary>The distance an AI pilot carrying this weapon holds from its target; null leaves the pilot's own.</summary>
+        public virtual float? HoldRange => null;
+
+        /// <summary>Writes the circles an AI pilot carrying this weapon keeps out of right now; returns how many. None by default.</summary>
+        public virtual int KeepOutCircles(Span<DetectedObstacle.PlaneCircle> circles) => 0;
 
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
@@ -91,8 +104,8 @@ namespace Combat.Weapons
         /// <summary>Geometric firing envelope only (distance/angle/LOS) — readiness (heat/charge/lock/ammo) excluded.</summary>
         public virtual bool InEnvelope(in TargetingContext context) => false;
 
-        /// <summary>AI fire decision: the geometric envelope gated by this weapon's readiness.</summary>
-        public virtual bool ShouldFire(TargetingContext context)
+        /// <summary>The weapon's fire plan, called once per engaged step; its state clears in <see cref="Reset"/>.</summary>
+        public virtual bool HoldTrigger(TargetingContext context)
         {
             return false;
         }

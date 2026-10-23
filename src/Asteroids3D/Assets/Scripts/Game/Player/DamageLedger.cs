@@ -78,8 +78,9 @@ namespace Game.Player
             hits.Clear();
         }
 
-        public static string DescribeKind(DamageKind kind) => kind switch
+        public static string DescribeKind(DamageKind kind, ShipId attacker) => kind switch
         {
+            DamageKind.Collision when attacker.IsValid => "ram",
             DamageKind.Laser => "laser fire",
             DamageKind.Railgun => "railgun",
             DamageKind.Missile => "missile",
@@ -111,7 +112,7 @@ namespace Game.Player
         {
             if (registry != null && registry.TryGetShip(hit.AttackerId, out var ship))
                 return ship.name.Replace("(Clone)", "");
-            return hit.Kind == DamageKind.Collision ? "asteroid" : "unknown";
+            return hit.Kind == DamageKind.Collision && !hit.AttackerId.IsValid ? "asteroid" : "unknown";
         }
     }
 }

@@ -63,7 +63,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -685,6 +685,16 @@ Format: **term** — definition. *(authority)*
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
   "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
   2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **fire plan** — a weapon's own AI decision, each step, whether to hold its
+  trigger. Any state it keeps, such as a charge in progress or a heat vent,
+  lives in the weapon, so the Gunner never learns what a trigger means to it.
+  *(`WeaponComponent.HoldTrigger`; #1133)*
+- **hold range** (AI) — the distance from its target that a weapon asks an AI
+  pilot to fly at, in place of the pilot's own range, as a mine carrier holds
+  outside its own blast. Only the primary weapon's counts, and
+  it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
+  how the AI uses a weapon, not a fact about the ship. Not a firing range.
+  *(`WeaponComponent.HoldRange`; #1139)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -830,6 +840,17 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **keystone** — the locked ability in a ship's keystone slot, one kit per ship
+  (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
+  instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
+  later its windows) that a shared module asset cannot. The boost names stay —
+  `PilotCommand.boost`, `IShipStatus.BoostAvailable` — and mean "activate the
+  keystone". Always "keystone slot", never bare "slot". *(Keystone, Ship)*
+- **tell** — the player-visible cue for a keystone's ready, fired or active
+  state. A prerequisite, not polish: any keystone state the AI may read needs a
+  player-readable counterpart (#488 §A8). It rides the kit prefab as a
+  presentation part, so presentation-off sessions drop it. *(KeystoneFlash,
+  HullVisuals.HoldFlash)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
   `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
@@ -858,6 +879,11 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **overkill** — the damage a hit has left after killing its target.
+  `TakeDamage` returns it so the railgun beam can carry it to the next target
+  behind. It is not bleed-through. The "§C3 overkill PR" above used the word
+  for the shield-to-hull remainder on a single target.
+  *(`IDamageable.TakeDamage`)*
 - **shield bypass**. A hit's damage skips the shield and goes straight to hull.
   Only a missile's direct hit carries it; its splash stays shield-first with
   bleed-through. The producer sets the flag, and `DamageController` routes on it,
