@@ -63,7 +63,10 @@ namespace Combat.Projectiles
             base.Awake();
             shipLayers = LayerIds.Mask(LayerIds.Ship);
             SimplePool<ConcussionWave>.Warm(wavePrefab);
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
         {

@@ -8,6 +8,7 @@ using Damage;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using Substrate;
 using UnityEngine;
@@ -132,6 +133,8 @@ namespace Tests.PlayMode
                 TotalDamage += hit.Amount;
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private sealed class TestShooter : MonoBehaviour, IShooter
@@ -147,7 +150,9 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.transform.position = position;
             go.AddComponent<BoxCollider>().size = Vector3.one;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
 
         [Test]
@@ -194,6 +199,7 @@ namespace Tests.PlayMode
             ship.AddComponent<BoxCollider>().size = Vector3.one * 2f;
             ship.AddComponent<TestShooter>();
             var ownRecorder = ship.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(ownRecorder);
 
 #if UNITY_EDITOR
             // Instantiated as a child so Awake resolves the shooter from the parent hierarchy.
