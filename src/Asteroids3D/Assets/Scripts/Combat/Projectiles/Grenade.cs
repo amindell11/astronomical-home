@@ -49,6 +49,8 @@ namespace Combat.Projectiles
         /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
         public Vector3 TargetPoint => targetPoint;
 
+        public float LaunchSpeed => launchSpeed;
+
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
 

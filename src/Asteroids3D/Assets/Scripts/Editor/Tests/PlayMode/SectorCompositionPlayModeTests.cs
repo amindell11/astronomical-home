@@ -49,7 +49,6 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectiveService;
-        private SectorSettings _config;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -64,8 +63,6 @@ namespace Tests.PlayMode
             _objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
-
-            _config = ScriptableObject.CreateInstance<SectorSettings>();
 
             // Composition tests observe spawn lifecycle only — whatever brain a sector pilot authors stays parked.
             _unitService.OnShipSpawned += s =>
@@ -84,8 +81,6 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
-            if (_config != null) { Object.DestroyImmediate(_config); _config = null; }
-
             base.TearDown();
         }
 
@@ -97,7 +92,7 @@ namespace Tests.PlayMode
             // Author content under an INACTIVE sector — mirrors Session's inactive holder so authored ships don't Awake before adoption.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, default, null);
             return sector;
         }
 
@@ -106,7 +101,7 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
-            sector.Initialize(_unitService, _objectiveService, true, _config, default, null);
+            sector.Initialize(_unitService, _objectiveService, true, default, null);
             return sector;
         }
 

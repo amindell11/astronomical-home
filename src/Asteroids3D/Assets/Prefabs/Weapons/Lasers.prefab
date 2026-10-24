@@ -83,6 +83,7 @@ MonoBehaviour:
     type: 3}
   fireDistance: 20
   fireAngleTolerance: 5
+  ventTo: 1
   heat: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!114 &8653804347652268947

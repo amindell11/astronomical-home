@@ -89,6 +89,9 @@ MonoBehaviour:
     m_Bits: 4294967295
   fireDistance: 45
   fireAngleTolerance: 2
+  startAngle: 10
+  breakAngle: 30
+  commitPoint: 0.6666667
   charge: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!120 &1200000000000000001

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Game.Runs;
 using NUnit.Framework;
+using UI.Recap;
 using UI.Screens;
 using Ships;
 using UnityEditor;
@@ -19,7 +20,10 @@ namespace Tests.PlayMode.Screens
     [Category("UI")]
     public class RunRecapScreensPlayModeTests : InputTestFixture
     {
+        private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
+
         private RunRecapScreen screen;
+        private RecapFeelProfile feel;
         private float timeScale;
         private Keyboard keyboard;
 
@@ -28,6 +32,8 @@ namespace Tests.PlayMode.Screens
             base.Setup();
             timeScale = Time.timeScale;
             keyboard = InputSystem.AddDevice<Keyboard>();
+            feel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(FeelPath);
+            Assert.IsTrue(feel, $"feel profile asset at {FeelPath}");
         }
 
         public override void TearDown()
@@ -38,6 +44,15 @@ namespace Tests.PlayMode.Screens
         }
 
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
+
+        // The screen alone on the game's playback: real clock, real input, no death effects.
+        private void Play(RecapOutcomeContext context)
+        {
+            screen = RunRecapScreen.Create(null, context);
+            var presenter = new RecapPresenter(screen, null, null, null);
+            screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(feel, context), presenter.Apply,
+                () => false, () => screen.Continued));
+        }
 
         [Test]
         public void EveryPlayableChassis_HasANonEmptyTransparentSilhouette()
@@ -62,9 +77,7 @@ namespace Tests.PlayMode.Screens
         [UnityTest]
         public IEnumerator SectorRecap_ShowsSectorKillsAndTime_WithoutScoreboard()
         {
-            screen = RunRecapScreen.Create(null);
-            var continued = false;
-            screen.ShowSector(new[] { "Valis", "Crimson" }, 2, 222.8f, () => continued = true);
+            Play(RecapOutcomeContext.Extraction(new[] { "Valis", "Crimson" }, 2, 222.8f));
             yield return null;
             Assert.AreEqual("EXTRACTED", TextAt("Recap/Outcome").text);
             Assert.AreEqual("2 CONFIRMED KILLS", TextAt("Recap/Kills").text);
@@ -72,8 +85,10 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual("3:42", TextAt("Recap/Time").text);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard"));
             Assert.IsNull(screen.transform.Find("OutcomeIntro"));
+            Assert.AreEqual(1f, screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha,
+                "the sector card shows at once");
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
-            Assert.IsTrue(continued);
+            Assert.IsTrue(screen.Continued);
         }
 
         [UnityTest]
@@ -90,16 +105,16 @@ namespace Tests.PlayMode.Screens
 
         private IEnumerator RunEnding(bool victory)
         {
-            screen = RunRecapScreen.Create(null);
             var kills = Enumerable.Repeat("Nightshade", 17).ToArray();
             var cleared = victory ? 3 : 2;
             var board = new Scoreboard(new[] { new Scoreboard.Row(3, 25, 900, DateTime.UtcNow) },
                 new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow));
-            var continued = false;
             Time.timeScale = 0f;
             Press(keyboard.spaceKey);
             Press(keyboard.wKey);
-            screen.ShowRun(victory, kills, cleared, 3, board, () => continued = true);
+            Play(victory
+                ? RecapOutcomeContext.Victory(kills, cleared, 3, board)
+                : RecapOutcomeContext.Defeat(kills, cleared, 3, board, Vector2.zero));
             var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
             var intro = screen.transform.Find("OutcomeIntro");
             var headline = intro.Find("Outcome").GetComponent<Text>();
@@ -110,7 +125,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(0f, details.alpha);
             Assert.IsFalse(button.IsInteractable());
             button.OnSubmit(null);
-            Assert.IsFalse(continued, "the opening outcome cannot dismiss the recap");
+            Assert.IsFalse(screen.Continued, "the opening outcome cannot dismiss the recap");
             Assert.AreEqual(0f, intro.GetComponent<CanvasGroup>().alpha);
             yield return new WaitForSecondsRealtime(1.2f);
             Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha);
@@ -131,7 +146,7 @@ namespace Tests.PlayMode.Screens
             var deadline = Time.realtimeSinceStartup + 3f;
             while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
             yield return null;
-            Assert.IsFalse(intro, "the outcome fades away even while gameplay is paused");
+            Assert.IsFalse(intro.gameObject.activeSelf, "the outcome fades away even while gameplay is paused");
             Assert.AreEqual(1f, details.alpha);
             Assert.IsTrue(button.IsInteractable());
             Assert.AreEqual(0f, Time.timeScale);
@@ -159,16 +174,15 @@ namespace Tests.PlayMode.Screens
             Assert.Greater(scoreBounds.min.y, buttonBounds.max.y);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Time"));
             button.OnSubmit(null);
-            Assert.IsTrue(continued);
+            Assert.IsTrue(screen.Continued);
         }
 
         [UnityTest]
         public IEnumerator LongRun_KeepsEveryTrophyAndTheCurrentRankVisible()
         {
-            screen = RunRecapScreen.Create(null);
             var previous = Enumerable.Range(0, 8).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow)).ToArray();
             var board = new Scoreboard(previous, new Scoreboard.Row(2, 57, 600, DateTime.UtcNow));
-            screen.ShowRun(false, Enumerable.Repeat("Bulwark", 57).ToArray(), 2, 3, board, () => { });
+            Play(RecapOutcomeContext.Defeat(Enumerable.Repeat("Bulwark", 57).ToArray(), 2, 3, board, Vector2.zero));
             yield return null;
             var scroll = screen.transform.Find("Panels/Recap/Trophies").GetComponent<ScrollRect>();
             Assert.AreEqual(57, scroll.content.childCount);
