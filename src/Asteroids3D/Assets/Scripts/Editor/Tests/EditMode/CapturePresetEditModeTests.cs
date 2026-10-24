@@ -89,6 +89,7 @@ namespace Tests.EditMode
                     preset = CapturePreset.Hud1280x720,
                 };
                 CapturePreset.Apply(config);
+                config.commit = new string('a', 40);
                 var artifacts = new CaptureArtifacts(config);
                 artifacts.RecordPhase("banner_alpha", 0.25f);
                 artifacts.CommitFrame();
@@ -99,7 +100,7 @@ namespace Tests.EditMode
                 StringAssert.Contains("\"size\": \"1280x720\"", provenance);
                 StringAssert.Contains("\"dataKind\": \"frames\"", provenance);
                 StringAssert.Contains("\"timingBasis\": \"unscaled\"", provenance);
-                StringAssert.Contains("\"commit\":", provenance);
+                StringAssert.Contains("\"commit\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", provenance);
 
                 var phases = File.ReadAllLines(Path.Combine(artifacts.FrameDir, "phases.csv"));
                 Assert.AreEqual("frame,unscaled_seconds,sim_seconds,banner_alpha", phases[0]);
@@ -116,14 +117,18 @@ namespace Tests.EditMode
         {
             var state = new CaptureRecoveryState();
             CaptureEditorSettings.Snapshot(state);
+#if ASTRO_FMOD
             Assert.IsTrue(state.overlayFound, "play-in-editor FMOD overlay should be in the project settings");
+#endif
             var level = QualitySettings.GetQualityLevel();
             try
             {
                 CaptureEditorSettings.HidePlayInEditorOverlay();
+#if ASTRO_FMOD
                 Assert.IsTrue(CaptureEditorSettings.TryReadOverlay(out var hidden, out var hasValue));
                 Assert.AreEqual(0, hidden);
                 Assert.IsTrue(hasValue);
+#endif
                 var other = level == 0 ? 1 : 0;
                 QualitySettings.SetQualityLevel(other, false);
                 RenderSettings.ambientLight = Color.magenta;
@@ -134,9 +139,11 @@ namespace Tests.EditMode
             }
             Assert.AreEqual(level, QualitySettings.GetQualityLevel());
             Assert.AreEqual(state.ambientR, RenderSettings.ambientLight.r, 1e-4f);
+#if ASTRO_FMOD
             Assert.IsTrue(CaptureEditorSettings.TryReadOverlay(out var restored, out var restoredHas));
             Assert.AreEqual(state.overlayValue, restored);
             Assert.AreEqual(state.overlayHasValue, restoredHas);
+#endif
         }
     }
 }

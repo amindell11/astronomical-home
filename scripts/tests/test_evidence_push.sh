@@ -54,6 +54,10 @@ printf '%s\n' "$tree" | grep -qx 'b.txt' || fail "b.txt was not pushed"
 printf '%s\n' "$tree" | grep -qx 'c.txt' || fail "c.txt was not pushed"
 printf '%s\n' "$tree" | grep -q 'githooks' && fail "a hook stub was committed: $tree"
 
+retry="$(cd "$TMP/repo" && bash "$PUSH" capture-rig "$TMP/a.txt" "$TMP/b.txt" "$TMP/c.txt" 2>&1)" || fail "a retry of the same files must reuse HEAD: $retry"
+printf '%s\n' "$retry" | grep -q '^URL=' || fail "a retry must still print URLs: $retry"
+printf '%s\n' "$retry" | grep -q 'reusing HEAD' || fail "a retry must say it reused HEAD: $retry"
+
 printf '404' > "$CURL_STATUS_FILE"
 printf 'one-again\n' > "$TMP/a.txt"
 rc=0

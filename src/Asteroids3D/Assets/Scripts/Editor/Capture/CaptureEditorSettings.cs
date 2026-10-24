@@ -33,10 +33,14 @@ namespace Capture.GameView
 
         public static void HidePlayInEditorOverlay()
         {
+#if !ASTRO_FMOD
+            return;
+#else
             using var overlay = OpenOverlay() ?? throw new InvalidOperationException(
                 "[Capture] FMOD play-in-editor overlay setting was not found.");
             overlay.Value = TriStateDisabled;
             overlay.HasValue = true;
+#endif
         }
 
         public static void Restore(CaptureRecoveryState state)

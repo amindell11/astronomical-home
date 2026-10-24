@@ -28,6 +28,8 @@ namespace Capture
         public string clipName = "clip";
         public string preset;
         public CaptureFramingMode framing = CaptureFramingMode.Subjects;
+        /// <summary>40-character sha the launcher passes in. The capture does not run git.</summary>
+        public string commit;
         /// <summary>Shared across clips of one run; null → stamped when the episode begins.</summary>
         public string runStamp;
         public int width = 960;

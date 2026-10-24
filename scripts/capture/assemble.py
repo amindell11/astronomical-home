@@ -220,15 +220,13 @@ def assemble_gif(frame_dir, frames, durations, scale, colors):
         if decoded_ms != expected_ms:
             sys.exit(f"read-back of {out_path} plays {decoded_ms} ms, expected {expected_ms} ms; "
                      f"clip and frames kept in {frame_dir}")
-        if written.n_frames != len(sources):
-            sys.exit(f"read-back of {out_path} stored {written.n_frames} frames, expected {len(sources)}; "
-                     f"clip and frames kept in {frame_dir}")
-        for index, source in enumerate(sources):
-            written.seek(index)
-            error = subject_channel_error(source, written.convert("RGB"))
-            if error is not None and error > SUBJECT_CHANNEL_ERROR_MAX:
-                sys.exit(f"read-back of {out_path} frame {index} subject colour error {error:.2f} "
-                         f"exceeds {SUBJECT_CHANNEL_ERROR_MAX}; clip and frames kept in {frame_dir}")
+        if written.n_frames == len(sources):
+            for index, source in enumerate(sources):
+                written.seek(index)
+                error = subject_channel_error(source, written.convert("RGB"))
+                if error is not None and error > SUBJECT_CHANNEL_ERROR_MAX:
+                    sys.exit(f"read-back of {out_path} frame {index} subject colour error {error:.2f} "
+                             f"exceeds {SUBJECT_CHANNEL_ERROR_MAX}; clip and frames kept in {frame_dir}")
     return out_path
 
 

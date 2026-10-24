@@ -102,14 +102,17 @@ fi
 for name in "${names[@]}"; do
   git -C "$ev" add -- "$name"
 done
-git -C "$ev" commit -qm "evidence: $lease"
-strip_hooks
-
-if git -C "$ev" lfs ls-files | grep -q .; then
-  git -C "$ev" lfs push origin "$branch"
+if git -C "$ev" diff --cached --quiet; then
+  echo "no staged changes; reusing HEAD" >&2
+else
+  git -C "$ev" commit -qm "evidence: $lease"
+  strip_hooks
+  if git -C "$ev" lfs ls-files | grep -q .; then
+    git -C "$ev" lfs push origin "$branch"
+  fi
+  git -C "$ev" push -q -u origin "$branch"
+  strip_hooks
 fi
-git -C "$ev" push -q -u origin "$branch"
-strip_hooks
 
 sha="$(git -C "$ev" rev-parse HEAD)"
 [[ ${#sha} -eq 40 ]] || { echo "commit sha is '$sha'" >&2; exit 1; }

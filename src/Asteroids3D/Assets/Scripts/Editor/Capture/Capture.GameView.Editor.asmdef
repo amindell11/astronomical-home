@@ -18,6 +18,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.fmod.fmod-for-unity.v204",
+            "expression": "2.4.0",
+            "define": "ASTRO_FMOD"
+        }
+    ],
     "noEngineReferences": false
 }

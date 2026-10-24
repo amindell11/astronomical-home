@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -116,7 +115,7 @@ namespace Capture
                 dataKind = "frames",
                 timingBasis = "unscaled",
                 qualityLevel = level >= 0 && level < names.Length ? names[level] : level.ToString(CultureInfo.InvariantCulture),
-                commit = ReadCommit(),
+                commit = RequireCommit(config.commit),
             };
             File.WriteAllText(Path.Combine(FrameDir, "provenance.json"), JsonUtility.ToJson(provenance, true));
         }
@@ -144,27 +143,12 @@ namespace Capture
             File.WriteAllText(Path.Combine(FrameDir, "phases.csv"), csv.ToString());
         }
 
-        private static string ReadCommit()
+        private static string RequireCommit(string commit)
         {
-            var root = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
-            var start = new ProcessStartInfo("git", "rev-parse HEAD")
-            {
-                WorkingDirectory = root,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-            using var process = Process.Start(start);
-            if (process == null)
-                throw new InvalidOperationException($"[Capture] git rev-parse HEAD did not start in {root}.");
-            var sha = process.StandardOutput.ReadToEnd().Trim();
-            var error = process.StandardError.ReadToEnd().Trim();
-            process.WaitForExit();
-            if (process.ExitCode != 0 || sha.Length != 40)
-                throw new InvalidOperationException(
-                    $"[Capture] git rev-parse HEAD failed in {root} (exit {process.ExitCode}): {error}");
-            return sha;
+            if (string.IsNullOrEmpty(commit) || commit.Length != 40)
+                throw new ArgumentException(
+                    "[Capture] commit must be the 40-character sha the launcher passed in (-captureCommit).");
+            return commit;
         }
 
         [Serializable]

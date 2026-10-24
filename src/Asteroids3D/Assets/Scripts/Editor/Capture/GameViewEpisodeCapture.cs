@@ -10,7 +10,6 @@ using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 using Substrate.Services.Projectiles;
 using Substrate;
-using UI.PlayerState;
 
 namespace Capture.GameView
 {
@@ -269,41 +268,27 @@ namespace Capture.GameView
         private void ApplySubjectChrome()
         {
             chrome.Clear();
-            if (config.preset == CapturePreset.LineupNeutral)
-            {
-                RenderSettings.ambientMode = AmbientMode.Flat;
-                var ambient = CapturePreset.LineupAmbient;
-                RenderSettings.ambientLight = new Color(ambient, ambient, ambient, 1f);
-            }
+            if (config.preset != CapturePreset.LineupNeutral) return;
+
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            var ambient = CapturePreset.LineupAmbient;
+            RenderSettings.ambientLight = new Color(ambient, ambient, ambient, 1f);
 
             for (var i = 0; i < subjects.Count; i++)
             {
                 var ship = subjects[i];
                 var entry = new SubjectChrome(ship.transform);
-                if (config.preset == CapturePreset.LineupNeutral)
+                entry.posed = true;
+                ship.transform.rotation = Quaternion.identity;
+                foreach (var canvas in ship.GetComponentsInChildren<Canvas>(true))
                 {
-                    entry.posed = true;
-                    ship.transform.rotation = Quaternion.identity;
-                    foreach (var canvas in ship.GetComponentsInChildren<Canvas>(true))
-                    {
-                        entry.canvases.Add((canvas, canvas.enabled));
-                        canvas.enabled = false;
-                    }
-                    foreach (var particles in ship.GetComponentsInChildren<ParticleSystem>(true))
-                    {
-                        entry.particles.Add((particles, particles.isPlaying));
-                        particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                    }
+                    entry.canvases.Add((canvas, canvas.enabled));
+                    canvas.enabled = false;
                 }
-                else if (config.preset == CapturePreset.Hud1280x720)
+                foreach (var particles in ship.GetComponentsInChildren<ParticleSystem>(true))
                 {
-                    foreach (var bar in ship.GetComponentsInChildren<StatusBarUI>(true))
-                    {
-                        var canvas = bar.GetComponentInParent<Canvas>();
-                        if (!canvas || entry.HasCanvas(canvas)) continue;
-                        entry.canvases.Add((canvas, canvas.enabled));
-                        canvas.enabled = true;
-                    }
+                    entry.particles.Add((particles, particles.isPlaying));
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 }
                 chrome.Add(entry);
             }
@@ -334,13 +319,6 @@ namespace Capture.GameView
             {
                 this.transform = transform;
                 rotation = transform.rotation;
-            }
-
-            public bool HasCanvas(Canvas canvas)
-            {
-                foreach (var (saved, _) in canvases)
-                    if (saved == canvas) return true;
-                return false;
             }
 
             public void Restore()

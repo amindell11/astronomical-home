@@ -6,7 +6,9 @@ using Capture;
 using Game.Runs;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
+using UI.Recap;
 using UI.Screens;
+using UnityEditor;
 using UnityEngine;
 
 namespace Tests.PlayMode.Scenarios
@@ -16,6 +18,8 @@ namespace Tests.PlayMode.Scenarios
     /// </summary>
     public sealed class HudRecapPresetScenario : CaptureScenario
     {
+        private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
+
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
 
         public override CaptureConfig Config => new()
@@ -36,34 +40,46 @@ namespace Tests.PlayMode.Scenarios
             }
             yield return null;
 
-            var screen = RunRecapScreen.Create(null);
+            var feel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(FeelPath);
+            Assert.IsNotNull(feel, FeelPath);
+            var context = RecapOutcomeContext.Defeat(System.Array.Empty<string>(), 1, 3,
+                new Scoreboard(System.Array.Empty<Scoreboard.Row>(), null), Vector2.zero);
+            var sequence = new RecapOutcomeSequence(feel, context);
+            var bannerSpan = -1;
+            for (var i = 0; i < sequence.SpanCount; i++)
+                if (sequence.Span(i).Phase == RecapPhase.BannerIn) bannerSpan = i;
+            Assert.That(bannerSpan, Is.GreaterThanOrEqualTo(0));
+
+            var screen = RunRecapScreen.Create(null, context);
             try
             {
-                screen.ShowRun(false, System.Array.Empty<string>(), 1, 3,
-                    new Scoreboard(System.Array.Empty<Scoreboard.Row>(), null), () => { });
                 Time.timeScale = 0f;
-                var intro = screen.transform.Find("OutcomeIntro");
-                Assert.IsNotNull(intro, "The recap outcome banner was not created.");
-                var banner = intro.GetComponent<CanvasGroup>();
                 var origin = Time.unscaledTime;
-                Capture.RecordPhase("banner_alpha", banner.alpha);
-                FilmStep();
+                var elapsed = 0f;
+                ApplyBanner(screen, sequence, bannerSpan, elapsed);
                 var guard = 0;
-                while (guard++ < 80)
+                while (elapsed < feel.BannerInSeconds && guard++ < 80)
                 {
                     yield return null;
-                    Capture.RecordPhase("banner_alpha", banner.alpha);
-                    FilmStep();
-                    if (Time.unscaledTime - origin >= 0.8f && banner.alpha > 0.99f) break;
+                    elapsed += Time.unscaledDeltaTime;
+                    ApplyBanner(screen, sequence, bannerSpan, elapsed);
                 }
-                Assert.That(banner.alpha, Is.GreaterThan(0.99f),
-                    $"banner alpha {banner.alpha} after {Time.unscaledTime - origin} unscaled seconds");
+                Assert.That(sequence.StateAt(bannerSpan, elapsed).BannerAlpha, Is.GreaterThan(0.99f),
+                    $"banner alpha after {Time.unscaledTime - origin} unscaled seconds");
                 AssertFadeSpan(origin);
             }
             finally
             {
                 if (screen) Object.Destroy(screen.gameObject);
             }
+        }
+
+        private void ApplyBanner(RunRecapScreen screen, RecapOutcomeSequence sequence, int span, float elapsed)
+        {
+            var state = sequence.StateAt(span, elapsed);
+            screen.Apply(state);
+            Capture.RecordPhase("banner_alpha", state.BannerAlpha);
+            FilmStep();
         }
 
         private void AssertFadeSpan(float origin)
