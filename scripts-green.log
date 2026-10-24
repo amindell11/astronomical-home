@@ -1,0 +1,12 @@
+PASS: capture/assemble.py — zero assembled clips exits nonzero
+PASS: capture/assemble.py — frame dir deleted only after a verified encode
+paint-error 4.28
+PASS: capture/assemble.py — gif duration quantum and subject colour
+C:\Users\amind\AppData\Local\Temp\tmp.oL99eYJLw3\frames\short-intervals.mp4  0.0 MB  24 frames @ 66.6667 fps
+PASS: capture/assemble.py — short unscaled intervals preserve every source frame and duration
+warning: in the working copy of 'README', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitattributes', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'b.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'c.txt', LF will be replaced by CRLF the next time Git touches it
+PASS: evidence_push.sh — three URLs, hook stub stripped, non-200 fails

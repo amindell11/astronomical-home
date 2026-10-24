@@ -1,0 +1,9 @@
+paint-error 4.28
+PASS: capture/assemble.py — gif duration quantum and subject colour
+read-back of C:\Users\amind\AppData\Local\Temp\tmp.dcQJq6tPBh\frames\short-intervals.mp4 decoded 11 frames, expected at least 25; clip and frames kept in C:\Users\amind\AppData\Local\Temp\tmp.dcQJq6tPBh\frames\short-intervals
+Traceback (most recent call last):
+  File "<stdin>", line 20, in <module>
+  File "C:\Users\amind\Miniconda3\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['C:\\Users\\amind\\Miniconda3\\python.exe', 'D:/amind/git/agent-5/scripts/tests/../capture/assemble.py', 'C:\\Users\\amind\\AppData\\Local\\Temp\\tmp.dcQJq6tPBh\\frames\\short-intervals', '--keep-frames']' returned non-zero exit status 1.

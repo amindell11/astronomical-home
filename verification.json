@@ -1,0 +1,23 @@
+{
+  "capture_commit": "d6b552fb864c7fe3b3870d5464f333ee23eac91c",
+  "assembler_commit": "02798d5c0e182431f7b2bd77904c6e5f5e3ae05a",
+  "capture_test": "20261024-163029",
+  "capture_verdict": "passed 1/1",
+  "source_png_count": 24,
+  "phase_rows": 26,
+  "leading_phase_rows_discarded": 2,
+  "unscaled_duration_seconds": 0.9325389999999985,
+  "banner_fade_seconds": 0.7977927999999999,
+  "banner_sim_seconds": [
+    "0.8217184"
+  ],
+  "mp4_readback": [
+    25,
+    0.93,
+    null
+  ],
+  "gif_stored_frames": 24,
+  "gif_duration_ms": 930,
+  "gif_expected_duration_ms": 930,
+  "focused_script_tests": "4 files passed, including real-ffmpeg short-interval regression"
+}

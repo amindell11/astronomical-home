@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.3514481">
+  <test-suite type="TestSuite" id="1487" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="365" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.351448" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1465" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-5/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="361" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.334658" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="55548" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1466" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="361" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.319313" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1467" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="361" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.297485" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1018" name="CaptureScenarioPlayModeTests" fullname="Tests.PlayMode.CaptureScenarioPlayModeTests" classname="Tests.PlayMode.CaptureScenarioPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.266156" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Camera" />
+              <property name="Category" value="RequiresGraphics" />
+            </properties>
+            <test-case id="1019" name="RunsRequestedScenario" fullname="Tests.PlayMode.CaptureScenarioPlayModeTests.RunsRequestedScenario" methodname="RunsRequestedScenario" classname="Tests.PlayMode.CaptureScenarioPlayModeTests" runstate="Runnable" seed="2006603153" result="Passed" start-time="2026-10-24 23:33:03Z" end-time="2026-10-24 23:33:09Z" duration="6.231692" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+[Capture] 24 frames -> D:\amind\git\agent-5\results\capture\frames\20261024-163305-HudRecap
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
