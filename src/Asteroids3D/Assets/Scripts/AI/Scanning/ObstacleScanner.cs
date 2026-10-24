@@ -107,9 +107,6 @@ namespace AI.Scanning
             this.buffer = buffer;
             this.count = count;
         }
-
-        public static implicit operator (DetectedObstacle[] buffer, int count)(ObstacleScan scan) => (scan.buffer, scan.count);
-        public static implicit operator ObstacleScan((DetectedObstacle[] buffer, int count) tuple) => new ObstacleScan(tuple.buffer, tuple.count);
     }
 
     /// <summary>

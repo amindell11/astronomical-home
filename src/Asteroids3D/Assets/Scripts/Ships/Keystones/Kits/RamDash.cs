@@ -32,6 +32,7 @@ namespace Ships.Keystones.Kits
         public bool RamLive => SinceActivation < window && (!resolved || SinceActivation == resolvedAt);
         public override bool Active => RamLive;
         public override bool SeeksContact => RamLive;
+        public override bool FliesNavigatorHeading => true;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
 

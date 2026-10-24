@@ -24,14 +24,12 @@ namespace Combat.Weapons
             observationLos = new LosCache();
         }
 
-        public Vector3 FirePoint => (weapon && weapon.firePoint)
-            ? weapon.firePoint.position
-            : (weapon ? weapon.transform.position : Vector3.zero);
+        public Vector3 FirePoint => weapon ? weapon.FireOrigin : Vector3.zero;
 
-        /// <summary>Returns whether the weapon should fire at the given world-space target this tick.</summary>
+        /// <summary>Returns whether the weapon's fire plan holds its trigger at the given world-space target this step.</summary>
         public bool Evaluate(Vector3 targetWorld)
         {
-            return weapon && weapon.ShouldFire(BuildContext(targetWorld, los));
+            return weapon && weapon.HoldTrigger(BuildContext(targetWorld, los));
         }
 
         /// <summary>Whether the target sits in the weapon's geometric envelope (readiness excluded); read-only w.r.t. the firing path.</summary>

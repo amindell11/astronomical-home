@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat;
 using Combat.Projectiles;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Substrate;
 using Tests.PlayMode.Common;
@@ -21,6 +22,7 @@ namespace Tests.PlayMode
     public class MissileLaunchPlayModeTests : PlayModeWorldFixture
     {
         private const string MissilePrefabPath = "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab";
+        private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
 
         // Shipped prefab values, restated so the expectations read as numbers.
         private const float InitialSpeed = 1f;
@@ -63,6 +65,34 @@ namespace Tests.PlayMode
             TestContext.WriteLine($"shooter=({shooterAcross},{shooterAlong}) launch: along={along:F2} across={across:F2}");
             Assert.That(along, Is.EqualTo(expectedAlong).Within(0.05f), "along-aim launch speed");
             Assert.That(across, Is.EqualTo(expectedAcross).Within(0.05f), "across-aim launch speed");
+        }
+
+        [Test]
+        public void FirePointTiltedOutOfPlane_LaunchesInThePlaneAtFullSpeed()
+        {
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+#if UNITY_EDITOR
+            var prefab = AssetDatabase.LoadAssetAtPath<Missiles>(MissilesPrefabPath);
+            Assert.IsNotNull(prefab, $"Failed to load {MissilesPrefabPath}");
+            var weapon = Object.Instantiate(prefab, shooter.transform);
+            var aim = GamePlane.PlaneDirToWorld(Aim);
+            var across = GamePlane.PlaneDirToWorld(Across);
+            weapon.transform.SetPositionAndRotation(GamePlane.Normal * 0.8f,
+                Quaternion.AngleAxis(30f, across) * GamePlane.Rotation);
+            Assume.That(Vector3.Angle(weapon.firePoint.up, aim), Is.EqualTo(30f).Within(0.01f),
+                "the fire point tilts out of the plane");
+
+            missile = weapon.Fire(weapon.FireOrigin + aim, Projectiles) as Missile;
+            Assert.IsNotNull(missile, "the missile launched");
+
+            Assert.AreEqual(0f, Vector3.Dot(missile.transform.position - GamePlane.Origin, GamePlane.Normal), 0.001f,
+                "the missile spawns in the plane");
+            var velocity = missile.GetComponent<Rigidbody>().linearVelocity;
+            Assert.That(Vector3.Distance(velocity, aim * InitialSpeed), Is.LessThan(0.001f),
+                "velocity lies in the plane at full speed along the aim");
+#else
+            Assert.Ignore("Requires Unity Editor assets.");
+#endif
         }
 
         [UnityTest]

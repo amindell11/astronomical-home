@@ -1,8 +1,12 @@
 using System.Collections;
 using AI;
 using AI.Scanning;
+using Combat.Projectiles;
+using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Ships;
+using Substrate;
 using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -18,6 +22,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     private AICommander cmdr;
 
     private const float ScanTimeoutSec = 3f;
+    private const string GrenadesPrefabPath = "Assets/Prefabs/Weapons/Grenades.prefab";
 
     [SetUp]
     public override void SetUp()
@@ -55,6 +60,64 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
             ScanTimeoutSec,
             $"Scanner should detect the stub field obstacle within {ScanTimeoutSec}s",
             useFixedUpdate: true);
+    }
+
+    [UnityTest]
+    public IEnumerator ObstacleScan_LeadsWithOwnChargeThenBlastKeepOut_AndDropsEachWhenItEnds()
+    {
+        var rock = new DetectedObstacle(ship.transform.position + GamePlane.PlaneDirToWorld(Vector2.up * 8f), 3f, null);
+        ObstacleField.Inner = new StubObstacleField(rock);
+        ship.Reequip(ship.Shield, TestAssets.Load<Grenades>(GrenadesPrefabPath), null);
+        var launcher = (Grenades)ship.Weapons.Primary;
+
+        Grenade charge = null;
+        launcher.Launched += flight => charge = (Grenade)flight;
+        var aim = ship.transform.position + GamePlane.PlaneDirToWorld(Vector2.right * 20f);
+        launcher.HandleTrigger(new WeaponCommand { held = true, pressed = true, targetPoint = aim }, Projectiles);
+        Assert.IsNotNull(charge, "the launcher launched a charge");
+        ConcussionWave blast = null;
+        charge.Spawned += (child, _) => blast = (ConcussionWave)child;
+
+        var sawCharge = false;
+        var sawBlast = false;
+        var dropped = false;
+        // Frame-stepped, not fixed-stepped: the scout rebuilds its list in Update.
+        var deadline = Time.time + ScanTimeoutSec;
+        while (!dropped && Time.time < deadline)
+        {
+            yield return null;
+            var scan = cmdr.Scout.ObstacleScan;
+            if (Live(charge))
+            {
+                AssertLeadsRock(scan, rock, charge.TargetPoint, launcher.MinLobDistance, "charge");
+                sawCharge = true;
+            }
+            else if (Live(blast))
+            {
+                AssertLeadsRock(scan, rock, blast.transform.position, launcher.BlastRadius, "blast");
+                sawBlast = true;
+            }
+            else if (blast)
+            {
+                Assert.AreEqual(1, scan.count, "with charge and blast gone only the rock is left");
+                dropped = true;
+            }
+        }
+
+        Assert.IsTrue(sawCharge, "the charge's circle was seen in flight");
+        Assert.IsTrue(sawBlast, "the blast's circle was seen");
+        Assert.IsTrue(dropped, $"the blast ended within {ScanTimeoutSec}s");
+    }
+
+    private static bool Live(Component transient) => transient && transient.gameObject.activeSelf;
+
+    private static void AssertLeadsRock(ObstacleScan scan, DetectedObstacle rock, Vector3 center, float radius, string source)
+    {
+        Assert.AreEqual(2, scan.count, $"the {source}'s circle and the rock");
+        var circle = scan.buffer[0];
+        Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(center), circle.position), 1e-3f, $"the {source}'s circle is centred on it");
+        Assert.AreEqual(radius, circle.radius, 1e-4f, $"the {source}'s circle radius");
+        Assert.AreEqual(rock.position, scan.buffer[1].position, "the rock comes after the circle");
     }
 
     // Reports a single fixed obstacle whenever it falls inside the query box.
