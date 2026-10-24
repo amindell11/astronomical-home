@@ -20,6 +20,7 @@ using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UI.Screens;
+using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -34,6 +35,7 @@ namespace Tests.PlayMode.Audio
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string MusicEvent = "event:/Music/Game";
         private const string MusicStateName = "MusicState";
         private const string PhaseName = "Phase";
@@ -220,6 +222,7 @@ namespace Tests.PlayMode.Audio
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.musicPrefab = AssetDatabase.LoadAssetAtPath<GameMusic>(MusicPrefabPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             recordPath = Path.Combine(Path.GetTempPath(), "game-music-" + Guid.NewGuid().ToString("N") + ".jsonl");
             host.runRecordPath = recordPath;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
