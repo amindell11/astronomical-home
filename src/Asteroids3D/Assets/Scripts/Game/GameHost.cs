@@ -3,6 +3,7 @@ using System.Collections;
 using Balance;
 using Cameras;
 using Damage;
+using Game.Audio;
 using Game.Runs;
 using Substrate;
 using Substrate.Presentation;
@@ -11,6 +12,7 @@ using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
 using UI.Hangar;
+using UI.Recap;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -23,7 +25,7 @@ namespace Game
 {
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
-    /// Owns the player rig, viewport, UI, run records and clock; the session composes, loads and unloads.
+    /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
     /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
     /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
     /// The hangar, recap and restart stand in for Home Base and player progress.
@@ -54,6 +56,11 @@ namespace Game
                  "sector load/unload). Optional; skipped when presentation is off (headless/RL).")]
         [SerializeField] private LoadingSplash splashPrefab;
 
+        [Header("Music")]
+        [Tooltip("The run's music, built once for the session and told each run step's state. Optional; " +
+                 "skipped when presentation is off (headless/RL).")]
+        [SerializeField] internal GameMusic musicPrefab;
+
         [Header("Hangar")]
         [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
                  "applied silently).")]
@@ -67,6 +74,11 @@ namespace Game
         [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
                  "prefab-authored modules).")]
         [SerializeField] internal ItemSubset hangarOffer;
+
+        [Header("Recap")]
+        [Tooltip("Timings of the recap sequence: HUD fade, banner, gap, breakdown. The preview host tunes " +
+                 "this same asset. Required whenever presentation is on.")]
+        [SerializeField] internal RecapFeelProfile recapFeel;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector ends the run (run record, death " +
@@ -96,6 +108,7 @@ namespace Game
         private DriftCam hangarCamera;
         private PlayerRig rigInstance;
         private LoadingSplash splash;
+        private GameMusic music;
 
         private Transform viewport;
         private Transform ui;
@@ -123,11 +136,18 @@ namespace Game
         {
             // No yield separates this read from the session's own snapshot, so the two cannot disagree.
             var presentation = sessionProfile.presentation;
+            if (presentation && !recapFeel)
+                throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
             session = new Session(sessionProfile, arena, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
             if (splashPrefab && presentation)
                 splash = Instantiate(splashPrefab, ui);
+            if (musicPrefab && presentation)
+            {
+                music = Instantiate(musicPrefab, transform);
+                music.Initialize(objectiveService);
+            }
 
             SetSplashVisible(true);
             yield return null;
@@ -153,6 +173,7 @@ namespace Game
                 SetSplashVisible(false);
                 if (rigInstance)
                 {
+                    SetMusic(GameMusic.State.Hangar);
                     SetHangarViewVisible(true);
                     yield return RunHangar(rigInstance, presentation, ui);
                     SetHangarViewVisible(false);
@@ -177,6 +198,7 @@ namespace Game
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
+                    if (music) music.EnterSector(session.ActiveSector);
                     var sectorStartTime = Time.time;
 
                     // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
@@ -190,10 +212,11 @@ namespace Game
                     {
                         hull = rigInstance.Player.Damage.Health.Pct;
                         rigInstance.Spawns.EndSector(sectorEndTime);
+                        SetMusic(GameMusic.State.Recap);
                         if (presentation)
-                            yield return RunRecap((screen, dismiss) => screen.ShowSector(
+                            yield return RunRecap(RecapOutcomeContext.Extraction(
                                 rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
-                                Mathf.Max(0f, sectorEndTime - sectorStartTime), dismiss));
+                                Mathf.Max(0f, sectorEndTime - sectorStartTime)));
                     }
                     SetSplashVisible(true);
                     yield return session.UnloadSector();
@@ -204,8 +227,9 @@ namespace Game
                 {
                     if (!playerDied) EndRun();
                     var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
+                    SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
                     if (presentation)
-                        yield return RunOutcomeRecap(board, index);
+                        yield return RunRecap(OutcomeContext(board, index));
                 }
 
                 SetSplashVisible(true);
@@ -231,6 +255,11 @@ namespace Game
         private void SetSplashVisible(bool visible)
         {
             if (splash) splash.SetVisible(visible);
+        }
+
+        private void SetMusic(GameMusic.State state)
+        {
+            if (music) music.Set(state);
         }
 
         private void SetHangarViewVisible(bool visible)
@@ -331,58 +360,45 @@ namespace Game
             Destroy(screen.gameObject);
         }
 
-        private IEnumerator RunOutcomeRecap(Scoreboard board, int index)
+        private RecapOutcomeContext OutcomeContext(Scoreboard board, int index)
         {
-            if (!playerDied) PauseRecapClock();
-            var cameraEnabled = observer.enabled;
-            observer.enabled = false;
-            try
-            {
-                var elapsed = 0f;
-                do
-                {
-                    var t = Mathf.Clamp01(elapsed / .3f);
-                    SetGameplayOpacity(1f - t * t * t * (t * (t * 6f - 15f) + 10f));
-                    yield return null;
-                    elapsed += Time.unscaledDeltaTime;
-                } while (elapsed < .3f || playerDied && rigInstance.Player.VisualRig.DeathEffectsPlaying);
-                SetGameplayOpacity(0f);
-                yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
-                    rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
-                    sessionProfile.sectors.Length, board, dismiss));
-            }
-            finally
-            {
-                observer.enabled = cameraEnabled;
-                SetGameplayOpacity(1f);
-            }
+            var kills = rigInstance.Spawns.KilledShips();
+            var count = sessionProfile.sectors.Length;
+            return playerDied
+                ? RecapOutcomeContext.Defeat(kills, index, count, board,
+                    GamePlane.WorldPointToPlane(rigInstance.Player.transform.position))
+                : RecapOutcomeContext.Victory(kills, index + 1, count, board);
         }
 
-        private void SetGameplayOpacity(float opacity)
+        // The sequence decides what shows and when play freezes; the host owns clock, screen, restore.
+        private IEnumerator RunRecap(RecapOutcomeContext context)
         {
-            if (rigInstance.Overlay) rigInstance.Overlay.SetOpacity(opacity);
-            foreach (var ship in session.Units.ActiveRegistry.ActiveShips)
-                if (ship.VisualRig) ship.VisualRig.SetHudOpacity(opacity);
-        }
-
-        private IEnumerator RunRecap(Action<RunRecapScreen, Action> show)
-        {
-            var overlay = rigInstance.Overlay;
-            if (overlay) overlay.SetVisible(false);
-            var screen = RunRecapScreen.Create(ui);
-            var dismissed = false;
-            PauseRecapClock();
+            var sequence = new RecapOutcomeSequence(recapFeel, context);
+            var screen = RunRecapScreen.Create(ui, context);
+            var presenter = new RecapPresenter(screen, rigInstance.Overlay, session.Units.ActiveRegistry.ActiveShips,
+                observer);
             try
             {
-                show(screen, () => dismissed = true);
-                yield return new WaitUntil(() => dismissed);
+                yield return RecapPlayback.Run(sequence, state =>
+                    {
+                        presenter.Apply(state);
+                        SetRecapClock(state.SimulationFrozen);
+                    },
+                    () => rigInstance.Player.VisualRig.DeathEffectsPlaying,
+                    () => screen.Continued);
             }
             finally
             {
                 Destroy(screen.gameObject);
                 RestoreRecapClock();
-                if (overlay) overlay.SetVisible(true);
+                presenter.Restore();
             }
+        }
+
+        private void SetRecapClock(bool frozen)
+        {
+            if (frozen) PauseRecapClock();
+            else RestoreRecapClock();
         }
 
         private void PauseRecapClock()

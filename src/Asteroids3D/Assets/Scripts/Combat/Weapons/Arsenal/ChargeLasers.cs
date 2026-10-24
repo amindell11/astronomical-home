@@ -16,10 +16,16 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Min(0f)] private float fullChargeDamageScale = 1f;
 
         [Header("AI Firing")]
-        [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Max distance at which an AI gunner charges and releases.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 25f;
-        [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Max aim error (degrees) at which an AI gunner releases a charged shot.")]
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner starts a charge. Once started, it keeps charging while in range.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float chargeCone = 25f;
+        [Tooltip("Charge fraction from which an AI gunner releases on the first step the shot lines up and the weapon is ready. It never releases below the charge's minimum to fire.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float releaseCharge = 0.31f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner releases a charge about to reach full, rather than let it fire blind at full.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float fullChargeReleaseCone = 12f;
 
         [Header("Conditions")]
         [Stat, SerializeField] private ChargeTime charge;
@@ -55,11 +61,18 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
-        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
-        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
+        public override bool HoldTrigger(TargetingContext context)
+        {
+            if (charge.ChargePct < releaseCharge)
+                return context.distanceToTarget <= fireDistance
+                    && (charge.ChargePct > 0f || context.angleToTarget <= chargeCone);
+
+            // Not ready (cooldown, or under the charge's minimum): a release now fires nothing.
+            if (!CanFire()) return true;
+            if (InEnvelope(in context)) return false;
+            return !(charge.FullAfterHeldStep(Time.fixedDeltaTime) && context.angleToTarget <= fullChargeReleaseCone);
+        }
     }
 }

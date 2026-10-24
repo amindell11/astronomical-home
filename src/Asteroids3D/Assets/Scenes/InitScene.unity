@@ -187,11 +187,14 @@ MonoBehaviour:
     type: 3}
   splashPrefab: {fileID: 4900000000000000005, guid: 29caef627551652e1ae46b2ea099953e,
     type: 3}
+  musicPrefab: {fileID: 5100000000000000003, guid: f51cf8a4e76a4204a97924a22b457d84,
+    type: 3}
   hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
     type: 3}
   hangarCameraPrefab: {fileID: 6203917458810452105, guid: 6921a06a3ac74e6dac3d7c4325ce02d9,
     type: 3}
   hangarOffer: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
+  recapFeel: {fileID: 11400000, guid: a4963326513141e3bf43fabd747f3bf5, type: 2}
   deathBehavior: 2
   killHullRestore: 0.25
   recapHoldSeconds: 8

@@ -1,15 +1,19 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Game.Player;
 using Game.Runs;
+using UI.Recap;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UI.Screens
 {
+    /// <summary>
+    /// The recap's uGUI: the sector or run card and, for a run outcome, its banner, built at rest for a
+    /// <see cref="RecapOutcomeContext"/>. It draws whatever <see cref="RecapState"/> it is handed and
+    /// drives no time of its own; a <see cref="RecapPresenter"/> applies the states.
+    /// </summary>
     public sealed class RunRecapScreen : MonoBehaviour
     {
         internal const string SilhouetteFolder = "RunRecap/Ships";
@@ -21,10 +25,18 @@ namespace UI.Screens
         private static readonly Color Loss = new(.91f, .58f, .58f);
         private static readonly Color Backing = new(.047f, .078f, .153f, .9f);
         private Font font;
+        private CanvasGroup breakdown;
+        private Button continueButton;
+        private GameObject banner;
+        private CanvasGroup bannerGroup;
+        private GameObject prompt;
+        private bool interactable;
+
+        public bool Continued { get; private set; }
 
         private void Awake() => font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-        public static RunRecapScreen Create(Transform parent)
+        public static RunRecapScreen Create(Transform parent, RecapOutcomeContext context)
         {
             var go = new GameObject("RunRecapScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -36,42 +48,58 @@ namespace UI.Screens
             scaler.referenceResolution = new Vector2(1280f, 720f);
             scaler.matchWidthOrHeight = .5f;
             go.AddComponent<GraphicRaycaster>();
-            return go.AddComponent<RunRecapScreen>();
+            var screen = go.AddComponent<RunRecapScreen>();
+            if (context.Outcome == RecapOutcome.Extraction) screen.BuildSector(context);
+            else screen.BuildRun(context);
+            return screen;
         }
 
-        public void ShowSector(IReadOnlyList<string> kills, int sector, float completionSeconds, Action onContinue)
+        public void Apply(RecapState state)
+        {
+            breakdown.alpha = state.BreakdownAlpha;
+            breakdown.interactable = breakdown.blocksRaycasts = state.BreakdownInteractable;
+            if (state.BreakdownInteractable && !interactable) continueButton.Select();
+            interactable = state.BreakdownInteractable;
+            if (!banner) return;
+            bannerGroup.alpha = state.BannerAlpha;
+            prompt.SetActive(state.BannerPrompt);
+            banner.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
+        }
+
+        private void BuildSector(RecapOutcomeContext context)
         {
             var panel = BuildPanel("EXTRACTED", Success, 338f, 380f);
-            Label(panel, "Context", $"SECTOR {sector:00} COMPLETE", 28, 80, 282, 20, 11, Muted);
-            AddTrophies(panel, kills, 110f, 86f);
+            Label(panel, "Context", $"SECTOR {context.Sector:00} COMPLETE", 28, 80, 282, 20, 11, Muted);
+            AddTrophies(panel, context.Kills, 110f, 86f);
             Rule(panel, 260f);
             Label(panel, "TimeLabel", "COMPLETION TIME", 28, 273, 190, 28, 11, Muted);
-            Label(panel, "Time", RunTally.FormatSeconds(completionSeconds), 214, 267, 96, 34, 24, Ink,
+            Label(panel, "Time", RunTally.FormatSeconds(context.CompletionSeconds), 214, 267, 96, 34, 24, Ink,
                 TextAnchor.MiddleRight);
-            Continue(panel, "NEXT SECTOR", 324f, onContinue).Select();
+            continueButton = Continue(panel, "NEXT SECTOR", 324f);
+            breakdown = panel.gameObject.AddComponent<CanvasGroup>();
         }
 
-        public void ShowRun(bool victory, IReadOnlyList<string> kills, int sectorsCleared, int sectorCount,
-            Scoreboard scoreboard, Action onContinue)
+        private void BuildRun(RecapOutcomeContext context)
         {
+            var victory = context.Outcome == RecapOutcome.Victory;
             var outcomeColor = victory ? Success : Loss;
             var title = victory ? "VICTORY" : "SHIP LOST";
             var panel = BuildPanel(title, outcomeColor, 480f, 576f, true);
-            AddTrophies(panel, kills, 82f, 58f, true);
-            Label(panel, "Progress", $"{sectorsCleared} SECTORS CLEARED", 28, 202, 424, 20, 11, Muted);
-            AddRoute(panel, sectorsCleared, sectorCount, 232f);
+            AddTrophies(panel, context.Kills, 82f, 58f, true);
+            Label(panel, "Progress", $"{context.SectorsCleared} SECTORS CLEARED", 28, 202, 424, 20, 11, Muted);
+            AddRoute(panel, context.SectorsCleared, context.SectorCount, 232f);
             Rule(panel, 274f);
-            AddScoreboard(panel, scoreboard, outcomeColor);
-            var button = Continue(panel, "RETURN TO HANGAR", 510f, onContinue);
-            StartCoroutine(RevealRun(panel, title, outcomeColor, button));
+            AddScoreboard(panel, context.Board, outcomeColor);
+            continueButton = Continue(panel, "RETURN TO HANGAR", 510f);
+            breakdown = panel.gameObject.AddComponent<CanvasGroup>();
+            breakdown.alpha = 0f;
+            breakdown.interactable = false;
+            breakdown.blocksRaycasts = false;
+            BuildBanner(title, outcomeColor);
         }
 
-        private IEnumerator RevealRun(RectTransform panel, string title, Color outcomeColor, Button button)
+        private void BuildBanner(string title, Color outcomeColor)
         {
-            var details = panel.gameObject.AddComponent<CanvasGroup>();
-            details.alpha = 0f;
-            details.interactable = false;
-            details.blocksRaycasts = false;
             var intro = Box(transform, "OutcomeIntro", 0, 0, 820, 196);
             intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
             Fill(intro, new Color(Backing.r, Backing.g, Backing.b, .72f));
@@ -88,37 +116,12 @@ namespace UI.Screens
                 TextAnchor.MiddleCenter);
             headline.rectTransform.anchorMin = headline.rectTransform.anchorMax = new Vector2(.5f, .5f);
             headline.rectTransform.pivot = new Vector2(.5f, .5f);
-            var announcement = intro.gameObject.AddComponent<CanvasGroup>();
-            announcement.alpha = 0f;
-            yield return Fade(announcement, 0f, 1f, .8f);
-            var prompt = Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
-                TextAnchor.MiddleCenter);
-            using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
-            advance.AddBinding("<Mouse>/leftButton");
-            advance.AddBinding("<Gamepad>/buttonSouth");
-            var requested = false;
-            advance.performed += _ => requested = true;
-            advance.Enable();
-            yield return new WaitUntil(() => requested);
-            advance.Disable();
-            prompt.gameObject.SetActive(false);
-            yield return Fade(announcement, 1f, 0f, .7f);
-            Destroy(intro.gameObject);
-            yield return new WaitForSecondsRealtime(.3f);
-            yield return Fade(details, 0f, 1f, .8f);
-            details.interactable = true;
-            details.blocksRaycasts = true;
-            button.Select();
-        }
-
-        private static IEnumerator Fade(CanvasGroup group, float from, float to, float duration)
-        {
-            for (var elapsed = 0f; elapsed < duration; elapsed += Time.unscaledDeltaTime)
-            {
-                group.alpha = Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, elapsed / duration));
-                yield return null;
-            }
-            group.alpha = to;
+            bannerGroup = intro.gameObject.AddComponent<CanvasGroup>();
+            bannerGroup.alpha = 0f;
+            prompt = Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
+                TextAnchor.MiddleCenter).gameObject;
+            prompt.SetActive(false);
+            banner = intro.gameObject;
         }
 
         private RectTransform BuildPanel(string title, Color outcomeColor, float width, float height,
@@ -241,7 +244,7 @@ namespace UI.Screens
             Label(row, "Time", time, 350, 0, 50, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
         }
 
-        private Button Continue(RectTransform parent, string caption, float y, Action onContinue)
+        private Button Continue(RectTransform parent, string caption, float y)
         {
             var rect = Box(parent, "Continue", 28, y, 216, 38);
             rect.gameObject.AddComponent<Image>().color = Color.clear;
@@ -255,7 +258,7 @@ namespace UI.Screens
             button.onClick.AddListener(() =>
             {
                 button.interactable = false;
-                onContinue();
+                Continued = true;
             });
             return button;
         }

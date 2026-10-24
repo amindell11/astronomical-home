@@ -85,6 +85,9 @@ MonoBehaviour:
   fullChargeDamageScale: 1
   fireDistance: 25
   fireAngleTolerance: 5
+  chargeCone: 25
+  releaseCharge: 0.31
+  fullChargeReleaseCone: 12
 --- !u!114 &2792708326550319890
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -32,6 +32,7 @@ namespace Ships.Keystones.Kits
         public bool RamLive => SinceActivation < window && (!resolved || SinceActivation == resolvedAt);
         public override bool Active => RamLive;
         public override bool SeeksContact => RamLive;
+        public override bool FliesNavigatorHeading => true;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
 
@@ -54,8 +55,7 @@ namespace Ships.Keystones.Kits
             resolved = true;
             resolvedAt = SinceActivation;
 
-            var target = contact.Other.GetComponentInParent<IDamageable>();
-            if (target == null) return;
+            if (!DamageableColliders.TryGet(contact.Other, out var target)) return;
             if (target is AsteroidDamage)
             {
                 if (!contact.OtherBody || contact.OtherBody.mass >= contact.SelfMass) return;

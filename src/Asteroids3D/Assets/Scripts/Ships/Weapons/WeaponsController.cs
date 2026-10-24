@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
@@ -211,6 +212,24 @@ namespace Ships.Weapons
             public bool IsReady(WeaponSlot slot) => owner.Mount(slot)?.CanFire() ?? false;
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
+
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.AimPoint(in shooter, targetPos, targetVel) : targetPos;
+            }
+
+            public float? HoldRange(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HoldRange : null;
+            }
+
+            public int KeepOutCircles(WeaponSlot slot, Span<DetectedObstacle.PlaneCircle> circles)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.KeepOutCircles(circles) : 0;
+            }
 
             public Gunsight Sight(WeaponSlot slot) => slot switch
             {

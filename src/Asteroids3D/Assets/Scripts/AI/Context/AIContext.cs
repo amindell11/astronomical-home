@@ -6,7 +6,8 @@ namespace AI.Context
     /// <summary>
     /// The world model the AI reasons over for a single tick: the live views
     /// (<see cref="Self"/>, <see cref="Combat"/>) over the sensing tier
-    /// (<see cref="Scout"/>). Holds no actuators (navigator/gunner) — those are
+    /// (<see cref="Scout"/>), plus the distance its primary weapon asks it to hold
+    /// (<see cref="HoldRange"/>). Holds no actuators (navigator/gunner) — those are
     /// owned by the host that acts on the context.
     /// </summary>
     [Serializable]
@@ -16,13 +17,16 @@ namespace AI.Context
         public EnemyTracker Combat { get; private set; }
         public Scout Scout { get; private set; }
 
-        public AIContext(IShipStatus self, Scout scout,
+        public float? HoldRange { get; private set; }
+
+        public AIContext(IShipStatus self, Scout scout, float? holdRange,
             float combatExitDelay = 3f)
         {
             if (self == null || scout == null) return;
 
             Self = self;
             Scout = scout;
+            HoldRange = holdRange;
             Combat = new EnemyTracker(scout, combatExitDelay);
         }
 

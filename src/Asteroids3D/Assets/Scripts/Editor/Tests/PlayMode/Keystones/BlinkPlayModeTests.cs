@@ -6,11 +6,13 @@ using Asteroids.Fragnetics;
 using Asteroids.Spawning;
 using Combat;
 using Combat.Projectiles;
+using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Registry;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -63,6 +65,30 @@ namespace Tests.PlayMode.Keystones
             Assert.That(jump.x, Is.EqualTo(blink.Range).Within(0.5f), "the jump is clamped to range along the aim");
             Assert.That(Mathf.Abs(jump.y), Is.LessThan(0.5f), "only the one step of drift on top");
             Assert.That(Vector3.Distance(crimson.Rigidbody.linearVelocity, velocity), Is.LessThan(0.5f), "velocity is preserved");
+        }
+
+        [UnityTest]
+        public IEnumerator AsteroidImpact_DamagesTheShip()
+        {
+            yield return SpawnCrimson();
+            var hits = new List<AppliedDamage>();
+            crimson.Damage.OnDamaged += hits.Add;
+            var rock = SpawnRock(GamePlane.Forward * 8f);
+            // The mesh collider switches on in LateUpdate.
+            yield return null;
+            yield return new WaitForFixedUpdate();
+
+            for (var i = 0; i < 60 && hits.Count == 0; i++)
+            {
+                crimson.Rigidbody.linearVelocity = GamePlane.Forward * 20f;
+                yield return new WaitForFixedUpdate();
+            }
+
+            Assert.That(hits, Is.Not.Empty, "the asteroid impact damaged the ship");
+            Assert.That(hits[0].Info.Kind, Is.EqualTo(DamageKind.Collision));
+            Assert.That(hits[0].Info.AttackerId, Is.EqualTo(ShipId.Invalid));
+            Assert.That(hits[0].Info.HitMass, Is.EqualTo(rock.Mass));
+            Assert.That(hits[0].Info.Amount, Is.GreaterThan(0f));
         }
 
         [UnityTest]

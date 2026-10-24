@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using AI;
 using Combat.Weapons;
 using Damage;
 using NUnit.Framework;
@@ -21,7 +22,7 @@ using RL.Probes;
 
 namespace Tests.PlayMode
 {
-    /// <summary>End-to-end proof for the duel lane's machinery: a Lasers shooter fights one block against the still Dummy headless through the host, and the marksmanship probe's row, summary sidecar and table all carry shots that were fired and hits that landed.</summary>
+    /// <summary>End-to-end proof for the duel lane's machinery: a Lasers shooter fights one block against the still Dummy headless through the host, and the marksmanship probe's row, summary sidecar and table all carry shots that were fired and hits that landed; the armed shooter's context carries its weapon's hold range.</summary>
     [Category("AI")]
     public class DuelLanePlayModeTests
     {
@@ -128,6 +129,25 @@ namespace Tests.PlayMode
             Assert.AreEqual(1, sampler.Tally.hits);
             Assert.AreEqual(5f, sampler.Tally.damageDealt);
             Assert.AreEqual(0, sampler.Tally.selfHits);
+        }
+
+        [Test]
+        public void ArmedShooter_ContextCarriesItsPrimaryWeaponsHoldRange_NoneWhenTheWeaponDeclaresNone()
+        {
+            var grenades = TrainingBootstrap.CatalogWeapons().FirstOrDefault(w => w.name == "Grenades");
+            Assert.IsNotNull(grenades, "the item catalog must list the Grenades weapon prefab");
+            Assert.IsNotNull(grenades.HoldRange, "Grenades declare a hold range");
+
+            Assert.AreEqual(grenades.HoldRange, ShooterHoldRange(grenades));
+            Assert.IsNull(ShooterHoldRange(lasers), "Lasers declare none, so the pilot keeps its own range");
+        }
+
+        private float? ShooterHoldRange(WeaponComponent weapon)
+        {
+            var spec = DuelLane.DuelSpec();
+            using var pair = EpisodePair.SpawnArmedPair(unitService, Vector2.zero, null, projectiles, in spec,
+                assets, weapon);
+            return pair.Agent.GetComponentInChildren<AICommander>().context.HoldRange;
         }
 
         private static DamageInfo Hit(float amount, DamageKind kind, ShipId attacker) =>

@@ -64,7 +64,7 @@ MonoBehaviour:
     team: 1
     startActive: 1
     respawn:
-      origin: 1
+      origin: 0
       point: {x: 0, y: 0}
       radius: 5
       delay: 2

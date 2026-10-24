@@ -96,8 +96,7 @@ namespace Combat.Projectiles
                 // A trigger on a hull layer is a broadphase volume (an asteroid's bounding sphere), not the hull.
                 if (buffer[i].isTrigger && (hullLayers & (1 << buffer[i].gameObject.layer)) != 0) continue;
 
-                var target = buffer[i].GetComponentInParent<IDamageable>();
-                if (target == null || !swept.Add(target)) continue;
+                if (!DamageableColliders.TryGet(buffer[i], out var target) || !swept.Add(target)) continue;
 
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);

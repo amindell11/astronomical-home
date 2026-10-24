@@ -38,6 +38,8 @@ namespace Substrate.Sectors.Elements.Phases
         private SpineObjectiveHandle spine;
         private Ship hero;
 
+        public SectorPhaseMark Phase => director.Phase;
+
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
             if (!director || !extractionZone)

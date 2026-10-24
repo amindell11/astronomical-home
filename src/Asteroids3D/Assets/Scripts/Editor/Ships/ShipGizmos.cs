@@ -1,4 +1,3 @@
-using AI;
 using Combat;
 using Diagnostics;
 using Ships.Command;
@@ -69,7 +68,7 @@ namespace Ships
 
             var k = ship.Kinematics;
             var ek = enemy.Kinematics;
-            var aim = Gunner.AimPoint(in k, ek.pos, ek.vel, context.ProjectileSpeed(WeaponSlot.Primary));
+            var aim = context.AimPoint(WeaponSlot.Primary, in k, ek.pos, ek.vel);
             // InEnvelope, never Evaluate — Evaluate mutates the firing path's LOS cache.
             var inEnvelope = sight.InEnvelope(GamePlane.PlanePointToWorld(aim));
             Line(k.pos, aim, inEnvelope ? EnvelopeOpen : EnvelopeClosed);
