@@ -34,8 +34,9 @@ namespace Combat.Targeting
     }
 
     /// <summary>
-    /// One target's missile-lock events, raised by whoever locks it, and the missiles tracking it,
-    /// kept by those missiles. It lives as long as the target.
+    /// One target's missile-lock events, raised by whoever locks it, the missiles tracking it,
+    /// kept by those missiles, and its concealment flag, set by the target itself. It lives as
+    /// long as the target.
     /// </summary>
     public sealed class LockChannel
     {

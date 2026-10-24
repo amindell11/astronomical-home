@@ -40,17 +40,14 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
-        /// <summary>Raised when either mount fires a shot.</summary>
         public event Action Fired;
 
         private WeaponContext context;
 
         private void Awake()
         {
-            if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
-            if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
-            if (Primary) Primary.OnFire += RaiseFired;
-            if (Secondary) Secondary.OnFire += RaiseFired;
+            Primary = ReplaceMount(null, primaryMount, WeaponSlot.Primary);
+            Secondary = ReplaceMount(null, secondaryMount, WeaponSlot.Secondary);
             Sensor = FindMountSensor();
         }
 
