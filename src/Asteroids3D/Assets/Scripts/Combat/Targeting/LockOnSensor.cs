@@ -117,8 +117,10 @@ namespace Combat.Targeting
         private void OnDestroy()
         {
             StopScanRoutine();
-            if (targetLock != null)
-                targetLock.OnStateChanged -= HandleTargetLockStateChanged;
+            if (targetLock == null) return;
+            // The target's channel outlives this sensor; cancelling drops the lock's subscription to it.
+            targetLock.Cancel();
+            targetLock.OnStateChanged -= HandleTargetLockStateChanged;
         }
 
         private void FixedUpdate()
@@ -219,7 +221,7 @@ namespace Combat.Targeting
             for (var i = 0; i < colliderCount; i++)
             {
                 if (!registry.TryGetShip(fanHits[i], out var ship, selfShipId)) continue;
-                if (!IsValid(ship)) continue;
+                if (!IsValid(ship) || ship.Lock.IsConcealed) continue;
 
                 var angle = TargetingMath.AngleTo(pose, PlanePoint(ship));
 
