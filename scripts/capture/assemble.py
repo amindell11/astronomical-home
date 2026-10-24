@@ -102,9 +102,12 @@ def write_concat_list(list_path, frames, durations):
     with open(list_path, "w", encoding="utf-8") as f:
         for frame, duration in zip(frames, durations):
             f.write("file '%s'\n" % os.path.abspath(frame).replace("\\", "/"))
+            # PNG demuxers default to 25 Hz and collapse shorter unscaled intervals.
+            f.write("option framerate 1000\n")
             f.write("duration %.6f\n" % duration)
         # concat demuxer ignores the last entry's duration unless the file is repeated
         f.write("file '%s'\n" % os.path.abspath(frames[-1]).replace("\\", "/"))
+        f.write("option framerate 1000\n")
     return len(frames) + 1
 
 

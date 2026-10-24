@@ -55,8 +55,8 @@ begins and restores the editor settings and subject state it touched.
   intensity 1.6, soft shadows, flat ambient 0.24) and identity poses. Canvases and
   particles on the filmed subjects stay hidden for the episode.
 - `hud-1280x720` — Game View fixed at 1280×720, the play-in-editor FMOD debug overlay
-  off, world-space status-bar canvases on. Opacity stays the game's, so a recap fade
-  keeps its unscaled cadence.
+  off. World-space status-bar canvases keep the game's enabled state and opacity,
+  so a recap fade keeps its unscaled cadence.
 
 Every capture writes `provenance.json` (source, size, data kind, timing basis
 `unscaled`, quality level, commit) and `phases.csv` (frame, unscaled seconds, sim

@@ -74,3 +74,48 @@ print(f"paint-error {error:.2f}")
 PY
 
 echo "PASS: capture/assemble.py — gif duration quantum and subject colour"
+
+"$PY" - "$ASSEMBLE" "$TMP/frames/short-intervals" <<'PY'
+import csv
+import importlib.util
+import subprocess
+import sys
+from pathlib import Path
+
+import imageio_ffmpeg
+from PIL import Image
+
+script, directory = sys.argv[1:]
+root = Path(directory)
+root.mkdir(parents=True)
+colors = [(30 + i % 4 * 60, 30 + i // 4 % 4 * 60, 30 + i // 16 * 120) for i in range(24)]
+for index, color in enumerate(colors):
+    Image.new("RGB", (16, 16), color).save(root / f"f_{index:05d}.png")
+with (root / "phases.csv").open("w", newline="") as stream:
+    writer = csv.writer(stream)
+    writer.writerow(["frame", "unscaled_seconds"])
+    writer.writerows((index, index * 0.015) for index in range(len(colors)))
+subprocess.run([sys.executable, script, str(root), "--keep-frames"], check=True)
+clip = str(root) + ".mp4"
+ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+raw = subprocess.run([
+    ffmpeg, "-v", "error", "-i", clip, "-f", "rawvideo", "-pix_fmt", "rgb24",
+    "-fps_mode", "passthrough", "-",
+], capture_output=True, check=True).stdout
+decoded_ids = [
+    min(range(len(colors)), key=lambda index: sum(abs(raw[offset + channel] - colors[index][channel])
+                                                for channel in range(3)))
+    for offset in range(0, len(raw), 16 * 16 * 3)
+]
+expected_ids = list(range(len(colors))) + [len(colors) - 1]
+if decoded_ids != expected_ids:
+    raise SystemExit(f"short intervals lost or reordered source frames: {decoded_ids}")
+spec = importlib.util.spec_from_file_location("assemble", script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+_, seconds, failure = module.decode_clip(ffmpeg, clip)
+if failure or seconds is None or abs(seconds - 0.36) > 0.01:
+    raise SystemExit(f"short-interval clip should last 0.36 seconds, got {seconds}: {failure}")
+PY
+
+echo "PASS: capture/assemble.py — short unscaled intervals preserve every source frame and duration"
