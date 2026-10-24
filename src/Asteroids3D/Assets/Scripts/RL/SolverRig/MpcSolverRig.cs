@@ -122,7 +122,7 @@ namespace RL.SolverRig
                 var cfg = mpc.Config;
                 // The obstacle buffer is only valid until the next Solve — classify in the tick it was written (probe protocol).
                 var hullRadius = cfg.shipRadius * Cost.BankProfileScale(applied.strafe, cfg) + cfg.collisionSafetyMargin;
-                var underThreat = ControllerProbe.ObstacleThreat(state.pos, state.vel,
+                var underThreat = Cost.ObstacleThreat(state.pos, state.vel,
                     mpc.Solver.Obstacles, mpc.Solver.ObstacleCount, hullRadius, cfg.maxLatAccel);
 
                 // The facing metric follows the AIM slot's referent; rows without an armed live AIM sample no facing error.

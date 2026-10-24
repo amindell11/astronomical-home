@@ -7,6 +7,7 @@ using Combat.Projectiles;
 using Combat.Targeting;
 using Movement;
 using UnityEngine;
+using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
@@ -19,11 +20,18 @@ namespace Combat.Weapons
         public float distanceToTarget;
         public float angleToTarget;
         public bool hasLineOfSight;
+
+        public bool Within(float maxDistance, float maxAngle) =>
+            hasLineOfSight && distanceToTarget <= maxDistance && angleToTarget <= maxAngle;
     }
 
     public abstract class WeaponComponent : MonoBehaviour
     {
         public Transform firePoint;
+
+        public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
+        public Vector3 FireDirection => GamePlane.WorldDirOnPlane((firePoint ? firePoint : transform).up);
+
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;
@@ -73,6 +81,14 @@ namespace Combat.Weapons
         public virtual bool CanFire()
         {
             return conditions.All(c => c.CanFire());
+        }
+
+        protected bool TrySpendFireConditions()
+        {
+            if (!CanFire()) return false;
+            foreach (var condition in conditions)
+                condition.ProcessFire();
+            return true;
         }
 
         /// <summary>Name shown on this weapon's HUD readout panel.</summary>

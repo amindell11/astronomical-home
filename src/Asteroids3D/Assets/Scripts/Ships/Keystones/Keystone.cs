@@ -39,6 +39,9 @@ namespace Ships.Keystones
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
 
+        /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
+        public virtual bool FliesNavigatorHeading => false;
+
         /// <summary>Multipliers on the ship's speed cap and forward thrust this step; 1 leaves them alone.</summary>
         public virtual float SpeedScale => 1f;
         public virtual float ThrustScale => 1f;

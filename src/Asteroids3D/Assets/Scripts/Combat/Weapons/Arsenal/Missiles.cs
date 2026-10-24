@@ -27,9 +27,6 @@ namespace Combat.Weapons.Arsenal
         [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
         [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
-        private ILockProvider lockProvider;
-
-        public LockOnSensor Targeting => targetingComputer;
         public Rounds Rounds => rounds;
         public float Damage => projectilePrefab.Damage;
         public float SplashDamage => projectilePrefab.SplashDamage;
@@ -47,7 +44,6 @@ namespace Combat.Weapons.Arsenal
             if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
-            lockProvider = targetingComputer;
         }
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
@@ -56,9 +52,12 @@ namespace Combat.Weapons.Arsenal
             if (!proj)
                 return null;
 
-            var lockedTarget = lockProvider?.ConsumeLock();
-            if (lockedTarget != null)
-                proj.SetTarget(lockedTarget);
+            if (targetingComputer)
+            {
+                var lockedTarget = targetingComputer.ConsumeLock();
+                if (lockedTarget != null)
+                    proj.SetTarget(lockedTarget);
+            }
 
             return proj;
         }
@@ -69,14 +68,10 @@ namespace Combat.Weapons.Arsenal
 
         private bool InLockCone(in TargetingContext context) =>
             targetingComputer
-            && context.hasLineOfSight
-            && context.distanceToTarget <= targetingComputer.maxLockDistance
-            && context.angleToTarget <= targetingComputer.lockOnConeAngle * 0.5f;
+            && context.Within(targetingComputer.maxLockDistance, targetingComputer.lockOnConeAngle * 0.5f);
 
         private bool InFallbackEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fallbackRange
-            && context.angleToTarget <= fallbackAngleTolerance;
+            context.Within(fallbackRange, fallbackAngleTolerance);
 
         // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
         public override bool HoldTrigger(TargetingContext context)
@@ -85,7 +80,11 @@ namespace Combat.Weapons.Arsenal
             if (!CanFire())
                 return false;
 
-            return (lockProvider?.State ?? LockState.Idle) switch
+            var lockState = LockState.Idle;
+            if (targetingComputer)
+                lockState = targetingComputer.State;
+
+            return lockState switch
             {
                 LockState.Locked => true,
                 LockState.Idle or LockState.Locking => InFallbackEnvelope(in context),

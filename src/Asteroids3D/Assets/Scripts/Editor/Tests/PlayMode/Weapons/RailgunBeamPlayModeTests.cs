@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Ships.Damage;
 using Ships.Loadout;
 using Substrate;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -41,6 +42,8 @@ namespace Tests.PlayMode.Weapons
                 Toughness = Mathf.Max(0f, Toughness - hit.Amount);
                 return overkill;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         public override void SetUp()
@@ -76,6 +79,7 @@ namespace Tests.PlayMode.Weapons
             go.AddComponent<BoxCollider>().size = Vector3.one * size;
             var soak = go.AddComponent<Soak>();
             soak.Toughness = toughness;
+            DamageableColliderRegistration.Register(soak);
             return soak;
         }
 
@@ -169,6 +173,7 @@ namespace Tests.PlayMode.Weapons
             }
             var ship = root.AddComponent<Soak>();
             ship.Toughness = 10f;
+            DamageableColliderRegistration.Register(ship);
             var behind = CreateSoak(Aim * 10f);
 
             Fire();

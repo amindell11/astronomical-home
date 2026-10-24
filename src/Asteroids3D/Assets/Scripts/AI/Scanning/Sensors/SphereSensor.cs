@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace AI.Scanning.Sensors
 {
-    public class SphereSensor : ISensor
+    public class SphereSensor
     {
         private readonly Collider[] buffer;
         private readonly Transform origin;

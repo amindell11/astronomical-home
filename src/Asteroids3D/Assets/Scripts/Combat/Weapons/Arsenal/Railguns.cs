@@ -84,10 +84,7 @@ namespace Combat.Weapons.Arsenal
         // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            if (!CanFire()) return null;
-
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            if (!TrySpendFireConditions()) return null;
 
             FireBeam();
             InvokeOnFire();
@@ -97,9 +94,7 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
         // The authored charge fires only when full, so releasing early aborts the shot.
         public override bool HoldTrigger(TargetingContext context)
@@ -116,8 +111,8 @@ namespace Combat.Weapons.Arsenal
 
         private void FireBeam()
         {
-            var origin = GamePlane.PlanePointToWorld(GamePlane.WorldPointToPlane(firePoint.position));
-            var direction = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(firePoint.up).normalized);
+            var origin = FireOrigin;
+            var direction = FireDirection;
             var end = origin + direction * range;
 
             // A full buffer may have dropped the nearest hits, so grow it and cast again.
@@ -135,7 +130,7 @@ namespace Combat.Weapons.Arsenal
             {
                 var hit = beamHits[i];
                 if (shooterBody && hit.rigidbody == shooterBody) continue;
-                var damageable = hit.collider.GetComponentInParent<IDamageable>();
+                DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 
                 // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
