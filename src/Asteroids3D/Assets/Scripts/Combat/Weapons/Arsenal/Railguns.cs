@@ -127,7 +127,7 @@ namespace Combat.Weapons.Arsenal
             {
                 var hit = beamHits[i];
                 if (shooterBody && hit.rigidbody == shooterBody) continue;
-                var damageable = hit.collider.GetComponentInParent<IDamageable>();
+                DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 
                 // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
