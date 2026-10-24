@@ -333,6 +333,66 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void MatrixGrammar_SelectsTheLaneAndResolvesItsWeaponPrefabs()
+        {
+            var spec = Parse("RL_HARNESS_MATRIX", "Lasers, Missiles", "RL_HARNESS_SEEDS", "3001");
+
+            Assert.AreEqual(HarnessLane.Matrix, spec.lane);
+            Assert.AreEqual(new[] { "Lasers", "Missiles" }, Array.ConvertAll(spec.matrixWeapons, w => w.name));
+            Assert.AreEqual("matrix-custom", spec.tag, "matrix artifacts must never pass as an eval");
+            Assert.AreEqual(new[] { MatrixProbe.ProbeName }, Names(spec.probes));
+        }
+
+        [Test]
+        public void MatrixGrammar_AllSelectsTheCatalogsWeaponsInCatalogOrder()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            Assert.IsNotEmpty(catalog.Weapons);
+
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_MATRIX", "all").matrixWeapons);
+            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_MATRIX", "ALL").matrixWeapons);
+        }
+
+        [Test]
+        public void MatrixGrammar_ResolvesANameWithoutRegardToCase()
+        {
+            Assert.AreEqual(new[] { "Lasers" },
+                Array.ConvertAll(Parse("RL_HARNESS_MATRIX", "lasers").matrixWeapons, w => w.name));
+        }
+
+        [Test]
+        public void MatrixGrammar_RefusesNamesTheCatalogDoesNotListAndConflictingSelectors()
+        {
+            var projectile = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "Lasers,Laser"));
+            StringAssert.Contains("'Laser'", projectile.Message);
+            foreach (var weapon in TrainingBootstrap.CatalogWeapons())
+                StringAssert.Contains(weapon.name, projectile.Message);
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "all,Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", ""));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "Lasers,Lasers"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_ONNX", "ckpt.onnx"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_OPPONENT", "dummy"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_LANE", "capture"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_SENTENCE", "all"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_DUEL", "Missiles"));
+        }
+
+        [Test]
+        public void MatrixLane_RefusesTheCombatProbe()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX", "Missiles", "RL_HARNESS_PROBES", "matrix,combat"));
+            StringAssert.Contains(CombatTelemetryProbe.ProbeName, thrown.Message);
+            Assert.AreEqual(new[] { MatrixProbe.ProbeName, ContactProbe.ProbeName },
+                Names(Parse("RL_HARNESS_MATRIX", "Missiles", "RL_HARNESS_PROBES", "matrix,contact").probes));
+        }
+
+        [Test]
         public void DuelBlockLabels_NameTheWeaponAndTheTarget()
         {
             var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
@@ -498,6 +558,8 @@ namespace Tests.EditMode
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_SENTENCE", "all"), "sentence lane");
             Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_DUEL", "Lasers"), "duel lane");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_MATRIX", "Lasers"), "matrix lane");
         }
 
         [Test]
