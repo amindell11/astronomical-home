@@ -20,6 +20,9 @@ namespace Capture
         void Step();
         void End();
 
+        /// <summary>Lands on the frame <see cref="Step"/> commits next.</summary>
+        void RecordPhase(string column, float value);
+
         /// <summary>Where the frames of the episode most recently begun are written. Null before the first Begin.</summary>
         string FrameDir { get; }
     }

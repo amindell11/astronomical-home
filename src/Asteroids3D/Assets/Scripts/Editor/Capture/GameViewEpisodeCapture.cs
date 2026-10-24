@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.Recorder;
 using UnityEditor.Recorder.Input;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 using Substrate.Services.Projectiles;
 using Substrate;
@@ -37,6 +38,8 @@ namespace Capture.GameView
         private int activationFrame;
         private bool gameViewPrimed;
         private bool recordingStarted;
+        private int committedRenderFrame = -1;
+        private readonly List<SubjectChrome> chrome = new();
 
         static GameViewEpisodeCapture()
         {
@@ -63,14 +66,17 @@ namespace Capture.GameView
             active = this;
             try
             {
+                CapturePreset.Apply(config);
                 artifacts = new CaptureArtifacts(config);
                 pacing = CapturePacing.Locked(config.everyFixedSteps);
                 cost = new CaptureCost();
                 frameDir = artifacts.FrameDir;
                 BuildSelection();
                 transaction = new GameViewCaptureTransaction(GizmoCaptureProfiles.Resolve(profile), appliedSelection,
-                    subjects[0].gameObject, config.width, config.height, MapScope(config.gizmoScope), config.gizmoScopeTeam);
+                    subjects[0].gameObject, config.width, config.height, MapScope(config.gizmoScope), config.gizmoScopeTeam,
+                    config.preset == CapturePreset.Hud1280x720);
                 CreateRig();
+                ApplySubjectChrome();
                 FrameCamera();
                 activationFrame = Time.renderedFrameCount;
             }
@@ -91,6 +97,7 @@ namespace Capture.GameView
                     throw new InvalidOperationException("Native Game View capture lost a filmed subject.");
 
             cost.Sample();
+            ReapplyLineupPose();
             FrameCamera();
             BuildSelection();
             transaction.SetSelection(appliedSelection, subjects[0].gameObject);
@@ -99,10 +106,29 @@ namespace Capture.GameView
                 if (Time.renderedFrameCount <= activationFrame) return;
                 gameViewPrimed = true;
             }
-            if (recordingStarted) return;
+            if (recordingStarted)
+            {
+                CommitRenderedFrame();
+                return;
+            }
             CreateRecorder();
             recordingStarted = controller.StartRecording();
             if (!recordingStarted) throw new InvalidOperationException("Unity Recorder refused to start Game View capture.");
+            CommitRenderedFrame();
+        }
+
+        private void CommitRenderedFrame()
+        {
+            var rendered = Time.renderedFrameCount;
+            if (rendered == committedRenderFrame) return;
+            committedRenderFrame = rendered;
+            artifacts.CommitFrame();
+        }
+
+        public void RecordPhase(string column, float value)
+        {
+            if (artifacts == null) throw new InvalidOperationException("Native Game View capture has not begun.");
+            artifacts.RecordPhase(column, value);
         }
 
         public void End()
@@ -115,6 +141,7 @@ namespace Capture.GameView
             CaptureRecoveryJournal.Attempt(() => pacing?.Dispose(), failures);
             CaptureRecoveryJournal.Attempt(() => artifacts?.Complete(cost), failures);
             CaptureRecoveryJournal.Attempt(() => transaction?.Restore(), failures);
+            CaptureRecoveryJournal.Attempt(RestoreSubjectChrome, failures);
             CaptureRecoveryJournal.Attempt(DestroyOwnedObjects, failures);
             controller = null;
             pacing = null;
@@ -162,6 +189,11 @@ namespace Capture.GameView
             directional.transform.rotation = Quaternion.LookRotation(
                 GamePlane.Rotation * new Vector3(0.4f, -0.3f, 1f));
             config.configureView?.Invoke(captureCamera, directional);
+            if (config.preset != CapturePreset.LineupNeutral) return;
+            directional.color = Color.white;
+            directional.intensity = CapturePreset.LineupIntensity;
+            directional.shadows = LightShadows.Soft;
+            directional.transform.rotation = Quaternion.Euler(CapturePreset.LineupEuler);
         }
 
         private void FrameCamera()
@@ -231,6 +263,75 @@ namespace Capture.GameView
             controllerSettings = null;
             rig = null;
             captureCamera = null;
+        }
+
+        private void ApplySubjectChrome()
+        {
+            chrome.Clear();
+            if (config.preset != CapturePreset.LineupNeutral) return;
+
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            var ambient = CapturePreset.LineupAmbient;
+            RenderSettings.ambientLight = new Color(ambient, ambient, ambient, 1f);
+
+            for (var i = 0; i < subjects.Count; i++)
+            {
+                var ship = subjects[i];
+                var entry = new SubjectChrome(ship.transform);
+                entry.posed = true;
+                ship.transform.rotation = Quaternion.identity;
+                foreach (var canvas in ship.GetComponentsInChildren<Canvas>(true))
+                {
+                    entry.canvases.Add((canvas, canvas.enabled));
+                    canvas.enabled = false;
+                }
+                foreach (var particles in ship.GetComponentsInChildren<ParticleSystem>(true))
+                {
+                    entry.particles.Add((particles, particles.isPlaying));
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                }
+                chrome.Add(entry);
+            }
+        }
+
+        private void ReapplyLineupPose()
+        {
+            if (config.preset != CapturePreset.LineupNeutral) return;
+            for (var i = 0; i < subjects.Count; i++)
+                if (subjects[i]) subjects[i].transform.rotation = Quaternion.identity;
+        }
+
+        private void RestoreSubjectChrome()
+        {
+            foreach (var entry in chrome) entry.Restore();
+            chrome.Clear();
+        }
+
+        private sealed class SubjectChrome
+        {
+            public readonly Transform transform;
+            public readonly Quaternion rotation;
+            public bool posed;
+            public readonly List<(Canvas canvas, bool enabled)> canvases = new();
+            public readonly List<(ParticleSystem particles, bool playing)> particles = new();
+
+            public SubjectChrome(Transform transform)
+            {
+                this.transform = transform;
+                rotation = transform.rotation;
+            }
+
+            public void Restore()
+            {
+                if (posed && transform) transform.rotation = rotation;
+                foreach (var (canvas, enabled) in canvases)
+                    if (canvas) canvas.enabled = enabled;
+                foreach (var (particles, playing) in particles)
+                {
+                    if (!particles) continue;
+                    if (playing) particles.Play(true);
+                }
+            }
         }
 
         private static void RestoreActive()

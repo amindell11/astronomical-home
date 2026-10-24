@@ -15,8 +15,27 @@ namespace Capture
     public static class CaptureDispatch
     {
         private const string ProductionKey = "Game.Capture.CaptureDispatch.RequestedScenario";
+        private const string CommitKey = "Game.Capture.CaptureDispatch.Commit";
 
-        public static void Request(string scenarioTypeName) => Request(ProductionKey, scenarioTypeName);
+        public static void Request(string scenarioTypeName)
+        {
+            Request(ProductionKey, scenarioTypeName);
+            SessionState.EraseString(CommitKey);
+        }
+
+        public static void SetCommit(string commit)
+        {
+            if (string.IsNullOrEmpty(commit)) SessionState.EraseString(CommitKey);
+            else SessionState.SetString(CommitKey, commit);
+        }
+
+        public static string ConsumeCommit()
+        {
+            var commit = SessionState.GetString(CommitKey, "");
+            if (string.IsNullOrEmpty(commit)) return null;
+            SessionState.EraseString(CommitKey);
+            return commit;
+        }
 
         // Key-injected overloads keep tests off the production request slot.
         internal static void Request(string key, string scenarioTypeName)

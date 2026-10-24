@@ -53,6 +53,7 @@ namespace Tests.PlayMode
                 Assert.Ignore("Queue a scenario via `unity command capture_request_scenario` (warm lane) or run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName>.");
 
             var scenario = CreateScenario(typeName);
+            scenario.Commit = CaptureDispatch.ConsumeCommit() ?? CommandLineArg("-captureCommit");
             var sectorEntry = scenario.SectorEntry;
 
             sessionRoot = new GameObject("CaptureScenarioSession");

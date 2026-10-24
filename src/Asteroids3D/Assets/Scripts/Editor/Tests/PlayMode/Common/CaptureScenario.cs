@@ -30,11 +30,19 @@ public abstract class CaptureScenario
     /// <summary>Set by the runner, which also ends the episode when Run returns or throws.</summary>
     internal IEpisodeCapture Capture { get; set; }
 
+    /// <summary>40-character sha from -captureCommit or the warm-lane request. Film copies it onto <see cref="Config"/>.</summary>
+    internal string Commit { get; set; }
+
     public abstract IEnumerator Run();
 
     /// <summary>Begins filming the given ships; they are the framed and gizmo-selected subjects.</summary>
-    protected void Film(params Ship[] subjects) =>
-        Capture.Begin(Config, Profile, subjects, Session.Projectiles);
+    protected void Film(params Ship[] subjects)
+    {
+        var config = Config;
+        if (string.IsNullOrEmpty(config.commit))
+            config.commit = Commit;
+        Capture.Begin(config, Profile, subjects, Session.Projectiles);
+    }
 
     /// <summary>Advances the capture one fixed step. Call once per WaitForFixedUpdate while filming.</summary>
     protected void FilmStep() => Capture.Step();

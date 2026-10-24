@@ -19,7 +19,7 @@ namespace Capture.GameView
         private bool restored;
 
         public GameViewCaptureTransaction(Type[] profileTypes, Object[] subjects, Object activeSubject,
-            int width, int height, GizmoScope scope, int scopeTeam)
+            int width, int height, GizmoScope scope, int scopeTeam, bool hideDebugOverlay = false)
         {
             if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
                 throw new InvalidOperationException(
@@ -33,10 +33,12 @@ namespace Capture.GameView
             gizmoView = GizmoViewState.Snapshot();
             recovery = CaptureRecoveryJournal.Create(gizmos, gameView.Snapshot(),
                 UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
+            CaptureEditorSettings.Snapshot(recovery);
             CaptureRecoveryJournal.Write(recovery);
 
             try
             {
+                if (hideDebugOverlay) CaptureEditorSettings.HidePlayInEditorOverlay();
                 UrpGizmoCaptureAdapter.Prepare();
                 DisableAllAnnotations();
                 foreach (var type in profileTypes) GizmoUtility.SetGizmoEnabled(type, true, false);
@@ -88,6 +90,7 @@ namespace Capture.GameView
             CaptureRecoveryJournal.Attempt(
                 () => UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(
                     recovery.renderPipelineSettingsDirty), failures);
+            CaptureRecoveryJournal.Attempt(() => CaptureEditorSettings.Restore(recovery), failures);
             if (failures.Count == 0) CaptureRecoveryJournal.Delete();
             else throw new AggregateException("Native gizmo capture state restoration was incomplete; journal retained.", failures);
         }
