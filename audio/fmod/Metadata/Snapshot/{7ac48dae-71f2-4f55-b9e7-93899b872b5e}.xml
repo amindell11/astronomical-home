@@ -19,9 +19,70 @@
 		<relationship name="snapshotMasterTrack">
 			<destination>{0d2d8825-5773-4c74-b7a2-19955494518d}</destination>
 		</relationship>
+		<relationship name="snapshotProperties">
+			<destination>{5ba47030-0cb3-48bf-ba34-f16f152cc4d1}</destination>
+			<destination>{0f7c6a56-6749-4324-a23b-f0de948371fb}</destination>
+		</relationship>
+		<relationship name="snapshotTracks">
+			<destination>{9b8131a9-abeb-4ce9-afdb-d4c0d40584f6}</destination>
+		</relationship>
 	</object>
-	<object class="EventAutomatableProperties" id="{d6353c26-364d-4563-ac33-f1eae9d72fc9}" />
+	<object class="EventAutomatableProperties" id="{d6353c26-364d-4563-ac33-f1eae9d72fc9}">
+		<relationship name="modulators">
+			<destination>{0759a5bc-71be-4e3b-9258-50fa566abe1f}</destination>
+		</relationship>
+	</object>
 	<object class="MarkerTrack" id="{95a8d05f-e13e-4d50-94ad-bbd4eb0f9d98}" />
 	<object class="Timeline" id="{f43178aa-c900-4b63-aa6a-27b0bf471cf2}" />
 	<object class="SnapshotMasterTrack" id="{0d2d8825-5773-4c74-b7a2-19955494518d}" />
+	<object class="SnapshotProperty" id="{5ba47030-0cb3-48bf-ba34-f16f152cc4d1}">
+		<property name="propertyName">
+			<value>volume</value>
+		</property>
+		<property name="value">
+			<value>-10</value>
+		</property>
+		<relationship name="automatableObject">
+			<destination>{57133508-ab15-4f89-848d-aab93f0763d7}</destination>
+		</relationship>
+	</object>
+	<object class="SnapshotProperty" id="{0f7c6a56-6749-4324-a23b-f0de948371fb}">
+		<property name="propertyName">
+			<value>frequencyA</value>
+		</property>
+		<property name="value">
+			<value>1500</value>
+		</property>
+		<relationship name="automatableObject">
+			<destination>{5d064fad-bb49-41aa-a65a-71b4d562cc03}</destination>
+		</relationship>
+	</object>
+	<object class="SnapshotTrack" id="{9b8131a9-abeb-4ce9-afdb-d4c0d40584f6}">
+		<relationship name="mixerStrip">
+			<destination>{57133508-ab15-4f89-848d-aab93f0763d7}</destination>
+		</relationship>
+	</object>
+	<object class="ADSRModulator" id="{0759a5bc-71be-4e3b-9258-50fa566abe1f}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>snapshotIntensity</value>
+		</property>
+		<property name="attackTime">
+			<value>500</value>
+		</property>
+		<property name="peakValue">
+			<value>100</value>
+		</property>
+		<property name="holdTime">
+			<value>0</value>
+		</property>
+		<property name="decayTime">
+			<value>0</value>
+		</property>
+		<property name="sustainValue">
+			<value>100</value>
+		</property>
+		<property name="releaseTime">
+			<value>500</value>
+		</property>
+	</object>
 </objects>
