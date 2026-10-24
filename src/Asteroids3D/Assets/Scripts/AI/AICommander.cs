@@ -159,6 +159,11 @@ namespace AI
             var concealed = false;
             if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor, out concealed))
             {
+                if (AnchorConcealed())
+                {
+                    SearchLastSeen();
+                    return;
+                }
                 Navigator.ResetNavigation();
                 // No decision: the gunner keeps its last aim, unless the target concealed itself.
                 engagePrimary = !concealed;
@@ -200,6 +205,22 @@ namespace AI
             }
             else if (nav.hasAnchor) Gunner.Aim(anchor);
             else Gunner.HoldFire();
+        }
+
+        private bool AnchorConcealed() =>
+            hasAnchor && Scout.Registry.TryGetShip(anchorId, out var ship) && ship && ship.Lock.IsConcealed;
+
+        // A concealed anchor is hunted where it was last seen, guns cold, until it reveals or dies.
+        private void SearchLastSeen()
+        {
+            var seen = anchorTarget.kinematics;
+            var lastSeen = anchorTarget;
+            lastSeen.kinematics = new Kinematics(seen.pos, Vector2.zero, seen.yaw, 0f, 0f);
+            Navigator.ApplyObjective(NavObjective.Anchored(anchorId).Position(0f, 0f, 0f, 1f), lastSeen);
+            engagePrimary = false;
+            engageSecondary = false;
+            boost = false;
+            if (Gunner) Gunner.HoldFire();
         }
 
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.

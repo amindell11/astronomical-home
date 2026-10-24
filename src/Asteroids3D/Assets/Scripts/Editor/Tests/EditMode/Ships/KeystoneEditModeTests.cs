@@ -312,6 +312,8 @@ namespace Tests.EditMode.Ships
             Assert.That(stealth.name, Is.EqualTo("Nightshade_Stealth"));
             Assert.That(stealth.Window, Is.EqualTo(3f));
             Assert.That(stealth.Cooldown, Is.EqualTo(8f));
+            Assert.That(stealth.PeakSpeedScale, Is.EqualTo(1.3f));
+            Assert.That(stealth.PeakThrustScale, Is.EqualTo(1.45f));
             Assert.That(stealth.GetComponent<StealthVeil>(), Is.Not.Null, "the kit carries its tell");
         }
 

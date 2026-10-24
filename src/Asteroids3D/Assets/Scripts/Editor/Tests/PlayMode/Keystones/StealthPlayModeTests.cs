@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using AI.Strategy;
 using Combat;
 using Combat.Projectiles;
 using Combat.Weapons;
@@ -9,6 +10,7 @@ using Ships;
 using Ships.Command;
 using Ships.Keystones.Kits;
 using Substrate;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -83,6 +85,62 @@ namespace Tests.PlayMode.Keystones
             Assert.That(ctx.Combat.InCombat, Is.True, "the combat-exit grace keeps it in combat a while");
             ctx.Update(3f);
             Assert.That(ctx.Combat.InCombat, Is.False, "and lets it go once the grace runs out");
+        }
+
+        [UnityTest]
+        public IEnumerator ScriptedEnemy_SearchesWhereTheNightshadeWasLastSeen_WithGunsCold()
+        {
+            var (_, cmdr) = CreateAIShip(Vector3.zero, team: 0);
+            yield return SpawnNightshade(new Vector3(12f, 0f, 0f), team: 1);
+            var brain = cmdr.InstallBrain<ScriptedBrain>();
+            brain.decision = new BrainDecision(NavObjective.Anchored(nightshade.Id).Position(0f, 0f, 6f, 1f), engagePrimary: true);
+            yield return new WaitForFixedUpdate();
+            Assert.That(cmdr.Gunner.HasTarget, Is.True, "the enemy engages the Nightshade first");
+
+            nightshade.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(stealth.Active, Is.True);
+            var lastSeen = nightshade.Kinematics.pos;
+
+            brain.decision = null;
+            nightshade.Rigidbody.position = GamePlane.PlanePointToWorld(new Vector2(-30f, 0f));
+            for (var i = 0; i < 5; i++)
+                yield return new WaitForFixedUpdate();
+
+            var navigator = cmdr.Navigator;
+            Assert.That(navigator.ShouldIdle(), Is.False, "the enemy keeps flying instead of freezing");
+            Assert.That(Vector2.Distance(new Vector2(navigator.enemyPos.x, navigator.enemyPos.y), lastSeen), Is.LessThan(0.1f),
+                "it flies to where it last saw the Nightshade, not where it went");
+            Assert.That(navigator.enemyVel.x == 0f && navigator.enemyVel.y == 0f, "the last-seen point holds still");
+            Assert.That(cmdr.Gunner.HasTarget, Is.False, "and its guns stay cold");
+        }
+
+        [UnityTest]
+        public IEnumerator Stealth_FliesPastTheBaseCap_WhileConcealed()
+        {
+            yield return SpawnNightshade(Vector3.zero, team: 1);
+            var baseCap = nightshade.Stats.maxSpeed;
+            var full = new PilotCommand { thrust = 1f };
+            for (var i = 0; i < 200; i++)
+            {
+                nightshade.Movement.Drive(full);
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.That(nightshade.Kinematics.Speed, Is.LessThanOrEqualTo(baseCap + 0.01f), "the base cap holds before stealth");
+
+            nightshade.Movement.Drive(new PilotCommand { thrust = 1f, boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(stealth.Active, Is.True);
+
+            var peak = 0f;
+            while (stealth.Active)
+            {
+                nightshade.Movement.Drive(full);
+                yield return new WaitForFixedUpdate();
+                peak = Mathf.Max(peak, nightshade.Kinematics.Speed);
+            }
+            Assert.That(peak, Is.GreaterThan(baseCap * 1.15f), "concealed, it flies well past the base cap");
+            Assert.That(nightshade.Dynamics.maxSpeed, Is.EqualTo(baseCap).Within(0.01f), "the cap returns to base when stealth ends");
         }
 
         [UnityTest]
