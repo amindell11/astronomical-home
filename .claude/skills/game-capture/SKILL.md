@@ -205,6 +205,9 @@ frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
 replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
 needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
+GIF durations round to 10 ms and its maximum-coverage palette preserves small
+saturated subjects. The decoded clip is checked against that quantised duration
+and source subject colour.
 The frame dir is the encode step's intermediate: `assemble.py` reads the clip
 back, checks its length, and deletes the frame dir on a verified encode — so the
 mid-clip PNG eyeball happens **before** this command, not after. Pass
@@ -221,8 +224,9 @@ everything and exits nonzero.
   `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
   embedded as an `<img>` data URI in an artifact.
 - Embed the clip in the PR body or issue comment, never just its path: a
-  `--format gif` inline plus the `--web` mp4 linked, pushed per
-  `agent-worktree-pr-loop` → Step 4 → Visual evidence.
+  `--format gif` inline plus the `--web` mp4 linked. Publish with
+  `scripts/evidence_push.sh <lease> <files…>` and use its verified SHA-pinned
+  URLs. Body layout follows `agent-worktree-pr-loop` → Step 4 → Visual evidence.
 
 ## Hard-won constraints (violate = silent garbage)
 
