@@ -1,3 +1,4 @@
+using Combat.Targeting;
 using Ships.Damage;
 using Ships.Presentation;
 using UnityEngine;
@@ -30,6 +31,11 @@ namespace UI.PlayerState
 
         private Resource source;
         private bool subscribed;
+        private LockChannel enemyLock;
+        private Graphic[] graphics;
+        private bool hidden;
+
+        private void Awake() => graphics = GetComponentsInChildren<Graphic>(true);
 
         internal TrackedResource Tracked { get => tracked; set => tracked = value; }
         internal Image Fill { get => fill; set => fill = value; }
@@ -38,6 +44,7 @@ namespace UI.PlayerState
         {
             source = view.Damage == null ? null
                 : tracked == TrackedResource.Shield ? view.Damage.Shield : view.Damage.Health;
+            enemyLock = view.IsPlayer ? null : view.Lock;
             if (isActiveAndEnabled) Subscribe();
             Refresh();
         }
@@ -80,6 +87,16 @@ namespace UI.PlayerState
         {
             transform.rotation = GamePlane.Rotation;
             transform.position = transform.parent.position + GamePlane.Rotation * (Vector3)planeOffset;
+            Hide(enemyLock is { IsConcealed: true });
+        }
+
+        // An enemy's bars hide while its ship is concealed, so the player loses what the AI loses.
+        private void Hide(bool hide)
+        {
+            if (hide == hidden) return;
+            hidden = hide;
+            foreach (var graphic in graphics)
+                if (graphic) graphic.enabled = !hide;
         }
 
         void OnResourceChanged(float current, float previous, float max)
