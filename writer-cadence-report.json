@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-24",
+  "baselineCommit": "02798d5c0e182431f7b2bd77904c6e5f5e3ae05a",
+  "status": "passed",
+  "finalRun": "20261024-195205",
+  "exactPngRowPairs": 54,
+  "intermediateFadeFrames": 21,
+  "tenToNinetyPercentUnscaledSeconds": 1.520046200000003,
+  "proof": "Native Game View; gizmos on/off/on and collider silhouette; upright asymmetric HUD; intermediate RGB matches Recorder; exact PNG/pixel-ID/row identity; frozen simulation; unchanged two-second HUD fade, tested against unscaled and physical time; synchronous resource disposal/recreation; selected Game View configuration and rendered resolution restoration",
+  "correction": "The earlier 620d72af report proves HUD inclusion, not fade cadence. Changing caller-owned captureDeltaTime inside the first recorded frame caused a Unity clock discontinuity. This run crosses that frame boundary during preparation before the fade origin. The writer does not change pacing.",
+  "limitations": "Prototype synchronous acquisition only. Automatic recording-pump cancellation, production failure propagation, existing-caller migration, and warm editor acceptance remain owed. No canonical source changed.",
+  "prototypeSourceSha256": "8b7dea3127662a171718f7237b6f1d504e392cc9f24359da33ceeadab30457eb"
+}
