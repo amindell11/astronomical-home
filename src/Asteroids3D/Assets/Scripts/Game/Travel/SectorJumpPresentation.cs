@@ -68,6 +68,7 @@ namespace Game.Travel
             material.SetTexture("_ShipImage", hull);
             var canvas = NewCanvas();
             image = new GameObject("Jump image", typeof(RectTransform)).AddComponent<RawImage>();
+            image.gameObject.layer = overlay.gameObject.layer;
             image.transform.SetParent(canvas.transform, false);
             image.rectTransform.anchorMin = Vector2.zero;
             image.rectTransform.anchorMax = Vector2.one;
@@ -79,10 +80,11 @@ namespace Game.Travel
         private Canvas NewCanvas()
         {
             var canvas = new GameObject("Jump canvas").AddComponent<Canvas>();
+            canvas.gameObject.layer = overlay.gameObject.layer;
             canvas.transform.SetParent(transform, false);
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = observer.Cam;
-            canvas.planeDistance = observer.Cam.nearClipPlane + .1f;
+            canvas.worldCamera = overlay.WorldCamera;
+            canvas.planeDistance = overlay.WorldCamera.nearClipPlane + .1f;
             canvas.sortingOrder = -100;
             return canvas;
         }

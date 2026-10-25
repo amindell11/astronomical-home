@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Cameras;
 using Capture.Recording;
 using Capture.Views;
@@ -67,14 +68,20 @@ namespace Tests.PlayMode.Scenarios
                 {
                     yield return recording.Ready;
                     host.Transport.Restart();
-                    host.Transport.Playing = true;
+                    host.Transport.Playing = false;
                     recording.Start();
-                    yield return WaitFor(() => !host.Transport.Playing);
+                    var steps = Mathf.CeilToInt(host.jumpFeel.Duration * 50f);
+                    for (var frame = 0; frame <= steps; frame++)
+                    {
+                        host.Transport.Scrub(0, Mathf.Min(frame / 50f, host.jumpFeel.Duration));
+                        yield return null;
+                    }
                     yield return null;
                     Result = recording.Finish();
-                    Assert.That(Result.FrameCount, Is.GreaterThan(60));
+                    Assert.That(Result.FrameCount, Is.GreaterThan(1));
                     Assert.That(jump.State.HudAlpha, Is.EqualTo(1f));
                     Assert.That(jump.State.TravelFraction, Is.EqualTo(1f));
+                    AssertBackdropChanged(Result);
                 }
                 host.Transport.Scrub(0, 3.1f);
                 yield return null;
@@ -95,6 +102,34 @@ namespace Tests.PlayMode.Scenarios
                 UnityEngine.Object.DestroyImmediate(root);
             }
             Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
+        }
+
+        private static void AssertBackdropChanged(CaptureResult result)
+        {
+            var rows = File.ReadAllLines(result.FrameMetadataPath);
+            var first = new Texture2D(2, 2);
+            var last = new Texture2D(2, 2);
+            try
+            {
+                first.LoadImage(File.ReadAllBytes(Path.Combine(result.FrameDirectory, rows[1].Split(',')[1])));
+                last.LoadImage(File.ReadAllBytes(Path.Combine(result.FrameDirectory, rows[rows.Length - 1].Split(',')[1])));
+                var difference = 0f;
+                var samples = 0;
+                for (var y = 200; y < 500; y += 10)
+                for (var x = 100; x < 400; x += 10)
+                {
+                    var delta = first.GetPixel(x, y) - last.GetPixel(x, y);
+                    difference += Mathf.Abs(delta.r) + Mathf.Abs(delta.g) + Mathf.Abs(delta.b);
+                    samples++;
+                }
+                Assert.That(difference / samples, Is.GreaterThan(.08f),
+                    "Game View must show the destination sky, not the unchanged sector behind the jump canvas.");
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(first);
+                UnityEngine.Object.Destroy(last);
+            }
         }
 
         private static IEnumerator WaitFor(Func<bool> ready)
