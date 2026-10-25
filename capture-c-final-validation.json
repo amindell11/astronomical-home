@@ -1,0 +1,17 @@
+{
+  "captureAndReSharperHead": "5b03470bffda030750f702a12abcc75ae7c90f15",
+  "finalPrHead": "192dd22967cf79b7e4fc4182d2d5c1f6f0145a23",
+  "baseB": "97ae686d3c4099bf622adf0fde78950d2b383916",
+  "unityProjectTree": "a11c556bee286345809aa4e3ec64dec9228dc103",
+  "unityProjectIdentical": true,
+  "reviewedCorrection": "698e5871fa63b60c9cf58486aa731c7d51e0380d",
+  "warmSummary": "20261025-003722-summary.json",
+  "recoverySummary": "20261025-003747-summary.json",
+  "resharperBlocking": 0,
+  "resharperReportOnly": 2,
+  "diffAgainstB": "17 files, +621/-18",
+  "dependencyOnlyDelta": [
+    "scripts/evidence_push.sh",
+    "scripts/tests/test_evidence_push.sh"
+  ]
+}

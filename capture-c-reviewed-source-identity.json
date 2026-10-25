@@ -1,0 +1,92 @@
+{
+  "reviewedHead": "698e5871fa63b60c9cf58486aa731c7d51e0380d",
+  "integratedHead": "192dd22967cf79b7e4fc4182d2d5c1f6f0145a23",
+  "files": [
+    {
+      "path": ".claude/skills/game-capture/SKILL.md",
+      "reviewedBlob": "8a51146633aaa15d64ae3d50f1d618fc466d7167",
+      "integratedBlob": "8a51146633aaa15d64ae3d50f1d618fc466d7167"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Capture/Views/NeutralLineupView.cs",
+      "reviewedBlob": "56928827fc73a0bccf99fdab321ccef567558a69",
+      "integratedBlob": "56928827fc73a0bccf99fdab321ccef567558a69"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Capture/Views/NeutralLineupView.cs.meta",
+      "reviewedBlob": "afd89b9154b2e155702eb3aff91217fd913ff7a4",
+      "integratedBlob": "afd89b9154b2e155702eb3aff91217fd913ff7a4"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/GameViewEpisodeCapture.cs",
+      "reviewedBlob": "92ddba97d1145a0637b5982457ef7e0f0bcf29e9",
+      "integratedBlob": "92ddba97d1145a0637b5982457ef7e0f0bcf29e9"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Recovery/CaptureRecoveryJournal.cs",
+      "reviewedBlob": "82d7db4631871134afa63816e9455eb9fca6cda1",
+      "integratedBlob": "82d7db4631871134afa63816e9455eb9fca6cda1"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Recovery/CaptureRecoveryState.cs",
+      "reviewedBlob": "1dcda1f107e1e657bfbeef540cee99074cab4a59",
+      "integratedBlob": "1dcda1f107e1e657bfbeef540cee99074cab4a59"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Views/DiagnosticViewTransaction.cs",
+      "reviewedBlob": "b1e1c49239e8bccdb60fb430e5446437c3980a41",
+      "integratedBlob": "b1e1c49239e8bccdb60fb430e5446437c3980a41"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Views/NamedViewScope.cs",
+      "reviewedBlob": "d703d041e3e74497abca248701f534ef97a8a33d",
+      "integratedBlob": "d703d041e3e74497abca248701f534ef97a8a33d"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Views/NamedViewScope.cs.meta",
+      "reviewedBlob": "970c8d0dc354be5471b207e31be9a2f8beddc9a9",
+      "integratedBlob": "970c8d0dc354be5471b207e31be9a2f8beddc9a9"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Views/PresentationSettings.cs",
+      "reviewedBlob": "f4abf48ed889f531f0fa64a161169d9a7b2748fa",
+      "integratedBlob": "f4abf48ed889f531f0fa64a161169d9a7b2748fa"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Capture/GameView/Views/PresentationSettings.cs.meta",
+      "reviewedBlob": "493507b0dc1d7f37dff5a2173925dbf273ff94eb",
+      "integratedBlob": "493507b0dc1d7f37dff5a2173925dbf273ff94eb"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Recording/CapturePresetPlayModeTests.cs",
+      "reviewedBlob": "e54b0a6d41ce5932b7d97e6ad6095564fe79c107",
+      "integratedBlob": "e54b0a6d41ce5932b7d97e6ad6095564fe79c107"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Recording/CapturePresetPlayModeTests.cs.meta",
+      "reviewedBlob": "84f6648886368e7c80477ed3c70ff64fc4fcc866",
+      "integratedBlob": "84f6648886368e7c80477ed3c70ff64fc4fcc866"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Recording/CaptureViewAssertions.cs",
+      "reviewedBlob": "b9651b9bfe29bd462d540d9a006c417a1b100c7f",
+      "integratedBlob": "b9651b9bfe29bd462d540d9a006c417a1b100c7f"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Recording/CaptureViewAssertions.cs.meta",
+      "reviewedBlob": "8abd3cf25762b9bb8e3ba81c300dfd267d85d0f9",
+      "integratedBlob": "8abd3cf25762b9bb8e3ba81c300dfd267d85d0f9"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Scenarios/RecapFixtureSheetScenario.cs",
+      "reviewedBlob": "ee888fd874485643bb4cb439a45c6a106aabf9ec",
+      "integratedBlob": "ee888fd874485643bb4cb439a45c6a106aabf9ec"
+    },
+    {
+      "path": "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Scenarios/RecapParityScenario.cs",
+      "reviewedBlob": "d0f97a35a55c1d76b35dfb1179ff08d07dfa3a68",
+      "integratedBlob": "d0f97a35a55c1d76b35dfb1179ff08d07dfa3a68"
+    }
+  ],
+  "allIdentical": true
+}

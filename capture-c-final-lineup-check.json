@@ -1,0 +1,128 @@
+{
+  "head": "5b03470bffda030750f702a12abcc75ae7c90f15",
+  "outputs": [
+    {
+      "folder": "results\\capture\\frames\\20261025-073735-lineup-neutral-2048",
+      "width": 2048,
+      "pngs": 6,
+      "rows": 6,
+      "firstUnscaled": 5.151790702947846,
+      "lastUnscaled": 5.46741910430839,
+      "manifest": {
+        "width": 2048,
+        "height": 512,
+        "frameCount": 6,
+        "completed": true,
+        "frameMetadata": "frames.csv",
+        "timingBasis": "unscaled",
+        "finalFrameHold": "repeat-last-interval; single-frame=0.1s"
+      },
+      "provenance": {
+        "source": "native-game-view",
+        "dataKind": "png",
+        "timingBasis": "unscaled",
+        "width": 2048,
+        "height": 512,
+        "qualityLevel": "Performant",
+        "commit": "5b03470bffda030750f702a12abcc75ae7c90f15"
+      },
+      "colours": [
+        {
+          "filename": "f_00001.png",
+          "cyan": 0,
+          "jade": 12116
+        },
+        {
+          "filename": "f_00002.png",
+          "cyan": 0,
+          "jade": 12116
+        },
+        {
+          "filename": "f_00003.png",
+          "cyan": 0,
+          "jade": 12116
+        },
+        {
+          "filename": "f_00004.png",
+          "cyan": 0,
+          "jade": 12116
+        },
+        {
+          "filename": "f_00005.png",
+          "cyan": 0,
+          "jade": 12116
+        },
+        {
+          "filename": "f_00006.png",
+          "cyan": 0,
+          "jade": 12116
+        }
+      ]
+    },
+    {
+      "folder": "results\\capture\\frames\\20261025-073735-lineup-neutral-1024",
+      "width": 1024,
+      "pngs": 6,
+      "rows": 6,
+      "firstUnscaled": 5.75408550170068,
+      "lastUnscaled": 5.929786600056689,
+      "manifest": {
+        "width": 1024,
+        "height": 256,
+        "frameCount": 6,
+        "completed": true,
+        "frameMetadata": "frames.csv",
+        "timingBasis": "unscaled",
+        "finalFrameHold": "repeat-last-interval; single-frame=0.1s"
+      },
+      "provenance": {
+        "source": "native-game-view",
+        "dataKind": "png",
+        "timingBasis": "unscaled",
+        "width": 1024,
+        "height": 256,
+        "qualityLevel": "Performant",
+        "commit": "5b03470bffda030750f702a12abcc75ae7c90f15"
+      },
+      "colours": [
+        {
+          "filename": "f_00001.png",
+          "cyan": 0,
+          "jade": 3098
+        },
+        {
+          "filename": "f_00002.png",
+          "cyan": 0,
+          "jade": 3098
+        },
+        {
+          "filename": "f_00003.png",
+          "cyan": 0,
+          "jade": 3098
+        },
+        {
+          "filename": "f_00004.png",
+          "cyan": 0,
+          "jade": 3098
+        },
+        {
+          "filename": "f_00005.png",
+          "cyan": 0,
+          "jade": 3098
+        },
+        {
+          "filename": "f_00006.png",
+          "cyan": 0,
+          "jade": 3098
+        }
+      ]
+    }
+  ],
+  "oldControlComparison": {
+    "Vanguard": 0,
+    "Crimson": 0,
+    "Nightshade": 76,
+    "Valis": 7510,
+    "Bulwark": 0
+  }
+}
