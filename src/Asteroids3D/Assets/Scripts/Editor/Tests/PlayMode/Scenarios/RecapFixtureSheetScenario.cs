@@ -132,26 +132,52 @@ namespace Tests.PlayMode.Scenarios
 
         private IEnumerator FilmTopdown()
         {
-            using var view = (IDisposable)Capture.GetType().GetMethod("PrepareGameTopdown")
-                .Invoke(Capture, new object[] { host.Observer });
-            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "game-topdown", Commit,
-                1280, 720, stamp, new Dictionary<string, Func<double>>
-                {
-                    ["observer_zoom"] = () => host.Observer.Cam.orthographicSize,
-                    ["observer_x"] = () => host.Observer.transform.position.x,
-                    ["observer_y"] = () => host.Observer.transform.position.y,
-                }));
-            yield return recording.Ready;
-            yield return new WaitForSecondsRealtime(1f);
-            Assert.Less(Quaternion.Angle(Quaternion.LookRotation(Substrate.GamePlane.Normal, Substrate.GamePlane.Forward),
-                host.Observer.transform.rotation), .1f, "the actual observer owns topdown orientation");
-            var subject = host.Observer.Cam.WorldToViewportPoint(host.Observer.Subject.position);
-            Assert.That(subject.x, Is.InRange(0f, 1f));
-            Assert.That(subject.y, Is.InRange(0f, 1f));
-            recording.Start();
-            for (var frame = 0; frame < 8; frame++) yield return null;
-            Result = recording.Finish();
-            Assert.Greater(Result.FrameCount, 1);
+            var priorPresentation = CaptureViewAssertions.PresentationSnapshot();
+            var priorView = CaptureViewAssertions.ViewSnapshot();
+            var priorCamera = host.Observer.Cam.enabled;
+            using (var view = (IDisposable)Capture.GetType().GetMethod("PrepareGameTopdown")
+                       .Invoke(Capture, new object[] { host.Observer }))
+            {
+                using var recording = Capture.Prepare(new CaptureRequest("results/capture", "game-topdown", Commit,
+                    1280, 720, stamp, new Dictionary<string, Func<double>>
+                    {
+                        ["observer_zoom"] = () => host.Observer.Cam.orthographicSize,
+                        ["observer_x"] = () => host.Observer.transform.position.x,
+                        ["observer_y"] = () => host.Observer.transform.position.y,
+                    }));
+                yield return recording.Ready;
+                yield return new WaitForSecondsRealtime(1f);
+                Assert.Less(Quaternion.Angle(Quaternion.LookRotation(Substrate.GamePlane.Normal, Substrate.GamePlane.Forward),
+                    host.Observer.transform.rotation), .1f, "the actual observer owns topdown orientation");
+                var subject = host.Observer.Cam.WorldToViewportPoint(host.Observer.Subject.position);
+                Assert.That(subject.x, Is.InRange(0f, 1f));
+                Assert.That(subject.y, Is.InRange(0f, 1f));
+                recording.Start();
+                for (var frame = 0; frame < 8; frame++) yield return null;
+                Result = recording.Finish();
+                Assert.Greater(Result.FrameCount, 1);
+            }
+            Assert.AreEqual(priorCamera, host.Observer.Cam.enabled);
+            yield return CaptureViewAssertions.Restored(priorPresentation, priorView);
+            var files = Directory.GetFiles(Result.FrameDirectory, "*.png");
+            Array.Sort(files, StringComparer.Ordinal);
+            Assert.AreEqual(Result.FrameCount, files.Length);
+            Assert.AreEqual(Result.FrameCount + 1, File.ReadAllLines(Result.FrameMetadataPath).Length);
+            StringAssert.Contains(Commit, File.ReadAllText(Result.ProvenancePath));
+            var image = new Texture2D(2, 2);
+            try
+            {
+                Assert.IsTrue(ImageConversion.LoadImage(image, File.ReadAllBytes(files[files.Length / 2])));
+                Assert.AreEqual(1280, image.width);
+                Assert.AreEqual(720, image.height);
+                var pixels = image.GetPixels32();
+                var distinct = new HashSet<Color32>();
+                for (var y = image.height / 4; y < image.height * 3 / 4; y++)
+                    for (var x = image.width / 4; x < image.width * 3 / 4; x++)
+                        distinct.Add(pixels[y * image.width + x]);
+                Assert.Greater(distinct.Count, 100, "topdown contains rendered scene content away from screen-edge overlays");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(image); }
         }
 
         // The window itself, read off the screen: the only reflection-free way to see an editor window.

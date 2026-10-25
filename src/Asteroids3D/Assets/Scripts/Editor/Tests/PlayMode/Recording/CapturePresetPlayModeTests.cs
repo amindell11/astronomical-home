@@ -2,6 +2,8 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Capture.Recording;
 using NUnit.Framework;
 using Ships.Loadout;
@@ -35,16 +37,23 @@ namespace Tests.PlayMode.Recording
         }
 
         [UnityTest, Timeout(180000)]
-        public IEnumerator NeutralLineupRecordsEveryChassisAndRestoresItsPresentationScope()
+        public IEnumerator NeutralLineupRecordsSelectedHullsAndRestoresItsPresentationScope()
         {
             yield return null;
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
-            var priorPresentation = PresentationSnapshot();
-            var priorView = ViewSnapshot();
+            var priorPresentation = CaptureViewAssertions.PresentationSnapshot();
+            var priorView = CaptureViewAssertions.ViewSnapshot();
+            var prepare = capture.GetType().GetMethod("PrepareLineupNeutral");
+            var invalid = new[] { catalog.Chassis.Single(ship => ship.name == "Junker_1") };
+            var failure = Assert.Throws<TargetInvocationException>(() => prepare.Invoke(capture, new object[] { invalid }));
+            StringAssert.Contains("visual rig on Junker_1", failure.InnerException.Message);
+            Assert.AreEqual(priorPresentation, CaptureViewAssertions.PresentationSnapshot());
+            var names = new[] { "Vanguard", "Crimson", "Nightshade", "Valis", "Bulwark" };
+            var subjects = names.Select(name => catalog.Chassis.Single(ship => ship.name == name)).ToArray();
             var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
-            using ((IDisposable)capture.GetType().GetMethod("PrepareLineupNeutral").Invoke(capture, new object[] { catalog }))
+            using ((IDisposable)prepare.Invoke(capture, new object[] { subjects }))
             {
-                var prepared = PresentationSnapshot();
+                var prepared = CaptureViewAssertions.PresentationSnapshot();
                 Assert.AreEqual(UnityEngine.Rendering.AmbientMode.Flat, RenderSettings.ambientMode);
                 Assert.AreEqual(new Color(.24f, .24f, .24f), RenderSettings.ambientLight);
                 Assert.AreEqual("Performant", QualitySettings.names[QualitySettings.GetQualityLevel()]);
@@ -59,16 +68,14 @@ namespace Tests.PlayMode.Recording
                     recording.Start();
                     for (var frame = 0; frame < 6; frame++) yield return null;
                     var result = recording.Finish();
-                    Assert.AreEqual(prepared, PresentationSnapshot(), "recording cleanup preserves the prepared view's settings");
+                    Assert.AreEqual(prepared, CaptureViewAssertions.PresentationSnapshot(), "recording cleanup preserves the prepared view's settings");
                     Assert.AreEqual(result.FrameCount + 1, File.ReadAllLines(result.FrameMetadataPath).Length);
                     StringAssert.Contains(TestAssets.CaptureCommit(), File.ReadAllText(result.ProvenancePath));
-                    AssertLineup(result, width, catalog.Chassis.Count);
+                    AssertLineup(result, width, subjects.Length);
                     Debug.Log("[Capture] neutral lineup -> " + result.FrameDirectory);
                 }
             }
-            Assert.AreEqual(priorPresentation, PresentationSnapshot());
-            yield return AsyncAssert.WaitUntil(() => ViewSnapshot() == priorView, 30f,
-                "named preparation restores the prior Game View after repaint");
+            yield return CaptureViewAssertions.Restored(priorPresentation, priorView);
         }
 
         private static void AssertLineup(CaptureResult result, int width, int chassisCount)
@@ -97,19 +104,6 @@ namespace Tests.PlayMode.Recording
             finally { Object.DestroyImmediate(image); }
         }
 
-        private static string PresentationSnapshot()
-        {
-            var state = Activator.CreateInstance(Type.GetType("Capture.GameView.Recovery.CaptureRecoveryState, Capture.GameView.Editor", true));
-            Type.GetType("Capture.GameView.Views.PresentationSettings, Capture.GameView.Editor", true)
-                .GetMethod("Snapshot").Invoke(null, new[] { state });
-            return JsonUtility.ToJson(state);
-        }
-
-        private static string ViewSnapshot()
-        {
-            var type = Type.GetType("Capture.GameView.UnityGameViewAdapter, Capture.GameView.Editor", true);
-            return JsonUtility.ToJson(type.GetMethod("Snapshot").Invoke(Activator.CreateInstance(type), null));
-        }
     }
 }
 #endif

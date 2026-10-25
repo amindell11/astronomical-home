@@ -4,7 +4,7 @@ using Cameras;
 using Capture.GameView.Recovery;
 using Capture.Views;
 using Diagnostics;
-using Ships.Loadout;
+using Ships;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -41,9 +41,12 @@ namespace Capture.GameView.Views
             catch { scope.Dispose(); throw; }
         }
 
-        public static IDisposable LineupNeutral(ItemCatalog catalog, Action released)
+        public static IDisposable LineupNeutral(IReadOnlyList<Ship> subjects, Action released)
         {
-            if (!catalog || catalog.Chassis.Count == 0) throw new ArgumentException("Neutral lineup requires the chassis catalog.");
+            if (subjects == null || subjects.Count == 0) throw new ArgumentException("Neutral lineup requires visual ship prefabs.");
+            foreach (var subject in subjects)
+                if (!subject || !subject.VisualRig)
+                    throw new ArgumentException($"Neutral lineup requires a visual rig on { (subject ? subject.name : "null subject") }.");
             var scope = new NamedViewScope(released);
             try
             {
@@ -51,12 +54,12 @@ namespace Capture.GameView.Views
                 PresentationSettings.HideDebugOverlay();
                 scope.root = new GameObject("[Capture] Neutral lineup");
                 scope.root.SetActive(false);
-                for (var index = 0; index < catalog.Chassis.Count; index++)
+                for (var index = 0; index < subjects.Count; index++)
                 {
-                    var prefab = catalog.Chassis[index];
+                    var prefab = subjects[index];
                     var anchor = new GameObject(prefab.name).transform;
                     anchor.SetParent(scope.root.transform, false);
-                    anchor.localPosition = new Vector3((index - (catalog.Chassis.Count - 1) * .5f) * 3.2f, 0, 0);
+                    anchor.localPosition = new Vector3((index - (subjects.Count - 1) * .5f) * 3.2f, 0, 0);
                     anchor.localScale = prefab.transform.localScale;
                     Object.Instantiate(prefab.VisualRig, anchor, false);
                 }

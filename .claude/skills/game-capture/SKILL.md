@@ -98,8 +98,9 @@ then disposing the view restores the presentation settings that preparation chan
 - `PrepareGameTopdown(observer)` uses the caller's actual authored `ObserverCam`.
   It enables that camera and hides diagnostic overlays; its existing framing and
   smoothing remain in charge. Let the observer settle before `Start`.
-- `PrepareLineupNeutral(catalog)` composes every chassis's visual rig at prefab scale
-  and identity pose in an otherwise empty preview scene. It uses the neutral lineup
+- `PrepareLineupNeutral(subjects)` composes the supplied ship prefabs' visual rigs at prefab scale
+  and identity pose in an otherwise empty preview scene. The caller selects subjects;
+  each requires a serialized visual rig. Legacy ships without one are rejected by name. It uses the neutral lineup
   recipe from `ship-art-pipeline/stages/8-lineup.md`, with hulls only. Record at
   2048x512 or 1024x256. The scope restores quality, ambient, fog, shader compilation
   and overlay settings, and destroys its own row, camera and light.

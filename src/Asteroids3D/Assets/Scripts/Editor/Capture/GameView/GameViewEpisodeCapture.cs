@@ -7,7 +7,6 @@ using Capture.GameView.Views;
 using Capture.Recording;
 using Capture.Views;
 using Ships;
-using Ships.Loadout;
 using Substrate.Services.Projectiles;
 using UnityEditor;
 using UnityEngine;
@@ -62,8 +61,8 @@ namespace Capture.GameView
         public IDisposable PrepareGameTopdown(ObserverCam observer) =>
             OwnView(released => NamedViewScope.GameTopdown(observer, released));
 
-        public IDisposable PrepareLineupNeutral(ItemCatalog catalog) =>
-            OwnView(released => NamedViewScope.LineupNeutral(catalog, released));
+        public IDisposable PrepareLineupNeutral(IReadOnlyList<Ship> subjects) =>
+            OwnView(released => NamedViewScope.LineupNeutral(subjects, released));
 
         public IDisposable PrepareHud1280x720() => OwnView(NamedViewScope.Hud1280x720);
 
