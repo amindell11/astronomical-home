@@ -16,7 +16,7 @@ namespace Capture.GameView.Views
             state.ambientMode = (int)RenderSettings.ambientMode;
             state.ambientLight = RenderSettings.ambientLight;
             state.fog = RenderSettings.fog;
-            state.asyncShaders = ShaderUtil.allowAsyncCompilation;
+            state.gameViewAsyncShaders = EditorSettings.asyncShaderCompilation;
             var overlay = FindOverlay();
             if (overlay == null) return;
             state.overlayFound = true;
@@ -40,7 +40,7 @@ namespace Capture.GameView.Views
             RenderSettings.ambientMode = AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(.24f, .24f, .24f);
             RenderSettings.fog = false;
-            ShaderUtil.allowAsyncCompilation = false;
+            EditorSettings.asyncShaderCompilation = false;
         }
 
         public static void Restore(CaptureRecoveryState state)
@@ -50,7 +50,7 @@ namespace Capture.GameView.Views
             RenderSettings.ambientMode = (AmbientMode)state.ambientMode;
             RenderSettings.ambientLight = state.ambientLight;
             RenderSettings.fog = state.fog;
-            ShaderUtil.allowAsyncCompilation = state.asyncShaders;
+            EditorSettings.asyncShaderCompilation = state.gameViewAsyncShaders;
             if (!state.overlayFound) return;
             var overlay = FindOverlay() ?? throw new InvalidOperationException("FMOD play-in-editor overlay disappeared before restoration.");
             overlay.Value = state.overlayValue;

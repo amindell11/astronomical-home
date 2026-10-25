@@ -17,7 +17,7 @@ namespace Capture.GameView.Recovery
         public int ambientMode;
         public Color ambientLight;
         public bool fog;
-        public bool asyncShaders;
+        public bool gameViewAsyncShaders;
         public bool overlayFound;
         public int overlayValue;
         public bool overlayHasValue;
