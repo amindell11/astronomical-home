@@ -52,7 +52,7 @@ namespace RL.Episodes.Compositions
             baselineCommander.InstallBrain<ArchetypeBrain>()
                 .Configure(Pair.Agent, OpponentArchetype.Aggressor, in ShooterShape, jukeSeed: 0,
                     arenaCenter, arenaRadius);
-            poses = EpisodePoses.Derive(in spec, episodeIndex, arenaCenter);
+            poses = EpisodePoses.Derive(in spec, MatrixLane.PoseIndex(episodeIndex), arenaCenter);
             swapPending = MatrixLane.SidesSwapped(episodeIndex);
             respawnCount = 0;
             return new OpponentDraw

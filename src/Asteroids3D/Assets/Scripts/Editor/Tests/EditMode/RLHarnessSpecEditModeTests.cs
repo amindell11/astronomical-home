@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Capture;
 using NUnit.Framework;
+using RL.Episodes;
 using RL.Hosts;
 using RL.Hosts.Lanes;
 using RL.Opponents;
 using RL.Probes;
+using RL.Reward;
 using Ships.Loadout;
 using UnityEditor;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -380,6 +383,27 @@ namespace Tests.EditMode
                 Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_SENTENCE", "all"));
             Assert.Throws<ArgumentException>(() =>
                 Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_DUEL", "Missiles"));
+        }
+
+        [Test]
+        public void MatrixPairSharesOnePoseAndTheOddEpisodeOnlySwapsSides()
+        {
+            Assert.IsFalse(MatrixLane.SidesSwapped(0));
+            Assert.IsTrue(MatrixLane.SidesSwapped(1));
+            Assert.AreEqual(0, MatrixLane.PoseIndex(0));
+            Assert.AreEqual(MatrixLane.PoseIndex(0), MatrixLane.PoseIndex(1));
+            Assert.AreEqual(MatrixLane.PoseIndex(2), MatrixLane.PoseIndex(3));
+            Assert.AreNotEqual(MatrixLane.PoseIndex(1), MatrixLane.PoseIndex(2));
+
+            var spec = RewardSpec.Default;
+            spec.runSeed = 3001;
+            var first = EpisodePoses.Derive(in spec, MatrixLane.PoseIndex(0), Vector2.zero);
+            var swapped = EpisodePoses.Derive(in spec, MatrixLane.PoseIndex(1), Vector2.zero);
+            var next = EpisodePoses.Derive(in spec, MatrixLane.PoseIndex(2), Vector2.zero);
+            Assert.AreEqual(first.agentPos, swapped.agentPos);
+            Assert.AreEqual(first.baselinePos, swapped.baselinePos);
+            Assert.AreEqual(first.agentRotDeg, swapped.agentRotDeg);
+            Assert.AreNotEqual(first.agentPos, next.agentPos);
         }
 
         [Test]

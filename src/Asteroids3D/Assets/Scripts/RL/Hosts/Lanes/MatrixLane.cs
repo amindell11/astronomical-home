@@ -22,6 +22,9 @@ namespace RL.Hosts.Lanes
 
         public static bool SidesSwapped(int episodeIndex) => (episodeIndex & 1) == 1;
 
+        /// <summary>Episodes 0 and 1 share this sample, then 2 and 3. The odd episode only swaps sides.</summary>
+        public static int PoseIndex(int episodeIndex) => episodeIndex >> 1;
+
         [Serializable]
         public struct BlockSummary
         {
