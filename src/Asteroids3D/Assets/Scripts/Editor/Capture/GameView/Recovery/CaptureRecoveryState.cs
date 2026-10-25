@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Capture.GameView.Recovery
 {
@@ -11,6 +12,15 @@ namespace Capture.GameView.Recovery
         public bool renderPipelineSettingsDirty;
         public GameViewState gameView;
         public GizmoState[] gizmos;
+        public bool hasPresentation;
+        public int qualityLevel;
+        public int ambientMode;
+        public Color ambientLight;
+        public bool fog;
+        public bool asyncShaders;
+        public bool overlayFound;
+        public int overlayValue;
+        public bool overlayHasValue;
 
         [Serializable]
         public sealed class GameViewState

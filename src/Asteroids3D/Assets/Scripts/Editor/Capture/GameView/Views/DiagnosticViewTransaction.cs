@@ -20,7 +20,7 @@ namespace Capture.GameView.Views
         private bool restored;
 
         public DiagnosticViewTransaction(Type[] profileTypes, Object[] subjects, Object activeSubject,
-            GizmoScope scope, int scopeTeam)
+            GizmoScope scope, int scopeTeam, bool presentation = false)
         {
             if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
                 throw new InvalidOperationException(
@@ -34,6 +34,7 @@ namespace Capture.GameView.Views
             gizmoView = GizmoViewState.Snapshot();
             recovery = CaptureRecoveryJournal.Create(gizmos, gameView.Snapshot(),
                 UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
+            if (presentation) PresentationSettings.Snapshot(recovery);
             CaptureRecoveryJournal.Write(recovery);
 
             try
@@ -83,6 +84,7 @@ namespace Capture.GameView.Views
             CaptureRecoveryJournal.Attempt(RestoreSelection, failures);
             CaptureRecoveryJournal.Attempt(() => gameView.Restore(recovery.gameView), failures);
             CaptureRecoveryJournal.Attempt(RestoreFocus, failures);
+            CaptureRecoveryJournal.Attempt(() => PresentationSettings.Restore(recovery), failures);
             CaptureRecoveryJournal.Attempt(
                 () => UrpGizmoCaptureAdapter.Restore(recovery.renderGraphCompatibilityMode), failures);
             CaptureRecoveryJournal.Attempt(

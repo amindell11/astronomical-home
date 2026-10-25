@@ -2,6 +2,7 @@
 using Capture.Views;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cameras;
@@ -58,6 +59,7 @@ namespace Tests.PlayMode.Scenarios
                 yield return WaitFor(() => host.Subject != null, "host composed");
                 var recap = (RecapPreviewSubject)host.Subject;
                 yield return new WaitForSecondsRealtime(4f);
+                yield return FilmTopdown();
 
                 for (var i = 0; i < recap.Fixtures.Count; i++)
                 {
@@ -126,6 +128,30 @@ namespace Tests.PlayMode.Scenarios
                 for (var i = 0; i < 6; i++) yield return null;
                 Result = recording.Finish();
             }
+        }
+
+        private IEnumerator FilmTopdown()
+        {
+            using var view = (IDisposable)Capture.GetType().GetMethod("PrepareGameTopdown")
+                .Invoke(Capture, new object[] { host.Observer });
+            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "game-topdown", Commit,
+                1280, 720, stamp, new Dictionary<string, Func<double>>
+                {
+                    ["observer_zoom"] = () => host.Observer.Cam.orthographicSize,
+                    ["observer_x"] = () => host.Observer.transform.position.x,
+                    ["observer_y"] = () => host.Observer.transform.position.y,
+                }));
+            yield return recording.Ready;
+            yield return new WaitForSecondsRealtime(1f);
+            Assert.Less(Quaternion.Angle(Quaternion.LookRotation(Substrate.GamePlane.Normal, Substrate.GamePlane.Forward),
+                host.Observer.transform.rotation), .1f, "the actual observer owns topdown orientation");
+            var subject = host.Observer.Cam.WorldToViewportPoint(host.Observer.Subject.position);
+            Assert.That(subject.x, Is.InRange(0f, 1f));
+            Assert.That(subject.y, Is.InRange(0f, 1f));
+            recording.Start();
+            for (var frame = 0; frame < 8; frame++) yield return null;
+            Result = recording.Finish();
+            Assert.Greater(Result.FrameCount, 1);
         }
 
         // The window itself, read off the screen: the only reflection-free way to see an editor window.

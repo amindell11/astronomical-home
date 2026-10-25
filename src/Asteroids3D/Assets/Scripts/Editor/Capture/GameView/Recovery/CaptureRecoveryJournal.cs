@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Capture.GameView.Views;
 using UnityEditor;
 using UnityEngine;
 
@@ -97,6 +98,7 @@ namespace Capture.GameView.Recovery
             Attempt(() => Application.runInBackground = state.runInBackground, failures);
             Attempt(() => RestoreGizmos(state.gizmos), failures);
             Attempt(() => new UnityGameViewAdapter().Restore(state.gameView), failures);
+            Attempt(() => PresentationSettings.Restore(state), failures);
             Attempt(() => UrpGizmoCaptureAdapter.Restore(state.renderGraphCompatibilityMode), failures);
             Attempt(() => UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(
                 state.renderPipelineSettingsDirty), failures);

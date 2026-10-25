@@ -89,6 +89,37 @@ terminal state before calling `Finish`, which returns only acquired image/row pa
 The returned `CaptureResult` owns artifact paths. Supply `Commit` from the runner
 in every request; measurement readers are named and fixed when the request is built.
 
+## Named view preparation
+
+`GameViewEpisodeCapture` owns the view scope and recording separately. Keep the view
+scope alive through `Finish`; disposing the recording restores its capture settings,
+then disposing the view restores the presentation settings that preparation changed.
+
+- `PrepareGameTopdown(observer)` uses the caller's actual authored `ObserverCam`.
+  It enables that camera and hides diagnostic overlays; its existing framing and
+  smoothing remain in charge. Let the observer settle before `Start`.
+- `PrepareLineupNeutral(catalog)` composes every chassis's visual rig at prefab scale
+  and identity pose in an otherwise empty preview scene. It uses the neutral lineup
+  recipe from `ship-art-pipeline/stages/8-lineup.md`, with hulls only. Record at
+  2048x512 or 1024x256. The scope restores quality, ambient, fog, shader compilation
+  and overlay settings, and destroys its own row, camera and light.
+- `PrepareHud1280x720()` sets the Game View to 1280x720 and hides debug overlays.
+  It preserves all host canvases and their alpha state. Pair it with a 1280x720
+  request, and let the existing preview transport own animation and simulation time.
+
+```csharp
+using var view = module.PrepareHud1280x720();
+using var recording = module.Prepare(new CaptureRequest(output, "hud-1280x720", commit, 1280, 720));
+yield return recording.Ready;
+recording.Start();
+// The caller advances its existing preview here.
+result = recording.Finish();
+```
+
+Prepared views use the same capture-module ownership and recovery journal as
+diagnostic views. A domain reload or Play Mode exit restores the recording first,
+then its view. Preset policy never enters `CaptureRequest` or the frame writer.
+
 **Define the gizmo set and scope from what the clip must show.** Pick the narrowest
 `Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
 firing solution scopes to that ship; a two-team engagement scopes by `Team`. `Everything` at

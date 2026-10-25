@@ -149,8 +149,9 @@ namespace Tests.PlayMode.Scenarios
             recap.Select(context);
             host.Transport.Scrub(1, 0f);
             yield return null;
-            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "preview-live", Commit,
-                960, 540, stamp, new Dictionary<string, Func<double>>
+            using var view = (IDisposable)Capture.GetType().GetMethod("PrepareHud1280x720").Invoke(Capture, null);
+            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "hud-1280x720", Commit,
+                1280, 720, stamp, new Dictionary<string, Func<double>>
                 {
                     ["preview_span"] = () => host.Transport.Span,
                     ["preview_seconds"] = () => host.Transport.Seconds,
