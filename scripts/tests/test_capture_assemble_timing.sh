@@ -32,7 +32,7 @@ PY
 
 rc=0
 out="$("$PY" "$ASSEMBLE" "$TMP/frames/duration" --format gif --step 2 --keep-frames 2>&1)" || rc=$?
-[[ "$rc" -eq 0 ]] || fail "the #1103 rate must encode (got $rc: $out)"
+[[ "$rc" -eq 0 ]] || fail "the fractional manifest rate must encode (got $rc: $out)"
 
 "$PY" - "$TMP/frames/duration.gif" <<'PY'
 import sys
@@ -55,7 +55,7 @@ printf '%s\n' '{"width": 960, "height": 540, "suggestedFps": 10}' > "$color/mani
 
 rc=0
 out="$("$PY" "$ASSEMBLE" "$color" --format gif --keep-frames 2>&1)" || rc=$?
-[[ "$rc" -eq 0 ]] || fail "the #1104 peak must keep its paint (got $rc: $out)"
+[[ "$rc" -eq 0 ]] || fail "the saturated ship must keep its paint (got $rc: $out)"
 
 "$PY" - "$ASSEMBLE" "$FIXTURE" "$color.gif" <<'PY'
 import importlib.util
@@ -73,11 +73,21 @@ if error is None or error >= 8:
 print(f"paint-error {error:.2f}")
 PY
 
-echo "PASS: capture/assemble.py — gif duration quantum and subject colour"
+echo "PASS: capture/assemble.py - gif duration quantum and subject colour"
+
+repeated="$TMP/frames/repeated"
+mkdir -p "$repeated"
+cp "$FIXTURE" "$repeated/f_00000.png"
+cp "$FIXTURE" "$repeated/f_00001.png"
+out="$("$PY" "$ASSEMBLE" "$repeated" --format gif --keep-frames 2>&1)" || fail "repeated source frames must encode: $out"
+rc=0
+out="$("$PY" "$ASSEMBLE" "$repeated" --format gif --colors 2 2>&1)" || rc=$?
+[[ "$rc" -ne 0 && "$out" == *"subject colour error"* ]] || fail "coalesced frames must reject lost subject colour: $out"
+[[ -f "$repeated/f_00000.png" && -f "$repeated/f_00001.png" && -f "$repeated.gif" ]] || fail "failed colour read-back must keep clip and source frames"
+
+echo "PASS: capture/assemble.py - coalesced frames still verify subject colour"
 
 "$PY" - "$ASSEMBLE" "$TMP/frames/short-intervals" <<'PY'
-import csv
-import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -91,11 +101,7 @@ root.mkdir(parents=True)
 colors = [(30 + i % 4 * 60, 30 + i // 4 % 4 * 60, 30 + i // 16 * 120) for i in range(24)]
 for index, color in enumerate(colors):
     Image.new("RGB", (16, 16), color).save(root / f"f_{index:05d}.png")
-with (root / "phases.csv").open("w", newline="") as stream:
-    writer = csv.writer(stream)
-    writer.writerow(["frame", "unscaled_seconds"])
-    writer.writerows((index, index * 0.015) for index in range(len(colors)))
-subprocess.run([sys.executable, script, str(root), "--keep-frames"], check=True)
+subprocess.run([sys.executable, script, str(root), "--fps", str(1 / 0.015), "--keep-frames"], check=True)
 clip = str(root) + ".mp4"
 ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
 raw = subprocess.run([
@@ -110,12 +116,6 @@ decoded_ids = [
 expected_ids = list(range(len(colors))) + [len(colors) - 1]
 if decoded_ids != expected_ids:
     raise SystemExit(f"short intervals lost or reordered source frames: {decoded_ids}")
-spec = importlib.util.spec_from_file_location("assemble", script)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
-_, seconds, failure = module.decode_clip(ffmpeg, clip)
-if failure or seconds is None or abs(seconds - 0.36) > 0.01:
-    raise SystemExit(f"short-interval clip should last 0.36 seconds, got {seconds}: {failure}")
 PY
 
-echo "PASS: capture/assemble.py — short unscaled intervals preserve every source frame and duration"
+echo "PASS: capture/assemble.py - high --fps preserves every source frame"

@@ -7,6 +7,7 @@ using Combat.Projectiles;
 using Combat.Targeting;
 using Movement;
 using UnityEngine;
+using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
@@ -27,6 +28,10 @@ namespace Combat.Weapons
     public abstract class WeaponComponent : MonoBehaviour
     {
         public Transform firePoint;
+
+        public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
+        public Vector3 FireDirection => GamePlane.WorldDirOnPlane((firePoint ? firePoint : transform).up);
+
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;

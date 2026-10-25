@@ -5,6 +5,7 @@ using Combat.Projectiles;
 using Damage;
 using NUnit.Framework;
 using Substrate;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -48,6 +49,8 @@ namespace Tests.PlayMode
                 Hits.Add(hit);
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         public override void TearDown()
@@ -109,7 +112,9 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.transform.position = position;
             go.AddComponent<SphereCollider>().radius = radius;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
     }
 }

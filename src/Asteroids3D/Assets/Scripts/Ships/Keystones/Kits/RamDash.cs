@@ -55,8 +55,7 @@ namespace Ships.Keystones.Kits
             resolved = true;
             resolvedAt = SinceActivation;
 
-            var target = contact.Other.GetComponentInParent<IDamageable>();
-            if (target == null) return;
+            if (!DamageableColliders.TryGet(contact.Other, out var target)) return;
             if (target is AsteroidDamage)
             {
                 if (!contact.OtherBody || contact.OtherBody.mass >= contact.SelfMass) return;

@@ -44,32 +44,6 @@ structural, not a preference: Unity never resumes Recorder's `WaitForEndOfFrame`
   `results/rl-capture/`). A one-command `eval_lane.py` capture preset is a later
   leaf; for now set the env and run the harness batch through the coordinator.
 
-## Presets
-
-Set `CaptureConfig.preset` to one name. The capture seam applies it when the episode
-begins and restores the editor settings and subject state it touched.
-
-- `game-topdown` — the observer camera's framing from the Main Camera prefab (padding,
-  zoom clamp, plane offset), presentation on.
-- `lineup-neutral` — the ship lineup's neutral key (white, Euler (20, -25, 0),
-  intensity 1.6, soft shadows, flat ambient 0.24) and identity poses. Canvases and
-  particles on the filmed subjects stay hidden for the episode.
-- `hud-1280x720` — Game View fixed at 1280×720, the play-in-editor FMOD debug overlay
-  off. World-space status-bar canvases keep the game's enabled state and opacity,
-  so a recap fade keeps its unscaled cadence.
-
-Every capture writes `provenance.json` (source, size, data kind, timing basis
-`unscaled`, quality level, commit) and `phases.csv` (frame, unscaled seconds, sim
-seconds, plus any column passed to `IEpisodeCapture.RecordPhase`) beside the frames,
-outside `Assets/`.
-
-`scripts/capture/assemble.py` times the clip from those unscaled timestamps unless
-`--fps` is passed. GIF durations are quantised to 10 ms. The GIF quantiser is
-Pillow maximum-coverage (default 256 colours), and the read-back checks duration
-and subject colour. Push the results with `scripts/evidence_push.sh <lease> <files…>`.
-It appends `evidence/<lease>` and prints each file's SHA-pinned URL after the URL
-returns HTTP 200.
-
 ## Author a scenario
 
 `scratch/capture/MyProbe.cs` — file name = class name, public parameterless ctor:
@@ -104,8 +78,7 @@ public sealed class MyProbe : CaptureScenario
 
 `Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
 advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name, size, cadence and preset (`game-topdown`,
-`lineup-neutral`, `hud-1280x720`; §"Presets"), `Profile` for the gizmo set, `SectorEntry`
+Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, `SectorEntry`
 to film inside a sector (loaded hero-less before `Run`; `SpawnCombatShip` ships sense its
 rocks), and `Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose
 gizmos draw.
@@ -227,12 +200,14 @@ snippets live in this skill's `cli-eval/` — run them with
 python scripts/capture/assemble.py <slot-path>/results/capture/frames/<stamp>-MyProbe
 ```
 
-The runner prints the absolute frame dir. `assemble.py` times the clip from
-`phases.csv` unscaled timestamps when that file has one row per PNG; `--fps`
-replaces that basis. `--step N` drops to every Nth frame and keeps the same
-basis. GIF durations are quantised to 10 ms. mp4 needs imageio-ffmpeg, and the
-venvs here are uv-managed with no pip module:
+The runner prints the absolute frame dir. `assemble.py` defaults fps/dims from the
+frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
+replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
+needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
+GIF durations round to 10 ms and its maximum-coverage palette preserves small
+saturated subjects. The decoded clip is checked against that quantised duration
+and source subject colour.
 The frame dir is the encode step's intermediate: `assemble.py` reads the clip
 back, checks its length, and deletes the frame dir on a verified encode — so the
 mid-clip PNG eyeball happens **before** this command, not after. Pass
@@ -249,9 +224,9 @@ everything and exits nonzero.
   `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
   embedded as an `<img>` data URI in an artifact.
 - Embed the clip in the PR body or issue comment, never just its path: a
-  `--format gif` inline plus the `--web` mp4 linked. Push them with
-  `scripts/evidence_push.sh <lease> <files…>` (§"Presets"); it prints the
-  SHA-pinned URLs. The PR-loop visual-evidence section is the body shape.
+  `--format gif` inline plus the `--web` mp4 linked. Publish with
+  `scripts/evidence_push.sh <lease> <files…>` and use its verified SHA-pinned
+  URLs. Body layout follows `agent-worktree-pr-loop` → Step 4 → Visual evidence.
 
 ## Hard-won constraints (violate = silent garbage)
 
