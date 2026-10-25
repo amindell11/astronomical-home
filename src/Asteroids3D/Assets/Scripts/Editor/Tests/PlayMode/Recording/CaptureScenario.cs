@@ -86,5 +86,5 @@ public abstract class CaptureScenario : IDisposable
     }
 }
 
-} // namespace Tests.PlayMode.Recording
+}
 #endif

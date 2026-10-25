@@ -127,7 +127,7 @@ itself on the editor's next load via the lane journal). A leased slot editor
 
 ```powershell
 unity command capture_lane_attach --project-path <proj>   # once per session
-$captureCommit = git rev-parse HEAD
+$captureCommit = git -C '<proj>' rev-parse HEAD
 unity command capture_request_scenario --scenario TwoShipSkirmishScenario --commit $captureCommit --project-path <proj>
 ./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
 unity command capture_lane_release --project-path <proj>  # restores EPO
