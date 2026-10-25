@@ -70,5 +70,23 @@ namespace Tests.EditMode
             Assert.IsFalse(weapon.LastFireLos,
                 "Within the cache window, Evaluate must return its own cached LOS — observation queries must not perturb the firing path");
         }
+
+        [Test]
+        public void TiltedFirePoint_FirePointLiesOnThePlane()
+        {
+            var shooterGo = new GameObject("Shooter");
+            createdObjects.Add(shooterGo);
+            var weapon = shooterGo.AddComponent<LosProbeWeapon>();
+            var aim = GamePlane.PlaneDirToWorld(Vector2.up);
+            var across = GamePlane.PlaneDirToWorld(Vector2.right);
+            var planar = aim * 4f;
+            weapon.transform.SetPositionAndRotation(planar + GamePlane.Normal * 0.8f,
+                Quaternion.AngleAxis(30f, across) * GamePlane.Rotation);
+
+            var sight = new Gunsight(weapon, () => new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f));
+
+            Assert.That(Vector3.Distance(sight.FirePoint, planar), Is.LessThan(0.001f),
+                "the line of sight starts on the plane, at the hardpoint's planar position");
+        }
     }
 }

@@ -111,11 +111,14 @@ namespace Combat.Targeting
 
         private void OnDisable()
         {
+            // Death and park deactivate the ship. The HUD loop stops only when this reports Idle.
+            targetLock?.Cancel();
             StopScanRoutine();
         }
 
         private void OnDestroy()
         {
+            targetLock?.Cancel();
             StopScanRoutine();
             if (targetLock != null)
                 targetLock.OnStateChanged -= HandleTargetLockStateChanged;

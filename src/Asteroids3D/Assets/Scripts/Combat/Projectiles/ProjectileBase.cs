@@ -98,7 +98,7 @@ namespace Combat.Projectiles
 
         protected bool TryGetHitTarget(Collider other, out IDamageable target)
         {
-            target = other.GetComponentInParent<IDamageable>();
+            DamageableColliders.TryGet(other, out target);
             var shooterComponent = Shooter as Component;
             if (target == null || !shooterComponent) return false;
             if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return false;

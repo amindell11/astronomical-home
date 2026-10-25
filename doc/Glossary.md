@@ -484,6 +484,14 @@ Format: **term** — definition. *(authority)*
   target, so a missile's contact and splash are not told apart, and a shot
   still in flight when the target dies is fired and never hits.
   *(MarksmanshipProbe, MarksmanshipSampler)*
+- **matrix lane** — the harness lane that fights two scripted ships, one weapon
+  each. Its rows are a snapshot, not a constant: judge a change by running the
+  lane on the base and the head with the same seeds, and quote the replicate
+  gap between two identical runs as the noise. *(#1120 · MatrixLane.cs)*
+- **armed matrix** — every unordered pair from the weapons a matrix lane was
+  given, a weapon against itself included. A draw counts half a win, and a
+  weapon's rate against the others leaves its self pair out.
+  *(#1120 · MatrixProbe.cs)*
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
@@ -957,10 +965,30 @@ Format: **term** — definition. *(authority)*
   Informational only: records are grouped by stat fingerprint and loadout stat
   hash. "Build" in this term is the git side, never a ship's parts, which are its
   loadout. *(BuildIdentity, BuildIdentityStamp)*
-- **death recap** — the post-death summary rendered from the damage ledger and
-  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
+- **death recap** — the run outcome recap after a death: the HUD fades while the
+  explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.
-  *(DeathRecapScreen, GameHost.RunDeathRecap)*
+  *(RunRecapScreen, GameHost.RunRecap)*
+- **presentation module** — a presentation (the recap outcome sequence first)
+  exposed as a pure function of a *feel profile*, an immutable *context* and a
+  time, rendered by one renderer whichever host drives the time; a
+  preview-only renderer is forbidden. Arc #1151. *(RecapOutcomeSequence,
+  RecapOutcomeContext, RecapPresenter)*
+- **feel profile** — the ScriptableObject of named knobs a presentation module
+  reads live; the game serializes the asset on its host, the preview host edits
+  the same asset and saves it explicitly. *(RecapFeelProfile)*
+- **preview host** — the play-mode composition root beside the game host that
+  composes a real session with presentation on around the real player rig,
+  camera and HUD, and hosts one *preview subject* under a transport (play,
+  pause, scrub, loop, speed). The control panel is an editor window and nothing
+  more. *(PreviewHost, PreviewTransport, PreviewControlPanel)*
+- **preview subject** — a presentation module with a chosen context (a fixture
+  built from constants, or any context a scenario builds), hosted by the preview
+  host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*
+- **staged moment** — a game state the preview subject reaches live (the
+  player's death at the context's death point, first) so the host can show it and
+  a capture scenario can film it through the subject, instead of per-session
+  reflection and scripted kills. *(RecapPreviewSubject.StageDeath)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type
