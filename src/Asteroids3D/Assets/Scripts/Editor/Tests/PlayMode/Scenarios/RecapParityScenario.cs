@@ -180,8 +180,13 @@ namespace Tests.PlayMode.Scenarios
                 var beforePixels = before.GetPixels32();
                 var afterPixels = after.GetPixels32();
                 var changed = 0;
-                for (var i = 0; i < beforePixels.Length; i++)
-                    if (!beforePixels[i].Equals(afterPixels[i])) changed++;
+                // The centered banner excludes the debug overlay in the upper-left corner.
+                for (var y = before.height * 2 / 5; y < before.height * 3 / 5; y++)
+                    for (var x = before.width * 3 / 10; x < before.width * 7 / 10; x++)
+                    {
+                        var index = y * before.width + x;
+                        if (!beforePixels[index].Equals(afterPixels[index])) changed++;
+                    }
                 Assert.Greater(changed, 100, "the real preview banner changes in the recorded pixels");
             }
             finally

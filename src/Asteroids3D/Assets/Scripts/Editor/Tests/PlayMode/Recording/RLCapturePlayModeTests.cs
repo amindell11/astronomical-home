@@ -156,7 +156,7 @@ namespace Tests.PlayMode.Recording
             Assert.Greater(DrawnFramesIn(EnabledWindowA), 0,
                 "with the profile's types enabled the Game View renders native gizmo geometry");
             Assert.AreEqual(0, DrawnFramesIn(DisabledWindow),
-                "disabling those same types empties every frame: GizmoUtility governs Game View, not only the Scene View");
+                "disabling those same types removes diagnostic ink from every frame");
             Assert.Greater(DrawnFramesIn(EnabledWindowB), 0,
                 "re-enabling them refills the frames, so the Game View follows the toggle in both directions");
         }
@@ -222,11 +222,9 @@ namespace Tests.PlayMode.Recording
                 foreach (var p in pixels)
                 {
                     var max = Mathf.Max(p.r, Mathf.Max(p.g, p.b));
-                    var min = Mathf.Min(p.r, Mathf.Min(p.g, p.b));
                     if (max > 24) nonBackground++;
-                    var chroma = max - min;
                     // Frame bytes are sRGB; a saturated non-gray byte is drawer ink, not the near-black clear color.
-                    if (chroma > 40 && max > 48) coloredInk++;
+                    if (IsDiagnosticInk(p)) coloredInk++;
                     // Unity's built-in collider gizmos draw green wireframes — green-dominant pixels are the silhouette.
                     if (p.g > p.r + 30 && p.g > p.b + 30 && p.g > 48) greenSilhouette++;
                 }
@@ -295,13 +293,26 @@ namespace Tests.PlayMode.Recording
         private int DrawnFramesIn(string clipName)
         {
             var frames = Directory.GetFiles(Path.Combine(outDir, "frames", $"toggle-{clipName}"), "f_*.png");
-            // Do not weaken: this caught 1195 uniformly blank captured PNGs.
             Assert.IsNotEmpty(frames, $"{clipName}: the window filmed frames");
             var drawn = 0;
             foreach (var frame in frames)
-                if (!IsUniform(frame))
-                    drawn++;
+            {
+                var image = new Texture2D(2, 2);
+                try
+                {
+                    Assert.IsTrue(ImageConversion.LoadImage(image, File.ReadAllBytes(frame)));
+                    if (image.GetPixels32().Any(IsDiagnosticInk)) drawn++;
+                }
+                finally { UnityEngine.Object.DestroyImmediate(image); }
+            }
             return drawn;
+        }
+
+        private static bool IsDiagnosticInk(Color32 pixel)
+        {
+            var max = Mathf.Max(pixel.r, Mathf.Max(pixel.g, pixel.b));
+            var min = Mathf.Min(pixel.r, Mathf.Min(pixel.g, pixel.b));
+            return max - min > 40 && max > 48;
         }
 
         private static IEnumerator RenderFrames(int frames)
