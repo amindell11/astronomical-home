@@ -112,6 +112,10 @@ namespace RL.Hosts
         internal IHarnessComposition NewDuelComposition(in RewardSpec seedSpec, WeaponComponent weapon) =>
             new DuelComposition(units, Offset, Projectiles, assets, in seedSpec, weapon);
 
+        internal IHarnessComposition NewMatrixComposition(in RewardSpec seedSpec, WeaponComponent weaponA,
+            WeaponComponent weaponB) =>
+            new MatrixComposition(units, Offset, Projectiles, assets, in seedSpec, weaponA, weaponB);
+
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(IHarnessComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
@@ -184,6 +188,7 @@ namespace RL.Hosts
             HarnessLane.Capture => new CaptureClient(),
             HarnessLane.Sentence => new SentenceLane(),
             HarnessLane.Duel => new DuelLane(),
+            HarnessLane.Matrix => new MatrixLane(),
             _ => throw new NotSupportedException($"No lane client for {lane}."),
         };
 

@@ -32,7 +32,7 @@ the PR ceremony added review the session had already performed.)
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
-- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims). A free slot comes back prepared at `origin/main`; one holding unpushed work is released untouched and acquire fails — report that slot and name another.
+- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]`. Name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor). A named slot that isn't free fails rather than falling back, so pick from the dashboard. Omit the slot for auto-pick: a free slot, then a stale lock that is safe to reset, then the longest-idle leased slot with no Unity editor and no merge gate. That last step parks the work on a local `held/<lease>`. A free slot comes back prepared at `origin/main`. One holding unpushed work is released untouched and acquire fails. Report that slot and name another.
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
@@ -131,18 +131,16 @@ them to close it — never close it automatically.
 ## Holding a slot
 
 Mechanics: the pool script's `--help`. Pass `--local` for work that must not
-go public yet, such as work awaiting approval: the repo is public.
+go public yet, such as work awaiting approval. The repo is public. `acquire`'s
+park is already local.
 
-Offer to hold another session's slot, never hold it unasked, and offer only
-when a session starting work finds every slot full and that slot meets all of:
+`acquire` with no slot named parks the longest-idle leased slot when none are
+free and none are safe to reclaim: no Unity editor on it, and no merge gate.
+Post the `HELD=` line from its stderr on that work's issue. Resume with
+`resume <lease>`.
 
-- its open PR is waiting on a human — review or a decision (the PR thread and
-  that session's chat title say which);
-- `merge-progress <slot> --oneline` prints nothing;
-- `unity_access.ps1 -Action Status -ProjectPath <slot-path>/src/Asteroids3D -Json`
-  shows no `projectOwner`, so no editor or test run is live there.
-
-A session may hold its own work when it stops at a design fork for the user.
+A session holds its own work with `hold <slot>` when it stops at a design fork
+for the user.
 A rejected *prototype slice* is closed instead: close its PR, post its
 findings on its issue and `release` the slot. Its branch stays on origin, so
 the PR reopens.
@@ -223,7 +221,7 @@ Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
 leases, branches, merge progress, held leases; `gh pr list` for open PRs). An
 arc whose slices are `unity:editor` or move asset paths keeps one PR open:
 build its next slice once the previous PR has merged. Acquire
-a slot (every slot full → "Holding a slot"; a reclaimed stale slot is not prepared, so `prepare` it); build and test there — directly, or via a sub-agent scoped to the
+a slot. A full pool parks the longest-idle slot that has no Unity editor and no merge gate; post that `HELD=` line on the parked work's issue. If `acquire` fails, every slot has a Unity editor or a merge gate, so wait. A reclaimed stale slot is not prepared, so `prepare` it. Build and test there, directly or via a sub-agent scoped to the
 slot's worktree path when the task is large enough to benefit from an isolated
 context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).

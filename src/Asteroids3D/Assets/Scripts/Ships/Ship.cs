@@ -210,6 +210,7 @@ namespace Ships
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
+            if (Weapons) Weapons.Fired += Keystone.NotifyFired;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
