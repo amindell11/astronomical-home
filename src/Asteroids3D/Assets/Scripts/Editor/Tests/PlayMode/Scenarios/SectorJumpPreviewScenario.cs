@@ -92,9 +92,9 @@ namespace Tests.PlayMode.Scenarios
                 yield return null;
                 Assert.That(jump.State, Is.EqualTo(expected));
                 host.SelectSubject(PreviewSubjectKind.RunRecap);
+                Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
-                Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
                 yield return WaitFor(() => !SceneManager.GetSceneByName("Locale_1").isLoaded);
             }
             finally

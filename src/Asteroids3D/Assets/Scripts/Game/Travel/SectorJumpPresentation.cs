@@ -163,7 +163,8 @@ namespace Game.Travel
                     renderers[i].gameObject.layer = LayerMask.NameToLayer("ShipPreview");
                     bounds.Encapsulate(renderers[i].bounds);
                 }
-                hullCamera.transform.position = bounds.center - Vector3.forward * 20f;
+                hullCamera.transform.rotation = ship.transform.rotation;
+                hullCamera.transform.position = bounds.center - ship.transform.forward * 20f;
                 hullCamera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * 1.12f;
                 hullCamera.aspect = 1f;
                 hullCamera.targetTexture = hull;
