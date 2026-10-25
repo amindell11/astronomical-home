@@ -87,6 +87,7 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  holdRange: 30
   fireDistance: 45
   fireAngleTolerance: 2
   startAngle: 10
