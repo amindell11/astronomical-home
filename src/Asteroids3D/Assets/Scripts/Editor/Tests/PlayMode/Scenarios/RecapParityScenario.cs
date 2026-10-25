@@ -149,19 +149,38 @@ namespace Tests.PlayMode.Scenarios
             recap.Select(context);
             host.Transport.Scrub(1, 0f);
             yield return null;
-            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "preview-live", Commit,
-                960, 540, stamp, new Dictionary<string, Func<double>>
-                {
-                    ["preview_span"] = () => host.Transport.Span,
-                    ["preview_seconds"] = () => host.Transport.Seconds,
-                }));
-            yield return recording.Ready;
-            recording.Start();
-            host.Transport.Playing = true;
-            yield return WaitFor(() => host.Transport.Span > 1, "the preview host advances its own banner animation");
-            yield return null;
-            host.Transport.Playing = false;
-            Result = recording.Finish();
+            var priorPresentation = CaptureViewAssertions.PresentationSnapshot();
+            var priorView = CaptureViewAssertions.ViewSnapshot();
+            var witness = new GameObject("Caller-owned hidden HUD");
+            witness.transform.SetParent(hostGo.transform, false);
+            var canvas = witness.AddComponent<Canvas>();
+            canvas.enabled = false;
+            var opacity = witness.AddComponent<CanvasGroup>();
+            opacity.alpha = .37f;
+            using (var view = (IDisposable)Capture.GetType().GetMethod("PrepareHud1280x720").Invoke(Capture, null))
+            {
+                Assert.IsFalse(canvas.enabled);
+                Assert.AreEqual(.37f, opacity.alpha);
+                using var recording = Capture.Prepare(new CaptureRequest("results/capture", "hud-1280x720", Commit,
+                    1280, 720, stamp, new Dictionary<string, Func<double>>
+                    {
+                        ["preview_span"] = () => host.Transport.Span,
+                        ["preview_seconds"] = () => host.Transport.Seconds,
+                    }));
+                yield return recording.Ready;
+                recording.Start();
+                host.Transport.Playing = true;
+                yield return WaitFor(() => host.Transport.Span > 1, "the preview host advances its own banner animation");
+                yield return null;
+                host.Transport.Playing = false;
+                Result = recording.Finish();
+                Assert.IsFalse(canvas.enabled);
+                Assert.AreEqual(.37f, opacity.alpha);
+            }
+            yield return CaptureViewAssertions.Restored(priorPresentation, priorView);
+            Assert.IsFalse(canvas.enabled);
+            Assert.AreEqual(.37f, opacity.alpha);
+            UnityEngine.Object.DestroyImmediate(witness);
             var rows = File.ReadAllLines(Result.FrameMetadataPath);
             Assert.Greater(rows.Length, 3, "the live preview has intermediate rendered images");
             var first = rows[1].Split(',');
@@ -177,6 +196,8 @@ namespace Tests.PlayMode.Scenarios
             {
                 Assert.IsTrue(ImageConversion.LoadImage(before, File.ReadAllBytes(Path.Combine(Result.FrameDirectory, first[1]))));
                 Assert.IsTrue(ImageConversion.LoadImage(after, File.ReadAllBytes(Path.Combine(Result.FrameDirectory, last[1]))));
+                Assert.AreEqual(1280, before.width);
+                Assert.AreEqual(720, before.height);
                 var beforePixels = before.GetPixels32();
                 var afterPixels = after.GetPixels32();
                 var changed = 0;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cameras;
 using Capture.GameView.Recording;
 using Capture.GameView.Recovery;
 using Capture.GameView.Views;
@@ -17,7 +18,7 @@ namespace Capture.GameView
     {
         private static GameViewEpisodeCapture active;
         private GameViewRecording recording;
-        private DiagnosticViewScope view;
+        private IDisposable view;
 
         static GameViewEpisodeCapture()
         {
@@ -54,13 +55,24 @@ namespace Capture.GameView
         }
 
         public IDisposable PrepareView(DiagnosticViewConfig config, GizmoCaptureProfile profile,
-            IReadOnlyList<Ship> subjects, IProjectileService projectiles)
+            IReadOnlyList<Ship> subjects, IProjectileService projectiles) =>
+            OwnView(released => new DiagnosticViewScope(config, profile, subjects, projectiles, released));
+
+        public IDisposable PrepareGameTopdown(ObserverCam observer) =>
+            OwnView(released => NamedViewScope.GameTopdown(observer, released));
+
+        public IDisposable PrepareLineupNeutral(IReadOnlyList<Ship> subjects) =>
+            OwnView(released => NamedViewScope.LineupNeutral(subjects, released));
+
+        public IDisposable PrepareHud1280x720() => OwnView(NamedViewScope.Hud1280x720);
+
+        private IDisposable OwnView(Func<Action, IDisposable> create)
         {
             Claim();
-            if (view != null) throw new InvalidOperationException("A diagnostic view is already prepared.");
+            if (view != null) throw new InvalidOperationException("A capture view is already prepared.");
             try
             {
-                return view = new DiagnosticViewScope(config, profile, subjects, projectiles, () =>
+                return view = create(() =>
                 {
                     view = null;
                     ReleaseIfEmpty();
