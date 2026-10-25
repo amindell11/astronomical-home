@@ -156,12 +156,19 @@ namespace AI
         /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole. Every referent resolves once here — anchor and rock seats alike — so the nav and fire lanes cannot aim at different moments of the same tick, and a held decision re-resolves fresh each tick (extrapolation only ever bridges one tick).</summary>
         private void Route(BrainDecision? decision)
         {
-            if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor))
+            var concealed = false;
+            if (!decision.HasValue || !TryResolveAnchor(decision.Value.nav, out var anchor, out concealed))
             {
+                if (AnchorConcealed())
+                {
+                    SearchLastSeen();
+                    return;
+                }
                 Navigator.ResetNavigation();
-                // No decision leaves the gunner engaged on its own judgment, keeping its last aim.
-                engagePrimary = true;
-                engageSecondary = true;
+                // No decision: the gunner keeps its last aim, unless the target concealed itself.
+                engagePrimary = !concealed;
+                engageSecondary = !concealed;
+                if (concealed && Gunner) Gunner.HoldFire();
                 boost = false;
                 hasAnchor = false;
                 return;
@@ -200,11 +207,27 @@ namespace AI
             else Gunner.HoldFire();
         }
 
+        private bool AnchorConcealed() =>
+            hasAnchor && Scout.Registry.TryGetShip(anchorId, out var ship) && ship && ship.Lock.IsConcealed;
+
+        // A concealed anchor is hunted where it was last seen, guns cold, until it reveals or dies.
+        private void SearchLastSeen()
+        {
+            var seen = anchorTarget.kinematics;
+            var lastSeen = anchorTarget;
+            lastSeen.kinematics = new Kinematics(seen.pos, Vector2.zero, seen.yaw, 0f, 0f);
+            Navigator.ApplyObjective(NavObjective.Anchored(anchorId).Position(0f, 0f, 0f, 1f), lastSeen);
+            engagePrimary = false;
+            engageSecondary = false;
+            boost = false;
+            if (Gunner) Gunner.HoldFire();
+        }
+
         // The sight only adds an activation for an engaged commander; it never vetoes the brain's.
         private bool SightFires(Keystone keystone) =>
             keystone && hasAnchor && (engagePrimary || engageSecondary)
             && keystone.ShouldActivate(new KeystoneContext(control.Ship.Kinematics, control.Ship.Dynamics.mass, control.Ship.Dynamics.maxSpeed, anchorTarget.kinematics,
-                Desired(Navigator.CostVelocityReference), Navigator.PlanEnd));
+                Desired(Navigator.CostVelocityReference), Navigator.PlanEnd, control.Ship.ShieldPct));
 
         private float? PrimaryHoldRange() => control.Weapons?.HoldRange(WeaponSlot.Primary);
 
@@ -214,12 +237,18 @@ namespace AI
 
         private static Vector2 Desired(float2 velocity) => new(velocity.x, velocity.y);
 
-        /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
-        private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)
+        /// <summary>A registry miss or a concealed target is "target gone" — callers take the no-decision path.</summary>
+        private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor, out bool concealed)
         {
             anchor = default;
+            concealed = false;
             if (!nav.TryGetAnchorId(out var id)) return true;
             if (!Scout.Registry.TryGetShip(id, out var ship) || !ship) return false;
+            if (ship.Lock.IsConcealed)
+            {
+                concealed = true;
+                return false;
+            }
 
             anchor = new EnemyTarget
             {
