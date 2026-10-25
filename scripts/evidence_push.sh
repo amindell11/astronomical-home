@@ -12,6 +12,7 @@
 # png, gif, mp4 and jpg are the LFS suffixes this repo's evidence branch tracks.
 # Those URLs are https://media.githubusercontent.com/media/<owner>/<repo>/<sha>/<name>
 # Anything else is https://github.com/<owner>/<repo>/raw/<sha>/<name>
+# Filenames are percent-encoded with Python 3's standard URL library.
 #
 # The slug is parsed from origin. EVIDENCE_PUSH_SLUG overrides it.
 # EVIDENCE_PUSH_CURL overrides the client. It is invoked as
@@ -122,11 +123,12 @@ status_code() {
 }
 
 for name in "${names[@]}"; do
+  encoded_name="$(python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' "$name")"
   case "$name" in
     *.png|*.gif|*.mp4|*.jpg)
-      url="https://media.githubusercontent.com/media/$slug/$sha/$name" ;;
+      url="https://media.githubusercontent.com/media/$slug/$sha/$encoded_name" ;;
     *)
-      url="https://github.com/$slug/raw/$sha/$name" ;;
+      url="https://github.com/$slug/raw/$sha/$encoded_name" ;;
   esac
   code=""
   for _try in 1 2 3 4 5; do
