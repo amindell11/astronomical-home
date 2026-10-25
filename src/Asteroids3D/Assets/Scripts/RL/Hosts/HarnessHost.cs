@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.IO;
 using Capture;
+using Capture.Recording;
+using Capture.Views;
 using Combat.Weapons;
 using Substrate.Services;
 using UnityEngine;
@@ -120,35 +122,28 @@ namespace RL.Hosts
                     "RL_HARNESS_RECORD selected capture, but the Editor bootstrap attached no episode-capture module.");
             for (var episode = 0; episode < episodes; episode++)
             {
+                var pair = composition.Pair;
+                using var pacing = spec.record.Records(episode) ? CapturePacing.Locked(spec.record.everyFixedSteps) : null;
+                using var view = spec.record.Records(episode)
+                    ? ((IDiagnosticViewFactory)episodeCapture).PrepareView(new DiagnosticViewConfig(), spec.gizmoProfile,
+                        new[] { pair.Agent, pair.Baseline }, Projectiles)
+                    : null;
+                using var recording = spec.record.Records(episode)
+                    ? episodeCapture.Prepare(ClipRequest(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
+                    : null;
+                if (recording != null) yield return recording.Ready;
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode);
                 var context = new ProbeContext(composition.Pair, Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
-                var pair = composition.Pair;
-                var captureConfig = spec.record.Records(episode)
-                    ? ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath)
-                    : null;
-                Action onFixedStep = () =>
-                {
-                    SampleProbes();
-                    if (captureConfig != null) episodeCapture.Step();
-                };
-                try
-                {
-                    yield return composition.Driver.RunEpisode(episodeSpec, episode,
-                        onBegin: () =>
-                        {
-                            BeginProbes(context);
-                            if (captureConfig != null)
-                                episodeCapture.Begin(captureConfig, spec.gizmoProfile,
-                                    new[] { pair.Agent, pair.Baseline }, Projectiles);
-                        },
-                        onFixedStep: onFixedStep);
-                }
-                finally
-                {
-                    if (captureConfig != null) episodeCapture.End();
-                }
+                yield return composition.Driver.RunEpisode(episodeSpec, episode,
+                    onBegin: () =>
+                    {
+                        BeginProbes(context);
+                        recording?.Start();
+                    },
+                    onFixedStep: SampleProbes);
+                recording?.Finish();
                 // The trailing record is what puts the draw in the episode's JSONL row.
                 composition.Driver.Runner.RecordOpponent(in draw);
                 var result = composition.Driver.Runner.Result;
@@ -159,15 +154,9 @@ namespace RL.Hosts
         }
 
 
-        private CaptureConfig ClipConfig(int seed, string label, int episode, string jsonlPath) => new()
-        {
-            outputRoot = Path.GetDirectoryName(jsonlPath),
-            runStamp = Path.GetFileNameWithoutExtension(jsonlPath),
-            clipName = $"s{seed}-{label}-ep{episode:D2}",
-            width = spec.record.width,
-            height = spec.record.height,
-            everyFixedSteps = spec.record.everyFixedSteps,
-        };
+        private CaptureRequest ClipRequest(int seed, string label, int episode, string jsonlPath) => new(
+            Path.GetDirectoryName(jsonlPath), $"s{seed}-{label}-ep{episode:D2}", spec.captureCommit,
+            spec.record.width, spec.record.height, Path.GetFileNameWithoutExtension(jsonlPath));
 
         internal ProbeArtifacts[] SummarizeProbes(string jsonlPath)
         {

@@ -1,10 +1,12 @@
 #if UNITY_EDITOR
+using Capture.Views;
 using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
 using Cameras;
 using Capture;
+using Capture.Recording;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
@@ -12,6 +14,7 @@ using Ships;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Recording;
 using UI.Recap;
 using UnityEditor;
 using UnityEditorInternal;
@@ -40,16 +43,11 @@ namespace Tests.PlayMode.Scenarios
 
         private GameObject hostGo;
         private PreviewHost host;
-        private Ship player;
         private string stamp;
 
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
 
-        public override CaptureConfig Config => new()
-        {
-            clipName = "sheet", width = 1280, height = 720, everyFixedSteps = 5,
-            configureView = (camera, light) => { camera.enabled = false; light.enabled = false; }
-        };
+        public override bool NeedsSession => false;
 
         public override IEnumerator Run()
         {
@@ -58,7 +56,6 @@ namespace Tests.PlayMode.Scenarios
             {
                 BootHost();
                 yield return WaitFor(() => host.Subject != null, "host composed");
-                player = hostGo.GetComponentInChildren<PlayerRig>().Player;
                 var recap = (RecapPreviewSubject)host.Subject;
                 yield return new WaitForSecondsRealtime(4f);
 
@@ -122,19 +119,12 @@ namespace Tests.PlayMode.Scenarios
         {
             foreach (var (width, height) in Sizes)
             {
-                Capture.Begin(new CaptureConfig
-                {
-                    clipName = $"{still}-{width}x{height}", runStamp = stamp, width = width, height = height,
-                    everyFixedSteps = 5,
-                    configureView = (camera, light) => { camera.enabled = false; light.enabled = false; }
-                }, GizmoCaptureProfile.None, new[] { player }, Session.Projectiles);
-                for (var i = 0; i < 3; i++) yield return null;
-                for (var i = 0; i < 6; i++)
-                {
-                    FilmStep();
-                    yield return null;
-                }
-                Capture.End();
+                using var recording = Capture.Prepare(new CaptureRequest("results/capture",
+                    $"{still}-{width}x{height}", Commit, width, height, stamp));
+                yield return recording.Ready;
+                recording.Start();
+                for (var i = 0; i < 6; i++) yield return null;
+                Result = recording.Finish();
             }
         }
 
@@ -153,7 +143,7 @@ namespace Tests.PlayMode.Scenarios
             var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
             texture.SetPixels(pixels);
             texture.Apply();
-            var path = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Capture.FrameDir)), $"{stamp}-panel.png");
+            var path = Path.Combine(Result.OutputDirectory, $"{stamp}-panel.png");
             File.WriteAllBytes(path, texture.EncodeToPNG());
             UnityEngine.Object.DestroyImmediate(texture);
             Debug.Log($"[Capture] control panel -> {path}");

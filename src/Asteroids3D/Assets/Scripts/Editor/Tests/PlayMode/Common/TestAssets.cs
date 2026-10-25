@@ -1,6 +1,7 @@
 using System;
 using AI;
 using Capture;
+using Capture.Recording;
 using Ships;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -43,6 +44,14 @@ public static class TestAssets
 #else
         return null;
 #endif
+    }
+
+    public static string CaptureCommit()
+    {
+        var args = Environment.GetCommandLineArgs();
+        for (var i = 0; i < args.Length - 1; i++)
+            if (args[i] == "-captureCommit") return args[i + 1];
+        throw new InvalidOperationException("Graphics capture tests require the launcher's -captureCommit.");
     }
 
     /// <summary>The Editor-owned capture module, resolved by name because the test assemblies do not reference its assembly.</summary>

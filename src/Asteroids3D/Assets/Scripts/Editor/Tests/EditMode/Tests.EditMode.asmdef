@@ -31,12 +31,6 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [
-        {
-            "name": "com.fmod.fmod-for-unity.v204",
-            "expression": "2.4.0",
-            "define": "ASTRO_FMOD"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

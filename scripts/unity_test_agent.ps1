@@ -8,7 +8,7 @@
     verdict - compile failure, a launch problem, a Unity access refusal, or an unreadable Unity exit
     code), any other non-zero = the wrapper itself failed before a summary existed.
 
-    -CaptureScenario also passes -captureCommit, the 40-character HEAD, on Unity's command line.
+    -WithGraphics passes -captureCommit, the 40-character HEAD, for capture provenance.
     The capture writes that sha into provenance and does not run git.
 
     Owned state, written to <OutDir>: "<stamp>-summary.json" and "latest-summary.json" (identical
@@ -1679,12 +1679,15 @@ try {
                 $args += @("-orderedTestListFile", $orderedListPath)
             }
 
-            if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+            if ($WithGraphics) {
                 $sha = (& git -C (Get-RepoRoot -ProbePath $project) rev-parse HEAD).Trim()
                 if ($sha -notmatch '^[0-9a-fA-F]{40}$') {
-                    throw "-CaptureScenario could not read HEAD to pass as -captureCommit (got '$sha')."
+                    throw "-WithGraphics could not read HEAD to pass as -captureCommit (got '$sha')."
                 }
-                $args += @("-captureScenario", $CaptureScenario, "-captureCommit", $sha)
+                $args += @("-captureCommit", $sha)
+            }
+            if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+                $args += @("-captureScenario", $CaptureScenario)
             }
 
             Write-Host "Running Unity $platform tests..."

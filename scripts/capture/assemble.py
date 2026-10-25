@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Assemble capture frame dumps into mp4 (default) or gif clips.
 
-The capture module writes <outputRoot>/frames/<stamp>-<clip>/ holding f_%05d.png
-plus a manifest.json (dims, capture cadence, suggested fps). --fps defaults
-from that manifest so clips play back in real time; --step N drops to every
-Nth frame while keeping real-time playback.
+The producer's manifest names frames.csv: contiguous one-based frame_id, exact
+filename, unscaled_seconds, sim_seconds, then optional fixed numeric measurements.
+Completed captures require exactly one matching row per PNG, finite values, and
+strictly increasing unscaled timestamps. Validation precedes encoding, even with
+--fps. Playback uses observed unscaled intervals; the final hold repeats the last
+interval (one frame: 0.1 s). --step N sums skipped intervals. --fps overrides
+playback timing. Legacy folders without frameMetadata use suggestedFps or 10 Hz.
 GIF durations round to the nearest 10 ms, the unit the format stores. The
 maximum-coverage palette preserves small saturated subjects. Read-back rejects
 subject colour error above 15 mean RGB levels. MP4 input timestamps use 1 ms
@@ -27,8 +30,10 @@ mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg, not ffprobe). The repo venvs
 are uv-managed with no pip module: uv pip install --python <venv-python> imageio-ffmpeg
 """
 import argparse
+import csv
 import glob
 import json
+import math
 import os
 import re
 import shutil
@@ -43,11 +48,45 @@ SUBJECT_CHANNEL_ERROR_MAX = 15.0
 
 def load_manifest(frame_dir):
     manifest_path = os.path.join(frame_dir, "manifest.json")
-    try:
-        with open(manifest_path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
+    if not os.path.exists(manifest_path):
         return {}
+    with open(manifest_path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def frame_intervals(frame_dir, frames, manifest):
+    name = manifest.get("frameMetadata")
+    if name is None:
+        return None
+    if name != os.path.basename(name) or not name:
+        raise ValueError("frameMetadata must name a file in the frame directory")
+    if manifest.get("completed") is not True or manifest.get("frameCount") != len(frames):
+        raise ValueError("completed manifest frameCount must match the PNG count")
+    all_pngs = sorted(glob.glob(os.path.join(frame_dir, "*.png")))
+    if frames != all_pngs:
+        raise ValueError("unexpected PNG outside the producer's frame sequence")
+    with open(os.path.join(frame_dir, name), encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        fields = reader.fieldnames
+        required = ["frame_id", "filename", "unscaled_seconds", "sim_seconds"]
+        if not fields or fields[:4] != required or len(fields) != len(set(fields)):
+            raise ValueError("frame metadata requires frame_id,filename,unscaled_seconds,sim_seconds")
+        rows = list(reader)
+    if len(rows) != len(frames):
+        raise ValueError("frame metadata requires exactly one row per PNG")
+    times = []
+    for index, (row, frame) in enumerate(zip(rows, frames), 1):
+        if row.get("frame_id") != str(index) or row.get("filename") != os.path.basename(frame):
+            raise ValueError(f"frame metadata row {index} does not match its PNG identity")
+        if os.path.basename(frame) != f"f_{index:05d}.png":
+            raise ValueError(f"PNG sequence is not contiguous at frame {index}")
+        if None in row or any(not math.isfinite(float(row[field])) for field in fields[2:]):
+            raise ValueError(f"frame metadata row {index} has invalid numeric values")
+        times.append(float(row["unscaled_seconds"]))
+    intervals = [end - start for start, end in zip(times, times[1:])]
+    if any(interval <= 0 for interval in intervals):
+        raise ValueError("unscaled frame timestamps must strictly increase")
+    return intervals + [intervals[-1] if intervals else 0.1]
 
 
 def gif_frame_ms(seconds):
@@ -55,13 +94,13 @@ def gif_frame_ms(seconds):
     return max(GIF_QUANTUM_MS, units * GIF_QUANTUM_MS)
 
 
-def write_concat_list(list_path, frames, out_fps):
+def write_concat_list(list_path, frames, out_fps, durations=None):
     with open(list_path, "w", encoding="utf-8") as f:
-        for frame in frames:
+        for frame, duration in zip(frames, durations or [1.0 / out_fps] * len(frames)):
             f.write("file '%s'\n" % os.path.abspath(frame).replace("\\", "/"))
             # PNG demuxers default to 25 Hz and collapse shorter input intervals.
             f.write("option framerate 1000\n")
-            f.write("duration %.6f\n" % (1.0 / out_fps))
+            f.write("duration %.6f\n" % duration)
         # concat demuxer ignores the last entry's duration unless the file is repeated
         f.write("file '%s'\n" % os.path.abspath(frames[-1]).replace("\\", "/"))
         f.write("option framerate 1000\n")
@@ -81,22 +120,23 @@ def decoded_frame_count(ffmpeg_exe, clip_path):
     return int(counts[-1]), None
 
 
-def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
+def assemble_mp4(frame_dir, frames, out_fps, scale, crf, durations=None):
     import imageio_ffmpeg
 
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
     out_path = frame_dir.rstrip("/\\") + ".mp4"
     list_path = out_path + ".frames.txt"
-    expected = write_concat_list(list_path, frames, out_fps)
+    expected = write_concat_list(list_path, frames, out_fps, durations)
 
     cmd = [
         ffmpeg_exe, "-y",
         "-f", "concat", "-safe", "0", "-i", list_path,
         "-vf", "scale=trunc(iw*%s/2)*2:trunc(ih*%s/2)*2" % (scale, scale),
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-        "-crf", str(crf), "-r", "%.6f" % out_fps,
-        out_path,
+        "-crf", str(crf),
     ]
+    cmd += ["-fps_mode", "vfr", "-video_track_timescale", "1000000"] if durations else ["-r", "%.6f" % out_fps]
+    cmd.append(out_path)
     try:
         subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as error:
@@ -108,9 +148,16 @@ def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
     if failure is not None:
         sys.exit(f"read-back of {out_path} failed; frames kept in {frame_dir}: {failure}")
     # Floor, not equality: -r pads the concat stream to constant rate at some fps.
-    if decoded < expected:
+    if decoded < expected or (durations and decoded != expected):
         sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected at least {expected}; "
                  f"clip and frames kept in {frame_dir}")
+    if durations:
+        probe = subprocess.run([ffmpeg_exe, "-i", out_path, "-f", "null", "-"], capture_output=True)
+        reported = re.findall(r"time=(\d+):(\d+):([\d.]+)", probe.stderr.decode(errors="replace"))
+        actual = sum(float(part) * factor for part, factor in zip(reported[-1], (3600, 60, 1))) if reported else None
+        if probe.returncode or actual is None or abs(actual - sum(durations)) > 0.02:
+            sys.exit(f"read-back of {out_path} duration {actual} differs from {sum(durations):.6f}s; "
+                     f"clip and frames kept in {frame_dir}")
     return out_path
 
 
@@ -134,7 +181,7 @@ def subject_channel_error(source, decoded):
     return (total / count) / 3.0
 
 
-def assemble_gif(frame_dir, frames, out_fps, scale, colors):
+def assemble_gif(frame_dir, frames, out_fps, scale, colors, durations=None):
     from PIL import Image
 
     sources = []
@@ -149,7 +196,7 @@ def assemble_gif(frame_dir, frames, out_fps, scale, colors):
         palettes.append(image.quantize(colors=colors, method=Image.Quantize.MAXCOVERAGE))
 
     out_path = frame_dir.rstrip("/\\") + ".gif"
-    frame_ms = [gif_frame_ms(1.0 / out_fps)] * len(frames)
+    frame_ms = [gif_frame_ms(duration) for duration in durations] if durations else [gif_frame_ms(1.0 / out_fps)] * len(frames)
     palettes[0].save(out_path, save_all=True, append_images=palettes[1:],
                      duration=frame_ms, loop=0, optimize=False)
 
@@ -180,12 +227,18 @@ def assemble_gif(frame_dir, frames, out_fps, scale, colors):
 
 
 def assemble(frame_dir, args):
-    frames = sorted(glob.glob(os.path.join(frame_dir, "f_*.png")))[::args.step]
+    frames = sorted(glob.glob(os.path.join(frame_dir, "f_*.png")))
     if not frames:
         print(f"skip {frame_dir}: no frames", file=sys.stderr)
         return False
 
-    manifest = load_manifest(frame_dir)
+    try:
+        manifest = load_manifest(frame_dir)
+        intervals = frame_intervals(frame_dir, frames, manifest)
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        sys.exit(f"invalid capture contract in {frame_dir}: {error}; frames kept")
+    durations = None if intervals is None or args.fps else [sum(intervals[i:i + args.step]) for i in range(0, len(frames), args.step)]
+    frames = frames[::args.step]
     fps = args.fps or manifest.get("suggestedFps") or 10.0
     out_fps = fps / args.step
     scale, crf = args.scale, args.crf
@@ -198,10 +251,11 @@ def assemble(frame_dir, args):
     scale = 1.0 if scale is None else scale
     crf = 20 if crf is None else crf
     if args.format == "mp4":
-        out_path = assemble_mp4(frame_dir, frames, out_fps, scale, crf)
+        out_path = assemble_mp4(frame_dir, frames, out_fps, scale, crf, durations)
     else:
-        out_path = assemble_gif(frame_dir, frames, out_fps, scale, args.colors)
-    print(f"{out_path}  {os.path.getsize(out_path) / 1e6:.1f} MB  {len(frames)} frames @ {out_fps:g} fps")
+        out_path = assemble_gif(frame_dir, frames, out_fps, scale, args.colors, durations)
+    timing = f"{sum(durations):.6f}s unscaled playback" if durations else f"{out_fps:g} fps"
+    print(f"{out_path}  {os.path.getsize(out_path) / 1e6:.1f} MB  {len(frames)} frames @ {timing}")
     if not args.keep_frames:
         shutil.rmtree(frame_dir)
     return True
@@ -213,7 +267,7 @@ def main():
     parser.add_argument("frame_dirs", nargs="+", help="capture frame directories (globs ok)")
     parser.add_argument("--format", choices=("mp4", "gif"), default="mp4")
     parser.add_argument("--fps", type=float, default=None,
-                        help="playback fps of the full capture cadence (default: manifest suggestedFps)")
+                        help="override playback fps (default: exact metadata intervals, then legacy suggestedFps)")
     parser.add_argument("--step", type=int, default=1,
                         help="use every Nth frame; playback stays real-time")
     parser.add_argument("--scale", type=float, default=None,
@@ -228,6 +282,8 @@ def main():
     args = parser.parse_args()
     if args.step < 1:
         parser.error("--step must be >= 1")
+    if args.fps is not None and (not math.isfinite(args.fps) or args.fps <= 0):
+        parser.error("--fps must be positive and finite")
     if args.web and args.format == "gif":
         parser.error("--web is an mp4 preset; use --format gif with --scale/--step instead")
 

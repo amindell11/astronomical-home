@@ -211,6 +211,15 @@ five archetype films are five sessions), JSONL rows kept as clip fingerprints,
 no summary. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
 `results/rl-capture/`): `frames/<jsonl-stem>-s<seed>-<opponent>-ep<NN>/`.
 
+The shared `harness_child.ps1` launcher stamps `RL_HARNESS_CAPTURE_COMMIT` from
+the selected project's Git HEAD before starting a recording run. Direct callers
+of `HarnessSpec.ParseEval` must supply that provenance when recording is enabled.
+Each completed clip has exact PNG identities and unscaled/simulation timestamps
+in its manifest-named frame metadata. The caller prepares the diagnostic view
+and pacing before episode reset; recording starts at the existing `onBegin`
+boundary. A failed recording keeps its partial evidence and fails the episode
+before a success row is appended.
+
 Setting the environment by hand is the exception; `eval_lane.py` is the lane
 launcher — it composes the child env from its arguments alone (stripping every
 inherited `RL_HARNESS_*` and retired `RL_EVAL_*` variable first), runs the batch

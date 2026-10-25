@@ -1,8 +1,13 @@
 #if UNITY_EDITOR
+using Capture.Views;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using Cameras;
 using Capture;
+using Capture.Recording;
 using Game;
 using Game.Preview;
 using Game.Runs;
@@ -13,6 +18,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Recording;
 using UI.Recap;
 using UnityEditor;
 using UnityEngine;
@@ -43,11 +49,7 @@ namespace Tests.PlayMode.Scenarios
 
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
 
-        public override CaptureConfig Config => new()
-        {
-            clipName = "parity", width = 1280, height = 720, everyFixedSteps = 5,
-            configureView = (camera, light) => { camera.enabled = false; light.enabled = false; }
-        };
+        public override bool NeedsSession => false;
 
         public override IEnumerator Run()
         {
@@ -73,6 +75,7 @@ namespace Tests.PlayMode.Scenarios
                     new Scoreboard(Array.Empty<Scoreboard.Row>(), victoryRow));
                 yield return Show(recap, victory, BannerHoldSpan, "victory-banner");
                 yield return Show(recap, victory, CardSpan, "victory-card");
+                yield return FilmLivePreview(recap, victory);
 
                 var defeat = RecapOutcomeContext.Defeat(none, 0, 2,
                     new Scoreboard(new[] { victoryRow }, new Scoreboard.Row(0, 0, 6f, today)),
@@ -128,24 +131,63 @@ namespace Tests.PlayMode.Scenarios
             yield return FilmStates(state);
         }
 
-        // One episode per size; the recorder starts on the second step.
         private IEnumerator FilmStates(string state)
         {
             foreach (var (width, height) in Sizes)
             {
-                Capture.Begin(new CaptureConfig
+                using var recording = Capture.Prepare(new CaptureRequest("results/capture",
+                    $"{state}-{width}x{height}", Commit, width, height, stamp));
+                yield return recording.Ready;
+                recording.Start();
+                for (var i = 0; i < 6; i++) yield return null;
+                Result = recording.Finish();
+            }
+        }
+
+        private IEnumerator FilmLivePreview(RecapPreviewSubject recap, RecapOutcomeContext context)
+        {
+            recap.Select(context);
+            host.Transport.Scrub(1, 0f);
+            yield return null;
+            using var recording = Capture.Prepare(new CaptureRequest("results/capture", "preview-live", Commit,
+                960, 540, stamp, new Dictionary<string, Func<double>>
                 {
-                    clipName = $"{state}-{width}x{height}", runStamp = stamp, width = width, height = height,
-                    everyFixedSteps = 5,
-                    configureView = (camera, light) => { camera.enabled = false; light.enabled = false; }
-                }, GizmoCaptureProfile.None, new[] { player }, Session.Projectiles);
-                for (var i = 0; i < 3; i++) yield return null;
-                for (var i = 0; i < 6; i++)
-                {
-                    FilmStep();
-                    yield return null;
-                }
-                Capture.End();
+                    ["preview_span"] = () => host.Transport.Span,
+                    ["preview_seconds"] = () => host.Transport.Seconds,
+                }));
+            yield return recording.Ready;
+            recording.Start();
+            host.Transport.Playing = true;
+            yield return WaitFor(() => host.Transport.Span > 1, "the preview host advances its own banner animation");
+            yield return null;
+            host.Transport.Playing = false;
+            Result = recording.Finish();
+            var rows = File.ReadAllLines(Result.FrameMetadataPath);
+            Assert.Greater(rows.Length, 3, "the live preview has intermediate rendered images");
+            var first = rows[1].Split(',');
+            var last = rows[rows.Length - 1].Split(',');
+            var frozen = double.Parse(first[3], CultureInfo.InvariantCulture);
+            for (var i = 1; i < rows.Length; i++)
+                Assert.AreEqual(frozen, double.Parse(rows[i].Split(',')[3], CultureInfo.InvariantCulture),
+                    "PreviewHost keeps simulation paused while its transport animates");
+            Assert.Greater(double.Parse(last[2], CultureInfo.InvariantCulture), double.Parse(first[2], CultureInfo.InvariantCulture));
+            var before = new Texture2D(2, 2);
+            var after = new Texture2D(2, 2);
+            try
+            {
+                Assert.IsTrue(ImageConversion.LoadImage(before, File.ReadAllBytes(Path.Combine(Result.FrameDirectory, first[1]))));
+                Assert.IsTrue(ImageConversion.LoadImage(after, File.ReadAllBytes(Path.Combine(Result.FrameDirectory, last[1]))));
+                var beforePixels = before.GetPixels32();
+                var afterPixels = after.GetPixels32();
+                var changed = 0;
+                for (var i = 0; i < beforePixels.Length; i++)
+                    if (!beforePixels[i].Equals(afterPixels[i])) changed++;
+                Assert.Greater(changed, 100, "the real preview banner changes in the recorded pixels");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(before);
+                UnityEngine.Object.DestroyImmediate(after);
             }
         }
 

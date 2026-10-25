@@ -1,0 +1,463 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Capture;
+using Capture.Recording;
+using Capture.Views;
+using System.Globalization;
+using NUnit.Framework;
+using Ships;
+using Tests.PlayMode.Common;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Substrate.Presentation;
+using Substrate.Services;
+using Substrate.Services.Units;
+using Substrate.Services.Projectiles;
+using RL.Arena;
+using RL.Episodes.Compositions;
+using RL.Hosts;
+using RL.Hosts.Lanes;
+using Substrate;
+
+namespace Tests.PlayMode.Recording
+{
+    /// <summary>Graphics-gated proof that the capture lane films: a small capture-lane session on the smoke fixture writes PNG frames, a manifest, one clip dir per episode under the caller-named out dir, and one JSONL row per episode (no summary). Excluded from the merge gate — offscreen capture needs a real graphics device.</summary>
+    [Category("AI")]
+    [Category("RequiresGraphics")]
+    public class RLCapturePlayModeTests
+    {
+        private GameObject arenaHost;
+        private UnitService unitService;
+        private ProjectileService projectiles;
+        private HarnessAssets assets;
+        private string outDir;
+        private Ship subjectA;
+        private Ship subjectB;
+
+        private const int ToggleWindowSteps = 14;
+        private static readonly Type[] ColliderGizmoTypes =
+        {
+            typeof(BoxCollider), typeof(SphereCollider), typeof(CapsuleCollider), typeof(MeshCollider),
+        };
+        private const string EnabledWindowA = "gizmos-on-first";
+        private const string DisabledWindow = "gizmos-off";
+        private const string EnabledWindowB = "gizmos-on-again";
+        private const string GizmoSelector = "RL_HARNESS_GIZMOS";
+
+        [SetUp]
+        public void SetUp()
+        {
+            AudioListener.pause = true;
+            arenaHost = new GameObject("[CaptureArena]");
+            unitService = arenaHost.AddComponent<UnitService>();
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, presentationEnabled: true);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
+            PacingContract.Apply();
+            Time.maximumDeltaTime = 1f;
+            outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/capture",
+                "rl-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + TestContext.CurrentContext.Test.MethodName));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            ShipTestFactory.DestroyShip(subjectA);
+            ShipTestFactory.DestroyShip(subjectB);
+            subjectA = null;
+            subjectB = null;
+            projectiles?.ReturnAllToPool();
+            if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
+            Debug.Log("[Capture] RL proof -> " + outDir);
+            AudioListener.pause = false;
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator CaptureLane_WithoutAGizmoProfileFilmsPlainFootage()
+        {
+            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(ShipAgentFactory.SmokeFixturePath) == null)
+                Assert.Fail($"ONNX fixture missing at {ShipAgentFactory.SmokeFixturePath}");
+
+            var spec = PinnedPlainSpec();
+            // No gizmo types selected, so the Game View films the game itself — presentation stays on.
+            Assert.IsTrue(spec.Presentation, "a capture with no gizmo profile films with presentation enabled");
+
+            var host = NewHost(spec);
+            yield return new CaptureClient().Run(host, spec);
+
+            Assert.AreEqual(spec.episodesPerSeed, File.ReadAllLines(EpisodeJsonlIn(spec)).Length,
+                "one row per filmed episode");
+            Assert.IsEmpty(Directory.GetFiles(spec.outDir, "*-summary.json"), "capture writes no summary artifact");
+            AssertClipsFilmed(spec);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator NativeCaptureLane_RecordsGameViewAndRestoresEditorState()
+        {
+            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(ShipAgentFactory.SmokeFixturePath) == null)
+                Assert.Fail($"ONNX fixture missing at {ShipAgentFactory.SmokeFixturePath}");
+
+            var priorSelection = UnityEditor.Selection.objects;
+            var priorActive = UnityEditor.Selection.activeObject;
+            var priorFocusedWindow = UnityEditor.EditorWindow.focusedWindow;
+            var priorRunInBackground = Application.runInBackground;
+            Assert.IsTrue(UnityEngine.Rendering.GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(
+                out var globalSettings), "URP global settings must be registered for native Game View capture.");
+            var priorGlobalSettingsDirty = UnityEditor.EditorUtility.IsDirty(globalSettings);
+            var registered = UnityEditor.GizmoUtility.GetGizmoInfo();
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(AI.Navigator), out var priorNavigator),
+                $"Navigator annotation missing; registered: {string.Join(", ", registered.Select(info => info.name))}");
+
+            var spec = SpecFor(GizmoSelector, PinnedNativeSpec);
+            // Native profiles film collider silhouettes and gizmo geometry; presentation meshes would occlude them.
+            Assert.IsFalse(spec.Presentation, "a native gizmo profile films with presentation disabled");
+
+            var host = NewHost(spec);
+            yield return new CaptureClient().Run(host, spec);
+
+            Assert.AreEqual(spec.episodesPerSeed, File.ReadAllLines(EpisodeJsonlIn(spec)).Length);
+            AssertClipsFilmed(spec);
+
+            CollectionAssert.AreEqual(priorSelection, UnityEditor.Selection.objects);
+            Assert.AreEqual(priorActive, UnityEditor.Selection.activeObject);
+            Assert.AreEqual(priorFocusedWindow, UnityEditor.EditorWindow.focusedWindow);
+            Assert.AreEqual(priorRunInBackground, Application.runInBackground);
+            Assert.AreEqual(priorGlobalSettingsDirty, UnityEditor.EditorUtility.IsDirty(globalSettings));
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(AI.Navigator), out var restored));
+            Assert.AreEqual(priorNavigator.gizmoEnabled, restored.gizmoEnabled);
+            Assert.AreEqual(priorNavigator.iconEnabled, restored.iconEnabled);
+        }
+
+        /// <summary>Pins the observed Game View effect of <c>GizmoUtility</c>: Unity documents that interface largely in Scene View terms, so the capture backend rests on an unwritten contract. Toggling the profile's component types off mid-clip must empty the frames and toggling them back on must refill them.</summary>
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator NativeCapture_GameViewFollowsGizmoTypeToggles()
+        {
+            subjectA = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(-12f, 0f)),
+                GamePlane.Rotation, projectiles, team: 0);
+            subjectB = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(12f, 0f)),
+                GamePlane.Rotation, projectiles, team: 1);
+            Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
+            // The factory spawns outside the unit service's applying seam, so the test darkens its own subjects.
+            PresentationApplier.Apply(subjectA.gameObject, false);
+            PresentationApplier.Apply(subjectB.gameObject, false);
+
+            // One clip per window, so each window's frames are attributable and a one-way toggle cannot hide in an aggregate.
+            yield return FilmToggleWindow(EnabledWindowA, profileEnabled: true);
+            yield return FilmToggleWindow(DisabledWindow, profileEnabled: false);
+            yield return FilmToggleWindow(EnabledWindowB, profileEnabled: true);
+
+            Assert.Greater(DrawnFramesIn(EnabledWindowA), 0,
+                "with the profile's types enabled the Game View renders native gizmo geometry");
+            Assert.AreEqual(0, DrawnFramesIn(DisabledWindow),
+                "disabling those same types empties every frame: GizmoUtility governs Game View, not only the Scene View");
+            Assert.Greater(DrawnFramesIn(EnabledWindowB), 0,
+                "re-enabling them refills the frames, so the Game View follows the toggle in both directions");
+        }
+
+        /// <summary>Pixel proof the merge gate cannot give (RequiresGraphics, offscreen). Guards the arc regression:
+        /// drawers moved from GizmoType.Selected to GizmoView.IsOn (default OFF), so the capture must relight them.
+        /// A presentation-off mid-clip frame must carry colored gizmo ink, green collider-silhouette pixels, and stay
+        /// mostly background (no unlit-mesh leak). Collider driving + restore is asserted through GizmoUtility.</summary>
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator NativeCapture_PresentationOff_FilmsGizmoAndColliderSilhouettePixels()
+        {
+            subjectA = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(-6f, 0f)),
+                GamePlane.Rotation, projectiles, team: 0);
+            subjectB = ShipTestFactory.CreateDefaultShipAt(GamePlane.PlanePointToWorld(new Vector2(6f, 0f)),
+                GamePlane.Rotation, projectiles, team: 1);
+            Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
+            PresentationApplier.Apply(subjectA.gameObject, false);
+            PresentationApplier.Apply(subjectB.gameObject, false);
+
+            var priorColliderGizmos = ColliderGizmosEnabled();
+
+            var capture = TestAssets.NewNativeCapture();
+            string clipDir;
+            try
+            {
+                using var pacing = CapturePacing.Locked(2);
+                using var view = ((IDiagnosticViewFactory)capture).PrepareView(new DiagnosticViewConfig(),
+                    GizmoCaptureProfile.Combat, new[] { subjectA, subjectB }, projectiles);
+                var diagnosticCamera = Array.Find(UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None),
+                    candidate => candidate.gameObject.name == "[Capture] Diagnostic view");
+                Assert.IsNotNull(diagnosticCamera);
+                foreach (var layer in new[] { "Minimap", "Minimap_Ship", "Minimap_Enemy" })
+                    Assert.Zero(diagnosticCamera.cullingMask & LayerMask.GetMask(layer), layer);
+                Assert.AreNotEqual(0, diagnosticCamera.cullingMask & LayerMask.GetMask("Asteroid"));
+                using var recording = capture.Prepare(ToggleRequest("silhouette"));
+                yield return recording.Ready;
+                recording.Start();
+                Assert.IsTrue(ColliderGizmosEnabled(),
+                    "Begin drives collider gizmos on — colliders are the presentation-off silhouette source");
+                yield return RenderFrames(ToggleWindowSteps);
+                clipDir = recording.Finish().FrameDirectory;
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate((UnityEngine.Object)capture);
+            }
+
+            Assert.AreEqual(priorColliderGizmos, ColliderGizmosEnabled(),
+                "End restores the collider gizmo enablement the capture drove — EditorPrefs is machine-global");
+
+            var frame = MidClipFrame(clipDir);
+            var texture = new Texture2D(2, 2);
+            try
+            {
+                Assert.IsTrue(ImageConversion.LoadImage(texture, File.ReadAllBytes(frame)), $"{frame} unreadable");
+                var pixels = texture.GetPixels32();
+                var total = pixels.Length;
+
+                var coloredInk = 0;
+                var greenSilhouette = 0;
+                var nonBackground = 0;
+                foreach (var p in pixels)
+                {
+                    var max = Mathf.Max(p.r, Mathf.Max(p.g, p.b));
+                    var min = Mathf.Min(p.r, Mathf.Min(p.g, p.b));
+                    if (max > 24) nonBackground++;
+                    var chroma = max - min;
+                    // Frame bytes are sRGB; a saturated non-gray byte is drawer ink, not the near-black clear color.
+                    if (chroma > 40 && max > 48) coloredInk++;
+                    // Unity's built-in collider gizmos draw green wireframes — green-dominant pixels are the silhouette.
+                    if (p.g > p.r + 30 && p.g > p.b + 30 && p.g > 48) greenSilhouette++;
+                }
+
+                Assert.Greater(coloredInk, 0,
+                    "presentation-off frame carries colored gizmo ink — the profile's drawers ran (GizmoView.IsOn set by Begin)");
+                Assert.Greater(greenSilhouette, 0,
+                    "presentation-off frame carries green collider-wireframe silhouette pixels");
+                Assert.Less(nonBackground, total / 2,
+                    "frame stays mostly background — no unlit-mesh field leak filling the frame (the magenta-asteroid symptom)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+        // Collider gizmo enablement is observable through GizmoUtility, so this proof needs no editor-internal access.
+        private static bool ColliderGizmosEnabled()
+        {
+            foreach (var type in ColliderGizmoTypes)
+                if (UnityEditor.GizmoUtility.TryGetGizmoInfo(type, out var info) && info.gizmoEnabled)
+                    return true;
+            return false;
+        }
+
+        private static string MidClipFrame(string clipDir)
+        {
+            var frames = Directory.GetFiles(clipDir, "f_*.png");
+            Assert.IsNotEmpty(frames, $"{clipDir}: the clip filmed frames");
+            Array.Sort(frames, StringComparer.Ordinal);
+            return frames[frames.Length / 2];
+        }
+
+        private IEnumerator FilmToggleWindow(string clipName, bool profileEnabled)
+        {
+            var capture = TestAssets.NewNativeCapture();
+            try
+            {
+                // Combat, not Steering: its damage-bar drawer needs only a live ship, while steering
+                // diagnostics stay empty for subjects no UnitService registered an opponent for.
+                using var pacing = CapturePacing.Locked(2);
+                using var view = ((IDiagnosticViewFactory)capture).PrepareView(new DiagnosticViewConfig(),
+                    GizmoCaptureProfile.Combat, new[] { subjectA, subjectB }, projectiles);
+                using var recording = capture.Prepare(ToggleRequest(clipName));
+                yield return recording.Ready;
+                var profileAnnotations = EnabledAnnotations();
+                Assert.IsNotEmpty(profileAnnotations, "Begin leaves exactly the profile's component types enabled");
+                if (!profileEnabled) SetAnnotations(profileAnnotations, false);
+                recording.Start();
+                yield return RenderFrames(ToggleWindowSteps);
+                recording.Finish();
+                Assert.AreEqual(2 * Time.fixedDeltaTime, Time.captureDeltaTime * Time.timeScale, 1e-6f,
+                    $"{clipName}: filming renders one frame per everyFixedSteps fixed steps");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate((UnityEngine.Object)capture);
+            }
+            PacingContract.AssertHolds();
+        }
+
+        private CaptureRequest ToggleRequest(string clipName) => new(outDir, clipName,
+            TestAssets.CaptureCommit(), 320, 240, "toggle");
+
+        private int DrawnFramesIn(string clipName)
+        {
+            var frames = Directory.GetFiles(Path.Combine(outDir, "frames", $"toggle-{clipName}"), "f_*.png");
+            // Do not weaken: this caught 1195 uniformly blank captured PNGs.
+            Assert.IsNotEmpty(frames, $"{clipName}: the window filmed frames");
+            var drawn = 0;
+            foreach (var frame in frames)
+                if (!IsUniform(frame))
+                    drawn++;
+            return drawn;
+        }
+
+        private static IEnumerator RenderFrames(int frames)
+        {
+            for (var i = 0; i < frames; i++) yield return null;
+        }
+
+        // The transaction is the only authority on which types it enabled, so read them back.
+        private static List<UnityEditor.GizmoInfo> EnabledAnnotations()
+        {
+            var enabled = new List<UnityEditor.GizmoInfo>();
+            foreach (var info in UnityEditor.GizmoUtility.GetGizmoInfo())
+                if (info.gizmoEnabled)
+                    enabled.Add(info);
+            return enabled;
+        }
+
+        private static void SetAnnotations(List<UnityEditor.GizmoInfo> annotations, bool enabled)
+        {
+            foreach (var info in annotations)
+            {
+                var toggled = info;
+                toggled.gizmoEnabled = enabled;
+                UnityEditor.GizmoUtility.ApplyGizmoInfo(toggled, false);
+            }
+        }
+
+        private static bool IsUniform(string pngPath)
+        {
+            var texture = new Texture2D(2, 2);
+            try
+            {
+                Assert.IsTrue(ImageConversion.LoadImage(texture, File.ReadAllBytes(pngPath)),
+                    $"{pngPath} is not a readable PNG");
+                var pixels = texture.GetPixels32();
+                foreach (var pixel in pixels)
+                    if (!pixel.Equals(pixels[0]))
+                        return false;
+                return true;
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+/// <summary>With the selector set in the environment the windowed run IS the production capture lane, resolving through HarnessSpec exactly as a batch session would; otherwise it films the pinned spec.</summary>
+        private HarnessSpec SpecFor(string backendSelector, Func<HarnessSpec> pinned)
+        {
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(backendSelector))) return pinned();
+
+            var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable,
+                source => LoadModel(source == null
+                    ? ShipAgentFactory.SmokeFixturePath
+                    : TrainingBootstrap.ImportEvalCandidate(source)),
+                source => LoadModel(TrainingBootstrap.ImportEvalOpponent(source)),
+                TrainingBootstrap.CatalogWeapons,
+                () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
+            if (string.IsNullOrEmpty(spec.outDir)) spec.outDir = outDir;
+            outDir = spec.outDir;
+            return spec;
+        }
+
+        private HarnessSpec PinnedPlainSpec() => new()
+        {
+            lane = HarnessLane.Capture,
+            model = LoadModel(ShipAgentFactory.SmokeFixturePath),
+            seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
+            tag = "capture-test",
+            episodesPerSeed = 2,
+            fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
+            opponentKind = OpponentKind.Mirror,
+            probes = Array.Empty<ProbeSpec>(),
+            outDir = outDir,
+            captureCommit = TestAssets.CaptureCommit(),
+            record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
+        };
+
+        private HarnessSpec PinnedNativeSpec() => new()
+        {
+            lane = HarnessLane.Capture,
+            model = LoadModel(ShipAgentFactory.SmokeFixturePath),
+            seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
+            tag = "native-capture-test",
+            episodesPerSeed = 1,
+            fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
+            opponentKind = OpponentKind.Mirror,
+            probes = Array.Empty<ProbeSpec>(),
+            gizmoProfile = GizmoCaptureProfile.Steering,
+            outDir = outDir,
+            captureCommit = TestAssets.CaptureCommit(),
+            record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
+        };
+
+        /// <summary>The episode log, told apart from each probe's own JSONL by the spec that selected those probes.</summary>
+        private static string EpisodeJsonlIn(HarnessSpec spec)
+        {
+            var probeLogs = Array.ConvertAll(spec.probes, probe => $"-{probe.name}.jsonl");
+            var episode = Directory.GetFiles(spec.outDir, "*.jsonl")
+                .Where(path => !probeLogs.Any(suffix => path.EndsWith(suffix, StringComparison.Ordinal)))
+                .ToArray();
+            Assert.AreEqual(1, episode.Length, "exactly one episode JSONL under the caller-named out dir");
+            return episode[0];
+        }
+
+        private static void AssertClipsFilmed(HarnessSpec spec)
+        {
+            var frameDirs = Directory.GetDirectories(Path.Combine(spec.outDir, "frames"));
+            Assert.AreEqual(spec.episodesPerSeed, frameDirs.Length, "one clip dir per episode, under the out dir");
+            foreach (var dir in frameDirs)
+            {
+                var manifest = Path.Combine(dir, "manifest.json");
+                Assert.IsTrue(File.Exists(manifest), $"{dir}: manifest present");
+                Assert.Greater(Directory.GetFiles(dir, "f_*.png").Length, 0, $"{dir}: frames written");
+                StringAssert.Contains("\"completed\": true", File.ReadAllText(manifest));
+                StringAssert.Contains(spec.captureCommit, File.ReadAllText(Path.Combine(dir, "provenance.json")));
+                var frames = Directory.GetFiles(dir, "f_*.png").OrderBy(path => path, StringComparer.Ordinal).ToArray();
+                var rows = File.ReadAllLines(Path.Combine(dir, "frames.csv"));
+                Assert.AreEqual(frames.Length + 1, rows.Length, "one metadata row per image");
+                var previous = double.NegativeInfinity;
+                for (var i = 0; i < frames.Length; i++)
+                {
+                    var row = rows[i + 1].Split(',');
+                    Assert.AreEqual((i + 1).ToString(), row[0]);
+                    Assert.AreEqual(Path.GetFileName(frames[i]), row[1]);
+                    var time = double.Parse(row[2], CultureInfo.InvariantCulture);
+                    Assert.Greater(time, previous);
+                    previous = time;
+                    var image = new Texture2D(2, 2);
+                    try
+                    {
+                        Assert.IsTrue(ImageConversion.LoadImage(image, File.ReadAllBytes(frames[i])));
+                        Assert.AreEqual(spec.record.width, image.width);
+                        Assert.AreEqual(spec.record.height, image.height);
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(image); }
+                }
+                Assert.IsTrue(frames.Any(path => !IsUniform(path)), "episode contains rendered content");
+            }
+        }
+
+        private static Unity.InferenceEngine.ModelAsset LoadModel(string assetPath) =>
+            UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(assetPath);
+
+        // Host on an inactive GameObject so its Start never fires — the test drives the client directly.
+        private HarnessHost NewHost(HarnessSpec spec)
+        {
+            var hostObject = new GameObject("[HarnessHost]");
+            hostObject.transform.SetParent(arenaHost.transform, false);
+            hostObject.SetActive(false);
+            var host = hostObject.AddComponent<HarnessHost>();
+            projectiles = ShipServices.Compose(unitService, arenaHost.transform, spec.Presentation);
+            host.Initialize(spec, assets, unitService, projectiles, TestAssets.NewNativeCapture());
+            Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
+            return host;
+        }
+    }
+}
+#endif
