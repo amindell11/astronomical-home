@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AI;
+using AI.Scanning;
 using Combat.Projectiles;
 using Combat.Targeting;
+using Movement;
 using UnityEngine;
+using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
 
@@ -16,11 +20,18 @@ namespace Combat.Weapons
         public float distanceToTarget;
         public float angleToTarget;
         public bool hasLineOfSight;
+
+        public bool Within(float maxDistance, float maxAngle) =>
+            hasLineOfSight && distanceToTarget <= maxDistance && angleToTarget <= maxAngle;
     }
 
     public abstract class WeaponComponent : MonoBehaviour
     {
         public Transform firePoint;
+
+        public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
+        public Vector3 FireDirection => GamePlane.WorldDirOnPlane((firePoint ? firePoint : transform).up);
+
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;
@@ -47,6 +58,16 @@ namespace Combat.Weapons
         /// <summary>Max distance at which an AI gunner engages with this weapon, for diagnostics/telemetry. 0 if not distance-gated.</summary>
         public virtual float FireRange => 0f;
 
+        /// <summary>Where an AI gunner aims this weapon at a target: by default the intercept lead for <see cref="ProjectileSpeed"/>.</summary>
+        public virtual Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel) =>
+            Gunner.AimPoint(in shooterPose, targetPos, targetVel, ProjectileSpeed);
+
+        /// <summary>The distance an AI pilot carrying this weapon holds from its target; null leaves the pilot's own.</summary>
+        public virtual float? HoldRange => null;
+
+        /// <summary>Writes the circles an AI pilot carrying this weapon keeps out of right now; returns how many. None by default.</summary>
+        public virtual int KeepOutCircles(Span<DetectedObstacle.PlaneCircle> circles) => 0;
+
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 
@@ -60,6 +81,14 @@ namespace Combat.Weapons
         public virtual bool CanFire()
         {
             return conditions.All(c => c.CanFire());
+        }
+
+        protected bool TrySpendFireConditions()
+        {
+            if (!CanFire()) return false;
+            foreach (var condition in conditions)
+                condition.ProcessFire();
+            return true;
         }
 
         /// <summary>Name shown on this weapon's HUD readout panel.</summary>

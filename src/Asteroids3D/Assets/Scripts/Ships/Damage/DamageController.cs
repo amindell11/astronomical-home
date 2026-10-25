@@ -35,7 +35,10 @@ namespace Ships.Damage
             myShip = GetComponent<Ship>();
             Health = new Resource(maxHealth);
             Shield = new RegenResource(maxShield, shieldRegenRate, shieldRegenDelay);
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         private void Update()
         {

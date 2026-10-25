@@ -8,6 +8,7 @@ using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
 using UI.Hangar;
+using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,6 +26,7 @@ namespace Tests.PlayMode.Hangar
         private const string HangarCameraPrefabPath = "Assets/Prefabs/Cameras/Hangar Camera.prefab";
         private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
         private const string SectorLocale = "Locale_3";
@@ -81,6 +83,7 @@ namespace Tests.PlayMode.Hangar
             host.hangarCameraPrefab = AssetDatabase.LoadAssetAtPath<DriftCam>(HangarCameraPrefabPath);
             host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             Assert.IsTrue(host.hangarCameraPrefab, $"hangar camera prefab loads from {HangarCameraPrefabPath}");
             hostGo.SetActive(true);
 

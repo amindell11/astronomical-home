@@ -697,9 +697,45 @@ Format: **term** — definition. *(authority)*
   trigger. Any state it keeps, such as a charge in progress or a heat vent,
   lives in the weapon, so the Gunner never learns what a trigger means to it.
   *(`WeaponComponent.HoldTrigger`; #1133)*
+- **hold range** (AI) — the distance from its target that a weapon asks an AI
+  pilot to fly at, in place of the pilot's own range, as a mine carrier holds
+  outside its own blast. Only the primary weapon's counts, and
+  it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
+  how the AI uses a weapon, not a fact about the ship. Not a firing range.
+  *(`WeaponComponent.HoldRange`; #1139)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
+- **aim reference** — the heading a ship's primary weapon needs this step and
+  that heading's rate, or none, published by the Gunner. It parallels the
+  velocity reference. The Gunner computes it from the target as it perceives it
+  (see aim settings), with the same lead it fires with, and the AICommander
+  hands it to the Navigator as a value on each `ComputeCommand` call, so no
+  weapon fact enters the Navigator.
+  *(AimReference, Gunner.PrimaryAimReference)*
+- **aim servo** — the Navigator's yaw controller that turns the ship onto the
+  aim reference within the engine's yaw torque. It replaces only the MPC's yaw
+  torque, and the Navigator stays the single author of the pilot command. The
+  AIM slot's weight switches it in and out with hysteresis rather than blending
+  torques, because #871's research found continuous blending flip-flops. An
+  obstacle threat hands yaw back to the MPC, which keeps it for a short hold
+  after the threat clears. It exists because the MPC's facing cost cannot aim:
+  its sampling noise held aim error near 20° whatever the facing cost's shape
+  or weight (#409). *(AimServo, YawHandover)*
+- **aim settings** — one armed AI pilot's aim knobs, a `ScriptableObject` beside
+  `MpcSettings`: its perception (a reaction delay and a wandering aim error with
+  its correlation time) and its earned accuracy, each off at 0. The AICommander
+  hands it to the Gunner at `Initialize`, and the Gunner reads it every tick, so
+  inspector edits apply live in Play. An armed AI pilot without one fails at
+  spawn. The servo's turn acceleration stays on `MpcSettings`. These are raw
+  knobs by ruling, not a 0 to 1 skill dial; how they map onto difficulty is
+  open (#1057). *(AimSettings, AimPerception)*
+- **earned accuracy** — a Gunner bearing error that starts loose when it picks
+  up a target and tightens to 0 while the target stays in its nose cone, in
+  range and in line of sight. A new target, a jink, a boost or a lost line of
+  sight restarts it. #409's calibration found it is rarely earned against a
+  moving target: a jink threshold low enough to see a strafe also fires on
+  ordinary flight. *(EarnedAccuracy)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
   yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
@@ -707,7 +743,7 @@ Format: **term** — definition. *(authority)*
   fires — hull overlap (`Cost.Collides`) or collision-course turn-away
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
-  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
+  *(Cost.ObstacleCosts, Cost.ObstacleThreat)*
 - **intent sentence** — the decision-varying slice of the MPC cost as a fixed
   set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
   pinned to the enemy, FIELD a class slot binding none), each with a signed
@@ -929,10 +965,30 @@ Format: **term** — definition. *(authority)*
   Informational only: records are grouped by stat fingerprint and loadout stat
   hash. "Build" in this term is the git side, never a ship's parts, which are its
   loadout. *(BuildIdentity, BuildIdentityStamp)*
-- **death recap** — the post-death summary rendered from the damage ledger and
-  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
+- **death recap** — the run outcome recap after a death: the HUD fades while the
+  explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.
-  *(DeathRecapScreen, GameHost.RunDeathRecap)*
+  *(RunRecapScreen, GameHost.RunRecap)*
+- **presentation module** — a presentation (the recap outcome sequence first)
+  exposed as a pure function of a *feel profile*, an immutable *context* and a
+  time, rendered by one renderer whichever host drives the time; a
+  preview-only renderer is forbidden. Arc #1151. *(RecapOutcomeSequence,
+  RecapOutcomeContext, RecapPresenter)*
+- **feel profile** — the ScriptableObject of named knobs a presentation module
+  reads live; the game serializes the asset on its host, the preview host edits
+  the same asset and saves it explicitly. *(RecapFeelProfile)*
+- **preview host** — the play-mode composition root beside the game host that
+  composes a real session with presentation on around the real player rig,
+  camera and HUD, and hosts one *preview subject* under a transport (play,
+  pause, scrub, loop, speed). The control panel is an editor window and nothing
+  more. *(PreviewHost, PreviewTransport, PreviewControlPanel)*
+- **preview subject** — a presentation module with a chosen context (a fixture
+  built from constants, or any context a scenario builds), hosted by the preview
+  host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*
+- **staged moment** — a game state the preview subject reaches live (the
+  player's death at the context's death point, first) so the host can show it and
+  a capture scenario can film it through the subject, instead of per-session
+  reflection and scripted kills. *(RecapPreviewSubject.StageDeath)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type

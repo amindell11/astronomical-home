@@ -12,7 +12,7 @@ using Substrate;
 
 namespace Combat.Targeting
 {
-    public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
+    public class LockOnSensor : MonoBehaviour, ILockStateSource
     {
         private const float ScanInterval = 0.1f;
         private const float FanRayStepDeg = 5f;
@@ -111,11 +111,14 @@ namespace Combat.Targeting
 
         private void OnDisable()
         {
+            // Death and park deactivate the ship. The HUD loop stops only when this reports Idle.
+            targetLock?.Cancel();
             StopScanRoutine();
         }
 
         private void OnDestroy()
         {
+            targetLock?.Cancel();
             StopScanRoutine();
             if (targetLock != null)
                 targetLock.OnStateChanged -= HandleTargetLockStateChanged;

@@ -67,7 +67,7 @@ namespace Tests.PlayMode
             serialized.ApplyModifiedPropertiesWithoutUndo();
             var shape = Shape;
             brain.Configure(enemy, OpponentArchetype.Aggressor, in shape, jukeSeed: 0, Vector2.zero, borderRadius: 500f);
-            ctx = new AIContext(self, brainHost.AddComponent<Scout>());
+            ctx = new AIContext(self, brainHost.AddComponent<Scout>(), holdRange: null);
 
             var right = new Vector2(nose.y, -nose.x);
             var launchDir = GamePlane.PlaneDirToWorld(-right);
