@@ -153,7 +153,10 @@ namespace Game.Travel
         private void RenderHull()
         {
             var renderers = ship.VisualRig.Silhouette;
-            var bounds = renderers[0].bounds;
+            var pose = Matrix4x4.TRS(ship.transform.position, ship.transform.rotation, Vector3.one);
+            var worldToPose = pose.inverse;
+            var minimum = Vector3.positiveInfinity;
+            var maximum = Vector3.negativeInfinity;
             var previous = RenderTexture.active;
             try
             {
@@ -161,10 +164,24 @@ namespace Game.Travel
                 {
                     hullLayers[i] = renderers[i].gameObject.layer;
                     renderers[i].gameObject.layer = LayerMask.NameToLayer("ShipPreview");
-                    bounds.Encapsulate(renderers[i].bounds);
+                    var skinned = renderers[i] as SkinnedMeshRenderer;
+                    var space = skinned && skinned.rootBone ? skinned.rootBone : renderers[i].transform;
+                    var local = renderers[i].localBounds;
+                    var toPose = worldToPose * space.localToWorldMatrix;
+                    for (var x = -1; x <= 1; x += 2)
+                    for (var y = -1; y <= 1; y += 2)
+                    for (var z = -1; z <= 1; z += 2)
+                    {
+                        var point = toPose.MultiplyPoint3x4(local.center +
+                            Vector3.Scale(local.extents, new Vector3(x, y, z)));
+                        minimum = Vector3.Min(minimum, point);
+                        maximum = Vector3.Max(maximum, point);
+                    }
                 }
+                var bounds = new Bounds();
+                bounds.SetMinMax(minimum, maximum);
                 hullCamera.transform.rotation = ship.transform.rotation;
-                hullCamera.transform.position = bounds.center - ship.transform.forward * 20f;
+                hullCamera.transform.position = pose.MultiplyPoint3x4(bounds.center - Vector3.forward * 20f);
                 hullCamera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * 1.12f;
                 hullCamera.aspect = 1f;
                 hullCamera.targetTexture = hull;

@@ -67,6 +67,7 @@ MonoBehaviour:
   streakSpeed: 1
   streakVariation: 0.8
   streakSpread: 1
+  streakFan: 4
   streakColor: {r: 1, g: 1, b: 1, a: 1}
   nebulaStretch: 3.3
   nebulaSoftness: 0.176

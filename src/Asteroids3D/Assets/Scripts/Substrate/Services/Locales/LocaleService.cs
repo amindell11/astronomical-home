@@ -9,8 +9,8 @@ namespace Substrate.Services.Locales
     /// Locale switching for one session, held privately by it rather than exposed beside its services:
     /// swap the active (lighting) scene to a sector's authored locale before its content builds, return
     /// to the idle locale — the one shown while no sector is loaded — whenever the sector unloads, and
-    /// hand the boot scene back when the session tears down. Every step is presentation-only — the
-    /// session skips them headless — and nothing outside the session ever calls them.
+    /// hand the boot scene back when the session tears down. It also lends a loaded destination
+    /// to a backdrop pair without switching the active scene. The session skips these steps headless.
     /// </summary>
     public class LocaleService
     {

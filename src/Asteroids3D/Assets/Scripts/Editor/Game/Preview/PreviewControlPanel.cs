@@ -13,7 +13,7 @@ namespace Game.Preview
     {
         private PreviewHost host;
         private SerializedObject knobs;
-        private PreviewSubjectKind selectedSubject;
+        [SerializeField] private PreviewSubjectKind selectedSubject;
         private Vector2 scroll;
 
         [MenuItem("Window/Preview Host")]
@@ -44,6 +44,7 @@ namespace Game.Preview
                 return;
             }
             var selected = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", host.SubjectKind);
+            selectedSubject = selected;
             if (selected != host.SubjectKind)
             {
                 host.SelectSubject(selected);

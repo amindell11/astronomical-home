@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cameras;
 using Capture.Recording;
 using Capture.Views;
@@ -56,6 +57,16 @@ namespace Tests.PlayMode.Scenarios
                 var jump = (SectorJumpPreviewSubject)host.Subject;
                 Assert.That(Time.timeScale, Is.Zero);
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+                var player = root.GetComponentInChildren<PlayerRig>().Player;
+                player.transform.rotation = Quaternion.identity;
+                yield return null;
+                var hullCamera = root.GetComponentsInChildren<Camera>().Single(camera => camera.name == "Jump hull camera");
+                var hullSize = hullCamera.orthographicSize;
+                player.transform.rotation = Quaternion.Euler(0f, 0f, 45f);
+                yield return null;
+                Assert.That(hullCamera.orthographicSize, Is.EqualTo(hullSize).Within(.001f),
+                    "The starting heading must not change the ship's framing.");
+                player.transform.rotation = Quaternion.identity;
                 using (var view = (IDisposable)Capture.GetType().GetMethod("PrepareHud1280x720").Invoke(Capture, null))
                 using (var recording = Capture.Prepare(new CaptureRequest("results/capture", "sector-jump-preview", Commit,
                            1280, 720, measurements: new Dictionary<string, Func<double>>
@@ -96,6 +107,14 @@ namespace Tests.PlayMode.Scenarios
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
                 yield return WaitFor(() => !SceneManager.GetSceneByName("Locale_1").isLoaded);
+                host.Subject.SelectFixture(6);
+                host.Transport.Restart();
+                yield return WaitFor(() => !player.gameObject.activeInHierarchy);
+                host.SelectSubject(PreviewSubjectKind.SectorJump);
+                yield return WaitFor(() => host.Subject != null);
+                Assert.That(player.gameObject.activeInHierarchy, Is.True,
+                    "Entering jump after a staged defeat must restore its live ship.");
+                yield return null;
             }
             finally
             {

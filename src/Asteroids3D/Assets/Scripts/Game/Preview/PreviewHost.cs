@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Cameras;
 using Game.Travel;
+using Substrate;
 using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -107,6 +108,9 @@ namespace Game.Preview
             }
             if (!jumpFeel || !jumpShader)
                 throw new InvalidOperationException("The jump preview requires a feel profile and shader.");
+            if (!rig.Player.gameObject.activeInHierarchy)
+                session.Units.RespawnShip(rig.Player.Id,
+                    GamePlane.WorldPointToPlane(rig.Player.transform.position), 0f);
             SetSimulationFrozen(true);
             LocaleBackdropPair backdrop = null;
             yield return session.PrepareTravelBackdrop("Locale_1", transform, pair => backdrop = pair);
