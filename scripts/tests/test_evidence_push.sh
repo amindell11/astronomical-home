@@ -30,8 +30,8 @@ EOF
 chmod +x "$TMP/bin/curl"
 
 printf 'one\n' > "$TMP/a.txt"
-printf 'two\n' > "$TMP/b.txt"
-printf 'three\n' > "$TMP/c.txt"
+printf 'two\n' > "$TMP/capture before#50%.txt"
+printf 'three\n' > "$TMP/capture after#50%.png"
 
 export EVIDENCE_PUSH_SLUG=amindell11/astronomical-home
 export EVIDENCE_PUSH_CURL="$TMP/bin/curl"
@@ -41,28 +41,31 @@ export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 printf '200' > "$CURL_STATUS_FILE"
 
-out="$(cd "$TMP/repo" && bash "$PUSH" capture-rig "$TMP/a.txt" "$TMP/b.txt" "$TMP/c.txt")" || fail "push should exit 0: $out"
+out="$(cd "$TMP/repo" && "$PUSH" capture-rig "$TMP/a.txt" "$TMP/capture before#50%.txt" "$TMP/capture after#50%.png")" || fail "push should exit 0: $out"
 urls="$(printf '%s\n' "$out" | grep '^URL=' || true)"
 count="$(printf '%s\n' "$urls" | grep -c '^URL=')"
 [[ "$count" -eq 3 ]] || fail "expected 3 URL lines, got: $out"
 printf '%s\n' "$out" | grep -q '^SHA=[0-9a-f]\{40\}$' || fail "missing SHA line: $out"
 printf '%s\n' "$urls" | grep -q 'raw/.*/a.txt' || fail "a txt file must use the raw URL: $out"
+sha="$(printf '%s\n' "$out" | sed -n 's/^SHA=//p')"
+printf '%s\n' "$urls" | grep -Fxq "URL=https://github.com/$EVIDENCE_PUSH_SLUG/raw/$sha/capture%20before%2350%25.txt" || fail "raw URL must encode the filename: $out"
+printf '%s\n' "$urls" | grep -Fxq "URL=https://media.githubusercontent.com/media/$EVIDENCE_PUSH_SLUG/$sha/capture%20after%2350%25.png" || fail "media URL must encode the filename: $out"
 
 tree="$(git -C "$TMP/bare" ls-tree -r --name-only evidence/capture-rig)"
 printf '%s\n' "$tree" | grep -qx 'a.txt' || fail "a.txt was not pushed: $tree"
-printf '%s\n' "$tree" | grep -qx 'b.txt' || fail "b.txt was not pushed"
-printf '%s\n' "$tree" | grep -qx 'c.txt' || fail "c.txt was not pushed"
+printf '%s\n' "$tree" | grep -Fxq 'capture before#50%.txt' || fail "text filename changed"
+printf '%s\n' "$tree" | grep -Fxq 'capture after#50%.png' || fail "image filename changed"
 printf '%s\n' "$tree" | grep -q 'githooks' && fail "a hook stub was committed: $tree"
 
-retry="$(cd "$TMP/repo" && bash "$PUSH" capture-rig "$TMP/a.txt" "$TMP/b.txt" "$TMP/c.txt" 2>&1)" || fail "a retry of the same files must reuse HEAD: $retry"
+retry="$(cd "$TMP/repo" && "$PUSH" capture-rig "$TMP/a.txt" "$TMP/capture before#50%.txt" "$TMP/capture after#50%.png" 2>&1)" || fail "a retry of the same files must reuse HEAD: $retry"
 printf '%s\n' "$retry" | grep -q '^URL=' || fail "a retry must still print URLs: $retry"
 printf '%s\n' "$retry" | grep -q 'reusing HEAD' || fail "a retry must say it reused HEAD: $retry"
 
 printf '404' > "$CURL_STATUS_FILE"
 printf 'one-again\n' > "$TMP/a.txt"
 rc=0
-(cd "$TMP/repo" && bash "$PUSH" capture-rig "$TMP/a.txt") >/dev/null 2>"$TMP/err" || rc=$?
+(cd "$TMP/repo" && "$PUSH" capture-rig "$TMP/a.txt") >/dev/null 2>"$TMP/err" || rc=$?
 [[ "$rc" -eq 1 ]] || fail "a non-200 HEAD must exit 1, got $rc ($(cat "$TMP/err"))"
 grep -q 'returned 404' "$TMP/err" || fail "expected a 404 report, got $(cat "$TMP/err")"
 
-echo "PASS: evidence_push.sh — three URLs, hook stub stripped, non-200 fails"
+echo "PASS: evidence_push.sh direct execution, encoded filenames, hook stub stripped, non-200 fails"
