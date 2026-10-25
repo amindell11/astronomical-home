@@ -1,0 +1,39 @@
+{
+  "old": {
+    "cyan": 6598,
+    "pure_cyan": 6598
+  },
+  "native": {
+    "cyan": 0,
+    "pure_cyan": 0
+  },
+  "direct": {
+    "cyan": 0,
+    "pure_cyan": 0
+  },
+  "Vanguard": {
+    "old_vs_native_changed": 0,
+    "native_vs_direct_changed": 2188,
+    "native_vs_direct_mean_abs_rgb": 1.5695082720588236
+  },
+  "Crimson": {
+    "old_vs_native_changed": 0,
+    "native_vs_direct_changed": 2779,
+    "native_vs_direct_mean_abs_rgb": 1.5516514227642277
+  },
+  "Nightshade": {
+    "old_vs_native_changed": 76,
+    "native_vs_direct_changed": 2812,
+    "native_vs_direct_mean_abs_rgb": 1.9890307418699187
+  },
+  "Valis": {
+    "old_vs_native_changed": 7510,
+    "native_vs_direct_changed": 2860,
+    "native_vs_direct_mean_abs_rgb": 1.1543064024390244
+  },
+  "Bulwark": {
+    "old_vs_native_changed": 0,
+    "native_vs_direct_changed": 2256,
+    "native_vs_direct_mean_abs_rgb": 0.7178861788617886
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "20261025-065455-968-async": [
+    {
+      "filename": "f_00001.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00002.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00003.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00004.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00005.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00006.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00007.png",
+      "pure_cyan_valis_pixels": 8982
+    },
+    {
+      "filename": "f_00008.png",
+      "pure_cyan_valis_pixels": 8982
+    }
+  ],
+  "20261025-065458-955-synchronous": [
+    {
+      "filename": "f_00001.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00002.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00003.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00004.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00005.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00006.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00007.png",
+      "pure_cyan_valis_pixels": 0
+    },
+    {
+      "filename": "f_00008.png",
+      "pure_cyan_valis_pixels": 0
+    }
+  ]
+}
