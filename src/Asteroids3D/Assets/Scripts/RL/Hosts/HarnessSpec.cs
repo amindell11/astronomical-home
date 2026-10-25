@@ -1,9 +1,12 @@
+using Capture.Views;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using Capture;
+using Capture.Recording;
+using System.Text.RegularExpressions;
 using Combat.Weapons;
 using Unity.InferenceEngine;
 using UnityEngine;
@@ -113,6 +116,7 @@ namespace RL.Hosts
         public ProbeSpec[] probes;
         public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
+        public string captureCommit;
         public string outDir;
         /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
         public SentenceRow[] sentenceRows;
@@ -264,6 +268,12 @@ namespace RL.Hosts
                 spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), resolveOpponent);
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
+            if (spec.record.enabled)
+            {
+                spec.captureCommit = getEnv("RL_HARNESS_CAPTURE_COMMIT");
+                if (spec.captureCommit == null || !Regex.IsMatch(spec.captureCommit, "^[0-9a-fA-F]{40}$"))
+                    throw new ArgumentException("RL_HARNESS_CAPTURE_COMMIT must name the launcher's 40-character hexadecimal SHA when recording.");
+            }
             spec.ValidateLane();
             spec.ValidateCaptureSelector();
             return spec;

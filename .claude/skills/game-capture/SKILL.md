@@ -14,7 +14,7 @@ step deletes the frames on a verified clip) and end by handing the user the clip
 
 Capture needs a rendering Game View — a **windowed Editor** booted by the test runner
 (`-WithGraphics -Windowed`), or a **resident GUI editor** via the warm lane. This is
-structural, not a preference: Unity never resumes Recorder's `WaitForEndOfFrame` under
+structural, not a preference: Unity never resumes `WaitForEndOfFrame` under
 `-batchmode`, so there is no headless capture lane.
 
 ## Pick a lane
@@ -51,8 +51,8 @@ structural, not a preference: Unity never resumes Recorder's `WaitForEndOfFrame`
 ```csharp
 #if UNITY_EDITOR
 using System.Collections;
-using Capture;
-using Tests.PlayMode.Common;
+using Capture.Views;
+using Tests.PlayMode.Recording;
 using UnityEngine;
 
 public sealed class MyProbe : CaptureScenario
@@ -64,24 +64,30 @@ public sealed class MyProbe : CaptureScenario
     {
         var (a, _) = SpawnCombatShip(new Vector2(-12f, 0f), rotDeg: -90f, team: 0);
         var (b, _) = SpawnCombatShip(new Vector2(12f, 0f), rotDeg: 90f, team: 1);
-        Film(a, b);                                       // framed + gizmo-selected subjects
+        yield return Film(a, b);
 
         for (var i = 0; i < 400 && a && b; i++)
         {
             yield return new WaitForFixedUpdate();
-            FilmStep();
         }
     }
 }
 #endif
 ```
 
-`Film(...)` starts the episode and names the ships to frame and select; `FilmStep()`
-advances one captured step. The runner ends the episode when `Run` returns or throws.
-Override `Config` for clip name/size/cadence, `Profile` for the gizmo set, `SectorEntry`
-to film inside a sector (loaded hero-less before `Run`; `SpawnCombatShip` ships sense its
-rocks), and `Config.gizmoScope` (`All` / `Selected` / `Team` + `gizmoScopeTeam`) for whose
-gizmos draw.
+`yield return Film(...)` prepares the shared diagnostic view and waits for recording
+readiness. Images and matching telemetry are acquired automatically at the end of
+each rendered frame. The runner finishes on success and disposes on failure.
+Override `Request` for output identity/dimensions, `View` for diagnostic framing and
+gizmo scope, `Profile` for the gizmo set, and `SectorEntry` to load a sector hero-less.
+
+For an existing preview, override `NeedsSession` to false and record its prepared
+view directly: `Capture.Prepare(request)`, `yield return recording.Ready`,
+`recording.Start()`, then `Result = recording.Finish()` inside a `using` scope.
+Preparation writes no images. The caller owns the scene and clock; render any
+terminal state before calling `Finish`, which returns only acquired image/row pairs.
+The returned `CaptureResult` owns artifact paths. Supply `Commit` from the runner
+in every request; measurement readers are named and fixed when the request is built.
 
 **Define the gizmo set and scope from what the clip must show.** Pick the narrowest
 `Profile` and `gizmoScope` that reveal the target behaviour: a `Combat` clip of one ship's
@@ -105,7 +111,8 @@ compositions the lane can't express (bespoke overlays, non-archetype opponents),
 author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
 → `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
-enumerator and calling `FilmStep()` per fixed step.
+enumerator after recording readiness. Start recording at the episode's existing
+`onBegin` boundary, after reset; preparation must finish before episode progression.
 
 ## Warm lane (attach to a resident editor)
 
@@ -120,7 +127,8 @@ itself on the editor's next load via the lane journal). A leased slot editor
 
 ```powershell
 unity command capture_lane_attach --project-path <proj>   # once per session
-unity command capture_request_scenario --scenario TwoShipSkirmishScenario --project-path <proj>
+$captureCommit = git -C '<proj>' rev-parse HEAD
+unity command capture_request_scenario --scenario TwoShipSkirmishScenario --commit $captureCommit --project-path <proj>
 ./scripts/unity_test_agent.ps1 -Routed -Mode PlayMode -TestFilter CaptureScenarioPlayModeTests -ExcludeCategory '' -ProjectPath <proj>
 unity command capture_lane_release --project-path <proj>  # restores EPO
 ```
@@ -196,13 +204,15 @@ snippets live in this skill's `cli-eval/` — run them with
 ## Run + assemble (one command each)
 
 ```powershell
-./scripts/agent_worktree_pool.sh run-tests agent-N -Mode PlayMode -TestFilter Tests.PlayMode.CaptureScenarioPlayModeTests -WithGraphics -Windowed -CaptureScenario MyProbe
+./scripts/agent_worktree_pool.sh run-tests agent-N -Mode PlayMode -TestFilter Tests.PlayMode.Recording.CaptureScenarioPlayModeTests -WithGraphics -Windowed -CaptureScenario MyProbe
 python scripts/capture/assemble.py <slot-path>/results/capture/frames/<stamp>-MyProbe
 ```
 
-The runner prints the absolute frame dir. `assemble.py` defaults fps/dims from the
-frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
-replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
+The runner prints the absolute frame directory. `assemble.py` validates the producer's
+exact image/metadata contract and uses its unscaled timestamps for playback;
+its header defines the final-frame hold and legacy-folder behavior. `--step N`
+keeps every Nth image while preserving elapsed playback. `--fps` overrides playback
+speed while retaining identity checks. mp4
 needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 `uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
 GIF durations round to 10 ms and its maximum-coverage palette preserves small
@@ -230,7 +240,7 @@ everything and exits nonzero.
 
 ## Hard-won constraints (violate = silent garbage)
 
-- **Capture needs a windowed Editor** (`-WithGraphics -Windowed`). Recorder starves
+- **Capture needs a windowed Editor** (`-WithGraphics -Windowed`). End-of-frame acquisition starves
   without a rendering Game View under `-batchmode`, and gizmos never render into a
   manual offscreen `camera.Render()`. There is no headless capture lane.
 - **Batch runs are `-nographics` by default; `-WithGraphics` is for filtered runs
@@ -245,9 +255,10 @@ everything and exits nonzero.
   drew.
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
-- **Recorded runs lock frame pacing** (`Time.timeScale=1` +
-  `Time.captureDeltaTime=Time.fixedDeltaTime`, the harness `PacingContract`) so a
-  recorded seed replays identically.
+- **The caller owns pacing.** The RL caller uses `CapturePacing.Locked` before
+  readiness; preview hosts keep their own transport and simulation clock. Recording
+  never changes either. Cross a rendered frame after changing pacing before starting
+  time-sensitive animation, so the first unscaled timestamp uses the new clock.
 - **A recording harness run holds the machine-wide boot lane ~10× longer**
   than a headless eval — synchronous PNG render/readback runs at wall clock, not
   the sped-up sim. Expect a capture lane to occupy Unity access far longer than
@@ -264,9 +275,8 @@ everything and exits nonzero.
   there yourself.
 - Capture asserts loudly on empty/NaN subjects and a reused frame dir — fix the
   scenario, don't catch the exception.
-- **Never call `recorder.Step` on the spawn frame** — capture only after the first
-  `WaitForFixedUpdate` yield, or URP dies in `ForwardLights` ("Render Graph
-  Execution error").
+- **Wait for `Ready` before `Start`.** Readiness includes the prepared Game View's
+  first rendered frame at the requested dimensions.
 - **Never run a capture/eval play session while an ML-Agents trainer is attached on
   this machine** — every Academy play mode touches the trainer's port-5004 handshake
   and can sever the live training connection (killed the 2026-07-20 run mid-flight

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Capture;
+using Capture.Recording;
 using Combat.Weapons;
 using UnityEditor;
 using UnityEditor.SceneManagement;
