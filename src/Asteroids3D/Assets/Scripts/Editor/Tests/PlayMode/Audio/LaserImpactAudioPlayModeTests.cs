@@ -7,6 +7,7 @@ using Damage;
 using NUnit.Framework;
 using Ships.Registry;
 using Substrate;
+using Tests.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -33,6 +34,8 @@ namespace Tests.PlayMode.Audio
         private sealed class InertTarget : MonoBehaviour, IDamageable
         {
             public float TakeDamage(in DamageInfo hit) => 0f;
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private readonly List<GameObject> spawned = new();
@@ -90,7 +93,7 @@ namespace Tests.PlayMode.Audio
             var sphere = go.AddComponent<SphereCollider>();
             sphere.isTrigger = true;
             sphere.radius = 0.5f;
-            go.AddComponent<InertTarget>();
+            DamageableColliderRegistration.Register(go.AddComponent<InertTarget>());
         }
 
         private Laser Fire(string prefabName)

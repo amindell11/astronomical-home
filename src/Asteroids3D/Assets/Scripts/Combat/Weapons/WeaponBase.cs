@@ -24,10 +24,10 @@ namespace Combat.Weapons
             if (projectiles == null) throw new ArgumentNullException(nameof(projectiles));
             if (!TrySpendFireConditions()) return null;
 
-            var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+            var proj = SimplePool<TProj>.Get(projectilePrefab, FireOrigin, firePoint.rotation);
             proj.Initialize(shooter);
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
-            proj.Launch(firePoint.up, targetPoint);
+            proj.Launch(FireDirection, targetPoint);
             InvokeOnFire();
 
             return proj;
