@@ -1,4 +1,5 @@
 using Cameras;
+using Game.Travel;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using UI.Recap;
@@ -22,16 +23,16 @@ namespace Game.Preview
         internal const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
-        public static bool EnterPlayMode()
+        public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildHost();
+            BuildHost(subject);
             EditorApplication.EnterPlaymode();
             return true;
         }
 
-        internal static PreviewHost BuildHost()
+        internal static PreviewHost BuildHost(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap)
         {
             var host = new GameObject("PreviewHost").AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
@@ -49,6 +50,9 @@ namespace Game.Preview
             host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(PlayerRigPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPath);
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
+            host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
+            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.subjectKind = subject;
             return host;
         }
     }

@@ -13,6 +13,8 @@ namespace Game.Preview
     {
         private PreviewHost host;
         private SerializedObject knobs;
+        private PreviewSubjectKind selectedSubject;
+        private Vector2 scroll;
 
         [MenuItem("Window/Preview Host")]
         public static void Open() => GetWindow<PreviewControlPanel>("Preview Host");
@@ -41,15 +43,27 @@ namespace Game.Preview
                 EditorGUILayout.LabelField("Composing the session…");
                 return;
             }
+            var selected = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", host.SubjectKind);
+            if (selected != host.SubjectKind)
+            {
+                host.SelectSubject(selected);
+                return;
+            }
             DrawTransport(host.Subject, host.Transport);
+            var profile = (ScriptableObject)EditorGUILayout.ObjectField("Feel profile", host.Subject.Knobs,
+                host.Subject.Knobs.GetType(), false);
+            if (profile && profile != host.Subject.Knobs) host.Subject.Knobs = profile;
+            scroll = EditorGUILayout.BeginScrollView(scroll);
             DrawKnobs(host.Subject.Knobs);
+            EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawEntry()
+        private void DrawEntry()
         {
             EditorGUILayout.HelpBox("Opens an empty scene, builds the preview host over the game's first sector " +
                                     "with the real player rig, camera and HUD, and enters play mode.", MessageType.None);
-            if (GUILayout.Button("Enter preview")) PreviewHostBootstrap.EnterPlayMode();
+            selectedSubject = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", selectedSubject);
+            if (GUILayout.Button("Enter preview")) PreviewHostBootstrap.EnterPlayMode(selectedSubject);
         }
 
         private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)

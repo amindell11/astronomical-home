@@ -23,7 +23,7 @@ namespace Game.Preview
         private readonly PlayerRig rig;
         private readonly IUnitService units;
         private readonly ObserverCam observer;
-        private readonly RecapFeelProfile feel;
+        private RecapFeelProfile feel;
         private readonly Action<bool> freezeSimulation;
         private RecapOutcomeSequence sequence;
         private RunRecapScreen screen;
@@ -46,7 +46,16 @@ namespace Game.Preview
         public IReadOnlyList<string> Fixtures => RecapFixtures.Names;
         public int Fixture { get; private set; }
         public int SpanCount => sequence.SpanCount;
-        public ScriptableObject Knobs => feel;
+        public ScriptableObject Knobs
+        {
+            get => feel;
+            set
+            {
+                feel = value as RecapFeelProfile;
+                if (!feel) throw new ArgumentException("Run recap requires a RecapFeelProfile.", nameof(value));
+                SelectFixture(Fixture);
+            }
+        }
         public RecapOutcomeContext Context => sequence.Context;
 
         public bool Busy => shownSpan == 0 && sequence.Context.Outcome == RecapOutcome.Defeat
@@ -99,5 +108,12 @@ namespace Game.Preview
         }
 
         private Vector2 PlayerPoint() => GamePlane.WorldPointToPlane(rig.Player.transform.position);
+
+        public void Dispose()
+        {
+            presenter?.Restore();
+            freezeSimulation(false);
+            if (screen) UnityEngine.Object.Destroy(screen.gameObject);
+        }
     }
 }

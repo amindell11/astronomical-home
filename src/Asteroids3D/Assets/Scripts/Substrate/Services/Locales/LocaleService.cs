@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Substrate.Services.Locales
@@ -16,10 +17,36 @@ namespace Substrate.Services.Locales
         private readonly Scene bootScene = SceneManager.GetActiveScene();
         private readonly string idleLocaleName;
         private string loadedLocaleName;
+        private LocaleBackdropPair backdrop;
+        private AsyncOperation backdropUnload;
 
         public LocaleService(string idleLocaleName = null)
         {
             this.idleLocaleName = idleLocaleName;
+        }
+
+        public IEnumerator PrepareBackdrop(string destination, Transform parent, Action<LocaleBackdropPair> ready)
+        {
+            if (backdrop) throw new InvalidOperationException("A locale backdrop is already held.");
+            if (backdropUnload != null) yield return backdropUnload;
+            backdropUnload = null;
+            var from = SceneManager.GetSceneByName(loadedLocaleName);
+            if (!from.isLoaded || destination == loadedLocaleName)
+                throw new InvalidOperationException("A backdrop requires two distinct locales and a loaded departure.");
+            var to = SceneManager.GetSceneByName(destination);
+            var ownsDestination = !to.isLoaded;
+            if (ownsDestination)
+                yield return SceneManager.LoadSceneAsync(destination, LoadSceneMode.Additive);
+            to = SceneManager.GetSceneByName(destination);
+            var root = new GameObject("Locale backdrop pair");
+            root.transform.SetParent(parent, false);
+            backdrop = root.AddComponent<LocaleBackdropPair>();
+            backdrop.Initialize(from, to, () =>
+            {
+                backdrop = null;
+                if (ownsDestination && to.isLoaded) backdropUnload = SceneManager.UnloadSceneAsync(to);
+            });
+            ready(backdrop);
         }
 
         /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty or already applied.</summary>
