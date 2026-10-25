@@ -357,13 +357,6 @@ non-LFS image: `https://github.com/<owner>/<repo>/raw/<sha>/<path>`; MP4 link:
   HTTP 200. Pin the body to that SHA. Re-running appends a commit, so earlier pins
   keep resolving. Never delete an `evidence/*` branch.
 
-URL shapes the command prints, which are the ones GitHub will render:
-
-- LFS file (`png`, `gif`, `mp4`, `jpg`):
-  `https://media.githubusercontent.com/media/<owner>/<repo>/<sha>/<name>`
-- Anything else:
-  `https://github.com/<owner>/<repo>/raw/<sha>/<name>`
-
 ## Step 5 — Review round-trip
 
 When the PR's work is held, `resume <lease>` first.

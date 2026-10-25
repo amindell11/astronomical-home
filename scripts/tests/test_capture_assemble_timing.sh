@@ -32,7 +32,7 @@ PY
 
 rc=0
 out="$("$PY" "$ASSEMBLE" "$TMP/frames/duration" --format gif --step 2 --keep-frames 2>&1)" || rc=$?
-[[ "$rc" -eq 0 ]] || fail "the #1103 rate must encode (got $rc: $out)"
+[[ "$rc" -eq 0 ]] || fail "the fractional manifest rate must encode (got $rc: $out)"
 
 "$PY" - "$TMP/frames/duration.gif" <<'PY'
 import sys
@@ -55,7 +55,7 @@ printf '%s\n' '{"width": 960, "height": 540, "suggestedFps": 10}' > "$color/mani
 
 rc=0
 out="$("$PY" "$ASSEMBLE" "$color" --format gif --keep-frames 2>&1)" || rc=$?
-[[ "$rc" -eq 0 ]] || fail "the #1104 peak must keep its paint (got $rc: $out)"
+[[ "$rc" -eq 0 ]] || fail "the saturated ship must keep its paint (got $rc: $out)"
 
 "$PY" - "$ASSEMBLE" "$FIXTURE" "$color.gif" <<'PY'
 import importlib.util
@@ -74,6 +74,18 @@ print(f"paint-error {error:.2f}")
 PY
 
 echo "PASS: capture/assemble.py - gif duration quantum and subject colour"
+
+repeated="$TMP/frames/repeated"
+mkdir -p "$repeated"
+cp "$FIXTURE" "$repeated/f_00000.png"
+cp "$FIXTURE" "$repeated/f_00001.png"
+out="$("$PY" "$ASSEMBLE" "$repeated" --format gif --keep-frames 2>&1)" || fail "repeated source frames must encode: $out"
+rc=0
+out="$("$PY" "$ASSEMBLE" "$repeated" --format gif --colors 2 2>&1)" || rc=$?
+[[ "$rc" -ne 0 && "$out" == *"subject colour error"* ]] || fail "coalesced frames must reject lost subject colour: $out"
+[[ -f "$repeated/f_00000.png" && -f "$repeated/f_00001.png" && -f "$repeated.gif" ]] || fail "failed colour read-back must keep clip and source frames"
+
+echo "PASS: capture/assemble.py - coalesced frames still verify subject colour"
 
 "$PY" - "$ASSEMBLE" "$TMP/frames/short-intervals" <<'PY'
 import subprocess
