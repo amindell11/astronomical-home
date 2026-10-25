@@ -1001,8 +1001,16 @@ slot_merge_busy() {
   [[ "$rc" -ne 0 ]]
 }
 
-park_hold_slot() {
-  cmd_hold "$1" --local >&2
+# Runs under the slot's mutation lock, which claim and mark_slot_used also take.
+park_if_unchanged() {
+  local slot="$1" expected_lease="$2" expected_used="$3" current used
+  current="$(lease_for "$slot")"
+  used="$(lock_last_use "$(lock_dir_for "$slot")")"
+  if [[ "$current" != "$expected_lease" || "$used" != "$expected_used" ]]; then
+    echo "acquire: leaving $slot; its lease or last use changed." >&2
+    return 1
+  fi
+  hold_locked "$slot" --local >&2
 }
 
 # A full pool parks the longest-idle slot so the next lease reuses it.
@@ -1016,10 +1024,13 @@ park_one_idle_slot() {
       lease="$(lease_for "$slot")"
       [[ -n "$lease" ]] || continue
       age_s="$(lock_age_seconds "$ldir")"
-      printf '%s\t%s\t%s\n' "$age_s" "$slot" "$path"
+      printf '%s\t%s\t%s\t%s\t%s\n' "$age_s" "$slot" "$path" "$lease" "$(lock_last_use "$ldir")"
     done < <(slots_tsv)
   } | sort -nr > "$list"
-  while IFS=$'\t' read -r age slot path; do
+  if [[ -n "${WORKTREE_POOL_BEFORE_PARK:-}" ]]; then
+    bash "$WORKTREE_POOL_BEFORE_PARK" "$list" || true
+  fi
+  while IFS=$'\t' read -r age slot path lease used; do
     [[ -n "${slot:-}" ]] || continue
     if slot_unity_busy "$path"; then
       echo "acquire: leaving $slot; a Unity editor is using it." >&2
@@ -1030,7 +1041,8 @@ park_one_idle_slot() {
       continue
     fi
     echo "acquire: parking $slot (idle ${age}s) for $new_lease." >&2
-    if ! with_flock "$LOCK_ROOT/$slot.merge" 0 "" park_hold_slot "$slot"; then
+    if ! with_flock "$LOCK_ROOT/$slot.merge" 0 "" with_slot_mutation "$slot" \
+        park_if_unchanged "$slot" "$lease" "$used"; then
       echo "acquire: could not park $slot." >&2
       continue
     fi
@@ -1161,7 +1173,7 @@ held_snapshot() {
 }
 
 # Runs under the slot's .merge flock (see main): no merge gate is live, and none starts mid-hold.
-cmd_hold() {
+hold_locked() {
   local slot="$1" mode="${2:-}"
   local path lease branch snap where="origin" self="$SCRIPT_DIR/agent_worktree_pool.sh"
   case "$mode" in
@@ -1192,13 +1204,15 @@ cmd_hold() {
 
   # The snapshot is on its branch, so this reset destroys nothing.
   cmd_prepare "$slot" origin/main --force >&2
-  with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || {
+  release_slot "$slot" "$lease" >&2 || {
     echo "hold: $slot was prepared but not released; the work is safe on $branch." >&2
     return 1
   }
   echo "Held $slot's work on $branch ($where); $slot is prepared and free." >&2
   echo "HELD=$lease RESUME=\"agent_worktree_pool.sh resume $lease\""
 }
+
+cmd_hold() { with_slot_mutation "$1" hold_locked "$@"; }
 
 cmd_resume() {
   local lease="$1" wanted="${2:-}"

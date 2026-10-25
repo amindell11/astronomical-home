@@ -67,4 +67,22 @@ git rev-parse --verify refs/remotes/origin/held/lease-old >/dev/null 2>&1 && fai
 [[ ! -e "$TMP/agent-1/wip.txt" ]] || fail "the parked slot should be prepared"
 grep -q "parking agent-1" "$TMP/park.err" || fail "acquire should say which slot it parked"
 
+age_lock agent-1 5000
+age_lock agent-2 10
+cat > "$TMP/retarget.sh" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' other-lease > "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/lease"
+git -C "$TMP/agent-1" config --worktree worktree-pool.lease other-lease
+EOF
+# The list is already built; this runs before any hold, so the measured lease is stale.
+if WORKTREE_POOL_BEFORE_PARK="$TMP/retarget.sh" pool acquire lease-fourth >/dev/null 2>"$TMP/stale.err"; then
+  :
+else
+  fail "acquire should park the slot whose lease did not change"
+fi
+[[ "$(git -C "$TMP/agent-1" config --worktree --get worktree-pool.lease)" == "other-lease" ]] || fail "a changed lease was parked"
+git -C "$TMP/primary" rev-parse -q --verify refs/heads/held/lease-third >/dev/null && fail "a stale lease was snapshotted"
+grep -q "lease or last use changed" "$TMP/stale.err" || fail "a stale candidate should be skipped"
+[[ "$(cat "$(lock_dir agent-2)/lease")" == "lease-fourth" ]] || fail "the unchanged idle slot should be parked"
+
 echo "PASS: pool cap"

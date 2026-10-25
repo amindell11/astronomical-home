@@ -35,5 +35,7 @@ expect allow 'git status'
 expect allow 'echo git worktree add -b agent-9 D:/amind/git/agent-9'
 expect allow 'cd /d/amind/git/astronomical-home && git status'
 expect deny 'cd /d/amind/git/astronomical-home && git worktree add -b agent-9 D:/amind/git/agent-9 origin/main'
+expect deny $'cd /d/amind/git/astronomical-home\ngit worktree add -b agent-9 /tmp/agent-9 main'
+expect deny '( git worktree add -b agent-9 /tmp/agent-9 main )'
 
 echo "PASS: pool-cap guard"

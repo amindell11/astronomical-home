@@ -46,7 +46,8 @@ def segments(tokens):
 def command_tokens(segment):
     index = 0
     while index < len(segment):
-        if ASSIGN.match(segment[index]) or segment[index] in WRAPPERS:
+        bare = segment[index].lstrip("({").rstrip(")}")
+        if bare == "" or segment[index] in WRAPPERS or ASSIGN.match(segment[index]):
             index += 1
             continue
         break
@@ -56,7 +57,7 @@ def command_tokens(segment):
 def worktree_add_over_cap(tokens):
     if not tokens:
         return None
-    head = tokens[0].replace("\\", "/").rsplit("/", 1)[-1]
+    head = tokens[0].replace("\\", "/").rsplit("/", 1)[-1].lstrip("({").rstrip(")}")
     if head not in ("git", "git.exe"):
         return None
     index = 1
@@ -77,9 +78,41 @@ def worktree_add_over_cap(tokens):
     return None
 
 
+def command_lines(cmd):
+    parts = []
+    buf = []
+    quote = None
+    escaped = False
+    for char in cmd:
+        if quote:
+            buf.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+        if char in ("'", '"'):
+            quote = char
+            buf.append(char)
+        elif char in ("\n", "\r"):
+            parts.append("".join(buf))
+            buf = []
+        else:
+            buf.append(char)
+    parts.append("".join(buf))
+    return parts
+
+
 def adding_over_cap(cmd):
     try:
-        tokens = shlex.split(cmd, posix=True)
+        tokens = []
+        for line in command_lines(cmd):
+            if not line.strip():
+                continue
+            tokens.extend(shlex.split(line, posix=True))
+            tokens.append(";")
     except ValueError:
         if re.search(r"\bgit\b", cmd) and re.search(r"\bworktree\b", cmd) and re.search(r"\badd\b", cmd):
             match = re.search(r"agent-(\d+)", cmd)
