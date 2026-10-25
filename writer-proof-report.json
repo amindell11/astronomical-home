@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-24",
+  "orientation": "Game View row order normalized when SystemInfo.graphicsUVStartsAtTop, matching installed Recorder Game View PNG origin rule",
+  "exactPngRowPairs": 18,
+  "limitation": "Synchronous acquisition prototype only. Automatic recording-pump cancellation and full production lifecycle remain owed. No canonical source changed.",
+  "colour": {
+    "candidate": [
+      0.196,
+      0.502,
+      0.749
+    ],
+    "recorder": [
+      0.196,
+      0.502,
+      0.749
+    ]
+  },
+  "firstRun": "20261024-193804 failed first orientation assertion; preserved upside-down PNG",
+  "tests": {
+    "passed": 1,
+    "failed": 0
+  },
+  "proof": [
+    "native Game View",
+    "gizmos on/off/on",
+    "collider silhouette",
+    "screen-space HUD fade",
+    "asymmetric RGB orientation",
+    "intermediate RGB matches Recorder",
+    "frozen simulation with advancing unscaled time",
+    "resource dispose/recreate",
+    "selection annotations resolution quality and background restoration"
+  ],
+  "status": "passed",
+  "finalRun": "20261024-194302 passed",
+  "prototypeSourceSha256": "bc9ca2bbedb0bbc7ff779cb9d39a05c48bddf3849e15f982e0249ccc81acf37b",
+  "baselineCommit": "02798d5c0e182431f7b2bd77904c6e5f5e3ae05a",
+  "metadata": "writer-proof.csv is the prototype frame contract. phases.csv and f_*.png belong only to the existing Recorder comparison."
+}
