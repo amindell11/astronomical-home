@@ -1,6 +1,6 @@
 # Capture recorder B acceptance record
 
-Source head: `4c198b2d41d37566030ba587c462521774e423d4`.
+Tested source head: `4c198b2d41d37566030ba587c462521774e423d4`.
 Stack base: `f61d9a81a5909659665d4e647f423167150f111a`, PR #1178.
 The production recorder/caller implementation is `fd5ddec248ea5d6dceef96880c3e40f03d33b525`.
 The later source commit only attributes native-gizmo and recap-banner pixel assertions to their actual subjects.
@@ -31,3 +31,7 @@ These are focused development and graphics results, not merge-grade headless pro
 ## Archive contents
 
 `capture-b-main-path-4c198b2d.tar.gz` preserves complete lifecycle, recap parity/live, and native silhouette outputs at their original relative paths. Each folder's provenance identifies its own capture source, either fd5ddec2 or 4c198b2d. The three `capture-b-fixture-sheet-*-4c198b2d.tar.gz` archives preserve all fixture-sheet output folders. `capture-b-test-records.tar.gz` contains summaries, diagnostic logs, the exact lifecycle result, and the selected script log. Individual PNGs and the live MP4/GIF are copied unchanged for review.
+
+## Final review checks
+
+ReSharper passed at 4c198b2d against origin/main with zero blocking findings across 40 changed C# files and two report-only HarnessHost performance findings. The independent combined review found no actionable runtime/assembler issue. Final review commit 8a9a025ce changes only the warm-lane documentation to resolve provenance against its target project and removes a closing-brace namespace comment. All source proof remains attributed to the capture commits stated above. This review does not authorize a merge.
