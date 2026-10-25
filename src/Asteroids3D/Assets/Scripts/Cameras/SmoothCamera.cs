@@ -3,6 +3,8 @@ using Substrate;
 
 namespace Cameras
 {
+    public enum FlightView { Original, TiltedOrthographic, TiltedPerspective }
+
     public abstract class SmoothCamera : CameraController
     {
         [Header("Movement")]
@@ -20,6 +22,17 @@ namespace Cameras
         protected Vector3 dampVelocity;
         protected float zoomVelocity;
 
+        public FlightView View { get; private set; }
+        private bool snapView;
+        private const float TiltDegrees = 25f;
+        private const float PerspectiveFieldOfView = 30f;
+
+        public void CycleView()
+        {
+            View = (FlightView)(((int)View + 1) % 3);
+            snapView = true;
+        }
+
         protected override void Awake()
         {
             base.Awake();
@@ -29,9 +42,19 @@ namespace Cameras
         protected virtual void Update()
         {
             ComputeDesiredCameraState(out var desiredCenter, out var desiredSize);
+            ApplyCameraOrientation();
+            Cam.orthographic = View != FlightView.TiltedPerspective;
+            if (!Cam.orthographic) Cam.fieldOfView = PerspectiveFieldOfView;
+            if (snapView && desiredCenter.HasValue && desiredSize.HasValue)
+            {
+                Cam.orthographicSize = desiredSize.Value;
+                transform.position = ComputeWorldPosition(desiredCenter.Value);
+                dampVelocity = Vector3.zero;
+                zoomVelocity = 0f;
+                snapView = false;
+            }
             Vector3? desiredPos = desiredCenter.HasValue ? ComputeWorldPosition(desiredCenter.Value) : null;
             ApplySmoothMovement(desiredPos, desiredSize);
-            ApplyCameraOrientation();
         }
 
         protected abstract void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize);
@@ -39,6 +62,13 @@ namespace Cameras
         protected Vector3 ComputeWorldPosition(Vector2 center2D)
         {
             var worldCenter = GamePlane.PlanePointToWorld(center2D);
+            if (View != FlightView.Original)
+            {
+                var distance = Cam.orthographic
+                    ? Mathf.Abs(offset.z)
+                    : Cam.orthographicSize / Mathf.Tan(PerspectiveFieldOfView * Mathf.Deg2Rad * 0.5f);
+                return worldCenter - transform.forward * distance;
+            }
             var worldOffset = GamePlane.Right * offset.x 
                               + GamePlane.Forward * offset.y 
                               + GamePlane.Normal * offset.z;
@@ -66,6 +96,8 @@ namespace Cameras
         private void ApplyCameraOrientation()
         {
             transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+            if (View != FlightView.Original)
+                transform.rotation = Quaternion.AngleAxis(TiltDegrees, GamePlane.Right) * transform.rotation;
         }
 
         protected float ClampZoom(float size) => Mathf.Clamp(size, minZoom, maxZoom);

@@ -128,6 +128,7 @@ namespace Game
             if (presentationEnabled && observer && minimapCamPrefab)
             {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
+                minimapCam.gameObject.AddComponent<MinimapCam>();
                 if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
                     Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
             }
@@ -239,8 +240,7 @@ namespace Game
             var screenCommander = Player.Commander as PlayerCommander;
             if (screenCommander)
                 screenCommander.SetScreenToGamePlane(pos =>
-                    GamePlane.ProjectOntoPlane(observer.Cam.ScreenToWorldPoint(pos))
-                    + GamePlane.Origin);
+                    CameraUtils.GamePlanePoint(observer.Cam.ScreenPointToRay(pos)));
         }
 
         // The overlay instance persists across player rebuilds and loadout changes; re-Initialize

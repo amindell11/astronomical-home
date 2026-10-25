@@ -1,12 +1,11 @@
-using Substrate;
+using Cameras;
 using UnityEngine;
 
 namespace Audio
 {
     /// <summary>
-    /// The point the camera's StudioListener sits on and pans from: above the plane point beneath the
-    /// camera, at a height that scales with the orthographic zoom, so panning follows screen position.
-    /// The camera's own height is fixed under zoom. Attenuation stays on <see cref="ListenerPlaneAnchor"/>.
+    /// Positions the StudioListener from the view's center and horizontal span on the game plane,
+    /// keeping stereo width stable across projections. Attenuation stays on <see cref="ListenerPlaneAnchor"/>.
     /// </summary>
     public sealed class ListenerPanPoint : MonoBehaviour
     {
@@ -23,8 +22,10 @@ namespace Audio
         // After the camera has moved this frame; the listener reads the pan point next frame.
         private void LateUpdate()
         {
-            var height = view.orthographicSize * view.aspect / Mathf.Tan(edgeAngle * Mathf.Deg2Rad);
-            transform.position = GamePlane.ProjectOntoPlane(view.transform.position) - view.transform.forward * height;
+            var center = CameraUtils.GamePlanePoint(view.ViewportPointToRay(new Vector3(0.5f, 0.5f)));
+            var edge = CameraUtils.GamePlanePoint(view.ViewportPointToRay(new Vector3(1f, 0.5f)));
+            var height = Vector3.Distance(center, edge) / Mathf.Tan(edgeAngle * Mathf.Deg2Rad);
+            transform.position = center - view.transform.forward * height;
         }
     }
 }

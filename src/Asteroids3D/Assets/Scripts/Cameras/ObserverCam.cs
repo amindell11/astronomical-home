@@ -5,8 +5,8 @@ using Substrate;
 namespace Cameras
 {
     /// <summary>
-    /// Multi-target camera that follows all active ships with optional player-lock modes.
-    /// Extends CameraFollowBase with configurable focus and zoom behaviors.
+    /// Frames tracked ships in the original view. The tilted flight comparisons follow the player
+    /// at fixed framing so automatic combat framing does not confound the projection comparison.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -35,6 +35,12 @@ namespace Cameras
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
+            if (View != FlightView.Original && subject && subject.gameObject.activeInHierarchy)
+            {
+                desiredCenter = GamePlane.WorldPointToPlane(subject.position);
+                desiredSize = ClampZoom(lockZoomDistance);
+                return;
+            }
             if (!TryGetBoundaryAroundAllSubjects(out var min2D, out var max2D))
             {
                 desiredCenter = null;

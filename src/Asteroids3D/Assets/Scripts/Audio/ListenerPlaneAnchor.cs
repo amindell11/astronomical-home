@@ -1,23 +1,24 @@
-using Substrate;
+using Cameras;
 using UnityEngine;
 
 namespace Audio
 {
     /// <summary>
-    /// The point on the game plane beneath its parent, the camera: the camera's StudioListener
+    /// The camera's view center on the game plane: the camera's StudioListener
     /// attenuates from here (its attenuation object) and pans from <see cref="ListenerPanPoint"/>,
     /// which sits well off the plane, so distances to emitters on the plane are measured in-plane instead.
     /// </summary>
     public sealed class ListenerPlaneAnchor : MonoBehaviour
     {
-        private Transform followed;
+        private Camera followed;
 
         private void Awake()
         {
-            followed = transform.parent;
+            followed = GetComponentInParent<Camera>();
         }
 
         // After the camera has moved this frame; the listener reads the anchor next frame.
-        private void LateUpdate() => transform.position = GamePlane.ProjectOntoPlane(followed.position);
+        private void LateUpdate() => transform.position =
+            CameraUtils.GamePlanePoint(followed.ViewportPointToRay(new Vector3(0.5f, 0.5f)));
     }
 }

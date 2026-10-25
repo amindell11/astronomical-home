@@ -1,4 +1,5 @@
 using UnityEngine;
+using Substrate;
 
 namespace Cameras
 {
@@ -7,6 +8,10 @@ namespace Cameras
     /// </summary>
     public static class CameraUtils
     {
+        public static Vector3 GamePlanePoint(Ray ray) => ray.GetPoint(
+            Vector3.Dot(GamePlane.Origin - ray.origin, GamePlane.Normal) /
+            Vector3.Dot(ray.direction, GamePlane.Normal));
+
         /// <summary>
         /// Computes the center point of an axis-aligned bounding box.
         /// </summary>

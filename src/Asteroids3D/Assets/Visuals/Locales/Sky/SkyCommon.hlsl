@@ -38,24 +38,22 @@ Varyings Vert(Attributes input)
 
 SkyCoordinates GetSkyCoordinates(float4 projectedPosition, float zoomReferenceSize)
 {
-    // The frozen Z game plane, seen by a flight camera looking down +Z.
-    float3 planeRight = float3(1, 0, 0);
-    float3 planeUp = float3(0, 1, 0);
     float3 cameraPositionWS = GetCameraPositionWS();
-    float2 cameraPosition = float2(
-        dot(cameraPositionWS, planeRight),
-        dot(cameraPositionWS, planeUp));
-
-    // Preserve authored scale at the main camera's initial orthographic size.
-    float zoom = zoomReferenceSize * abs(UNITY_MATRIX_P._m11);
+    float3 forward = -UNITY_MATRIX_V[2].xyz;
+    float distanceToCenter = -cameraPositionWS.z / forward.z;
+    float3 centerOffset = forward * distanceToCenter;
+    float2 cameraPosition = (cameraPositionWS + centerOffset).xy;
+    float zoom = zoomReferenceSize * abs(UNITY_MATRIX_P._m11) /
+        lerp(distanceToCenter, 1.0, unity_OrthoParams.w);
     float2 screenPosition = projectedPosition.xy / projectedPosition.w;
-    float2 referencePosition = screenPosition * zoomReferenceSize * float2(
-        abs(UNITY_MATRIX_P._m11) / UNITY_MATRIX_P._m00, sign(UNITY_MATRIX_P._m11));
-    float3 referenceOffsetWS = UNITY_MATRIX_V[0].xyz * referencePosition.x +
-        UNITY_MATRIX_V[1].xyz * referencePosition.y;
-    float2 referencePlanePosition = float2(dot(referenceOffsetWS, planeRight), dot(referenceOffsetWS, planeUp));
+    float3 viewOffset = UNITY_MATRIX_V[0].xyz * screenPosition.x / UNITY_MATRIX_P._m00 +
+        UNITY_MATRIX_V[1].xyz * screenPosition.y / UNITY_MATRIX_P._m11;
+    float3 rayDirection = forward + viewOffset * (1.0 - unity_OrthoParams.w);
+    float3 rayOffset = viewOffset * unity_OrthoParams.w;
+    float3 planeOffset = rayOffset - rayDirection *
+        ((cameraPositionWS.z + rayOffset.z) / rayDirection.z) - centerOffset;
     SkyCoordinates output;
-    output.planePosition = referencePlanePosition;
+    output.planePosition = planeOffset.xy * zoom;
     output.cameraPosition = cameraPosition;
     output.zoom = zoom;
     return output;
