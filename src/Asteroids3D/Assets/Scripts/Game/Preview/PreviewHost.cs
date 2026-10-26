@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using Cameras;
+using Game.Travel;
+using Substrate;
+using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -11,6 +14,8 @@ using UnityEngine.InputSystem.UI;
 
 namespace Game.Preview
 {
+    public enum PreviewSubjectKind { RunRecap, SectorJump }
+
     /// <summary>
     /// Play-mode composition root for showing a presentation inside the real game without a run: it
     /// composes a <see cref="Session"/> with presentation on, loads the profile's first sector around the
@@ -27,6 +32,9 @@ namespace Game.Preview
         [SerializeField] internal PlayerRig playerRigPrefab;
         [SerializeField] internal ObserverCam observerCamPrefab;
         [SerializeField] internal RecapFeelProfile recapFeel;
+        [SerializeField] internal SectorJumpProfile jumpFeel;
+        [SerializeField] internal Shader jumpShader;
+        [SerializeField] internal PreviewSubjectKind subjectKind;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -44,6 +52,7 @@ namespace Game.Preview
         public IPreviewSubject Subject { get; private set; }
 
         public ObserverCam Observer => observer;
+        public PreviewSubjectKind SubjectKind => subjectKind;
 
         private void Awake()
         {
@@ -60,8 +69,6 @@ namespace Game.Preview
         {
             if (!sessionProfile.presentation)
                 throw new InvalidOperationException("The preview host shows presentation; its profile turns it off.");
-            if (!recapFeel)
-                throw new InvalidOperationException("The preview host has no recap feel profile assigned.");
             session = new Session(sessionProfile, arena, unitService, objectiveService);
             var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.transform.SetParent(ui, false);
@@ -77,8 +84,44 @@ namespace Game.Preview
             rig.ApplyLoadout();
             yield return session.LoadSector(0, rig.Player);
 
-            Subject = new RecapPreviewSubject(ui, rig, session.Units, observer, recapFeel, SetSimulationFrozen);
+            yield return ComposeSubject();
             Transport.Restart();
+        }
+
+        public void SelectSubject(PreviewSubjectKind kind)
+        {
+            if (Subject == null) throw new InvalidOperationException("The preview is still composing.");
+            Subject.Dispose();
+            Subject = null;
+            subjectKind = kind;
+            Transport.Playing = false;
+            Transport.Restart();
+            StartCoroutine(ComposeSubject());
+        }
+
+        private IEnumerator ComposeSubject()
+        {
+            if (subjectKind == PreviewSubjectKind.RunRecap)
+            {
+                Subject = new RecapPreviewSubject(ui, rig, session.Units, observer, recapFeel, SetSimulationFrozen);
+                yield break;
+            }
+            if (!jumpFeel || !jumpShader)
+                throw new InvalidOperationException("The jump preview requires a feel profile and shader.");
+            if (!rig.Player.gameObject.activeInHierarchy)
+                session.Units.RespawnShip(rig.Player.Id,
+                    GamePlane.WorldPointToPlane(rig.Player.transform.position), 0f);
+            SetSimulationFrozen(true);
+            LocaleBackdropPair backdrop = null;
+            yield return session.PrepareTravelBackdrop("Locale_1", transform, pair => backdrop = pair);
+            var presentation = SectorJumpPresentation.Create(ui, rig.Player, rig.Overlay,
+                session.Units.ActiveRegistry.ActiveShips, observer, backdrop, jumpShader);
+            Subject = new SectorJumpPreviewSubject(jumpFeel, presentation, () =>
+            {
+                DestroyImmediate(presentation.gameObject);
+                DestroyImmediate(backdrop.gameObject);
+                SetSimulationFrozen(false);
+            });
         }
 
         private void LateUpdate()
@@ -107,6 +150,10 @@ namespace Game.Preview
             frozenTimeScale = null;
         }
 
-        private void OnDestroy() => SetSimulationFrozen(false);
+        private void OnDestroy()
+        {
+            Subject?.Dispose();
+            SetSimulationFrozen(false);
+        }
     }
 }

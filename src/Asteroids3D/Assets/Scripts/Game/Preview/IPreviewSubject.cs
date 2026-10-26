@@ -24,7 +24,7 @@ namespace Game.Preview
     /// feel profile the control panel edits. The transport decides which instant; the subject never
     /// drives time.
     /// </summary>
-    public interface IPreviewSubject
+    public interface IPreviewSubject : System.IDisposable
     {
         string Name { get; }
         IReadOnlyList<string> Fixtures { get; }
@@ -37,6 +37,6 @@ namespace Game.Preview
         bool Busy { get; }
 
         void Show(int span, float seconds);
-        ScriptableObject Knobs { get; }
+        ScriptableObject Knobs { get; set; }
     }
 }
