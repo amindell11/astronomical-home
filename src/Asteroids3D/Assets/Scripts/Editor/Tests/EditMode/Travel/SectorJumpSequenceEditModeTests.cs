@@ -52,6 +52,19 @@ namespace Tests.EditMode.Travel
         }
 
         [Test]
+        public void HudFadeLongerThanSettle_FinishesBeforeTheSequenceEnds()
+        {
+            profile.settleDuration = 0.1f;
+            profile.hudFadeIn = 1.5f;
+            var sequence = new SectorJumpSequence(profile);
+            var arrival = profile.turnDuration + profile.chargeDuration + profile.travelDuration;
+            Assert.That(profile.Duration, Is.EqualTo(arrival + profile.hudFadeIn));
+            Assert.That(sequence.Duration, Is.EqualTo(profile.Duration));
+            Assert.That(sequence.StateAt(arrival + profile.settleDuration, 0f).HudAlpha, Is.LessThan(1f));
+            Assert.That(sequence.StateAt(sequence.Duration, 0f).HudAlpha, Is.EqualTo(1f));
+        }
+
+        [Test]
         public void Scrubbing_RevisitsTheSameStateRegardlessOfQueryOrder()
         {
             var sequence = new SectorJumpSequence(profile);

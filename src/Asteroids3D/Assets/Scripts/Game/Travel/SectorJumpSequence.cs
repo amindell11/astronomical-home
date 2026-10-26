@@ -32,7 +32,7 @@ namespace Game.Travel
             departure = turnDuration + profile.chargeDuration;
             travelDuration = profile.travelDuration;
             arrival = departure + travelDuration;
-            Duration = arrival + profile.settleDuration;
+            Duration = profile.Duration;
             hudFadeOut = profile.hudFadeOut;
             hudFadeIn = profile.hudFadeIn;
             blurStrength = profile.shipBlurStrength;

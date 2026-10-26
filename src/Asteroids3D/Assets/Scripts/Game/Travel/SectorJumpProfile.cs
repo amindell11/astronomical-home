@@ -55,7 +55,7 @@ namespace Game.Travel
         [Min(0.01f)] public float hudFadeOut = 0.3f;
         [Min(0.01f)] public float hudFadeIn = 0.35f;
 
-        public float Duration => turnDuration + chargeDuration + travelDuration + settleDuration;
+        public float Duration => turnDuration + chargeDuration + travelDuration + Mathf.Max(settleDuration, hudFadeIn);
         public int Revision => revision;
 
         [NonSerialized] private int revision;
