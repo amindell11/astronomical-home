@@ -1,0 +1,235 @@
+<div id="hs-break-options" aria-label="Shield break motion comparison">
+  <div class="viz-controls">
+    <label class="form-label">Sequence
+      <select class="form-select" id="hb-sequence">
+        <option value="break">Shield break</option>
+        <option value="cycle">Break, recover, full</option>
+      </select>
+    </label>
+    <button class="btn" id="hb-play" type="button">Replay</button>
+    <span class="text-small tabular-nums" id="hb-clock">Paused · 0.45 s</span>
+  </div>
+  <div class="viz-carousel viz-dotted-background" aria-label="Shield break alternatives">
+    <section data-variant="Collapse" aria-label="Collapse">
+      <div class="hb-scene"><canvas role="img" aria-label="The shield ring contracts toward the hull and disappears."></canvas></div>
+    </section>
+    <section data-variant="Directional tear" aria-label="Directional tear" hidden>
+      <div class="hb-scene"><canvas role="img" aria-label="A gap opens at the hit and travels around the shield until it is gone."></canvas></div>
+    </section>
+    <section data-variant="Arc snap" aria-label="Arc snap" hidden>
+      <div class="hb-scene"><canvas role="img" aria-label="Only the struck arc pinches inward and disappears, without a full ring."></canvas></div>
+    </section>
+  </div>
+  <label class="form-label" for="hb-time">Animation time · <output id="hb-time-value" class="tabular-nums">0.45 / 2.00 s</output></label>
+  <input class="form-range" id="hb-time" type="range" min="0" max="2" step="0.01" value="0.45">
+  <div class="viz-row text-small"><span id="hb-phase" aria-live="polite">Shield breaks</span><span>Motion sketch</span></div>
+</div>
+<style>
+#hs-break-options .hb-scene { width:100%; aspect-ratio:16/9; background:#070d20; color-scheme:dark; overflow:hidden; }
+#hs-break-options canvas { display:block; width:100%; height:100%; }
+#hs-break-options .viz-controls { margin-bottom:12px; }
+#hs-break-options .viz-row { margin-top:8px; }
+</style>
+<script>
+(() => {
+  const root=document.getElementById('hs-break-options');
+  const sections=[...root.querySelectorAll('[data-variant]')];
+  const picker=root.querySelector('#hb-sequence');
+  const button=root.querySelector('#hb-play');
+  const scrub=root.querySelector('#hb-time');
+  const output=root.querySelector('#hb-time-value');
+  const clock=root.querySelector('#hb-clock');
+  const phase=root.querySelector('#hb-phase');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const state={sequence:'break',time:0.45,crowded:true,breakDuration:0.42};
+  const palette={shield:'#66dce9',hull:'#a8d9b5',ink:'#070c18',white:'#f5efdc'};
+  const onset=0.35,recoverAt=1.65,fullAt=4.2,fullHold=1,shipSize=76;
+  const clamp=x=>Math.max(0,Math.min(1,x));
+  const ease=x=>{const p=clamp(x);return p*p*(3-2*p);};
+  let animation=0;
+  function duration(){return state.sequence==='cycle'?6.2:2;}
+  function activeName(){return sections.find(s=>!s.hidden)?.dataset.variant||'Collapse';}
+  function restore(snapshot){
+    const s=snapshot?.modelContent,p=snapshot?.privateContent;
+    if(s?.revision!==1||s?.focus!=='Shield break alternatives')return;
+    if(['break','cycle'].includes(s.sequence))state.sequence=s.sequence;
+    if(typeof p?.crowded==='boolean')state.crowded=p.crowded;
+    if(Number.isFinite(p?.breakDuration))state.breakDuration=Math.max(0.24,Math.min(0.65,p.breakDuration));
+    if(Number.isFinite(p?.time))state.time=Math.max(0,Math.min(duration(),p.time));
+  }
+  function save(){
+    window.openai?.setWidgetState?.({
+      modelContent:{revision:1,focus:'Shield break alternatives',candidate:activeName(),sequence:state.sequence},
+      privateContent:{crowded:state.crowded,breakDuration:state.breakDuration,time:state.time}
+    })?.catch(()=>{});
+  }
+  function line(c,points,color,width=2,alpha=1){
+    c.save();c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.beginPath();
+    points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();c.restore();
+  }
+  function arc(c,x,y,r,start,end,color,width=2,alpha=1){
+    if(alpha<=0||end<=start)return;
+    c.save();c.globalAlpha=clamp(alpha);c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';
+    c.beginPath();c.arc(x,y,r,start,end);c.stroke();c.restore();
+  }
+  function polygon(c,points,fill,stroke=palette.ink,width=2){
+    c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();
+    c.fillStyle=fill;c.fill();c.strokeStyle=stroke;c.lineWidth=width;c.stroke();
+  }
+  function background(c){
+    c.fillStyle='#080c1c';c.fillRect(0,0,1280,720);
+    for(const [x,y,r,color] of [[1040,80,740,'#18375a'],[80,600,620,'#292344'],[730,500,410,'#132f46']]){
+      const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'#080c1c00');
+      c.fillStyle=g;c.fillRect(0,0,1280,720);
+    }
+    for(let i=0;i<90;i++){
+      const x=(i*157+43)%1280,y=(i*277+19)%720;
+      c.fillStyle=i%5?'#a2c1d346':'#e5e7db90';c.fillRect(x,y,i%11?1:2,i%11?1:2);
+    }
+    for(const [x,y,s] of [[180,160,60],[1090,510,85],[340,592,43],[1030,210,31]]){
+      c.save();c.translate(x,y);c.scale(s/50,s/50);
+      polygon(c,[[-36,-24],[-13,-48],[24,-39],[47,-8],[34,34],[-12,44],[-41,14]],'#474454','#11182b',4);
+      polygon(c,[[-36,-24],[-13,-48],[24,-39],[7,-8],[-14,8]],'#76727a','#4c4c5a',2);c.restore();
+    }
+  }
+  function ship(c,x,y,size,rotation,enemy){
+    c.save();c.translate(x,y);c.rotate(rotation);c.scale(size/76,size/76);
+    const exhaust=c.createLinearGradient(0,24,0,80);exhaust.addColorStop(0,'#8ddef3b0');exhaust.addColorStop(1,'#8ddef300');
+    polygon(c,[[-9,26],[9,26],[3,79],[-3,79]],exhaust,'#00000000',0);
+    polygon(c,[[-7,-36],[-18,-4],[-32,21],[-29,32],[-12,25],[-8,34],[8,34],[12,25],[29,32],[32,21],[18,-4],[7,-36],[0,-41]],enemy?'#ba797b':'#d0d6d6',palette.ink,3);
+    polygon(c,[[0,-35],[-7,2],[-5,22],[6,21],[10,1]],'#647b93',palette.ink,2);
+    polygon(c,[[-17,2],[-26,24],[-14,19],[-10,4]],'#bb673e');
+    polygon(c,[[15,0],[27,25],[13,19],[10,3]],'#bb673e');
+    line(c,[[-9,27],[-4,31]],'#a6f3e7',4);line(c,[[5,29],[10,25]],'#a6f3e7',4);c.restore();
+  }
+  function bars(c,x,y,shield,hull){
+    const width=130,height=10;
+    c.fillStyle='#071020dd';c.fillRect(x-4,y-4,174,32);
+    c.fillStyle='#3c4148';c.fillRect(x,y,width,height);c.fillRect(x,y+13,width,height);
+    c.fillStyle=palette.shield;c.fillRect(x,y,width*shield/100,height);
+    c.fillStyle=palette.hull;c.fillRect(x,y+13,width*hull/65,height);
+    c.fillStyle='#f0f2ee';c.font='17px Arial';c.fillText(Math.ceil(shield),x+width+7,y+10);c.fillText(hull,x+width+7,y+23);
+  }
+  function breakEffect(c,name,x,y,t){
+    const elapsed=t-onset;
+    if(elapsed<0||elapsed>=state.breakDuration)return;
+    const p=elapsed/state.breakDuration,r=shipSize*0.67,hit=-1.35;
+    const attack=ease(elapsed/0.025);
+    if(name==='Collapse'){
+      const radius=r*(1-0.26*ease(p));
+      const alpha=attack*(1-ease((p-0.12)/0.88));
+      arc(c,x,y,radius,0,Math.PI*2,palette.shield,2.8-1.3*ease(p),alpha*0.94);
+      arc(c,x,y,radius,hit-0.22,hit+0.22,'#dcfbff',2.4,alpha*(1-ease(p/0.38)));
+    } else if(name==='Directional tear'){
+      const opened=Math.PI*2*ease(p);
+      const start=hit+opened/2,end=hit+Math.PI*2-opened/2;
+      const alpha=attack*(1-ease((p-0.65)/0.35));
+      arc(c,x,y,r,start,end,palette.shield,2.5,alpha*0.84);
+      const tip=Math.min(0.12,(end-start)/2);
+      arc(c,x,y,r,start,start+tip,'#dcfbff',2.8,alpha);
+      arc(c,x,y,r,end-tip,end,'#dcfbff',2.8,alpha);
+    } else {
+      const span=1.8*(1-ease(p));
+      const radius=r*(1-0.15*ease(p));
+      const alpha=attack*(1-ease((p-0.35)/0.65));
+      arc(c,x,y,radius,hit-span/2,hit+span/2,palette.shield,3.4-1.8*ease(p),alpha);
+      const tip=span*0.18;
+      arc(c,x,y,radius,hit-tip,hit+tip,'#dcfbff',1.6,alpha*(1-ease(p)));
+    }
+  }
+  function recovery(c,x,y,r,t,alpha=1){
+    const head=-Math.PI/2+t*2.3;
+    for(let i=0;i<12;i++)arc(c,x,y,r,head-0.12*(i+1),head-0.12*i,palette.shield,2.4,alpha*(1-i/12)*0.82);
+    arc(c,x,y,r,head-0.1,head+0.02,'#d4fbff',2.6,alpha*0.9);
+  }
+  function recoveryAndFull(c,x,y,t){
+    if(state.sequence!=='cycle'||t<recoverAt)return;
+    const r=shipSize*0.67,completed=t-fullAt;
+    if(completed<0){recovery(c,x,y,r,t-recoverAt,ease((t-recoverAt)/0.18));return;}
+    recovery(c,x,y,r,t-recoverAt,1-ease(completed/0.24));
+    const close=ease(completed/0.24),fade=ease((completed-0.24-fullHold)/0.38);
+    const radius=r+7*(1-close)+3*fade,alpha=(1-fade)*ease(completed/0.06);
+    arc(c,x,y,radius,-Math.PI/2,-Math.PI/2+Math.PI*close,palette.shield,2.4,alpha*0.8);
+    arc(c,x,y,radius,-Math.PI/2-Math.PI*close,-Math.PI/2,palette.shield,2.4,alpha*0.8);
+    if(close<1){
+      const a=-Math.PI/2+Math.PI*close;
+      arc(c,x,y,radius,a-0.12,a,'#e4fcff',3,alpha);
+    }
+  }
+  function shieldValue(){
+    if(state.time<onset)return 25;
+    if(state.sequence!=='cycle'||state.time<recoverAt)return 0;
+    return Math.floor(100*clamp((state.time-recoverAt)/(fullAt-recoverAt)));
+  }
+  function phaseText(){
+    if(state.time<onset)return 'Before impact';
+    if(state.time<onset+state.breakDuration)return 'Shield breaks';
+    if(state.sequence==='cycle'){
+      if(state.time<recoverAt)return 'Waiting to recover';
+      if(state.time<fullAt)return 'Shield recovering';
+      if(state.time<fullAt+1.62)return 'Full shield';
+      return 'Full shield · quiet';
+    }
+    return 'Shield empty · quiet';
+  }
+  function renderScene(section){
+    const canvas=section.querySelector('canvas'),c=canvas.getContext('2d');
+    if(canvas.width!==1280){canvas.width=1280;canvas.height=720;}
+    const width=canvas.clientWidth,zoom=width>0?Math.max(1.3,11*1280/(17*width)):1.3;
+    c.clearRect(0,0,1280,720);
+    c.save();
+    c.translate(640,360);c.scale(zoom,zoom);c.translate(-640,-360);
+    background(c);
+    if(state.crowded){
+      for(const [x,y,size,rot] of [[360,320,62,0.8],[900,295,69,-0.8],[925,580,56,-2.1],[450,535,58,2.4]]){
+        ship(c,x,y,size,rot,true);bars(c,x-65,y-72,64,44);
+      }
+      line(c,[[825,263],[810,276]],'#ffe0a4',3);line(c,[[792,295],[777,308]],'#ffe0a4',3);
+      line(c,[[390,370],[404,385]],'#9be6f4',3);line(c,[[421,402],[435,416]],'#9be6f4',3);
+      line(c,[[846,525],[831,518]],'#ffe0a4',3);
+    }
+    ship(c,640,385,shipSize,-0.2,false);
+    breakEffect(c,section.dataset.variant,640,385,state.time);
+    recoveryAndFull(c,640,385,state.time);
+    bars(c,575,302,shieldValue(),65);
+    c.fillStyle='#bac7d6';c.font='18px Arial';c.fillText('PLAYER',607,472);
+    c.restore();
+  }
+  function render(){
+    sections.forEach(renderScene);
+    picker.value=state.sequence;scrub.max=duration();scrub.value=state.time;
+    output.textContent=state.time.toFixed(2)+' / '+duration().toFixed(2)+' s';
+    clock.textContent=(animation?'Playing':'Paused')+' · '+state.time.toFixed(2)+' s';
+    const text=phaseText();
+    if(phase.textContent!==text)phase.textContent=text;
+  }
+  function stop(){
+    if(animation)cancelAnimationFrame(animation);
+    animation=0;button.textContent=reduced.matches?'Step':'Replay';
+  }
+  picker.addEventListener('change',()=>{stop();state.sequence=picker.value;state.time=0.45;render();save();});
+  scrub.addEventListener('input',()=>{stop();state.time=Number(scrub.value);render();});
+  scrub.addEventListener('change',save);
+  button.addEventListener('click',()=>{
+    if(animation){stop();render();save();return;}
+    if(reduced.matches){state.time=state.time>=duration()?0:Math.min(duration(),state.time+0.1);render();save();return;}
+    save();const start=performance.now();button.textContent='Pause';
+    function tick(now){
+      state.time=Math.min(duration(),(now-start)/1000);
+      if(state.time<duration())animation=requestAnimationFrame(tick);else stop();
+      render();
+    }
+    animation=requestAnimationFrame(tick);
+  });
+  new MutationObserver(()=>{stop();render();}).observe(root.querySelector('.viz-carousel'),{subtree:true,attributes:true,attributeFilter:['hidden']});
+  new ResizeObserver(render).observe(root);
+  window.addEventListener('openai:set_globals',e=>{stop();restore(e.detail?.globals?.widgetState);render();});
+  reduced.addEventListener('change',()=>{stop();render();});
+  restore(window.openai?.widgetState);stop();render();
+  if(globalThis.Tweak){
+    const tweak=new Tweak({container:root,onChange:()=>{stop();render();save();}});
+    tweak.addToggle(state,'crowded',{label:'Nearby ships and fire'});
+    tweak.addSlider(state,'breakDuration',{label:'Break duration',min:0.24,max:0.65,step:0.01,unit:'s'});
+  }
+})();
+</script>
