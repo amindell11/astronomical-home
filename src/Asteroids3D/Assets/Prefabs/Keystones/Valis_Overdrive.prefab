@@ -45,11 +45,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0fd71a2840c4cb1ae61818f599248a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldown: 8
-  window: 3
-  speedScale: 1.35
+  cooldown: 9
+  window: 5
+  speedScale: 1.5
   thrustScale: 1.5
-  sightSaturation: 0.8
+  maneuverabilityScale: 1.5
+  sightSaturation: 1
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0
