@@ -14,10 +14,14 @@ namespace UI.PlayerState
     {
         [SerializeField, Min(0.1f)] private float fullHold = 1f;
 
+        private const float RecoveryArc = 1.4f;
+        private const float RecoverySpeed = 2.3f;
+        private const float CompletionDuration = 0.6f;
         private static readonly int ArcLength = Shader.PropertyToID("_ArcLength");
         private static readonly int TipStrength = Shader.PropertyToID("_TipStrength");
         private static readonly int RingRotation = Shader.PropertyToID("_RingRotation");
         private static readonly int Trail = Shader.PropertyToID("_Trail");
+        private static readonly int Highlight = Shader.PropertyToID("_Highlight");
         private IDamageEvents source;
         private ShipVisualRig rig;
         private Transform root;
@@ -138,7 +142,7 @@ namespace UI.PlayerState
             hitAge += Time.deltaTime;
             breakAge += Time.deltaTime;
             fullAge += Time.deltaTime;
-            if (!source.Shield.IsRegenerating) recoveryAge = 0f;
+            if (!source.Shield.IsRegenerating && float.IsPositiveInfinity(fullAge)) recoveryAge = 0f;
             ring.enabled = false;
             if (enemyLock is { IsConcealed: true }) return;
 
@@ -157,16 +161,23 @@ namespace UI.PlayerState
             else if (source.Shield.IsRegenerating)
             {
                 recoveryAge += Time.deltaTime;
-                recoveryAngle += Time.deltaTime * 2.3f;
-                Draw(1.4f / (Mathf.PI * 2f), recoveryAngle - 1.4f, Smooth(recoveryAge / 0.18f), 1f, true);
+                recoveryAngle += Time.deltaTime * RecoverySpeed;
+                Draw(RecoveryArc / (Mathf.PI * 2f), recoveryAngle - RecoveryArc, Smooth(recoveryAge / 0.18f), 1f, 1f);
             }
-            else if (fullAge < fullHold + 0.38f)
+            else if (fullAge < CompletionDuration + fullHold + 0.38f)
             {
-                Draw(1f, hitAngle, 1f - Smooth((fullAge - fullHold) / 0.38f), 0f);
+                var t = Mathf.Clamp01(fullAge / CompletionDuration);
+                var progress = Smooth(t) + t * (1f - t) * (1f - t) *
+                    RecoverySpeed * CompletionDuration / (Mathf.PI * 2f - RecoveryArc);
+                var closedAge = fullAge - CompletionDuration;
+                var highlight = Smooth(closedAge / 0.045f) * (1f - Smooth((closedAge - 0.045f) / 0.22f));
+                Draw(Mathf.Lerp(RecoveryArc / (Mathf.PI * 2f), 1f, progress), recoveryAngle - RecoveryArc,
+                    Smooth((recoveryAge + fullAge) / 0.18f) * (1f - Smooth((closedAge - fullHold) / 0.38f)),
+                    1f - progress, 1f - progress, highlight);
             }
         }
 
-        private void Draw(float fill, float start, float alpha, float tips, bool trail = false)
+        private void Draw(float fill, float start, float alpha, float tips, float trail = 0f, float highlight = 0f)
         {
             transform.SetPositionAndRotation(root.position - Vector3.forward * 0.05f,
                 GamePlane.Rotation * Quaternion.AngleAxis(start * Mathf.Rad2Deg - 90f, Vector3.forward));
@@ -175,7 +186,8 @@ namespace UI.PlayerState
             material.SetFloat(ArcLength, fill * Mathf.PI * 2f);
             material.SetFloat(TipStrength, tips);
             material.SetFloat(RingRotation, start - Mathf.PI * 0.5f);
-            material.SetFloat(Trail, trail ? 1f : 0f);
+            material.SetFloat(Trail, trail);
+            material.SetFloat(Highlight, highlight);
             ring.enabled = alpha > 0f && fill > 0f;
         }
 

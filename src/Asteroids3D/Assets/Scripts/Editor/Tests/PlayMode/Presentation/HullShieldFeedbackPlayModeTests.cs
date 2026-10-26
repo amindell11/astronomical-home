@@ -103,15 +103,34 @@ namespace Tests.PlayMode.Presentation
             ship.Damage.TakeDamage(Hit(10f));
             yield return new WaitForSeconds(0.7f);
             Assert.That(ring.enabled, Is.False, "Absorbed hits restart the recharge delay.");
+            ship.Damage.Shield.Update(1f);
+            yield return new WaitForSeconds(0.2f);
+            var orbitEnd = ring.transform.eulerAngles.z + ring.fillAmount * 360f;
             ship.Damage.Shield.Update(4f);
-            yield return new WaitForSeconds(0.35f);
+            yield return null;
+            yield return null;
+            Assert.That(ring.fillAmount, Is.InRange(recoveryFill, recoveryFill + 0.1f),
+                "Full recharge must extend the moving arc, not replace it with a circle.");
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(orbitEnd,
+                ring.transform.eulerAngles.z + ring.fillAmount * 360f)), Is.LessThan(40f),
+                "The closing tip continues from its orbit position.");
+            var closingStart = ring.transform.rotation;
+            var closingFill = ring.fillAmount;
+            yield return new WaitForSeconds(0.25f);
+            Assert.That(ring.fillAmount, Is.GreaterThan(closingFill).And.LessThan(1f));
+            Assert.That(Quaternion.Angle(ring.transform.rotation, closingStart), Is.LessThan(0.01f),
+                "The tail stays anchored while the tip completes the circle.");
+            Assert.That(ring.material.GetFloat("_Highlight"), Is.Zero, "The flash waits for the closed circle.");
+            yield return new WaitForSeconds(0.4f);
             Assert.That(ring.enabled, Is.True);
             Assert.That(ring.fillAmount, Is.EqualTo(1f), "Full capacity closes the circle.");
+            Assert.That(ring.material.GetFloat("_Highlight"), Is.GreaterThan(0.2f));
             Assert.That(ring.rectTransform.sizeDelta, Is.EqualTo(ringSize));
             yield return new WaitForSeconds(0.5f);
             Assert.That(ring.enabled, Is.True, "The full circle holds long enough to read.");
             Assert.That(ring.color.a, Is.EqualTo(1f));
-            yield return new WaitForSeconds(0.8f);
+            Assert.That(ring.material.GetFloat("_Highlight"), Is.Zero);
+            yield return new WaitForSeconds(0.9f);
             Assert.That(ring.enabled, Is.False);
         }
 

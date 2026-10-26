@@ -10,6 +10,7 @@ Shader "UI/ShieldGlow"
         [HideInInspector] _TipStrength ("Tip Strength", Float) = 0
         [HideInInspector] _RingRotation ("Ring Rotation", Float) = 0
         [HideInInspector] _Trail ("Recovery Trail", Float) = 0
+        [HideInInspector] _Highlight ("Completion Highlight", Float) = 0
     }
     SubShader
     {
@@ -32,7 +33,7 @@ Shader "UI/ShieldGlow"
             };
 
             fixed4 _Color;
-            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength, _RingRotation, _Trail;
+            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength, _RingRotation, _Trail, _Highlight;
 
             v2f vert (appdata v)
             {
@@ -64,7 +65,9 @@ Shader "UI/ShieldGlow"
                 float light = 0.5+0.5*cos(angle-2.35);
                 float3 tint = lerp(_Color.rgb*0.72,lerp(_Color.rgb,float3(0.82,0.88,0.83),0.6),light);
                 tint = lerp(tint,float3(0.9,0.94,0.86),tip*0.8);
+                tint = lerp(tint,float3(0.95,0.98,0.92),_Highlight*0.85);
                 float alpha = max(core*0.88,max(key*0.3,glow));
+                alpha = saturate(alpha*(1+_Highlight*0.15));
                 alpha *= lerp(1,saturate(along/max(_ArcLength,0.001)),_Trail);
                 float3 rgb = lerp(float3(0.04,0.12,0.17),tint,core);
                 return float4(rgb,alpha*_Color.a)*i.color;
