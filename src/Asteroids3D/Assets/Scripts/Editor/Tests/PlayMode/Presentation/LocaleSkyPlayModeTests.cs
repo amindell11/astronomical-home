@@ -62,7 +62,7 @@ namespace Tests.PlayMode.Presentation
         }
 
         [UnityTest, Category("RequiresGraphics")]
-        public IEnumerator FlightCameraFarFromOrigin_StillDrawsTheSkyLayers()
+        public IEnumerator FlightCameraFarFromOrigin_DrawsSkyInBothSharedLocaleTravelImages()
         {
             texture = new Texture2D(4, 4, TextureFormat.RGBAHalf, false, true);
             var colors = new Color[16];
@@ -92,6 +92,20 @@ namespace Tests.PlayMode.Presentation
                 yield return null;
                 Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), $"the sky layer must still draw with the camera at {position}");
             }
+
+            var pairRoot = new GameObject("Shared locale backdrop");
+            pairRoot.transform.SetParent(cameraRoot.transform);
+            var pair = pairRoot.AddComponent<LocaleBackdropPair>();
+            pair.Initialize(first, first, () => { });
+            var arrival = RenderTexture.GetTemporary(target.descriptor);
+            try
+            {
+                pair.Render(camera, target, arrival);
+                Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), "Shared departure still renders its sky.");
+                Graphics.Blit(arrival, target);
+                Assert.That(ReadCenter().r, Is.GreaterThan(1.5f), "Shared arrival renders the same sky.");
+            }
+            finally { RenderTexture.ReleaseTemporary(arrival); }
         }
 
         private static MeshRenderer BuildRoot(Scene scene, Material layerMaterial)

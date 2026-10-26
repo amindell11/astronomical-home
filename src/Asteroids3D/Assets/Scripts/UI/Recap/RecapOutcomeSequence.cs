@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UI.Recap
 {
-    public enum RecapPhase { HudFade, BannerIn, BannerHold, BannerOut, Gap, BreakdownIn, Breakdown }
+    public enum RecapPhase { HudFade, BannerIn, BannerHold, BannerOut, Gap, BreakdownIn, Breakdown, BreakdownOut }
 
     /// <summary>What ends a span once its timed part is over.</summary>
     public enum RecapHold { None, Press, Release, Continue }
@@ -38,7 +38,8 @@ namespace UI.Recap
             RecapPhase.Gap, RecapPhase.BreakdownIn, RecapPhase.Breakdown,
         };
 
-        private static readonly RecapPhase[] ExtractionPhases = { RecapPhase.Breakdown };
+        private static readonly RecapPhase[] ExtractionPhases =
+            { RecapPhase.BreakdownIn, RecapPhase.Breakdown, RecapPhase.BreakdownOut };
 
         private readonly RecapFeelProfile feel;
         private readonly RecapPhase[] phases;
@@ -67,8 +68,10 @@ namespace UI.Recap
                 RecapPhase.BannerHold => new RecapSpan(phase, 0f, RecapHold.Press),
                 RecapPhase.BannerOut => new RecapSpan(phase, feel.BannerOutSeconds, RecapHold.None),
                 RecapPhase.Gap => new RecapSpan(phase, feel.GapSeconds, RecapHold.None),
-                RecapPhase.BreakdownIn => new RecapSpan(phase, feel.BreakdownInSeconds, RecapHold.Release),
+                RecapPhase.BreakdownIn => new RecapSpan(phase, feel.BreakdownInSeconds,
+                    Context.Outcome == RecapOutcome.Extraction ? RecapHold.None : RecapHold.Release),
                 RecapPhase.Breakdown => new RecapSpan(phase, 0f, RecapHold.Continue),
+                RecapPhase.BreakdownOut => new RecapSpan(phase, feel.BreakdownOutSeconds, RecapHold.None),
                 _ => throw new ArgumentOutOfRangeException(nameof(index), phase, "Unknown recap phase."),
             };
         }
@@ -79,7 +82,12 @@ namespace UI.Recap
             var span = Span(index);
             var t = Progress(seconds, span.Seconds);
             if (Context.Outcome == RecapOutcome.Extraction)
-                return new RecapState(span.Phase, 0f, 1f, false, true, 0f, false, 1f, true);
+            {
+                var alpha = span.Phase == RecapPhase.BreakdownIn ? Mathf.SmoothStep(0f, 1f, t) :
+                    span.Phase == RecapPhase.BreakdownOut ? 1f - Mathf.SmoothStep(0f, 1f, t) : 1f;
+                return new RecapState(span.Phase, 0f, 1f, false, true, 0f, false,
+                    alpha, span.Phase == RecapPhase.Breakdown);
+            }
 
             var hud = span.Phase == RecapPhase.HudFade
                 ? 1f - Smoother(Progress(seconds, feel.HudFadeSeconds)) : 0f;

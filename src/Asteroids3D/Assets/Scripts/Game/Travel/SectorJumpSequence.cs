@@ -20,6 +20,8 @@ namespace Game.Travel
 
         public float Duration { get; }
 
+        public float LocaleBlendAt(float progress) => Mathf.Clamp01(localeBlend.Evaluate(progress));
+
         public SectorJumpSequence(SectorJumpProfile profile)
         {
             if (!profile) throw new ArgumentNullException(nameof(profile));

@@ -2,9 +2,14 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using Cameras;
 using Game;
 using Game.Runs;
+using Game.Travel;
+using Objectives;
+using Substrate.Services.Objectives;
+using UI.Hangar;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Sectors;
@@ -143,6 +148,73 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(1f, Time.timeScale, "tearing down a paused host restores the clock");
         }
 
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator ProductionJump_LaunchesNormally_HoldsRecap_ArrivesMoving_ThenWinsWithoutAnotherJump()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true, productionJump: true);
+            Assert.IsNull(host.Jump, "Hangar launch never enters hyperspace.");
+            Assert.IsTrue(rig.Player.Commander.enabled);
+            rig.Player.Damage.Health.SetFraction(.6f);
+            var first = host.ActiveSector;
+            yield return EnterProductionZone(rig);
+            Assert.IsNull(host.Jump, "Zone occupancy does not commit extraction.");
+            input.Press(keyboard.fKey);
+            InputSystem.Update();
+            Assert.IsNotNull(host.Jump, "The production spine commits in the F callback.");
+            Assert.IsFalse(rig.Player.Commander.enabled);
+            input.Release(keyboard.fKey);
+            InputSystem.Update();
+            yield return WaitFor(() => host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
+                "the extracted recap appears in hyperspace");
+            var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            var button = recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>();
+            yield return WaitFor(button.IsInteractable, "Continue waits for the destination and its locale blend");
+            Assert.AreNotSame(first, host.ActiveSector);
+            Assert.AreEqual(1f, host.Jump.State.LocaleBlend);
+            Assert.AreEqual(0f, Time.timeScale);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.IsTrue(host.Jump.Holding, "Hyperspace waits for the player.");
+            button.onClick.Invoke();
+            yield return WaitFor(() => !host.Jump, "Continue completes arrival");
+            Assert.IsTrue(rig.Player.Commander.enabled);
+            Assert.Greater(rig.Player.Body.linearVelocity.magnitude, 1f, "Control returns with momentum.");
+            Assert.AreEqual(.6f, rig.Player.Damage.Health.Pct, .02f);
+            yield return EnterProductionZone(rig);
+            input.Press(keyboard.fKey);
+            InputSystem.Update();
+            Assert.IsNull(host.Jump, "Final extraction goes directly to victory.");
+            input.Release(keyboard.fKey);
+            InputSystem.Update();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "victory appears");
+            recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
+            Assert.AreEqual(2, record.sectorsCleared);
+            yield return host.Shutdown();
+        }
+
+        private IEnumerator EnterProductionZone(PlayerRig rig)
+        {
+            var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
+            director.BeginSchedule(Time.time - 500f);
+            director.Advance(Time.time);
+            host.GetComponent<ObjectiveService>().Tick(0f);
+            var zone = host.ActiveSector.GetComponentInChildren<ExtractionZone>();
+            Assert.IsNotNull(zone, "Completed production phases expose the extraction zone.");
+            Assert.IsTrue(zone.gameObject.activeInHierarchy, "The production zone is active in the loaded sector.");
+            rig.Player.transform.position = zone.transform.position;
+            rig.Player.Body.position = zone.transform.position;
+            rig.Player.Body.linearVelocity = Vector3.zero;
+            Physics.SyncTransforms();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(zone.IsPlayerInZone);
+        }
+
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
@@ -220,19 +292,28 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsTrue(rig.Overlay.GetComponent<Canvas>().enabled);
         }
 
-        private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false)
+        private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
+            bool productionJump = false)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
-            templates = new[] { NewSectorTemplate("SectorA"), NewSectorTemplate("SectorB") };
-
+            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
+                ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
+            templates = productionJump
+                ? Array.Empty<GameObject>()
+                : new[] { NewSectorTemplate("SectorA"), NewSectorTemplate("SectorB") };
+            foreach (var template in templates) template.SetActive(false);
             foreach (var template in templates) template.transform.SetParent(hostGo.transform);
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = Array.ConvertAll(templates,
-                    t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                sectors = productionJump
+                    ? new[] { "TrialSector", "TrialSector2" }.Select(name => new SectorEntry
+                    {
+                        prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{name}.prefab"),
+                        config = config
+                    }).ToArray()
+                    : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
                 presentation = presentation
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
@@ -245,13 +326,25 @@ namespace Tests.PlayMode.Bootstrap
                 failure = null;
                 return true;
             };
+            if (productionJump)
+            {
+                host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
+                host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+                host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
+            }
             hostGo.SetActive(true);
+            if (productionJump)
+            {
+                yield return WaitFor(() => hostGo.GetComponentInChildren<HangarScreen>(), "the hangar opens");
+                Assert.IsNull(host.Jump);
+                hostGo.GetComponentInChildren<HangarScreen>().launchButton.onClick.Invoke();
+            }
 
             PlayerRig rig = null;
             yield return WaitFor(() =>
             {
                 rig = hostGo.GetComponentInChildren<PlayerRig>();
-                return rig && rig.Tally.SecondsSurvived > 0f && InSector("SectorA");
+                return rig && rig.Tally.SecondsSurvived > 0f && InSector(productionJump ? "TrialSector" : "SectorA");
             }, "the host started a run in the first sector");
             onBuilt(rig);
         }

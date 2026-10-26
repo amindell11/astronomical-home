@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479b81e9439bfe147ad73d345e6a4a47, type: 3}
   m_Name: SectorJumpTuning
   m_EditorClassIdentifier: 
-  turnDuration: 0.75
-  chargeDuration: 1
-  travelDuration: 5
-  settleDuration: 1.4
+  turnDuration: 0.25
+  chargeDuration: 0.5
+  travelDuration: 1
+  settleDuration: 0.5
   speed:
     serializedVersion: 2
     m_Curve:
@@ -58,6 +58,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  departureDistance: 45
+  arrivalSpeedFraction: 0.526
+  worldBlendDuration: 0.4
   rawBackgroundBlend: 0.169
   skyTravelDistance: 800
   streakDensity: 39

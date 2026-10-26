@@ -1,4 +1,5 @@
 using System.Linq;
+using Game.Travel;
 using UI.Recap;
 using UnityEditor;
 using UnityEngine;
@@ -14,8 +15,10 @@ namespace Game.Preview
     {
         private PreviewHost host;
         private SerializedObject knobs;
+        private SerializedObject jumpKnobs;
         [SerializeField] private PreviewSubjectKind selectedSubject;
         [SerializeField] private PreviewMode selectedMode;
+        [SerializeField] private PreviewPlaytestSetup selectedSetup;
         private Vector2 scroll;
 
         [MenuItem("Window/Preview Host")]
@@ -72,7 +75,7 @@ namespace Game.Preview
                 host.Subject.Knobs.GetType(), false);
             if (profile && profile != host.Subject.Knobs) host.Subject.Knobs = profile;
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            DrawKnobs(host.Subject.Knobs);
+            DrawKnobs(host.Subject.Knobs, ref knobs);
             EditorGUILayout.EndScrollView();
         }
 
@@ -83,11 +86,21 @@ namespace Game.Preview
             selectedMode = (PreviewMode)EditorGUILayout.EnumPopup("Mode", selectedMode);
             if (selectedMode == PreviewMode.Inspection)
                 selectedSubject = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", selectedSubject);
-            if (GUILayout.Button("Enter preview")) PreviewHostBootstrap.EnterPlayMode(selectedSubject, selectedMode);
+            else
+                selectedSetup = (PreviewPlaytestSetup)EditorGUILayout.EnumPopup("Setup", selectedSetup);
+            if (GUILayout.Button("Enter preview"))
+                PreviewHostBootstrap.EnterPlayMode(selectedSubject, selectedMode, selectedSetup);
         }
 
         private void DrawPlaytest()
         {
+            var setup = (PreviewPlaytestSetup)EditorGUILayout.EnumPopup("Setup", host.PlaytestSetup);
+            selectedSetup = setup;
+            if (setup != host.PlaytestSetup)
+            {
+                host.SelectPlaytestSetup(setup);
+                return;
+            }
             if (GUILayout.Button("Restart Playtest"))
             {
                 host.RestartPlaytest();
@@ -100,8 +113,21 @@ namespace Game.Preview
                 host.RestartPlaytest(profile);
                 return;
             }
+            if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
+            {
+                EditorGUILayout.HelpBox("Press F inside the jump gate. Continue completes arrival. " +
+                    "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
+                var jump = (SectorJumpProfile)EditorGUILayout.ObjectField("Jump feel profile", host.JumpFeel,
+                    typeof(SectorJumpProfile), false);
+                if (jump && jump != host.JumpFeel)
+                {
+                    host.RestartPlaytest(jump);
+                    return;
+                }
+            }
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            DrawKnobs(host.RecapFeel);
+            if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate) DrawKnobs(host.JumpFeel, ref jumpKnobs);
+            DrawKnobs(host.RecapFeel, ref knobs);
             EditorGUILayout.EndScrollView();
         }
 
@@ -135,17 +161,17 @@ namespace Game.Preview
             if (subject.Busy) EditorGUILayout.LabelField("Staged moment playing…");
         }
 
-        private void DrawKnobs(ScriptableObject target)
+        private static void DrawKnobs(ScriptableObject target, ref SerializedObject serialized)
         {
             if (!target) return;
-            if (knobs == null || knobs.targetObject != target) knobs = new SerializedObject(target);
+            if (serialized == null || serialized.targetObject != target) serialized = new SerializedObject(target);
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Feel · " + target.name, EditorStyles.boldLabel);
-            knobs.Update();
-            var property = knobs.GetIterator();
+            serialized.Update();
+            var property = serialized.GetIterator();
             for (var enterChildren = true; property.NextVisible(enterChildren); enterChildren = false)
                 if (property.name != "m_Script") EditorGUILayout.PropertyField(property, true);
-            knobs.ApplyModifiedProperties();
+            serialized.ApplyModifiedProperties();
             using (new EditorGUI.DisabledScope(!EditorUtility.IsDirty(target)))
                 if (GUILayout.Button("Save feel profile")) AssetDatabase.SaveAssetIfDirty(target);
         }
