@@ -1,0 +1,18 @@
+diff --git a/src/Asteroids3D/Assets/Settings/UI/RecapFeel.asset b/src/Asteroids3D/Assets/Settings/UI/RecapFeel.asset
+index c54ee68ae..197304659 100644
+--- a/src/Asteroids3D/Assets/Settings/UI/RecapFeel.asset
++++ b/src/Asteroids3D/Assets/Settings/UI/RecapFeel.asset
+@@ -11,9 +11,9 @@ MonoBehaviour:
+   m_EditorHideFlags: 0
+   m_Script: {fileID: 11500000, guid: 991387dfafcc4d09a5eda05e2ac33fce, type: 3}
+   m_Name: RecapFeel
+-  m_EditorClassIdentifier:
++  m_EditorClassIdentifier: 
+   hudFadeSeconds: 0.3
+   bannerInSeconds: 0.8
+-  bannerOutSeconds: 0.7
+-  gapSeconds: 0.3
+-  breakdownInSeconds: 0.8
++  bannerOutSeconds: 0.2
++  gapSeconds: 0
++  breakdownInSeconds: 0.4
