@@ -1,9 +1,12 @@
+using Capture.Views;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using Capture;
+using Capture.Recording;
+using System.Text.RegularExpressions;
 using Combat.Weapons;
 using Unity.InferenceEngine;
 using UnityEngine;
@@ -15,7 +18,7 @@ using RL.Probes;
 namespace RL.Hosts
 {
     /// <summary>Which lane client the host runs; every other axis of a harness run is a spec field.</summary>
-    public enum HarnessLane { Eval, Capture, Sentence, Duel }
+    public enum HarnessLane { Eval, Capture, Sentence, Duel, Matrix }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -113,11 +116,14 @@ namespace RL.Hosts
         public ProbeSpec[] probes;
         public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
+        public string captureCommit;
         public string outDir;
         /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
         public SentenceRow[] sentenceRows;
         /// <summary>Duel lane only: the weapon prefabs, each fought alone in the shooter's primary weapon slot.</summary>
         public WeaponComponent[] duelWeapons;
+        /// <summary>Matrix lane only: the weapon prefabs. Each unordered pair, a weapon against itself included, is one block.</summary>
+        public WeaponComponent[] matrixWeapons;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
@@ -172,6 +178,7 @@ namespace RL.Hosts
             ThrowOnRetiredNames(getEnv);
             var sentence = getEnv("RL_HARNESS_SENTENCE");
             var duel = getEnv("RL_HARNESS_DUEL");
+            var matrix = getEnv("RL_HARNESS_MATRIX");
             var source = getEnv("RL_HARNESS_ONNX");
             if (player && sentence != null)
                 throw new ArgumentException(
@@ -200,8 +207,27 @@ namespace RL.Hosts
             if (duel != null && getEnv("RL_HARNESS_LANE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_DUEL implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
+            if (player && matrix != null)
+                throw new ArgumentException(
+                    "The matrix lane is editor-only; a player boot takes no RL_HARNESS_MATRIX.");
+            if (matrix != null && sentence != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_MATRIX and RL_HARNESS_SENTENCE each imply their own lane; set one.");
+            if (matrix != null && duel != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_MATRIX and RL_HARNESS_DUEL each imply their own lane; set one.");
+            if (matrix != null && source != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_MATRIX fights two scripted ships; RL_HARNESS_ONNX has no role in the matrix lane.");
+            if (matrix != null && getEnv("RL_HARNESS_OPPONENT") != null)
+                throw new ArgumentException(
+                    "The matrix lane stages its own ships; RL_HARNESS_OPPONENT selects eval-lane opponents.");
+            if (matrix != null && getEnv("RL_HARNESS_LANE") != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_MATRIX implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             var lane = sentence != null ? HarnessLane.Sentence
                 : duel != null ? HarnessLane.Duel
+                : matrix != null ? HarnessLane.Matrix
                 : ParseLane(getEnv("RL_HARNESS_LANE"));
             var spec = new HarnessSpec
             {
@@ -229,14 +255,25 @@ namespace RL.Hosts
             }
             else if (duel != null)
             {
-                spec.duelWeapons = ParseDuel(duel, catalogWeapons());
+                spec.duelWeapons = ParseWeapons("RL_HARNESS_DUEL", duel, catalogWeapons());
                 spec.tag = "duel-" + spec.tag;
+            }
+            else if (matrix != null)
+            {
+                spec.matrixWeapons = ParseWeapons("RL_HARNESS_MATRIX", matrix, catalogWeapons());
+                spec.tag = "matrix-" + spec.tag;
             }
             else
             {
                 spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), resolveOpponent);
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
+            if (spec.record.enabled)
+            {
+                spec.captureCommit = getEnv("RL_HARNESS_CAPTURE_COMMIT");
+                if (spec.captureCommit == null || !Regex.IsMatch(spec.captureCommit, "^[0-9a-fA-F]{40}$"))
+                    throw new ArgumentException("RL_HARNESS_CAPTURE_COMMIT must name the launcher's 40-character hexadecimal SHA when recording.");
+            }
             spec.ValidateLane();
             spec.ValidateCaptureSelector();
             return spec;
@@ -380,7 +417,8 @@ namespace RL.Hosts
         }
 
         /// <summary>Grammar: "all" (the item catalog's weapons, in catalog order) or comma-separated distinct catalog weapon names.</summary>
-        private static WeaponComponent[] ParseDuel(string token, IReadOnlyList<WeaponComponent> catalogWeapons)
+        private static WeaponComponent[] ParseWeapons(string variable, string token,
+            IReadOnlyList<WeaponComponent> catalogWeapons)
         {
             if (Matches(token, "all")) return catalogWeapons.ToArray();
             var weapons = new List<WeaponComponent>();
@@ -391,14 +429,14 @@ namespace RL.Hosts
                 var weapon = catalogWeapons.FirstOrDefault(w => Matches(w.name, name));
                 if (!weapon)
                     throw new ArgumentException(
-                        $"RL_HARNESS_DUEL='{token}': '{name}' is not \"all\" or one of {string.Join(", ", catalogWeapons.Select(w => w.name))}.");
+                        $"{variable}='{token}': '{name}' is not \"all\" or one of {string.Join(", ", catalogWeapons.Select(w => w.name))}.");
                 if (weapons.Contains(weapon))
-                    throw new ArgumentException($"RL_HARNESS_DUEL='{token}': duplicate weapon '{name}'.");
+                    throw new ArgumentException($"{variable}='{token}': duplicate weapon '{name}'.");
                 weapons.Add(weapon);
             }
             if (weapons.Count == 0)
                 throw new ArgumentException(
-                    $"RL_HARNESS_DUEL='{token}' selected no weapons; use \"all\" or comma-separated weapon names.");
+                    $"{variable}='{token}' selected no weapons; use \"all\" or comma-separated weapon names.");
             return weapons.ToArray();
         }
 
@@ -450,6 +488,7 @@ namespace RL.Hosts
                 {
                     HarnessLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
                     HarnessLane.Duel => new[] { ProbeSpec.Named(MarksmanshipProbe.ProbeName) },
+                    HarnessLane.Matrix => new[] { ProbeSpec.Named(MatrixProbe.ProbeName) },
                     _ => new[]
                     {
                         ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
@@ -481,6 +520,11 @@ namespace RL.Hosts
                     if (entry.name == CombatTelemetryProbe.ProbeName)
                         throw ProbeError(entry.name,
                             "the duel lane's weapons need not report a fire range");
+            if (lane == HarnessLane.Matrix)
+                foreach (var entry in entries)
+                    if (entry.name == CombatTelemetryProbe.ProbeName)
+                        throw ProbeError(entry.name,
+                            "the matrix lane's weapons need not report a fire range");
             return entries.ToArray();
         }
 

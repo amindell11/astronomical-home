@@ -50,6 +50,7 @@ namespace Combat.Projectiles
             target = tgt.TargetPoint;
             targetChannel = tgt.Lock;
             targetChannel.AddTracker(this);
+            targetChannel.Concealed += LoseTrack;
             TrackingChanged?.Invoke();
         }
 
@@ -86,7 +87,10 @@ namespace Combat.Projectiles
             // Unity scales a Y-axis capsule's radius by the larger of the root's X and Z scales.
             var scale = transform.lossyScale;
             GetComponent<CapsuleCollider>().radius = hitboxRadius / Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public override void Initialize(IShooter shooter)
         {
@@ -131,6 +135,7 @@ namespace Combat.Projectiles
         private void LoseTrack()
         {
             target = null;
+            targetChannel.Concealed -= LoseTrack;
             targetChannel.RemoveTracker(this);
             targetChannel = null;
             TrackingChanged?.Invoke();
@@ -211,8 +216,7 @@ namespace Combat.Projectiles
             var attackerId = Shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             for (var i = 0; i < hitCount; i++)
             {
-                var obj = buffer[i].GetComponentInParent<IDamageable>();
-                if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
+                if (!DamageableColliders.TryGet(buffer[i], out var obj) || obj == directHitTarget || IsFriendly(obj)) continue;
 
                 obj.TakeDamage(new DamageInfo(splashDamage, DamageKind.Missile, attackerId,
                     mass, velocity, buffer[i].ClosestPoint(transform.position)));
@@ -227,7 +231,11 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
-            targetChannel?.RemoveTracker(this);
+            if (targetChannel != null)
+            {
+                targetChannel.Concealed -= LoseTrack;
+                targetChannel.RemoveTracker(this);
+            }
             targetChannel = null;
             target = null;
             hasLos = false;

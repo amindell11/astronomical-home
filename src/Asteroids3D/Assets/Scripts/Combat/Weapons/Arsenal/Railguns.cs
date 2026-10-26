@@ -33,10 +33,18 @@ namespace Combat.Weapons.Arsenal
         [SerializeField] private LayerMask hitMask = -1;
 
         [Header("AI Firing")]
-        [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
+        [Stat, SerializeField, Min(0f)] private float holdRange = 30f;
+        [Tooltip("Max distance at which an AI gunner charges. Leaving it mid-charge aborts the shot.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
-        [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Max aim error (degrees) of the firing envelope. The AI's fire plan uses startAngle, breakAngle and commitPoint instead.")]
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner starts a charge.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float startAngle = 10f;
+        [Tooltip("Max aim error (degrees) an AI gunner allows before the commit point. Past it, the charge drops.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float breakAngle = 30f;
+        [Tooltip("Charge fraction from which an AI gunner ignores its aim and holds through to the shot at full. Leaving fireDistance still drops it.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float commitPoint = 2f / 3f;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
@@ -56,6 +64,7 @@ namespace Combat.Weapons.Arsenal
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
+        public override float? HoldRange => holdRange;
 
         protected override void Awake()
         {
@@ -75,10 +84,7 @@ namespace Combat.Weapons.Arsenal
         // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            if (!CanFire()) return null;
-
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            if (!TrySpendFireConditions()) return null;
 
             FireBeam();
             InvokeOnFire();
@@ -88,12 +94,15 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
-        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
-        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
+        // The authored charge fires only when full, so releasing early aborts the shot.
+        public override bool HoldTrigger(TargetingContext context)
+        {
+            if (context.distanceToTarget > fireDistance) return false;
+            if (charge.ChargePct <= 0f) return context.angleToTarget <= startAngle;
+            return charge.ChargePct >= commitPoint || context.angleToTarget <= breakAngle;
+        }
 
         private static RaycastHit[] beamHits = new RaycastHit[32];
         private static readonly IComparer<RaycastHit> nearestFirst =
@@ -102,8 +111,8 @@ namespace Combat.Weapons.Arsenal
 
         private void FireBeam()
         {
-            var origin = GamePlane.PlanePointToWorld(GamePlane.WorldPointToPlane(firePoint.position));
-            var direction = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(firePoint.up).normalized);
+            var origin = FireOrigin;
+            var direction = FireDirection;
             var end = origin + direction * range;
 
             // A full buffer may have dropped the nearest hits, so grow it and cast again.
@@ -121,7 +130,7 @@ namespace Combat.Weapons.Arsenal
             {
                 var hit = beamHits[i];
                 if (shooterBody && hit.rigidbody == shooterBody) continue;
-                var damageable = hit.collider.GetComponentInParent<IDamageable>();
+                DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 
                 // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.

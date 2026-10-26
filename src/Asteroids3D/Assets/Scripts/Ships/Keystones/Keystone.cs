@@ -11,7 +11,7 @@ namespace Ships.Keystones
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
     /// effects beyond the activation impulse are state on the kit that other systems observe; the
-    /// ship hands it what it owns (contacts, blocked hits), and the kit decides what pays. An AI
+    /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays. An AI
     /// commander also reads the kit's sight, which can fire it beside the brain's own request.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
     /// </summary>
@@ -38,6 +38,9 @@ namespace Ships.Keystones
 
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
+
+        /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
+        public virtual bool FliesNavigatorHeading => false;
 
         /// <summary>Multipliers on the ship's speed cap and forward thrust this step; 1 leaves them alone.</summary>
         public virtual float SpeedScale => 1f;
@@ -78,6 +81,7 @@ namespace Ships.Keystones
             Activations = 0;
             PaidActivations = 0;
             creditedActivation = 0;
+            OnReset();
         }
 
         public virtual bool Blocks(in DamageInfo hit) => false;
@@ -87,11 +91,15 @@ namespace Ships.Keystones
 
         public virtual void NotifyBlocked(DamageInfo hit) { }
 
+        public virtual void NotifyFired() { }
+
         public virtual void OnContact(in KeystoneContact contact) { }
 
         protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
 
         protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
+
+        protected virtual void OnReset() { }
 
         protected void CreditActivation()
         {

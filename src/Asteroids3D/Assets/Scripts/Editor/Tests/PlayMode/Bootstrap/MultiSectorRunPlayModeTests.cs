@@ -11,6 +11,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
 using Substrate.Services.Units;
+using UI.Recap;
 using UI.Screens;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -31,6 +32,7 @@ namespace Tests.PlayMode.Bootstrap
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
         private GameObject hostGo;
@@ -38,12 +40,10 @@ namespace Tests.PlayMode.Bootstrap
         private GameObject[] templates;
         private string dir;
         private string recordPath;
-        private readonly InputTestFixture input = new();
 
         public override void SetUp()
         {
             base.SetUp();
-            input.Setup();
             dir = Path.Combine(Path.GetTempPath(), "multi-sector-run-" + Guid.NewGuid().ToString("N"));
             recordPath = Path.Combine(dir, "run-records.jsonl");
         }
@@ -56,7 +56,6 @@ namespace Tests.PlayMode.Bootstrap
                 foreach (var template in templates) DestroyTestObject(template);
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
             base.TearDown();
-            input.TearDown();
         }
 
         [UnityTest]
@@ -144,6 +143,16 @@ namespace Tests.PlayMode.Bootstrap
         private bool InSector(string templateName) =>
             host.ActiveSector && host.ActiveSector.name.StartsWith(templateName, StringComparison.Ordinal);
 
+        // The screen exists before the HUD fades; showing means a visible banner or card.
+        private bool RecapShowing()
+        {
+            var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            if (!recap) return false;
+            var banner = recap.transform.Find("OutcomeIntro");
+            return recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha > 0f
+                   || banner && banner.gameObject.activeSelf;
+        }
+
         [UnityTest]
         [Category("RequiresGraphics")]
         public IEnumerator Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun()
@@ -157,6 +166,8 @@ namespace Tests.PlayMode.Bootstrap
             var deathPosition = rig.Player.transform.position;
             observer.transform.position = deathPosition + GamePlane.Right * 30f - GamePlane.Normal * 10f;
             var initialZoom = observer.Cam.orthographicSize;
+            var input = new InputTestFixture();
+            input.Setup();
             var keyboard = InputSystem.AddDevice<Keyboard>();
             try
             {
@@ -167,13 +178,11 @@ namespace Tests.PlayMode.Bootstrap
                 Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
                     GamePlane.WorldPointToPlane(deathPosition)), 9f, "the camera moves onto the death location");
                 Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
-                Assert.IsNull(hostGo.GetComponentInChildren<RunRecapScreen>());
-                yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<RunRecapScreen>(), 1.1f,
-                    "the banner starts shortly after the explosion, before long particle tails finish");
+                Assert.IsFalse(RecapShowing(), "the explosion gets an unobstructed beat");
+                yield return AsyncAssert.WaitUntil(RecapShowing, 1.1f, "the banner starts before particle cleanup ends");
                 var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+                yield return new WaitForSecondsRealtime(host.recapFeel.BannerInSeconds + .1f);
                 Assert.AreEqual(1f, Time.timeScale);
-                yield return new WaitForSecondsRealtime(.45f);
-                Assert.AreEqual(1f, recap.transform.Find("OutcomeIntro").GetComponent<CanvasGroup>().alpha);
                 Assert.AreEqual(initialZoom, observer.Cam.orthographicSize, .1f);
                 Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
                     GamePlane.WorldPointToPlane(deathPosition)), .1f);
@@ -186,10 +195,9 @@ namespace Tests.PlayMode.Bootstrap
                 Assert.AreEqual(0f, details.alpha);
                 input.Press(keyboard.enterKey);
                 yield return null;
-                Assert.AreEqual(1f, details.alpha, "Continue reveals the breakdown immediately");
-                Assert.IsFalse(details.interactable, "the submit press is consumed before enabling the button");
                 input.Release(keyboard.enterKey);
-                yield return WaitFor(() => details.interactable, "keypress reveals the breakdown");
+                yield return AsyncAssert.WaitUntil(() => details.interactable, 1f, "the tuned transition reveals the breakdown");
+                Assert.IsFalse(recap.Continued, "the advancing press does not submit the result");
                 Assert.AreEqual(1f, Time.timeScale);
                 enemy.Body.linearVelocity = GamePlane.Right * 10f;
                 enemyPosition = enemy.transform.position;
@@ -200,8 +208,7 @@ namespace Tests.PlayMode.Bootstrap
                 observer.transform.position += GamePlane.Right * 5f;
                 yield return new WaitForSecondsRealtime(.5f);
                 Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
-                    GamePlane.WorldPointToPlane(deathPosition)), .1f,
-                    "death focus still works with no active subjects");
+                    GamePlane.WorldPointToPlane(deathPosition)), .1f, "death framing works without active subjects");
                 recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
                 yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
                     "the next run starts");
@@ -212,7 +219,7 @@ namespace Tests.PlayMode.Bootstrap
             }
             finally
             {
-                InputSystem.RemoveDevice(keyboard);
+                input.TearDown();
             }
         }
 
@@ -233,6 +240,7 @@ namespace Tests.PlayMode.Bootstrap
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             host.runRecordPath = recordPath;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
             {

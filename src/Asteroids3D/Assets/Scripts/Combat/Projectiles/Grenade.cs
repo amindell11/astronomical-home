@@ -49,6 +49,8 @@ namespace Combat.Projectiles
         /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
         public Vector3 TargetPoint => targetPoint;
 
+        public float LaunchSpeed => launchSpeed;
+
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
 
@@ -63,7 +65,10 @@ namespace Combat.Projectiles
             base.Awake();
             shipLayers = LayerIds.Mask(LayerIds.Ship);
             SimplePool<ConcussionWave>.Warm(wavePrefab);
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
         {

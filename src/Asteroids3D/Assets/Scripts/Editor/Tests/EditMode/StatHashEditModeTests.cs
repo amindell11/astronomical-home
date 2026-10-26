@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Balance;
+using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships;
@@ -125,6 +126,14 @@ namespace Tests.EditMode
             SetSerialized(weapon.GetComponent<Cooldown>(), "fireRate", property => property.floatValue += 0.01f);
             Assert.AreNotEqual(hullChanged, StatHash.OfLoadout(ship),
                 "A marked number on a condition, two references from the hull, must move the hash.");
+        }
+
+        [Test]
+        public void Of_IncludesADeclaredHoldRange()
+        {
+            IncludesHoldRange("Assets/Prefabs/Weapons/Railgun.prefab", "Railguns", 30f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Missiles.prefab", "Missiles", 13f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Grenades.prefab", "Grenades", 18f);
         }
 
         [Test]
@@ -251,6 +260,14 @@ namespace Tests.EditMode
             var offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(HangarOfferPath);
             Assert.IsNotNull(offer, $"Hangar offer missing at {HangarOfferPath}");
             return offer;
+        }
+
+        private static void IncludesHoldRange(string path, string typeName, float range)
+        {
+            var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>(path);
+            Assert.IsNotNull(weapon, path);
+            var line = $"{weapon.name}/{typeName}.holdRange={range.ToString("R", CultureInfo.InvariantCulture)}";
+            Assert.That(StatHash.Lines(weapon), Has.Member(line), path);
         }
 
         private static WaveDirector.RosterEntry[] RosterOf(IEnumerable<Ship> hulls) =>

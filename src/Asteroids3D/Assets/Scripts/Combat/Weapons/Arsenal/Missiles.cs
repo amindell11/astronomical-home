@@ -17,15 +17,16 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
 
+        [Header("AI Firing")]
+        [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
+        [Stat, SerializeField, Min(0f)] private float holdRange = 13f;
+
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock). Keep it inside the distance the scripted pilots hold from their target: a pilot hovering on this edge launches unguided.")]
         [Stat, SerializeField, Min(0f)] private float fallbackRange = 7f;
         [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
         [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
-        private ILockProvider lockProvider;
-
-        public LockOnSensor Targeting => targetingComputer;
         public Rounds Rounds => rounds;
         public float Damage => projectilePrefab.Damage;
         public float SplashDamage => projectilePrefab.SplashDamage;
@@ -34,6 +35,7 @@ namespace Combat.Weapons.Arsenal
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;
+        public override float? HoldRange => holdRange;
 
         protected override void Awake()
         {
@@ -42,7 +44,6 @@ namespace Combat.Weapons.Arsenal
             if (!cooldown) cooldown = GetComponent<Cooldown>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
-            lockProvider = targetingComputer;
         }
 
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
@@ -51,9 +52,12 @@ namespace Combat.Weapons.Arsenal
             if (!proj)
                 return null;
 
-            var lockedTarget = lockProvider?.ConsumeLock();
-            if (lockedTarget != null)
-                proj.SetTarget(lockedTarget);
+            if (targetingComputer)
+            {
+                var lockedTarget = targetingComputer.ConsumeLock();
+                if (lockedTarget != null)
+                    proj.SetTarget(lockedTarget);
+            }
 
             return proj;
         }
@@ -64,23 +68,23 @@ namespace Combat.Weapons.Arsenal
 
         private bool InLockCone(in TargetingContext context) =>
             targetingComputer
-            && context.hasLineOfSight
-            && context.distanceToTarget <= targetingComputer.maxLockDistance
-            && context.angleToTarget <= targetingComputer.lockOnConeAngle * 0.5f;
+            && context.Within(targetingComputer.maxLockDistance, targetingComputer.lockOnConeAngle * 0.5f);
 
         private bool InFallbackEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fallbackRange
-            && context.angleToTarget <= fallbackAngleTolerance;
+            context.Within(fallbackRange, fallbackAngleTolerance);
 
         // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
-        public override bool ShouldFire(TargetingContext context)
+        public override bool HoldTrigger(TargetingContext context)
         {
             // Readiness drops the solution after each launch, so the gunner's press edge re-arms.
             if (!CanFire())
                 return false;
 
-            return (lockProvider?.State ?? LockState.Idle) switch
+            var lockState = LockState.Idle;
+            if (targetingComputer)
+                lockState = targetingComputer.State;
+
+            return lockState switch
             {
                 LockState.Locked => true,
                 LockState.Idle or LockState.Locking => InFallbackEnvelope(in context),

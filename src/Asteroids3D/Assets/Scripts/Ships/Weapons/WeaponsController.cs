@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
@@ -39,12 +40,14 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
+        public event Action Fired;
+
         private WeaponContext context;
 
         private void Awake()
         {
-            if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
-            if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
+            Primary = ReplaceMount(null, primaryMount, WeaponSlot.Primary);
+            Secondary = ReplaceMount(null, secondaryMount, WeaponSlot.Secondary);
             Sensor = FindMountSensor();
         }
 
@@ -96,16 +99,22 @@ namespace Ships.Weapons
             }
         }
 
+        private void RaiseFired() => Fired?.Invoke();
+
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
         {
             if (current)
             {
                 // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
+                current.OnFire -= RaiseFired;
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
 
-            return prefab ? Instantiate(prefab, ResolveMount(slot)) : null;
+            if (!prefab) return null;
+            var mounted = Instantiate(prefab, ResolveMount(slot));
+            mounted.OnFire += RaiseFired;
+            return mounted;
         }
 
         /// <summary>The first mounted weapon's lock sensor (mount-scoped; sensors ride the mounts).</summary>
@@ -200,6 +209,24 @@ namespace Ships.Weapons
             public bool IsReady(WeaponSlot slot) => owner.Mount(slot)?.CanFire() ?? false;
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
+
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.AimPoint(in shooter, targetPos, targetVel) : targetPos;
+            }
+
+            public float? HoldRange(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HoldRange : null;
+            }
+
+            public int KeepOutCircles(WeaponSlot slot, Span<DetectedObstacle.PlaneCircle> circles)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.KeepOutCircles(circles) : 0;
+            }
 
             public Gunsight Sight(WeaponSlot slot) => slot switch
             {

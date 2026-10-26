@@ -32,7 +32,10 @@ namespace Asteroids
         private void Awake()
         {
             controller = GetComponent<AsteroidController>();
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public void Initialize(float volume, float lethality = 1f)
         {
@@ -86,8 +89,8 @@ namespace Asteroids
             var damage = CalcDamage(deltaV);
             if (damage <= 0f) return;
 
-            var damageable = collision.gameObject.GetComponent<IDamageable>();
-            damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.Registry.ShipId.Invalid,
+            if (!DamageableColliders.TryGet(collision.collider, out var damageable)) return;
+            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.Registry.ShipId.Invalid,
                 controller.Mass, controller.Rb.linearVelocity, collision.GetContact(0).point));
         }
 

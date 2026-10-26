@@ -6,12 +6,14 @@ using System.Linq;
 using Combat.Targeting;
 using Combat.Weapons.Conditions;
 using Damage;
+using Ships;
+using Ships.Damage;
+using Ships.Registry;
+using Tests.PlayMode.Common;
 using FMOD.Studio;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
-using Ships.Damage;
-using Ships.Registry;
 using UI.Audio;
 using UnityEditor;
 using UnityEditorInternal;
@@ -219,6 +221,50 @@ namespace Tests.PlayMode.Audio
             source.Set(LockState.Idle);
             yield return Flush();
             Assert.AreEqual(0, Sounding(locking), "a lock dropped to Idle stops the loop");
+        }
+
+        [UnityTest]
+        public IEnumerator LockingLoop_StopsWhenTheLockingShipDies()
+        {
+            var locking = Fresh(LockingEvent);
+            var audio = NewAuthored<UILockOnAudio>();
+            var registry = new ShipRegistry();
+            Ship shooter = null;
+            Ship target = null;
+            try
+            {
+                var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+                Assert.IsNotNull(prefab, "Vanguard prefab loads");
+                shooter = Factory.CreateShip(prefab, null, team: 0, decisionSeed: 0, Projectiles,
+                    Vector3.zero, Quaternion.identity);
+                target = Factory.CreateShip(prefab, null, team: 1, decisionSeed: 0, Projectiles,
+                    shooter.transform.position + shooter.transform.up * 8f, Quaternion.identity);
+                registry.ActiveShips.Add(shooter);
+                registry.ActiveShips.Add(target);
+
+                var sensor = shooter.Targeting;
+                Assert.IsNotNull(sensor, "Vanguard mounts a lock sensor");
+                sensor.SetRegistry(registry);
+                audio.Initialize(sensor);
+
+                for (var i = 0; i < 30 && sensor.State != LockState.Locking; i++)
+                    yield return new WaitForFixedUpdate();
+                Assert.AreEqual(LockState.Locking, sensor.State, "a target ahead starts a lock");
+                yield return Flush();
+                yield return Flush();
+                Assert.AreEqual(1, Sounding(locking), "the locking loop is sounding");
+
+                TestDamage.Kill(shooter);
+                yield return Flush();
+                Assert.AreEqual(LockState.Idle, sensor.State, "death releases the lock");
+                Assert.AreEqual(0, Sounding(locking), "death stops the locking loop");
+            }
+            finally
+            {
+                if (shooter) Object.DestroyImmediate(shooter.gameObject);
+                if (target) Object.DestroyImmediate(target.gameObject);
+                registry.Dispose();
+            }
         }
 
         [UnityTest]

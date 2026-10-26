@@ -304,6 +304,41 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void Nightshade_CarriesStealth()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var stealth = catalog.Chassis.Single(c => c.name == "Nightshade").KeystonePrefab as Stealth;
+            Assert.That(stealth, Is.Not.Null, "Nightshade's kit is Stealth");
+            Assert.That(stealth.name, Is.EqualTo("Nightshade_Stealth"));
+            Assert.That(stealth.Window, Is.EqualTo(3f));
+            Assert.That(stealth.Cooldown, Is.EqualTo(8f));
+            Assert.That(stealth.PeakSpeedScale, Is.EqualTo(1.3f));
+            Assert.That(stealth.PeakThrustScale, Is.EqualTo(1.45f));
+            Assert.That(stealth.GetComponent<StealthVeil>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        [Test]
+        public void TargetLock_DropsAConcealedTarget_InTheSameCall()
+        {
+            host = new GameObject("Locked Ship");
+            var target = host.AddComponent<Ship>();
+            var released = 0;
+            target.Lock.Released += () => released++;
+            var targetLock = new Combat.Targeting.TargetLock(0.5f, 3f, () => true);
+            Assert.That(targetLock.TryStartLock(target), Is.True);
+
+            target.Lock.Conceal();
+
+            Assert.That(targetLock.State, Is.EqualTo(Combat.Targeting.LockState.Idle), "the lock drops the moment its target conceals");
+            Assert.That(targetLock.CurrentTarget, Is.Null);
+            Assert.That(released, Is.EqualTo(1), "the lock indicator hears the release");
+            Assert.That(targetLock.TryStartLock(target), Is.False, "a concealed ship cannot be locked again");
+
+            target.Lock.Reveal();
+            Assert.That(targetLock.TryStartLock(target), Is.True, "and can be once revealed");
+        }
+
+        [Test]
         public void Vanguard_CarriesTheGuardDash()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
@@ -315,7 +350,6 @@ namespace Tests.EditMode.Ships
 
         [TestCase("Vanguard", 9000f, 5f)]
         [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Nightshade", 8500f, 4.5f)]
         [TestCase("Junker_1", 13000f, 7f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {

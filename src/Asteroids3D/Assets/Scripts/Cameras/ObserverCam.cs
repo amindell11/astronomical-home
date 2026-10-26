@@ -26,6 +26,8 @@ namespace Cameras
 
         public bool LockCameraToSubject => lockCameraToSubject;
         public Transform Subject => subject;
+        public Vector2? ManualCenter => manualCenter;
+        public float? ManualZoom => manualZoom;
 
         protected override void Awake()
         {
