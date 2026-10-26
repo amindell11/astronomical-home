@@ -15,11 +15,14 @@ namespace Tests.EditMode.Bootstrap
             if (host) Object.DestroyImmediate(host.gameObject);
         }
 
-        [Test]
-        public void BuildHost_TurnsPresentationOn_AndAssignsTheRigCameraSectorAndFeel()
+        [TestCase(PreviewMode.Inspection)]
+        [TestCase(PreviewMode.Playtest)]
+        public void BuildHost_AssignsModeAndTheRigCameraSectorAndFeel(PreviewMode mode)
         {
-            host = PreviewHostBootstrap.BuildHost();
+            host = PreviewHostBootstrap.BuildHost(PreviewSubjectKind.RunRecap, mode);
 
+            Assert.AreEqual(mode, host.Mode);
+            Assert.IsTrue(host.gameObject.activeSelf, "the configured host is ready for play mode");
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
             Assert.IsTrue(host.playerRigPrefab, "player rig assigned");
             Assert.IsTrue(host.observerCamPrefab, "observer camera assigned");

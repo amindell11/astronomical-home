@@ -1,19 +1,21 @@
 using System.Linq;
+using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 
 namespace Game.Preview
 {
     /// <summary>
-    /// The preview host's control panel, and nothing more: it enters the preview from edit mode, then
-    /// drives the live host's transport (fixture, phase, scrub, play, pause, loop, speed), and edits the
-    /// subject's feel profile in place with an explicit save. Everything it shows renders in the Game View.
+    /// Enters and switches the preview host's modes. Inspection drives a subject's timeline;
+    /// Playtest runs the real game and can restart it. Both edit feel assets with an explicit save.
+    /// Everything shown by either mode renders in the Game View.
     /// </summary>
     internal sealed class PreviewControlPanel : EditorWindow
     {
         private PreviewHost host;
         private SerializedObject knobs;
         [SerializeField] private PreviewSubjectKind selectedSubject;
+        [SerializeField] private PreviewMode selectedMode;
         private Vector2 scroll;
 
         [MenuItem("Window/Preview Host")]
@@ -38,9 +40,24 @@ namespace Game.Preview
                     MessageType.Info);
                 return;
             }
-            if (host.Subject == null)
+            using (new EditorGUI.DisabledScope(host.IsReplacing))
             {
-                EditorGUILayout.LabelField("Composing the session…");
+                var modeChoice = (PreviewMode)EditorGUILayout.EnumPopup("Mode", host.Mode);
+                selectedMode = modeChoice;
+                if (modeChoice != host.Mode)
+                {
+                    host.SelectMode(modeChoice);
+                    return;
+                }
+            }
+            if (!host.IsReady)
+            {
+                EditorGUILayout.LabelField(host.IsReplacing ? "Replacing the preview…" : "Loading the preview…");
+                return;
+            }
+            if (host.Mode == PreviewMode.Playtest)
+            {
+                DrawPlaytest();
                 return;
             }
             var selected = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", host.SubjectKind);
@@ -61,10 +78,31 @@ namespace Game.Preview
 
         private void DrawEntry()
         {
-            EditorGUILayout.HelpBox("Opens an empty scene, builds the preview host over the game's first sector " +
-                                    "with the real player rig, camera and HUD, and enters play mode.", MessageType.None);
-            selectedSubject = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", selectedSubject);
-            if (GUILayout.Button("Enter preview")) PreviewHostBootstrap.EnterPlayMode(selectedSubject);
+            EditorGUILayout.HelpBox("Inspection shows a presentation with timeline controls. " +
+                                    "Playtest starts the real game with separate preview run records.", MessageType.None);
+            selectedMode = (PreviewMode)EditorGUILayout.EnumPopup("Mode", selectedMode);
+            if (selectedMode == PreviewMode.Inspection)
+                selectedSubject = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", selectedSubject);
+            if (GUILayout.Button("Enter preview")) PreviewHostBootstrap.EnterPlayMode(selectedSubject, selectedMode);
+        }
+
+        private void DrawPlaytest()
+        {
+            if (GUILayout.Button("Restart Playtest"))
+            {
+                host.RestartPlaytest();
+                return;
+            }
+            var profile = (RecapFeelProfile)EditorGUILayout.ObjectField("Recap feel profile", host.RecapFeel,
+                typeof(RecapFeelProfile), false);
+            if (profile && profile != host.RecapFeel)
+            {
+                host.RestartPlaytest(profile);
+                return;
+            }
+            scroll = EditorGUILayout.BeginScrollView(scroll);
+            DrawKnobs(host.RecapFeel);
+            EditorGUILayout.EndScrollView();
         }
 
         private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)

@@ -1,8 +1,12 @@
 using System;
 using System.Collections;
+using System.IO;
 using Cameras;
+using Game.Runs;
 using Game.Travel;
+using Ships;
 using Substrate;
+using Substrate.Results;
 using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -15,13 +19,12 @@ using UnityEngine.InputSystem.UI;
 namespace Game.Preview
 {
     public enum PreviewSubjectKind { RunRecap, SectorJump }
+    public enum PreviewMode { Inspection, Playtest }
 
     /// <summary>
-    /// Play-mode composition root for showing a presentation inside the real game without a run: it
-    /// composes a <see cref="Session"/> with presentation on, loads the profile's first sector around the
-    /// real player rig, observer camera and HUD, and hosts one <see cref="IPreviewSubject"/> under a
-    /// <see cref="PreviewTransport"/>. Like <see cref="GameHost"/> it owns the clock a subject may
-    /// freeze. An edit-mode bootstrap or a capture scenario sets the inputs before it activates.
+    /// Inspection owns a session and presentation subject driven by a transport; Playtest owns a
+    /// real GameHost and its isolated run records. Replacement awaits the previous mode's teardown
+    /// before composing the next. Only inspection subjects may freeze this host's clock.
     /// https://github.com/amindell11/astronomical-home/issues/1151
     /// </summary>
     [RequireComponent(typeof(UnitService))]
@@ -35,6 +38,7 @@ namespace Game.Preview
         [SerializeField] internal SectorJumpProfile jumpFeel;
         [SerializeField] internal Shader jumpShader;
         [SerializeField] internal PreviewSubjectKind subjectKind;
+        [SerializeField] internal PreviewMode mode;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -45,30 +49,51 @@ namespace Game.Preview
         private Transform ui;
         private Transform arena;
         private float? frozenTimeScale;
+        private GameHost playtest;
+        private bool composing;
+        private bool replacing;
+        private bool closing;
+        private bool closed;
 
         public PreviewTransport Transport { get; } = new();
 
-        /// <summary>Null until the session, the rig and the sector are up.</summary>
         public IPreviewSubject Subject { get; private set; }
 
         public ObserverCam Observer => observer;
         public PreviewSubjectKind SubjectKind => subjectKind;
+        public PreviewMode Mode => mode;
+        public GameHost Playtest => playtest;
+        public RecapFeelProfile RecapFeel => recapFeel;
+        public bool IsReplacing => replacing || closing;
+        public bool IsReady => !composing && !IsReplacing &&
+            (mode == PreviewMode.Inspection ? Subject != null : playtest && playtest.ActiveSector);
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
+            RequireMode(mode);
+            if (!sessionProfile.presentation)
+                throw new InvalidOperationException("The preview host requires presentation to be enabled.");
+            DontDestroyOnLoad(gameObject);
+            composing = true;
+            StartCoroutine(ComposeMode(mode));
+        }
+
+        private IEnumerator ComposeMode(PreviewMode selected)
+        {
+            if (selected == PreviewMode.Inspection)
+                yield return ComposeInspection();
+            else
+                BuildPlaytest();
+            composing = false;
+        }
+
+        private IEnumerator ComposeInspection()
+        {
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
             arena = NewRoot("Arena");
-            DontDestroyOnLoad(gameObject);
-            StartCoroutine(Compose());
-        }
-
-        private IEnumerator Compose()
-        {
-            if (!sessionProfile.presentation)
-                throw new InvalidOperationException("The preview host shows presentation; its profile turns it off.");
             session = new Session(sessionProfile, arena, unitService, objectiveService);
             var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.transform.SetParent(ui, false);
@@ -76,8 +101,8 @@ namespace Game.Preview
 
             observer = Instantiate(observerCamPrefab, viewport);
             var registry = session.Units.ActiveRegistry;
-            registry.ActiveShips.OnAdd += ship => observer.AddSecondarySubject(ship.transform);
-            registry.ActiveShips.OnRemove += ship => observer.RemoveSecondarySubject(ship.transform);
+            registry.ActiveShips.OnAdd += AddCameraSubject;
+            registry.ActiveShips.OnRemove += RemoveCameraSubject;
 
             rig = Instantiate(playerRigPrefab, transform);
             yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null);
@@ -88,15 +113,77 @@ namespace Game.Preview
             Transport.Restart();
         }
 
+        private void BuildPlaytest()
+        {
+            var root = new GameObject("Preview Playtest");
+            root.SetActive(false);
+            playtest = root.AddComponent<GameHost>();
+            playtest.sessionProfile = sessionProfile;
+            playtest.playerRig = playerRigPrefab;
+            playtest.observerCamPrefab = observerCamPrefab;
+            playtest.recapFeel = recapFeel;
+            playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
+                Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
+            root.SetActive(true);
+        }
+
+        public void SelectMode(PreviewMode selected)
+        {
+            RequireMode(selected);
+            RequireAvailable();
+            if (selected == mode) throw new InvalidOperationException("That preview mode is already selected.");
+            mode = selected;
+            BeginReplacement();
+        }
+
+        public void RestartPlaytest() => RestartPlaytest(recapFeel);
+
+        public void RestartPlaytest(RecapFeelProfile feel)
+        {
+            RequireAvailable();
+            if (mode != PreviewMode.Playtest)
+                throw new InvalidOperationException("Restart Playtest requires Playtest mode.");
+            if (!feel) throw new ArgumentNullException(nameof(feel));
+            recapFeel = feel;
+            BeginReplacement();
+        }
+
+        private void BeginReplacement()
+        {
+            replacing = true;
+            Transport.Playing = false;
+            StartCoroutine(ReplaceMode());
+        }
+
+        private IEnumerator ReplaceMode()
+        {
+            while (composing) yield return null;
+            yield return TeardownMode();
+            composing = true;
+            yield return ComposeMode(mode);
+            replacing = false;
+        }
+
         public void SelectSubject(PreviewSubjectKind kind)
         {
-            if (Subject == null) throw new InvalidOperationException("The preview is still composing.");
-            Subject.Dispose();
-            Subject = null;
+            RequireAvailable();
+            if (mode != PreviewMode.Inspection)
+                throw new InvalidOperationException("Subject selection requires Inspection mode.");
+            if (!Enum.IsDefined(typeof(PreviewSubjectKind), kind))
+                throw new ArgumentOutOfRangeException(nameof(kind));
+            if (composing) throw new InvalidOperationException("The preview is still composing.");
+            DisposeSubject();
             subjectKind = kind;
             Transport.Playing = false;
             Transport.Restart();
-            StartCoroutine(ComposeSubject());
+            composing = true;
+            StartCoroutine(ReplaceSubject());
+        }
+
+        private IEnumerator ReplaceSubject()
+        {
+            yield return ComposeSubject();
+            composing = false;
         }
 
         private IEnumerator ComposeSubject()
@@ -126,8 +213,72 @@ namespace Game.Preview
 
         private void LateUpdate()
         {
-            if (Subject == null) return;
+            if (mode != PreviewMode.Inspection || !IsReady) return;
             Transport.Tick(Time.unscaledDeltaTime, Subject);
+        }
+
+        public IEnumerator Shutdown()
+        {
+            if (closing)
+            {
+                while (!closed) yield return null;
+                yield break;
+            }
+            closing = true;
+            Transport.Playing = false;
+            while (composing || replacing) yield return null;
+            yield return TeardownMode();
+            closed = true;
+        }
+
+        private IEnumerator TeardownMode()
+        {
+            if (playtest)
+            {
+                yield return playtest.Shutdown();
+                Destroy(playtest.gameObject);
+                playtest = null;
+            }
+            if (session != null)
+            {
+                DisposeSubject();
+                SetSimulationFrozen(false);
+                rig.Teardown();
+                yield return session.Teardown();
+                session = null;
+                unitService.ActiveRegistry.ActiveShips.OnAdd -= AddCameraSubject;
+                unitService.ActiveRegistry.ActiveShips.OnRemove -= RemoveCameraSubject;
+                Destroy(rig.gameObject);
+                Destroy(viewport.gameObject);
+                Destroy(ui.gameObject);
+                Destroy(arena.gameObject);
+                rig = null;
+                observer = null;
+                viewport = ui = arena = null;
+            }
+            yield return null;
+        }
+
+        private void AddCameraSubject(Ship ship) => observer.AddSecondarySubject(ship.transform);
+        private void RemoveCameraSubject(Ship ship) => observer.RemoveSecondarySubject(ship.transform);
+
+        private void DisposeSubject()
+        {
+            if (subjectKind == PreviewSubjectKind.RunRecap) recapFeel = (RecapFeelProfile)Subject.Knobs;
+            else jumpFeel = (SectorJumpProfile)Subject.Knobs;
+            Subject.Dispose();
+            Subject = null;
+        }
+
+        private static void RequireMode(PreviewMode selected)
+        {
+            if (!Enum.IsDefined(typeof(PreviewMode), selected))
+                throw new ArgumentOutOfRangeException(nameof(selected));
+        }
+
+        private void RequireAvailable()
+        {
+            if (IsReplacing) throw new InvalidOperationException("The preview is already replacing or shutting down.");
         }
 
         private Transform NewRoot(string name)
@@ -154,6 +305,7 @@ namespace Game.Preview
         {
             Subject?.Dispose();
             SetSimulationFrozen(false);
+            if (playtest) Destroy(playtest.gameObject);
         }
     }
 }
