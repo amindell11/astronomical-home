@@ -12,6 +12,9 @@ namespace UI.Recap
         [Tooltip("Seconds the HUD takes to fade out when a run ends.")]
         [SerializeField, Min(0f)] private float hudFadeSeconds = .3f;
 
+        [Tooltip("Seconds after death before the outcome banner begins, independent of particle cleanup.")]
+        [SerializeField, Min(0f)] private float deathRevealDelaySeconds = 1f;
+
         [Tooltip("Seconds the outcome banner takes to fade in.")]
         [SerializeField, Min(0f)] private float bannerInSeconds = .8f;
 
@@ -25,6 +28,7 @@ namespace UI.Recap
         [SerializeField, Min(0f)] private float breakdownInSeconds = .8f;
 
         public float HudFadeSeconds => hudFadeSeconds;
+        public float DeathRevealDelaySeconds => deathRevealDelaySeconds;
         public float BannerInSeconds => bannerInSeconds;
         public float BannerOutSeconds => bannerOutSeconds;
         public float GapSeconds => gapSeconds;

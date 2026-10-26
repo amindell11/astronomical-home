@@ -46,10 +46,6 @@ namespace Ships.Visuals
         private float flashElapsed;
         private PooledVFX pooledExplosion;
         private PooledVFX pooledCollisionExplosion;
-        private float deathEffectEndAt;
-        private GameObject unpooledDeathEffect;
-
-        public bool DeathEffectPlaying => Time.time < deathEffectEndAt || unpooledDeathEffect;
 
         private readonly List<Renderer> surfaces = new();
         private readonly List<Color> surfaceBase = new();
@@ -126,9 +122,9 @@ namespace Ships.Visuals
             if (!prefab) return;
             var pooled = prefab == collisionExplosionPrefab ? pooledCollisionExplosion : pooledExplosion;
             if (pooled)
-                deathEffectEndAt = SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity).EndsAt;
+                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
             else
-                unpooledDeathEffect = Instantiate(prefab, transform.position, Quaternion.identity);
+                Instantiate(prefab, transform.position, Quaternion.identity);
         }
 
         private void OnHealthChanged(float current, float previous, float max)

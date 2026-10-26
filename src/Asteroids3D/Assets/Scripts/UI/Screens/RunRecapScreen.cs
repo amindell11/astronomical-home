@@ -12,7 +12,7 @@ namespace UI.Screens
     /// <summary>
     /// The recap's uGUI: the sector or run card and, for a run outcome, its banner, built at rest for a
     /// <see cref="RecapOutcomeContext"/>. It draws whatever <see cref="RecapState"/> it is handed and
-    /// drives no time of its own; a <see cref="RecapPresenter"/> applies the states.
+    /// drives no time of its own; playback or animation inspection applies its states.
     /// </summary>
     public sealed class RunRecapScreen : MonoBehaviour
     {

@@ -58,8 +58,7 @@ namespace Game.Preview
         }
         public RecapOutcomeContext Context => sequence.Context;
 
-        public bool Busy => shownSpan == 0 && sequence.Context.Outcome == RecapOutcome.Defeat
-                                           && rig.Player.VisualRig.DeathEffectsPlaying;
+        public bool Busy => false;
 
         public PreviewSpan Span(int index)
         {
@@ -83,7 +82,7 @@ namespace Game.Preview
             if (!rig.Player.gameObject.activeInHierarchy) units.RespawnShip(rig.Player.Id, PlayerPoint(), 0f);
             sequence = new RecapOutcomeSequence(feel, context);
             screen = RunRecapScreen.Create(uiRoot, context);
-            presenter = new RecapPresenter(screen, rig.Overlay, units.ActiveRegistry.ActiveShips, observer);
+            presenter = new RecapPresenter(context, rig.Overlay, units.ActiveRegistry.ActiveShips, observer);
             shownSpan = -1;
         }
 
@@ -93,6 +92,7 @@ namespace Game.Preview
             shownSpan = span;
             var state = sequence.StateAt(span, seconds);
             presenter.Apply(state);
+            screen.Apply(state);
             freezeSimulation(state.SimulationFrozen);
         }
 

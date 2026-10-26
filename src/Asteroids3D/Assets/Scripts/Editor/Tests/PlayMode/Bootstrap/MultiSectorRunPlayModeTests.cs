@@ -6,6 +6,7 @@ using Cameras;
 using Game;
 using Game.Runs;
 using NUnit.Framework;
+using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
@@ -34,6 +35,7 @@ namespace Tests.PlayMode.Bootstrap
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
+        private readonly InputTestFixture input = new();
         private GameObject hostGo;
         private GameHost host;
         private GameObject[] templates;
@@ -42,6 +44,7 @@ namespace Tests.PlayMode.Bootstrap
 
         public override void SetUp()
         {
+            input.Setup();
             base.SetUp();
             dir = Path.Combine(Path.GetTempPath(), "multi-sector-run-" + Guid.NewGuid().ToString("N"));
             recordPath = Path.Combine(dir, "run-records.jsonl");
@@ -55,6 +58,7 @@ namespace Tests.PlayMode.Bootstrap
                 foreach (var template in templates) DestroyTestObject(template);
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
             base.TearDown();
+            input.TearDown();
         }
 
         [UnityTest]
@@ -154,57 +158,66 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
-        public IEnumerator Death_FadesHudAndFinishesEffectsBeforePausing_ThenRestoresTheNextRun()
+        public IEnumerator Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun()
         {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true);
             var observer = hostGo.GetComponentInChildren<ObserverCam>();
-            // An isolated input fixture, so editor focus and real devices cannot swallow the press.
-            var input = new InputTestFixture();
-            input.Setup();
-            var keyboard = InputSystem.AddDevice<Keyboard>();
-            try
-            {
-                TestDamage.Kill(rig.Player);
-                yield return null;
-                var cameraPosition = observer.transform.position;
-                Assert.IsTrue(rig.Player.VisualRig.DeathEffectsPlaying, "the real death effects started");
-                yield return new WaitForSecondsRealtime(.4f);
-                Assert.AreEqual(0f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
-                Assert.IsFalse(observer.enabled);
-                Assert.AreEqual(cameraPosition, observer.transform.position);
-                Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
-                Assert.IsFalse(RecapShowing(), "nothing of the recap shows while the explosion plays");
-                var deadline = Time.realtimeSinceStartup + 15f;
-                while (rig.Player.VisualRig.DeathEffectsPlaying && Time.realtimeSinceStartup < deadline)
-                {
-                    Assert.AreEqual(1f, Time.timeScale);
-                    Assert.IsFalse(RecapShowing());
-                    yield return null;
-                }
-                Assert.IsFalse(rig.Player.VisualRig.DeathEffectsPlaying);
-                yield return WaitFor(() => Time.timeScale == 0f, "the recap pauses play once the effects end");
-                var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-                Assert.IsTrue(recap, "death recap appears");
-                yield return new WaitForSecondsRealtime(1.2f);
-                var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
-                Assert.AreEqual(0f, details.alpha);
-                input.Press(keyboard.enterKey);
-                yield return null;
-                input.Release(keyboard.enterKey);
-                yield return WaitFor(() => details.interactable, "keypress reveals the breakdown");
-                recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
-                yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
-                    "the next run starts");
-                Assert.AreEqual(1f, Time.timeScale);
-                Assert.IsTrue(observer.enabled);
-                Assert.AreEqual(1f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
-                Assert.IsTrue(rig.Overlay.GetComponent<Canvas>().enabled);
-            }
-            finally
-            {
-                input.TearDown();
-            }
+            var units = hostGo.GetComponent<UnitService>();
+            var enemy = units.SpawnShip(TestAssets.LoadCrimsonPrefab(), null, 1,
+                rig.Player.transform.position + GamePlane.Right * 50f, GamePlane.Rotation, null);
+            observer.SetManualZoom(12f);
+            yield return new WaitForSecondsRealtime(.5f);
+            var deathPosition = rig.Player.transform.position;
+            observer.transform.position = deathPosition + GamePlane.Right * 30f - GamePlane.Normal * 10f;
+            var initialZoom = observer.Cam.orthographicSize;
+            TestDamage.Kill(rig.Player);
+            yield return null;
+            yield return new WaitForSecondsRealtime(.4f);
+            Assert.AreEqual(0f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
+            Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                GamePlane.WorldPointToPlane(deathPosition)), 9f, "the camera moves onto the death location");
+            Assert.AreEqual(1f, Time.timeScale, "the explosion keeps simulating");
+            Assert.IsFalse(RecapShowing(), "the explosion gets an unobstructed beat");
+            yield return AsyncAssert.WaitUntil(RecapShowing, 1.1f, "the banner starts before particle cleanup ends");
+            var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
+            yield return new WaitForSecondsRealtime(host.recapFeel.BannerInSeconds + .1f);
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.AreEqual(initialZoom, observer.Cam.orthographicSize, .1f);
+            Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                GamePlane.WorldPointToPlane(deathPosition)), .1f);
+            enemy.Body.linearVelocity = GamePlane.Right * 10f;
+            var enemyPosition = enemy.transform.position;
+            yield return new WaitForSecondsRealtime(.25f);
+            Assert.Greater(Vector3.Distance(enemyPosition, enemy.transform.position), .5f,
+                "surviving ships keep flying behind the banner");
+            var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            Assert.AreEqual(0f, details.alpha);
+            input.Press(keyboard.enterKey);
+            yield return null;
+            input.Release(keyboard.enterKey);
+            yield return AsyncAssert.WaitUntil(() => details.interactable, 1f, "the tuned transition reveals the breakdown");
+            Assert.IsFalse(recap.Continued, "the advancing press does not submit the result");
+            Assert.AreEqual(1f, Time.timeScale);
+            enemy.Body.linearVelocity = GamePlane.Right * 10f;
+            enemyPosition = enemy.transform.position;
+            yield return new WaitForSecondsRealtime(.25f);
+            Assert.Greater(Vector3.Distance(enemyPosition, enemy.transform.position), .5f,
+                "surviving ships keep flying behind the breakdown");
+            TestDamage.Kill(enemy);
+            observer.transform.position += GamePlane.Right * 5f;
+            yield return new WaitForSecondsRealtime(.5f);
+            Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
+                GamePlane.WorldPointToPlane(deathPosition)), .1f, "death framing works without active subjects");
+            recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
+                "the next run starts");
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.IsTrue(observer.enabled);
+            Assert.AreEqual(12f, observer.ManualZoom);
+            Assert.AreEqual(1f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
+            Assert.IsTrue(rig.Overlay.GetComponent<Canvas>().enabled);
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false)

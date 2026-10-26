@@ -26,6 +26,8 @@ namespace Tests.PlayMode.Screens
         private RecapFeelProfile feel;
         private float timeScale;
         private Keyboard keyboard;
+        private GameObject playbackOwner;
+        private RecapFeelProfile instantFeel;
 
         public override void Setup()
         {
@@ -39,19 +41,19 @@ namespace Tests.PlayMode.Screens
         public override void TearDown()
         {
             if (screen) Object.Destroy(screen.gameObject);
+            if (playbackOwner) Object.Destroy(playbackOwner);
+            if (instantFeel) Object.Destroy(instantFeel);
             Time.timeScale = timeScale;
             base.TearDown();
         }
 
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
 
-        // The screen alone on the game's playback: real clock, real input, no death effects.
-        private void Play(RecapOutcomeContext context)
+        private void Play(RecapOutcomeContext context, RecapFeelProfile profile = null)
         {
             screen = RunRecapScreen.Create(null, context);
-            var presenter = new RecapPresenter(screen, null, null, null);
-            screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(feel, context), presenter.Apply,
-                () => false, () => screen.Continued));
+            screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(profile ? profile : feel, context),
+                screen.Apply, () => screen.Continued));
         }
 
         [Test]
@@ -127,7 +129,8 @@ namespace Tests.PlayMode.Screens
             button.OnSubmit(null);
             Assert.IsFalse(screen.Continued, "the opening outcome cannot dismiss the recap");
             Assert.AreEqual(0f, intro.GetComponent<CanvasGroup>().alpha);
-            yield return new WaitForSecondsRealtime(1.2f);
+            var revealDelay = victory ? feel.HudFadeSeconds : Mathf.Max(feel.HudFadeSeconds, feel.DeathRevealDelaySeconds);
+            yield return new WaitForSecondsRealtime(revealDelay + feel.BannerInSeconds + .1f);
             Assert.AreEqual(1f, intro.GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual(0f, details.alpha, "a combat key held through the banner cannot advance it");
             Release(keyboard.wKey);
@@ -140,10 +143,13 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(0f, details.alpha, "releasing the held key does not advance the banner");
             Press(keyboard.spaceKey);
             yield return null;
+            yield return new WaitForSecondsRealtime(feel.BannerOutSeconds + feel.GapSeconds + feel.BreakdownInSeconds + .1f);
+            Assert.AreEqual(1f, details.alpha, "the configured transition completes even while the key stays held");
+            Assert.IsFalse(details.interactable, "the advancing press cannot also submit Continue");
+            button.OnSubmit(null);
+            Assert.IsFalse(screen.Continued);
             Release(keyboard.spaceKey);
-            yield return new WaitForSecondsRealtime(.85f);
-            Assert.AreEqual(0f, details.alpha, "the banner fades out before the breakdown begins");
-            var deadline = Time.realtimeSinceStartup + 3f;
+            var deadline = Time.realtimeSinceStartup + .3f;
             while (!details.interactable && Time.realtimeSinceStartup < deadline) yield return null;
             yield return null;
             Assert.IsFalse(intro.gameObject.activeSelf, "the outcome fades away even while gameplay is paused");
@@ -175,6 +181,86 @@ namespace Tests.PlayMode.Screens
             Assert.IsNull(screen.transform.Find("Panels/Recap/Time"));
             button.OnSubmit(null);
             Assert.IsTrue(screen.Continued);
+        }
+
+        [UnityTest]
+        public IEnumerator ZeroDurationReveal_ShowsTheCardBeforeRelease_WithoutSubmittingContinue()
+        {
+            instantFeel = Object.Instantiate(feel);
+            var properties = new SerializedObject(instantFeel);
+            foreach (var field in new[] { "hudFadeSeconds", "bannerInSeconds", "bannerOutSeconds", "gapSeconds", "breakdownInSeconds" })
+                properties.FindProperty(field).floatValue = 0f;
+            properties.ApplyModifiedPropertiesWithoutUndo();
+            Play(RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3,
+                new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(3, 0, 60f, DateTime.UtcNow))), instantFeel);
+            yield return null;
+            Press(keyboard.enterKey);
+            yield return null;
+            yield return null;
+            var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            Assert.AreEqual(1f, details.alpha);
+            Assert.IsFalse(details.interactable);
+            Assert.IsFalse(screen.Continued);
+            Release(keyboard.enterKey);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(details.interactable);
+            Assert.IsFalse(screen.Continued);
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractionScreenOnly_KeepsTheClockAndCompletesOnce()
+        {
+            var context = RecapOutcomeContext.Extraction(new[] { "Valis" }, 1, 42f);
+            playbackOwner = new GameObject("PlaybackOwner");
+            var runner = playbackOwner.AddComponent<RunRecapScreen>();
+            var completed = 0;
+            Time.timeScale = .65f;
+            IEnumerator ShowCard()
+            {
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform);
+                completed++;
+            }
+            runner.StartCoroutine(ShowCard());
+            yield return null;
+            screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.AreEqual(.65f, Time.timeScale);
+            Assert.AreEqual(0, completed, "cruise waits for the real card's Continue");
+            screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().OnSubmit(null);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, completed);
+            Assert.IsFalse(screen, "completion destroys the owned screen");
+            Assert.AreEqual(.65f, Time.timeScale);
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationDuringThePressHold_DisposesInputAndTheScreen()
+        {
+            var context = RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3,
+                new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(3, 0, 60f, DateTime.UtcNow)));
+            playbackOwner = new GameObject("PlaybackOwner");
+            var runner = playbackOwner.AddComponent<RunRecapScreen>();
+            var cancelled = false;
+            var completed = false;
+            IEnumerator ShowCard()
+            {
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform,
+                    cancelled: () => cancelled);
+                completed = true;
+            }
+            var actionsBefore = InputSystem.ListEnabledActions().Count;
+            runner.StartCoroutine(ShowCard());
+            yield return new WaitForSecondsRealtime(feel.HudFadeSeconds + feel.BannerInSeconds + .1f);
+            screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
+            Assert.Greater(InputSystem.ListEnabledActions().Count, actionsBefore, "the banner is listening for input");
+            cancelled = true;
+            yield return null;
+            yield return null;
+            Assert.IsTrue(completed);
+            Assert.IsFalse(screen);
+            Assert.AreEqual(actionsBefore, InputSystem.ListEnabledActions().Count);
         }
 
         [UnityTest]

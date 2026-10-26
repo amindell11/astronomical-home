@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: RecapFeel
   m_EditorClassIdentifier:
   hudFadeSeconds: 0.3
+  deathRevealDelaySeconds: 1
   bannerInSeconds: 0.8
-  bannerOutSeconds: 0.7
-  gapSeconds: 0.3
-  breakdownInSeconds: 0.8
+  bannerOutSeconds: 0.2
+  gapSeconds: 0
+  breakdownInSeconds: 0.4

@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Tests.EditMode.Screens
 {
-    /// <summary>The recap sequence as a pure function: spans, holds, pause points and fade curves, read off the shipped feel asset.</summary>
     [Category("UI")]
     public class RecapOutcomeSequenceEditModeTests
     {
@@ -28,14 +27,15 @@ namespace Tests.EditMode.Screens
         public void TheShippedProfile_CarriesTheSequenceTimings()
         {
             Assert.AreEqual(.3f, feel.HudFadeSeconds);
+            Assert.AreEqual(1f, feel.DeathRevealDelaySeconds);
             Assert.AreEqual(.8f, feel.BannerInSeconds);
-            Assert.AreEqual(.7f, feel.BannerOutSeconds);
-            Assert.AreEqual(.3f, feel.GapSeconds);
-            Assert.AreEqual(.8f, feel.BreakdownInSeconds);
+            Assert.AreEqual(.2f, feel.BannerOutSeconds);
+            Assert.AreEqual(0f, feel.GapSeconds);
+            Assert.AreEqual(.4f, feel.BreakdownInSeconds);
         }
 
         [Test]
-        public void AnOutcome_RunsSevenSpans_HeldByEffectsAPressAndContinue()
+        public void AnOutcome_WaitsForAPressItsReleaseAndContinue()
         {
             var defeat = new RecapOutcomeSequence(feel, RecapOutcomeContext.Defeat(new[] { "Crimson" }, 1, 3, Board, Vector2.zero));
             var victory = new RecapOutcomeSequence(feel, RecapOutcomeContext.Victory(new[] { "Crimson" }, 3, 3, Board));
@@ -43,9 +43,11 @@ namespace Tests.EditMode.Screens
             CollectionAssert.AreEqual(
                 new[] { RecapPhase.HudFade, RecapPhase.BannerIn, RecapPhase.BannerHold, RecapPhase.BannerOut, RecapPhase.Gap, RecapPhase.BreakdownIn, RecapPhase.Breakdown },
                 Phases(defeat));
-            Assert.AreEqual(RecapHold.DeathEffects, defeat.Span(0).Hold, "a defeat's HUD fade waits for the explosion");
+            Assert.AreEqual(RecapHold.None, defeat.Span(0).Hold, "particle cleanup must not delay the banner");
+            Assert.AreEqual(1f, defeat.Span(0).Seconds, "the death reveal has a bounded delay");
             Assert.AreEqual(RecapHold.None, victory.Span(0).Hold, "a victory's HUD fade waits for nothing");
             Assert.AreEqual(RecapHold.Press, victory.Span(2).Hold);
+            Assert.AreEqual(RecapHold.Release, victory.Span(5).Hold);
             Assert.AreEqual(RecapHold.Continue, victory.Span(6).Hold);
             Assert.AreEqual(.3f, victory.Span(0).Seconds);
             Assert.AreEqual(0f, victory.Span(2).Seconds, "a hold has no timed part");
@@ -69,7 +71,8 @@ namespace Tests.EditMode.Screens
             Assert.AreEqual(half.HudAlpha, half.ShipHudAlpha);
             Assert.AreEqual(0f, defeat.StateAt(0, .3f).HudAlpha);
             Assert.AreEqual(0f, defeat.StateAt(0, 5f).HudAlpha, "the hold keeps the faded state");
-            Assert.IsTrue(defeat.StateAt(1, 0f).SimulationFrozen, "the banner pauses play");
+            for (var i = 0; i < defeat.SpanCount; i++)
+                Assert.IsFalse(defeat.StateAt(i, 0f).SimulationFrozen, "survivors keep flying in every defeat phase");
         }
 
         [Test]
@@ -87,11 +90,11 @@ namespace Tests.EditMode.Screens
             Assert.AreEqual(0f, hold.BreakdownAlpha);
             Assert.IsFalse(hold.BreakdownInteractable);
 
-            Assert.AreEqual(.5f, sequence.StateAt(3, .35f).BannerAlpha, 1e-5f);
+            Assert.AreEqual(.5f, sequence.StateAt(3, .1f).BannerAlpha, 1e-5f);
             Assert.IsFalse(sequence.StateAt(3, 0f).BannerPrompt, "the prompt goes with the press");
             Assert.AreEqual(0f, sequence.StateAt(4, .1f).BannerAlpha);
             Assert.AreEqual(0f, sequence.StateAt(4, .1f).BreakdownAlpha, "nothing shows in the gap");
-            Assert.AreEqual(.5f, sequence.StateAt(5, .4f).BreakdownAlpha, 1e-5f);
+            Assert.AreEqual(.5f, sequence.StateAt(5, .2f).BreakdownAlpha, 1e-5f);
             Assert.IsFalse(sequence.StateAt(5, .8f).BreakdownInteractable);
 
             var card = sequence.StateAt(6, 0f);

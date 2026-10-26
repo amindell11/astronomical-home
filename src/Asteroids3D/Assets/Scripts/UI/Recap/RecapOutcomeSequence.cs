@@ -6,7 +6,7 @@ namespace UI.Recap
     public enum RecapPhase { HudFade, BannerIn, BannerHold, BannerOut, Gap, BreakdownIn, Breakdown }
 
     /// <summary>What ends a span once its timed part is over.</summary>
-    public enum RecapHold { None, DeathEffects, Press, Continue }
+    public enum RecapHold { None, Press, Release, Continue }
 
     public readonly struct RecapSpan
     {
@@ -60,13 +60,14 @@ namespace UI.Recap
             var phase = phases[index];
             return phase switch
             {
-                RecapPhase.HudFade => new RecapSpan(phase, feel.HudFadeSeconds,
-                    Context.Outcome == RecapOutcome.Defeat ? RecapHold.DeathEffects : RecapHold.None),
+                RecapPhase.HudFade => new RecapSpan(phase, Context.Outcome == RecapOutcome.Defeat
+                    ? Mathf.Max(feel.HudFadeSeconds, feel.DeathRevealDelaySeconds) : feel.HudFadeSeconds,
+                    RecapHold.None),
                 RecapPhase.BannerIn => new RecapSpan(phase, feel.BannerInSeconds, RecapHold.None),
                 RecapPhase.BannerHold => new RecapSpan(phase, 0f, RecapHold.Press),
                 RecapPhase.BannerOut => new RecapSpan(phase, feel.BannerOutSeconds, RecapHold.None),
                 RecapPhase.Gap => new RecapSpan(phase, feel.GapSeconds, RecapHold.None),
-                RecapPhase.BreakdownIn => new RecapSpan(phase, feel.BreakdownInSeconds, RecapHold.None),
+                RecapPhase.BreakdownIn => new RecapSpan(phase, feel.BreakdownInSeconds, RecapHold.Release),
                 RecapPhase.Breakdown => new RecapSpan(phase, 0f, RecapHold.Continue),
                 _ => throw new ArgumentOutOfRangeException(nameof(index), phase, "Unknown recap phase."),
             };
@@ -80,18 +81,18 @@ namespace UI.Recap
             if (Context.Outcome == RecapOutcome.Extraction)
                 return new RecapState(span.Phase, 0f, 1f, false, true, 0f, false, 1f, true);
 
-            var hud = span.Phase == RecapPhase.HudFade ? 1f - Smoother(t) : 0f;
-            // Victory pauses play before the HUD fades; a defeat lets the explosion finish first.
-            var frozen = Context.Outcome == RecapOutcome.Victory || span.Phase != RecapPhase.HudFade;
+            var hud = span.Phase == RecapPhase.HudFade
+                ? 1f - Smoother(Progress(seconds, feel.HudFadeSeconds)) : 0f;
+            var frozen = Context.Outcome == RecapOutcome.Victory;
             return span.Phase switch
             {
                 RecapPhase.HudFade => new RecapState(span.Phase, hud, hud, true, frozen, 0f, false, 0f, false),
-                RecapPhase.BannerIn => new RecapState(span.Phase, 0f, 0f, true, true, Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
-                RecapPhase.BannerHold => new RecapState(span.Phase, 0f, 0f, true, true, 1f, true, 0f, false),
-                RecapPhase.BannerOut => new RecapState(span.Phase, 0f, 0f, true, true, 1f - Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
-                RecapPhase.Gap => new RecapState(span.Phase, 0f, 0f, true, true, 0f, false, 0f, false),
-                RecapPhase.BreakdownIn => new RecapState(span.Phase, 0f, 0f, true, true, 0f, false, Mathf.SmoothStep(0f, 1f, t), false),
-                RecapPhase.Breakdown => new RecapState(span.Phase, 0f, 0f, true, true, 0f, false, 1f, true),
+                RecapPhase.BannerIn => new RecapState(span.Phase, 0f, 0f, true, frozen, Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
+                RecapPhase.BannerHold => new RecapState(span.Phase, 0f, 0f, true, frozen, 1f, true, 0f, false),
+                RecapPhase.BannerOut => new RecapState(span.Phase, 0f, 0f, true, frozen, 1f - Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
+                RecapPhase.Gap => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, 0f, false),
+                RecapPhase.BreakdownIn => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, Mathf.SmoothStep(0f, 1f, t), false),
+                RecapPhase.Breakdown => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, 1f, true),
                 _ => throw new ArgumentOutOfRangeException(nameof(index), span.Phase, "Unknown recap phase."),
             };
         }

@@ -16,7 +16,6 @@ using UI.Recap;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
@@ -26,8 +25,8 @@ namespace Game
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
-    /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
-    /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
+    /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
+    /// Presentation is read once alongside the session's snapshot.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -95,6 +94,7 @@ namespace Game
 
         private RunRecordStore runRecords;
         private DamageInfo lastKillingBlow;
+        private Vector2 deathPosition;
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
@@ -299,6 +299,7 @@ namespace Game
                     {
                         EndRun();
                         lastKillingBlow = killingBlow;
+                        deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
                     };
                 case PlayerDeathBehavior.None:
@@ -365,31 +366,25 @@ namespace Game
             var kills = rigInstance.Spawns.KilledShips();
             var count = sessionProfile.sectors.Length;
             return playerDied
-                ? RecapOutcomeContext.Defeat(kills, index, count, board,
-                    GamePlane.WorldPointToPlane(rigInstance.Player.transform.position))
+                ? RecapOutcomeContext.Defeat(kills, index, count, board, deathPosition)
                 : RecapOutcomeContext.Victory(kills, index + 1, count, board);
         }
 
-        // The sequence decides what shows and when play freezes; the host owns clock, screen, restore.
         private IEnumerator RunRecap(RecapOutcomeContext context)
         {
             var sequence = new RecapOutcomeSequence(recapFeel, context);
-            var screen = RunRecapScreen.Create(ui, context);
-            var presenter = new RecapPresenter(screen, rigInstance.Overlay, session.Units.ActiveRegistry.ActiveShips,
+            var presenter = new RecapPresenter(context, rigInstance.Overlay, session.Units.ActiveRegistry.ActiveShips,
                 observer);
             try
             {
-                yield return RecapPlayback.Run(sequence, state =>
+                yield return RecapPlayback.RunScreen(sequence, ui, state =>
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);
-                    },
-                    () => rigInstance.Player.VisualRig.DeathEffectsPlaying,
-                    () => screen.Continued);
+                    });
             }
             finally
             {
-                Destroy(screen.gameObject);
                 RestoreRecapClock();
                 presenter.Restore();
             }

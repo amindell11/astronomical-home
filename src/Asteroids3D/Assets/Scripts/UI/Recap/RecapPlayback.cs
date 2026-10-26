@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UI.Screens;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,14 +8,34 @@ namespace UI.Recap
 {
     /// <summary>
     /// The game's playback of a recap sequence: timed spans advance on the unscaled clock a frame at a
-    /// time, and a hold waits on what releases it, the player's death effects, a fresh press, Continue.
+    /// time, and input holds consume a fresh press and its release before enabling Continue.
+    /// RunScreen owns only the screen; callers supply any world presentation and clock changes.
     /// </summary>
     public static class RecapPlayback
     {
-        // Continue invoked early ends the playback at once, as the old recap did.
-        public static IEnumerator Run(RecapOutcomeSequence sequence, Action<RecapState> apply,
-            Func<bool> deathEffectsPlaying, Func<bool> continued)
+        public static IEnumerator RunScreen(RecapOutcomeSequence sequence, Transform parent,
+            Action<RecapState> applyWorld = null, Func<bool> cancelled = null)
         {
+            var screen = RunRecapScreen.Create(parent, sequence.Context);
+            try
+            {
+                yield return Run(sequence, state =>
+                {
+                    screen.Apply(state);
+                    applyWorld?.Invoke(state);
+                }, () => screen.Continued || cancelled?.Invoke() == true);
+            }
+            finally { UnityEngine.Object.Destroy(screen.gameObject); }
+        }
+
+        public static IEnumerator Run(RecapOutcomeSequence sequence, Action<RecapState> apply,
+            Func<bool> continued)
+        {
+            using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
+            advance.AddBinding("<Mouse>/leftButton");
+            advance.AddBinding("<Gamepad>/buttonSouth");
+            var requested = false;
+            advance.performed += _ => requested = true;
             for (var i = 0; i < sequence.SpanCount && !continued(); i++)
             {
                 var span = sequence.Span(i);
@@ -28,11 +49,13 @@ namespace UI.Recap
                 apply(held);
                 switch (span.Hold)
                 {
-                    case RecapHold.DeathEffects:
-                        yield return Hold(held, apply, () => !deathEffectsPlaying() || continued());
-                        break;
                     case RecapHold.Press:
-                        yield return WaitForPress(held, apply, continued);
+                        advance.Enable();
+                        yield return Hold(held, apply, () => requested || continued());
+                        break;
+                    case RecapHold.Release:
+                        yield return Hold(held, apply, () => !advance.IsPressed() || continued());
+                        advance.Disable();
                         break;
                     case RecapHold.Continue:
                         yield return Hold(held, apply, continued);
@@ -41,7 +64,7 @@ namespace UI.Recap
             }
         }
 
-        // Reapplied every frame: a ship spawned mid-hold gets the held state too.
+        // Newly spawned ships receive the held presentation state too.
         private static IEnumerator Hold(RecapState held, Action<RecapState> apply, Func<bool> released)
         {
             while (!released())
@@ -49,19 +72,6 @@ namespace UI.Recap
                 apply(held);
                 yield return null;
             }
-        }
-
-        // A key held from before the banner reads unpressed until pressed afresh (no initial state check).
-        private static IEnumerator WaitForPress(RecapState held, Action<RecapState> apply, Func<bool> continued)
-        {
-            using var advance = new InputAction("Continue", InputActionType.Button, "<Keyboard>/anyKey");
-            advance.AddBinding("<Mouse>/leftButton");
-            advance.AddBinding("<Gamepad>/buttonSouth");
-            var requested = false;
-            advance.performed += _ => requested = true;
-            advance.Enable();
-            yield return Hold(held, apply, () => requested || continued());
-            advance.Disable();
         }
     }
 }
