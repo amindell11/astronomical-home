@@ -10,6 +10,10 @@ namespace Game.Travel
         private readonly Vector2 jumpDirection;
         private readonly float holdSpeed;
         private readonly float tripDistance;
+        private readonly float holdDistance;
+        private readonly float exitDuration;
+        private readonly float remainingTravel;
+        private readonly float arrival;
 
         public float HoldStartsAt { get; }
 
@@ -22,21 +26,33 @@ namespace Game.Travel
             jumpDirection = new Vector2(-Mathf.Sin(direction), Mathf.Cos(direction));
             HoldStartsAt = profile.turnDuration + profile.chargeDuration + profile.travelDuration * 0.5f;
             holdSpeed = sequence.StateAt(HoldStartsAt, headingDelta).Speed;
+            holdDistance = sequence.StateAt(HoldStartsAt, headingDelta).Distance;
             tripDistance = sequence.StateAt(sequence.Duration, headingDelta).Distance;
+            exitDuration = profile.worldBlendDuration;
+            remainingTravel = profile.travelDuration * 0.5f;
+            arrival = profile.turnDuration + profile.chargeDuration + profile.travelDuration;
         }
 
-        public float DurationWithHold(float holdSeconds) => sequence.Duration + holdSeconds;
+        public float DurationWithHold(float holdSeconds) =>
+            sequence.Duration - remainingTravel + exitDuration + holdSeconds;
+
+        public float ExitStartsAt(float holdSeconds) => HoldStartsAt + holdSeconds;
+
+        public float ExitProgress(float elapsedSeconds, float holdSeconds) =>
+            Mathf.Clamp01((elapsedSeconds - ExitStartsAt(holdSeconds)) / exitDuration);
 
         public SectorJumpState StateAt(float elapsedSeconds, float holdSeconds)
         {
             var time = Mathf.Clamp(elapsedSeconds, 0f, DurationWithHold(holdSeconds));
             var held = Mathf.Clamp(time - HoldStartsAt, 0f, holdSeconds);
-            var sequenceTime = time <= HoldStartsAt ? time :
-                HoldStartsAt + Mathf.Max(0f, time - HoldStartsAt - holdSeconds);
+            var exitTime = Mathf.Max(0f, time - ExitStartsAt(holdSeconds));
+            var sequenceTime = time <= HoldStartsAt ? time : exitTime < exitDuration
+                ? HoldStartsAt + exitTime * remainingTravel / exitDuration
+                : arrival + exitTime - exitDuration;
             var state = sequence.StateAt(sequenceTime, headingDelta);
-            var distance = state.Distance + held * holdSpeed;
-            var blend = state.TravelProgress <= 0.5f ? 0f :
-                sequence.LocaleBlendAt((state.TravelProgress - 0.5f) * 2f);
+            var distance = (time <= HoldStartsAt ? state.Distance : holdDistance +
+                (state.Distance - holdDistance) * exitDuration / remainingTravel) + held * holdSpeed;
+            var blend = sequence.LocaleBlendAt(Mathf.Clamp01((time - HoldStartsAt) / exitDuration));
             return new SectorJumpState(time, state.TravelProgress, distance / tripDistance,
                 state.Speed, distance, startingHeading + state.HeadingDegrees, jumpDirection,
                 blend, state.Charge, state.HudAlpha, state.ShipBlurStrength, state.ShipBlurLength);

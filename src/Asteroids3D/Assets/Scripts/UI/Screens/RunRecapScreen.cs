@@ -77,6 +77,8 @@ namespace UI.Screens
                 TextAnchor.MiddleRight);
             continueButton = Continue(panel, "NEXT SECTOR", 324f);
             breakdown = panel.gameObject.AddComponent<CanvasGroup>();
+            breakdown.alpha = 0f;
+            breakdown.interactable = breakdown.blocksRaycasts = false;
         }
 
         private void BuildRun(RecapOutcomeContext context)

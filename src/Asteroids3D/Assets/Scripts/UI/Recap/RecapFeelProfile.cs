@@ -27,11 +27,15 @@ namespace UI.Recap
         [Tooltip("Seconds the breakdown card takes to fade in.")]
         [SerializeField, Min(0f)] private float breakdownInSeconds = .8f;
 
+        [Tooltip("Seconds the extraction card takes to fade out after Continue.")]
+        [SerializeField, Min(0f)] private float breakdownOutSeconds = .25f;
+
         public float HudFadeSeconds => hudFadeSeconds;
         public float DeathRevealDelaySeconds => deathRevealDelaySeconds;
         public float BannerInSeconds => bannerInSeconds;
         public float BannerOutSeconds => bannerOutSeconds;
         public float GapSeconds => gapSeconds;
         public float BreakdownInSeconds => breakdownInSeconds;
+        public float BreakdownOutSeconds => breakdownOutSeconds;
     }
 }

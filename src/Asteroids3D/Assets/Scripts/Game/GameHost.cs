@@ -326,11 +326,15 @@ namespace Game
                 jump.BindBackdrop(ui, backdrop);
                 while (!jump.Holding && !shutdownRequested) yield return null;
             }
+            Coroutine recap = null;
+            var destinationReady = false;
             if (!shutdownRequested)
             {
                 PauseRecapClock();
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
-                    cancelled: () => shutdownRequested);
+                recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                    cancelled: () => shutdownRequested,
+                    ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
+                    onContinue: () => jump.ResumeArrival()));
             }
             if (!shutdownRequested)
             {
@@ -339,10 +343,11 @@ namespace Game
                 rigInstance.Spawns.BeginSector();
                 yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
                 rigInstance.Player.Damage.Health.SetFraction(hull);
+                destinationReady = true;
             }
+            if (recap != null) yield return recap;
             if (!shutdownRequested)
             {
-                jump.ResumeArrival();
                 while (!jump.Complete && !shutdownRequested) yield return null;
             }
             jump.Release(!shutdownRequested);

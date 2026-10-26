@@ -42,8 +42,7 @@ namespace Game.Travel
 
         public SectorJumpState State { get; private set; }
         public bool Holding => !resumed && elapsed >= passage.HoldStartsAt;
-        public bool Complete => resumed && elapsed >= Mathf.Max(passage.DurationWithHold(held),
-            held + profile.turnDuration + profile.chargeDuration + profile.travelDuration + profile.worldBlendDuration);
+        public bool Complete => resumed && elapsed >= passage.DurationWithHold(held);
         public float ArrivalSpeed => ship.MaxSpeed * profile.arrivalSpeedFraction;
 
         public static SectorJumpFlight Begin(Transform parent, PlayerRig rig, IUnitService units,
@@ -106,6 +105,7 @@ namespace Game.Travel
             Protect();
             arrivalPosition = ship.Body.position;
             transferred = true;
+            observer.enabled = observerEnabled;
         }
 
         public void BindBackdrop(Transform ui, LocaleBackdropPair backdrop)
@@ -130,12 +130,11 @@ namespace Game.Travel
             if (!resumed) held = Mathf.Max(0f, elapsed - passage.HoldStartsAt);
             State = passage.StateAt(elapsed, held);
             var sequenceTime = elapsed - held;
-            var arrival = departure + profile.travelDuration;
             Vector3 position;
             if (transferred)
             {
                 position = arrivalPosition + GamePlane.PlaneDirToWorld(State.JumpDirection) *
-                    (ArrivalSpeed * Mathf.Max(0f, sequenceTime - arrival));
+                    (ArrivalSpeed * Mathf.Max(0f, elapsed - passage.ExitStartsAt(held)));
             }
             else
             {
@@ -158,7 +157,7 @@ namespace Game.Travel
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(State.HudAlpha);
             if (!presentation) return;
             var blend = SectorJumpProfile.Ease((sequenceTime - departure) / profile.worldBlendDuration) *
-                (1f - SectorJumpProfile.Ease((sequenceTime - arrival) / profile.worldBlendDuration));
+                (1f - SectorJumpProfile.Ease(passage.ExitProgress(elapsed, held)));
             presentation.SetWorldBlend(blend);
             presentation.Apply(profile, State, 1099, false,
                 Vector3.Lerp(startPosition, arrivalPosition, State.LocaleBlend));

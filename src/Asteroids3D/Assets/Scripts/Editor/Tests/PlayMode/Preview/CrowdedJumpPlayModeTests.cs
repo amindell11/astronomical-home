@@ -149,13 +149,14 @@ namespace Tests.PlayMode.Preview
             Assert.That(game.Jump, Is.SameAs(flight));
             Assert.That(flight.Holding, Is.True);
             Assert.That(flight.State.Distance, Is.GreaterThan(distance));
-            Assert.That(flight.State.LocaleBlend, Is.Zero);
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+            Assert.That(flight.State.LocaleBlend, Is.EqualTo(1f));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_1"));
             AssertProtected(player);
 
             var recap = game.GetComponentInChildren<RunRecapScreen>();
             yield return ClickContinue(recap);
             yield return AsyncAssert.WaitUntil(() => !game.Jump, 30f, "travel finishes after Continue");
+            yield return null;
             Assert.That(rig.Player, Is.SameAs(player));
             Assert.That(player.Damage.Health.CurrentValue, Is.EqualTo(hull).Within(.001f));
             Assert.That(Vector3.Dot(player.Body.linearVelocity, direction), Is.GreaterThan(1f));
@@ -171,6 +172,49 @@ namespace Tests.PlayMode.Preview
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_1"));
             yield return AsyncAssert.WaitUntil(() => !SceneManager.GetSceneByName("Locale_3").isLoaded,
                 15f, "the outgoing locale unloads after arrival");
+        }
+
+        [UnityTest]
+        public IEnumerator Handoff_FadesTheCard_PreparesTheDestination_AndPreservesCameraScale()
+        {
+            BuildPreview();
+            feel.travelDuration = 4f;
+            feel.worldBlendDuration = .4f;
+            yield return WaitForFlight();
+            var game = host.Playtest;
+            var observer = game.GetComponentInChildren<ObserverCam>();
+            PressJump();
+            yield return WaitForHold();
+            var recap = game.GetComponentInChildren<RunRecapScreen>();
+            var card = recap.GetComponentInChildren<CanvasGroup>();
+            var fadesIn = card.alpha < .99f;
+            yield return new WaitForSecondsRealtime(1f);
+            var prepared = game.ActiveSector.GetComponent<CrowdedJumpGateModule>() == null;
+            var blended = game.Jump.State.LocaleBlend;
+            var strayLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None)
+                .Where(light => light.gameObject.scene.name == "Locale_3" && light.enabled).ToArray();
+            var clickedAt = Time.realtimeSinceStartup;
+            yield return ClickContinue(recap);
+            var fadesOut = false;
+            var sizeBeforeRelease = observer.Cam.orthographicSize;
+            while (game.Jump && Time.realtimeSinceStartup - clickedAt < 10f)
+            {
+                if (card && card.alpha > 0f && card.alpha < .99f) fadesOut = true;
+                sizeBeforeRelease = observer.Cam.orthographicSize;
+                yield return null;
+            }
+            var exitSeconds = Time.realtimeSinceStartup - clickedAt;
+            yield return new WaitForSecondsRealtime(.4f);
+            var failures = new List<string>();
+            if (!fadesIn) failures.Add("the extraction card must start transparent");
+            if (!prepared) failures.Add("destination content must load while the card appears");
+            if (blended != 1f) failures.Add("the locale blend must complete during the hold");
+            if (strayLights.Length != 0) failures.Add("outgoing lights must not leak into the destination");
+            if (!fadesOut) failures.Add("Continue must fade the card");
+            if (exitSeconds >= 1.4f) failures.Add($"exit took {exitSeconds:F2}s after Continue");
+            if (Mathf.Abs(observer.Cam.orthographicSize - sizeBeforeRelease) > .1f)
+                failures.Add($"controls changed camera size from {sizeBeforeRelease:F2} to {observer.Cam.orthographicSize:F2}");
+            Assert.That(failures, Is.Empty, string.Join("; ", failures));
         }
 
         [UnityTest]
@@ -252,7 +296,7 @@ namespace Tests.PlayMode.Preview
         private IEnumerator ClickContinue(RunRecapScreen screen)
         {
             var button = screen.GetComponentInChildren<Button>();
-            Assert.That(button.interactable, Is.True);
+            yield return AsyncAssert.WaitUntil(button.IsInteractable, 10f, "the faded-in card is ready for Continue");
             var rect = (RectTransform)button.transform;
             Canvas.ForceUpdateCanvases();
             input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center)));

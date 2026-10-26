@@ -26,6 +26,7 @@ namespace Game.Travel
         private RenderTexture outgoing;
         private RenderTexture incoming;
         private RenderTexture hull;
+        private RenderTexture incomingHull;
         private RenderTexture composed;
         private Material material;
         private RawImage image;
@@ -72,8 +73,10 @@ namespace Game.Travel
             hullCamera = NewCamera("Jump hull camera", 1 << LayerMask.NameToLayer("ShipPreview"));
             hullCamera.backgroundColor = Color.clear;
             hull = Target("Jump live hull", 512, 512);
+            incomingHull = Target("Jump incoming hull", 512, 512);
             material = new Material(shader);
             material.SetTexture("_ShipImage", hull);
+            material.SetTexture("_ShipImageTo", incomingHull);
             var canvas = NewCanvas();
             image = new GameObject("Jump image", typeof(RectTransform)).AddComponent<RawImage>();
             image.gameObject.layer = overlay.gameObject.layer;
@@ -135,6 +138,8 @@ namespace Game.Travel
             skyCamera.orthographicSize = Mathf.Lerp(observer.Cam.orthographicSize, 12f, worldBlend);
             backdrop.Render(skyCamera, outgoing, incoming);
             RenderHull();
+            material.SetTexture("_ShipImage", reverseLocales ? incomingHull : hull);
+            material.SetTexture("_ShipImageTo", reverseLocales ? hull : incomingHull);
             material.SetTexture("_FromSky", reverseLocales ? incoming : outgoing);
             material.SetTexture("_ToSky", reverseLocales ? outgoing : incoming);
             SectorJumpShader.Apply(material, profile, state, aspect, composed.height, seed);
@@ -207,8 +212,7 @@ namespace Game.Travel
                 hullCamera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * 1.12f;
                 hullDiameter = hullCamera.orthographicSize * 2f;
                 hullCamera.aspect = 1f;
-                hullCamera.targetTexture = hull;
-                hullCamera.Render();
+                backdrop.Render(hullCamera, hull, incomingHull);
             }
             finally
             {
@@ -233,6 +237,7 @@ namespace Game.Travel
             Release(outgoing);
             Release(incoming);
             Release(hull);
+            Release(incomingHull);
             Release(composed);
             if (material) Destroy(material);
         }
