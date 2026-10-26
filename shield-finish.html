@@ -1,0 +1,229 @@
+<div id="hs-shield-finish" aria-label="Illustrated shield finish">
+  <div class="viz-controls">
+    <label class="form-label">Sequence
+      <select class="form-select" id="hb-sequence">
+        <option value="cycle">Break, recover, full</option>
+        <option value="break">Shield break</option>
+      </select>
+    </label>
+    <button class="btn" id="hb-play" type="button">Replay</button>
+    <span class="text-small tabular-nums" id="hb-clock">Paused · 3.00 s</span>
+  </div>
+  <div class="viz-dotted-background">
+    <div class="hb-scene"><canvas role="img" aria-label="The shield tears open at the hit. Recovery rebuilds the same ring along the reverse path, closing at full capacity before fading."></canvas></div>
+  </div>
+  <label class="form-label" for="hb-time">Animation time · <output id="hb-time-value" class="tabular-nums">3.00 / 6.20 s</output></label>
+  <input class="form-range" id="hb-time" type="range" min="0" max="6.2" step="0.01" value="3">
+  <div class="viz-row text-small"><span id="hb-phase" aria-live="polite">Shield recovering</span><span>Shield finish · mockup</span></div>
+</div>
+<style>
+#hs-shield-finish .hb-scene { width:100%; aspect-ratio:16/9; background:#070d20; color-scheme:dark; overflow:hidden; margin-bottom:12px; }
+#hs-shield-finish canvas { display:block; width:100%; height:100%; }
+#hs-shield-finish .viz-controls { margin-bottom:12px; }
+#hs-shield-finish .viz-row { margin-top:8px; }
+</style>
+<script>
+(() => {
+  const root=document.getElementById('hs-shield-finish');
+  const scene=root.querySelector('.hb-scene');
+  const picker=root.querySelector('#hb-sequence');
+  const button=root.querySelector('#hb-play');
+  const scrub=root.querySelector('#hb-time');
+  const output=root.querySelector('#hb-time-value');
+  const clock=root.querySelector('#hb-clock');
+  const phase=root.querySelector('#hb-phase');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const state={sequence:'cycle',time:3,crowded:true,breakDuration:0.42,weight:1};
+  const palette={shield:'#66dce9',hull:'#a8d9b5',ink:'#070c18',white:'#f5efdc'};
+  const onset=0.35,recoverAt=1.65,fullAt=4.2,fullHold=1,shipSize=76;
+  const ring={radius:shipSize*0.67,width:2.2,color:'#83bfc3',alpha:0.88,hit:-1.35,tip:'#e6eedc'};
+  const clamp=x=>Math.max(0,Math.min(1,x));
+  const ease=x=>{const p=clamp(x);return p*p*(3-2*p);};
+  let animation=0;
+  function duration(){return state.sequence==='cycle'?6.2:2;}
+  function restore(snapshot){
+    const s=snapshot?.modelContent,p=snapshot?.privateContent;
+    if(s?.revision!==3||s?.focus!=='Shield finish')return;
+    if(['break','cycle'].includes(s.sequence))state.sequence=s.sequence;
+    if(typeof p?.crowded==='boolean')state.crowded=p.crowded;
+    if(Number.isFinite(p?.breakDuration))state.breakDuration=Math.max(0.24,Math.min(0.65,p.breakDuration));
+    if(Number.isFinite(p?.weight))state.weight=Math.max(0.75,Math.min(1.5,p.weight));
+    if(Number.isFinite(p?.time))state.time=Math.max(0,Math.min(duration(),p.time));
+  }
+  function save(){
+    window.openai?.setWidgetState?.({
+      modelContent:{revision:3,focus:'Shield finish',break:'Directional tear',recovery:'Reverse rebuild',sequence:state.sequence},
+      privateContent:{crowded:state.crowded,breakDuration:state.breakDuration,weight:state.weight,time:state.time}
+    })?.catch(()=>{});
+  }
+  function line(c,points,color,width=2,alpha=1){
+    c.save();c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.beginPath();
+    points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();c.restore();
+  }
+  function arc(c,x,y,r,start,end,color,width=2,alpha=1){
+    if(alpha<=0||end<=start)return;
+    c.save();c.globalAlpha=clamp(alpha);c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';
+    c.beginPath();c.arc(x,y,r,start,end);c.stroke();c.restore();
+  }
+  function polygon(c,points,fill,stroke=palette.ink,width=2){
+    c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();
+    c.fillStyle=fill;c.fill();c.strokeStyle=stroke;c.lineWidth=width;c.stroke();
+  }
+  function background(c){
+    c.fillStyle='#080c1c';c.fillRect(0,0,1280,720);
+    for(const [x,y,r,color] of [[1040,80,740,'#18375a'],[80,600,620,'#292344'],[730,500,410,'#132f46']]){
+      const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'#080c1c00');
+      c.fillStyle=g;c.fillRect(0,0,1280,720);
+    }
+    for(let i=0;i<90;i++){
+      const x=(i*157+43)%1280,y=(i*277+19)%720;
+      c.fillStyle=i%5?'#a2c1d346':'#e5e7db90';c.fillRect(x,y,i%11?1:2,i%11?1:2);
+    }
+    for(const [x,y,s] of [[180,160,60],[1090,510,85],[340,592,43],[1030,210,31]]){
+      c.save();c.translate(x,y);c.scale(s/50,s/50);
+      polygon(c,[[-36,-24],[-13,-48],[24,-39],[47,-8],[34,34],[-12,44],[-41,14]],'#474454','#11182b',4);
+      polygon(c,[[-36,-24],[-13,-48],[24,-39],[7,-8],[-14,8]],'#76727a','#4c4c5a',2);c.restore();
+    }
+  }
+  function ship(c,x,y,size,rotation,enemy){
+    c.save();c.translate(x,y);c.rotate(rotation);c.scale(size/76,size/76);
+    const exhaust=c.createLinearGradient(0,24,0,80);exhaust.addColorStop(0,'#8ddef3b0');exhaust.addColorStop(1,'#8ddef300');
+    polygon(c,[[-9,26],[9,26],[3,79],[-3,79]],exhaust,'#00000000',0);
+    polygon(c,[[-7,-36],[-18,-4],[-32,21],[-29,32],[-12,25],[-8,34],[8,34],[12,25],[29,32],[32,21],[18,-4],[7,-36],[0,-41]],enemy?'#ba797b':'#d0d6d6',palette.ink,3);
+    polygon(c,[[0,-35],[-7,2],[-5,22],[6,21],[10,1]],'#647b93',palette.ink,2);
+    polygon(c,[[-17,2],[-26,24],[-14,19],[-10,4]],'#bb673e');
+    polygon(c,[[15,0],[27,25],[13,19],[10,3]],'#bb673e');
+    line(c,[[-9,27],[-4,31]],'#a6f3e7',4);line(c,[[5,29],[10,25]],'#a6f3e7',4);c.restore();
+  }
+  function bars(c,x,y,shield,hull){
+    const width=130,height=10;
+    c.fillStyle='#071020dd';c.fillRect(x-4,y-4,174,32);
+    c.fillStyle='#3c4148';c.fillRect(x,y,width,height);c.fillRect(x,y+13,width,height);
+    c.fillStyle=palette.shield;c.fillRect(x,y,width*shield/100,height);
+    c.fillStyle=palette.hull;c.fillRect(x,y+13,width*hull/65,height);
+    c.fillStyle='#f0f2ee';c.font='17px Arial';c.fillText(Math.ceil(shield),x+width+7,y+10);c.fillText(hull,x+width+7,y+23);
+  }
+  function shieldRing(c,x,y,gap,alpha=1,tips=1){
+    const start=ring.hit+gap/2,end=ring.hit+Math.PI*2-gap/2;
+    if(alpha<=0||end<=start)return;
+    const count=Math.max(12,Math.ceil((end-start)*24));
+    function band(inner,outer,fill,opacity){
+      c.save();c.globalAlpha=clamp(alpha*opacity);c.fillStyle=fill;c.beginPath();
+      for(const [side,from,to,step] of [[outer,0,count,1],[inner,count,0,-1]]){
+        for(let i=from;step>0?i<=to:i>=to;i+=step){
+          const a=start+(end-start)*i/count;
+          const taper=gap>0?0.25+0.75*ease(Math.min(a-start,end-a)/0.12):1;
+          const weight=state.weight*(0.86+0.13*Math.cos(a*3)+0.09*Math.sin(a*7));
+          const radius=ring.radius+0.16*Math.sin(a*3)+0.1*Math.sin(a*7)+side*weight*taper;
+          const px=x+Math.cos(a)*radius,py=y+Math.sin(a)*radius;
+          if(side===outer&&i===0)c.moveTo(px,py);else c.lineTo(px,py);
+        }
+      }
+      c.closePath();c.fill();c.restore();
+    }
+    const tint=c.createLinearGradient(x-ring.radius,y-ring.radius,x+ring.radius,y+ring.radius);
+    tint.addColorStop(0,'#cfdfd5');tint.addColorStop(0.4,ring.color);tint.addColorStop(1,'#548e9c');
+    band(-3.8,0.5,ring.color,0.12);
+    band(-1.8,1.8,'#0b2432',0.6);
+    band(-ring.width/2,ring.width/2,tint,ring.alpha);
+    band(0.75,1.1,'#d7e6db',0.38);
+    if(gap<=0||tips<=0)return;
+    const tip=Math.min(0.07,(end-start)/2);
+    c.save();c.shadowColor=ring.color;c.shadowBlur=3;
+    arc(c,x,y,ring.radius,start,start+tip,ring.tip,1.5*state.weight,alpha*tips*0.8);
+    arc(c,x,y,ring.radius,end-tip,end,ring.tip,1.5*state.weight,alpha*tips*0.8);
+    c.restore();
+  }
+  function breakEffect(c,x,y,t){
+    const elapsed=t-onset;
+    if(elapsed<0||elapsed>=state.breakDuration)return;
+    const p=elapsed/state.breakDuration;
+    const attack=ease(elapsed/0.025);
+    shieldRing(c,x,y,Math.PI*2*ease(p),attack*(1-ease((p-0.65)/0.35)));
+  }
+  function recoveryAndFull(c,x,y,t){
+    if(state.sequence!=='cycle'||t<recoverAt)return;
+    const completed=t-fullAt;
+    if(completed<0){
+      const progress=clamp((t-recoverAt)/(fullAt-recoverAt));
+      shieldRing(c,x,y,Math.PI*2*(1-progress),ease((t-recoverAt)/0.08),1-ease((progress-0.92)/0.08));
+      return;
+    }
+    shieldRing(c,x,y,0,1-ease((completed-fullHold)/0.38),0);
+  }
+  function shieldValue(){
+    if(state.time<onset)return 25;
+    if(state.sequence!=='cycle'||state.time<recoverAt)return 0;
+    return Math.floor(100*clamp((state.time-recoverAt)/(fullAt-recoverAt)));
+  }
+  function phaseText(){
+    if(state.time<onset)return 'Before impact';
+    if(state.time<onset+state.breakDuration)return 'Shield breaks';
+    if(state.sequence==='cycle'){
+      if(state.time<recoverAt)return 'Waiting to recover';
+      if(state.time<fullAt)return 'Shield recovering';
+      if(state.time<fullAt+fullHold+0.38)return 'Full shield';
+      return 'Full shield · quiet';
+    }
+    return 'Shield empty · quiet';
+  }
+  function renderScene(){
+    const canvas=scene.querySelector('canvas'),c=canvas.getContext('2d');
+    if(canvas.width!==1280){canvas.width=1280;canvas.height=720;}
+    const width=canvas.clientWidth,zoom=width>0?Math.max(1.3,11*1280/(17*width)):1.3;
+    c.clearRect(0,0,1280,720);
+    c.save();
+    c.translate(640,360);c.scale(zoom,zoom);c.translate(-640,-360);
+    background(c);
+    if(state.crowded){
+      for(const [x,y,size,rot] of [[360,320,62,0.8],[900,295,69,-0.8],[925,580,56,-2.1],[450,535,58,2.4]]){
+        ship(c,x,y,size,rot,true);bars(c,x-65,y-72,64,44);
+      }
+      line(c,[[825,263],[810,276]],'#ffe0a4',3);line(c,[[792,295],[777,308]],'#ffe0a4',3);
+      line(c,[[390,370],[404,385]],'#9be6f4',3);line(c,[[421,402],[435,416]],'#9be6f4',3);
+      line(c,[[846,525],[831,518]],'#ffe0a4',3);
+    }
+    ship(c,640,385,shipSize,-0.2,false);
+    breakEffect(c,640,385,state.time);
+    recoveryAndFull(c,640,385,state.time);
+    bars(c,575,302,shieldValue(),65);
+    c.fillStyle='#bac7d6';c.font='18px Arial';c.fillText('PLAYER',607,472);
+    c.restore();
+  }
+  function render(){
+    renderScene();
+    picker.value=state.sequence;scrub.max=duration();scrub.value=state.time;
+    output.textContent=state.time.toFixed(2)+' / '+duration().toFixed(2)+' s';
+    clock.textContent=(animation?'Playing':'Paused')+' · '+state.time.toFixed(2)+' s';
+    const text=phaseText();
+    if(phase.textContent!==text)phase.textContent=text;
+  }
+  function stop(){
+    if(animation)cancelAnimationFrame(animation);
+    animation=0;button.textContent=reduced.matches?'Step':'Replay';
+  }
+  picker.addEventListener('change',()=>{stop();state.sequence=picker.value;state.time=state.sequence==='cycle'?3:0.45;render();save();});
+  scrub.addEventListener('input',()=>{stop();state.time=Number(scrub.value);render();});
+  scrub.addEventListener('change',save);
+  button.addEventListener('click',()=>{
+    if(animation){stop();render();save();return;}
+    if(reduced.matches){state.time=state.time>=duration()?0:Math.min(duration(),state.time+0.1);render();save();return;}
+    save();const start=performance.now();button.textContent='Pause';
+    function tick(now){
+      state.time=Math.min(duration(),(now-start)/1000);
+      if(state.time<duration())animation=requestAnimationFrame(tick);else stop();
+      render();
+    }
+    animation=requestAnimationFrame(tick);
+  });
+  new ResizeObserver(render).observe(root);
+  window.addEventListener('openai:set_globals',e=>{stop();restore(e.detail?.globals?.widgetState);render();});
+  reduced.addEventListener('change',()=>{stop();render();});
+  restore(window.openai?.widgetState);stop();render();
+  if(globalThis.Tweak){
+    const tweak=new Tweak({container:root,onChange:()=>{stop();render();save();}});
+    tweak.addToggle(state,'crowded',{label:'Nearby ships and fire'});
+    tweak.addSlider(state,'weight',{label:'Shield line weight',min:0.75,max:1.5,step:0.05});
+  }
+})();
+</script>
