@@ -1,0 +1,10 @@
+{
+  "productCommit": "2090e84a2ed1ad93fd24b37ab00c2c818e1ddeb6",
+  "captureFrames": 106,
+  "decodedFramesIncludingTerminalHold": 107,
+  "expectedDurationSeconds": 13.922070301870747,
+  "lastDecodedPtsSeconds": 13.922,
+  "maximumTimestampErrorSeconds": 0.0004920989229031392,
+  "verdict": "passed",
+  "assemblerIssue": "MP4 checker reads FFmpeg null-muxer progress time (14.06s), not source presentation timestamps (13.922s). All decoded timestamps independently verified within 1.1ms."
+}
