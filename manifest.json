@@ -1,0 +1,8 @@
+{
+  "status": "Unapproved visual comparison",
+  "purpose": "Compare phase text with phase segments under the approved top-center countdown",
+  "sourceCapture": "capacity-scene-backdrop.png",
+  "sourceCaptureSha256": "6AF743AA5D172A0B4EFD9F7482426C6B8CB2F6A7A91EAA7A5AE17F28098CC731",
+  "previewOnly": "Other HUD elements omitted. Typography, color, dimensions and segment semantics are not approved.",
+  "issue": 684
+}
