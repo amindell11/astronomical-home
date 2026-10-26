@@ -1,0 +1,16 @@
+Use case: logo-brand. Create a refined third concept sheet of seven extremely minimalist alien spacecraft weapon icons. Input 1 is our first angular concept; input 2 is our curved concept. Both are exploratory REFERENCES, not approved icons. Improve them through a coherent fine-line redraw. The user specifically wants CLEANER AND EVEN MORE MINIMALIST.
+
+KEEP: flat ivory marks on uniform very dark navy, spacious seven-icon layout, labels, no frames. Four icons on top and three centered below. Exact labels: top "LASERS", "TURBO LASERS", "CHARGE LASERS", "RAILGUN"; bottom "MISSILES", "RIPPERS", "CONCUSSION". No other text.
+
+MAIN CHANGE: real fine-line instrument marks. Imagine each glyph fitting a 32 by 32 unit square, with all lines 1 unit thick and clean flat ends. Make the stroke weight visibly one third as thick as the reference sheets. Each glyph only 2 or 3 elements, maximum 4. Small, compact, airy symbols; lavish whitespace, same optical scale. Uniform delicate strokes, no solid slabs, no big filled circles, no decorative tapering or notches. High precision, calm, otherworldly, practical. Smooth vector-style curves and lines, no texture, gradients, effects, glows or shadows.
+
+Choose distinct silhouettes with these compact constructions:
+LASERS: two fine parallel diagonal strokes with unequal lengths and clean flat ends, offset.
+TURBO LASERS: a compact faster rhythm related to Lasers, using three fine short diagonal strokes with considered spacing.
+CHARGE LASERS: one short diagonal beam held between two restrained separated angular charging brackets; clearly distinct square silhouette, not a dotted diagonal.
+RAILGUN: one unusually long fine diagonal beam crossing a short detached perpendicular alignment mark, minimal precision and penetration; no enclosing bracket, no burst.
+MISSILES: one short bent or gently curved trajectory approaching a tiny detached diagonal dash; just two or three marks, asymmetric, suggests pursuit, no arrows or literal missile.
+RIPPERS: three discrete short straight slugs in an orderly staggered cadence, with a horizontal overall silhouette to distinguish it from the laser family; not circular dots, not a spray.
+CONCUSSION: a small symmetric arrangement of opposing short outward-bowing arc segments around an empty center, radial expansion rather than sound emission. Exactly two or four arcs. No X, no asterisk, no diamond, no nested arcs all pointing one way, no Wi-Fi/speaker symbol.
+
+Make this a convincing unified family of elegant, spare future-instrument symbols, with seven different overall shapes. Each must remain conceptually readable when reduced. No ornament for its own sake. Do not fill the open centers. Keep symbols comfortably contained and labels understated, correctly spelled.
