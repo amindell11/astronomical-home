@@ -123,6 +123,7 @@ namespace Game
                 Overlay.SetCanvasWorldCamera(uiCam);
                 Overlay.Initialize(BuildHudBinding());
                 Overlay.BindObjectives(objectives);
+                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 
             if (presentationEnabled && observer && minimapCamPrefab)

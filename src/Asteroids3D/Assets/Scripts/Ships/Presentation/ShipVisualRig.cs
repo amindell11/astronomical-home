@@ -7,7 +7,7 @@ namespace Ships.Presentation
 {
     /// <summary>
     /// Root of a ship's visual rig (hull renderer, particles, light, audio, canvases), authored as a
-    /// child of the ship prefab. It binds the ship's view to each visual and controls status-bar opacity.
+    /// child of the ship prefab. It binds the ship's view to each visual and fades rig canvases.
     /// The unit service applies the session's presentation policy when it wires the ship, and this
     /// part owns the cheapest gate available: deactivating the subtree, so a dark rig never reaches
     /// <see cref="Start"/>, binds, renders, ticks, or plays audio while the ship stays fully simulated.

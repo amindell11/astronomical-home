@@ -5,6 +5,8 @@ using UI.Markers;
 using UI.PlayerState;
 using Combat.Weapons.Conditions;
 using Substrate.Services.Objectives;
+using Ships;
+using Utils;
 
 namespace UI
 {
@@ -25,6 +27,7 @@ namespace UI
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
+        private ShipStatusOverlay shipStatus;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
@@ -70,6 +73,19 @@ namespace UI
         {
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+        }
+
+        public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera);
+
+        public void SetShipHudOpacity(float opacity)
+        {
+            if (shipStatus) shipStatus.SetOpacity(opacity);
+        }
+
+        private void OnDestroy()
+        {
+            if (shipStatus) Destroy(shipStatus.gameObject);
         }
 
         public void Initialize(in HudBinding binding)

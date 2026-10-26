@@ -44,6 +44,7 @@ namespace UI.Recap
             {
                 overlay.SetVisible(hudAlpha > 0f);
                 overlay.SetOpacity(hudAlpha);
+                overlay.SetShipHudOpacity(shipHudAlpha);
             }
             foreach (var ship in ships)
                 if (ship && ship.VisualRig) ship.VisualRig.SetHudOpacity(shipHudAlpha);

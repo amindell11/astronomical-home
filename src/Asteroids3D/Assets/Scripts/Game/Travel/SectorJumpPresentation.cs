@@ -153,6 +153,7 @@ namespace Game.Travel
             try { Graphics.Blit(null, composed, material); }
             finally { RenderTexture.active = previous; }
             overlay.SetOpacity(state.HudAlpha);
+            overlay.SetShipHudOpacity(state.HudAlpha);
             foreach (var active in ships)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(state.HudAlpha);
         }
@@ -230,7 +231,11 @@ namespace Game.Travel
                 observer.transform.position = observerPosition;
             }
             if (ownsPose && ship) ship.Commander.enabled = commanderEnabled;
-            if (overlay) overlay.SetOpacity(1f);
+            if (overlay)
+            {
+                overlay.SetOpacity(1f);
+                overlay.SetShipHudOpacity(1f);
+            }
             if (ships != null)
                 foreach (var active in ships)
                     if (active && active.VisualRig) active.VisualRig.SetHudOpacity(1f);
